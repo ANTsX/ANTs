@@ -257,6 +257,17 @@ static void antsApplyTransformsToPointsInitializeCommandLineOptions( itk::ants::
 
     {
     std::string description =
+      std::string( "use-double-precision" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "precision" );
+    option->SetShortName( 'p' );
+    option->SetUsageOption( 0, "0/1" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
       std::string( "Currently, the only input supported is a csv file with " )
       + std::string( "columns including x,y,z,t (all 4) column headers. " )
       + std::string( "if you dont have 4D data, still supply 4D filling in extra places with zero. " )
@@ -447,26 +458,61 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( dimension )
+  itk::ants::CommandLineParser::OptionType::Pointer precOption =
+    parser->GetOption( "precision" );
+  unsigned int myprecision = 0;
+  if( precOption && precOption->GetNumberOfFunctions() > 0 )
     {
-    case 2:
+    myprecision = parser->Convert<unsigned int>( precOption->GetFunction( 0 )->GetName() );
+    }
+
+  if ( myprecision == 1 )
+    {
+    switch( dimension )
       {
-      antsApplyTransformsToPoints<2,float>( parser );
+      case 2:
+        {
+        antsApplyTransformsToPoints<2,double>( parser );
+        }
+        break;
+      case 3:
+        {
+        antsApplyTransformsToPoints<3,double>( parser );
+        }
+        break;
+      case 4:
+        {
+        antsApplyTransformsToPoints<4,double>( parser );
+        }
+        break;
+      default:
+        std::cerr << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
       }
-      break;
-    case 3:
+    }
+  else
+    {
+    switch( dimension )
       {
-      antsApplyTransformsToPoints<3,float>( parser );
+      case 2:
+        {
+        antsApplyTransformsToPoints<2,float>( parser );
+        }
+        break;
+      case 3:
+        {
+        antsApplyTransformsToPoints<3,float>( parser );
+        }
+        break;
+      case 4:
+        {
+        antsApplyTransformsToPoints<4,float>( parser );
+        }
+        break;
+      default:
+        std::cerr << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
       }
-      break;
-    case 4:
-      {
-      antsApplyTransformsToPoints<4,float>( parser );
-      }
-      break;
-    default:
-      std::cerr << "Unsupported dimension" << std::endl;
-      return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;
 }
