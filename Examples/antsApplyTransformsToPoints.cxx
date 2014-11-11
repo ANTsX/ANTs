@@ -231,7 +231,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
             {
             ind[0] = d;
             ind[1] = dd;
-            pointimage->SetPixel( ind , points_in( d, dd ) );
+            pointimage->SetPixel( ind , points_out( d, dd ) );
             }
         WriteImage<ImageType>(pointimage, outputFileName.c_str() );
         }
