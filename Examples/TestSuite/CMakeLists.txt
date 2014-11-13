@@ -117,7 +117,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --metric Mattes[${test_image_VAR},${scale_test_image_VAR},1,200,Regular,0.10] #costMetric & fixedVolume & movingVolume & metricWeight? & numberOfHistogramBins & samplingStrategy? & samplingPercentage(numberOfSamples)
   --transform "Affine[0.001]" #transformType & minimumStepLength
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_${antsRegistrationTestName}.mat}
-  --masks[${test_mask_VAR},${scale_test_mask_VAR}] #fixedBinaryVolume & movingBinaryVolume
+  --masks [${test_mask_VAR},${scale_test_mask_VAR}] #fixedBinaryVolume & movingBinaryVolume
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}_inverse.test.nii.gz]
 )
 
@@ -159,7 +159,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --metric Mattes[${test_image_VAR},${rotation_test_image_VAR},1,200,Regular,0.10]
   --transform "Affine[0.001]"
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_${antsRegistrationTestName}.mat}
-  --masks[${test_mask_VAR},${rotation_test_mask_VAR}]
+  --masks [${test_mask_VAR},${rotation_test_mask_VAR}]
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
@@ -200,7 +200,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --metric MeanSquares[${test_image_VAR},${translation_test_image_VAR},1,radius=NA,Regular,0.10]
   --transform "Affine[0.001]"
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_${antsRegistrationTestName}.mat}
-  --masks[${test_mask_VAR},${translation_test_mask_VAR}]
+  --masks [${test_mask_VAR},${translation_test_mask_VAR}]
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
@@ -281,7 +281,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --metric Mattes[${test_image_VAR},${rotation_test_image_VAR},1,200,Regular,0.20]
   --transform "Rigid[0.001]"
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_RigidRotationHeadMasks.mat}
-  --masks[${test_mask_VAR},${rotation_test_mask_VAR}]
+  --masks [${test_mask_VAR},${rotation_test_mask_VAR}]
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
@@ -322,7 +322,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --metric MeanSquares[${test_image_VAR},${rotation_test_image_VAR},1,200,Regular,0.10]
   --transform "Affine[0.001]"
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_AffineRotationMasks.mat}
-  --masks[${test_mask_VAR},${rotation_test_mask_VAR}]
+  --masks [${test_mask_VAR},${rotation_test_mask_VAR}]
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
@@ -398,7 +398,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --metric Mattes[${test_image_VAR},${rotation_test_image_VAR},1,200,Regular,0.20]
   --transform "Similarity[0.001]"
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}
-  --masks[${test_mask_VAR},${rotation_test_mask_VAR}]
+  --masks [${test_mask_VAR},${rotation_test_mask_VAR}]
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
@@ -439,7 +439,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --metric Mattes[${test_image_VAR},${scale_test_image_VAR},1,200,Regular,0.20]
   --transform "Similarity[0.001]"
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_AffineScaleMasks.mat}
-  --masks[${test_mask_VAR},${scale_test_mask_VAR}]
+  --masks [${test_mask_VAR},${scale_test_mask_VAR}]
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
@@ -500,7 +500,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --metric CC[${test_image_VAR},${rotation_test_image_VAR},1,5]
   --transform "Similarity[0.001]"
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}
-  --masks[${test_mask_VAR},${rotation_test_mask_VAR}]
+  --masks [${test_mask_VAR},${rotation_test_mask_VAR}]
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
@@ -522,7 +522,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --metric MeanSquares[${test_image_VAR},${rotation_test_image_VAR},1,NA]
   --transform "Similarity[0.001]"
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}
-  --masks[${test_mask_VAR},${rotation_test_mask_VAR}]
+  --masks [${test_mask_VAR},${rotation_test_mask_VAR}]
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
