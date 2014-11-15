@@ -9,49 +9,49 @@ then
   echo "Cannot find antsApplyTransforms.  Please \(re\)define \$ANTSPATH in your environment."
 fi
 if [[ ! -s ${ANTSPATH}/antsIntermodalityIntrasubject.sh ]]
-then 
+then
   echo "Cannot find antsIntermodalityIntrasubject.sh script.  Please \(re\)define \$ANTSPATH in your environemnt."
 fi
 
 function Usage {
   cat <<USAGE
-`basename $0` performs ASL processing based on ANTs tools.  Preprocessing of T1 images using antsCorticalThickness.sh is assumed.  The following steps are performed: 
-  1) Calculation of average pCASL image. 
-  2) Skull stripping of average pCASL image. 
-  3) Registration of average pCASL image to T1 image. 
-  4) (Robust) calculation of mean CBF. 
+`basename $0` performs ASL processing based on ANTs tools.  Preprocessing of T1 images using antsCorticalThickness.sh is assumed.  The following steps are performed:
+  1) Calculation of average pCASL image.
+  2) Skull stripping of average pCASL image.
+  3) Registration of average pCASL image to T1 image.
+  4) (Robust) calculation of mean CBF.
   5) Warping tissue priors and labels to ASL space.
   6) Warping mean CBF image to template space for VBM analysis.
 
-Usage: 
-Required arguments: 
-`basename $0` -a anatomical image (skull stripped)  
-              -p brain segmentation priors (C-style, e.g. priors%d.nii.gz) 
+Usage:
+Required arguments:
+`basename $0` -a anatomical image (skull stripped)
+              -p brain segmentation priors (C-style, e.g. priors%d.nii.gz)
               -g hard brain segmentation
               -x t1 brain mask
-              -s raw pCASL image 
+              -s raw pCASL image
               -e brain template
 	      -l template labels
-              -t skull-stripped t1 to template transform prefix 
+              -t skull-stripped t1 to template transform prefix
               -o output prefix
-Optional arguments: 
-              -b blood T1 value (defaults to 0.67 s^-1) 
-	      -r robustness parameter (defaults to 0.95)             
+Optional arguments:
+              -b blood T1 value (defaults to 0.67 s^-1)
+	      -r robustness parameter (defaults to 0.95)
 	      -h print help and exit
 	      -n number of bootstrap samples (defaults to 20)
 	      -c percent to sample per bootstrap run (defaults to 70)
 	      -k keep tmp files, including warps (defaults to false--takes lots of space to save)
-	      -i use inverse warps.  Warps are assumed to go in the direction of subject to template.  
-	         If you are instead using template to subject warps (e.g. the brain segmentation prior warps from 
-	         antsCorticalThickness.sh), use -i (binary switch--no arguments). 
+	      -i use inverse warps.  Warps are assumed to go in the direction of subject to template.
+	         If you are instead using template to subject warps (e.g. the brain segmentation prior warps from
+	         antsCorticalThickness.sh), use -i (binary switch--no arguments).
 	      -f bootstrap with replacement?  takes arguments "false" or "true"; defaults to false.
 USAGE
-  exit 1 
+  exit 1
 }
 
 echoParameters() {
   cat <<PARAMETERS
-  Using `basename $0` with the following parameters: 
+  Using `basename $0` with the following parameters:
 
    anatomical image:      ${ANATOMICAL_IMAGE}
    brain mask:            $BRAINMASK
@@ -61,7 +61,7 @@ echoParameters() {
    template:              $TEMPLATE
    template labels:       $LABELS
    transform prefix:      $TRANSFORM_PREFIX
-   output prefix:         $OUTNAME  
+   output prefix:         $OUTNAME
    blood relaxation:      $BLOODT1 s^-1
    robustness:            $ROBUST
    num bootstraps:        $NBOOTSTRAP
@@ -82,16 +82,16 @@ function logCmd() {
   echo
 }
 
-KEEP_TMP_FILES=false 
+KEEP_TMP_FILES=false
 USE_INVERSE_WARPS=false
-if [[ $# -lt 3 ]] 
-then 
+if [[ $# -lt 3 ]]
+then
   Usage >&2
   exit 1
-else 
+else
   while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:f:k:i:h" OPT
-  do 
-    case $OPT in 
+  do
+    case $OPT in
       a) #anatomical t1 image
     ANATOMICAL_IMAGE=$OPTARG
     ;;
@@ -101,7 +101,7 @@ else
       e) # brain template
     TEMPLATE=$OPTARG
     ;;
-      p) # segmentation probabilities 
+      p) # segmentation probabilities
     SEGMENTATION_PROB=$OPTARG
     ;;
       g) # hard seg
@@ -120,7 +120,7 @@ else
     LABELS=$OPTARG
     ;;
       b) # blood t1
-    BLOODT1=$OPTARG 
+    BLOODT1=$OPTARG
     ;;
       r) # robustness
     ROBUST=$OPTARG
@@ -131,10 +131,10 @@ else
       c) # pct to sample per bootstrap
     PCTBOOTSTRAP=$OPTARG
     ;;
-      f) # sample with replacement? 
+      f) # sample with replacement?
     SAMPLE_WITH_REPLACEMENT=$OPTARG
     ;;
-      k) # keep tmp files 
+      k) # keep tmp files
     KEEP_TMP_FILES=true
     ;;
       i) # use inverse warps
@@ -144,10 +144,10 @@ else
     Usage >&2
     exit 0
     ;;
-      *) 
+      *)
     echo "ERROR: unrecognized option -$OPT $OPTARG"
     exit 1
-    ;; 
+    ;;
     esac
   done
 fi
@@ -157,19 +157,19 @@ then
   BLOODT1=0.67
 fi
 if [[ -z $ROBUST ]]
-then 
+then
   ROBUST=0.95
 fi
 if [[ -z $NBOOTSTRAP ]]
-then 
+then
   NBOOTSTRAP=20
 fi
 if [[ -z $PCTBOOTSTRAP ]]
-then 
+then
   PCTBOOTSTRAP=0.70
 fi
-if [[ -z $SAMPLE_WITH_REPLACEMENT ]] 
-then 
+if [[ -z $SAMPLE_WITH_REPLACEMENT ]]
+then
   SAMPLE_WITH_REPLACEMENT=false
 fi
 echoParameters >&2
@@ -208,12 +208,12 @@ done
 
 # check for existence of all images
 if [[ ! -f ${ANATOMICAL_IMAGE} ]]
-then 
+then
   echo "ERROR: Anatomical image ${ANATOMICAL_IMAGE} does not exist."
   exit 1
 fi
-if [[ ! -f $BRAINMASK ]] 
-then 
+if [[ ! -f $BRAINMASK ]]
+then
   echo "ERROR: Brain mask $BRAINMASK does not exist."
   exit 1
 fi
@@ -223,54 +223,57 @@ then
   exit 1
 fi
 if [[ ! -f $TEMPLATE ]]
-then 
+then
   echo "ERROR: template image $TEMPLATE does not exist."
   exit 1
 fi
 if [[ ! -f $LABELS ]]
-then 
+then
   echo "ERROR: Template label image $LABELS does not exist."
 fi
 if [[ ! -f $SEGMENTATION ]]
-then 
+then
   echo "ERROR: Segmentation image $SEGMENTATION does not exist."
   exit 1
 fi
 if [[ ! -f ${TRANSFORM_PREFIX}SubjectToTemplate1Warp.nii.gz ]]
-then 
+then
   echo "ERROR: Warp ${TRANSFORM_PREFIX}SubjectToTemplate1Warp.nii.gz does not exist."
   exit 1
 fi
 if [[ ${#PRIOR_IMAGE_FILENAMES[@]} -lt 3 ]]
 then
-  echo "ERROR: Fewer than 3 prior images specified." 
+  echo "ERROR: Fewer than 3 prior images specified."
   echo "       Check that you defined prior file names correctly."
 fi
 
 time_start=`date +%s`
 
 
-# Do processing. 
+# Do processing.
 if [[ ! -d `dirname $OUTNAME` ]]
-then 
+then
   mkdir -p `dirname $OUTNAME`
 fi
-if [[ ! -s ${OUTNAME}AveragePCASL.nii.gz ]] ; then 
+if [[ ! -s ${OUTNAME}AveragePCASL.nii.gz ]] ; then
   logCmd ${ANTSPATH}antsMotionCorr -d 3 -a $PCASL -o ${OUTNAME}AveragePCASL.nii.gz
 fi
 logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz 600 999999
-logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz ME ${OUTNAME}tmp.nii.gz 1
+logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz ME ${OUTNAME}tmp.nii.gz 2
 logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz GetLargestComponent ${OUTNAME}tmp.nii.gz
-logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz MD ${OUTNAME}tmp.nii.gz 2
+logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz MD ${OUTNAME}tmp.nii.gz 3
 logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}pCASLBrain.nii.gz m ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz
 
-INTERSUBJECT_PARAMS=" -d 3 -i ${OUTNAME}pCASLBrain.nii.gz -r $ANATOMICAL_IMAGE -x $BRAINMASK -w ${TRANSFORM_PREFIX}SubjectToTemplate -t 3 -o $OUTNAME "
+INTERSUBJECT_PARAMS=" -d 3 -i ${OUTNAME}pCASLBrain.nii.gz -r $ANATOMICAL_IMAGE -x $BRAINMASK -w ${TRANSFORM_PREFIX}SubjectToTemplate -t 2 -o $OUTNAME "
 if [[ -n $LABELS ]]
-then 
+then
   INTERSUBJECT_PARAMS=" ${INTERSUBJECT_PARAMS} -l $LABELS "
 fi
 
 logCmd ${ANTSPATH}/antsIntermodalityIntrasubject.sh $INTERSUBJECT_PARAMS
+N4BiasFieldCorrection -d 3 -i ${OUTNAME}AveragePCASL.nii.gz -o  ${OUTNAME}AveragePCASL.nii.gz -r 1 -s 4
+N4BiasFieldCorrection -d 3 -i ${OUTNAME}AveragePCASL.nii.gz -o  ${OUTNAME}AveragePCASL.nii.gz -r 1 -s 2
+N4BiasFieldCorrection -d 3 -i ${OUTNAME}AveragePCASL.nii.gz -o  ${OUTNAME}AveragePCASL.nii.gz -r 1 -s 1
 logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}OtsuMask.nii.gz Otsu 4
 logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}OtsuMask.nii.gz 2 4
 logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz ME ${OUTNAME}OtsuMask.nii.gz 1
@@ -301,8 +304,8 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -t ${TRANSFORM_PREFIX}SubjectToTemplate0GenericAffine.mat \
     -t ${TRANSFORM_PREFIX}SubjectToTemplate1Warp.nii.gz \
     -t ${OUTNAME}1Warp.nii.gz \
-    -t ${OUTNAME}0GenericAffine.mat 
-  
+    -t ${OUTNAME}0GenericAffine.mat
+
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -i $LABELS \
     -r ${OUTNAME}AveragePCASL.nii.gz \
@@ -311,8 +314,8 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -t ${TRANSFORM_PREFIX}TemplateToSubject0Warp.nii.gz \
     -t ${TRANSFORM_PREFIX}TemplateToSubject1GenericAffine.mat \
     -t [${OUTNAME}0GenericAffine.mat,1] \
-    -t ${OUTNAME}1InverseWarp.nii.gz 
-    
+    -t ${OUTNAME}1InverseWarp.nii.gz
+
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
   -r $ANATOMICAL_IMAGE \
