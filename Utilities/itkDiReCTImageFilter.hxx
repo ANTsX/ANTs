@@ -875,8 +875,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 ::BSplineSmoothDisplacementField( const DisplacementFieldType *inputField,
                            const RealType isotropicMeshSpacing )
 {
-  typedef itk::DisplacementFieldToBSplineImageFilter<DisplacementFieldType,
-    DisplacementFieldType> BSplineFilterType;
+  typedef itk::DisplacementFieldToBSplineImageFilter<DisplacementFieldType> BSplineFilterType;
 
   // calculate the number of control points based on the isotropic mesh spacing
 
