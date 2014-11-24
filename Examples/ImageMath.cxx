@@ -5250,6 +5250,59 @@ int ImageMath(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int FuseNImagesIntoNDVectorField(int argc, char *argv[])
+{
+  typedef itk::Vector<float, ImageDimension>       VectorType;
+  typedef itk::Image<VectorType, ImageDimension>   FieldType;
+  typedef itk::Image<float, ImageDimension>        ImageType;
+  typedef typename  ImageType::PixelType           PixelType;
+  typedef  typename ImageType::IndexType           IndexType;
+  typedef itk::ImageRegionIteratorWithIndex<FieldType>   Iterator;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]); argct++;
+  std::string       operation = std::string(argv[argct]);  argct++;
+  std::string       fn1 = std::string(argv[argct]);   argct++;
+  std::string       fn2 = "";
+  std::string       fn3 = "";
+  if( argc > argct )
+    {
+    fn2 = std::string(argv[argct++]);
+    }
+  if( argc > argct )
+    {
+    fn3 = std::string(argv[argct++]);
+    }
+
+  typename ImageType::Pointer image1 = NULL;
+  typename ImageType::Pointer image2 = NULL;
+  typename ImageType::Pointer image3 = NULL;
+  if ( fn1.length() > 3 ) ReadImage<ImageType>(image1, fn1.c_str() );
+  if ( fn2.length() > 3 ) ReadImage<ImageType>(image2, fn2.c_str() );
+  if ( fn3.length() > 3 ) ReadImage<ImageType>(image3, fn3.c_str() );
+  typename FieldType::Pointer vimage =
+    AllocImage<FieldType>(image1->GetLargestPossibleRegion(),
+      image1->GetSpacing(),
+      image1->GetOrigin(),
+      image1->GetDirection() );
+
+  VectorType vec;
+  vec.Fill(0);
+  Iterator vfIter2( vimage,  vimage->GetLargestPossibleRegion() );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    IndexType ind = vfIter2.GetIndex();
+    vec[0] = image1->GetPixel(ind);
+    vec[1] = image2->GetPixel(ind);
+    if ( ImageDimension >  2 ) vec[2] = image3->GetPixel(ind);
+    vfIter2.Set(vec);
+    }
+  WriteImage<FieldType>(vimage, outname.c_str() );
+  return EXIT_SUCCESS;
+}
+
+
+
+template <unsigned int ImageDimension>
 int VImageMath(int argc, char *argv[])
 {
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -13291,6 +13344,11 @@ ImageMathHelper3DOnly(int argc, char **argv)
     TensorFunctions<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
+  if( operation == "FuseNImagesIntoNDVectorField" )
+    {
+    FuseNImagesIntoNDVectorField<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
   if( operation == "ExtractComponentFrom3DTensor" )
     {
     TensorFunctions<DIM>(argc, argv);
@@ -14253,6 +14311,8 @@ private:
     std::cout << "    Usage        : TensorToVectorComponent DTImage.ext WhichVec" << std::endl;
     std::cout << "  TensorMask     : Mask a tensor image, sets background tensors to zero or to isotropic tensors with specified mean diffusivity " << std::endl;
     std::cout << "    Usage        : TensorMask DTImage.ext mask.ext [ backgroundMD = 0 ] " << std::endl;
+    std::cout << "  FuseNImagesIntoNDVectorField     : Create ND field from N input scalar images" << std::endl;
+    std::cout << "    Usage        : FuseNImagesIntoNDVectorField imagex imagey imagez" << std::endl;
 
     std::cout << "\nLabel Fusion:" << std::endl;
     std::cout << "  MajorityVoting : Select label with most votes from candidates" << std::endl;
