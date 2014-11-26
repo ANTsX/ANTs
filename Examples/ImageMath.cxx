@@ -9766,14 +9766,14 @@ int LabelStats(      int argc, char *argv[])
 
     if( !valimage )
       {
-      std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
-                << std::endl;
+//      std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
+          //      << std::endl;
       }
     else // if ( totalvolume > 500 &&  totalmass/totalct > 1/500 )  {
       {
-      std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
-                << " mass is " << totalmass << " average-val is " << totalmass / totalct << std::endl;
-      //      std::cout << *it << "  " <<  totalvolume <<  " & " <<  totalmass/totalct   << " \ " << std::endl;
+//      std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
+//                << " mass is " << totalmass << " average-val is " << totalmass / totalct << std::endl;
+//      //      std::cout << *it << "  " <<  totalvolume <<  " & " <<  totalmass/totalct   << " \ " << std::endl;
       }
 
 // square image
@@ -9796,7 +9796,7 @@ int LabelStats(      int argc, char *argv[])
 
   logfile.close();
 
-  WriteImage<TwoDImageType>(squareimage, imagename.c_str() );
+  //WriteImage<TwoDImageType>(squareimage, imagename.c_str() );
 
   return 0;
 }
