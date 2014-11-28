@@ -64,6 +64,7 @@ Optional arguments:
      -n:  Number of threads (default = 1)
 
      -t:  transform type (default = 's')
+        t: translation
         r: rigid
         a: rigid + affine
         s: rigid + affine + deformable syn
@@ -128,6 +129,7 @@ Optional arguments:
      -n:  Number of threads (default = 1)
 
      -t:  transform type (default = 's')
+        t: translation
         r: rigid
         a: rigid + affine
         s: rigid + affine + deformable syn
@@ -400,9 +402,12 @@ if [[ $ISLARGEIMAGE -eq 1 ]];
     SYNSHRINKFACTORS="10x6x4x2x1"
     SYNSMOOTHINGSIGMAS="5x3x2x1x0vox"
   fi
-
+tx=Rigid
+if [[ $TRANSFORMTYPE == 't' ]] ; then
+  tx=Translation
+fi
 RIGIDSTAGE="--initial-moving-transform [${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1] \
-            --transform Rigid[0.1] \
+            --transform ${tx}[0.1] \
             --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
@@ -454,7 +459,7 @@ if [[ $TRANSFORMTYPE == 'sr' ]] ;
 
 STAGES=''
 case "$TRANSFORMTYPE" in
-"r")
+"r"| "t")
   STAGES="$RIGIDSTAGE"
   ;;
 "a")
