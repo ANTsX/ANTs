@@ -12774,6 +12774,14 @@ int BlobDetector( int argc, char *argv[] )
     {
     corrthresh = atof(argv[argct]); argct++;
     }
+  if( argc > argct )
+    {
+    radval = atoi(argv[argct]); argct++;
+    }
+  if( argc > argct )
+    {
+    dthresh = atof(argv[argct]); argct++;
+    }
   typename ImageType::Pointer image;
   typename ImageType::Pointer image2;
   ReadImage<ImageType>( image, fn1.c_str() );
