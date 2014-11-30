@@ -54,17 +54,27 @@ DoRegistration(typename ParserType::Pointer & parser)
   OptionType::Pointer maskOption = parser->GetOption( "masks" );
 
   OptionType::Pointer compositeOutputOption = parser->GetOption( "write-composite-transform" );
+  const bool writeCompositeTransform = parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() );
+
+  OptionType::Pointer saveStateOption = parser->GetOption( "save-state" );
 
   OptionType::Pointer collapseOutputTransformsOption = parser->GetOption( "collapse-output-transforms" );
+  const bool shouldCollapseBeDone = parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() );
 
-  OptionType::Pointer initializeLinearPerStage = parser->GetOption( "initialize-linear-transforms-per-stage" );
-  if( initializeLinearPerStage && parser->Convert<bool>( initializeLinearPerStage->GetFunction( 0 )->GetName() ) )
+  OptionType::Pointer initializeTransformsPerStageOption = parser->GetOption( "initialize-transforms-per-stage" );
+  if( initializeTransformsPerStageOption && parser->Convert<bool>( initializeTransformsPerStageOption->GetFunction( 0 )->GetName() ) )
     {
-    regHelper->SetInitializeLinearPerStage( true );
+    if( shouldCollapseBeDone )
+      {
+      std::cout << "ERROR: initialize-transforms-per-stage & collapse-output-transforms options are mutually exclusive."
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    regHelper->SetInitializeTransformsPerStage( true );
     }
   else
     {
-    regHelper->SetInitializeLinearPerStage( false );
+    regHelper->SetInitializeTransformsPerStage( false );
     }
 
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
@@ -144,7 +154,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     regHelper->SetMovingInitialTransform( compositeTransform );
 
     // Write out initial derived transforms only if we're not collapsing them in the output
-    if( !parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
+    if( !shouldCollapseBeDone )
       {
       for( unsigned int n = 0; n < isDerivedInitialMovingTransform.size(); n++ )
         {
@@ -173,7 +183,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     regHelper->SetFixedInitialTransform( compositeTransform );
 
     // Write out initial derived transforms only if we're not collapsing them in the output
-    if( !parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
+    if( !shouldCollapseBeDone )
       {
       for( unsigned int n = 0; n < isDerivedInitialFixedTransform.size(); n++ )
         {
@@ -185,6 +195,31 @@ DoRegistration(typename ParserType::Pointer & parser)
         itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
         }
       }
+    }
+
+  ParserType::OptionType::Pointer restoreStateOption = parser->GetOption( "restore-state" );
+
+  if( restoreStateOption && restoreStateOption->GetNumberOfFunctions() )
+    {
+    if( initialMovingTransformOption->GetNumberOfFunctions() || initialFixedTransformOption->GetNumberOfFunctions() )
+      {
+      std::cout << "restore-state option is mutually exclusive with "
+                << "initial-moving-transform & initial-fixed-transform options." << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    std::cout << "Restoring previous registration state" << std::endl;
+    std::vector<bool> isDerivedInitialMovingTransform;
+    typename CompositeTransformType::Pointer compositeTransform =
+      GetCompositeTransformFromParserOption<TComputeType, VImageDimension>( parser, restoreStateOption,
+                                                                           isDerivedInitialMovingTransform );
+    std::cout << "+" << std::endl;
+    if( compositeTransform.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+    regHelper->SetRestoreStateTransform( compositeTransform );
+    std::cout << "+" << std::endl;
     }
 
   if( maskOption && maskOption->GetNumberOfFunctions() )
@@ -937,191 +972,214 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
     }
 
-
-
-
   // write out transforms stored in the composite
   typename CompositeTransformType::Pointer resultTransform = regHelper->GetModifiableCompositeTransform();
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
 
-  if( parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() ) &&
-       !parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
-    {
-    std::string compositeTransformFileName = outputPrefix + std::string( "Composite.h5" );
-    std::string inverseCompositeTransformFileName = outputPrefix + std::string( "InverseComposite.h5" );
+  ////
 
-    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer compositeTransform =
-      resultTransform.GetPointer();
-    itk::ants::WriteTransform<TComputeType, VImageDimension>( compositeTransform, compositeTransformFileName.c_str() );
-
-    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCompositeTransform =
-      compositeTransform->GetInverseTransform();
-    if( inverseCompositeTransform.IsNotNull() )
-      {
-      itk::ants::WriteTransform<TComputeType, VImageDimension>( inverseCompositeTransform,
-                                                                inverseCompositeTransformFileName.c_str() );
-      }
-    }
-
-  // write out transforms actually computed, so skip any initial transforms unless
-  // we're collapsing the output transforms.
 
   typedef typename RegistrationHelperType::CompositeTransformType         CompositeTransformType;
   typedef typename CompositeTransformType::Pointer                        CompositeTransformPointer;
   typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
   typedef typename RegistrationHelperType::TransformType                  TransformType;
 
-  unsigned int              startIndex = initialMovingTransformOption->GetNumberOfFunctions();
-  CompositeTransformPointer collapsedResultTransform;
-  if( parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
+  if( saveStateOption && saveStateOption->GetNumberOfFunctions() )
     {
-    collapsedResultTransform = regHelper->CollapseCompositeTransform( resultTransform );
-
-    if( parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() ) )
+    CompositeTransformPointer savedStateTx =
+      dynamic_cast<CompositeTransformType *>( regHelper->GetModifiableRegistrationState() );
+    if( savedStateTx.IsNull() )
       {
-      // Write Collapsed composite transform to the disk
-      std::string collapsedCompositeTransformFileName = outputPrefix + std::string( "CollapsedComposite.h5" );
-      std::string inverseCollapsedCompositeTransformFileName = outputPrefix + std::string( "CollapsedInverseComposite.h5" );
-
-      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer collapsedCompositeTransform =
-        collapsedResultTransform.GetPointer();
-      itk::ants::WriteTransform<TComputeType, VImageDimension>( collapsedCompositeTransform,
-                                                                collapsedCompositeTransformFileName.c_str() );
-
-      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCollapsedCompositeTransform =
-      collapsedCompositeTransform->GetInverseTransform();
-      if( inverseCollapsedCompositeTransform.IsNotNull() )
+      return EXIT_FAILURE;
+      }
+    unsigned int numStateComponents = savedStateTx->GetNumberOfTransforms();
+    // If the last two transforms are displacement field transforms, we add their inverse displacement field to the saved state composite.
+    if( savedStateTx->GetNthTransform( numStateComponents-1 )->GetTransformCategory() == TransformType::DisplacementField
+       && savedStateTx->GetNthTransform( numStateComponents-2 )->GetTransformCategory() == TransformType::DisplacementField )
+      {
+      typename DisplacementFieldTransformType::Pointer oneToEndTransform =
+        dynamic_cast<DisplacementFieldTransformType *>( savedStateTx->GetNthTransform( numStateComponents-2 ).GetPointer() );
+      typename DisplacementFieldTransformType::Pointer endTransform =
+        dynamic_cast<DisplacementFieldTransformType *>( savedStateTx->GetNthTransform( numStateComponents-1 ).GetPointer() );
+      if( oneToEndTransform && oneToEndTransform->GetInverseDisplacementField()
+         && endTransform && endTransform->GetInverseDisplacementField() )
         {
-        itk::ants::WriteTransform<TComputeType, VImageDimension>( inverseCollapsedCompositeTransform,
-                                                                  inverseCollapsedCompositeTransformFileName.c_str() );
+        savedStateTx->RemoveTransform();
+        savedStateTx->AddTransform( oneToEndTransform->GetInverseTransform() );
+        savedStateTx->AddTransform( endTransform );
+        savedStateTx->AddTransform( endTransform->GetInverseTransform() );
         }
       }
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer savedStateCompositeTransform =
+      savedStateTx.GetPointer();
+    const std::string saveStateFileName = saveStateOption->GetFunction( 0 )->GetName();
 
-    numTransforms = collapsedResultTransform->GetNumberOfTransforms();
-    startIndex = 0;
-    TransformTypeNames.clear();
-    for( unsigned int i = 0; i < numTransforms; i++ )
-      {
-      if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() == TransformType::Linear )
-        {
-        // The output type must be Affine, not matrixoffset!  TransformTypeNames.push_back( "matrixoffset" );
-        TransformTypeNames.push_back( "genericaffine" );
-        }
-      else if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() ==
-               TransformType::DisplacementField )
-        {
-        typename DisplacementFieldTransformType::Pointer nthTransform =
-          dynamic_cast<DisplacementFieldTransformType *>( collapsedResultTransform->GetNthTransform( i ).GetPointer() );
-
-        // We don't know what set of displacement field transforms were optimized.
-        // All we know is whether or not an inverse displacement field exists.  If so,
-        // we simply pass a transform name which either does have an inverse or does
-        // not.
-        if( nthTransform && nthTransform->GetInverseDisplacementField() )
-          {
-          TransformTypeNames.push_back( "syn" );
-          }
-        else
-          {
-          TransformTypeNames.push_back( "gdf" );
-          }
-        }
-      else if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() == TransformType::BSpline )
-        {
-        TransformTypeNames.push_back( "bspline" );
-        }
-      }
+    // The savedState includes:
+    // output linear transforms
+    //  + SyN FixedToMiddle displacement field + SyN FixedToMiddle inverse displacement field
+    //  + SyN MovingToMiddle displacement field + SyN MovingToMiddle inverse displacement field
+    //
+    itk::ants::WriteTransform<TComputeType, VImageDimension>( savedStateCompositeTransform,
+                                                             saveStateFileName.c_str() );
     }
-  for( unsigned int i = startIndex; i < numTransforms; ++i )
-    {
-    typename CompositeTransformType::TransformTypePointer curTransform;
-    if( parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
+
+  // write out transforms actually computed, so skip any initial transforms unless
+  // we're collapsing the output transforms.
+
+    CompositeTransformPointer transformToWrite;
+    if( shouldCollapseBeDone )
       {
-      curTransform = collapsedResultTransform->GetNthTransform( i );
+      transformToWrite = regHelper->CollapseCompositeTransform( resultTransform );
+
+      numTransforms = transformToWrite->GetNumberOfTransforms();
+      TransformTypeNames.clear();
+      for( unsigned int i = 0; i < numTransforms; i++ )
+        {
+        if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::Linear )
+          {
+          // The output type must be Affine, not matrixoffset!  TransformTypeNames.push_back( "matrixoffset" );
+          TransformTypeNames.push_back( "genericaffine" );
+          }
+        else if( transformToWrite->GetNthTransform( i )->GetTransformCategory() ==
+          TransformType::DisplacementField )
+          {
+          typename DisplacementFieldTransformType::Pointer nthTransform =
+            dynamic_cast<DisplacementFieldTransformType *>( transformToWrite->GetNthTransform( i ).GetPointer() );
+
+          // We don't know what set of displacement field transforms were optimized.
+          // All we know is whether or not an inverse displacement field exists.  If so,
+          // we simply pass a transform name which either does have an inverse or does
+          // not.
+          if( nthTransform && nthTransform->GetInverseDisplacementField() )
+            {
+            TransformTypeNames.push_back( "syn" );
+            }
+          else
+            {
+            TransformTypeNames.push_back( "gdf" );
+            }
+          }
+        else if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::BSpline )
+          {
+          TransformTypeNames.push_back( "bspline" );
+          }
+        }
       }
     else
       {
-      curTransform = resultTransform->GetNthTransform( i );
+      transformToWrite = resultTransform.GetPointer();
       }
-
-    //
-    // only registrations not part of the initial transforms in the
-    // TransformTypeNames list.
-    const std::string curTransformType = TransformTypeNames.front();
-    TransformTypeNames.pop_front();
-
-    bool writeInverse;
-    bool writeVelocityField;
-
-    std::string transformTemplateName = RegTypeToFileName( curTransformType, writeInverse, writeVelocityField );
-
-    std::stringstream curFileName;
-    curFileName << outputPrefix << i << transformTemplateName;
-
-    // WriteTransform will spit all sorts of error messages if it
-    // fails, and we want to keep going even if it does so ignore its
-    // return value.
-    itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
-
-    typedef typename DisplacementFieldTransformType::DisplacementFieldType  DisplacementFieldType;
-    typename DisplacementFieldTransformType::Pointer dispTransform =
-      dynamic_cast<DisplacementFieldTransformType *>(curTransform.GetPointer() );
-    // write inverse transform file
-    if( writeInverse && dispTransform.IsNotNull() )
+    if( writeCompositeTransform )
       {
-      typename DisplacementFieldType::ConstPointer inverseDispField = dispTransform->GetInverseDisplacementField();
-      if( inverseDispField.IsNotNull() )
+      std::string compositeTransformFileName = outputPrefix + std::string( "Composite.h5" );
+      std::string inverseCompositeTransformFileName = outputPrefix + std::string( "InverseComposite.h5" );
+
+      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer compositeTransform =
+        transformToWrite.GetPointer();
+      itk::ants::WriteTransform<TComputeType, VImageDimension>( compositeTransform, compositeTransformFileName.c_str() );
+
+      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCompositeTransform =
+        compositeTransform->GetInverseTransform();
+      if( inverseCompositeTransform.IsNotNull() )
         {
-        std::stringstream curInverseFileName;
-        curInverseFileName << outputPrefix << i << "InverseWarp.nii.gz";
-        typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
-        typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
-        inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
-        inverseWriter->SetFileName( curInverseFileName.str().c_str() );
-        try
+        itk::ants::WriteTransform<TComputeType, VImageDimension>( inverseCompositeTransform,
+          inverseCompositeTransformFileName.c_str() );
+        }
+      }
+    else //Write out each individual transform
+      {
+      const unsigned int startIndex = ( shouldCollapseBeDone ) ? 0 : initialMovingTransformOption->GetNumberOfFunctions();
+      for( unsigned int i = startIndex; i < numTransforms; ++i )
+        {
+        typename CompositeTransformType::TransformTypePointer curTransform;
+        if( shouldCollapseBeDone )
           {
-          inverseWriter->Update();
+          curTransform = transformToWrite->GetNthTransform( i );
           }
-        catch( itk::ExceptionObject & err )
+        else
           {
-          std::cout << "Can't write transform file " << curInverseFileName.str().c_str() << std::endl;
-          std::cout << "Exception Object caught: " << std::endl;
-          std::cout << err << std::endl;
+          curTransform = transformToWrite->GetNthTransform( i );
+          }
+
+        //
+        // only registrations not part of the initial transforms in the
+        // TransformTypeNames list.
+        const std::string curTransformType = TransformTypeNames.front();
+        TransformTypeNames.pop_front();
+
+        bool writeInverse;
+        bool writeVelocityField;
+
+        std::string transformTemplateName = RegTypeToFileName( curTransformType, writeInverse, writeVelocityField );
+
+        std::stringstream curFileName;
+        curFileName << outputPrefix << i << transformTemplateName;
+
+        // WriteTransform will spit all sorts of error messages if it
+        // fails, and we want to keep going even if it does so ignore its
+        // return value.
+        itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
+
+        typedef typename DisplacementFieldTransformType::DisplacementFieldType  DisplacementFieldType;
+        typename DisplacementFieldTransformType::Pointer dispTransform =
+          dynamic_cast<DisplacementFieldTransformType *>(curTransform.GetPointer() );
+        // write inverse transform file
+        if( writeInverse && dispTransform.IsNotNull() )
+          {
+          typename DisplacementFieldType::ConstPointer inverseDispField = dispTransform->GetInverseDisplacementField();
+          if( inverseDispField.IsNotNull() )
+            {
+            std::stringstream curInverseFileName;
+            curInverseFileName << outputPrefix << i << "InverseWarp.nii.gz";
+            typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
+            typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
+            inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
+            inverseWriter->SetFileName( curInverseFileName.str().c_str() );
+            try
+              {
+              inverseWriter->Update();
+              }
+            catch( itk::ExceptionObject & err )
+              {
+              std::cout << "Can't write transform file " << curInverseFileName.str().c_str() << std::endl;
+              std::cout << "Exception Object caught: " << std::endl;
+              std::cout << err << std::endl;
+              }
+            }
+          }
+        if( writeVelocityField )
+          {
+          // write velocity field (if applicable)
+          typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
+            VelocityFieldTransformType;
+
+          typedef itk::Image<itk::Vector<TComputeType, VImageDimension>, VImageDimension + 1> VelocityFieldType;
+          typename VelocityFieldTransformType::Pointer velocityFieldTransform =
+            dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
+          if( !velocityFieldTransform.IsNull() )
+            {
+            std::stringstream curVelocityFieldFileName;
+            curVelocityFieldFileName << outputPrefix << i << "VelocityField.nii.gz";
+
+            typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
+            typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
+            velocityFieldWriter->SetInput( velocityFieldTransform->GetTimeVaryingVelocityField() );
+            velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
+            try
+              {
+              velocityFieldWriter->Update();
+              }
+            catch( itk::ExceptionObject & err )
+              {
+              std::cout << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
+                << std::endl;
+              std::cout << "Exception Object caught: " << std::endl;
+              std::cout << err << std::endl;
+              }
+            }
           }
         }
       }
-    if( writeVelocityField )
-      {
-      // write velocity field (if applicable)
-      typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
-        VelocityFieldTransformType;
-
-      typedef itk::Image<itk::Vector<TComputeType, VImageDimension>, VImageDimension + 1> VelocityFieldType;
-      typename VelocityFieldTransformType::Pointer velocityFieldTransform =
-        dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
-      if( !velocityFieldTransform.IsNull() )
-        {
-        std::stringstream curVelocityFieldFileName;
-        curVelocityFieldFileName << outputPrefix << i << "VelocityField.nii.gz";
-
-        typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
-        typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
-        velocityFieldWriter->SetInput( velocityFieldTransform->GetTimeVaryingVelocityField() );
-        velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
-        try
-          {
-          velocityFieldWriter->Update();
-          }
-        catch( itk::ExceptionObject & err )
-          {
-          std::cout << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
-                    << std::endl;
-          std::cout << "Exception Object caught: " << std::endl;
-          std::cout << err << std::endl;
-          }
-        }
-      }
-    }
 
   std::string whichInterpolator( "linear" );
   typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
