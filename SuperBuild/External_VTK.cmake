@@ -160,7 +160,7 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
     )
   ### --- End Project specific additions
   set(${proj}_REPOSITORY https://github.com/Kitware/VTK.git)
-  set(${proj}_GIT_TAG v6.1.0 )
+  set(${proj}_GIT_TAG 836c511abf0b8d97599b25f9b26658b8636ed8d7 )
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}
@@ -194,7 +194,7 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
 #    -P ${VTKPatchScript}
 #    )
 
-  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-install/lib/vtk-6.1)
+  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-install/lib/vtk-6.2)
 else()
   if(${USE_SYSTEM_${extProjName}})
     find_package(${extProjName} ${${extProjName}_REQUIRED_VERSION} REQUIRED)
