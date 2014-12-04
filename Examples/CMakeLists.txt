@@ -147,7 +147,7 @@ foreach(ANTS_APP ${BASE_ANTS_APPS})
 endforeach()
 
 if(USE_VTK)
-find_package(VTK 6.1 REQUIRED NO_MODULE)
+find_package(VTK 6.2 REQUIRED NO_MODULE)
 find_package(VTK COMPONENTS
    vtkCommonCore
    vtkCommonDataModel
