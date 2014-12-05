@@ -25,6 +25,7 @@
 #include "itkAffineTransform.h"
 #include "itkEuler3DTransform.h"
 #include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
 
 #include <sstream>
 
@@ -61,12 +62,27 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
 
   std::string outputName = "";
   std::string mocoName = "";
+  std::string spatialName = "";
+  bool writeMap = false;
 
   OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     outputName = outputOption->GetFunction(0)->GetName();
     std::cout << "Output: " << outputName << std::endl;
+    }
+  else
+    {
+    std::cerr << "Output option not specified." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  OptionType::Pointer spatialOption = parser->GetOption( "spatial-map" );
+  if( spatialOption && spatialOption->GetNumberOfFunctions() )
+    {
+    spatialName = outputOption->GetFunction(0)->GetName();
+    std::cout << "Spatial map output: " << outputName << std::endl;
+    writeMap = true;
     }
   else
     {
@@ -97,6 +113,20 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     std::cerr << "Must use mask image" << std::endl;
     return EXIT_FAILURE;
     }
+
+  ImageType::Pointer map = ImageType::New();
+  if ( writeMap )
+    {
+    map->SetRegions( mask->GetLargestPossibleRegion() );
+    map->Allocate();
+    map->FillBuffer(0);
+
+    map->SetOrigin( mask->GetOrigin() );
+    map->SetSpacing( mask->GetSpacing() );
+    map->SetDirection( mask->GetDirection() );
+
+    }
+
 
   bool doFramewise = 0;
   doFramewise = parser->Convert<bool>( parser->GetOption( "framewise" )->GetFunction()->GetName() );
@@ -186,16 +216,25 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
           {
           ImageType::PointType pt2 = affineTransform2->TransformPoint( pt );
           dist = pt1.EuclideanDistanceTo(pt2);
+          if ( writeMap )
+            {
+            map->SetPixel( idx, map->GetPixel(idx) + dist / (mocoDataArray->GetMatrix().rows()-1) );
+            }
           }
         else
           {
           dist = pt.EuclideanDistanceTo(pt1);
+          if ( writeMap )
+            {
+            map->SetPixel( idx, map->GetPixel(idx) + dist / mocoDataArray->GetMatrix().rows() );
+            }
           }
 
         if ( doFramewise && ( i == mocoDataArray->GetMatrix().rows()-1) )
           {
           dist = 0.0;
           }
+
 
 
         if ( dist > maxDisplacement )
@@ -223,6 +262,11 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   writer->SetInput( &dataMatrix );
   writer->SetFileName( outputOption->GetFunction(0)->GetName().c_str() );
   writer->Write();
+
+  if (writeMap)
+    {
+    WriteImage<ImageType>( map, spatialOption->GetFunction(0)->GetName().c_str()  );
+    }
 
   return EXIT_SUCCESS;
 }
@@ -269,6 +313,16 @@ void antsMotionCorrStatsInitializeCommandLineOptions( itk::ants::CommandLinePars
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("framewise");
     option->SetShortName( 'f' );
+    option->SetDescription( description );
+    option->AddFunction( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "output image of displacement magnitude" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("spatial-map");
+    option->SetShortName( 's' );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
