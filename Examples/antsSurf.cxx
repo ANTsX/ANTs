@@ -928,7 +928,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "scalar-bar" );
     option->SetShortName( 'b' );
     option->SetUsageOption( 0, "lookupTable" );
-    option->SetUsageOption( 1, "[lookupTable,<title=''>,<numberOfLabels=5>]" );
+    option->SetUsageOption( 1, "[lookupTable,<title=antsSurf>,<numberOfLabels=5>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
