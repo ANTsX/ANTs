@@ -294,6 +294,33 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
   writer->SetFileName( argv[3] );
   writer->Update();
 
+
+  if( argc > 11 )
+    {
+    // Let's arbitrarily choose 256 colors to populate the look up table.
+
+    std::ofstream str( argv[11] );
+
+    RealType minimumValue2 = rgbfilter->GetModifiableColormap()->GetMinimumInputValue();
+    RealType maximumValue2 = rgbfilter->GetModifiableColormap()->GetMaximumInputValue();
+
+    RealType deltaValue = ( maximumValue2 - minimumValue2 ) / 255.0;
+
+    for( unsigned int d = 0; d < 256; d++ )
+      {
+      RealType value = minimumValue2 + d * deltaValue;
+
+      RGBPixelType rgbPixel = rgbfilter->GetModifiableColormap()->operator()( value );
+
+      str << value << ","
+                   << static_cast<int>( rgbPixel[0] ) << ","
+                   << static_cast<int>( rgbPixel[1] ) << ","
+                   << static_cast<int>( rgbPixel[2] ) << ",1" << std::endl;
+      }
+    str.close();
+    }
+
+
   return EXIT_SUCCESS;
 }
 
@@ -346,7 +373,7 @@ private:
     {
     std::cout << "Usage: " << argv[0] << " imageDimension inputImage outputImage "
              << "mask colormap [customColormapFile] [minimumInput] [maximumInput] "
-             << "[minimumRGBOutput=0] [maximumRGBOutput=255]" << std::endl;
+             << "[minimumRGBOutput=0] [maximumRGBOutput=255] <vtkLookupTable>" << std::endl;
     std::cout << "  Possible colormaps: grey, red, green, blue, copper, jet, hsv, ";
     std::cout << "spring, summer, autumn, winter, hot, cool, overunder, custom" << std::endl;
     if( argc >= 2 &&
