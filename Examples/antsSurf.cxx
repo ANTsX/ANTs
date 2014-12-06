@@ -18,6 +18,7 @@
 #include "vtkGraphicsFactory.h"
 #include "vtkImageData.h"
 #include "vtkImageStencil.h"
+#include "vtkLookupTable.h"
 #include "vtkMarchingCubes.h"
 #include "vtkMetaImageWriter.h"
 #include "vtkPointData.h"
@@ -37,8 +38,10 @@
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
-#include "vtkWindowToImageFilter.h"
+#include "vtkScalarBarActor.h"
 #include "vtkSmoothPolyDataFilter.h"
+#include "vtkTextProperty.h"
+#include "vtkWindowToImageFilter.h"
 
 #include "vnl/vnl_math.h"
 
@@ -71,9 +74,14 @@ float CalculateGenus( vtkPolyData *mesh, bool verbose )
   return genus;
 }
 
-void Display( vtkPolyData *vtkMesh, const std::vector<float> rotationAngleInDegrees,
+void Display( vtkPolyData *vtkMesh,
+              const std::vector<float> rotationAngleInDegrees,
               const std::vector<float> backgroundColor,
-              const std::string screenCaptureFileName )
+              const std::string screenCaptureFileName,
+              const bool renderScalarBar = false,
+              vtkLookupTable *scalarBarLookupTable = NULL,
+              const std::string scalarBarTitle = std::string( "" ),
+              unsigned int scalarBarNumberOfLabels = 5 )
 {
   vtkSmartPointer<vtkGraphicsFactory> graphicsFactory =
     vtkSmartPointer<vtkGraphicsFactory>::New();
@@ -108,6 +116,37 @@ void Display( vtkPolyData *vtkMesh, const std::vector<float> rotationAngleInDegr
   renderWindowInteractor->SetRenderWindow( renderWindow );
 
   renderer->AddActor( actor );
+
+  if( renderScalarBar )
+    {
+    vtkSmartPointer<vtkScalarBarActor> scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
+    scalarBar->SetLookupTable( scalarBarLookupTable );
+    scalarBar->SetTitle( scalarBarTitle.c_str() );
+    scalarBar->SetMaximumNumberOfColors( 256 );
+    scalarBar->SetNumberOfLabels( scalarBarNumberOfLabels );
+    scalarBar->SetLabelFormat( "%.2g" );
+    scalarBar->VisibilityOn();
+
+    vtkSmartPointer<vtkTextProperty> titleTextProperty = vtkSmartPointer<vtkTextProperty>::New();
+    titleTextProperty->ItalicOff();
+    titleTextProperty->BoldOn();
+    titleTextProperty->SetColor( 0.0, 0.0, 0.0 );
+    titleTextProperty->SetJustificationToCentered();
+    // titleTextProperty->SetFontSize( 50 );
+
+    scalarBar->SetTitleTextProperty( titleTextProperty );
+
+    vtkSmartPointer<vtkTextProperty> labelTextProperty = vtkSmartPointer<vtkTextProperty>::New();
+    labelTextProperty->ItalicOff();
+    labelTextProperty->BoldOff();
+    labelTextProperty->SetColor( 0.0, 0.0, 0.0 );
+    // labelTextProperty->SetFontSize( 5 );
+
+    scalarBar->SetLabelTextProperty( labelTextProperty );
+
+    renderer->AddActor2D( scalarBar );
+    }
+
   renderWindow->Render();
 
   if( screenCaptureFileName.empty() )
@@ -127,6 +166,7 @@ void Display( vtkPolyData *vtkMesh, const std::vector<float> rotationAngleInDegr
     writer->SetInputConnection( windowToImageFilter->GetOutputPort() );
     writer->Write();
     }
+
 }
 
 int antsImageToSurface( itk::ants::CommandLineParser *parser )
@@ -475,6 +515,80 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
       }
     }
 
+  vtkSmartPointer<vtkLookupTable> lookupTable = vtkSmartPointer<vtkLookupTable>::New();
+  std::string scalarBarTitle( "antsSurf" );
+  unsigned int scalarBarNumberOfLabels = 5;
+
+  bool renderScalarBar = false;
+
+  itk::ants::CommandLineParser::OptionType::Pointer scalarBarOption = parser->GetOption( "scalar-bar" );
+  if( scalarBarOption && scalarBarOption->GetNumberOfFunctions() )
+    {
+    renderScalarBar = true;
+
+    std::string lookupTableFile;
+    if( scalarBarOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      lookupTableFile = scalarBarOption->GetFunction( 0 )->GetName();
+      }
+    else
+      {
+      lookupTableFile = scalarBarOption->GetFunction( 0 )->GetParameter( 0 );
+      if( scalarBarOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+        {
+        scalarBarTitle = scalarBarOption->GetFunction( 0 )->GetParameter( 1 );
+        }
+      if( scalarBarOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
+       {
+       scalarBarNumberOfLabels = parser->Convert<unsigned int>( scalarBarOption->GetFunction( 0 )->GetParameter( 2 ) );
+       }
+     }
+
+    // Read in color table
+
+    std::ifstream fileStr( lookupTableFile );
+    if( !fileStr.is_open() )
+      {
+      std::cerr << " Could not open file " << lookupTableFile << '\n';
+      renderScalarBar = false;
+      }
+
+    int tableSize = std::count( std::istreambuf_iterator<char>( fileStr ), std::istreambuf_iterator<char>(), '\n' );
+    fileStr.clear();
+    fileStr.seekg( 0, std::ios::beg );
+
+    lookupTable->SetNumberOfTableValues( tableSize );
+    lookupTable->Build();
+
+    RealType value;
+    RealType redComponent;
+    RealType greenComponent;
+    RealType blueComponent;
+    RealType alphaComponent;
+
+    char comma;
+
+    RealType minValue = itk::NumericTraits<RealType>::max();
+    RealType maxValue = itk::NumericTraits<RealType>::min();
+
+    unsigned int index = 0;
+    while( fileStr >> value >> comma >> redComponent >> comma >> greenComponent >> comma >> blueComponent >> comma >> alphaComponent )
+      {
+      lookupTable->SetTableValue( index++, redComponent / 255.0, greenComponent / 255.0, blueComponent / 255.0, alphaComponent );
+
+      if( value < minValue )
+        {
+        minValue = value;
+        }
+      if( value > maxValue )
+        {
+        maxValue = value;
+        }
+      }
+    lookupTable->SetTableRange( minValue, maxValue );
+
+    fileStr.close();
+    }
   // Display vtk mesh
 
   itk::ants::CommandLineParser::OptionType::Pointer displayOption = parser->GetOption( "display" );
@@ -512,7 +626,8 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
     if( displayOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, screenCaptureFileName );
+      Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, screenCaptureFileName,
+               renderScalarBar, lookupTable, scalarBarTitle, scalarBarNumberOfLabels );
       }
     else
       {
@@ -532,7 +647,8 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
           }
         }
 
-      Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, screenCaptureFileName );
+      Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, screenCaptureFileName,
+               renderScalarBar, lookupTable, scalarBarTitle, scalarBarNumberOfLabels );
       }
     }
 
@@ -664,8 +780,7 @@ int antsSurfaceToImage( itk::ants::CommandLineParser *parser )
     }
 
   // polygonal data --> image stencil:
-  vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc =
-    vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   pol2stenc->SetInputData( vtkMesh );
   pol2stenc->SetOutputOrigin( origin );
   pol2stenc->SetOutputSpacing( spacing2 );
@@ -801,6 +916,19 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'o' );
     option->SetUsageOption( 0, "surfaceFilename" );
     option->SetUsageOption( 1, "imageFilename[spacing]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+    std::string( "Add a scalar bar to the rendering for the final overlay." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "scalar-bar" );
+    option->SetShortName( 'b' );
+    option->SetUsageOption( 0, "lookupTable" );
+    option->SetUsageOption( 1, "[lookupTable,<title=''>,<numberOfLabels=5>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
