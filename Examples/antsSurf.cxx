@@ -125,6 +125,9 @@ void Display( vtkPolyData *vtkMesh,
     scalarBar->SetMaximumNumberOfColors( 256 );
     scalarBar->SetNumberOfLabels( scalarBarNumberOfLabels );
     scalarBar->SetLabelFormat( "%.2g" );
+//    scalarBar->SetMaximumWidthInPixels( 200 );
+//    scalarBar->SetMaximumHeightInPixels( 500 );
+    // scalarBar->SetOrientationToHorizontal();
     scalarBar->VisibilityOn();
 
     vtkSmartPointer<vtkTextProperty> titleTextProperty = vtkSmartPointer<vtkTextProperty>::New();
@@ -158,7 +161,7 @@ void Display( vtkPolyData *vtkMesh,
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
     vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput( renderWindow );
-    windowToImageFilter->SetMagnification( 4 );
+    windowToImageFilter->SetMagnification( 5 );
     windowToImageFilter->Update();
 
     vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
