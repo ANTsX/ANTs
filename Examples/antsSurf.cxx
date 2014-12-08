@@ -81,7 +81,10 @@ void Display( vtkPolyData *vtkMesh,
               const bool renderScalarBar = false,
               vtkLookupTable *scalarBarLookupTable = NULL,
               const std::string scalarBarTitle = std::string( "" ),
-              unsigned int scalarBarNumberOfLabels = 5 )
+              unsigned int scalarBarNumberOfLabels = 5,
+              unsigned int scalarBarWidthInPixels = 0,
+              unsigned int scalarBarHeightInPixels = 0
+              )
 {
   vtkSmartPointer<vtkGraphicsFactory> graphicsFactory =
     vtkSmartPointer<vtkGraphicsFactory>::New();
@@ -125,10 +128,20 @@ void Display( vtkPolyData *vtkMesh,
     scalarBar->SetMaximumNumberOfColors( 256 );
     scalarBar->SetNumberOfLabels( scalarBarNumberOfLabels );
     scalarBar->SetLabelFormat( "%.2g" );
-//    scalarBar->SetMaximumWidthInPixels( 200 );
-//    scalarBar->SetMaximumHeightInPixels( 500 );
-    // scalarBar->SetOrientationToHorizontal();
-    scalarBar->VisibilityOn();
+
+    if( scalarBarWidthInPixels > 0 && scalarBarHeightInPixels > 0 )
+      {
+      if( scalarBarWidthInPixels > scalarBarHeightInPixels )
+        {
+        scalarBar->SetOrientationToHorizontal();
+        }
+      else
+        {
+        scalarBar->SetOrientationToVertical();
+        }
+      scalarBar->SetMaximumWidthInPixels( scalarBarWidthInPixels );
+      scalarBar->SetMaximumHeightInPixels( scalarBarHeightInPixels );
+      }
 
     vtkSmartPointer<vtkTextProperty> titleTextProperty = vtkSmartPointer<vtkTextProperty>::New();
     titleTextProperty->ItalicOff();
@@ -146,6 +159,8 @@ void Display( vtkPolyData *vtkMesh,
     // labelTextProperty->SetFontSize( 5 );
 
     scalarBar->SetLabelTextProperty( labelTextProperty );
+
+    scalarBar->VisibilityOn();
 
     renderer->AddActor2D( scalarBar );
     }
@@ -522,6 +537,9 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
   std::string scalarBarTitle( "antsSurf" );
   unsigned int scalarBarNumberOfLabels = 5;
 
+  unsigned int scalarBarWidthInPixels = 0;
+  unsigned int scalarBarHeightInPixels = 0;
+
   bool renderScalarBar = false;
 
   itk::ants::CommandLineParser::OptionType::Pointer scalarBarOption = parser->GetOption( "scalar-bar" );
@@ -542,10 +560,16 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
         scalarBarTitle = scalarBarOption->GetFunction( 0 )->GetParameter( 1 );
         }
       if( scalarBarOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
-       {
-       scalarBarNumberOfLabels = parser->Convert<unsigned int>( scalarBarOption->GetFunction( 0 )->GetParameter( 2 ) );
+        {
+        scalarBarNumberOfLabels = parser->Convert<unsigned int>( scalarBarOption->GetFunction( 0 )->GetParameter( 2 ) );
+        }
+      if( scalarBarOption->GetFunction( 0 )->GetNumberOfParameters() > 3 )
+        {
+        std::vector<unsigned int> dimensions = parser->ConvertVector<unsigned int>( scalarBarOption->GetFunction( 0 )->GetParameter( 3 ) );
+        scalarBarWidthInPixels = dimensions[0];
+        scalarBarHeightInPixels = dimensions[1];
        }
-     }
+      }
 
     // Read in color table
 
@@ -592,6 +616,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
     fileStr.close();
     }
+
   // Display vtk mesh
 
   itk::ants::CommandLineParser::OptionType::Pointer displayOption = parser->GetOption( "display" );
@@ -630,7 +655,8 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
     if( displayOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
       Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, screenCaptureFileName,
-               renderScalarBar, lookupTable, scalarBarTitle, scalarBarNumberOfLabels );
+               renderScalarBar, lookupTable, scalarBarTitle, scalarBarNumberOfLabels,
+               scalarBarWidthInPixels, scalarBarHeightInPixels );
       }
     else
       {
@@ -651,7 +677,8 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
         }
 
       Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, screenCaptureFileName,
-               renderScalarBar, lookupTable, scalarBarTitle, scalarBarNumberOfLabels );
+               renderScalarBar, lookupTable, scalarBarTitle, scalarBarNumberOfLabels,
+               scalarBarWidthInPixels, scalarBarHeightInPixels );
       }
     }
 
@@ -925,13 +952,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-    std::string( "Add a scalar bar to the rendering for the final overlay." );
+    std::string( "Add a scalar bar to the rendering for the final overlay.  One can tailor " )
+    + std::string( "the aesthetic by changing the number of labels and/or the orientation and ")
+    + std::string( "size of the scalar bar.  If the \'width\' > \'height\' (in pixels) then the ")
+    + std::string( "orientation is horizontal.  Otherwise it is vertical (default)." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "scalar-bar" );
     option->SetShortName( 'b' );
     option->SetUsageOption( 0, "lookupTable" );
-    option->SetUsageOption( 1, "[lookupTable,<title=antsSurf>,<numberOfLabels=5>]" );
+    option->SetUsageOption( 1, "[lookupTable,<title=antsSurf>,<numberOfLabels=5>,<widthxheight>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
