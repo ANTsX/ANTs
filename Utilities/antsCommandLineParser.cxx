@@ -237,14 +237,14 @@ CommandLineParser
     else
       {
       // replace left delimiters
-      std::replace( a.begin(), a.end(), '{', '[' );
-      std::replace( a.begin(), a.end(), '(', '[' );
-      std::replace( a.begin(), a.end(), '<', '[' );
+      std::replace( a.begin(),  a.begin()+1, '{', '[' );
+      std::replace( a.begin(), a.begin()+1, '(', '[' );
+      std::replace( a.begin(), a.begin()+1, '<', '[' );
 
       // replace right delimiters
-      std::replace( a.begin(), a.end(), '}', ']' );
-      std::replace( a.begin(), a.end(), ')', ']' );
-      std::replace( a.begin(), a.end(), '>', ']' );
+      std::replace( a.end()-1, a.end(), '}', ']' );
+      std::replace( a.end()-1, a.end(), ')', ']' );
+      std::replace( a.end()-1, a.end(), '>', ']' );
 
       if( isArgOpen )
         {
