@@ -2105,7 +2105,7 @@ int TimeSeriesDisassemble(int argc, char *argv[])
     {
     std::string       s;
     std::stringstream out;
-    out << (100 + i);
+    out << (1000 + i);
     s = out.str();
     std::string kname = dirname + tempname + s + extension;
 
