@@ -601,7 +601,7 @@ if [[ $DOQSUB -eq 1 ]];
     echo " Starting MALF on SGE cluster. "
     echo "--------------------------------------------------------------------------------------"
 
-    ${ANTSPATH}waitForSGEQJobs.pl 1 600 $jobIDs
+    ${ANTSPATH}/waitForSGEQJobs.pl 1 600 $jobIDs
 
     # Returns 1 if there are errors
     if [[ ! $? -eq 0 ]];
@@ -663,7 +663,7 @@ if [[ $DOQSUB -eq 1 ]];
     echo "$malfCall" > $qscript2
 
     jobIDs=`qsub -cwd -S /bin/bash -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript2 | awk '{print $3}'`
-    ${ANTSPATH}waitForSGEQJobs.pl 1 600 $jobIDs
+    ${ANTSPATH}/waitForSGEQJobs.pl 1 600 $jobIDs
   fi
 if [[ $DOQSUB -eq 4 ]];
   then
@@ -673,7 +673,7 @@ if [[ $DOQSUB -eq 4 ]];
     echo " Starting MALF on PBS cluster. "
     echo "--------------------------------------------------------------------------------------"
 
-    ${ANTSPATH}waitForPBSQJobs.pl 1 600 $jobIDs
+    ${ANTSPATH}/waitForPBSQJobs.pl 1 600 $jobIDs
     # Returns 1 if there are errors
     if [[ ! $? -eq 0 ]];
       then
@@ -734,7 +734,7 @@ if [[ $DOQSUB -eq 4 ]];
     echo "$malfCall" > $qscript2
 
     jobIDs=`qsub -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=30:00:00 $qscript2 | awk '{print $1}'`
-    ${ANTSPATH}waitForPBSQJobs.pl 1 600 $jobIDs
+    ${ANTSPATH}/waitForPBSQJobs.pl 1 600 $jobIDs
   fi
 
 if [[ $DOQSUB -eq 2 ]];
@@ -802,7 +802,7 @@ if [[ $DOQSUB -eq 3 ]];
     echo " Starting MALF on XGrid cluster. Submitted $count jobs "
     echo "--------------------------------------------------------------------------------------"
 
-    ${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRID_OPTS" -verbose -delay 30 $jobIDs
+    ${ANTSPATH}/waitForXGridJobs.pl -xgridflags "$XGRID_OPTS" -verbose -delay 30 $jobIDs
     # Returns 1 if there are errors
     if [[ ! $? -eq 0 ]];
       then

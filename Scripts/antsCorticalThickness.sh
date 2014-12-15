@@ -311,7 +311,7 @@ ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.25
 #
 ################################################################################
 
-ANTS=${ANTSPATH}antsRegistration
+ANTS=${ANTSPATH}/antsRegistration
 ANTS_MAX_ITERATIONS="100x100x70x20"
 ANTS_TRANSFORMATION="SyN[0.1,3,0]"
 ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
@@ -319,16 +319,16 @@ ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
 ANTS_METRIC="CC"
 ANTS_METRIC_PARAMS="1,4"
 
-WARP=${ANTSPATH}antsApplyTransforms
+WARP=${ANTSPATH}/antsApplyTransforms
 
-N4=${ANTSPATH}N4BiasFieldCorrection
+N4=${ANTSPATH}/N4BiasFieldCorrection
 N4_CONVERGENCE_1="[50x50x50x50,0.0000001]"
 N4_CONVERGENCE_2="[50x50x50x50,0.0000001]"
 N4_SHRINK_FACTOR_1=4
 N4_SHRINK_FACTOR_2=2
 N4_BSPLINE_PARAMS="[200]"
 
-ATROPOS=${ANTSPATH}Atropos
+ATROPOS=${ANTSPATH}/Atropos
 
 ATROPOS_SEGMENTATION_INITIALIZATION="PriorProbabilityImages"
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
@@ -337,7 +337,7 @@ ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[1]"
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=3
 ATROPOS_SEGMENTATION_LABEL_PROPAGATION=()
 
-DIRECT=${ANTSPATH}KellyKapowski
+DIRECT=${ANTSPATH}/KellyKapowski
 DIRECT_CONVERGENCE="[45,0.0,10]"
 DIRECT_THICKNESS_PRIOR="10"
 DIRECT_GRAD_STEP_SIZE="0.025"
@@ -759,7 +759,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     ## Step 1 ##
     if [[ ! -f ${SEGMENTATION_WARP} ]];
       then
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
 
         basecall=''
         if [[ ${RUN_QUICK} -ne 0 ]];
@@ -1016,14 +1016,14 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
       fi
 
     ## Create symmetric transforms for template to subject warping
-    if [[ -s ${REGISTRATION_TEMPLATE_INVERSE_WARP} ]] && [[ ! -s ${REGISTRATION_SUBJECT_WARP} ]] ; then 
+    if [[ -s ${REGISTRATION_TEMPLATE_INVERSE_WARP} ]] && [[ ! -s ${REGISTRATION_SUBJECT_WARP} ]] ; then
       logCmd mv ${REGISTRATION_TEMPLATE_INVERSE_WARP} ${REGISTRATION_SUBJECT_WARP}
     fi
     if [[ ! -s  ${REGISTRATION_SUBJECT_WARP} ]] ; then
       echo "The transform file ${REGISTRATION_SUBJECT_WARP} does not exist."
-      exit 1      
+      exit 1
     fi
-    logCmd ${ANTSPATH}antsApplyTransforms -d ${DIMENSION} -o Linear[$REGISTRATION_SUBJECT_GENERIC_AFFINE,1] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE
+    logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -o Linear[$REGISTRATION_SUBJECT_GENERIC_AFFINE,1] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE
 
     time_end_template_registration=`date +%s`
     time_elapsed_template_registration=$((time_end_template_registration - time_start_template_registration))
@@ -1350,4 +1350,3 @@ echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elap
 echo "--------------------------------------------------------------------------------------"
 
 exit 0
-

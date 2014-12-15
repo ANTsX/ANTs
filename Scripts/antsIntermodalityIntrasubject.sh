@@ -115,8 +115,8 @@ TEMPLATE=""
 #
 ################################################################################
 
-ANTS=${ANTSPATH}antsRegistration
-WARP=${ANTSPATH}antsApplyTransforms
+ANTS=${ANTSPATH}/antsRegistration
+WARP=${ANTSPATH}/antsApplyTransforms
 
 if [[ $# -lt 3 ]] ; then
   Usage >&2

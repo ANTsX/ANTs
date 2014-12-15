@@ -78,8 +78,8 @@ JJSEG=${OUTPUTNAME}B_seg.nii.gz
 #
 # get masks for atropos
 #
-${ANTSPATH}ThresholdImage $DIM $II $IISEG 1 1.e9
-${ANTSPATH}ThresholdImage $DIM $JJ $JJSEG 1 1.e9
+${ANTSPATH}/ThresholdImage $DIM $II $IISEG 1 1.e9
+${ANTSPATH}/ThresholdImage $DIM $JJ $JJSEG 1 1.e9
 AtroposParams=" -d $DIM -m [0.1,1x1] -c [5,0] -i kmeans[3] "
 ${ANTSPATH}/Atropos $AtroposParams -a $II -o $IISEG  -x $IISEG
 ${ANTSPATH}/Atropos $AtroposParams -a $JJ -o $JJSEG  -x $JJSEG
@@ -104,8 +104,8 @@ JJSEG=${OUTPUTNAME}B_seg.nii.gz
 #
 # get masks for atropos
 #
-${ANTSPATH}ThresholdImage $DIM $II $IISEG 1 1.e9
-${ANTSPATH}ThresholdImage $DIM $JJ $JJSEG 1 1.e9
+${ANTSPATH}/ThresholdImage $DIM $II $IISEG 1 1.e9
+${ANTSPATH}/ThresholdImage $DIM $JJ $JJSEG 1 1.e9
 AtroposParams=" -d $DIM -m [0.1,1x1] -c [5,0] -i kmeans[3] "
 ${ANTSPATH}/Atropos $AtroposParams -a $II -o $IISEG  -x $IISEG
 ${ANTSPATH}/Atropos $AtroposParams -a $JJ -o $JJSEG  -x $JJSEG
@@ -128,7 +128,7 @@ elif [[ $OPT == "BTP" ]] ; then
 # such that it's more appropriate for your data.
 # call buildtemplateparallel.sh -h to get usage.
 #
-${ANTSPATH}buildtemplateparallel.sh -d 2  -o ${OUTPUTNAME}BTP -c 0  $II $JJ
+${ANTSPATH}/buildtemplateparallel.sh -d 2  -o ${OUTPUTNAME}BTP -c 0  $II $JJ
 rm -r GR* *cfg
 
 TEM=${OUTPUTNAME}BTPtemplate.nii.gz

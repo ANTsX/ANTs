@@ -175,13 +175,13 @@ ATROPOS_SEGMENTATION_PRIORS=""
 
 N4_ATROPOS_NUMBER_OF_ITERATIONS=15
 
-N4=${ANTSPATH}N4BiasFieldCorrection
+N4=${ANTSPATH}/N4BiasFieldCorrection
 N4_CONVERGENCE="[50x50x50x50,0.0000000001]"
 N4_SHRINK_FACTOR=2
 N4_BSPLINE_PARAMS="[200]"
 N4_WEIGHT_MASK_POSTERIOR_LABELS=()
 
-ATROPOS=${ANTSPATH}Atropos
+ATROPOS=${ANTSPATH}/Atropos
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
 ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[1]"
@@ -410,7 +410,7 @@ if [[ $INITIALIZE_WITH_KMEANS -eq 0 ]]
 
     if [[ ${#N4_WEIGHT_MASK_IMAGES[@]} -gt 0 ]];
       then
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
       fi
   fi
 
@@ -428,7 +428,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
         SEGMENTATION_N4_IMAGES=( ${SEGMENTATION_N4_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}${j}N4.${OUTPUT_SUFFIX} )
         if [[ $j == 0 ]];
           then
-            logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0.025 0.995 256 ${ATROPOS_SEGMENTATION_MASK}
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0.025 0.995 256 ${ATROPOS_SEGMENTATION_MASK}
           else
             cp ${ANATOMICAL_IMAGES[$j]} ${SEGMENTATION_N4_IMAGES[$j]}
           fi
@@ -438,8 +438,8 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
             exe_n4_correction="${exe_n4_correction} -w ${SEGMENTATION_WEIGHT_MASK}"
           fi
         logCmd $exe_n4_correction
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} Normalize ${SEGMENTATION_N4_IMAGES[$j]}
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} m ${SEGMENTATION_N4_IMAGES[$j]} 1000
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} Normalize ${SEGMENTATION_N4_IMAGES[$j]}
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} m ${SEGMENTATION_N4_IMAGES[$j]} 1000
       done
 
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE=''
@@ -550,7 +550,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
 
     if [[ ${#N4_WEIGHT_MASK_IMAGES[@]} -gt 0 ]];
       then
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
       fi
 
   done
@@ -619,4 +619,3 @@ if [[ `type -p RScript` > /dev/null ]];
   fi
 
 exit 0
-

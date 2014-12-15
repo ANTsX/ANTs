@@ -167,8 +167,8 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
     date
-    #echo "   ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
-    #echo "    ${ANTSPATH}ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
+    #echo "   ${ANTSPATH}/AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
+    #echo "    ${ANTSPATH}/ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
     if [[ ${#imagelist[@]} -eq 0  ]] ; then
@@ -191,18 +191,18 @@ function shapeupdatetotemplate() {
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
-          echo "   ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
+          echo "   ${ANTSPATH}/AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
           date
           echo "--------------------------------------------------------------------------------------"
-          ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
+          ${ANTSPATH}/AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
 
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---scale the averaged inverse warp field by the gradient step"
-          echo "   ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
+          echo "   ${ANTSPATH}/MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
           date
           echo "--------------------------------------------------------------------------------------"
-          ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
+          ${ANTSPATH}/MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
         fi
 
         echo
@@ -218,7 +218,7 @@ function shapeupdatetotemplate() {
         if [[ $NWARPS -ne 0 ]];
           then
             ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
-            ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
+            ${ANTSPATH}/MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
           fi
       fi
 

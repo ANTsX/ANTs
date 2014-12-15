@@ -8,20 +8,20 @@ f=$1 ; m=$2    # fixed and moving image file names
 mysetting=$3
 if [[ ! -s $f ]] ; then echo no fixed $f ; exit; fi
 if [[ ! -s $m ]] ; then echo no moving $m ;exit; fi
-if [[ ${#mysetting} -eq 0 ]] ; then 
-echo usage is 
-echo $0 fixed.nii.gz moving.nii.gz mysetting 
+if [[ ${#mysetting} -eq 0 ]] ; then
+echo usage is
+echo $0 fixed.nii.gz moving.nii.gz mysetting
 echo  where mysetting is either forproduction or fastfortesting
 exit
 fi
 nm1=` basename $f | cut -d '.' -f 1 `
 nm2=` basename $m | cut -d '.' -f 1 `
 reg=${AP}antsRegistration           # path to antsRegistration
-if [[ $mysetting == "fastfortesting" ]] ; then 
+if [[ $mysetting == "fastfortesting" ]] ; then
   its=10000x0x0
   percentage=0.1
   syn="100x0x0,0,5"
-else  
+else
   its=10000x111110x11110
   percentage=0.3
   syn="100x100x50,-0.01,5"

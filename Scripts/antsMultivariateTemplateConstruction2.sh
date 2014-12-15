@@ -37,11 +37,11 @@ if [[ ${#ANTSPATH} -le 3 ]];
 # No need to test this more than once. Can reside outside of the main loop.
 ANTS=${ANTSPATH}/antsRegistration
 WARP=${ANTSPATH}/antsApplyTransforms
-N4=${ANTSPATH}N4BiasFieldCorrection
-PEXEC=${ANTSPATH}ANTSpexec.sh
-SGE=${ANTSPATH}waitForSGEQJobs.pl
-PBS=${ANTSPATH}waitForPBSQJobs.pl
-XGRID=${ANTSPATH}waitForXGridJobs.pl
+N4=${ANTSPATH}/N4BiasFieldCorrection
+PEXEC=${ANTSPATH}/ANTSpexec.sh
+SGE=${ANTSPATH}/waitForSGEQJobs.pl
+PBS=${ANTSPATH}/waitForPBSQJobs.pl
+XGRID=${ANTSPATH}/waitForXGridJobs.pl
 
 fle_error=0
 for FLE in $ANTS $WARP $N4 $PEXEC $SGE $XGRID $PBS
@@ -295,8 +295,8 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
     date
-    #echo "   ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
-    #echo "    ${ANTSPATH}ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
+    #echo "   ${ANTSPATH}/AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
+    #echo "    ${ANTSPATH}/ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
 
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
@@ -320,34 +320,34 @@ function shapeupdatetotemplate() {
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
-          echo "   ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
+          echo "   ${ANTSPATH}/AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
           date
           echo "--------------------------------------------------------------------------------------"
-          ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
+          ${ANTSPATH}/AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
 
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---scale the averaged inverse warp field by the gradient step"
-          echo "   ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
+          echo "   ${ANTSPATH}/MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
           date
           echo "--------------------------------------------------------------------------------------"
-          ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
+          ${ANTSPATH}/MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
         fi
 
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
-        echo "   ${ANTSPATH}${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
+        echo "   ${ANTSPATH}/${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
         echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}"
         echo "--------------------------------------------------------------------------------------"
 
-        ${ANTSPATH}${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
+        ${ANTSPATH}/${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
 
         if [[ $NWARPS -ne 0 ]];
           then
             ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
-            ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
+            ${ANTSPATH}/MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
           fi
       fi
 
@@ -775,7 +775,7 @@ elif [[ ${NINFILES} -eq 1 ]];
             done
          done < $IMAGESFILE
     else
-        range=`${ANTSPATH}ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d "]" -f 1 `
+        range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d "]" -f 1 `
         if [[ ${range} -eq 1 && ${TDIM} -ne 4 ]];
           then
             echo "Please provide at least 2 filenames for the template."
@@ -806,7 +806,7 @@ elif [[ ${NINFILES} -eq 1 ]];
              #split the 4D file into 3D elements
              cp ${IMAGESETVARIABLE} ${tmpdir}/
              cd ${tmpdir}/
-             # ${ANTSPATH}ImageMath $TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
+             # ${ANTSPATH}/ImageMath $TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
              # rm -f ${IMAGESETVARIABLE}
 
              # selecting 16 volumes randomly from the timeseries for averaging, placing them in tmp/selection folder.
@@ -842,15 +842,15 @@ elif [[ ${NINFILES} -eq 1 ]];
 
                     if [[ ${number} -lt 10 ]];
                         then
-                        ${ANTSPATH}ImageMath $TDIM selection/vol000${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                        ${ANTSPATH}/ImageMath $TDIM selection/vol000${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                         #   cp vol000${number}.nii.gz selection/
                     elif [[ ${number} -ge 10 && ${number} -lt 100 ]];
                         then
-                        ${ANTSPATH}ImageMath $TDIM selection/vol00${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                        ${ANTSPATH}/ImageMath $TDIM selection/vol00${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                         #   cp vol00${number}.nii.gz selection/
                     elif [[ ${number} -ge 100 && ${number} -lt 1000 ]];
                         then
-                        ${ANTSPATH}ImageMath $TDIM selection/vol0${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                        ${ANTSPATH}/ImageMath $TDIM selection/vol0${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                         #   cp vol0${number}.nii.gz selection/
                     fi
                     let j++
@@ -864,17 +864,17 @@ elif [[ ${NINFILES} -eq 1 ]];
                 let "number %= $range"
                 if [[ ${number} -lt 10 ]];
                     then
-                    ${ANTSPATH}ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                    ${ANTSPATH}/ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                     #   cp vol000${number}.nii.gz selection/
                 elif [[ ${number} -ge 10 && ${number} -lt 100 ]];
                     then
-                    ${ANTSPATH}ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                    ${ANTSPATH}/ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                     #   cp vol00${number}.nii.gz selection/
                 fi
             done
         elif [[ ${range} -le ${nfmribins} ]];
             then
-            ${ANTSPATH}ImageMath selection/$TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
+            ${ANTSPATH}/ImageMath selection/$TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
             # cp *.nii.gz selection/
         fi
         # set filelist variable
@@ -935,7 +935,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo "   ${CURRENTIMAGESET[@]}"
         echo "--------------------------------------------------------------------------------------"
         summarizeimageset $DIM ${TEMPLATES[$i]} $STATSMETHOD ${CURRENTIMAGESET[@]}
-        #${ANTSPATH}AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
+        #${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
       fi
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
@@ -1044,7 +1044,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo " Starting ANTS rigid registration on SGE cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
         # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-        ${ANTSPATH}waitForSGEQJobs.pl 1 60 $jobIDs
+        ${ANTSPATH}/waitForSGEQJobs.pl 1 60 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
           then
@@ -1060,7 +1060,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo " Starting ANTS rigid registration on PBS cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
                # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-        ${ANTSPATH}waitForPBSQJobs.pl 1 60 $jobIDs
+        ${ANTSPATH}/waitForPBSQJobs.pl 1 60 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
           then
@@ -1088,7 +1088,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo " Starting ANTS rigid registration on XGrid cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
         # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-        ${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 30 $jobIDs
+        ${ANTSPATH}/waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 30 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
           then
@@ -1111,10 +1111,10 @@ if [[ "$RIGID" -eq 1 ]];
             IMAGERIGIDSET[${#IMAGERIGIDSET[@]}]=$RIGID
           done
         echo
-        echo  "${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}"
+        echo  "${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}"
 
       summarizeimageset $DIM ${TEMPLATES[$j]} $STATSMETHOD ${IMAGERIGIDSET[@]}
-      #${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
+      #${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
       done
 
     # cleanup and save output in seperate folder
@@ -1368,7 +1368,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Starting ANTS registration on SGE cluster. Iteration: $itdisplay of $ITERATIONLIMIT"
         echo "--------------------------------------------------------------------------------------"
         # now wait for the stuff to finish - this will take a while so poll queue every 10 mins
-        ${ANTSPATH}waitForSGEQJobs.pl 1 600 $jobIDs
+        ${ANTSPATH}/waitForSGEQJobs.pl 1 600 $jobIDs
         if [[ ! $? -eq 0 ]];
           then
             echo "qsub submission failed - jobs went into error state"
@@ -1381,7 +1381,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Starting ANTS registration on PBS cluster. Iteration: $itdisplay of $ITERATIONLIMIT"
         echo "--------------------------------------------------------------------------------------"
         # now wait for the stuff to finish - this will take a while so poll queue every 10 mins
-        ${ANTSPATH}waitForPBSQJobs.pl 1 600 $jobIDs
+        ${ANTSPATH}/waitForPBSQJobs.pl 1 600 $jobIDs
         if [[ ! $? -eq 0 ]];
           then
             echo "qsub submission failed - jobs went into error state"
@@ -1409,7 +1409,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Starting ANTS registration on XGrid cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
         # now wait for the jobs to finish. This is slow, so poll less often
-        ${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 300 $jobIDs
+        ${ANTSPATH}/waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 300 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
           then

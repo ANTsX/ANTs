@@ -91,7 +91,7 @@ fi
 if  [ ${#MOVINGDT} -gt 3 ]
 then
 echo " The BZero DOES NOT EXIST : Using FA Instead!!"
-${ANTSPATH}ImageMath 3 ${OUTPUTNAME}_fa.nii TensorFA  $MOVINGDT
+${ANTSPATH}/ImageMath 3 ${OUTPUTNAME}_fa.nii TensorFA  $MOVINGDT
 MOVINGBZ=${OUTPUTNAME}_fa.nii
 fi
 
@@ -124,9 +124,9 @@ echo " "
 
 # first, do distortion correction of MOVINGDT to MOVING
 # use the B0 image
-${ANTSPATH}ANTS 3 -m CC[${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[3,0] -t SyN[0.25]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
+${ANTSPATH}/ANTS 3 -m CC[${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[3,0] -t SyN[0.25]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
 
-${ANTSPATH}WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii.gz ${OUTPUTNAME}distcorrWarp.nii.gz ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
+${ANTSPATH}/WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii.gz ${OUTPUTNAME}distcorrWarp.nii.gz ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
 #exit
 
 if [[ ! -s ${OUTPUTNAME}Affine.txt ]] ; then
@@ -136,19 +136,17 @@ fi
 if  [[ -s ${MOVINGDT}  ]] &&  [[  -s ${OUTPUTNAME}Affine.txt ]] ; then
     DTDEF=${OUTPUTNAME}DTdeformed.nii.gz
     FIXEDSUB=${OUTPUTNAME}fixedsub.nii.gz
-#    ${ANTSPATH}ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2
+#    ${ANTSPATH}/ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2
     FIXEDSUB=$FIXED
     echo " Warp DT "
-    ${ANTSPATH}WarpTensorImageMultiTransform $DIM  $MOVINGDT    $DTDEF ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz   -R $FIXEDSUB
+    ${ANTSPATH}/WarpTensorImageMultiTransform $DIM  $MOVINGDT    $DTDEF ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz   -R $FIXEDSUB
 
     COMPWARP=${OUTPUTNAME}DTwarp.nii.gz
-    ${ANTSPATH}ComposeMultiTransform $DIM $COMPWARP   -R ${FIXEDSUB}  ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz
-    ${ANTSPATH}ReorientTensorImage 3 $DTDEF  $DTDEF  $COMPWARP
+    ${ANTSPATH}/ComposeMultiTransform $DIM $COMPWARP   -R ${FIXEDSUB}  ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz
+    ${ANTSPATH}/ReorientTensorImage 3 $DTDEF  $DTDEF  $COMPWARP
 
 fi
 
 
 
 exit
-
-

@@ -110,7 +110,7 @@ Optional arguments:
      -a:                                        Atlases (assumed to be skull-stripped) used to cook template priors.  If atlases
                                                 aren't used then we simply smooth the single-subject template posteriors after
                                                 passing through antsCorticalThickness.sh. Example:
-        
+
  						  -a atlas1.nii.gz -a atlas2.nii.gz ... -a atlasN.nii.gz
 
      -l:                                        Labels associated with each atlas, in the same order as they are specified
@@ -428,7 +428,7 @@ if [[ ${#MALF_ATLASES[@]} -ne ${#MALF_LABELS[@]} ]]
 
 # Set up various things related to RUN_QUICK
 
-# Can't do everything fast and still get good results if there is large deformation. 
+# Can't do everything fast and still get good results if there is large deformation.
 # Initiate levels of fast:
 
 # 0 - Fast SST (old ANTS) but everything else slower for quality
@@ -441,17 +441,17 @@ RUN_ANTSCT_TO_SST_QUICK=0
 RUN_FAST_MALF_COOKING=0
 RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE=0
 
-if [[ $RUN_QUICK -gt 0 ]]; 
+if [[ $RUN_QUICK -gt 0 ]];
   then
     RUN_ANTSCT_TO_SST_QUICK=1
   fi
 
-if [[ $RUN_QUICK -gt 1 ]]; 
+if [[ $RUN_QUICK -gt 1 ]];
   then
     RUN_FAST_MALF_COOKING=1
   fi
 
-if [[ $RUN_QUICK -gt 2 ]]; 
+if [[ $RUN_QUICK -gt 2 ]];
   then
     RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE=1
   fi
@@ -567,7 +567,7 @@ logCmd mkdir -p ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}
 for(( i=0; i < ${NUMBER_OF_MODALITIES}; i++ ))
   do
     TEMPLATE_INPUT_IMAGE="${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}initTemplateModality${i}.nii.gz"
- 
+
     logCmd ${ANTSPATH}/ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$i]} 5
 
     TEMPLATE_Z_IMAGES="${TEMPLATE_Z_IMAGES} -z ${TEMPLATE_INPUT_IMAGE}"
@@ -581,7 +581,7 @@ time_start_sst_creation=`date +%s`
 if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
   then
 
-    if [[ $RUN_OLD_ANTS_SST_CREATION -gt 0 ]]; 
+    if [[ $RUN_OLD_ANTS_SST_CREATION -gt 0 ]];
       then
         logCmd ${ANTSPATH}/antsMultivariateTemplateConstruction.sh \
           -d ${DIMENSION} \
@@ -995,4 +995,3 @@ echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elap
 echo "--------------------------------------------------------------------------------------"
 
 exit 0
-

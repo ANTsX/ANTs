@@ -255,14 +255,14 @@ if [[ ! -d `dirname $OUTNAME` ]]
 then
   mkdir -p `dirname $OUTNAME`
 fi
-if [[ ! -s ${OUTNAME}AveragePCASL.nii.gz ]] ; then
-  logCmd ${ANTSPATH}antsMotionCorr -d 3 -a $PCASL -o ${OUTNAME}AveragePCASL.nii.gz
+if [[ ! -s ${OUTNAME}/AveragePCASL.nii.gz ]] ; then
+  logCmd ${ANTSPATH}/antsMotionCorr -d 3 -a $PCASL -o ${OUTNAME}AveragePCASL.nii.gz
 fi
-logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz 600 999999
-logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz ME ${OUTNAME}tmp.nii.gz 2
-logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz GetLargestComponent ${OUTNAME}tmp.nii.gz
-logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz MD ${OUTNAME}tmp.nii.gz 3
-logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}pCASLBrain.nii.gz m ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz
+logCmd ${ANTSPATH}/ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz 600 999999
+logCmd ${ANTSPATH}/ImageMath 3 ${OUTNAME}tmp.nii.gz ME ${OUTNAME}tmp.nii.gz 2
+logCmd ${ANTSPATH}/ImageMath 3 ${OUTNAME}tmp.nii.gz GetLargestComponent ${OUTNAME}tmp.nii.gz
+logCmd ${ANTSPATH}/ImageMath 3 ${OUTNAME}tmp.nii.gz MD ${OUTNAME}tmp.nii.gz 3
+logCmd ${ANTSPATH}/ImageMath 3 ${OUTNAME}pCASLBrain.nii.gz m ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz
 
 INTERSUBJECT_PARAMS=" -d 3 -i ${OUTNAME}pCASLBrain.nii.gz -r $ANATOMICAL_IMAGE -x $BRAINMASK -w ${TRANSFORM_PREFIX}SubjectToTemplate -t 2 -o $OUTNAME "
 if [[ -n $LABELS ]]
@@ -271,18 +271,18 @@ then
 fi
 
 logCmd ${ANTSPATH}/antsIntermodalityIntrasubject.sh $INTERSUBJECT_PARAMS
-N4BiasFieldCorrection -d 3 -i ${OUTNAME}AveragePCASL.nii.gz -o  ${OUTNAME}AveragePCASL.nii.gz -r 1 -s 4
-N4BiasFieldCorrection -d 3 -i ${OUTNAME}AveragePCASL.nii.gz -o  ${OUTNAME}AveragePCASL.nii.gz -r 1 -s 2
-N4BiasFieldCorrection -d 3 -i ${OUTNAME}AveragePCASL.nii.gz -o  ${OUTNAME}AveragePCASL.nii.gz -r 1 -s 1
-logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}OtsuMask.nii.gz Otsu 4
-logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}OtsuMask.nii.gz 2 4
-logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz ME ${OUTNAME}OtsuMask.nii.gz 1
-logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz MD ${OUTNAME}OtsuMask.nii.gz 1
-logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}brainmask.nii.gz ${OUTNAME}BrainThresh.nii.gz 1 999
-logCmd ${ANTSPATH}MultiplyImages 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}BrainThresh.nii.gz  ${OUTNAME}OtsuMask.nii.gz
+logCmd ${ANTSPATH}/N4BiasFieldCorrection -d 3 -i ${OUTNAME}AveragePCASL.nii.gz -o  ${OUTNAME}AveragePCASL.nii.gz -r 1 -s 4
+logCmd ${ANTSPATH}/N4BiasFieldCorrection -d 3 -i ${OUTNAME}AveragePCASL.nii.gz -o  ${OUTNAME}AveragePCASL.nii.gz -r 1 -s 2
+logCmd ${ANTSPATH}/N4BiasFieldCorrection -d 3 -i ${OUTNAME}AveragePCASL.nii.gz -o  ${OUTNAME}AveragePCASL.nii.gz -r 1 -s 1
+logCmd ${ANTSPATH}/ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}OtsuMask.nii.gz Otsu 4
+logCmd ${ANTSPATH}/ThresholdImage 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}OtsuMask.nii.gz 2 4
+logCmd ${ANTSPATH}/ImageMath 3 ${OUTNAME}OtsuMask.nii.gz ME ${OUTNAME}OtsuMask.nii.gz 1
+logCmd ${ANTSPATH}/ImageMath 3 ${OUTNAME}OtsuMask.nii.gz MD ${OUTNAME}OtsuMask.nii.gz 1
+logCmd ${ANTSPATH}/ThresholdImage 3 ${OUTNAME}brainmask.nii.gz ${OUTNAME}BrainThresh.nii.gz 1 999
+logCmd ${ANTSPATH}/MultiplyImages 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}BrainThresh.nii.gz  ${OUTNAME}OtsuMask.nii.gz
 
 if [ ! -f ${OUTNAME}_kcbf.nii.gz ]; then
-  logCmd ${ANTSPATH}antsNetworkAnalysis.R \
+  logCmd ${ANTSPATH}/antsNetworkAnalysis.R \
     -o $OUTNAME \
     --freq 0.01x0.1 \
     --mask ${OUTNAME}OtsuMask.nii.gz \
@@ -296,7 +296,7 @@ if [ ! -f ${OUTNAME}_kcbf.nii.gz ]; then
     --replace $SAMPLE_WITH_REPLACEMENT
 fi
 
-logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}/antsApplyTransforms -d 3 \
     -i ${OUTNAME}_kcbf.nii.gz \
     -r $TEMPLATE \
     -o ${OUTNAME}MeanCBFWarpedToTemplate.nii.gz \
@@ -306,7 +306,7 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -t ${OUTNAME}1Warp.nii.gz \
     -t ${OUTNAME}0GenericAffine.mat
 
-logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}/antsApplyTransforms -d 3 \
     -i $LABELS \
     -r ${OUTNAME}AveragePCASL.nii.gz \
     -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
@@ -316,7 +316,7 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -t [${OUTNAME}0GenericAffine.mat,1] \
     -t ${OUTNAME}1InverseWarp.nii.gz
 
-logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}/antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
   -r $ANATOMICAL_IMAGE \
   -o ${OUTNAME}MeanCBFWarpedToT1.nii.gz \
@@ -324,7 +324,7 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -t ${OUTNAME}1Warp.nii.gz \
   -t ${OUTNAME}0GenericAffine.mat \
 
-logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}/antsApplyTransforms -d 3 \
   -i $SEGMENTATION \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}SegmentationWarpedToPCASL.nii.gz \
