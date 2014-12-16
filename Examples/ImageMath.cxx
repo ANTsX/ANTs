@@ -50,6 +50,8 @@
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkExpImageFilter.h"
 #include "itkExtractImageFilter.h"
+#include "itkFastMarchingExtensionImageFilterBase.h"
+#include "itkFastMarchingExtensionImageFilter.h"
 #include "itkGaussianImageSource.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
@@ -7674,6 +7676,117 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
 
 
 template <unsigned int ImageDimension>
+int FastMarchingExtension(int argc, char *argv[])
+{
+  typedef float                                     PixelType;
+  typedef itk::Image<PixelType, ImageDimension>     ImageType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++; // speed image
+  std::string fn2 = ""; // label image
+  std::string fn3 = ""; // value image
+  if(  argc > argct )
+    {
+    fn2 = std::string(argv[argct]);   argct++;
+    }
+  else
+    {
+    std::cout << " not enough parameters -- need label image " << std::endl;
+    return 0;
+    }
+  if(  argc > argct )
+    {
+    fn3 = std::string(argv[argct]);   argct++;
+    }
+  else
+    {
+    std::cout << " not enough parameters -- need value image " << std::endl;
+    return 0;
+    }
+  typename ImageType::Pointer speedimage = NULL;
+  ReadImage<ImageType>(speedimage, fn1.c_str() );
+  typename ImageType::Pointer labimage = NULL;
+  ReadImage<ImageType>(labimage, fn2.c_str() );
+  typename ImageType::Pointer valimage = NULL;
+  ReadImage<ImageType>(valimage, fn3.c_str() );
+  typedef itk::FastMarchingThresholdStoppingCriterion< ImageType, ImageType >
+    CriterionType;
+  typedef typename CriterionType::Pointer CriterionPointer;
+  CriterionPointer criterion = CriterionType::New();
+  criterion->SetThreshold( 1.e9 ); // something large
+  typedef  itk::FastMarchingExtensionImageFilterBase<ImageType, ImageType,
+    PixelType,1>  MarcherBaseType;
+  typedef  itk::FastMarchingExtensionImageFilter<ImageType, PixelType>
+    MarcherType;
+  typedef  typename MarcherBaseType::LabelImageType LabelImageType;
+  typename MarcherBaseType::Pointer  fastMarching;
+  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
+  typename ThresholderType::Pointer thresholder = ThresholderType::New();
+  thresholder->SetInput( labimage );
+  thresholder->SetLowerThreshold( 0.5 );
+  thresholder->SetUpperThreshold( 1.001 );
+  thresholder->SetInsideValue( 1 );
+  thresholder->SetOutsideValue( 0 );
+
+  typedef itk::LabelContourImageFilter<ImageType, ImageType> ContourFilterType;
+  typename ContourFilterType::Pointer contour = ContourFilterType::New();
+  contour->SetInput( thresholder->GetOutput() );
+  contour->FullyConnectedOff();
+  contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
+  contour->Update();
+  typename ImageType::Pointer contourimage = contour->GetOutput();
+  // contour defines starting points
+
+  fastMarching = MarcherBaseType::New();
+  fastMarching->SetInput( speedimage );
+  typedef typename MarcherBaseType::NodePairType           NodePairType;
+  typedef typename MarcherBaseType::NodePairContainerType  NodePairContainerType;
+  typedef typename MarcherBaseType::AuxValueVectorType     AuxValueVectorType;
+  typedef typename MarcherBaseType::AuxValueContainerType  AuxValueContainerType;
+  typename AuxValueContainerType::Pointer auxAliveValues = AuxValueContainerType::New();
+  typename AuxValueContainerType::Pointer auxTrialValues = AuxValueContainerType::New();
+  typename NodePairContainerType::Pointer seeds = NodePairContainerType::New();
+  seeds->Initialize();
+  typename NodePairContainerType::Pointer alivePoints = NodePairContainerType::New();
+  alivePoints->Initialize();
+  unsigned int seedct = 0, alivect = 0;
+  Iterator vfIter2( labimage,  labimage->GetLargestPossibleRegion() );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    typename ImageType::IndexType ind = vfIter2.GetIndex();
+    double labval = labimage->GetPixel( ind );
+    double contourval = contourimage->GetPixel( ind );
+    if ( ( (unsigned int) contourval == 1 )  )
+      {
+      seeds->push_back( NodePairType(  ind, 0. ) );
+      AuxValueVectorType vector;
+      vector[0] = valimage->GetPixel( ind  );
+      auxTrialValues->push_back( vector );
+      seedct++;
+      }
+    if (  ( labval > 0  ) && ((unsigned int) contourval != 1 ) )
+      {
+      alivePoints->push_back( NodePairType(  ind, 0. ) );
+      AuxValueVectorType vector;
+      vector[0] = valimage->GetPixel( ind  );
+      auxAliveValues->push_back( vector );
+      alivect++;
+      }
+  }
+  fastMarching->SetTrialPoints(  seeds  );
+  fastMarching->SetAuxiliaryTrialValues( auxTrialValues );
+  fastMarching->SetAlivePoints( alivePoints );
+  fastMarching->SetAuxiliaryAliveValues( auxAliveValues );
+  fastMarching->SetStoppingCriterion( criterion );
+  fastMarching->Update();
+  WriteImage<ImageType>( fastMarching->GetAuxiliaryImage(0), outname.c_str() );
+  return 0;
+}
+
+
+template <unsigned int ImageDimension>
 int itkPropagateLabelsThroughMask(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
@@ -13931,6 +14044,11 @@ ImageMathHelperAll(int argc, char **argv)
   if( operation == "PropagateLabelsThroughMask" )
     {
     itkPropagateLabelsThroughMask<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "FastMarchingExtension" )
+    {
+    FastMarchingExtension<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
   if( operation == "FastMarchingSegmentation" )
