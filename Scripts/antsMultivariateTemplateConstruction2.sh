@@ -587,7 +587,7 @@ while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
    PBSMEMORY=$OPTARG
    ;;
       x) #initialization template
-   XGRIDOPTS=$XGRIDOPTS
+   XGRIDOPTS=$OPTARG
    ;;
       y) # update with full affine, 0 for no rigid (default = 1)
    AFFINE_UPDATE_FULL=$OPTARG
