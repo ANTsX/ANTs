@@ -5,6 +5,8 @@
 #include "itkImageFileReader.h"
 #include "itkLabelGeometryImageFilter.h"
 #include "itkLabelPerimeterEstimationCalculator.h"
+#include "itkAffineTransform.h"
+#include "itkTransformFileWriter.h"
 
 #include <iomanip>
 #include <iostream>
@@ -122,6 +124,64 @@ int LabelGeometryMeasures( int argc, char * argv[] )
   return EXIT_SUCCESS;
 }
 
+int GetReorientationRigidTransform( int argc, char * argv[] )
+{
+  const unsigned int ImageDimension = 2;
+
+  if( argc < 4 )
+    {
+    std::cerr << "Not enough arguments.  See help." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  typedef int                                   LabelType;
+  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
+  typedef itk::ImageFileReader<LabelImageType>  LabelReaderType;
+
+  LabelReaderType::Pointer labelReader = LabelReaderType::New();
+  labelReader->SetFileName( argv[2] );
+  labelReader->Update();
+
+  typedef itk::LabelGeometryImageFilter<LabelImageType> FilterType;
+  FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( labelReader->GetOutput() );
+
+//   filter->CalculatePixelIndicesOff();
+//   filter->CalculateOrientedBoundingBoxOff();
+//   filter->CalculateOrientedLabelRegionsOff();
+//   // These generate optional outputs.
+  filter->CalculatePixelIndicesOn();
+  filter->CalculateOrientedBoundingBoxOn();;
+  filter->CalculateOrientedLabelRegionsOn();
+  filter->Update();
+
+  typedef itk::AffineTransform<double, ImageDimension> TransformType;
+  TransformType::Pointer transform = TransformType::New();
+  TransformType::MatrixType rotationMatrix( filter->GetRotationMatrix( 1 ) );
+  TransformType::CenterType center;
+
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    center[i] = filter->GetCentroid( 1 )[i] * filter->GetInput()->GetSpacing()[i];
+    }
+
+  TransformType::OutputVectorType translation;
+  translation.Fill( 0 );
+  transform->SetCenter( center );
+  transform->SetTranslation( translation );
+  transform->SetMatrix( rotationMatrix );
+
+  typedef itk::TransformFileWriter TransformWriterType;
+  TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+  transformWriter->SetInput( transform );
+  transformWriter->SetFileName( argv[3] );
+  transformWriter->Update();
+  return EXIT_SUCCESS;
+
+  return EXIT_SUCCESS;
+}
+
+
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
 int LabelGeometryMeasures( std::vector<std::string> args, std::ostream* itkNotUsed( out_stream ) )
@@ -170,8 +230,9 @@ private:
 
   if( argc < 3 )
     {
-    std::cout << "Usage: " << argv[0] << " imageDimension labelImage [intensityImage]"
-             << std::endl;
+    std::cout << "Usage 1: " << argv[0] << " imageDimension labelImage [intensityImage]" << std::endl;
+    std::cout << "Usage 2: " << argv[0] << " X singleLabelImage outputTransform" << std::endl;
+
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -180,21 +241,28 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  if( argv[1][0] == 'X' )
     {
-    case 2:
+    GetReorientationRigidTransform( argc, argv );
+    }
+  else
+    {
+    switch( atoi( argv[1] ) )
       {
-      LabelGeometryMeasures<2>( argc, argv );
+      case 2:
+        {
+        LabelGeometryMeasures<2>( argc, argv );
+        }
+        break;
+      case 3:
+        {
+        LabelGeometryMeasures<3>( argc, argv );
+        }
+        break;
+      default:
+        std::cout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
       }
-      break;
-    case 3:
-      {
-      LabelGeometryMeasures<3>( argc, argv );
-      }
-      break;
-    default:
-      std::cout << "Unsupported dimension" << std::endl;
-      return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;
 }
