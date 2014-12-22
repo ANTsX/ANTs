@@ -48,6 +48,13 @@ int LesionFilling( int argc, char * argv[] )
   
   if (method == "-neighbourVoxels")
   {
+
+         //finding connected components, we assume each component is one lesion
+         typedef itk::ConnectedComponentImageFilter <LesionImageType, LesionImageType>
+                     ConnectedComponentImageFilterType;
+         ConnectedComponentImageFilterType::Pointer connected =
+                     ConnectedComponentImageFilterType::New ();
+
          typedef itk::BinaryBallStructuringElement<
                              InputPixelType,
                              Dimension  >             StructuringElementType;
@@ -56,8 +63,8 @@ int LesionFilling( int argc, char * argv[] )
          //first finding the edges of lesions
          //by subtracting dilated lesion map from lesion map itself
          typedef itk::BinaryDilateImageFilter<
-                                   InputImageType,
-                                   OutputImageType,
+                                   LesionImageType,
+                                   LesionImageType,
                                    StructuringElementType >  DilateFilterType;
          DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
          structuringElement.SetRadius( 1 );  // 3x3 structuring element
