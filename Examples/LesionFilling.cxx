@@ -1,20 +1,16 @@
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkCannyEdgeDetectionImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-#include <itkNeighborhoodIterator.h>
-
-
-#include "antsUtilities.h"
 #include <algorithm>
-
-
-
 #include <iomanip>
 #include <iostream>
 #include <ostream>
 #include <sstream>
+#include "itkImage.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkSubtractImageFilter.h"
+#include "itkBinaryDilateImageFilter.h"
+#include "itkBinaryBallStructuringElement.h"
+#include "antsUtilities.h"
+#include "itkMaskImageFilter.h"
 
 namespace ants
 {
@@ -51,37 +47,42 @@ int LesionFilling( int argc, char * argv[] )
   
   if (method == "-neighbourVoxels")
   {
-
+         typedef itk::BinaryBallStructuringElement<
+                             InputPixelType,
+                             Dimension  >             StructuringElementType;
          //Neighbouring voxel
          //filling lesions with the voxels surrounding them
          //first finding the edges of lesions
-         
+         //by subtracting dilated lesion map from lesion map itself
          typedef itk::BinaryDilateImageFilter<
                                    InputImageType,
                                    OutputImageType,
                                    StructuringElementType >  DilateFilterType;
-         
          DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
-         
+         structuringElement.SetRadius( 1 );  // 3x3 structuring element
+         structuringElement.CreateStructuringElement();
          binaryDilate->SetKernel( structuringElement );
-
-         float variance = 1.0;
-         float upperThreshold = 0.0;
-         float lowerThreshold = 0.0;
          typedef itk::CastImageFilter< LesionImageType, RealImageType>
                                                                 CastToRealFilterType;
-         typedef itk::CannyEdgeDetectionImageFilter<RealImageType, RealImageType> CannyFilter;
-
          CastToRealFilterType::Pointer toReal = CastToRealFilterType::New();
          toReal->SetInput( LesionReader->GetOutput() );
-         CannyFilter::Pointer cannyFilter = CannyFilter::New();
-       
-         cannyFilter->SetInput( toReal->GetOutput() );
-         
-         cannyFilter->SetVariance( variance );
-         cannyFilter->SetUpperThreshold( upperThreshold );
-         cannyFilter->SetLowerThreshold( lowerThreshold );
-  
+         binaryDilate->SetInput( toReal->GetOutput() );
+         binaryDilate->SetDilateValue( 1 );
+         // subtract dilated image form non-dilated one
+         typedef itk::SubtractImageFilter <ImageType, ImageType >
+                     SubtractImageFilterType;
+         SubtractImageFilterType::Pointer subtractFilter
+                       = SubtractImageFilterType::New ();
+         //output = image1 - image2
+         subtractFilter->SetInput1(toReal->GetOutput() );
+         subtractFilter->SetInput2(binaryDilate->GetOutput());
+         subtractFilter->Update();
+         //multiply the outer lesion mask with T1 to get only the neighbouring voxels
+        
+
+
+
+
   /* LesionFilling d -neighbourVoxels binaryLeisonMap T1
    * LesionFilling d -mean binaryLesionMap AtroposWM T1
    * LesionFilling d -median binaryLesionmap AtroposWM T1
