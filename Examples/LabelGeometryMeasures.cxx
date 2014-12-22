@@ -1,13 +1,19 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
+#include "itkAffineTransform.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkLabelGeometryImageFilter.h"
 #include "itkLabelPerimeterEstimationCalculator.h"
-#include "itkAffineTransform.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkResampleImageFilter.h"
 #include "itkTransformFileWriter.h"
 
+#include <algorithm>
+#include <iostream>
+#include <vector>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <ostream>
@@ -124,6 +130,53 @@ int LabelGeometryMeasures( int argc, char * argv[] )
   return EXIT_SUCCESS;
 }
 
+template <class TransformType, class LabelImageType>
+unsigned int GetNumberOfLabelVoxelsInUpperRightQuadrant( TransformType *affineTransform, LabelImageType *labelImage )
+{
+  typedef itk::ResampleImageFilter<LabelImageType, LabelImageType> ResampleFilterType;
+  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  resampler->SetTransform( affineTransform );
+  resampler->SetSize( labelImage->GetLargestPossibleRegion().GetSize() );
+  resampler->SetOutputSpacing( labelImage->GetSpacing() );
+  resampler->SetOutputOrigin( labelImage->GetOrigin() );
+
+  typedef itk::NearestNeighborInterpolateImageFunction<LabelImageType, double> InterpolatorType;
+  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  resampler->SetInterpolator( interpolator );
+  resampler->SetInput( labelImage );
+  resampler->Update();
+
+  typedef typename LabelImageType::RegionType RegionType;
+
+  typename RegionType::IndexType index;
+  typename RegionType::SizeType size;
+  for( unsigned int d = 0; d < LabelImageType::ImageDimension; d++ )
+    {
+    index[d] = vcl_floor( resampler->GetOutput()->GetLargestPossibleRegion().GetIndex()[d] + 0.5 * resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[d] );
+    size[d] = vcl_floor( 0.5 * resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[d] );
+    }
+
+  index[1] = vcl_floor( resampler->GetOutput()->GetLargestPossibleRegion().GetIndex()[1] );
+  size[1] = vcl_floor( resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[1] );
+
+  RegionType region;
+  region.SetIndex( index );
+  region.SetSize( size );
+
+  unsigned int numberOfVoxels = 0;
+
+  itk::ImageRegionIterator<LabelImageType> It( resampler->GetOutput(), region );
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+    {
+    if( It.Get() == 1 )
+      {
+      numberOfVoxels++;
+      }
+    }
+
+  return numberOfVoxels;
+}
+
 int GetReorientationRigidTransform( int argc, char * argv[] )
 {
   const unsigned int ImageDimension = 2;
@@ -157,29 +210,107 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
 
   typedef itk::AffineTransform<double, ImageDimension> TransformType;
   TransformType::Pointer transform = TransformType::New();
-  TransformType::MatrixType rotationMatrix( filter->GetRotationMatrix( 1 ) );
+  TransformType::MatrixType reorientationMatrix( filter->GetRotationMatrix( 2 ) );
   TransformType::CenterType center;
 
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    center[i] = filter->GetCentroid( 1 )[i] * filter->GetInput()->GetSpacing()[i];
+    center[i] = filter->GetCentroid( 2 )[i] * filter->GetInput()->GetSpacing()[i];
     }
 
   TransformType::OutputVectorType translation;
   translation.Fill( 0 );
   transform->SetCenter( center );
   transform->SetTranslation( translation );
-  transform->SetMatrix( rotationMatrix );
+  transform->SetMatrix( reorientationMatrix );
+
+  bool doReflections = true;
+  if( argc > 4 )
+    {
+    doReflections = static_cast<bool>( atoi( argv[4] ) );
+    }
+
+  if( doReflections )
+    {
+    // check which has a higher concentraion
+
+    TransformType::MatrixType flipXMatrix;
+    flipXMatrix.SetIdentity();
+    flipXMatrix( 0, 0 ) = -1.0;
+
+    TransformType::MatrixType flipYMatrix;
+    flipYMatrix.SetIdentity();
+    flipYMatrix( 1, 1 ) = -1.0;
+
+    TransformType::MatrixType testRotationMatrix;
+    std::vector<int> numberOfVoxelsInUpperRightQuadrant( 2 );
+
+    // check current rotation matrix
+    testRotationMatrix = reorientationMatrix;
+    transform->SetMatrix( testRotationMatrix );
+    numberOfVoxelsInUpperRightQuadrant[0] =
+      GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelReader->GetOutput() );
+
+    // check flip x
+    testRotationMatrix = flipXMatrix * reorientationMatrix;
+    transform->SetMatrix( testRotationMatrix );
+    numberOfVoxelsInUpperRightQuadrant[1] =
+      GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelReader->GetOutput() );
+
+    // check flip y
+//     testRotationMatrix = flipYMatrix * reorientationMatrix;
+//     transform->SetMatrix( testRotationMatrix );
+//     numberOfVoxelsInUpperRightQuadrant[2] =
+//       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelReader->GetOutput() );
+
+    // check flip x and flip y
+//     testRotationMatrix = flipXMatrix * flipYMatrix * reorientationMatrix;
+//     transform->SetMatrix( testRotationMatrix );
+//     numberOfVoxelsInUpperRightQuadrant[3] =
+//       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelReader->GetOutput() );
+
+    std::vector<int>::iterator result = std::max_element( numberOfVoxelsInUpperRightQuadrant.begin(), numberOfVoxelsInUpperRightQuadrant.end() );
+    unsigned int index = std::distance( numberOfVoxelsInUpperRightQuadrant.begin(), result );
+
+    switch( index )
+      {
+      case 0:  default:
+        {
+        testRotationMatrix = reorientationMatrix;
+        transform->SetMatrix( testRotationMatrix );
+        break;
+        }
+      case 1:
+        {
+        testRotationMatrix = flipXMatrix * reorientationMatrix;
+        transform->SetMatrix( testRotationMatrix );
+        break;
+        }
+//       case 2:
+//         {
+//         testRotationMatrix = flipYMatrix * reorientationMatrix;
+//         transform->SetMatrix( testRotationMatrix );
+//         break;
+//         }
+//       case 3:
+//         {
+//         testRotationMatrix = flipXMatrix * flipYMatrix * reorientationMatrix;
+//         transform->SetMatrix( testRotationMatrix );
+//         break;
+//         }
+      }
+    }
 
   typedef itk::TransformFileWriter TransformWriterType;
   TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( transform );
   transformWriter->SetFileName( argv[3] );
   transformWriter->Update();
-  return EXIT_SUCCESS;
 
   return EXIT_SUCCESS;
 }
+
+
 
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -231,7 +362,7 @@ private:
   if( argc < 3 )
     {
     std::cout << "Usage 1: " << argv[0] << " imageDimension labelImage [intensityImage]" << std::endl;
-    std::cout << "Usage 2: " << argv[0] << " X singleLabelImage outputTransform" << std::endl;
+    std::cout << "Usage 2: " << argv[0] << " X singleLabelImage outputTransform <doReflection=1>" << std::endl;
 
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
