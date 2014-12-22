@@ -22,7 +22,7 @@ int LabelGeometryMeasures( int argc, char * argv[] )
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
   typedef itk::ImageFileReader<LabelImageType>  LabelReaderType;
 
-  typedef float                                RealType;
+  typedef float                                T1Type;
   typedef itk::Image<RealType, ImageDimension> RealImageType;
   typedef itk::ImageFileReader<RealImageType>  ReaderType;
 
