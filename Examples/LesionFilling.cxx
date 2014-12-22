@@ -11,6 +11,7 @@
 #include "itkBinaryBallStructuringElement.h"
 #include "antsUtilities.h"
 #include "itkMaskImageFilter.h"
+#include "itkConnectedComponentImageFilter.h"
 
 namespace ants
 {
@@ -78,10 +79,13 @@ int LesionFilling( int argc, char * argv[] )
          subtractFilter->SetInput2(binaryDilate->GetOutput());
          subtractFilter->Update();
          //multiply the outer lesion mask with T1 to get only the neighbouring voxels
-        
-
-
-
+         typedef itk::MaskImageFilter< ImageType, ImageType > MaskFilterType;
+         MaskFilterType::Pointer maskFilter = MaskFilterType::New();
+         maskFilter->SetInput( toReal->GetOutput() );
+         maskFilter->SetMaskImage( subtractFilter->GetOutput() );
+         //replacing lesions with extracted 
+         
+  }
 
   /* LesionFilling d -neighbourVoxels binaryLeisonMap T1
    * LesionFilling d -mean binaryLesionMap AtroposWM T1
