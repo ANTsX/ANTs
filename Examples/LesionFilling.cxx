@@ -21,19 +21,12 @@ namespace ants
 template <unsigned int Dimension>
 int LesionFilling( int argc, char * argv[] )
 {
-  typedef int                                   LesionType;
-  typedef itk::Image<LesionType, Dimension> LesionImageType;
-  typedef itk::ImageFileReader<LesionImageType>  LesionReaderType;
-
-  typedef int                                   T1Type;
-  typedef itk::Image<LesionType, Dimension> T1ImageType;
-  typedef itk::ImageFileReader<LesionImageType>  T1ReaderType;
-  
-  typedef double           RealPixelType;  //  Operations
-  typedef itk::Image< PixelType, Dimension >          ImageType;
-  typedef itk::ImageRegionIterator< LesionImageType> IteratorType;
   typedef unsigned char PixelType;
-  typedef itk::Image< PixelType, Dimension > ImageType;
+  typedef itk::Image<PixelType, Dimension> ImageType;
+  typedef itk::ImageFileReader<ImageType>  ImageReaderType;
+
+  typedef double           RealPixelType;  //  Operations
+  typedef itk::ImageRegionIterator< LesionImageType> IteratorType;
   const int * Dimension = argv[1];
   const char * LesionMapFileName = argv[3];
   if (method == "-neighbourVoxels")
@@ -46,11 +39,14 @@ int LesionFilling( int argc, char * argv[] )
          const char * T1FileName = argv[5]
   }
 
-
-  typename LesionReaderType::Pointer LesionReader = LesionReaderType::New();
+  typename ImageReaderType::Pointer LesionReader = ImageReaderType::New();
   LesionReader->SetFileName( LesionMapFileName );
   LesionReader->Update();
-  
+
+  typename ImageReaderType::Pointer T1Reader = ImageReaderType::New();
+  T1Reader->SetFileName( T1FileName); 
+  T1Reader->Update();
+
   typedef itk::CastImageFilter< LesionImageType, RealImageType>
                                                          CastToRealFilterType;
   CastToRealFilterType::Pointer toReal = CastToRealFilterType::New();
@@ -67,8 +63,6 @@ int LesionFilling( int argc, char * argv[] )
                                StructuringElementType >  DilateFilterType;
   typedef itk::SubtractImageFilter <LesionImageType, LesionImageType>
                                SubtractImageFilterType;
-
-
   //finding connected components, we assume each component is one lesion
   typedef itk::ConnectedComponentImageFilter <LesionImageType, LesionImageType>
               ConnectedComponentImageFilterType;
@@ -107,7 +101,7 @@ int LesionFilling( int argc, char * argv[] )
      //multiply the outer lesion mask with T1 to get only the neighbouring voxels
      typedef itk::MaskImageFilter< ImageType, ImageType > MaskFilterType;
      MaskFilterType::Pointer maskFilter = MaskFilterType::New();
-     maskFilter->SetInput( thresholdFilter->GetOutput() );
+     maskFilter->SetInput( mask t1 );
      maskFilter->SetMaskImage( subtractFilter->GetOutput() );
      //collecting non-zero voxels
      IteratorType it( maskFilter->GetOutput(),
@@ -122,23 +116,14 @@ int LesionFilling( int argc, char * argv[] )
          }
          ++it;
        } // end while
+     //calculating mean lesion intesity
+     //Note: lesions should not be filled with values
+     //less than their originial values, this is a
+     //trick to exclude any CSF voxels in the outer mask (if any)
+     MaskFilterType::Pointer maskFilterLesion = MaskFilterType::New();
+     maskFilter->SetInput( 
      
-     
-     
-     for( It.GoToBegin() ; !It.IsAtEnd(); ++It )
-      {
-      if( ItM.Get() != 0 )
-        {
-
-        }
-      }
-
      
   
   }
 
-  /* LesionFilling d -neighbourVoxels binaryLeisonMap T1
-   * LesionFilling d -mean binaryLesionMap AtroposWM T1
-   * LesionFilling d -median binaryLesionmap AtroposWM T1
-   * LesionFilling d -randomSample binaryLesionMap AtroposWM T1
-   */
