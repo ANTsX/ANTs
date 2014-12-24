@@ -121,9 +121,39 @@ int LesionFilling( int argc, char * argv[] )
      //less than their originial values, this is a
      //trick to exclude any CSF voxels in the outer mask (if any)
      MaskFilterType::Pointer maskFilterLesion = MaskFilterType::New();
-     maskFilter->SetInput( 
+     maskFilterLesion->SetInput( T1Reader->GetOutput() );
+     maskFilterLesion->SetMaskImage( LesionReader->GetOutput() );
+     IteratorType it( maskFilterLesion->GetOutput(),
+                       maskFilterLesion->GetOutput()->GetLargestPossibleRegion() );
+     it.GoToBegin();
+     /** Walk over the image. */
+     int counter  = 0;
+     double meanInsideLesion = 0;
+     while ( !it.IsAtEnd() )
+       {
+         if( it.Value() )
+         {
+           //coutning number of voxels inside lesion
+           counter++;
+           meanInsideLesion += it.Get();
+         }
+         ++it;
+       }
+     meanInsideLesion /= counter;
+     //check that all outer voxels are more than the mean 
+     //intensity of the lesion, i.e. not including CSF voxels
      
-     
-  
-  }
-
+     IteratorType it( maskFilter->GetOutput(),
+                       maskFilter->GetOutput()->GetLargestPossibleRegion() );
+     it.GoToBegin();
+     std::vector<double> outerWMVoxels;
+     while ( !it.IsAtEnd() )
+     {
+       if ( it.Get() > meanInsideLesion )
+       {
+         outerWMVoxels.push_back( it.Get() );
+       }//end if
+    }//end while
+   
+  }//loop for lesions
+}//main int
