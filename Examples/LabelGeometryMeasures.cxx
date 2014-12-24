@@ -135,7 +135,7 @@ unsigned int GetNumberOfLabelVoxelsInUpperRightQuadrant( TransformType *affineTr
 {
   typedef itk::ResampleImageFilter<LabelImageType, LabelImageType> ResampleFilterType;
   typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
-  resampler->SetTransform( affineTransform );
+  resampler->SetTransform( affineTransform->GetInverseTransform() );
   resampler->SetSize( labelImage->GetLargestPossibleRegion().GetSize() );
   resampler->SetOutputSpacing( labelImage->GetSpacing() );
   resampler->SetOutputOrigin( labelImage->GetOrigin() );
