@@ -665,7 +665,7 @@ public:
       }
     else
       {
-      return NULL;
+      return ITK_NULLPTR;
       }
   }
 
@@ -755,9 +755,9 @@ protected:
   AtroposSegmentationImageFilter();
   ~AtroposSegmentationImageFilter();
 
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
-  void GenerateData();
+  void GenerateData() ITK_OVERRIDE;
 
 private:
   AtroposSegmentationImageFilter( const Self & ); // purposely not implemented

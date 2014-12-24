@@ -91,12 +91,12 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event)
+  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event)
+  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
   {
     TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
@@ -198,7 +198,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
   windowingFilter->SetOutputMaximum( upperScaleFunction );
   windowingFilter->Update();
 
-  typename ImageType::Pointer outputImage = NULL;
+  typename ImageType::Pointer outputImage = ITK_NULLPTR;
   if( histogramMatchSourceImage )
     {
     typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> HistogramMatchingFilterType;
@@ -263,12 +263,12 @@ protected:
   };
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event)
+  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event)
+  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
   {
     bool verbose = false;
     TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
@@ -580,7 +580,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   typedef itk::AffineTransform<RealType, ImageDimension>                                      AffineTransformType;
   typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType, AffineTransformType> AffineRegistrationType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
-  typename DisplacementIOFieldType::Pointer displacementout = NULL;
+  typename DisplacementIOFieldType::Pointer displacementout = ITK_NULLPTR;
 
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
@@ -594,8 +594,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter(  1 );
     if ( verbose ) std::cout << "  fixed image: " << fixedImageFileName << std::endl;
     if ( verbose ) std::cout << "  moving image: " << movingImageFileName << std::endl;
-    typename FixedImageType::Pointer fixed_time_slice = NULL;
-    typename FixedImageType::Pointer moving_time_slice = NULL;
+    typename FixedImageType::Pointer fixed_time_slice = ITK_NULLPTR;
+    typename FixedImageType::Pointer moving_time_slice = ITK_NULLPTR;
     typename FixedIOImageType::Pointer fixedInImage;
     ReadImage<FixedIOImageType>( fixedInImage, fixedImageFileName.c_str() );
     fixedInImage->Update();
@@ -726,7 +726,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
-      typename CompositeTransformType::Pointer compositeTransform = NULL;
+      typename CompositeTransformType::Pointer compositeTransform = ITK_NULLPTR;
       if( currentStage == static_cast<int>(numberOfStages) - 1 )
         {
         compositeTransform = CompositeTransformType::New();
@@ -820,7 +820,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       typename FixedImageType::Pointer preprocessFixedImage =
         PreprocessImage<FixedImageType>( fixed_time_slice, 0,
                                          1, 0.001, 0.999,
-                                         NULL );
+                                         ITK_NULLPTR );
 
       typename FixedImageType::Pointer preprocessMovingImage =
         PreprocessImage<FixedImageType>( moving_time_slice,
@@ -1707,7 +1707,7 @@ int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream =
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

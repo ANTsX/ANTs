@@ -91,7 +91,7 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
     return resultTransform;
     }
   std::cerr << "FATAL ERROR: REGISTRATION PROCESS WAS UNSUCCESSFUL" << std::endl;
-  CompositeTransformType::TransformTypePointer invalidTransform = NULL;
+  CompositeTransformType::TransformTypePointer invalidTransform = ITK_NULLPTR;
   return invalidTransform;      // Return an empty registration type.
 }
 

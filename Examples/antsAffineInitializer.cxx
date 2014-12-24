@@ -184,8 +184,8 @@ int antsAffineInitializerImp(int argc, char *argv[])
     maskfn = std::string( argv[argct] );   argct++;
     }
   searchfactor *= degtorad; // convert degrees to radians
-  typename ImageType::Pointer image1 = NULL;
-  typename ImageType::Pointer image2 = NULL;
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
+  typename ImageType::Pointer image2 = ITK_NULLPTR;
   ReadImage<ImageType>(image1, fn1.c_str() );
   ReadImage<ImageType>(image2, fn2.c_str() );
   VectorType ccg1;
@@ -437,7 +437,7 @@ int antsAffineInitializer( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

@@ -655,8 +655,8 @@ int ImageSetStatistics(int argc, char *argv[])
 
   //  std::cout <<" roifn " << roifn << " fn1 " << fn1 << " whichstat " << whichstat << std::endl;
 
-  typename ImageType::Pointer outimage = NULL;
-  typename ImageType::Pointer ROIimg = NULL;
+  typename ImageType::Pointer outimage = ITK_NULLPTR;
+  typename ImageType::Pointer ROIimg = ITK_NULLPTR;
 
   if( roifn.length() > 4 )
     {
@@ -670,7 +670,7 @@ int ImageSetStatistics(int argc, char *argv[])
       }
     catch( ... )
       {
-      ROIimg = NULL;
+      ROIimg = ITK_NULLPTR;
       std::cout << " Error reading ROI image " << std::endl;
       //  return 0;
       }
@@ -981,7 +981,7 @@ int ImageSetStatistics( std::vector<std::string> args, std::ostream* /*out_strea
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

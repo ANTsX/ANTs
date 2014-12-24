@@ -69,7 +69,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_ConvergenceWindowSize( 10 ),
   m_UseBSplineSmoothing( false )
 {
-  this->m_ThicknessPriorImage = NULL;
+  this->m_ThicknessPriorImage = ITK_NULLPTR;
   this->SetNumberOfRequiredInputs( 3 );
 }
 

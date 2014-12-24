@@ -38,7 +38,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
   // Read in input image
 
-  ImageType::Pointer inputImage = NULL;
+  ImageType::Pointer inputImage = ITK_NULLPTR;
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
@@ -57,7 +57,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
   // Read in optional mask image
 
-  ImageType::Pointer maskImage = NULL;
+  ImageType::Pointer maskImage = ITK_NULLPTR;
   ImageType::RegionType maskRegion;
 
   itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
@@ -480,7 +480,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
   // Read in optional Rgb image
 
-  RgbImageType::Pointer rgbImage = NULL;
+  RgbImageType::Pointer rgbImage = ITK_NULLPTR;
 
   itk::ants::CommandLineParser::OptionType::Pointer rgbImageOption =
     parser->GetOption( "rgb-image" );
@@ -559,8 +559,8 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     extracter->SetExtractionRegion( region );
     extracter->SetDirectionCollapseToIdentity();
 
-    SliceType::Pointer outputSlice = NULL;
-    SliceType::Pointer outputSlice2 = NULL;
+    SliceType::Pointer outputSlice = ITK_NULLPTR;
+    SliceType::Pointer outputSlice2 = ITK_NULLPTR;
 
     if( paddingType == -1 )
       {
@@ -623,8 +623,8 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     if( rgbImage )
       {
 
-      SliceType::Pointer outputMaskSlice = NULL;
-      SliceType::Pointer outputMaskSlice2 = NULL;
+      SliceType::Pointer outputMaskSlice = ITK_NULLPTR;
+      SliceType::Pointer outputMaskSlice2 = ITK_NULLPTR;
 
       if( maskImage )
         {
@@ -678,8 +678,8 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         outputMaskSlice2->DisconnectPipeline();
         }
 
-      RgbSliceType::Pointer outputRgbSlice = NULL;
-      RgbSliceType::Pointer outputRgbSlice2 = NULL;
+      RgbSliceType::Pointer outputRgbSlice = ITK_NULLPTR;
+      RgbSliceType::Pointer outputRgbSlice2 = ITK_NULLPTR;
 
       typedef itk::ExtractImageFilter<RgbImageType, RgbSliceType> RgbExtracterType;
       RgbExtracterType::Pointer rgbExtracter = RgbExtracterType::New();
@@ -1007,7 +1007,7 @@ int CreateTiledMosaic( std::vector<std::string> args, std::ostream* /*out_stream
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

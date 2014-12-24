@@ -44,8 +44,8 @@ LabeledPointSetFileReader<TOutputMesh>
   this->m_RandomPercentage = 1.0;
   this->m_ExtractBoundaryPoints = false;
 
-  this->m_MultiComponentScalars = NULL;
-  this->m_Lines = NULL;
+  this->m_MultiComponentScalars = ITK_NULLPTR;
+  this->m_Lines = ITK_NULLPTR;
   //
   // Create the output
   //

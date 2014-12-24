@@ -85,7 +85,7 @@ typename ListSampleToListSampleFilter<TInputListSample, TOutputListSample>::Outp
   {
   if( this->GetNumberOfOutputs() < 1 )
     {
-    return 0;
+    return ITK_NULLPTR;
     }
 
   // we assume that the first output is of the templated type

@@ -818,7 +818,7 @@ protected:
       {
       keeppos = true;
       }
-    this->Sparsify( x_k1, fnp, keeppos, 0, NULL );
+    this->Sparsify( x_k1, fnp, keeppos, 0, ITK_NULLPTR );
     this->m_UseL1 = usel1;
   }
 
@@ -1170,7 +1170,7 @@ protected:
   {
   }
 
-  void PrintSelf( std::ostream &, /* os */ Indent /* indent */) const
+  void PrintSelf( std::ostream &, /* os */ Indent /* indent */) const ITK_OVERRIDE
   {
     if( this->m_MaskImageP && this->m_MaskImageQ && this->m_MaskImageR )
       {

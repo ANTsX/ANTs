@@ -34,10 +34,10 @@ template <class TInputMesh>
 LabeledPointSetFileWriter<TInputMesh>
 ::LabeledPointSetFileWriter()
 {
-  this->m_Input = NULL;
+  this->m_Input = ITK_NULLPTR;
   this->m_FileName = "";
-  this->m_MultiComponentScalars = NULL;
-  this->m_Lines = NULL;
+  this->m_MultiComponentScalars = ITK_NULLPTR;
+  this->m_Lines = ITK_NULLPTR;
 
   this->m_ImageSize.Fill( 0 );
 }

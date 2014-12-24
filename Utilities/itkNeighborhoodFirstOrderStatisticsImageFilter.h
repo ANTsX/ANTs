@@ -74,7 +74,7 @@ protected:
   //this->m_Boundary = NumericTraits< PixelType >::max();
   }
 
-  void GenerateOutputInformation()
+  void GenerateOutputInformation() ITK_OVERRIDE
   {
     // this methods is overloaded so that if the output image is a
     // VectorImage then the correct number of components are set.

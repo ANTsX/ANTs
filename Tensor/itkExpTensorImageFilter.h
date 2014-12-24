@@ -99,7 +99,7 @@ protected:
   {
   }
 
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
 
   /** ExpTensorImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -111,7 +111,7 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData( void );
+  void GenerateData( void ) ITK_OVERRIDE;
 
 private:
   ExpTensorImageFilter(const Self &); // purposely not implemented

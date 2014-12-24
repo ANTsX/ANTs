@@ -49,13 +49,13 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   m_TimeStep = 1.0;
   m_DenominatorThreshold = 1e-9;
   m_IntensityDifferenceThreshold = 0.001;
-  Superclass::m_MovingImage = NULL;
-  m_MetricGradientImage = NULL;
-  Superclass::m_FixedImage = NULL;
+  Superclass::m_MovingImage = ITK_NULLPTR;
+  m_MetricGradientImage = ITK_NULLPTR;
+  Superclass::m_FixedImage = ITK_NULLPTR;
   m_FixedImageSpacing.Fill( 1.0 );
   m_FixedImageOrigin.Fill( 0.0 );
   m_FixedImageGradientCalculator = GradientCalculatorType::New();
-  binaryimage = NULL;
+  binaryimage = ITK_NULLPTR;
   m_FullyRobust = false;
   m_MovingImageGradientCalculator = GradientCalculatorType::New();
 
@@ -66,13 +66,13 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
       interp.GetPointer() );
   for( int i = 0; i < 5; i++ )
     {
-    finitediffimages[i] = NULL;
+    finitediffimages[i] = ITK_NULLPTR;
     }
 
   m_NumberOfHistogramBins = 32;
 
-  m_FixedImageMask = NULL;
-  m_MovingImageMask = NULL;
+  m_FixedImageMask = ITK_NULLPTR;
+  m_MovingImageMask = ITK_NULLPTR;
 }
 
 /*

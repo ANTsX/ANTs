@@ -333,7 +333,7 @@ int LabelGeometryMeasures( std::vector<std::string> args, std::ostream* itkNotUs
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

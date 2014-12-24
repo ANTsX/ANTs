@@ -48,10 +48,10 @@ template <typename TTensorImage, typename TVectorImage>
 PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>
 ::PreservationOfPrincipalDirectionTensorReorientationImageFilter()
 {
-  m_DisplacementField = NULL;
-  m_DirectionTransform = NULL;
-  m_AffineTransform = NULL;
-  m_InverseAffineTransform = NULL;
+  m_DisplacementField = ITK_NULLPTR;
+  m_DirectionTransform = ITK_NULLPTR;
+  m_AffineTransform = ITK_NULLPTR;
+  m_InverseAffineTransform = ITK_NULLPTR;
   m_UseAffine = false;
   m_UseImageDirection = true;
 }

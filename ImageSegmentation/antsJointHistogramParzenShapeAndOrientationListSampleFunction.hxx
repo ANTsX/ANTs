@@ -49,9 +49,9 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   this->m_MinimumEigenvalue2 = 1;
   this->m_Interpolator = InterpolatorType::New();
   this->m_Interpolator->SetSplineOrder( 3 );
-  this->m_JointHistogramImages[0] = NULL;
-  this->m_JointHistogramImages[1] = NULL;
-  this->m_JointHistogramImages[2] = NULL;
+  this->m_JointHistogramImages[0] = ITK_NULLPTR;
+  this->m_JointHistogramImages[1] = ITK_NULLPTR;
+  this->m_JointHistogramImages[2] = ITK_NULLPTR;
 }
 
 template <class TListSample, class TOutput, class TCoordRep>
@@ -457,7 +457,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     }
   for( unsigned int d = 0; d < 3; d++ )
     {
-    this->m_JointHistogramImages[d] = NULL;
+    this->m_JointHistogramImages[d] = ITK_NULLPTR;
     }
 
   RealType L = static_cast<RealType>(

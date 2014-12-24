@@ -190,9 +190,9 @@ protected:
   // not defined or implemented as default works
   // virtual ~MultiScaleLaplacianBlobDetectorImageFilter( void ) {}
 
-  void GenerateData( void );
+  void GenerateData( void ) ITK_OVERRIDE;
 
-  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId );
+  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId ) ITK_OVERRIDE;
 
 private:
   MultiScaleLaplacianBlobDetectorImageFilter( const Self &); // purposely not implemented

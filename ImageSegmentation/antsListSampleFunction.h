@@ -99,7 +99,7 @@ public:
   /** Clear the input list sample to free memory */
   virtual void ClearInputListSample( const unsigned int idx = 0 )
   {
-    this->SetIndexedInputListSample( idx, NULL );
+    this->SetIndexedInputListSample( idx, ITK_NULLPTR );
   }
 
   /** Gets the weights array */
@@ -107,7 +107,7 @@ public:
 
   /** Evaluate the function at specified Point position.
    * Subclasses must provide this method. */
-  virtual TOutput Evaluate( const InputMeasurementVectorType& measurement ) const = 0;
+  virtual TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE = 0;
 
 protected:
   ListSampleFunction();
@@ -115,7 +115,7 @@ protected:
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
   /** Const pointer to the input image. */
   std::vector<typename InputListSampleType::ConstPointer> m_ListSamples;

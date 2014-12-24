@@ -84,9 +84,9 @@ protected:
   GeneralToBSplineDisplacementFieldFilter();
   virtual ~GeneralToBSplineDisplacementFieldFilter();
 
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
-  void GenerateData();
+  void GenerateData() ITK_OVERRIDE;
 
 private:
 //   typename RealImageType::Pointer              m_ConfidenceImage;

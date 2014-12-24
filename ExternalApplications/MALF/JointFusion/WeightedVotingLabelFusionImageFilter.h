@@ -101,7 +101,7 @@ public:
 
 
   /** Set the requested region */
-  void GenerateInputRequestedRegion();
+  void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
   /** 
    * Whether the posterior maps should be retained. This can have a negative effect
@@ -135,7 +135,7 @@ public:
 
 
 
-  void GenerateData();
+  void GenerateData() ITK_OVERRIDE;
  
 protected:
 
@@ -159,7 +159,7 @@ private:
 
   void ComputeOffsetTable(
     const InputImageType *image, const SizeType &radius, 
-    int **offset, size_t &nPatch, int **manhattan = NULL);
+    int **offset, size_t &nPatch, int **manhattan = ITK_NULLPTR);
 
   void UpdateInputs();
 

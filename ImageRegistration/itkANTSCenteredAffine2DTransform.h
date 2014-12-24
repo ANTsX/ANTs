@@ -147,7 +147,7 @@ public:
    *
    * \sa Transform::SetParameters()
    * \sa Transform::SetFixedParameters() */
-  void SetParameters( const ParametersType & parameters );
+  void SetParameters( const ParametersType & parameters ) ITK_OVERRIDE;
 
   /** Get the parameters that uniquely define the transform
    * This is typically used by optimizers.
@@ -157,7 +157,7 @@ public:
    *
    * \sa Transform::GetParameters()
    * \sa Transform::GetFixedParameters() */
-  const ParametersType & GetParameters( void ) const;
+  const ParametersType & GetParameters( void ) const ITK_OVERRIDE;
 
   /** This method computes the Jacobian matrix of the transformation
    * at a given input point.
@@ -174,7 +174,7 @@ public:
    * Get local Jacobian for the given point
    * \c j will sized properly as needed.
    */
-  virtual void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const;
+  virtual void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const ITK_OVERRIDE;
 
   /**
    * This method creates and returns a new ANTSCenteredAffine2DTransform object
@@ -189,7 +189,7 @@ public:
   void CloneTo( Pointer & clone ) const;
 
   /** Reset the parameters to create and identity transform. */
-  virtual void SetIdentity(void);
+  virtual void SetIdentity(void) ITK_OVERRIDE;
 
 protected:
   // Rigid2DTransform();
@@ -205,18 +205,18 @@ protected:
   /**
     * Print contents of an ANTSCenteredAffine2DTransform
     **/
-  void PrintSelf(std::ostream & os, Indent indent) const;
+  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
 
   /** Compute the matrix from angle. This is used in Set methods
    * to update the underlying matrix whenever a transform parameter
    * is changed. */
-  virtual void ComputeMatrix(void);
+  virtual void ComputeMatrix(void) ITK_OVERRIDE;
 
   /** Compute the angle from the matrix. This is used to compute
    * transform parameters from a given matrix. This is used in
    * MatrixOffsetTransformBase::Compose() and
    * MatrixOffsetTransformBase::GetInverse(). */
-  virtual void ComputeMatrixParameters(void);
+  virtual void ComputeMatrixParameters(void) ITK_OVERRIDE;
 
   /** Update angle without recomputation of other internal variables. */
   void SetVarAngle( TScalarType angle )

@@ -410,7 +410,7 @@ int PrintHeader( std::vector<std::string> args, std::ostream* /*out_stream = NUL
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

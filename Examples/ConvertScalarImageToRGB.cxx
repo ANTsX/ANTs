@@ -49,7 +49,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
   reader->Update();
 
   typedef itk::Image<unsigned char, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = NULL;
+  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
   typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
   typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
   maskreader->SetFileName( argv[4] );
@@ -60,7 +60,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
     }
   catch( ... )
     {
-    maskImage = NULL;
+    maskImage = ITK_NULLPTR;
     }
   ;
 
@@ -343,7 +343,7 @@ int ConvertScalarImageToRGB( std::vector<std::string> args, std::ostream* /*out_
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

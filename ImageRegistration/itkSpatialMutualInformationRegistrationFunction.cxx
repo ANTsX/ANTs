@@ -47,7 +47,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   this->m_InterpolatorIsBSpline = false;
 
   // Initialize PDFs to NULL
-  m_JointPDF = NULL;
+  m_JointPDF = ITK_NULLPTR;
 
   m_OpticalFlow = false;
   typename TransformType::Pointer transformer = TransformType::New();
@@ -56,8 +56,8 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   typename BSplineInterpolatorType::Pointer interpolator = BSplineInterpolatorType::New();
   this->SetInterpolator(interpolator);
 
-  m_FixedImageMask = NULL;
-  m_MovingImageMask = NULL;
+  m_FixedImageMask = ITK_NULLPTR;
+  m_MovingImageMask = ITK_NULLPTR;
 
   // Initialize memory
   m_MovingImageNormalizedMin = 0.0;
@@ -66,7 +66,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_MovingImageTrueMax = 0.0;
   m_FixedImageBinSize = 0.0;
   m_MovingImageBinSize = 0.0;
-  m_BSplineInterpolator = NULL;
+  m_BSplineInterpolator = ITK_NULLPTR;
   m_NumberOfParameters = ImageDimension;
 
   m_FixedImageGradientCalculator = GradientCalculatorType::New();

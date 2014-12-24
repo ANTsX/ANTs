@@ -672,12 +672,12 @@ int LaplacianThickness(int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
   typename ImageType::Pointer wmb = BinaryThreshold<ImageType>(0.5, 1.e9, 1, wm);
-  typename DisplacementFieldType::Pointer lapgrad = NULL;
-  typename DisplacementFieldType::Pointer lapgrad2 = NULL;
+  typename DisplacementFieldType::Pointer lapgrad = ITK_NULLPTR;
+  typename DisplacementFieldType::Pointer lapgrad2 = ITK_NULLPTR;
   typename ImageType::Pointer gmb = BinaryThreshold<ImageType>(0.5, 1.e9, 1, gm);
 
 /** get sulcal priors */
-  typename ImageType::Pointer sulci = NULL;
+  typename ImageType::Pointer sulci = ITK_NULLPTR;
   if( dosulc > 0 )
     {
     std::cout << "  using sulcal prior " << std::endl;
@@ -761,7 +761,7 @@ int LaplacianThickness(int argc, char *argv[])
   // std::cout << " MUCKING WITH START FINISH TIME " <<  finishtime <<  std::endl;
 
   typename DisplacementFieldType::IndexType velind;
-  typename ImageType::Pointer smooththick = NULL;
+  typename ImageType::Pointer smooththick = ITK_NULLPTR;
   float timesign = 1.0;
   if( starttime  >  finishtime )
     {
@@ -960,7 +960,7 @@ int LaplacianThickness( std::vector<std::string> args, std::ostream* /*out_strea
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

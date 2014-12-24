@@ -49,9 +49,9 @@ int MemoryTest(unsigned int argc, char *argv[])
     }
   argct++;
 
-  typename ImageType::Pointer image1 = NULL;
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
   ReadImage<ImageType>(image1, fn1.c_str() );
-  typename ImageType::Pointer image2 = NULL;
+  typename ImageType::Pointer image2 = ITK_NULLPTR;
   ReadImage<ImageType>(image2, fn2.c_str() );
 
   std::vector<typename FieldType::Pointer> fieldvec;
@@ -138,7 +138,7 @@ int MemoryTest( std::vector<std::string> args, std::ostream* /*out_stream = NULL
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

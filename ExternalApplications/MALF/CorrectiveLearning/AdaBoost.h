@@ -192,7 +192,7 @@ int AdaBoostTrain(double* X, int* Y, int NSample, int NFeature, int iterN, char*
       }
 
     cout<<NSample<<" "<<NFeature<<" "<<iterN<<" "<<fileName<<endl;
-    time_t second1=time(NULL),second2;
+    time_t second1=time(ITK_NULLPTR),second2;
     while (CC<iterN){
         CC++;
         bwl.weightedRate=-1;
@@ -243,7 +243,7 @@ int AdaBoostTrain(double* X, int* Y, int NSample, int NFeature, int iterN, char*
         for (i=0;i<NSample;i++){
             W[i] /= totalW;
         }
-        second2=time(NULL);
+        second2=time(ITK_NULLPTR);
         cout<<"iter"<<CC<<"  trainingError:"<<trueError<<"  errorRatio:"<<trueError/NSample
             <<"  error(randomGuess):"<<R<<"  featureID:"<<bwl.featureID<<"  alpha:"<<alpha
             <<"  sign:"<<bwl.sign<<"  threshold:"<<bwl.threshold

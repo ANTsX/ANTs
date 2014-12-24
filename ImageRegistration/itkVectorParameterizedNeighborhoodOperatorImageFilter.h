@@ -130,7 +130,7 @@ public:
    *
    * \sa ProcessObject::GenerateInputRequestedRegion() */
   virtual void GenerateInputRequestedRegion()
-  throw (InvalidRequestedRegionError);
+    throw (InvalidRequestedRegionError) ITK_OVERRIDE;
 
   void SetParameterImage( ParameterImagePointer I)
   {
@@ -140,7 +140,7 @@ public:
 protected:
   VectorParameterizedNeighborhoodOperatorImageFilter()
   {
-    m_ParameterImage = NULL;
+    m_ParameterImage = ITK_NULLPTR;
   }
 
   virtual ~VectorParameterizedNeighborhoodOperatorImageFilter()
@@ -157,9 +157,9 @@ protected:
    * "outputRegionForThread"
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId );
+  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId ) ITK_OVERRIDE;
 
-  void PrintSelf(std::ostream& os, Indent indent) const
+  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE
   {
     Superclass::PrintSelf(os, indent);
   }

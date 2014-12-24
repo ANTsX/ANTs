@@ -33,8 +33,8 @@ int SmoothImage(int argc, char *argv[])
 
   std::vector<float> sigmaVector = ConvertVector<float>( argv[3] );
 
-  typename ImageType::Pointer image1 = NULL;
-  typename ImageType::Pointer varimage = NULL;
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
+  typename ImageType::Pointer varimage = ITK_NULLPTR;
   ReadImage<ImageType>(image1, argv[2]);
 
   typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
@@ -131,7 +131,7 @@ int SmoothImage( std::vector<std::string> args, std::ostream* /*out_stream = NUL
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

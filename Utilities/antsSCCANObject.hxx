@@ -60,9 +60,9 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_PinvTolerance = 1.e-6;
   this->m_PercentVarianceForPseudoInverse = 0.9;
   this->m_MaximumNumberOfIterations = 20;
-  this->m_MaskImageP = NULL;
-  this->m_MaskImageQ = NULL;
-  this->m_MaskImageR = NULL;
+  this->m_MaskImageP = ITK_NULLPTR;
+  this->m_MaskImageQ = ITK_NULLPTR;
+  this->m_MaskImageR = ITK_NULLPTR;
   this->m_KeepPositiveP = true;
   this->m_KeepPositiveQ = true;
   this->m_KeepPositiveR = true;

@@ -23,7 +23,7 @@ static bool WarpTensorImageMultiTransform_ParseInput(int argc, char * *argv, cha
   opt_queue.clear();
   opt_queue.reserve(argc - 2);
 
-  misc_opt.reference_image_filename = NULL;
+  misc_opt.reference_image_filename = ITK_NULLPTR;
   misc_opt.use_NN_interpolator = false;
   misc_opt.use_TightestBoundingBox = false;
   misc_opt.use_RotationHeader = false;
@@ -79,7 +79,7 @@ static bool WarpTensorImageMultiTransform_ParseInput(int argc, char * *argv, cha
       }
     else if( strcmp(argv[ind], "--reference-image-header") == 0 || strcmp(argv[ind], "-rh") == 0 )
       {
-      if( misc_opt.reference_image_filename == NULL )
+      if( misc_opt.reference_image_filename == ITK_NULLPTR )
         {
         std::cout
           << "reference image filename is not given yet. Specify it with -R before --reference-image-header / -rh."
@@ -499,7 +499,7 @@ int WarpTensorImageMultiTransform( std::vector<std::string> args, std::ostream* 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -582,8 +582,8 @@ private:
     }
 
   TRAN_OPT_QUEUE opt_queue;
-  char *         moving_image_filename = NULL;
-  char *         output_image_filename = NULL;
+  char *         moving_image_filename = ITK_NULLPTR;
+  char *         output_image_filename = ITK_NULLPTR;
 
   MISC_OPT misc_opt;
 
