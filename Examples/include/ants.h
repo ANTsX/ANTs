@@ -119,6 +119,8 @@
 
 #include "LaplacianThickness.h"
 
+#include "LesionFilling.h"
+
 #include "MeasureImageSimilarity.h"
 
 #include "MeasureMinMaxMean.h"

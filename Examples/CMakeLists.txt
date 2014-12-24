@@ -89,6 +89,7 @@ set(BASE_ANTS_APPS
   LabelClustersUniquely
   # StudentsTestOnImages
   LabelOverlapMeasures
+  LesionFilling 
   MeasureMinMaxMean
   WarpImageMultiTransform
   ComposeMultiTransform
