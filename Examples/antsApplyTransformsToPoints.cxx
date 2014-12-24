@@ -34,7 +34,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
   typedef itk::CSVArray2DDataObject<RealType>              DataFrameObjectType;
   typedef typename DataFrameObjectType::StringVectorType StringVectorType;
   StringVectorType colheadernames;
-  typename ImageType::Pointer pointimage = NULL;
+  typename ImageType::Pointer pointimage = ITK_NULLPTR;
 
   /**
    * Input object option - for now, we're limiting this to images.
@@ -372,7 +372,7 @@ int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream * /
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

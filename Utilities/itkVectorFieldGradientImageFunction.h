@@ -88,17 +88,17 @@ public:
   /**
    * Evaluate Jacobian
    */
-  virtual MatrixType Evaluate( const PointType & point ) const
+  virtual MatrixType Evaluate( const PointType & point ) const ITK_OVERRIDE
   {
     return this->EvaluateJacobian( point );
   }
 
-  virtual MatrixType EvaluateAtIndex( const IndexType & idx ) const
+  virtual MatrixType EvaluateAtIndex( const IndexType & idx ) const ITK_OVERRIDE
   {
     return this->EvaluateJacobianAtIndex( idx );
   }
 
-  virtual MatrixType EvaluateAtContinuousIndex( const ContinuousIndexType & idx ) const
+  virtual MatrixType EvaluateAtContinuousIndex( const ContinuousIndexType & idx ) const ITK_OVERRIDE
   {
     return this->EvaluateJacobianAtContinuousIndex( idx );
   }
@@ -258,7 +258,7 @@ protected:
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
 private:
   VectorFieldGradientImageFunction(const Self &); // purposely not implemented

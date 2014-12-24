@@ -95,9 +95,9 @@ protected:
   BoxPlotQuantileListSampleFilter();
   virtual ~BoxPlotQuantileListSampleFilter();
 
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
-  virtual void GenerateData();
+  virtual void GenerateData() ITK_OVERRIDE;
 
 private:
   BoxPlotQuantileListSampleFilter( const Self & ); // purposely not implemented

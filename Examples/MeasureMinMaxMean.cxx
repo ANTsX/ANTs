@@ -29,8 +29,8 @@ int MeasureMinMaxMean(int argc, char *argv[])
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
-  typename ImageType::Pointer image = NULL;
-  typename ImageType::Pointer mask = NULL;
+  typename ImageType::Pointer image = ITK_NULLPTR;
+  typename ImageType::Pointer mask = ITK_NULLPTR;
   PixelType     mean;  mean.Fill(0);
   PixelType     max;   max.Fill(0);
   PixelType     min;   min.Fill(9.e9);
@@ -151,7 +151,7 @@ int MeasureMinMaxMean( std::vector<std::string> args, std::ostream* /*out_stream
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

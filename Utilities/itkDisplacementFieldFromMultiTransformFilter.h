@@ -57,20 +57,20 @@ public:
 
   typedef typename Superclass::PointType PointType;
 
-  virtual void GenerateInputRequestedRegion()
+  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE
   {
     Superclass::GenerateInputRequestedRegion();
   }
 
-  virtual void BeforeThreadedGenerateData()
+  virtual void BeforeThreadedGenerateData() ITK_OVERRIDE
   {
   };
 
-  virtual void AfterThreadedGenerateData()
+  virtual void AfterThreadedGenerateData() ITK_OVERRIDE
   {
   };
 
-  virtual void GenerateOutputInformation()
+  virtual void GenerateOutputInformation() ITK_OVERRIDE
   {
     // call the superclass's implementation
     Superclass::GenerateOutputInformation();
@@ -86,7 +86,7 @@ protected:
   ~DisplacementFieldFromMultiTransformFilter()
   {
   };
-  void PrintSelf(std::ostream& os, Indent indent) const
+  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE
   {
     Superclass::PrintSelf(os, indent);
   };
@@ -95,7 +95,7 @@ protected:
    * As such, it needs to provide and implementation for
    * ThreadedGenerateData(). */
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                            ThreadIdType threadId )
+                            ThreadIdType threadId ) ITK_OVERRIDE
   {
     OutputImagePointer outputPtr = this->GetOutput();
 

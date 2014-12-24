@@ -230,7 +230,7 @@ public:
 
   virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
                                    void * /* globalData */,
-                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) )
+                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) ITK_OVERRIDE
   {
     bool       m_Use1SidedDiff = false;
     VectorType update;
@@ -303,10 +303,10 @@ public:
 protected:
   AvantsPDEDeformableRegistrationFunction()
   {
-    this->m_MovingImage = NULL;
-    m_MetricImage = NULL;
-    this->m_FixedImage = NULL;
-    this->m_DisplacementField = NULL;
+    this->m_MovingImage = ITK_NULLPTR;
+    m_MetricImage = ITK_NULLPTR;
+    this->m_FixedImage = ITK_NULLPTR;
+    this->m_DisplacementField = ITK_NULLPTR;
     this->m_Energy = 0.0;
     m_BestEnergy = 0.0;
     this->m_NormalizeGradient = true;
@@ -316,8 +316,8 @@ protected:
     m_AvgCt = 0;
     m_Iterations = 0;
 
-    this->m_FixedPointSet = NULL;
-    this->m_MovingPointSet = NULL;
+    this->m_FixedPointSet = ITK_NULLPTR;
+    this->m_MovingPointSet = ITK_NULLPTR;
     this->m_IsPointSetMetric = false;
     this->m_RobustnessParameter = -1.e12;
   }
@@ -326,7 +326,7 @@ protected:
   {
   }
 
-  void PrintSelf(std::ostream& os, Indent indent) const
+  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE
   {
     this->PrintSelf(os, indent);
   };

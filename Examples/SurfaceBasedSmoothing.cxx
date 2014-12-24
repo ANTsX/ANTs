@@ -28,7 +28,7 @@ int SurfaceBasedSmoothing( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -116,8 +116,8 @@ private:
   // Parameterizer->PostProcessGeometry();
 
   //  double mn=0.0;
-  ImageType::Pointer      output = NULL;
-  floatImageType::Pointer smooth = NULL;
+  ImageType::Pointer      output = ITK_NULLPTR;
+  floatImageType::Pointer smooth = ITK_NULLPTR;
   smooth = Parameterizer->GetFunctionImage();
 
   std::string ofn = std::string(argv[4]);

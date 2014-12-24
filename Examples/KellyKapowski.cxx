@@ -30,12 +30,12 @@ protected:
   };
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event)
+  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event)
+  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
   {
     const TFilter * filter =
       dynamic_cast<const TFilter *>( object );
@@ -607,7 +607,7 @@ int KellyKapowski( std::vector<std::string> args, std::ostream* /*out_stream = N
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

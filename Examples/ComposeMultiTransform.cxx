@@ -21,7 +21,7 @@ static bool ComposeMultiTransform_ParseInput(int argc, char * *argv, char *& out
 
   output_image_filename = argv[0];
 
-  reference_image_filename = NULL;
+  reference_image_filename = ITK_NULLPTR;
 
   int ind = 1;
   while( ind < argc )
@@ -301,7 +301,7 @@ int ComposeMultiTransform( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -362,8 +362,8 @@ private:
 
   TRAN_OPT_QUEUE opt_queue;
   //    char *moving_image_filename = NULL;
-  char *output_image_filename = NULL;
-  char *reference_image_filename = NULL;
+  char *output_image_filename = ITK_NULLPTR;
+  char *reference_image_filename = ITK_NULLPTR;
 
   int  kImageDim = atoi(argv[1]);
 
@@ -376,7 +376,7 @@ private:
       {
       case DEFORMATION_FILE:
         {
-        if( reference_image_filename == NULL )
+        if( reference_image_filename == ITK_NULLPTR )
           {
           std::cout << "the reference image file (-R) must be given!!!"
                    << std::endl;

@@ -42,41 +42,41 @@ template <unsigned int TDimension, class TReal>
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::ANTSImageRegistrationOptimizer()
 {
-  this->m_DisplacementField = NULL;
-  this->m_InverseDisplacementField = NULL;
-  this->m_AffineTransform = NULL;
+  this->m_DisplacementField = ITK_NULLPTR;
+  this->m_InverseDisplacementField = ITK_NULLPTR;
+  this->m_AffineTransform = ITK_NULLPTR;
   itk::TransformFactory<TransformType>::RegisterTransform();
   itk::TransformFactory<itk::ANTSAffine3DTransform<TReal> >::RegisterTransform();
   itk::TransformFactory<itk::ANTSCenteredAffine2DTransform<TReal> >::RegisterTransform();
-  this->m_FixedPointSet = NULL;
-  this->m_MovingPointSet = NULL;
+  this->m_FixedPointSet = ITK_NULLPTR;
+  this->m_MovingPointSet = ITK_NULLPTR;
 
   this->m_UseMulti = true;
   this->m_UseROI = false;
-  this->m_MaskImage = NULL;
-  this->m_ReferenceSpaceImage = NULL;
+  this->m_MaskImage = ITK_NULLPTR;
+  this->m_ReferenceSpaceImage = ITK_NULLPTR;
   this->m_Debug = false;
 
   this->m_ScaleFactor = 1.0;
   this->m_SubsamplingFactors.SetSize( 0 );
   this->m_GaussianSmoothingSigmas.SetSize( 0 );
 
-  this->m_SyNF = NULL;
-  this->m_SyNFInv = NULL;
-  this->m_SyNM = NULL;
-  this->m_SyNMInv = NULL;
-  this->m_Parser = NULL;
+  this->m_SyNF = ITK_NULLPTR;
+  this->m_SyNFInv = ITK_NULLPTR;
+  this->m_SyNM = ITK_NULLPTR;
+  this->m_SyNMInv = ITK_NULLPTR;
+  this->m_Parser = ITK_NULLPTR;
   this->m_GaussianTruncation = 256;
-  this->m_TimeVaryingVelocity = NULL;
-  this->m_LastTimeVaryingVelocity = NULL;
-  this->m_LastTimeVaryingUpdate = NULL;
+  this->m_TimeVaryingVelocity = ITK_NULLPTR;
+  this->m_LastTimeVaryingVelocity = ITK_NULLPTR;
+  this->m_LastTimeVaryingUpdate = ITK_NULLPTR;
   this->m_DeltaTime = 0.1;
   this->m_SyNType = 0;
   this->m_UseNN = false;
   this->m_UseBSplineInterpolation = false;
   this->m_VelocityFieldInterpolator = VelocityFieldInterpolatorType::New();
-  this->m_HitImage = NULL;
-  this->m_ThickImage = NULL;
+  this->m_HitImage = ITK_NULLPTR;
+  this->m_ThickImage = ITK_NULLPTR;
   this->m_SyNFullTime = 0;
 }
 
@@ -548,17 +548,17 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                      PointSetPointer wpoints, DisplacementFieldPointer totalUpdateInvField,
                      bool updateenergy)
 {
-  ImagePointer mask = NULL;
+  ImagePointer mask = ITK_NULLPTR;
 
   if( movingwarp && this->m_MaskImage && !this->m_ComputeThickness )
     {
-    mask = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_MaskImage, NULL, movingwarp, false,
+    mask = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_MaskImage, ITK_NULLPTR, movingwarp, false,
                                      this->m_FixedImageAffineTransform );
     }
   else if( this->m_MaskImage && !this->m_ComputeThickness  )
     {
     mask = this->SubsampleImage( this->m_MaskImage, this->m_ScaleFactor,
-                                 this->m_MaskImage->GetOrigin(), this->m_MaskImage->GetDirection(),  NULL);
+                                 this->m_MaskImage->GetOrigin(), this->m_MaskImage->GetDirection(),  ITK_NULLPTR);
     }
 
   if( !fixedwarp )
@@ -616,13 +616,13 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     void *globalData;
 //    std::cout << " B " << std::endl;
 
-    AffineTransformPointer faffinverse = NULL;
+    AffineTransformPointer faffinverse = ITK_NULLPTR;
     if( this->m_FixedImageAffineTransform )
       {
       faffinverse = AffineTransformType::New();
       this->m_FixedImageAffineTransform->GetInverse(faffinverse);
       }
-    AffineTransformPointer affinverse = NULL;
+    AffineTransformPointer affinverse = ITK_NULLPTR;
     if( this->m_AffineTransform )
       {
       affinverse = AffineTransformType::New();
@@ -634,28 +634,28 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 /** FIXME really should pass an image list and then warp each one in
       turn  then expand the update field to fit size of total
       deformation */
-    ImagePointer wmimage = NULL;
+    ImagePointer wmimage = ITK_NULLPTR;
     if( fixedwarp )
       {
       wmimage =
         this->WarpMultiTransform(  this->m_ReferenceSpaceImage, this->m_SmoothMovingImages[metricCount],
                                    this->m_AffineTransform,
                                    fixedwarp, false,
-                                   NULL );
+                                   ITK_NULLPTR );
       }
     else
       {
       wmimage = this->SubsampleImage( this->m_SmoothMovingImages[metricCount], this->m_ScaleFactor,
                                       this->m_SmoothMovingImages[metricCount]->GetOrigin(),
-                                      this->m_SmoothMovingImages[metricCount]->GetDirection(),  NULL);
+                                      this->m_SmoothMovingImages[metricCount]->GetDirection(),  ITK_NULLPTR);
       }
 
 //    std::cout << " C " << std::endl;
-    ImagePointer wfimage = NULL;
+    ImagePointer wfimage = ITK_NULLPTR;
     if( movingwarp )
       {
       wfimage =
-        this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_SmoothFixedImages[metricCount], NULL, movingwarp,
+        this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_SmoothFixedImages[metricCount], ITK_NULLPTR, movingwarp,
                                   false,
                                   this->m_FixedImageAffineTransform );
       }
@@ -663,7 +663,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       wfimage = this->SubsampleImage( this->m_SmoothFixedImages[metricCount], this->m_ScaleFactor,
                                       this->m_SmoothFixedImages[metricCount]->GetOrigin(),
-                                      this->m_SmoothFixedImages[metricCount]->GetDirection(),  NULL);
+                                      this->m_SmoothFixedImages[metricCount]->GetDirection(),  ITK_NULLPTR);
       }
     /*
     if (this->m_TimeVaryingVelocity && ! this->m_MaskImage ) {
@@ -1528,7 +1528,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   VectorType zero;
 
   zero.Fill(0);
-  DisplacementFieldPointer totalUpdateField = NULL;
+  DisplacementFieldPointer totalUpdateField = ITK_NULLPTR;
   DisplacementFieldPointer totalField = this->m_DisplacementField;
   /** generate phi and phi gradient */
   //    TReal timestep=1.0/(TReal)this->m_NTimeSteps;
@@ -1540,7 +1540,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     // this->m_NTimeSteps)-nts, (-1.));
 
     ImagePointer           wfimage, wmimage;
-    PointSetPointer        wfpoints = NULL, wmpoints = NULL;
+    PointSetPointer        wfpoints = ITK_NULLPTR, wmpoints = ITK_NULLPTR;
     AffineTransformPointer aff = this->m_AffineTransform;
     if( mpoints )
       {       // need full inverse map
@@ -1549,7 +1549,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                                           this->m_FixedImageAffineTransform );
       }
 
-    DisplacementFieldPointer updateField = this->ComputeUpdateField( diffmap, NULL, fpoints, wmpoints);
+    DisplacementFieldPointer updateField = this->ComputeUpdateField( diffmap, ITK_NULLPTR, fpoints, wmpoints);
     //    updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
     TReal maxl = this->MeasureDeformation(updateField);
     if( maxl <= 0 )
@@ -1588,7 +1588,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   VectorType zero;
 
   zero.Fill(0);
-  DisplacementFieldPointer totalUpdateField = NULL;
+  DisplacementFieldPointer totalUpdateField = ITK_NULLPTR;
 
   // we compose the update with this field.
   DisplacementFieldPointer totalField = this->m_DisplacementField;
@@ -1597,9 +1597,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   unsigned int nts = (unsigned int)this->m_NTimeSteps;
 
   ImagePointer             wfimage, wmimage;
-  PointSetPointer          wfpoints = NULL, wmpoints = NULL;
+  PointSetPointer          wfpoints = ITK_NULLPTR, wmpoints = ITK_NULLPTR;
   AffineTransformPointer   aff = this->m_AffineTransform;
-  DisplacementFieldPointer updateField = this->ComputeUpdateField( totalField, NULL, fpoints, wmpoints);
+  DisplacementFieldPointer updateField = this->ComputeUpdateField( totalField, ITK_NULLPTR, fpoints, wmpoints);
   updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
   TReal maxl = this->MeasureDeformation(updateField);
   if( maxl <= 0 )
@@ -1702,9 +1702,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     std::cout << " F'D UP " << std::endl;
     }
 
-  PointSetPointer        wfpoints = NULL, wmpoints = NULL;
+  PointSetPointer        wfpoints = ITK_NULLPTR, wmpoints = ITK_NULLPTR;
   AffineTransformPointer aff = this->m_AffineTransform;
-  AffineTransformPointer affinverse = NULL;
+  AffineTransformPointer affinverse = ITK_NULLPTR;
   if( aff )
     {
     affinverse = AffineTransformType::New();
@@ -1719,7 +1719,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   if( fpoints )
     {  // need full inverse map
-    wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, fpoints,  NULL, this->m_SyNF, false,
+    wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, fpoints,  ITK_NULLPTR, this->m_SyNF, false,
                                         this->m_FixedImageAffineTransform  );
     }
   // syncom
@@ -2003,9 +2003,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
 
   ImagePointer           wfimage, wmimage;
-  PointSetPointer        wfpoints = NULL, wmpoints = NULL;
+  PointSetPointer        wfpoints = ITK_NULLPTR, wmpoints = ITK_NULLPTR;
   AffineTransformPointer aff = this->m_AffineTransform;
-  AffineTransformPointer affinverse = NULL;
+  AffineTransformPointer affinverse = ITK_NULLPTR;
 
   typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
   Iterator dIter(this->m_SyNF, this->m_SyNF->GetLargestPossibleRegion() );
@@ -2032,19 +2032,19 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       affine mapping */
     wmpoints =
       this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  mpoints,  aff, totalUpdateInvField, true,
-                               NULL );
+                               ITK_NULLPTR );
     DisplacementFieldPointer mdiffmap = this->IntegrateLandmarkSetVelocity(lot2, hit, wmpoints, movingImage);
-    wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  wmpoints,  NULL, mdiffmap, true,
-                                        NULL );
+    wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  wmpoints,  ITK_NULLPTR, mdiffmap, true,
+                                        ITK_NULLPTR );
     }
   if( fpoints )
     {  // need full inverse map
     wfpoints =
-      this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  fpoints, NULL, totalUpdateInvField, true,
+      this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  fpoints, ITK_NULLPTR, totalUpdateInvField, true,
                                this->m_FixedImageAffineTransform );
     DisplacementFieldPointer fdiffmap = this->IntegrateLandmarkSetVelocity(lot, hit, wfpoints, fixedImage);
     wfpoints =
-      this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, wfpoints,  NULL, fdiffmap, false, NULL );
+      this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, wfpoints,  ITK_NULLPTR, fdiffmap, false, ITK_NULLPTR );
     }
   totalUpdateField =
     this->ComputeUpdateField( this->m_SyNMInv, this->m_SyNFInv, wfpoints, wmpoints, totalUpdateInvField,
@@ -2083,7 +2083,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::DiReCTUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints, PointSetPointer mpoints)
 {
   typedef TimeVaryingVelocityFieldType tvt;
-  TimeVaryingVelocityFieldPointer velocityUpdate = NULL;
+  TimeVaryingVelocityFieldPointer velocityUpdate = ITK_NULLPTR;
 
   VectorType zero;
   zero.Fill(0);
@@ -2226,9 +2226,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
 
   ImagePointer           wfimage, wmimage;
-  PointSetPointer        wfpoints = NULL, wmpoints = NULL;
+  PointSetPointer        wfpoints = ITK_NULLPTR, wmpoints = ITK_NULLPTR;
   AffineTransformPointer aff = this->m_AffineTransform;
-  AffineTransformPointer affinverse = NULL;
+  AffineTransformPointer affinverse = ITK_NULLPTR;
 
   typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
   Iterator dIter(this->m_SyNF, this->m_SyNF->GetLargestPossibleRegion() );
@@ -2275,19 +2275,19 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       affine mapping */
       wmpoints =
         this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  mpoints,  aff, totalUpdateInvField, true,
-                                 NULL );
+                                 ITK_NULLPTR );
       DisplacementFieldPointer mdiffmap = this->IntegrateLandmarkSetVelocity(lot2, hit, wmpoints, movingImage);
-      wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  wmpoints,  NULL, mdiffmap, true,
-                                          NULL );
+      wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  wmpoints,  ITK_NULLPTR, mdiffmap, true,
+                                          ITK_NULLPTR );
       }
     if( fpoints )
       { // need full inverse map
       wfpoints =
-        this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  fpoints, NULL, totalUpdateInvField, true,
+        this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  fpoints, ITK_NULLPTR, totalUpdateInvField, true,
                                  this->m_FixedImageAffineTransform );
       DisplacementFieldPointer fdiffmap = this->IntegrateLandmarkSetVelocity(lot, hit, wfpoints, fixedImage);
-      wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, wfpoints,  NULL, fdiffmap, false,
-                                          NULL );
+      wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, wfpoints,  ITK_NULLPTR, fdiffmap, false,
+                                          ITK_NULLPTR );
       }
     DisplacementFieldPointer totalUpdateField =
       this->ComputeUpdateField( this->m_SyNMInv, this->m_SyNFInv,
@@ -2295,7 +2295,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                                 true);
     if( this->m_SyNFullTime == 2 )
       {
-      totalUpdateInvField = NULL;
+      totalUpdateInvField = ITK_NULLPTR;
       }
     this->CopyOrAddToVelocityField( velocityUpdate, totalUpdateField,  totalUpdateInvField,  hit );
     }
@@ -2376,17 +2376,17 @@ typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DisplacementFieldPoi
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::IntegrateVelocity(TReal starttimein, TReal finishtimein )
 {
-  ImagePointer mask = NULL;
+  ImagePointer mask = ITK_NULLPTR;
 
   if( this->m_SyNMInv && this->m_MaskImage )
     {
-    mask = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_MaskImage, NULL, this->m_SyNMInv, false,
+    mask = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_MaskImage, ITK_NULLPTR, this->m_SyNMInv, false,
                                      this->m_FixedImageAffineTransform );
     }
   else if( this->m_MaskImage )
     {
     mask = this->SubsampleImage( this->m_MaskImage, this->m_ScaleFactor,
-                                 this->m_MaskImage->GetOrigin(), this->m_MaskImage->GetDirection(),  NULL);
+                                 this->m_MaskImage->GetOrigin(), this->m_MaskImage->GetDirection(),  ITK_NULLPTR);
     }
 
 //  std::cout << " st " << starttimein << " ft " << finishtimein << std::endl;
@@ -2406,7 +2406,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
   else
     {
-    this->m_HitImage = NULL;  this->m_ThickImage = NULL;
+    this->m_HitImage = ITK_NULLPTR;  this->m_ThickImage = ITK_NULLPTR;
     }
 
   VectorType zero;

@@ -25,7 +25,7 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Image<float, ImageDimension> RealImageType;
 
-  typename ImageType::Pointer inputImage = NULL;
+  typename ImageType::Pointer inputImage = ITK_NULLPTR;
   ReadImage<ImageType>( inputImage, argv[2] );
 
   // Output images:
@@ -162,7 +162,7 @@ int GetConnectedComponentsFeatureImages( std::vector<std::string> args, std::ost
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

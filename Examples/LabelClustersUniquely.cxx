@@ -76,7 +76,7 @@ int  LabelUniquely(int argc, char *argv[])
   std::string fn1 = std::string(argv[1]);
   float       clusterthresh = atof(argv[3]);
 
-  typename ImageType::Pointer image1 = NULL;
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
 
   ReadImage<ImageType>(image1, fn1.c_str() );
 
@@ -133,7 +133,7 @@ int LabelClustersUniquely( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

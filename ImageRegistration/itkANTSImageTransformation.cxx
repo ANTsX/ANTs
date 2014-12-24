@@ -42,9 +42,9 @@ template <unsigned int TDimension, class TReal>
 ANTSImageTransformation<TDimension, TReal>
 ::ANTSImageTransformation()
 {
-  this->m_DisplacementField = NULL;
-  this->m_InverseDisplacementField = NULL;
-  this->m_AffineTransform = NULL;
+  this->m_DisplacementField = ITK_NULLPTR;
+  this->m_InverseDisplacementField = ITK_NULLPTR;
+  this->m_AffineTransform = ITK_NULLPTR;
   this->m_WriteComponentImages = false;
   m_DeformationRegionOfInterestSize.Fill(0);
   m_DeformationRegionSpacing.Fill(1);

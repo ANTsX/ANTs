@@ -22,7 +22,7 @@ static bool AverageAffineTransformNoRigid_ParseInput(int argc, char * *argv, cha
 
   output_transform_filename = argv[0];
 
-  reference_transform_filename = NULL;
+  reference_transform_filename = ITK_NULLPTR;
 
   int ind = 1;
   while( ind < argc )
@@ -242,7 +242,7 @@ int AverageAffineTransformNoRigid( std::vector<std::string> args, std::ostream* 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -304,8 +304,8 @@ private:
 
   TRAN_OPT_QUEUE opt_queue;
 
-  char *output_transform_filename = NULL;
-  char *reference_transform_filename = NULL;
+  char *output_transform_filename = ITK_NULLPTR;
+  char *reference_transform_filename = ITK_NULLPTR;
 
   int  kImageDim = atoi(argv[1]);
 

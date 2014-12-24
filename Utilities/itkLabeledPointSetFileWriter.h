@@ -125,7 +125,7 @@ protected:
   ImageOriginType    m_ImageOrigin;
   ImageDirectionType m_ImageDirection;
 
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
 
 private:
   LabeledPointSetFileWriter(const Self &); // purposely not implemented

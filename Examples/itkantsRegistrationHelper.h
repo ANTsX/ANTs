@@ -928,8 +928,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
 
   typedef typename RegistrationHelperType::ImageType ImageType;
-  typename ImageType::Pointer fixedImage = NULL;
-  typename ImageType::Pointer movingImage = NULL;
+  typename ImageType::Pointer fixedImage = ITK_NULLPTR;
+  typename ImageType::Pointer movingImage = ITK_NULLPTR;
 
   std::deque<std::string> transformNames;
   std::deque<std::string> transformTypes;
@@ -1068,7 +1068,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       if( initialTransform.IsNull() )
         {
         std::cout << "Can't read initial transform " << initialTransformName << std::endl;
-        return NULL;
+        return ITK_NULLPTR;
         }
       if( useInverse )
         {
@@ -1076,7 +1076,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         if( initialTransform.IsNull() )
           {
           std::cout << "Inverse does not exist for " << initialTransformName << std::endl;
-          return NULL;
+          return ITK_NULLPTR;
           }
         initialTransformName = std::string( "inverse of " ) + initialTransformName;
         }

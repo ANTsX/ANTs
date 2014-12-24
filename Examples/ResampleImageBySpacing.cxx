@@ -42,7 +42,7 @@ int ResampleImageBySpacing( std::vector<std::string> args, std::ostream* /*out_s
     std::strncpy( argv[i], args[i].c_str(), args[i].length() );
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   class Cleanup_argv
   {
 public:

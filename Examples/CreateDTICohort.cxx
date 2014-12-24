@@ -100,10 +100,10 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
   typedef unsigned int                          LabelType;
   typedef itk::Image<LabelType, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = NULL;
+  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
 
   typedef itk::Image<TensorType, ImageDimension> TensorImageType;
-  typename TensorImageType::Pointer inputAtlas = NULL;
+  typename TensorImageType::Pointer inputAtlas = ITK_NULLPTR;
 
   typedef itk::ImageFileReader<TensorImageType> TensorReaderType;
   typename TensorReaderType::Pointer reader = TensorReaderType::New();
@@ -460,7 +460,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   //
   // Get DWI parameters
   //
-  typename ImageType::Pointer b0Image = NULL;
+  typename ImageType::Pointer b0Image = ITK_NULLPTR;
   unsigned int                       numberOfDirections = 0;
   std::vector<vnl_vector<RealType> > directions;
   std::vector<RealType>              bvalues;
@@ -1072,7 +1072,7 @@ int CreateDTICohort( std::vector<std::string> args, std::ostream* /*out_stream =
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
