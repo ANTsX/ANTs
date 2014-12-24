@@ -366,7 +366,6 @@ void MakeAffineTransform(int argc, char *argv[])
     std::cout << " need more args -- see usage   " << std::endl;
     }
   typedef float                                        PixelType;
-  typedef itk::Image<PixelType, ImageDimension>        ImageType;
   typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
@@ -5257,7 +5256,6 @@ int FuseNImagesIntoNDVectorField(int argc, char *argv[])
   typedef itk::Vector<float, ImageDimension>       VectorType;
   typedef itk::Image<VectorType, ImageDimension>   FieldType;
   typedef itk::Image<float, ImageDimension>        ImageType;
-  typedef typename  ImageType::PixelType           PixelType;
   typedef  typename ImageType::IndexType           IndexType;
   typedef itk::ImageRegionIteratorWithIndex<FieldType>   Iterator;
   int               argct = 2;
@@ -7718,8 +7716,6 @@ int FastMarchingExtension(int argc, char *argv[])
   criterion->SetThreshold( 1.e9 ); // something large
   typedef  itk::FastMarchingExtensionImageFilterBase<ImageType, ImageType,
     PixelType,1>  MarcherBaseType;
-  typedef  itk::FastMarchingExtensionImageFilter<ImageType, PixelType>
-    MarcherType;
   typedef  typename MarcherBaseType::LabelImageType LabelImageType;
   typename MarcherBaseType::Pointer  fastMarching;
   typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
@@ -9564,12 +9560,10 @@ int ReplicateDisplacement( int argc, char *argv[] )
     return 1;
     }
   typedef float                                              RealType;
-  typedef itk::Image<RealType, ImageDimension>               RealImageType;
   typedef itk::Vector<RealType, ImageDimension>              VectorType;
   typedef itk::Image<VectorType, ImageDimension>             VectorImageType;
   typedef itk::ImageRegionIteratorWithIndex<VectorImageType> Iterator;
 
-  typedef itk::Image<RealType, ImageDimension+1>             RealRImageType;
   typedef itk::Vector<RealType, ImageDimension+1>            VectorRType;
   typedef itk::Image<VectorRType, ImageDimension+1>          VectorRImageType;
 
