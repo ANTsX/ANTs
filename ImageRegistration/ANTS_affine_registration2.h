@@ -56,7 +56,7 @@ public:
     MI_bins = 32;
     MI_samples = 6000;
     number_of_seeds = 0;
-    time_seed = (unsigned int) time(NULL);
+    time_seed = (unsigned int) time(ITK_NULLPTR);
     number_of_levels = 3;
     number_of_iteration_list.resize(number_of_levels, 10000);
     const int kParaDim = AffineTransformType::ParametersDimension;
@@ -595,7 +595,7 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 
-    RunningAffineTransformPointerType transform_running = NULL;
+    RunningAffineTransformPointerType transform_running = ITK_NULLPTR;
     ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>
       (R_fixedImage, R_movingImage, R_opt, transform_running);
 
@@ -616,7 +616,7 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 
-    RunningAffineTransformPointerType transform_running = NULL;
+    RunningAffineTransformPointerType transform_running = ITK_NULLPTR;
     ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>
       (R_fixedImage, R_movingImage, R_opt, transform_running);
 

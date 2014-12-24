@@ -139,7 +139,7 @@ protected:
   {
   }
 
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
 
   /** PreservationOfPrincipalDirectionTensorReorientationImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -151,7 +151,7 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData( void );
+  void GenerateData( void ) ITK_OVERRIDE;
 
   typename DisplacementFieldType::PixelType TransformVectorByDirection( typename DisplacementFieldType::PixelType cpix )
   {

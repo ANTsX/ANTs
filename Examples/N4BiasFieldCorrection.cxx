@@ -38,12 +38,12 @@ protected:
   };
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event)
+  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event)
+  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
   {
     const TFilter * filter =
       dynamic_cast<const TFilter *>( object );
@@ -74,10 +74,10 @@ int N4( itk::ants::CommandLineParser *parser )
   typedef float RealType;
 
   typedef itk::Image<RealType, ImageDimension> ImageType;
-  typename ImageType::Pointer inputImage = NULL;
+  typename ImageType::Pointer inputImage = ITK_NULLPTR;
 
   typedef itk::Image<RealType, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = NULL;
+  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
 
   typedef itk::N4BiasFieldCorrectionImageFilter<ImageType, MaskImageType,
                                                 ImageType> CorrecterType;
@@ -131,7 +131,7 @@ int N4( itk::ants::CommandLineParser *parser )
     maskImage->DisconnectPipeline();
     }
 
-  typename ImageType::Pointer weightImage = NULL;
+  typename ImageType::Pointer weightImage = ITK_NULLPTR;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer weightImageOption =
     parser->GetOption( "weight-image" );
@@ -733,7 +733,7 @@ int N4BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

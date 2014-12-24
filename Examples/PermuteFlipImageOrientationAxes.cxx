@@ -40,7 +40,7 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
   typedef itk::Image<InputPixelType,    Dimension> InputImageType;
   typedef itk::Image<OutputPixelType,   Dimension> OutputImageType;
 
-  typename InputImageType::Pointer inputImage = NULL;
+  typename InputImageType::Pointer inputImage = ITK_NULLPTR;
   ReadImage<InputImageType>(inputImage, argv[1]);
 
   // Create a filter
@@ -154,7 +154,7 @@ int PermuteFlipImageOrientationAxes( std::vector<std::string> args, std::ostream
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

@@ -55,7 +55,7 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
   typedef typename itk::DisplacementFieldTransform<double, VImageDimension> DisplacementFieldTransformType;
 
   CompositeTransformType *composite = dynamic_cast<CompositeTransformType *>(transform);
-  if( composite == 0 )
+  if( composite == ITK_NULLPTR )
     {
     std::cout << "Transform File " << transformName << " is a "
              << transform->GetNameOfClass() << " not a Composite Transform."
@@ -73,7 +73,7 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
     fname << std::setfill('0') << std::setw(2) << i
           << "_" << prefix << "_"
           << curXfrm->GetNameOfClass();
-    if( dispXfrm != 0 )
+    if( dispXfrm != ITK_NULLPTR )
       {
       fname << ".nii.gz";    // if it's a displacement field transform
       }
@@ -184,7 +184,7 @@ int CompositeTransformUtil( std::vector<std::string> args, std::ostream* /*out_s
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

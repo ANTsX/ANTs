@@ -680,8 +680,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         std::cout << "  Moving image file: "
                          << movingImageFileReader->GetFileName() << std::endl;
 
-        similarityMetric->SetFixedPointSet( NULL);
-        similarityMetric->SetMovingPointSet( NULL );
+        similarityMetric->SetFixedPointSet( ITK_NULLPTR);
+        similarityMetric->SetMovingPointSet( ITK_NULLPTR );
 
         if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {

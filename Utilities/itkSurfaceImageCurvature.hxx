@@ -85,11 +85,11 @@ SurfaceImageCurvature<TSurface>
   this->ProcessObject::SetNumberOfRequiredOutputs( 2 );
   m_SurfaceLabel = 1;
 
-  m_GradientImage = NULL;
+  m_GradientImage = ITK_NULLPTR;
 
   m_UseLabel = false;
   m_kSign = -1.0;
-  m_FunctionImage = NULL;
+  m_FunctionImage = ITK_NULLPTR;
   m_Sigma = 1.0;
 }
 
@@ -1287,7 +1287,7 @@ typename SurfaceImageCurvature<TSurface>::ImageType
   {
   if( this->GetNumberOfInputs() < 1 )
     {
-    return NULL;
+    return ITK_NULLPTR;
     }
 
   return static_cast<ImageType *>

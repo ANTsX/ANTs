@@ -155,7 +155,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
   typedef itk::ImageFileReader<ImageType> FileSourceType;
 
   typedef itk::LogTensorImageFilter<ImageType, ImageType> LogFilterType;
-  typename FileSourceType::Pointer reffilter = NULL;
+  typename FileSourceType::Pointer reffilter = ITK_NULLPTR;
   if( file[0] == '0' && file[1] == 'x' )
     {
     void* ptr;
@@ -176,7 +176,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
       {
       std::cerr << "Exception caught during reference file reading " << std::endl;
       std::cerr << e << " file " << file << std::endl;
-      target = NULL;
+      target = ITK_NULLPTR;
       return;
       }
 
@@ -197,7 +197,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
       {
       std::cerr << "Exception caught during log tensor filter " << std::endl;
       std::cerr << e << " file " << file << std::endl;
-      target = NULL;
+      target = ITK_NULLPTR;
       return;
       }
     target = logFilter->GetOutput();
@@ -214,7 +214,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
   if( std::string(file).length() < 3 )
     {
     std::cerr << " bad file name " << std::string(file) << std::endl;
-    target = NULL;
+    target = ITK_NULLPTR;
     return false;
     }
 
@@ -239,7 +239,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     {
     if( !ANTSFileExists(std::string(file) ) )
       {
-      std::cerr << " file " << std::string(file) << " does not exist . " << std::endl; target = NULL;
+      std::cerr << " file " << std::string(file) << " does not exist . " << std::endl; target = ITK_NULLPTR;
       return false;
       }
     typedef TImageType                      ImageType;
@@ -255,7 +255,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
       {
       std::cerr << "Exception caught during reference file reading " << std::endl;
       std::cerr << e << " file " << file << std::endl;
-      target = NULL;
+      target = ITK_NULLPTR;
       std::exception();
       return false;
       }
@@ -343,7 +343,7 @@ bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file,
   if( std::string( file ).length() < 3 )
     {
     std::cerr << " bad file name " << std::string(file) << std::endl;
-    target = NULL;
+    target = ITK_NULLPTR;
     return false;
     }
 

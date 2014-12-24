@@ -25,8 +25,8 @@ int AverageTensorImages(unsigned int argc, char *argv[])
 
   std::cout << "Averaging " << numberofimages << " images " << std::endl;
 
-  typename ImageType::Pointer averageimage = NULL;
-  typename ImageType::Pointer image2 = NULL;
+  typename ImageType::Pointer averageimage = ITK_NULLPTR;
+  typename ImageType::Pointer image2 = ITK_NULLPTR;
 
   typename ImageType::SizeType size;
   size.Fill(0);
@@ -104,7 +104,7 @@ int AverageTensorImages( std::vector<std::string> args, std::ostream* /*out_stre
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

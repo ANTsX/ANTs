@@ -46,8 +46,8 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_TimeStep = 1.0;
   m_DenominatorThreshold = 1e-9;
   m_EuclideanDistanceThreshold = 0.01;
-  this->SetMovingImage(NULL);
-  this->SetFixedImage(NULL);
+  this->SetMovingImage(ITK_NULLPTR);
+  this->SetFixedImage(ITK_NULLPTR);
   m_FixedImageSpacing.Fill( 1.0 );
   m_FixedImageOrigin.Fill( 0.0 );
   m_Normalizer = 1.0;
@@ -63,10 +63,10 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_MovingImageGradientCalculator = MovingImageGradientCalculatorType::New();
   m_UseMovingImageGradient = false;
 
-  this->m_FixedPointSet = NULL;
-  this->m_MovingPointSet = NULL;
-  this->m_DerivativeFixedField = NULL;
-  this->m_DerivativeMovingField = NULL;
+  this->m_FixedPointSet = ITK_NULLPTR;
+  this->m_MovingPointSet = ITK_NULLPTR;
+  this->m_DerivativeFixedField = ITK_NULLPTR;
+  this->m_DerivativeMovingField = ITK_NULLPTR;
   this->m_IsPointSetMetric = true;
   this->m_UseSymmetricMatching = 100000;
   this->m_Iterations = 0;

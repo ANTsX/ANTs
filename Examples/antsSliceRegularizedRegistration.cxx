@@ -91,12 +91,12 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event)
+  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event)
+  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
   {
     TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
@@ -197,7 +197,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
   windowingFilter->SetOutputMaximum( upperScaleFunction );
   windowingFilter->Update();
 
-  typename ImageType::Pointer outputImage = NULL;
+  typename ImageType::Pointer outputImage = ITK_NULLPTR;
   if( histogramMatchSourceImage )
     {
     typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> HistogramMatchingFilterType;
@@ -222,7 +222,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
       {
       std::cout << "Warning: bad time point - too little intensity variation"
         << calc->GetMinimum() << " " <<  calc->GetMaximum() << std::endl;
-      return NULL;
+      return ITK_NULLPTR;
       }
     }
   else
@@ -263,12 +263,12 @@ protected:
   };
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event)
+  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event)
+  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
   {
     TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
@@ -418,7 +418,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   std::vector<typename FixedImageType::Pointer>            movingSliceList;
   typename FixedIOImageType::Pointer                       maskImage;
   typedef itk::Image< unsigned char, ImageDimension-1 >    ImageMaskType;
-  typename ImageMaskType::Pointer mask_time_slice = NULL;
+  typename ImageMaskType::Pointer mask_time_slice = ITK_NULLPTR;
   if ( maskfn.length() > 3 )
     ReadImage<FixedIOImageType>( maskImage, maskfn.c_str() );
 
@@ -430,8 +430,8 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     // Get the fixed and moving images
     std::string fixedImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 0 );
     std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 1 );
-    typename FixedImageType::Pointer fixed_time_slice = NULL;
-    typename FixedImageType::Pointer moving_time_slice = NULL;
+    typename FixedImageType::Pointer fixed_time_slice = ITK_NULLPTR;
+    typename FixedImageType::Pointer moving_time_slice = ITK_NULLPTR;
     typename FixedIOImageType::Pointer fixedImage;
     ReadImage<FixedIOImageType>( fixedImage, fixedImageFileName.c_str() );
     unsigned int timedims = fixedImage->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
@@ -578,7 +578,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
       typename FixedImageType::Pointer preprocessFixedImage =
         sliceRegularizedPreprocessImage<FixedImageType>( fixedSliceList[timedim], 0,
                                          1, 0.005, 0.995,
-                                         NULL );
+                                         ITK_NULLPTR );
 
       typename FixedImageType::Pointer preprocessMovingImage =
         sliceRegularizedPreprocessImage<FixedImageType>( movingSliceList[timedim],
@@ -1186,7 +1186,7 @@ int antsSliceRegularizedRegistration( std::vector<std::string> args, std::ostrea
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

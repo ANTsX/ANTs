@@ -267,13 +267,13 @@ protected:
   DiReCTImageFilter();
   virtual ~DiReCTImageFilter();
 
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
-  void ThreadedGenerateData( const RegionType &, ThreadIdType )
+  void ThreadedGenerateData( const RegionType &, ThreadIdType ) ITK_OVERRIDE
   {
   };
 
-  void GenerateData();
+  void GenerateData() ITK_OVERRIDE;
 
 private:
 

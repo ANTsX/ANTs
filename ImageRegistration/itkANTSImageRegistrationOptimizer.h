@@ -486,16 +486,16 @@ public:
   {
     if( !movingpoints )
       {
-      std::cout << " NULL POINTS " << std::endl;  return NULL;
+      std::cout << " NULL POINTS " << std::endl;  return ITK_NULLPTR;
       }
 
-    AffineTransformPointer affinverse = NULL;
+    AffineTransformPointer affinverse = ITK_NULLPTR;
     if( aff )
       {
       affinverse = AffineTransformType::New();
       aff->GetInverse(affinverse);
       }
-    AffineTransformPointer fixedaffinverse = NULL;
+    AffineTransformPointer fixedaffinverse = ITK_NULLPTR;
     if( fixedaff )
       {
       fixedaffinverse = AffineTransformType::New();
@@ -615,13 +615,13 @@ public:
     DirectionType rdirection = referenceimage->GetDirection();
     DirectionType mdirection = movingImage->GetDirection();
 
-    AffineTransformPointer affinverse = NULL;
+    AffineTransformPointer affinverse = ITK_NULLPTR;
     if( aff )
       {
       affinverse = AffineTransformType::New();
       aff->GetInverse(affinverse);
       }
-    AffineTransformPointer fixedaffinverse = NULL;
+    AffineTransformPointer fixedaffinverse = ITK_NULLPTR;
     if( fixedaff )
       {
       fixedaffinverse = AffineTransformType::New();
@@ -1160,7 +1160,7 @@ public:
 
   void DeformableOptimization()
   {
-    DisplacementFieldPointer updateField = NULL;
+    DisplacementFieldPointer updateField = ITK_NULLPTR;
 
     this->SetUpParameters();
     typename ImageType::SpacingType spacing;
@@ -1226,8 +1226,8 @@ public:
       }
     if( maxits == 0 )
       {
-      this->m_DisplacementField = NULL;
-      this->m_InverseDisplacementField = NULL;
+      this->m_DisplacementField = ITK_NULLPTR;
+      this->m_InverseDisplacementField = ITK_NULLPTR;
       //    this->ComputeMultiResolutionParameters(this->m_SimilarityMetrics[0]->GetFixedImage());
       return;
       }
@@ -1264,8 +1264,8 @@ public:
           }
         }
       }
-    this->m_SmoothFixedImages.resize(numberOfMetrics, NULL);
-    this->m_SmoothMovingImages.resize(numberOfMetrics, NULL);
+    this->m_SmoothFixedImages.resize(numberOfMetrics, ITK_NULLPTR);
+    this->m_SmoothMovingImages.resize(numberOfMetrics, ITK_NULLPTR);
     for( unsigned int currentLevel = 0; currentLevel < this->m_NumberOfLevels; currentLevel++ )
       {
       this->m_CurrentLevel = currentLevel;
@@ -1342,7 +1342,7 @@ public:
 
       if( this->GetTransformationModel() != std::string("SyN") )
         {
-        this->m_FixedImageAffineTransform = NULL;
+        this->m_FixedImageAffineTransform = ITK_NULLPTR;
         }
       while( !converged )
         {
@@ -1648,7 +1648,7 @@ public:
       // -1.0/(TReal)this->m_NTimeSteps);
       this->m_InverseDisplacementField = invdiffmap;
       this->m_DisplacementField = diffmap;
-      AffineTransformPointer invaff = NULL;
+      AffineTransformPointer invaff = ITK_NULLPTR;
       if( this->m_AffineTransform )
         {
         invaff = AffineTransformType::New();
@@ -1666,9 +1666,9 @@ public:
     else if( this->GetTransformationModel() == std::string("GreedyExp") )
       {
       DisplacementFieldPointer diffmap = this->m_DisplacementField;
-      this->m_InverseDisplacementField = NULL;
+      this->m_InverseDisplacementField = ITK_NULLPTR;
       this->m_DisplacementField = diffmap;
-      AffineTransformPointer invaff = NULL;
+      AffineTransformPointer invaff = ITK_NULLPTR;
       if( this->m_AffineTransform )
         {
         invaff = AffineTransformType::New();
@@ -1743,7 +1743,7 @@ public:
     zero.Fill(0);
     DisplacementFieldPointer updateField;
 
-    updateField = this->ComputeUpdateField(this->m_DisplacementField, NULL, NULL, NULL, NULL);
+    updateField = this->ComputeUpdateField(this->m_DisplacementField, ITK_NULLPTR, ITK_NULLPTR, ITK_NULLPTR, ITK_NULLPTR);
 
     typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
     Iterator dIter(this->m_DisplacementField, this->m_DisplacementField->GetLargestPossibleRegion() );
@@ -2099,7 +2099,7 @@ protected:
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
 private:
   ANTSImageRegistrationOptimizer( const Self & ); // purposely not implemented

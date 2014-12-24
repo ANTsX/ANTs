@@ -77,7 +77,7 @@ public:
 
   /** Helper functions */
 
-  virtual void SetInputListSample( const InputListSampleType * ptr );
+  virtual void SetInputListSample( const InputListSampleType * ptr ) ITK_OVERRIDE;
 
   itkSetMacro( ShapeSigma, RealType );
   itkGetConstMacro( ShapeSigma, RealType );
@@ -89,12 +89,12 @@ public:
   itkSetMacro( NumberOfOrientationJointHistogramBins, unsigned int );
   itkGetConstMacro( NumberOfOrientationJointHistogramBins, unsigned int );
 
-  virtual TOutput Evaluate( const InputMeasurementVectorType & ) const;
+  virtual TOutput Evaluate( const InputMeasurementVectorType & ) const ITK_OVERRIDE;
 
 protected:
   JointHistogramParzenShapeAndOrientationListSampleFunction();
   virtual ~JointHistogramParzenShapeAndOrientationListSampleFunction();
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
   void GenerateData();
 

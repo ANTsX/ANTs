@@ -132,9 +132,9 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   const unsigned int NumberOfTensorElements = numTensorElements<Dimension>();
 
-  typename TimeSeriesImageType::Pointer timeSeriesImage = NULL;
-  typename TensorImageType::Pointer tensorImage = NULL;
-  typename DisplacementFieldType::Pointer vectorImage = NULL;
+  typename TimeSeriesImageType::Pointer timeSeriesImage = ITK_NULLPTR;
+  typename TensorImageType::Pointer tensorImage = ITK_NULLPTR;
+  typename DisplacementFieldType::Pointer vectorImage = ITK_NULLPTR;
 
   std::vector<typename ImageType::Pointer> inputImages;
   inputImages.clear();
@@ -789,7 +789,7 @@ int antsApplyTransforms( std::vector<std::string> args, std::ostream * /*out_str
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

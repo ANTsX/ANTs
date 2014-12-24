@@ -230,7 +230,7 @@ int main( int argc, char * * argv )
   double      t;
   int         DX, DY, DZ, MD, dilateR, featureChannel;
   vector<int> labelset;
-  time_t      second1 = time(NULL), second2;
+  time_t      second1 = time(ITK_NULLPTR), second2;
   for( int Tlabel = 0; Tlabel <= ML; Tlabel++ )
     {
     if( fnExclusion[Tlabel] != "" )
@@ -547,7 +547,7 @@ int main( int argc, char * * argv )
         return -1;
         }
       }
-    second2 = time(NULL);
+    second2 = time(ITK_NULLPTR);
     cout << "Label " << Tlabel << " is processed in " << (second2 - second1) << " seconds." << endl;
     second1 = second2;
     }

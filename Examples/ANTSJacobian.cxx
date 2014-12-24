@@ -111,7 +111,7 @@ typename ImageType::Pointer ReadAnImage(char* fn)
     }
   catch( ... )
     {
-    return NULL;
+    return ITK_NULLPTR;
     }
   return reffilter->GetOutput();
 }
@@ -194,7 +194,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   enum { ImageDimension = TImage::ImageDimension };
   typedef itk::Image<float, ImageDimension> FloatImageType;
   typename FloatImageType::RegionType m_JacobianRegion;
-  typename FloatImageType::Pointer mask = NULL;
+  typename FloatImageType::Pointer mask = ITK_NULLPTR;
   typename FieldType::PixelType pvec;
   if( !v.empty() )
     {
@@ -222,7 +222,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>             TransformType;
     typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, FieldType, TransformType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
-    warper->SetInput(NULL);
+    warper->SetInput(ITK_NULLPTR);
     warper->SetEdgePaddingValue( 0);
     warper->SetSmoothScale(1);
     warper->PushBackDisplacementFieldTransform(field);
@@ -233,7 +233,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     typename writertype::Pointer writer = writertype::New();
     std::string fng = std::string(fnm) + "grid.nii.gz";
     writer->SetFileName(fng.c_str() );
-    writer->SetInput(NULL);
+    writer->SetInput(ITK_NULLPTR);
     writer->Write();
     std::cout << " Grid done ";
     }
@@ -565,7 +565,7 @@ int ANTSJacobian( std::vector<std::string> args, std::ostream* /*out_stream = NU
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

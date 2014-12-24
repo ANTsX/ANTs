@@ -67,7 +67,7 @@ int SurfaceCurvature( std::vector<std::string> args, std::ostream* /*out_stream 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -204,7 +204,7 @@ private:
   //  Parameterizer->IntegrateFunctionOverSurface(true);
   //   for (int i=0; i<1; i++) Parameterizer->PostProcessGeometry();
 
-  ImageType::Pointer output = NULL;
+  ImageType::Pointer output = ITK_NULLPTR;
 
   //  Parameterizer->GetFunctionImage()->SetSpacing( input->GetSpacing() );
   //  Parameterizer->GetFunctionImage()->SetDirection( input->GetDirection() );

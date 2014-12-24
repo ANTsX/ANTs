@@ -16,9 +16,9 @@ namespace ants
 template <class TComputeType, unsigned VImageDimension>
 RegistrationHelper<TComputeType, VImageDimension>
 ::RegistrationHelper() :
-  m_CompositeTransform( NULL ),
-  m_RegistrationState( NULL ),
-  m_FixedInitialTransform( NULL ),
+  m_CompositeTransform( ITK_NULLPTR ),
+  m_RegistrationState( ITK_NULLPTR ),
+  m_FixedInitialTransform( ITK_NULLPTR ),
   m_NumberOfStages( 0 ),
   m_Metrics(),
   m_TransformMethods(),
@@ -37,7 +37,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   m_WriteIntervalVolumes( 0 ),
   m_InitializeTransformsPerStage( false ),
   m_AllPreviousTransformsAreLinear( true ),
-  m_CompositeLinearTransformForFixedImageHeader( NULL )
+  m_CompositeLinearTransformForFixedImageHeader( ITK_NULLPTR )
 {
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
   typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
@@ -87,7 +87,7 @@ typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  i
   windowingFilter->SetOutputMaximum( upperScaleValue );
   windowingFilter->Update();
 
-  typename ImageType::Pointer outputImage = NULL;
+  typename ImageType::Pointer outputImage = ITK_NULLPTR;
   if( histogramMatchSourceImage )
     {
     typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> HistogramMatchingFilterType;
@@ -685,7 +685,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
   if( this->m_CompositeTransform->GetInverseTransform().IsNull() )
     {
-    return 0;
+    return ITK_NULLPTR;
     }
   typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResampleFilterType;
   typename ResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
@@ -1035,14 +1035,14 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename ImageType::Pointer preprocessFixedImage =
           PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
                                       upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                      NULL );
+                                      ITK_NULLPTR );
 
         preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
 
         typename ImageType::Pointer preprocessMovingImage =
           PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
                                       upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                      NULL );
+                                      ITK_NULLPTR );
 
         if( this->m_UseHistogramMatching )
           {
@@ -1223,7 +1223,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     optimizer2->SetLearningRate( learningRate );
     optimizer2->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer2->SetNumberOfIterations( currentStageIterations[0] );
-    optimizer2->SetScalesEstimator( NULL );
+    optimizer2->SetScalesEstimator( ITK_NULLPTR );
     optimizer2->SetMinimumConvergenceValue( convergenceThreshold );
     optimizer2->SetConvergenceWindowSize( convergenceWindowSize );
     optimizer2->SetDoEstimateLearningRateAtEachIteration( this->m_DoEstimateLearningRateAtEachIteration );
@@ -3674,7 +3674,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else
       {
-      this->m_RegistrationState = NULL;
+      this->m_RegistrationState = ITK_NULLPTR;
       }
 
     if( compToAdd.IsNull() )
@@ -3686,7 +3686,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     }
   else
     {
-    this->m_CompositeTransform = NULL;
+    this->m_CompositeTransform = ITK_NULLPTR;
     }
 }
 
@@ -3826,7 +3826,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       totalField->Update();
       totalField->DisconnectPipeline();
 
-      typename DisplacementFieldType::Pointer totalInverseField = NULL;
+      typename DisplacementFieldType::Pointer totalInverseField = ITK_NULLPTR;
 
       if( hasInverse && nthTransform->GetInverseDisplacementField() )
         {

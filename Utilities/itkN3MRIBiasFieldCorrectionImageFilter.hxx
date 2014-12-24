@@ -43,10 +43,10 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
                              TConfidenceImage>
 ::N3BiasFieldScaleCostFunction()
 {
-  this->m_InputImage = NULL;
-  this->m_BiasFieldImage = NULL;
-  this->m_MaskImage = NULL;
-  this->m_ConfidenceImage = NULL;
+  this->m_InputImage = ITK_NULLPTR;
+  this->m_BiasFieldImage = ITK_NULLPTR;
+  this->m_MaskImage = ITK_NULLPTR;
+  this->m_ConfidenceImage = ITK_NULLPTR;
 
   this->m_MaskLabel = NumericTraits<typename TMaskImage::PixelType>::One;
 }

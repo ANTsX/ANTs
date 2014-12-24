@@ -179,9 +179,9 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     }
 
   // clean up member variables
-  this->m_LaplacianImage[0] = NULL;
-  this->m_LaplacianImage[1] = NULL;
-  this->m_LaplacianImage[2] = NULL;
+  this->m_LaplacianImage[0] = ITK_NULLPTR;
+  this->m_LaplacianImage[1] = ITK_NULLPTR;
+  this->m_LaplacianImage[2] = ITK_NULLPTR;
   this->m_BlobHeapPerThread.clear();
 
   m_BlobList.clear();

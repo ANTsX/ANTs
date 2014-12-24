@@ -31,7 +31,7 @@ template <class TListSample, class TOutput, class TCoordRep>
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::ManifoldParzenWindowsListSampleFunction()
 {
-  this->m_KdTreeGenerator = NULL;
+  this->m_KdTreeGenerator = ITK_NULLPTR;
 
   this->m_EvaluationKNeighborhood = 50;
   this->m_RegularizationSigma = 1.0;

@@ -60,9 +60,9 @@ int MultiplyImages(int argc, char *argv[])
   std::string fn1 = std::string(argv[2]);
   std::string fn2 = std::string(argv[3]);
 
-  typename ImageType::Pointer image1 = NULL;
-  typename ImageType::Pointer image2 = NULL;
-  typename ImageType::Pointer varimage = NULL;
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
+  typename ImageType::Pointer image2 = ITK_NULLPTR;
+  typename ImageType::Pointer varimage = ITK_NULLPTR;
 
   typename readertype::Pointer reader2 = readertype::New();
   typename readertype::Pointer reader1 = readertype::New();
@@ -147,7 +147,7 @@ int MultiplyImages( std::vector<std::string> args, std::ostream* /*out_stream = 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

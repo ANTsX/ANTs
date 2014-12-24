@@ -160,7 +160,7 @@ parse_vector(char *text, itk::Size<VDim> &s)
   while(t && i < VDim)
     {
     s[i++] = atoi(t);
-    t = strtok(NULL, "x");
+    t = strtok(ITK_NULLPTR, "x");
     }
 
   if(i == VDim)

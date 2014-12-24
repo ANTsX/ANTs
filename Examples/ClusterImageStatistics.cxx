@@ -64,9 +64,9 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
   float       minSize = clusterthresh;
   float       valuethresh = atof(argv[6]);
   //  std::cout << " Cth " << clusterthresh << " Vth " << valuethresh << std::endl;
-  typename ImageType::Pointer valimage = NULL;
-  typename ImageType::Pointer roiimage = NULL;
-  typename ImageType::Pointer labelimage = NULL;
+  typename ImageType::Pointer valimage = ITK_NULLPTR;
+  typename ImageType::Pointer roiimage = ITK_NULLPTR;
+  typename ImageType::Pointer labelimage = ITK_NULLPTR;
 
   ReadImage<ImageType>(roiimage, roimaskfn.c_str() );
   ReadImage<ImageType>(labelimage, labelimagefn.c_str() );
@@ -303,7 +303,7 @@ int ClusterImageStatistics( std::vector<std::string> args, std::ostream* /*out_s
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

@@ -88,7 +88,7 @@ public:
    * pipeline execution model.
    *
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-  virtual void GenerateInputRequestedRegion() throw( InvalidRequestedRegionError );
+  virtual void GenerateInputRequestedRegion() throw( InvalidRequestedRegionError ) ITK_OVERRIDE;
 
   /** Get access to the input image casted as real pixel values */
   itkGetConstObjectMacro( RealValuedInputImage, RealVectorImageType );
@@ -100,7 +100,7 @@ protected:
   /** Do any necessary casting/copying of the input data.  Input pixel types
      whose value types are not real number types must be cast to real number
      types.*/
-  void BeforeThreadedGenerateData();
+  void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
   /** DeformationFieldGradientTensorImageFilter can be implemented as a
    * multithreaded filter (we're only using vnl_det(), which is trivially
@@ -115,9 +115,9 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
   void ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
-                             ThreadIdType threadId );
+                             ThreadIdType threadId ) ITK_OVERRIDE;
 
-  void PrintSelf ( std::ostream& os, Indent indent ) const;
+  void PrintSelf ( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
 private:
   RadiusType                                    m_NeighborhoodRadius;

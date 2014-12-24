@@ -424,7 +424,7 @@ PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
 
 template <unsigned int ImageDimension, class PixelType>
 int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
-                     itk::ants::CommandLineParser::OptionType * /* outputOption */ = NULL )
+                     itk::ants::CommandLineParser::OptionType * /* outputOption */ = ITK_NULLPTR )
 {
   std::string funcName = std::string("matrixOperation");
 
@@ -669,8 +669,8 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     std::cerr << " must use .csv as output file extension " << std::endl;
     return EXIT_FAILURE;
     }
-  typename ImageType::Pointer image1 = NULL;
-  typename OutImageType::Pointer mask = NULL;
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
+  typename OutImageType::Pointer mask = ITK_NULLPTR;
   std::cerr << " imagefn " << imagefn << std::endl;
   if( imagefn.length() > 3 )
     {
@@ -904,9 +904,9 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
   const unsigned int ImageDimension = 3;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   /** read the  images */
-  typename ImageType::Pointer mask = NULL;
+  typename ImageType::Pointer mask = ITK_NULLPTR;
   ReadImage<ImageType>(mask, maskfn.c_str() );
-  typename ImageType::Pointer outimage = NULL;
+  typename ImageType::Pointer outimage = ITK_NULLPTR;
   ReadImage<ImageType>(outimage, maskfn.c_str() );
   outimage->FillBuffer(0);
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
@@ -1174,7 +1174,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   std::string pmatname = std::string(option->GetFunction( 0 )->GetParameter( 0 ) );
   vMatrix     p;
   ReadMatrixFromCSVorImageSet<Scalar>(pmatname, p);
-  typename ImageType::Pointer mask1 = NULL;
+  typename ImageType::Pointer mask1 = ITK_NULLPTR;
   bool have_p_mask = false;
   have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
   double  FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
@@ -1481,7 +1481,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     return EXIT_FAILURE;
     }
 
-  typename ImageType::Pointer mask1 = NULL;
+  typename ImageType::Pointer mask1 = ITK_NULLPTR;
   std::string mask1fn = option->GetFunction( 0 )->GetParameter( 2 );
   bool have_p_mask = false;
   if ( mask1fn.length() > 5 )
@@ -1489,7 +1489,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     have_p_mask = ReadImage<ImageType>(mask1, mask1fn.c_str()  );
     }
 
-  typename ImageType::Pointer mask2 = NULL;
+  typename ImageType::Pointer mask2 = ITK_NULLPTR;
   std::string mask2fn = option->GetFunction( 0 )->GetParameter( 3 );
   bool have_q_mask = false;
   if ( mask2fn.length() > 5 )
@@ -1736,11 +1736,11 @@ int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
     return EXIT_FAILURE;
     }
 
-  typename ImageType::Pointer mask1 = NULL;
+  typename ImageType::Pointer mask1 = ITK_NULLPTR;
   bool have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
-  typename ImageType::Pointer mask2 = NULL;
+  typename ImageType::Pointer mask2 = ITK_NULLPTR;
   bool have_q_mask = ReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 4 ).c_str() );
-  typename ImageType::Pointer mask3 = NULL;
+  typename ImageType::Pointer mask3 = ITK_NULLPTR;
 
   /** the penalties define the fraction of non-zero values for each view */
   double FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 6 ) );
@@ -2453,7 +2453,7 @@ int sccan( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

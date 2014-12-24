@@ -116,11 +116,11 @@ public:
   itkSetMacro( MaskLabel, typename TMaskImage::PixelType );
   itkGetConstMacro( MaskLabel, typename TMaskImage::PixelType );
 
-  virtual MeasureType GetValue( const ParametersType & parameters ) const;
+  virtual MeasureType GetValue( const ParametersType & parameters ) const ITK_OVERRIDE;
 
-  virtual void GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const;
+  virtual void GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const ITK_OVERRIDE;
 
-  virtual unsigned int GetNumberOfParameters() const;
+  virtual unsigned int GetNumberOfParameters() const ITK_OVERRIDE;
 
 protected:
   N3BiasFieldScaleCostFunction();
@@ -271,9 +271,9 @@ protected:
   ~N3MRIBiasFieldCorrectionImageFilter()
   {
   };
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
-  void GenerateData();
+  void GenerateData() ITK_OVERRIDE;
 
 private:
   N3MRIBiasFieldCorrectionImageFilter( const Self & ); // purposely not implemented

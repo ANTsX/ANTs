@@ -64,7 +64,7 @@ public:
   /** Get the list sample output of this object.  */
   OutputListSampleType * GetOutput();
 
-  virtual void Update()
+  virtual void Update() ITK_OVERRIDE
   {
     this->GenerateData();
   }
@@ -75,7 +75,7 @@ protected:
   {
   };
 
-  virtual void GenerateData() = 0;
+  virtual void GenerateData() ITK_OVERRIDE = 0;
 
   void AllocateOutput();
 

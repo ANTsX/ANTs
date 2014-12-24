@@ -151,7 +151,7 @@ CopyImage(TDisplacementField* field )
   typedef itk::Image<PixelType, ImageDimension> RealImageType;
   typename RealImageType::RegionType m_JacobianRegion;
 
-  typename RealImageType::Pointer m_RealImage = NULL;
+  typename RealImageType::Pointer m_RealImage = ITK_NULLPTR;
   m_RealImage = AllocImage<RealImageType>(field, 0);
 
   return m_RealImage;
@@ -605,7 +605,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   RealType distthresh = 1.5;
   typename ImageType::Pointer wmgrow = Morphological<ImageType>(wmb, 0, 1, 1);
   typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh); // or wmb ?
-  typename ImageType::Pointer speedprior = NULL;
+  typename ImageType::Pointer speedprior = ITK_NULLPTR;
   WriteImage<ImageType>(bsurf, "surf.nii.gz");
   //    typename RealTypeImageType::Pointer distfromboundary =
   //  typename ImageType::Pointer surf=MaurerDistanceMap<ImageType>(0.5,1.e9,bsurf);
@@ -703,13 +703,13 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     thickerrct = 1;
     bool debug = false;
     bool spatprior = false;
-    typename ImageType::Pointer priorim = NULL;
+    typename ImageType::Pointer priorim = ITK_NULLPTR;
     if( speedprior )
       {
       spatprior = true;
       priorim = speedprior;
       }
-    typename ImageType::Pointer wpriorim = NULL;
+    typename ImageType::Pointer wpriorim = ITK_NULLPTR;
     RealType origthickprior = thickprior;
 
     while( ttiter < numtimepoints )    // N time integration points
@@ -1053,7 +1053,7 @@ int KellySlater( std::vector<std::string> args, std::ostream* /*out_stream = NUL
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = ITK_NULLPTR;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
