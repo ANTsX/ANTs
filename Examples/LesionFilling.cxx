@@ -189,12 +189,13 @@ namespace ants
       {
         if (itL.Get() == 1)
         {
-          int index = min + (rand() % (int)(max - min + 1)) ;
+          int index = min  + (rand() % (int)(max - min )) ;
           it4.Set( outerWMVoxels[ index ] );
         }//end if
         ++it4;
         ++itL;
       }//end while
+      std::cout << "size of outerWMVoxels is " << outerWMVoxels.size();
     }//end of loop for lesions
   typedef itk::ImageFileWriter< T1ImageType>  WriterType;
   typename WriterType::Pointer writer = WriterType::New();
