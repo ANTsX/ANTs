@@ -158,7 +158,6 @@ namespace ants
            ++it;
          }
        meanInsideLesion /= (double) counter;
-       std::cout << "mean inside lesion is " << meanInsideLesion << std::endl;
        
        //check that all outer voxels are more than the mean 
        //intensity of the lesion, i.e. not including CSF voxels
@@ -195,7 +194,6 @@ namespace ants
         ++it4;
         ++itL;
       }//end while
-      std::cout << "size of outerWMVoxels is " << outerWMVoxels.size();
     }//end of loop for lesions
   typedef itk::ImageFileWriter< T1ImageType>  WriterType;
   typename WriterType::Pointer writer = WriterType::New();
