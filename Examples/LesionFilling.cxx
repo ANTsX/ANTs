@@ -58,7 +58,6 @@ namespace ants
       }
     typename T1ImageReaderType::Pointer T1Reader = T1ImageReaderType::New();
     T1Reader->SetFileName( T1FileName); 
-
     try
       {
       T1Reader->Update();
@@ -68,20 +67,18 @@ namespace ants
       std::cout << "no T1 image that can be read" << std::endl;
       return 0;
       }
+    typename T1ImageType::Pointer outImage = NULL ;
+    outImage = T1Reader->GetOutput() ;
     typedef itk::ImageRegionIterator< T1ImageType> IteratorType;
-    
     typedef itk::BinaryThresholdImageFilter <T1ImageType, T1ImageType>
-                               BinaryThresholdImageFilterType;
+                                 BinaryThresholdImageFilterType;
     typedef itk::BinaryBallStructuringElement<
-                                double,
-                                ImageDimension> StructuringElementType;
+                                 double,
+                                 ImageDimension> StructuringElementType;
     typedef itk::BinaryDilateImageFilter<
                                  T1ImageType,
                                  T1ImageType,
                                  StructuringElementType >  DilateFilterType;
-    typedef itk::SubtractImageFilter <T1ImageType, T1ImageType>
-                                 SubtractImageFilterType;
-    //finding connected components, we assume each component is one lesion
     typedef itk::ConnectedComponentImageFilter <LesionImageType, LesionImageType>
                 ConnectedComponentFilterType;
     typename ConnectedComponentFilterType::Pointer connected =
@@ -90,13 +87,12 @@ namespace ants
     connected->Update();
     const int LesionNumber = connected->GetObjectCount() ;
     std::cout << "Number of lesions: " << LesionNumber << std::endl;
-    for ( int i = 1; i < LesionNumber; i++)
+    for ( int i = 1;  i < LesionNumber + 1 ; i++)
     {
-
        typedef itk::CastImageFilter< LesionImageType, T1ImageType> FilterType;
        typename FilterType::Pointer filter = FilterType::New();
        filter->SetInput( connected->GetOutput() );
-       std::vector<double> outervoxels;
+       filter->Update() ;
        typename BinaryThresholdImageFilterType::Pointer thresholdFilter
                   = BinaryThresholdImageFilterType::New();
        thresholdFilter->SetInput(filter->GetOutput());
@@ -104,6 +100,7 @@ namespace ants
        thresholdFilter->SetUpperThreshold( (double) i + 0.1);
        thresholdFilter->SetInsideValue  ( 1 );
        thresholdFilter->SetOutsideValue ( 0 );
+       thresholdFilter->Update() ;
        //Neighbouring voxel
        //filling lesions with the voxels surrounding them
        //first finding the edges of lesions
@@ -116,7 +113,10 @@ namespace ants
        binaryDilate->SetKernel( structuringElement );
        binaryDilate->SetInput( thresholdFilter->GetOutput() );
        binaryDilate->SetDilateValue( 1 );
+       binaryDilate->Update() ;
        // subtract dilated image form non-dilated one
+       typedef itk::SubtractImageFilter <T1ImageType, T1ImageType>
+                                    SubtractImageFilterType;
        typename SubtractImageFilterType::Pointer subtractFilter
                      = SubtractImageFilterType::New ();
        //output = image1 - image2
@@ -126,89 +126,79 @@ namespace ants
        //multiply the outer lesion mask with T1 to get only the neighbouring voxels
        typedef itk::MaskImageFilter< T1ImageType, T1ImageType > MaskFilterType;
        typename MaskFilterType::Pointer maskFilter = MaskFilterType::New();
-       maskFilter->SetInput(T1Reader->GetOutput() );
+       maskFilter->SetInput( outImage ) ;
        maskFilter->SetMaskImage( subtractFilter->GetOutput() );
-       //collecting non-zero voxels
-       IteratorType it( maskFilter->GetOutput(),
-                         maskFilter->GetOutput()->GetLargestPossibleRegion() );
-       it.GoToBegin();
-       /** Walk over the image. */
-       while ( !it.IsAtEnd() )
-         {
-           if( it.Value() )
-           {
-             outervoxels.push_back ( it.Get() ); 
-           }
-           ++it;
-         } // end while
+       maskFilter->Update() ;
+       typename T1ImageType::Pointer LesionEdge= NULL ;
+       LesionEdge = maskFilter->GetOutput() ;
+       
        //calculating mean lesion intesity
        //Note: lesions should not be filled with values
        //less than their originial values, this is a
-       //trick to exclude any CSF voxels in the outer mask (if any)
+       //trick to exclude any CSF voxels in surronding voxels (if any)
        typename MaskFilterType::Pointer maskFilterLesion = MaskFilterType::New();
        maskFilterLesion->SetInput( T1Reader->GetOutput() );
-//do we need to pass a double lesion
-       typedef itk::CastImageFilter< LesionImageType, T1ImageType> FilterType;
-       typename FilterType::Pointer filter2 = FilterType::New();
-       filter2->SetInput( LesionReader->GetOutput() );
-       maskFilterLesion->SetMaskImage( filter2->GetOutput() );
-       IteratorType it2( maskFilterLesion->GetOutput(),
+       //do we need to pass a double lesion
+       maskFilterLesion->SetMaskImage(thresholdFilter->GetOutput() );
+       maskFilterLesion->Update() ;
+       IteratorType it( maskFilterLesion->GetOutput(),
                          maskFilterLesion->GetOutput()->GetLargestPossibleRegion() );
-       it2.GoToBegin();
+       it.GoToBegin();
        /** Walk over the image. */
        int counter  = 0;
        double meanInsideLesion = 0;
-       while ( !it2.IsAtEnd() )
+       while ( !it.IsAtEnd() )
          {
-           if( it2.Value() )
+           if( it.Value() != 0)
            {
              //coutning number of voxels inside lesion
              counter++;
-             meanInsideLesion += it2.Get();
+             meanInsideLesion += it.Get();
            }
-           ++it2;
+           ++it;
          }
-       meanInsideLesion /= counter;
+       meanInsideLesion /= (double) counter;
+       std::cout << "mean inside lesion is " << meanInsideLesion << std::endl;
+       
        //check that all outer voxels are more than the mean 
        //intensity of the lesion, i.e. not including CSF voxels
-       
-       IteratorType it3( maskFilter->GetOutput(),
+       IteratorType itNoCSF( maskFilter->GetOutput(),
                          maskFilter->GetOutput()->GetLargestPossibleRegion() );
-       it3.GoToBegin();
+       itNoCSF.GoToBegin();
        std::vector<double> outerWMVoxels;
-       while ( !it3.IsAtEnd() )
+       while ( !itNoCSF.IsAtEnd() )
        {
-         if ( it3.Get() > meanInsideLesion )
+         if ( itNoCSF.Get() >= meanInsideLesion )
          {
-           outerWMVoxels.push_back( it3.Get() );
+           outerWMVoxels.push_back( itNoCSF.Get() );
          }//end if
-         ++it3;
+         ++itNoCSF;
       }//end while
       //walk through original T1
-      //and chagne inside the lesion with a random pick from
+      //and change inside the lesion with a random pick from
       //collected normal appearing WM voxels (outerWMVoxels)
-      IteratorType it4( T1Reader->GetOutput(),
-                       T1Reader->GetOutput()->GetLargestPossibleRegion() );
-      IteratorType itL(thresholdFilter->GetOutput(),
-                       thresholdFilter->GetOutput()->GetLargestPossibleRegion() );
+      IteratorType it4( outImage, 
+                        outImage->GetLargestPossibleRegion() );
+      IteratorType itL( thresholdFilter->GetOutput(),
+                        thresholdFilter->GetOutput()->GetLargestPossibleRegion() );
       int max = outerWMVoxels.size();
       int min = 0;
-      int index = min + (rand() % (int)(max - min + 1)) ;
       it4.GoToBegin();
       itL.GoToBegin();
       while ( !it4.IsAtEnd() )
       {
         if (itL.Get() == 1)
         {
+          int index = min + (rand() % (int)(max - min + 1)) ;
           it4.Set( outerWMVoxels[ index ] );
-        }
-      }
-    }//loop for lesions
-  typedef double OutputPixelType;
-  typedef itk::Image< OutputPixelType, ImageDimension >    OutputImageType;
-  typedef itk::ImageFileWriter< OutputImageType >  WriterType;
+        }//end if
+        ++it4;
+        ++itL;
+      }//end while
+    }//end of loop for lesions
+  typedef itk::ImageFileWriter< T1ImageType>  WriterType;
   typename WriterType::Pointer writer = WriterType::New();
-  writer->SetInput( T1Reader->GetOutput() );
+  writer->SetInput( outImage);
   writer->SetFileName( OutputFileName );
   try
     {
@@ -296,5 +286,6 @@ namespace ants
           std::cout << "Unsupported dimension" << std::endl;
           return EXIT_FAILURE;
         }
-      }//int LesionFilling std::vector
+     return EXIT_SUCCESS;    
+  }//int LesionFilling std::vector
 }//namespace ants
