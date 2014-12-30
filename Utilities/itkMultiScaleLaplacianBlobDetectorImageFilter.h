@@ -185,12 +185,12 @@ protected:
   typedef typename RealImageType::Pointer                   RealImagePointer;
   typedef typename RealImageType::ConstPointer              RealImageConstPointer;
 
-  MultiScaleLaplacianBlobDetectorImageFilter( void );
+  MultiScaleLaplacianBlobDetectorImageFilter();
 
   // not defined or implemented as default works
   // virtual ~MultiScaleLaplacianBlobDetectorImageFilter( void ) {}
 
-  void GenerateData( void ) ITK_OVERRIDE;
+  void GenerateData() ITK_OVERRIDE;
 
   void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId ) ITK_OVERRIDE;
 

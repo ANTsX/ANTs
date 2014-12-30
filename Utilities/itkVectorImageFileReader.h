@@ -125,7 +125,7 @@ public:
 
   /** Prepare the allocation of the output image during the first back
    * propagation of the pipeline. */
-  virtual void GenerateOutputInformation(void);
+  virtual void GenerateOutputInformation();
 
   /** Give the reader a chance to indicate that it will produce more
    * output than it was requested to produce. VectorImageFileReader cannot

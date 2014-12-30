@@ -151,7 +151,7 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData( void ) ITK_OVERRIDE;
+  void GenerateData() ITK_OVERRIDE;
 
   typename DisplacementFieldType::PixelType TransformVectorByDirection( typename DisplacementFieldType::PixelType cpix )
   {

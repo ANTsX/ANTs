@@ -46,9 +46,9 @@ public:
 
   /** Write the Input mesh to the Output file.
    * Use either Update() or Write(). */
-  void Update( void );
+  void Update();
 
-  void Write( void );
+  void Write();
 
   /** Extract dimension from the output mesh. */
   itkStaticConstMacro( Dimension, unsigned int,

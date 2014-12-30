@@ -157,7 +157,7 @@ public:
    *
    * \sa Transform::GetParameters()
    * \sa Transform::GetFixedParameters() */
-  const ParametersType & GetParameters( void ) const ITK_OVERRIDE;
+  const ParametersType & GetParameters() const ITK_OVERRIDE;
 
   /** This method computes the Jacobian matrix of the transformation
    * at a given input point.
@@ -189,7 +189,7 @@ public:
   void CloneTo( Pointer & clone ) const;
 
   /** Reset the parameters to create and identity transform. */
-  virtual void SetIdentity(void) ITK_OVERRIDE;
+  virtual void SetIdentity() ITK_OVERRIDE;
 
 protected:
   // Rigid2DTransform();
@@ -210,13 +210,13 @@ protected:
   /** Compute the matrix from angle. This is used in Set methods
    * to update the underlying matrix whenever a transform parameter
    * is changed. */
-  virtual void ComputeMatrix(void) ITK_OVERRIDE;
+  virtual void ComputeMatrix() ITK_OVERRIDE;
 
   /** Compute the angle from the matrix. This is used to compute
    * transform parameters from a given matrix. This is used in
    * MatrixOffsetTransformBase::Compose() and
    * MatrixOffsetTransformBase::GetInverse(). */
-  virtual void ComputeMatrixParameters(void) ITK_OVERRIDE;
+  virtual void ComputeMatrixParameters() ITK_OVERRIDE;
 
   /** Update angle without recomputation of other internal variables. */
   void SetVarAngle( TScalarType angle )

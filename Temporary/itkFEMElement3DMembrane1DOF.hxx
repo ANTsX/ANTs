@@ -154,7 +154,7 @@ Element3DMembrane1DOF<TBaseClass>
 // I have no idea why things don't work when this is not declared, but it
 // looks like this declaration makes compiler forget about some of the
 // troubles it has with templates.
-static void Dummy( void );
+static void Dummy();
 
 #endif // #ifdef _MSC_VER
 }

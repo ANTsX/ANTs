@@ -147,11 +147,11 @@ public:
   void SetDisplacementField( const DisplacementFieldType * field );
 
   /** Get a pointer the deformation field. */
-  DisplacementFieldType * GetDisplacementField(void);
+  DisplacementFieldType * GetDisplacementField();
 
   /** songgang: Set / Get  the affine transform. */
   // void SetAffineTransform( const TransformType * aff );
-  // TransformType * GetAffineTransform(void);
+  // TransformType * GetAffineTransform();
 
   itkSetObjectMacro(AffineTransform, TransformType);
 
