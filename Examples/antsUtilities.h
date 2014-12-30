@@ -695,7 +695,7 @@ extern void FilePartsWithgz(const std::string & filename, std::string & path, st
 
 extern bool CheckFileExistence(const char * const str);
 
-extern std::string GetPreferredTransformFileType(void);
+extern std::string GetPreferredTransformFileType();
 
 extern void ConvertToLowerCase( std::string& str );
 

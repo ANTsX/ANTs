@@ -111,7 +111,7 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData( void ) ITK_OVERRIDE;
+  void GenerateData() ITK_OVERRIDE;
 
 private:
   LogTensorImageFilter(const Self &); // purposely not implemented

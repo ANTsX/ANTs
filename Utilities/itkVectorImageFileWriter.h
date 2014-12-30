@@ -87,7 +87,7 @@ public:
   /** Set/Get the image input of this writer.  */
   void SetInput(const VectorImageType *input);
 
-  const VectorImageType * GetInput(void);
+  const VectorImageType * GetInput();
 
   const VectorImageType * GetInput(unsigned int idx);
 
@@ -124,7 +124,7 @@ public:
    * IORegion. If not set, then then the whole image is written.  Note
    * that the region will be cropped to fit the input image's
    * LargestPossibleRegion. */
-  virtual void Write(void);
+  virtual void Write();
 
   /** Specify the region to write. If left NULL, then the whole image
    * is written. */
@@ -169,7 +169,7 @@ protected:
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** Does the real work. */
-  void GenerateData(void);
+  void GenerateData();
 
 private:
   VectorImageFileWriter(const Self &); // purposely not implemented

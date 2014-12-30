@@ -391,10 +391,10 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         endSlice = parser->Convert<unsigned int>( endSliceString );
         }
 
-      startingSlice = vnl_math_max( itk::NumericTraits<int>::Zero, startingSlice );
+      startingSlice = vnl_math_max( itk::NumericTraits<int>::ZeroValue(), startingSlice );
       startingSlice = vnl_math_min( startingSlice, static_cast<int>( size[direction] - 1 ) );
 
-      endSlice = vnl_math_max( itk::NumericTraits<int>::Zero, endSlice );
+      endSlice = vnl_math_max( itk::NumericTraits<int>::ZeroValue(), endSlice );
       endSlice = vnl_math_min( endSlice, static_cast<int>( size[direction] - 1 ) );
 
       whichSlices.clear();

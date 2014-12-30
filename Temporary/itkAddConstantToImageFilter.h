@@ -45,7 +45,7 @@ template <class TInput, class TConstant, class TOutput>
 class AddConstantTo
 {
 public:
-  AddConstantTo() : m_Constant(NumericTraits<TConstant>::One)
+  AddConstantTo() : m_Constant(NumericTraits<TConstant>::OneValue())
   {
   };
   ~AddConstantTo()

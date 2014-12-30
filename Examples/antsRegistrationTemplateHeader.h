@@ -1190,7 +1190,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
 
   typename ImageType::SpacingType cache_spacing_for_smoothing_sigmas
-    (itk::NumericTraits<typename ImageType::SpacingType::ValueType>::Zero);
+    (itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
   if( !std::strcmp( whichInterpolator.c_str(), "gaussian" )
       ||   !std::strcmp( whichInterpolator.c_str(), "multilabel" )
       )

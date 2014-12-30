@@ -86,7 +86,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
 
   typedef typename TTransform::ScalarType ScalarType;
 
-  matrix.Fill( itk::NumericTraits<typename TTransform::ScalarType>::Zero );
+  matrix.Fill( itk::NumericTraits<typename TTransform::ScalarType>::ZeroValue() );
   bool done = false;
 
   // Matrix-offset derived
@@ -111,7 +111,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
       {
       for( unsigned int i = 0; i < ImageDimension; i++ )
         {
-        matrix(i, i) = itk::NumericTraits<typename TTransform::ScalarType>::One;
+        matrix(i, i) = itk::NumericTraits<typename TTransform::ScalarType>::OneValue();
         }
       done = true;
       }
@@ -127,7 +127,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
       {
       for( unsigned int i = 0; i < ImageDimension; i++ )
         {
-        matrix(i, i) = itk::NumericTraits<typename TTransform::ScalarType>::One;
+        matrix(i, i) = itk::NumericTraits<typename TTransform::ScalarType>::OneValue();
         }
       done = true;
       }
@@ -168,7 +168,7 @@ bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatr
 
   typedef typename TTransform::ScalarType ScalarType;
 
-  hMatrix.Fill( itk::NumericTraits<ScalarType>::Zero );
+  hMatrix.Fill( itk::NumericTraits<ScalarType>::ZeroValue() );
 
   bool done = false;
 
@@ -188,7 +188,7 @@ bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatr
 
   // Set the lower-right corner to 1
   unsigned int corner = ImageDimension;
-  hMatrix(corner, corner) = itk::NumericTraits<typename TTransform::ScalarType>::One;
+  hMatrix(corner, corner) = itk::NumericTraits<typename TTransform::ScalarType>::OneValue();
 
   //
   // Get the offset
@@ -207,7 +207,7 @@ bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatr
     }
 
   typename TTransform::OutputVectorType offset;
-  offset.Fill( itk::NumericTraits<typename TTransform::ScalarType>::Zero );
+  offset.Fill( itk::NumericTraits<typename TTransform::ScalarType>::ZeroValue() );
 
   // Matrix-offset derived
     {

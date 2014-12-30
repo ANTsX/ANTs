@@ -84,7 +84,7 @@ public:
   /** Get the rotation from an ANTSAffine3DTransform.
    * This method returns the value of the rotation of the
    * ANTSAffine3DTransform.   **/
-  const VnlQuaternionType & GetRotation(void) const
+  const VnlQuaternionType & GetRotation() const
   {
     return m_Rotation;
   }
@@ -99,7 +99,7 @@ public:
   itkGetConstReferenceMacro( K3, TScalarType );
 
   /** Set the parameters to the IdentityTransform */
-  virtual void SetIdentity(void) ITK_OVERRIDE;
+  virtual void SetIdentity() ITK_OVERRIDE;
 
   /** Set the transformation from a container of parameters.
    * This is typically used by optimizers.
@@ -146,7 +146,7 @@ protected:
     m_Rotation = rotation;
   };
 
-//  const InverseMatrixType & GetInverseMatrix( void ) const;
+//  const InverseMatrixType & GetInverseMatrix() const;
 
   void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
 

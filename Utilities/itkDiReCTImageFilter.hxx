@@ -583,7 +583,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             {
             typename RealImageType::IndexType index = ItSegmentationImage.GetIndex();
             RealType thicknessPrior = this->m_ThicknessPriorImage->GetPixel( index );
-            if( ( thicknessPrior > NumericTraits<RealType>::Zero ) &&
+            if( ( thicknessPrior > NumericTraits<RealType>::ZeroValue() ) &&
                 ( thicknessValue > thicknessPrior ) )
               {
               priorEnergy += vnl_math_abs( thicknessPrior - thicknessValue );

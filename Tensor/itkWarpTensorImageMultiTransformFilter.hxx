@@ -121,7 +121,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
   m_OutputSpacing.Fill( 1.0 );
   m_OutputOrigin.Fill( 0.0 );
 
-  m_EdgePaddingValue = NumericTraits<PixelType>::Zero;
+  m_EdgePaddingValue = NumericTraits<PixelType>::ZeroValue();
 
   // Setup default interpolator
   typename DefaultInterpolatorType::Pointer interp = DefaultInterpolatorType::New();
