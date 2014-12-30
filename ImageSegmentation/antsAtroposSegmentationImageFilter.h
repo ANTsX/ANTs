@@ -474,8 +474,8 @@ public:
    */
   void SetAdaptiveSmoothingWeight( unsigned int idx, RealType weight )
   {
-    RealType clampedWeight = vnl_math_min( NumericTraits<RealType>::One,
-                                           vnl_math_max( NumericTraits<RealType>::Zero, weight ) );
+    RealType clampedWeight = vnl_math_min( NumericTraits<RealType>::OneValue(),
+                                           vnl_math_max( NumericTraits<RealType>::ZeroValue(), weight ) );
 
     if( idx >= this->m_AdaptiveSmoothingWeights.size() )
       {

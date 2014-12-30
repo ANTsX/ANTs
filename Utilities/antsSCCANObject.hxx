@@ -94,7 +94,7 @@ antsSCCANObject<TInputImage, TRealType>
   weights->SetRegions( mask->GetLargestPossibleRegion() );
   weights->SetDirection( mask->GetDirection() );
   weights->Allocate();
-  weights->FillBuffer( itk::NumericTraits<PixelType>::Zero );
+  weights->FillBuffer( itk::NumericTraits<PixelType>::ZeroValue() );
 
   // overwrite weights with vector values;
   unsigned long vecind = 0;
@@ -166,7 +166,7 @@ antsSCCANObject<TInputImage, TRealType>
   weights->SetRegions( mask->GetLargestPossibleRegion() );
   weights->SetDirection( mask->GetDirection() );
   weights->Allocate();
-  weights->FillBuffer( itk::NumericTraits<PixelType>::Zero );
+  weights->FillBuffer( itk::NumericTraits<PixelType>::ZeroValue() );
 
   typename RealImageTypeDminus1::Pointer maskdm1;
   typedef itk::ExtractImageFilter<TInputImage, RealImageTypeDminus1> ExtractFilterType;

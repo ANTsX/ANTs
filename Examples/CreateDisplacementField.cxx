@@ -69,7 +69,7 @@ void CreateDisplacementField( int argc, char *argv[] )
   if( enforceZeroBoundaryFlag )
     {
     VectorPixelType zeros( ImageDimension );
-    zeros.Fill( itk::NumericTraits<ValueType>::Zero );
+    zeros.Fill( itk::NumericTraits<ValueType>::ZeroValue() );
     vecIt.GoToBegin();
     while( !vecIt.IsAtEnd() )
       {

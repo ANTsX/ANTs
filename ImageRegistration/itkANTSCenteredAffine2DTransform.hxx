@@ -30,16 +30,16 @@ namespace itk
 // ANTSCenteredAffine2DTransform():
 //   Superclass(OutputSpaceDimension, ParametersDimension)
 // {
-//   m_Angle = NumericTraits< TScalarType >::Zero;
+//   m_Angle = NumericTraits< TScalarType >::ZeroValue();
 // }
 template <class TScalarType>
 ANTSCenteredAffine2DTransform<TScalarType>::ANTSCenteredAffine2DTransform() :
   Superclass(ParametersDimension)
 {
-  m_Angle = NumericTraits<TScalarType>::Zero;
-  m_S1 = NumericTraits<TScalarType>::One;
-  m_S2 = NumericTraits<TScalarType>::One;
-  m_K = NumericTraits<TScalarType>::Zero;
+  m_Angle = NumericTraits<TScalarType>::ZeroValue();
+  m_S1 = NumericTraits<TScalarType>::OneValue();
+  m_S2 = NumericTraits<TScalarType>::OneValue();
+  m_K = NumericTraits<TScalarType>::ZeroValue();
 }
 
 // Constructor with arguments
@@ -48,10 +48,10 @@ ANTSCenteredAffine2DTransform<TScalarType>::ANTSCenteredAffine2DTransform( unsig
                                                                            unsigned int parametersDimension) :
   Superclass(spaceDimension, parametersDimension)
 {
-  m_Angle = NumericTraits<TScalarType>::Zero;
-  m_S1 = NumericTraits<TScalarType>::One;
-  m_S2 = NumericTraits<TScalarType>::One;
-  m_K = NumericTraits<TScalarType>::Zero;
+  m_Angle = NumericTraits<TScalarType>::ZeroValue();
+  m_S1 = NumericTraits<TScalarType>::OneValue();
+  m_S2 = NumericTraits<TScalarType>::OneValue();
+  m_K = NumericTraits<TScalarType>::ZeroValue();
 }
 
 // Destructor
@@ -193,10 +193,10 @@ void
 ANTSCenteredAffine2DTransform<TScalarType>::SetIdentity( void )
 {
   this->Superclass::SetIdentity();
-  m_Angle = NumericTraits<TScalarType>::Zero;
-  m_S1 = NumericTraits<TScalarType>::One;
-  m_S2 = NumericTraits<TScalarType>::One;
-  m_K = NumericTraits<TScalarType>::Zero;
+  m_Angle = NumericTraits<TScalarType>::ZeroValue();
+  m_S1 = NumericTraits<TScalarType>::OneValue();
+  m_S2 = NumericTraits<TScalarType>::OneValue();
+  m_K = NumericTraits<TScalarType>::ZeroValue();
 }
 
 // Set the angle of rotation

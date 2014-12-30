@@ -264,8 +264,8 @@ GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int mi
   threshold_hi = 1.e9;
 
   threshold->SetInput(image);
-  threshold->SetInsideValue(itk::NumericTraits<InternalPixelType>::One);
-  threshold->SetOutsideValue(itk::NumericTraits<InternalPixelType>::Zero);
+  threshold->SetInsideValue(itk::NumericTraits<InternalPixelType>::OneValue());
+  threshold->SetOutsideValue(itk::NumericTraits<InternalPixelType>::ZeroValue());
   threshold->SetLowerThreshold(threshold_low);
   threshold->SetUpperThreshold(threshold_hi);
   threshold->Update();

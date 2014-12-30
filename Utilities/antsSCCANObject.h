@@ -1041,7 +1041,7 @@ protected:
   {
     RealType eps = this->m_Epsilon * 5.0;
     //    eps = 0.0001;
-    if ( vnl_math_abs( x - itk::NumericTraits<RealType>::Zero ) < eps ) return true;
+    if ( vnl_math_abs( x - itk::NumericTraits<RealType>::ZeroValue() ) < eps ) return true;
     return false;
   }
 

@@ -12,12 +12,12 @@ ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform() :
   Superclass(ParametersDimension)
 {
   m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * vcl_sin(t/2), vcl_cos(t/2)
-  m_S1 = NumericTraits<TScalarType>::One;
-  m_S2 = NumericTraits<TScalarType>::One;
-  m_S3 = NumericTraits<TScalarType>::One;
-  m_K1 = NumericTraits<TScalarType>::Zero;
-  m_K2 = NumericTraits<TScalarType>::Zero;
-  m_K3 = NumericTraits<TScalarType>::Zero;
+  m_S1 = NumericTraits<TScalarType>::OneValue();
+  m_S2 = NumericTraits<TScalarType>::OneValue();
+  m_S3 = NumericTraits<TScalarType>::OneValue();
+  m_K1 = NumericTraits<TScalarType>::ZeroValue();
+  m_K2 = NumericTraits<TScalarType>::ZeroValue();
+  m_K3 = NumericTraits<TScalarType>::ZeroValue();
 }
 
 // Constructor with default arguments
@@ -27,12 +27,12 @@ ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform(unsigned int outputSpa
   Superclass(outputSpaceDimension, parametersDimension)
 {
   m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * vcl_sin(t/2), vcl_cos(t/2)
-  m_S1 = NumericTraits<TScalarType>::One;
-  m_S2 = NumericTraits<TScalarType>::One;
-  m_S3 = NumericTraits<TScalarType>::One;
-  m_K1 = NumericTraits<TScalarType>::Zero;
-  m_K2 = NumericTraits<TScalarType>::Zero;
-  m_K3 = NumericTraits<TScalarType>::Zero;
+  m_S1 = NumericTraits<TScalarType>::OneValue();
+  m_S2 = NumericTraits<TScalarType>::OneValue();
+  m_S3 = NumericTraits<TScalarType>::OneValue();
+  m_K1 = NumericTraits<TScalarType>::ZeroValue();
+  m_K2 = NumericTraits<TScalarType>::ZeroValue();
+  m_K3 = NumericTraits<TScalarType>::ZeroValue();
 }
 
 // // Constructor with explicit arguments
@@ -150,12 +150,12 @@ template <class TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetIdentity(void)
 {
   m_Rotation = VnlQuaternionType(0, 0, 0, 1);
-  m_S1 = NumericTraits<TScalarType>::One;
-  m_S2 = NumericTraits<TScalarType>::One;
-  m_S3 = NumericTraits<TScalarType>::One;
-  m_K1 = NumericTraits<TScalarType>::Zero;
-  m_K2 = NumericTraits<TScalarType>::Zero;
-  m_K3 = NumericTraits<TScalarType>::Zero;
+  m_S1 = NumericTraits<TScalarType>::OneValue();
+  m_S2 = NumericTraits<TScalarType>::OneValue();
+  m_S3 = NumericTraits<TScalarType>::OneValue();
+  m_K1 = NumericTraits<TScalarType>::ZeroValue();
+  m_K2 = NumericTraits<TScalarType>::ZeroValue();
+  m_K3 = NumericTraits<TScalarType>::ZeroValue();
   this->Superclass::SetIdentity();
 }
 
@@ -573,19 +573,19 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrix()
   R = conjugateRotation.rotation_matrix_transpose();
 
   MatrixType S;
-  S.Fill(NumericTraits<TScalarType>::Zero);
+  S.Fill(NumericTraits<TScalarType>::ZeroValue());
   S[0][0] = this->m_S1;
   S[1][1] = this->m_S2;
   S[2][2] = this->m_S3;
 
   MatrixType K;
-  K.Fill(NumericTraits<TScalarType>::Zero);
-  K[0][0] = NumericTraits<TScalarType>::One;
+  K.Fill(NumericTraits<TScalarType>::ZeroValue());
+  K[0][0] = NumericTraits<TScalarType>::OneValue();
   K[0][1] = this->m_K1;
   K[0][2] = this->m_K2;
-  K[1][1] = NumericTraits<TScalarType>::One;
+  K[1][1] = NumericTraits<TScalarType>::OneValue();
   K[1][2] = this->m_K3;
-  K[2][2] = NumericTraits<TScalarType>::One;
+  K[2][2] = NumericTraits<TScalarType>::OneValue();
 
   MatrixType newMatrix;
 

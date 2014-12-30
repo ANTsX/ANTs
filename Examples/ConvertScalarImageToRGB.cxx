@@ -278,7 +278,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
 //
 //        rgbpixel.Fill( ratio * ( maximumRGBValue - minimumRGBValue )
 //          + minimumRGBValue );
-        rgbpixel.Fill( itk::NumericTraits<typename RGBPixelType::ComponentType>::Zero );
+        rgbpixel.Fill( itk::NumericTraits<typename RGBPixelType::ComponentType>::ZeroValue() );
 
         ItC.Set( rgbpixel );
         }

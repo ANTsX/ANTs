@@ -235,7 +235,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
       if( this->m_TopologyCheck == NoHandles )
         {
         this->m_ConnectedComponentImage->SetPixel( node.GetIndex(),
-                                                   NumericTraits<typename ConnectedComponentImageType::PixelType>::One );
+                                                   NumericTraits<typename ConnectedComponentImageType::PixelType>::OneValue() );
         }
 
       outputPixel = node.GetValue();
@@ -399,9 +399,9 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
           ItC.SetLocation( node.GetIndex() );
 
           typename ConnectedComponentImageType::PixelType minLabel
-            = NumericTraits<typename ConnectedComponentImageType::PixelType>::Zero;
+            = NumericTraits<typename ConnectedComponentImageType::PixelType>::ZeroValue();
           typename ConnectedComponentImageType::PixelType otherLabel
-            = NumericTraits<typename ConnectedComponentImageType::PixelType>::Zero;
+            = NumericTraits<typename ConnectedComponentImageType::PixelType>::ZeroValue();
 
           bool doesChangeCreateHandle = false;
           for( unsigned int d = 0; d < SetDimension; d++ )
@@ -459,7 +459,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
     if( this->m_TopologyCheck == NoHandles )
       {
       typename ConnectedComponentImageType::PixelType neighborhoodLabel
-        = NumericTraits<typename ConnectedComponentImageType::PixelType>::Zero;
+        = NumericTraits<typename ConnectedComponentImageType::PixelType>::ZeroValue();
 
       typename NeighborhoodIteratorType::RadiusType radius;
       radius.Fill( 1 );

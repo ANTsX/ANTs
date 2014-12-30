@@ -321,7 +321,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   const size_t VImageDimension = Dimension;
   typename ImageType::SpacingType
-    cache_spacing_for_smoothing_sigmas(itk::NumericTraits<typename ImageType::SpacingType::ValueType>::Zero);
+    cache_spacing_for_smoothing_sigmas(itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
   if( !std::strcmp( whichInterpolator.c_str(), "gaussian" )
       ||   !std::strcmp( whichInterpolator.c_str(), "multilabel" )
       )

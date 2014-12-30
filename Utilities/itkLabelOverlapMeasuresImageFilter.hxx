@@ -224,7 +224,7 @@ LabelOverlapMeasuresImageFilter<TLabelImage>
        mapIt != this->m_LabelSetMeasures.end(); ++mapIt )
     {
     // Do not include the background in the final value.
-    if( (*mapIt).first == NumericTraits<LabelType>::Zero )
+    if( (*mapIt).first == NumericTraits<LabelType>::ZeroValue() )
       {
       continue;
       }
@@ -264,7 +264,7 @@ LabelOverlapMeasuresImageFilter<TLabelImage>
        mapIt != this->m_LabelSetMeasures.end(); ++mapIt )
     {
     // Do not include the background in the final value.
-    if( (*mapIt).first == NumericTraits<LabelType>::Zero )
+    if( (*mapIt).first == NumericTraits<LabelType>::ZeroValue() )
       {
       continue;
       }
@@ -324,7 +324,7 @@ LabelOverlapMeasuresImageFilter<TLabelImage>
        mapIt != this->m_LabelSetMeasures.end(); ++mapIt )
     {
     // Do not include the background in the final value.
-    if( (*mapIt).first == NumericTraits<LabelType>::Zero )
+    if( (*mapIt).first == NumericTraits<LabelType>::ZeroValue() )
       {
       continue;
       }
@@ -368,7 +368,7 @@ LabelOverlapMeasuresImageFilter<TLabelImage>
        mapIt != this->m_LabelSetMeasures.end(); ++mapIt )
     {
     // Do not include the background in the final value.
-    if( (*mapIt).first == NumericTraits<LabelType>::Zero )
+    if( (*mapIt).first == NumericTraits<LabelType>::ZeroValue() )
       {
       continue;
       }
@@ -408,7 +408,7 @@ LabelOverlapMeasuresImageFilter<TLabelImage>
        mapIt != this->m_LabelSetMeasures.end(); ++mapIt )
     {
     // Do not include the background in the final value.
-    if( (*mapIt).first == NumericTraits<LabelType>::Zero )
+    if( (*mapIt).first == NumericTraits<LabelType>::ZeroValue() )
       {
       continue;
       }

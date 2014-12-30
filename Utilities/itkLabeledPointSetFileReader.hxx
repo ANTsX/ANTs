@@ -153,7 +153,7 @@ LabeledPointSetFileReader<TOutputMesh>
     while( It != this->GetOutput()->GetPoints()->End() )
       {
       this->GetOutput()->SetPointData( It.Index(),
-                                       NumericTraits<PixelType>::Zero );
+                                       NumericTraits<PixelType>::ZeroValue() );
       ++It;
       }
     }
@@ -544,7 +544,7 @@ LabeledPointSetFileReader<TOutputMesh>
     for( It.GoToBegin(); !It.IsAtEnd(); ++It )
       {
       PixelType label = It.Get();
-      if( label != NumericTraits<PixelType>::Zero )
+      if( label != NumericTraits<PixelType>::ZeroValue() )
         {
         typename LabeledPointSetImageType::PointType imagePoint;
         imageReader->GetOutput()->TransformIndexToPhysicalPoint(

@@ -45,7 +45,7 @@ template <class TInput, class TConstant, class TOutput>
 class DivideByConstant
 {
 public:
-  DivideByConstant() : m_Constant(NumericTraits<TConstant>::One)
+  DivideByConstant() : m_Constant(NumericTraits<TConstant>::OneValue())
   {
   };
   ~DivideByConstant()
@@ -70,7 +70,7 @@ public:
 
   void SetConstant(TConstant ct)
   {
-    if( ct == NumericTraits<TConstant>::Zero )
+    if( ct == NumericTraits<TConstant>::ZeroValue() )
       {
       itkGenericExceptionMacro(
         << "The constant value used as denominator should not be set to zero");

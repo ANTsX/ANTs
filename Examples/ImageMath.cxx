@@ -914,7 +914,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   //  std::cout << " Mask " << std::endl;
   if( mask.IsNull() )
     {
-    mask = AllocImage<ImageType>( image, itk::NumericTraits<PixelType>::One);
+    mask = AllocImage<ImageType>( image, itk::NumericTraits<PixelType>::OneValue());
     }
 
   //  std::cout << " iterate " << std::endl;
@@ -940,7 +940,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
         {
         maxValue = ItI.Get();
         }
-      ItM.Set( itk::NumericTraits<PixelType>::One );
+      ItM.Set( itk::NumericTraits<PixelType>::OneValue() );
       }
     else
       {
@@ -7582,7 +7582,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
     typename ContourFilterType::Pointer contour = ContourFilterType::New();
     contour->SetInput( thresholder->GetOutput() );
     contour->FullyConnectedOff();
-    contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
+    contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::ZeroValue() );
     contour->Update();
     typename ImageType::Pointer contourimage = contour->GetOutput();
 
@@ -7730,7 +7730,7 @@ int FastMarchingExtension(int argc, char *argv[])
   typename ContourFilterType::Pointer contour = ContourFilterType::New();
   contour->SetInput( thresholder->GetOutput() );
   contour->FullyConnectedOff();
-  contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
+  contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::ZeroValue() );
   contour->Update();
   typename ImageType::Pointer contourimage = contour->GetOutput();
   // contour defines starting points
@@ -7866,7 +7866,7 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
     typename ContourFilterType::Pointer contour = ContourFilterType::New();
     contour->SetInput( thresholder->GetOutput() );
     contour->FullyConnectedOff();
-    contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
+    contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::ZeroValue() );
     contour->Update();
     typename ImageType::Pointer contourimage = contour->GetOutput();
 

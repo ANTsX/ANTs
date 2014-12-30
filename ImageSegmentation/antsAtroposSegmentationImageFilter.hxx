@@ -72,7 +72,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_CurrentPosteriorProbability = 0.0;
   this->m_ConvergenceThreshold = 0.001;
 
-  this->m_MaskLabel = NumericTraits<LabelType>::One;
+  this->m_MaskLabel = NumericTraits<LabelType>::OneValue();
 
   this->m_InitializationStrategy = KMeans;
   this->m_InitialKMeansParameters.SetSize( 0 );
@@ -513,7 +513,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GenerateInitialClassLabeling()
 {
   this->AllocateOutputs();
-  this->GetOutput()->FillBuffer( NumericTraits<MaskLabelType>::Zero );
+  this->GetOutput()->FillBuffer( NumericTraits<MaskLabelType>::ZeroValue() );
 
   switch( this->m_InitializationStrategy )
     {
@@ -797,8 +797,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         {
         if( ItM.Get() <= this->m_ProbabilityThreshold || ItS.Get() == 0.0 )
           {
-          ItO.Set( NumericTraits<LabelType>::Zero );
-          ItP.Set( NumericTraits<RealType>::Zero );
+          ItO.Set( NumericTraits<LabelType>::ZeroValue() );
+          ItP.Set( NumericTraits<RealType>::ZeroValue() );
           }
         else
           {
@@ -883,12 +883,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                                 this->GetOutput()->GetRequestedRegion() );
   for( ItI.GoToBegin(), ItO.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItO )
     {
-    LabelType label = NumericTraits<LabelType>::Zero;
+    LabelType label = NumericTraits<LabelType>::ZeroValue();
     if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel( ItI.GetIndex() ) == this->m_MaskLabel )
       {
       if( ItI.Get() < thresholds[0] )
         {
-        label = NumericTraits<LabelType>::One;
+        label = NumericTraits<LabelType>::OneValue();
         }
       else
         {
@@ -1074,7 +1074,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     else
       {
-      ItO.Set( NumericTraits<LabelType>::Zero );
+      ItO.Set( NumericTraits<LabelType>::ZeroValue() );
       }
     ++ItO;
     }
@@ -1213,7 +1213,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         }
       else
         {
-        ItO.Set( NumericTraits<LabelType>::Zero );
+        ItO.Set( NumericTraits<LabelType>::ZeroValue() );
         }
       ++ItO;
       }
@@ -1286,11 +1286,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 
   RealImagePointer maxPosteriorProbabilityImage =
-    AllocImage<RealImageType>( this->GetOutput(), NumericTraits<RealType>::Zero );
+    AllocImage<RealImageType>( this->GetOutput(), NumericTraits<RealType>::ZeroValue() );
 
   typename ClassifiedImageType::Pointer maxLabels =
     AllocImage<ClassifiedImageType>( this->GetOutput(),
-                                     NumericTraits<LabelType>::Zero );
+                                     NumericTraits<LabelType>::ZeroValue() );
 
   unsigned int totalNumberOfClasses = this->m_NumberOfTissueClasses
     + this->m_NumberOfPartialVolumeClasses;
@@ -2748,7 +2748,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             {
             if( ItS.Get() <= this->m_ProbabilityThreshold )
               {
-              ItD.Set( NumericTraits<RealType>::Zero );
+              ItD.Set( NumericTraits<RealType>::ZeroValue() );
               }
             else
               {
@@ -2771,7 +2771,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               {
               if( ItS.Get() <= this->m_ProbabilityThreshold )
                 {
-                ItD.Set( NumericTraits<RealType>::Zero );
+                ItD.Set( NumericTraits<RealType>::ZeroValue() );
                 }
               else
                 {
@@ -2953,7 +2953,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           if( ItS.Get() <= this->m_ProbabilityThreshold )
             {
-            ItD.Set( NumericTraits<RealType>::Zero );
+            ItD.Set( NumericTraits<RealType>::ZeroValue() );
             }
           else
             {
