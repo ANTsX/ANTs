@@ -35,6 +35,7 @@
 #include "itkBilateralImageFilter.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkCSVNumericObjectFileWriter.h"
+#include "itkCannyEdgeDetectionImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkCompositeValleyFunction.h"
 #include "itkConnectedComponentImageFilter.h"
@@ -8386,6 +8387,66 @@ int LaplacianImage(      int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int CannyImage(      int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  float       sig = 1;
+  if( argc > argct )
+    {
+    sig = atof(argv[argct]); argct++;
+    }
+  if( sig <= 0 )
+    {
+    sig = 0.5;
+    }
+  PixelType lowerThreshold = 0.1;
+  if( argc > argct )
+    {
+    lowerThreshold = atof(argv[argct]); argct++;
+    }
+  PixelType upperThreshold = 1;
+  if( argc > argct )
+    {
+    upperThreshold = atof(argv[argct]); argct++;
+    }
+
+  typename ImageType::Pointer image = ITK_NULLPTR;
+  typename ImageType::Pointer image2 = ITK_NULLPTR;
+  ReadImage<ImageType>(image, fn1.c_str() );
+  typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+  typename RescaleFilterType::Pointer rescaler0 =
+    RescaleFilterType::New();
+  rescaler0->SetOutputMinimum(   0 );
+  rescaler0->SetOutputMaximum( 1 );
+  rescaler0->SetInput( image );
+  rescaler0->Update();
+
+
+  typedef itk::CannyEdgeDetectionImageFilter< ImageType, ImageType >
+  FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( rescaler0->GetOutput() );
+  filter->SetVariance( sig );
+  filter->SetUpperThreshold( upperThreshold );
+  filter->SetLowerThreshold( lowerThreshold );
+  image2 = filter->GetOutput();
+  typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  rescaler->SetOutputMinimum(   0 );
+  rescaler->SetOutputMaximum( 1 );
+  rescaler->SetInput( image2 );
+  rescaler->Update();
+  WriteImage<ImageType>( rescaler->GetOutput(), outname.c_str() );
+  return 0;
+}
+
+
+template <unsigned int ImageDimension>
 int PoissonDiffusion( int argc, char *argv[])
 {
   if( argc < 6 )
@@ -12850,9 +12911,9 @@ int BlobDetector( int argc, char *argv[] )
     }
   // sensitive parameters are set here - begin
   RealType     gradsig = 1.0;      // sigma for gradient filter
-  unsigned int stepsperoctave = 4; // number of steps between doubling of scale
+  unsigned int stepsperoctave = 10; // number of steps between doubling of scale
   RealType     minscale = vcl_pow( 1.0, 1.0 );
-  RealType     maxscale = vcl_pow( 2.0, 8.0 );
+  RealType     maxscale = vcl_pow( 2.0, 10.0 );
   RealType     uniqfeat_thresh = 0.01;
   RealType     smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
   bool         dosinkhorn = false;
@@ -13805,7 +13866,12 @@ ImageMathHelperAll(int argc, char **argv)
     LaplacianImage<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
-  if( operation == "PH" )
+  if( operation == "Canny" )
+    {
+      CannyImage<DIM>(argc, argv);
+      return EXIT_SUCCESS;
+    }
+    if( operation == "PH" )
     {
     PrintHeader<DIM>(argc, argv);
     return EXIT_SUCCESS;
@@ -14647,6 +14713,11 @@ private:
       << "\n  Laplacian        : Laplacian computed with sigma s (if normalize, then output in range [0, 1])"
       << std::endl;
     std::cout << "      Usage        : Laplacian Image.ext s normalize?" << std::endl;
+
+    std::cout
+    << "\n  Canny        : Canny edge detector"
+    << std::endl;
+    std::cout << "      Usage        : Canny Image.ext signa lowerThresh upperThresh" << std::endl;
 
     std::cout << "\n  Lipschitz        : Computes the Lipschitz norm of a vector field " << std::endl;
     std::cout << "      Usage        : Lipschitz VectorFieldName" << std::endl;
