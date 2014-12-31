@@ -64,7 +64,6 @@ typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   typename TImage::PixelType insideval, typename TImage::PixelType outsideval,
   typename TImage::Pointer input )
 {
-  std::cout << " Binary Thresh " << std::endl;
 
   typedef typename TImage::PixelType PixelType;
   // Begin Threshold Image
