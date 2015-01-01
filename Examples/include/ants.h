@@ -191,4 +191,8 @@
 
 #include "GetConnectedComponentsFeatureImages.h"
 
+#include "TextureRunLengthFeatures.h"
+
+#include "TextureCooccurrenceFeatures.h"
+
 #endif // ants_h

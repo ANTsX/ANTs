@@ -1,16 +1,16 @@
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
+#include "ReadWriteData.h"
 
 #include "itkAffineTransform.h"
 #include "itkImage.h"
-#include "itkImageFileReader.h"
 #include "itkLabelGeometryImageFilter.h"
 #include "itkLabelPerimeterEstimationCalculator.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkResampleImageFilter.h"
 #include "itkTransformFileWriter.h"
 
-#include <algorithm>
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -26,29 +26,25 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 {
   typedef int                                   LabelType;
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
-  typedef itk::ImageFileReader<LabelImageType>  LabelReaderType;
 
   typedef float                                RealType;
   typedef itk::Image<RealType, ImageDimension> RealImageType;
-  typedef itk::ImageFileReader<RealImageType>  ReaderType;
 
-  typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
-  labelReader->SetFileName( argv[2] );
-  labelReader->Update();
+  typename LabelImageType::Pointer labelImage = LabelImageType::New();
+  ReadImage<LabelImageType>( labelImage, argv[2] );
 
-  typename ReaderType::Pointer reader = ReaderType::New();
+  typename RealImageType::Pointer intensityImage = RealImageType::New();
   if( argc > 3 )
     {
-    reader->SetFileName( argv[3] );
-    reader->Update();
+    ReadImage<RealImageType>( intensityImage, argv[3] );
     }
 
   typedef itk::LabelGeometryImageFilter<LabelImageType, RealImageType> FilterType;
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( labelReader->GetOutput() );
+  filter->SetInput( labelImage );
   if( argc > 3 )
     {
-    filter->SetIntensityInput( reader->GetOutput() );
+    filter->SetIntensityInput( intensityImage );
     }
   filter->CalculatePixelIndicesOff();
   filter->CalculateOrientedBoundingBoxOff();
@@ -61,7 +57,7 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 
   typedef itk::LabelPerimeterEstimationCalculator<LabelImageType> AreaFilterType;
   typename AreaFilterType::Pointer areafilter = AreaFilterType::New();
-  areafilter->SetImage( labelReader->GetOutput() );
+  areafilter->SetImage( labelImage );
   areafilter->SetFullyConnected( false );
   areafilter->Compute();
 
@@ -189,15 +185,13 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
 
   typedef int                                   LabelType;
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
-  typedef itk::ImageFileReader<LabelImageType>  LabelReaderType;
 
-  LabelReaderType::Pointer labelReader = LabelReaderType::New();
-  labelReader->SetFileName( argv[2] );
-  labelReader->Update();
+  LabelImageType::Pointer labelImage = LabelImageType::New();
+  ReadImage<LabelImageType>( labelImage, argv[2] );
 
   typedef itk::LabelGeometryImageFilter<LabelImageType> FilterType;
   FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( labelReader->GetOutput() );
+  filter->SetInput( labelImage );
 
 //   filter->CalculatePixelIndicesOff();
 //   filter->CalculateOrientedBoundingBoxOff();
@@ -225,9 +219,14 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
   transform->SetMatrix( reorientationMatrix );
 
   bool doReflections = true;
+  float scale = 1.0;
   if( argc > 4 )
     {
     doReflections = static_cast<bool>( atoi( argv[4] ) );
+    }
+  if( argc > 5 )
+    {
+    scale = atof( argv[5] );
     }
 
   if( doReflections )
@@ -236,11 +235,11 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
 
     TransformType::MatrixType flipXMatrix;
     flipXMatrix.SetIdentity();
-    flipXMatrix( 0, 0 ) = -1.0;
+    flipXMatrix( 0, 0 ) = -1.0 * scale;
 
     TransformType::MatrixType flipYMatrix;
     flipYMatrix.SetIdentity();
-    flipYMatrix( 1, 1 ) = -1.0;
+    flipYMatrix( 1, 1 ) = -1.0 * scale;
 
     TransformType::MatrixType testRotationMatrix;
     std::vector<int> numberOfVoxelsInUpperRightQuadrant( 2 );
@@ -249,25 +248,25 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
     testRotationMatrix = reorientationMatrix;
     transform->SetMatrix( testRotationMatrix );
     numberOfVoxelsInUpperRightQuadrant[0] =
-      GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelReader->GetOutput() );
+      GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
 
     // check flip x
     testRotationMatrix = flipXMatrix * reorientationMatrix;
     transform->SetMatrix( testRotationMatrix );
     numberOfVoxelsInUpperRightQuadrant[1] =
-      GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelReader->GetOutput() );
+      GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
 
     // check flip y
 //     testRotationMatrix = flipYMatrix * reorientationMatrix;
 //     transform->SetMatrix( testRotationMatrix );
 //     numberOfVoxelsInUpperRightQuadrant[2] =
-//       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelReader->GetOutput() );
+//       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
 
     // check flip x and flip y
 //     testRotationMatrix = flipXMatrix * flipYMatrix * reorientationMatrix;
 //     transform->SetMatrix( testRotationMatrix );
 //     numberOfVoxelsInUpperRightQuadrant[3] =
-//       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelReader->GetOutput() );
+//       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
 
     std::vector<int>::iterator result = std::max_element( numberOfVoxelsInUpperRightQuadrant.begin(), numberOfVoxelsInUpperRightQuadrant.end() );
     unsigned int index = std::distance( numberOfVoxelsInUpperRightQuadrant.begin(), result );
@@ -276,25 +275,25 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
       {
       case 0:  default:
         {
-        testRotationMatrix = reorientationMatrix;
+        testRotationMatrix = reorientationMatrix * scale;
         transform->SetMatrix( testRotationMatrix );
         break;
         }
       case 1:
         {
-        testRotationMatrix = flipXMatrix * reorientationMatrix;
+        testRotationMatrix = flipXMatrix * reorientationMatrix * scale;
         transform->SetMatrix( testRotationMatrix );
         break;
         }
 //       case 2:
 //         {
-//         testRotationMatrix = flipYMatrix * reorientationMatrix;
+//         testRotationMatrix = flipYMatrix * reorientationMatrix * scale;
 //         transform->SetMatrix( testRotationMatrix );
 //         break;
 //         }
 //       case 3:
 //         {
-//         testRotationMatrix = flipXMatrix * flipYMatrix * reorientationMatrix;
+//         testRotationMatrix = flipXMatrix * flipYMatrix * reorientationMatrix * scale;
 //         transform->SetMatrix( testRotationMatrix );
 //         break;
 //         }
@@ -362,7 +361,7 @@ private:
   if( argc < 3 )
     {
     std::cout << "Usage 1: " << argv[0] << " imageDimension labelImage [intensityImage]" << std::endl;
-    std::cout << "Usage 2: " << argv[0] << " X singleLabelImage outputTransform <doReflection=1>" << std::endl;
+    std::cout << "Usage 2: " << argv[0] << " X singleLabelImage outputTransform <doReflection=1> <scaleFactor=1>" << std::endl;
 
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )

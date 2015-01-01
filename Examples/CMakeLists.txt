@@ -89,7 +89,7 @@ set(BASE_ANTS_APPS
   LabelClustersUniquely
   # StudentsTestOnImages
   LabelOverlapMeasures
-  LesionFilling 
+  LesionFilling
   MeasureMinMaxMean
   WarpImageMultiTransform
   ComposeMultiTransform
@@ -139,6 +139,8 @@ set(BASE_ANTS_APPS
   ConvertTransformFile
   compareTwoCompositeTransforms
   TimeSCCAN
+  TextureCooccurrenceFeatures
+  TextureRunLengthFeatures
   GetConnectedComponentsFeatureImages
   DeNrrd
   antsTransformInfo
