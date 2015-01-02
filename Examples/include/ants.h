@@ -101,6 +101,8 @@
 
 #include "ImageMath.h"
 
+#include "ImageIntensityStatistics.h"
+
 #include "antsAffineInitializer.h"
 
 #include "ImageSetStatistics.h"

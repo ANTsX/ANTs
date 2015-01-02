@@ -141,6 +141,7 @@ set(BASE_ANTS_APPS
   TimeSCCAN
   TextureCooccurrenceFeatures
   TextureRunLengthFeatures
+  ImageIntensityStatistics
   GetConnectedComponentsFeatureImages
   DeNrrd
   antsTransformInfo
