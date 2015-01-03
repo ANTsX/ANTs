@@ -215,7 +215,7 @@ private:
           MIMetricType::Pointer metric = MIMetricType::New();
           metric->SetFixedImage( trainingImage );
           metric->SetMovingImage( testImage );
-          metric->SetNumberOfHistogramBins( 32 );
+          metric->SetNumberOfHistogramBins( 20 );
           metric->SetMovingTransform( affineTransform );
           metric->SetVirtualDomainFromImage( trainingImage );
           metric->Initialize();
