@@ -166,8 +166,6 @@ private:
 
     for( float angle = 0.0; angle <= 2.0 * vnl_math::pi; angle += rotationDelta )
       {
-      std::cout << "angle:  " << angle << std::endl;
-
       AffineTransformType::MatrixType rotationMatrix;
       rotationMatrix( 0, 0 ) = rotationMatrix( 1, 1 ) = vcl_cos( angle );
       rotationMatrix( 1, 0 ) = vcl_sin( angle );
@@ -176,8 +174,6 @@ private:
       for( float scaleLog = scaleLowerBoundLog; scaleLog <= scaleUpperBoundLog; scaleLog += scaleDelta )
         {
         float scale = vcl_exp( scaleLog );
-
-        std::cout << "  scale:  " << scaleLog << std::endl;
 
         AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetCenter( initialTransform->GetCenter() );
