@@ -33,6 +33,8 @@
 
 #include "antsSurf.h"
 
+#include "antsUtilitiesTesting.h"
+
 #include "ANTSUseDeformationFieldToGetAffineTransform.h"
 
 #include "ANTSUseLandmarkImagesToGetAffineTransform.h"
