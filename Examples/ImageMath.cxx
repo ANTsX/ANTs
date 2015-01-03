@@ -29,6 +29,7 @@
 #include "itkArray.h"
 #include "itkAverageOverDimensionImageFilter.h"
 #include "itkGradientImageFilter.h"
+#include "itkBlackTopHatImageFilter.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkBayesianClassifierImageFilter.h"
 #include "itkBayesianClassifierInitializationImageFilter.h"
@@ -122,6 +123,7 @@
 #include "itkVariableSizeMatrix.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
+#include "itkWhiteTopHatImageFilter.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "vnl/vnl_matrix_fixed.h"
 #include "itkTransformFactory.h"
@@ -8386,6 +8388,31 @@ int LaplacianImage(      int argc, char *argv[])
   return 0;
 }
 
+
+template <unsigned int ImageDimension>
+int CropBinaryImage(      int argc, char *argv[])
+{
+  typedef float  PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  typename ImageType::Pointer image = ITK_NULLPTR;
+  typename ImageType::Pointer image2 = ITK_NULLPTR;
+  ReadImage<ImageType>(image, fn1.c_str() );
+/*
+  typedef itk::LabelGeometryImageFilter<ImageType, ImageType> GeometryFilterType;
+  typename GeometryFilterType::Pointer geometryFilter = GeometryFilterType::New();
+  geometryFilter->SetInput( image );
+  geometryFilter->CalculatePixelIndicesOff();
+  geometryFilter->CalculateOrientedBoundingBoxOff();
+  geometryFilter->CalculateOrientedLabelRegionsOff();
+  geometryFilter->Update();
+*/
+  return 0;
+}
+
 template <unsigned int ImageDimension>
 int CannyImage(      int argc, char *argv[])
 {
@@ -8405,7 +8432,7 @@ int CannyImage(      int argc, char *argv[])
     {
     sig = 0.5;
     }
-  PixelType lowerThreshold = 0.1;
+  PixelType lowerThreshold = 0.5;
   if( argc > argct )
     {
     lowerThreshold = atof(argv[argct]); argct++;
@@ -8426,8 +8453,6 @@ int CannyImage(      int argc, char *argv[])
   rescaler0->SetOutputMaximum( 1 );
   rescaler0->SetInput( image );
   rescaler0->Update();
-
-
   typedef itk::CannyEdgeDetectionImageFilter< ImageType, ImageType >
   FilterType;
   typename FilterType::Pointer filter = FilterType::New();
@@ -8435,6 +8460,7 @@ int CannyImage(      int argc, char *argv[])
   filter->SetVariance( sig );
   filter->SetUpperThreshold( upperThreshold );
   filter->SetLowerThreshold( lowerThreshold );
+  filter->Update();
   image2 = filter->GetOutput();
   typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
   rescaler->SetOutputMinimum(   0 );
@@ -13871,7 +13897,12 @@ ImageMathHelperAll(int argc, char **argv)
       CannyImage<DIM>(argc, argv);
       return EXIT_SUCCESS;
     }
-    if( operation == "PH" )
+  if( operation == "CropBinaryImage" )
+    {
+      CropBinaryImage<DIM>(argc, argv);
+      return EXIT_SUCCESS;
+    }
+  if( operation == "PH" )
     {
     PrintHeader<DIM>(argc, argv);
     return EXIT_SUCCESS;
@@ -14718,6 +14749,9 @@ private:
     << "\n  Canny        : Canny edge detector"
     << std::endl;
     std::cout << "      Usage        : Canny Image.ext signa lowerThresh upperThresh" << std::endl;
+
+    std::cout
+    << "\n  CropBinaryImage        : returns cropped image"    << std::endl;
 
     std::cout << "\n  Lipschitz        : Computes the Lipschitz norm of a vector field " << std::endl;
     std::cout << "      Usage        : Lipschitz VectorFieldName" << std::endl;

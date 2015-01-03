@@ -349,7 +349,6 @@ int antsAffineInitializerImp(int argc, char *argv[])
   affinesearch->SetIdentity();
   affinesearch->SetCenter( trans2 );
   affinesearch->SetOffset( trans );
-  parametersList.push_back( affinesearch->GetParameters() );
   for( double ang1 = ( piover4 * (-1) ); ang1 <= ( piover4 + searchfactor ); ang1 = ang1 + searchfactor )
     {
     if( ImageDimension == 3 )
