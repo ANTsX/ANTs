@@ -63,10 +63,10 @@ private:
 
   if( argc < 3 )
     {
-    std::cerr << "Usage: " << argv[0] << " testImage whichMetric[CCorMI] lowerScalexSamplingResolutionxUpperScale rotationSampleResolution doPrintMatchingFileName transformName setOfTrainingImages" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " testImage whichMetric[CCorMI] lowerScalexUpperScalexNumberOfScaleSamples numberOfRotationSamples doPrintMatchingFileName transformName setOfTrainingImages" << std::endl;
     std::cerr << "Notes:  if transformName='none', no transform is printed" << std::endl;
     std::cerr << "Example call:  " << std::endl;
-    std::cerr << "   " << argv[0] << "test.nii.gz CC 0.25x0.1x3 0.25 testTransform.txt 0 training*.nii.gz" << std::endl;
+    std::cerr << "   " << argv[0] << "test.nii.gz CC 0.25x3x10 10 testTransform.txt 0 training*.nii.gz" << std::endl;
 
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -128,13 +128,15 @@ private:
     std::cerr << "The scale parameters were improperly specified.  See usage." << std::endl;
     return EXIT_FAILURE;
     }
-  float scaleLowerBound = scaleParameters[0];
-  float scaleDelta = scaleParameters[1];
-  float scaleUpperBound = scaleParameters[2];
+  float scaleLowerBoundLog = vcl_log( scaleParameters[0] );
+  float scaleUpperBoundLog = vcl_log( scaleParameters[1] );
+  unsigned int scaleNumberOfSamples = static_cast<unsigned int>( scaleParameters[2] );
+  float scaleDelta = ( scaleUpperBoundLog - scaleLowerBoundLog ) / static_cast<float>( scaleNumberOfSamples - 1 );
 
 //   // Get rotation sampling resolution
 
-  float rotationDelta = atof( argv[4] );
+  unsigned int rotationNumberOfSamples = static_cast<unsigned int>( atoi( argv[4] ) );
+  float rotationDelta = ( 2.0 * vnl_math::pi - 0.0 ) / static_cast<float>( rotationNumberOfSamples - 1 );
 
 //   // Now go through the rotations + scalings to find the optimal pose.
 
@@ -164,13 +166,19 @@ private:
 
     for( float angle = 0.0; angle <= 2.0 * vnl_math::pi; angle += rotationDelta )
       {
+      std::cout << "angle:  " << angle << std::endl;
+
       AffineTransformType::MatrixType rotationMatrix;
       rotationMatrix( 0, 0 ) = rotationMatrix( 1, 1 ) = vcl_cos( angle );
       rotationMatrix( 1, 0 ) = vcl_sin( angle );
       rotationMatrix( 0, 1 ) = -rotationMatrix( 1, 0 );
 
-      for( float scale = scaleLowerBound; scale <= scaleUpperBound; scale += scaleDelta )
+      for( float scaleLog = scaleLowerBoundLog; scaleLog <= scaleUpperBoundLog; scaleLog += scaleDelta )
         {
+        float scale = vcl_exp( scaleLog );
+
+        std::cout << "  scale:  " << scaleLog << std::endl;
+
         AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetCenter( initialTransform->GetCenter() );
         affineTransform->SetTranslation( initialTransform->GetTranslation() );
