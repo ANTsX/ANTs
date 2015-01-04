@@ -87,6 +87,8 @@
 #include "itkSampleToHistogramFilter.h"
 #include "itkScalarImageKmeansImageFilter.h"
 #include "itkShrinkImageFilter.h"
+#include "itkSimilarity3DTransform.h"
+#include "itkSimilarity2DTransform.h"
 #include "itkSize.h"
 #include "itkSphereSpatialFunction.h"
 #include "itkSTAPLEImageFilter.h"
@@ -120,6 +122,46 @@
 
 namespace ants
 {
+
+template <class TComputeType, unsigned int ImageDimension>
+class SimilarityTransformTraits
+{
+  // Don't worry about the fact that the default option is the
+  // affine Transform, that one will not actually be instantiated.
+public:
+  typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
+};
+
+
+template <>
+class SimilarityTransformTraits<double, 2>
+{
+public:
+  typedef itk::Similarity2DTransform<double> TransformType;
+};
+
+template <>
+class SimilarityTransformTraits<float, 2>
+{
+public:
+  typedef itk::Similarity2DTransform<float> TransformType;
+};
+
+template <>
+class SimilarityTransformTraits<double, 3>
+{
+public:
+  typedef itk::Similarity3DTransform<double> TransformType;
+};
+
+template <>
+class SimilarityTransformTraits<float, 3>
+{
+public:
+  typedef itk::Similarity3DTransform<float> TransformType;
+};
+
+
 template <unsigned int ImageDimension>
 int antsAffineInitializerImp(int argc, char *argv[])
 {
@@ -131,19 +173,23 @@ int antsAffineInitializerImp(int argc, char *argv[])
   RealType     searchfactor = 10;                // in degrees, passed by user
   unsigned int mibins = 32;                      // for mattes MI metric
   RealType     degtorad = 0.0174532925;          // to convert degrees to radians
-  RealType     localoptimizerlearningrate = 0.1; // for local search via conjgrad
   unsigned int localoptimizeriterations = 20;    // for local search via conjgrad
   // piover4 is (+/-) for cross-section of the sphere to multi-start search in increments
   // of searchfactor ( converted from degrees to radians ).
   // the search is centered +/- from the principal axis alignment of the images.
   RealType piover4 = pi / 4; // works in preliminary practical examples in 3D, in 2D use pi.
   bool     useprincaxis = false;
-
+  typedef typename itk::ImageMaskSpatialObject<ImageDimension>::ImageType
+    maskimagetype;
+  std::string whichMetric=std::string("MI");
+  unsigned int localSearchIterations = 20;
   typedef itk::TransformFileWriter                                        TransformWriterType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
   typedef typename itk::ImageMomentsCalculator<ImageType>                 ImageCalculatorType;
-  typedef itk::AffineTransform<RealType, ImageDimension>                  AffineType;
+  typedef itk::AffineTransform<RealType, ImageDimension> AffineType;
+  typedef typename SimilarityTransformTraits<RealType,
+    ImageDimension>::TransformType AffineTypeS;
   typedef typename ImageCalculatorType::MatrixType                        MatrixType;
   if( argc < 2 )
     {
@@ -178,16 +224,18 @@ int antsAffineInitializerImp(int argc, char *argv[])
     {
     localoptimizeriterations = atoi( argv[argct] );   argct++;
     }
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
+  typename ImageType::Pointer image2 = ITK_NULLPTR;
+  typename maskimagetype::Pointer mask = ITK_NULLPTR;
+  ReadImage<ImageType>(image1, fn1.c_str() );
+  ReadImage<ImageType>(image2, fn2.c_str() );
   std::string maskfn = "";
   if(  argc > argct )
     {
     maskfn = std::string( argv[argct] );   argct++;
+    ReadImage<maskimagetype>(mask, maskfn.c_str() );
     }
   searchfactor *= degtorad; // convert degrees to radians
-  typename ImageType::Pointer image1 = ITK_NULLPTR;
-  typename ImageType::Pointer image2 = ITK_NULLPTR;
-  ReadImage<ImageType>(image1, fn1.c_str() );
-  ReadImage<ImageType>(image2, fn2.c_str() );
   VectorType ccg1;
   VectorType cpm1;
   MatrixType cpa1;
@@ -228,6 +276,11 @@ int antsAffineInitializerImp(int argc, char *argv[])
     {
     std::cerr << " zero image1 error ";
     }
+  RealType bestscale =
+    calculator2->GetTotalMass() / calculator1->GetTotalMass();
+  RealType powlev = 1.0 / static_cast<RealType>(ImageDimension);
+  bestscale = vcl_pow( bestscale , powlev );
+  bestscale=1;
   unsigned int eigind1 = 1;
   unsigned int eigind2 = 1;
   if( ImageDimension == 3 )
@@ -308,52 +361,97 @@ int antsAffineInitializerImp(int argc, char *argv[])
     axis1[d] = evec_tert[d];
     axis2[d] = evec1_2ndary[d];
     }
-  typename AffineType::Pointer affinesearch = AffineType::New();
-  affinesearch->SetIdentity();
-  affinesearch->SetCenter( trans2 );
-  typedef  itk::MultiStartOptimizerv4         OptimizerType;
-  typename OptimizerType::Pointer  mstartOptimizer = OptimizerType::New();
-  typedef itk::MattesMutualInformationImageToImageMetricv4
+    typename AffineType::Pointer affinesearch = AffineType::New();
+    typedef  itk::MultiStartOptimizerv4         OptimizerType;
+    typename OptimizerType::MetricValuesListType metricvalues;
+    typename OptimizerType::Pointer  mstartOptimizer = OptimizerType::New();
+    typedef itk::CorrelationImageToImageMetricv4
+    <ImageType, ImageType, ImageType> GCMetricType;
+    typedef itk::MattesMutualInformationImageToImageMetricv4
     <ImageType, ImageType, ImageType> MetricType;
-  typename MetricType::ParametersType newparams(  affine1->GetParameters() );
-  typename MetricType::Pointer mimetric = MetricType::New();
-  mimetric->SetNumberOfHistogramBins( mibins );
-  mimetric->SetFixedImage( image1 );
-  mimetric->SetMovingImage( image2 );
-  mimetric->SetMovingTransform( affinesearch );
-  mimetric->SetParameters( newparams );
-  if( maskfn.length() > 3 )
+    typename MetricType::ParametersType newparams(  affine1->GetParameters() );
+    typename GCMetricType::Pointer gcmetric = GCMetricType::New();
+    gcmetric->SetFixedImage( image1 );
+    gcmetric->SetVirtualDomainFromImage( image1 );
+    gcmetric->SetMovingImage( image2 );
+    gcmetric->SetMovingTransform( affinesearch );
+    gcmetric->SetParameters( newparams );
+    typename MetricType::Pointer mimetric = MetricType::New();
+    mimetric->SetNumberOfHistogramBins( mibins );
+    mimetric->SetFixedImage( image1 );
+    mimetric->SetMovingImage( image2 );
+    mimetric->SetMovingTransform( affinesearch );
+    mimetric->SetParameters( newparams );
+    if( mask.IsNotNull() )
     {
-    typedef typename itk::ImageMaskSpatialObject<ImageDimension>::ImageType maskimagetype;
-    typename maskimagetype::Pointer mask;
-    ReadImage<maskimagetype>( mask, maskfn.c_str() );
-    typename itk::ImageMaskSpatialObject<ImageDimension>::Pointer so =
+      typename itk::ImageMaskSpatialObject<ImageDimension>::Pointer so =
       itk::ImageMaskSpatialObject<ImageDimension>::New();
-    so->SetImage( const_cast<maskimagetype *>(mask.GetPointer() ) );
-    mimetric->SetFixedImageMask( so );
+      so->SetImage( const_cast<maskimagetype *>( mask.GetPointer() ) );
+      mimetric->SetFixedImageMask( so );
+      gcmetric->SetFixedImageMask( so );
     }
-  mimetric->Initialize();
-  typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType>
-    RegistrationParameterScalesFromPhysicalShiftType;
-  typename RegistrationParameterScalesFromPhysicalShiftType::Pointer shiftScaleEstimator =
-    RegistrationParameterScalesFromPhysicalShiftType::New();
-  shiftScaleEstimator->SetMetric( mimetric );
-  shiftScaleEstimator->SetTransformForward( true ); // by default, scales for the moving transform
-  typename RegistrationParameterScalesFromPhysicalShiftType::ScalesType
-    movingScales( affinesearch->GetNumberOfParameters() );
-  shiftScaleEstimator->EstimateScales( movingScales );
-  mstartOptimizer->SetScales( movingScales );
-  std::cout << " Scales: " << movingScales << std::endl;
-  mstartOptimizer->SetMetric( mimetric );
-  typename OptimizerType::ParametersListType parametersList = mstartOptimizer->GetParametersList();
-  affinesearch->SetIdentity();
-  affinesearch->SetCenter( trans2 );
-  affinesearch->SetOffset( trans );
-  for( double ang1 = ( piover4 * (-1) ); ang1 <= ( piover4 + searchfactor ); ang1 = ang1 + searchfactor )
-    {
-    if( ImageDimension == 3 )
+    typedef  itk::ConjugateGradientLineSearchOptimizerv4 LocalOptimizerType;
+    typename LocalOptimizerType::Pointer  localoptimizer =
+    LocalOptimizerType::New();
+    RealType     localoptimizerlearningrate = 0.1;
+    localoptimizer->SetLearningRate( localoptimizerlearningrate );
+    localoptimizer->SetMaximumStepSizeInPhysicalUnits(
+    localoptimizerlearningrate );
+    localoptimizer->SetNumberOfIterations( localSearchIterations );
+    localoptimizer->SetLowerLimit( 0 );
+    localoptimizer->SetUpperLimit( 2 );
+    localoptimizer->SetEpsilon( 0.1 );
+    localoptimizer->SetMaximumLineSearchIterations( 10 );
+    localoptimizer->SetDoEstimateLearningRateOnce( true );
+    localoptimizer->SetMinimumConvergenceValue( 1.e-6 );
+    localoptimizer->SetConvergenceWindowSize( 5 );
+    if ( whichMetric.compare("MI") == 0  ) {
+      mimetric->Initialize();
+      typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType>
+      RegistrationParameterScalesFromPhysicalShiftType;
+      typename RegistrationParameterScalesFromPhysicalShiftType::Pointer
+      shiftScaleEstimator =
+      RegistrationParameterScalesFromPhysicalShiftType::New();
+      shiftScaleEstimator->SetMetric( mimetric );
+      shiftScaleEstimator->SetTransformForward( true );
+      typename RegistrationParameterScalesFromPhysicalShiftType::ScalesType
+      movingScales( affinesearch->GetNumberOfParameters() );
+      shiftScaleEstimator->EstimateScales( movingScales );
+      mstartOptimizer->SetScales( movingScales );
+      mstartOptimizer->SetMetric( mimetric );
+      localoptimizer->SetMetric( mimetric );
+      localoptimizer->SetScales( movingScales );
+    }
+    if ( whichMetric.compare("MI") != 0  ) {
+      gcmetric->Initialize();
+      typedef itk::RegistrationParameterScalesFromPhysicalShift<GCMetricType>
+      RegistrationParameterScalesFromPhysicalShiftType;
+      typename RegistrationParameterScalesFromPhysicalShiftType::Pointer
+      shiftScaleEstimator =
+      RegistrationParameterScalesFromPhysicalShiftType::New();
+      shiftScaleEstimator->SetMetric( gcmetric );
+      shiftScaleEstimator->SetTransformForward( true );
+      typename RegistrationParameterScalesFromPhysicalShiftType::ScalesType
+      movingScales( affinesearch->GetNumberOfParameters() );
+      shiftScaleEstimator->EstimateScales( movingScales );
+      mstartOptimizer->SetScales( movingScales );
+      mstartOptimizer->SetMetric( gcmetric );
+      localoptimizer->SetMetric( gcmetric );
+      localoptimizer->SetScales( movingScales );
+    }
+    typename OptimizerType::ParametersListType parametersList =
+      mstartOptimizer->GetParametersList();
+   for( double ang1 = ( piover4 * (-1) ); ang1 <= ( piover4 + searchfactor ); ang1 = ang1 + searchfactor )
       {
-      for( double ang2 = ( piover4 * (-1) ); ang2 <= ( piover4 + searchfactor ); ang2 = ang2 + searchfactor )
+      if( useprincaxis )
+      {
+        affinesearch->SetMatrix( A_solution );
+      }
+      if( ImageDimension == 3 )
+      {
+      for( double ang2 = ( piover4 * (-1) );
+                   ang2 <= ( piover4 + searchfactor );
+                   ang2 = ang2 + searchfactor )
         {
         affinesearch->SetIdentity();
         affinesearch->SetCenter( trans2 );
@@ -364,50 +462,34 @@ int antsAffineInitializerImp(int argc, char *argv[])
           }
         affinesearch->Rotate3D(axis1, ang1, 1);
         affinesearch->Rotate3D(axis2, ang2, 1);
+        affinesearch->Scale( bestscale );
         parametersList.push_back( affinesearch->GetParameters() );
         }
       }
-    if( ImageDimension == 2 )
+      if( ImageDimension == 2 )
       {
-      affinesearch->SetIdentity();
-      affinesearch->SetCenter( trans2 );
-      affinesearch->SetOffset( trans );
-      if( useprincaxis )
+        affinesearch->SetIdentity();
+        affinesearch->SetCenter( trans2 );
+        affinesearch->SetOffset( trans );
+        if( useprincaxis )
         {
         affinesearch->SetMatrix( A_solution );
         }
-      affinesearch->Rotate2D( ang1, 1);
-      parametersList.push_back( affinesearch->GetParameters() );
+        affinesearch->Rotate2D( ang1, 1);
+        affinesearch->Scale( bestscale );
+        parametersList.push_back( affinesearch->GetParameters() );
       }
     }
-  mstartOptimizer->SetParametersList( parametersList );
-
-  typedef  itk::ConjugateGradientLineSearchOptimizerv4 LocalOptimizerType;
-  typename LocalOptimizerType::Pointer  localoptimizer = LocalOptimizerType::New();
-  localoptimizer->SetMetric( mimetric );
-  localoptimizer->SetScales( movingScales );
-  localoptimizer->SetLearningRate( localoptimizerlearningrate );
-  localoptimizer->SetMaximumStepSizeInPhysicalUnits( localoptimizerlearningrate ); // * sqrt( small_step )
-  localoptimizer->SetNumberOfIterations( localoptimizeriterations );
-  localoptimizer->SetLowerLimit( 0 );
-  localoptimizer->SetUpperLimit( 2 );
-  localoptimizer->SetEpsilon( 0.1 );
-  localoptimizer->SetMaximumLineSearchIterations( 20 );
-  localoptimizer->SetDoEstimateLearningRateOnce( true );
-  localoptimizer->SetMinimumConvergenceValue( 1.e-6 );
-  localoptimizer->SetConvergenceWindowSize( 3 );
-
-  std::cout << "Begin MultiStart: " << parametersList.size() << " searches between -/+ " << piover4 / pi
-           << " radians " << std::endl;
-  if( localoptimizeriterations > 0 )
+    mstartOptimizer->SetParametersList( parametersList );
+    if( localSearchIterations > 0 )
     {
-    mstartOptimizer->SetLocalOptimizer( localoptimizer );
+      mstartOptimizer->SetLocalOptimizer( localoptimizer );
     }
-  mstartOptimizer->StartOptimization();
-  std::cout << "done" << std::endl;
-  typename AffineType::Pointer bestaffine = AffineType::New();
-  bestaffine->SetCenter( trans2 );
-  bestaffine->SetParameters( mstartOptimizer->GetBestParameters() );
+    mstartOptimizer->StartOptimization();
+    typename AffineType::Pointer bestaffine = AffineType::New();
+    bestaffine->SetCenter( trans2 );
+    bestaffine->SetParameters( mstartOptimizer->GetBestParameters() );
+
 
   typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( bestaffine );
