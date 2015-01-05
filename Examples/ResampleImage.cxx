@@ -17,7 +17,7 @@
 #include "itkGaussianInterpolateImageFunction.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
-
+#include "ReadWriteData.h"
 #include <string>
 #include <vector>
 
@@ -31,10 +31,8 @@ int ResampleImage( int argc, char *argv[] )
   typedef double                                PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
-  typedef itk::ImageFileReader<ImageType> ReaderType;
-  typename ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( argv[2] );
-  reader->Update();
+  typename ImageType::Pointer image = ITK_NULLPTR;
+  ReadImage<ImageType>( image, argv[2] );
 
   typedef itk::IdentityTransform<RealType, ImageDimension> TransformType;
   typename TransformType::Pointer transform = TransformType::New();
@@ -44,47 +42,47 @@ int ResampleImage( int argc, char *argv[] )
     LinearInterpolatorType;
   typename LinearInterpolatorType::Pointer interpolator
     = LinearInterpolatorType::New();
-  interpolator->SetInputImage( reader->GetOutput() );
+  interpolator->SetInputImage( image );
 
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, RealType>
     NearestNeighborInterpolatorType;
   typename NearestNeighborInterpolatorType::Pointer nn_interpolator
     = NearestNeighborInterpolatorType::New();
-  nn_interpolator->SetInputImage( reader->GetOutput() );
+  nn_interpolator->SetInputImage( image );
 
   typedef itk::BSplineInterpolateImageFunction<ImageType, RealType>
     BSplineInterpolatorType;
   typename BSplineInterpolatorType::Pointer bs_interpolator
     = BSplineInterpolatorType::New();
-  bs_interpolator->SetInputImage( reader->GetOutput() );
+  bs_interpolator->SetInputImage( image );
 
   typedef itk::GaussianInterpolateImageFunction<ImageType, RealType>
     GaussianInterpolatorType;
   typename GaussianInterpolatorType::Pointer g_interpolator
     = GaussianInterpolatorType::New();
-  g_interpolator->SetInputImage( reader->GetOutput() );
+  g_interpolator->SetInputImage( image );
 
   typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3> HammingInterpolatorType;
   typename HammingInterpolatorType::Pointer sh_interpolator = HammingInterpolatorType::New();
-  sh_interpolator->SetInputImage( reader->GetOutput() );
+  sh_interpolator->SetInputImage( image );
 
   typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
                                                     itk::Function::CosineWindowFunction<3> > Sinc1InterpolatorType;
   typename Sinc1InterpolatorType::Pointer sc_interpolator = Sinc1InterpolatorType::New();
-  sc_interpolator->SetInputImage( reader->GetOutput() );
+  sc_interpolator->SetInputImage( image );
 
   typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
                                                     itk::Function::WelchWindowFunction<3> > Sinc2InterpolatorType;
   typename Sinc2InterpolatorType::Pointer sw_interpolator = Sinc2InterpolatorType::New();
-  sw_interpolator->SetInputImage( reader->GetOutput() );
+  sw_interpolator->SetInputImage( image );
 
   typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
                                                     itk::Function::LanczosWindowFunction<3> > Sinc3InterpolatorType;
   typename Sinc3InterpolatorType::Pointer sl_interpolator = Sinc3InterpolatorType::New();
-  sl_interpolator->SetInputImage( reader->GetOutput() );
+  sl_interpolator->SetInputImage( image );
 
   typename Sinc3InterpolatorType::Pointer sb_interpolator = Sinc3InterpolatorType::New();
-  sb_interpolator->SetInputImage( reader->GetOutput() );
+  sb_interpolator->SetInputImage( image );
 
   typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
   typename ResamplerType::Pointer resampler = ResamplerType::New();
@@ -112,8 +110,8 @@ int ResampleImage( int argc, char *argv[] )
       }
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      RealType spacing_old = reader->GetOutput()->GetSpacing()[i];
-      RealType size_old = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[i];
+      RealType spacing_old = image->GetSpacing()[i];
+      RealType size_old = image->GetLargestPossibleRegion().GetSize()[i];
       size[i] = static_cast<int>( ( spacing_old * size_old ) / spacing[i] + 0.5 );
       }
     }
@@ -136,8 +134,8 @@ int ResampleImage( int argc, char *argv[] )
       }
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      RealType spacing_old = reader->GetOutput()->GetSpacing()[i];
-      RealType size_old = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[i];
+      RealType spacing_old = image->GetSpacing()[i];
+      RealType size_old = image->GetLargestPossibleRegion().GetSize()[i];
       spacing[i] = spacing_old * static_cast<float>( size_old - 1.0 )
         / static_cast<float>( size[i] - 1.0 );
       }
@@ -170,7 +168,7 @@ int ResampleImage( int argc, char *argv[] )
         double sigma[ImageDimension];
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
-          sigma[d] = reader->GetOutput()->GetSpacing()[d];
+          sigma[d] = image->GetSpacing()[d];
           }
         double alpha = 1.0;
 
@@ -237,20 +235,15 @@ int ResampleImage( int argc, char *argv[] )
         break;
       }
     }
-  resampler->SetInput( reader->GetOutput() );
+  resampler->SetInput( image );
   resampler->SetSize( size );
-  resampler->SetOutputOrigin( reader->GetOutput()->GetOrigin() );
-  resampler->SetOutputDirection( reader->GetOutput()->GetDirection() );
+  resampler->SetOutputOrigin( image->GetOrigin() );
+  resampler->SetOutputDirection( image->GetDirection() );
   resampler->SetOutputSpacing( spacing );
   resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
 
-  typedef itk::ImageFileWriter<ImageType> WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[3] );
-  writer->SetInput( resampler->GetOutput() );
-  writer->Update();
-
+  WriteImage<ImageType>( resampler->GetOutput() , argv[3] );
   return EXIT_SUCCESS;
 }
 
