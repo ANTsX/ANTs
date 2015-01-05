@@ -209,7 +209,8 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
 
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    center[i] = filter->GetCentroid( 2 )[i] * filter->GetInput()->GetSpacing()[i];
+    center[i] = filter->GetCentroid( 2 )[i] *
+      filter->GetInput()->GetSpacing()[i];
     }
 
   TransformType::OutputVectorType translation;
@@ -217,7 +218,6 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
   transform->SetCenter( center );
   transform->SetTranslation( translation );
   transform->SetMatrix( reorientationMatrix );
-
   bool doReflections = true;
   float scale = 1.0;
   if( argc > 4 )
@@ -228,7 +228,6 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
     {
     scale = atof( argv[5] );
     }
-
   if( doReflections )
     {
     // check which has a higher concentraion
@@ -247,6 +246,7 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
     // check current rotation matrix
     testRotationMatrix = reorientationMatrix;
     transform->SetMatrix( testRotationMatrix );
+
     numberOfVoxelsInUpperRightQuadrant[0] =
       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
 
@@ -256,7 +256,7 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
     numberOfVoxelsInUpperRightQuadrant[1] =
       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
 
-    // check flip y
+      // check flip y
 //     testRotationMatrix = flipYMatrix * reorientationMatrix;
 //     transform->SetMatrix( testRotationMatrix );
 //     numberOfVoxelsInUpperRightQuadrant[2] =
@@ -299,13 +299,11 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
 //         }
       }
     }
-
   typedef itk::TransformFileWriter TransformWriterType;
   TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( transform );
   transformWriter->SetFileName( argv[3] );
   transformWriter->Update();
-
   return EXIT_SUCCESS;
 }
 
@@ -370,8 +368,9 @@ private:
       }
     return EXIT_FAILURE;
     }
-
-  if( argv[1][0] == 'X' )
+  std::string xstring=std::string("X");
+  std::string xstringtest(argv[1]);
+  if( xstring.compare(xstringtest) == 0 )
     {
     GetReorientationRigidTransform( argc, argv );
     }
