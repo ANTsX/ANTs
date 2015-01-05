@@ -24,7 +24,7 @@ namespace ants
 template <unsigned int ImageDimension>
 int LabelGeometryMeasures( int argc, char * argv[] )
 {
-  typedef int                                   LabelType;
+  typedef unsigned int                          LabelType;
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
 
   typedef float                                RealType;
@@ -183,7 +183,7 @@ int GetReorientationRigidTransform( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
-  typedef int                                   LabelType;
+  typedef unsigned int                          LabelType;
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
 
   LabelImageType::Pointer labelImage = LabelImageType::New();
