@@ -206,6 +206,8 @@ do
   fi
 done
 
+echo "Warning: antsASLProcessing.sh is being deprecated.  Use antsASLProcessing.R instead."
+
 # check for existence of all images
 if [[ ! -f ${ANATOMICAL_IMAGE} ]]
 then
