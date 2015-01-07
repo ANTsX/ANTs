@@ -405,6 +405,32 @@ int antsAffineInitializerImp(int argc, char *argv[])
     localoptimizer->SetDoEstimateLearningRateOnce( true );
     localoptimizer->SetMinimumConvergenceValue( 1.e-6 );
     localoptimizer->SetConvergenceWindowSize( 5 );
+    if( true )
+    {
+      typedef typename MetricType::FixedSampledPointSetType PointSetType;
+      typedef typename PointSetType::PointType              PointType;
+      typename PointSetType::Pointer      pset(PointSetType::New());
+      unsigned int ind=0;
+      unsigned int ct=0;
+      itk::ImageRegionIteratorWithIndex<ImageType> It(image1,
+      image1->GetLargestPossibleRegion() );
+      for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+      {
+        // take every N^th point
+        if ( ct % 10 == 0  )
+        {
+          PointType pt;
+          image1->TransformIndexToPhysicalPoint( It.GetIndex(), pt);
+          pset->SetPoint(ind, pt);
+          ind++;
+        }
+        ct++;
+      }
+      mimetric->SetFixedSampledPointSet( pset );
+      mimetric->SetUseFixedSampledPointSet( true );
+      gcmetric->SetFixedSampledPointSet( pset );
+      gcmetric->SetUseFixedSampledPointSet( true );
+    }
     if ( whichMetric.compare("MI") == 0  ) {
       mimetric->Initialize();
       typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType>
