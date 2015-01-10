@@ -105,6 +105,7 @@
 #include "itkRGBPixel.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
+#include "itkIntensityWindowingImageFilter.h"
 #include "itkSampleToHistogramFilter.h"
 #include "itkScalarImageKmeansImageFilter.h"
 #include "itkShrinkImageFilter.h"
@@ -1656,6 +1657,43 @@ int RescaleImage( int argc, char * argv[] )
   typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
   rescaler->SetOutputMinimum( min );
   rescaler->SetOutputMaximum( max );
+  rescaler->SetInput( input );
+  rescaler->Update();
+
+  WriteImage<ImageType>( rescaler->GetOutput(), outputName.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int WindowImage( int argc, char * argv[] )
+{
+  if( argc < 9 )
+    {
+    std::cout << " need more args -- see usage   " << std::endl;
+    throw std::exception();
+    }
+
+  typedef float                                                  PixelType;
+  typedef itk::Image<PixelType, ImageDimension>                  ImageType;
+
+  // Usage:  ImageMath 3 output.nii.gz RescaleImage input.nii.gz min max
+
+  const std::string outputName = std::string( argv[2] );
+  const std::string inputName = std::string( argv[4] );
+  const PixelType   inputMin = static_cast<PixelType>( atof( argv[5] ) );
+  const PixelType   inputMax = static_cast<PixelType>( atof( argv[6] ) );
+  const PixelType   outputMin = static_cast<PixelType>( atof( argv[7] ) );
+  const PixelType   outputMax = static_cast<PixelType>( atof( argv[8] ) );
+
+  typename ImageType::Pointer input;
+  ReadImage<ImageType>( input, inputName.c_str() );
+
+  typedef itk::IntensityWindowingImageFilter<ImageType, ImageType> IntensityWindowingFilterType;
+  typename IntensityWindowingFilterType::Pointer rescaler = IntensityWindowingFilterType::New();
+  rescaler->SetWindowMinimum( inputMin );
+  rescaler->SetWindowMaximum( inputMax );
+  rescaler->SetOutputMinimum( outputMin );
+  rescaler->SetOutputMaximum( outputMax );
   rescaler->SetInput( input );
   rescaler->Update();
 
@@ -8385,6 +8423,11 @@ int LaplacianImage(      int argc, char *argv[])
 template <unsigned int ImageDimension>
 int CropBinaryImage(      int argc, char *argv[])
 {
+  if( argc < 6 )
+    {
+    std::cerr << "Not enough args.  See help." << std::endl;
+    return EXIT_FAILURE;
+    }
   typedef float  PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   int               argct = 2;
@@ -14025,6 +14068,16 @@ ImageMathHelperAll(int argc, char **argv)
     RescaleImage<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
+  if( operation == "WindowImage" )
+    {
+    WindowImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "WindowImage" )
+    {
+    WindowImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
   if( operation == "NeighborhoodStats" )
     {
     NeighborhoodStats<DIM>(argc, argv);
@@ -14697,6 +14750,11 @@ private:
     std::cout
       <<
       "      Usage        : RescaleImage InputImage min max"
+      << std::endl;
+    std::cout << "\n  WindowImage    : " << std::endl;
+    std::cout
+      <<
+      "      Usage        : WindowImage InputImage windowMinimum windowMaximum outputMinimum outputMaximum"
       << std::endl;
     std::cout << "\n  NeighborhoodStats    : " << std::endl;
     std::cout

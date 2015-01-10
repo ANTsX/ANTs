@@ -26,6 +26,7 @@
 #include "itkEuler3DTransform.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkTransformFileWriter.h"
 
 #include <sstream>
 
@@ -48,6 +49,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   typedef itk::ImageRegionIteratorWithIndex<ImageType>      IteratorType;
   typedef itk::AffineTransform<RealType, ImageDimension>    AffineTransformType;
   typedef itk::Euler3DTransform<RealType>                   RigidTransformType;
+  typedef itk::TransformFileWriterTemplate<RealType>        TransformWriterType;
 
   typedef itk::ants::CommandLineParser ParserType;
   typedef ParserType::OptionType       OptionType;
@@ -63,7 +65,9 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   std::string outputName = "";
   std::string mocoName = "";
   std::string spatialName = "";
+  unsigned long transformIndex = 0;
   bool writeMap = false;
+  bool writeTransform = false;
 
   OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfFunctions() )
@@ -80,14 +84,17 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   OptionType::Pointer spatialOption = parser->GetOption( "spatial-map" );
   if( spatialOption && spatialOption->GetNumberOfFunctions() )
     {
-    spatialName = outputOption->GetFunction(0)->GetName();
-    std::cout << "Spatial map output: " << outputName << std::endl;
+    spatialName = spatialOption->GetFunction(0)->GetName();
+    std::cout << "Spatial map output: " << spatialName << std::endl;
     writeMap = true;
     }
-  else
+
+  OptionType::Pointer transformOption = parser->GetOption( "transform" );
+  if( transformOption && transformOption->GetNumberOfFunctions() )
     {
-    std::cerr << "Output option not specified." << std::endl;
-    return EXIT_FAILURE;
+    transformIndex = atoi( transformOption->GetFunction(0)->GetName().c_str() );
+    std::cout << "Index of transform to output: " << transformIndex << std::endl;
+    writeTransform = true;
     }
 
   OptionType::Pointer mocoOption = parser->GetOption( "moco" );
@@ -110,8 +117,11 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     ReadImage<ImageType>( mask, maskOption->GetFunction(0)->GetName().c_str()  );
     }
   else {
-    std::cerr << "Must use mask image" << std::endl;
-    return EXIT_FAILURE;
+    if ( !writeTransform )
+      {
+      std::cerr << "Must use mask image" << std::endl;
+      return EXIT_FAILURE;
+      }
     }
 
   ImageType::Pointer map = ImageType::New();
@@ -147,6 +157,46 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   //std::cout << "# Transform parameters = " << nTransformParams << std::endl;
 
   WriterMatrixType dataMatrix( mocoDataArray->GetMatrix().rows(), 2 );
+
+
+  // Extract a single 3D transform and write to file
+  if ( writeTransform  ) {
+
+    AffineTransformType::Pointer affineTransform1 = AffineTransformType::New();
+    AffineTransformType::ParametersType params1;
+    params1.SetSize( nTransformParams );
+
+    for ( unsigned int t=0; t<nTransformParams; t++ )
+      {
+      params1[t] = mocoDataArray->GetMatrix()(transformIndex,t+2);
+      }
+
+    // If rigid motion corretion
+    if ( nTransformParams == 6 )
+      {
+      RigidTransformType::Pointer rigid1 = RigidTransformType::New();
+      rigid1->SetParameters( params1 );
+      affineTransform1->SetMatrix( rigid1->GetMatrix() );
+      affineTransform1->SetTranslation( rigid1->GetTranslation() );
+      }
+    else if ( nTransformParams == 12 )
+      {
+      affineTransform1->SetParameters( params1 );
+      }
+    else
+      {
+      std::cout << "Unknown transform type! - Exiting" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+    transformWriter->SetInput( affineTransform1 );
+    transformWriter->SetFileName( outputName.c_str() );
+    transformWriter->Update();
+
+    return EXIT_SUCCESS;
+  }
+
 
   for ( unsigned int i=0; i<mocoDataArray->GetMatrix().rows(); i++ )
     {
@@ -297,13 +347,24 @@ void antsMotionCorrStatsInitializeCommandLineOptions( itk::ants::CommandLinePars
     }
 
     {
-    std::string description = std::string( "Specify the output file for summary stats" );
+    std::string description = std::string( "Specify the output file" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
     option->SetDescription( description );
     option->SetUsageOption( 0, "corrected.csv" );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "Specify the index for a 3D transform to output" );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "transform" );
+    option->SetShortName( 't' );
+    option->SetDescription( description );
+    //option->SetUsageOption( 0, "0" );
     parser->AddOption( option );
     }
 
@@ -324,7 +385,7 @@ void antsMotionCorrStatsInitializeCommandLineOptions( itk::ants::CommandLinePars
     option->SetLongName("spatial-map");
     option->SetShortName( 's' );
     option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
+    //option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
