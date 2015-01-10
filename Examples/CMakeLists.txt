@@ -61,6 +61,7 @@ set(BASE_ANTS_APPS
   ANTSUseDeformationFieldToGetAffineTransform
   # FDR
   antsAffineInitializer
+  antsSimilarityInitializer
   ImageMath
   SurfaceCurvature
   SurfaceBasedSmoothing

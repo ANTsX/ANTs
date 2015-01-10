@@ -1780,7 +1780,6 @@ int PadImage(int /*argc */, char *argv[])
     float dimsz = (float)size[i];
     newsize[i] = (unsigned int)(dimsz + padvalue * 2);
     }
-  std::cout << " oldsize " << size <<  " newsize " << newsize << std::endl;
   newregion.SetSize(newsize);
   newregion.SetIndex(image1->GetLargestPossibleRegion().GetIndex() );
 
@@ -1807,7 +1806,6 @@ int PadImage(int /*argc */, char *argv[])
   image1->TransformIndexToPhysicalPoint(index, point1);
   padimage->TransformIndexToPhysicalPoint(index2, pointpad);
 
-  std::cout << " pre " << point1 << " pad " << pointpad << std::endl;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     origin2[i] += (point1[i] - pointpad[i]);
@@ -2095,7 +2093,6 @@ int TimeSeriesDisassemble(int argc, char *argv[])
     }
 
   unsigned int n_sub_vols = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-  std::cout << " Extract " << n_sub_vols << " subvolumes " << std::endl;
 
   // Extract filename while allowing directory names with '.' in them
   // (cluster temp dirs)
@@ -2153,9 +2150,6 @@ int TimeSeriesAssemble(int argc, char *argv[])
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType>    ImageIt;
 
-  std::cout << " Merging " << argc - 6 << " subvolumes " << std::endl;
-  std::cout << " time spacing: " << time << std::endl;
-  std::cout << " time origin: " << origin << std::endl;
   for( int i = 6; i < argc; i++ )
     {
     typename ImageType::Pointer image1 = ITK_NULLPTR;
@@ -2234,7 +2228,6 @@ int TimeSeriesSubset(int argc, char *argv[])
   argct += 2;
   std::string  fn1 = std::string(argv[argct]);   argct++;
   unsigned int n_sub_vols = atoi(argv[argct]);   argct++;
-  std::cout << " Extract " << n_sub_vols << " subvolumes " << std::endl;
   std::string::size_type idx;
   idx = outname.find_first_of('.');
   std::string tempname = outname.substr(0, idx);

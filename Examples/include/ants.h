@@ -107,6 +107,8 @@
 
 #include "antsAffineInitializer.h"
 
+#include "antsSimilarityInitializer.h"
+
 #include "ImageSetStatistics.h"
 
 #include "itkCommandLineParserTest.h"
