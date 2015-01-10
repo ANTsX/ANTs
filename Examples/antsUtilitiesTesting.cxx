@@ -265,7 +265,7 @@ private:
           optimizer->SetMaximumStepSizeInPhysicalUnits( 0.15 );
           optimizer->SetNumberOfIterations( numberOfIterations );
           optimizer->SetScalesEstimator( scalesEstimator );
-          optimizer->SetMinimumConvergenceValue( 1e-6 );
+          optimizer->SetMinimumConvergenceValue( 1e-10 );
           optimizer->SetConvergenceWindowSize( 10 );
           optimizer->SetDoEstimateLearningRateAtEachIteration( false );
           optimizer->SetDoEstimateLearningRateOnce( true );
