@@ -229,7 +229,7 @@ private:
 
     initializer->InitializeTransform();
 
-    for( double angle = 0.0; angle <= 2.0 * vnl_math::pi; angle += rotationDelta )
+    for( double angle = 0.0; angle < 2.0 * vnl_math::pi; angle += rotationDelta )
       {
       AffineTransformType::MatrixType rotationMatrix;
       rotationMatrix( 0, 0 ) = rotationMatrix( 1, 1 ) = vcl_cos( angle );
