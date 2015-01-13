@@ -1632,6 +1632,25 @@ RegistrationHelper<TComputeType, VImageDimension>
           similarityRegistration->SetMetricSamplingPercentage( samplingPercentage );
           }
 
+       	unsigned int similarityParameterSize = 7;
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
+          {
+          if( VImageDimension == 2 )
+            {
+            similarityParameterSize = 3;
+            }
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == similarityParameterSize )
+            {
+            typename SimilarityRegistrationType::OptimizerWeightsType optimizerWeights( similarityParameterSize );
+            for( unsigned int d = 0; d < similarityParameterSize; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            optimizer->SetWeights( optimizerWeights );
+            }
+          }
+
         similarityRegistration->SetOptimizer( optimizer );
 
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
