@@ -27,7 +27,6 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkTransformFileWriter.h"
-
 #include <sstream>
 
 namespace ants
@@ -45,7 +44,12 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   typedef itk::Image<RealType, ImageDimension>      ImageType;
   typedef vnl_matrix<RealType>                      vMatrix;
   vMatrix param_values;
-
+  typedef itk::Image<RealType, 4>                   TimeSeriesImageType; 
+  typedef TimeSeriesImageType::RegionType           TimeSeriesRegionType; 
+  typedef TimeSeriesImageType::IndexType            TimeSeriesIndexType;
+  typedef TimeSeriesImageType::SizeType             TimeSeriesSizeType; 
+  typedef itk::ImageRegionIterator< TimeSeriesImageType > TimeSeriesIteratorType;
+ 
   typedef itk::ImageRegionIteratorWithIndex<ImageType>      IteratorType;
   typedef itk::AffineTransform<RealType, ImageDimension>    AffineTransformType;
   typedef itk::Euler3DTransform<RealType>                   RigidTransformType;
@@ -65,9 +69,11 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   std::string outputName = "";
   std::string mocoName = "";
   std::string spatialName = "";
+  std::string timeseriesDisplacementName = ""; 
   unsigned long transformIndex = 0;
   bool writeMap = false;
   bool writeTransform = false;
+  bool timeseriesDisplacement = false; 
 
   OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfFunctions() )
@@ -89,6 +95,14 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     writeMap = true;
     }
 
+  OptionType::Pointer timeseriesDisplacementOption = 
+    parser->GetOption("timeseries-displacement"); 
+  if(timeseriesDisplacementOption && timeseriesDisplacementOption->GetNumberOfFunctions())
+  {
+    timeseriesDisplacementName = timeseriesDisplacementOption->GetFunction(0)->GetName(); 
+    std::cout << "Time-series displacement map input 4d image: " << timeseriesDisplacementName << std::endl; 
+    timeseriesDisplacement = true; 
+  }
   OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfFunctions() )
     {
@@ -138,6 +152,20 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     }
 
 
+  TimeSeriesImageType::Pointer timeseriesImage = TimeSeriesImageType::New(); 
+  TimeSeriesImageType::Pointer timeseriesDisplacementImage = TimeSeriesImageType::New();
+  if ( timeseriesDisplacement )
+    {
+	  ReadImage<TimeSeriesImageType>(timeseriesImage, timeseriesDisplacementName.c_str());
+	  timeseriesDisplacementImage->SetRegions(timeseriesImage->GetLargestPossibleRegion());
+	  timeseriesDisplacementImage->Allocate();
+	  timeseriesDisplacementImage->FillBuffer(0.0);
+	  timeseriesDisplacementImage->SetOrigin(timeseriesImage->GetOrigin());
+	  timeseriesDisplacementImage->SetSpacing(timeseriesImage->GetSpacing());
+	  timeseriesDisplacementImage->SetDirection(timeseriesImage->GetDirection());
+    }
+
+  
   bool doFramewise = 0;
   doFramewise = parser->Convert<bool>( parser->GetOption( "framewise" )->GetFunction()->GetName() );
   std::cout << "Framewise = " << doFramewise << std::endl;
@@ -157,7 +185,6 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   //std::cout << "# Transform parameters = " << nTransformParams << std::endl;
 
   WriterMatrixType dataMatrix( mocoDataArray->GetMatrix().rows(), 2 );
-
 
   // Extract a single 3D transform and write to file
   if ( writeTransform  ) {
@@ -197,7 +224,6 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     return EXIT_SUCCESS;
   }
 
-
   for ( unsigned int i=0; i<mocoDataArray->GetMatrix().rows(); i++ )
     {
 
@@ -217,7 +243,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
         }
       }
 
-    // If rigid motion corretion
+    // If rigid motion correction
     if ( nTransformParams == 6 )
       {
       RigidTransformType::Pointer rigid1 = RigidTransformType::New();
@@ -248,13 +274,29 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     double meanDisplacement = 0.0;
     double maxDisplacement = 0.0;
     double count = 0;
-
+    
+    // we iterate over the time-series one time volume at a time
+    TimeSeriesRegionType timeSeriesRegion; 
+    TimeSeriesIndexType timeSeriesIndex; 
+    TimeSeriesSizeType timeSeriesSize; 
+    if(timeseriesDisplacement){
+      for(int jj=0; jj<3; jj++){
+        timeSeriesIndex[jj] = mask->GetLargestPossibleRegion().GetIndex()[jj]; 
+        timeSeriesSize[jj] = mask->GetLargestPossibleRegion().GetSize()[jj]; 
+      }
+      timeSeriesIndex[3] = i; 
+      timeSeriesSize[3] = 1;
+      timeSeriesRegion.SetIndex(timeSeriesIndex); 
+      timeSeriesRegion.SetSize(timeSeriesSize);
+    }  
+    TimeSeriesIteratorType timeseriesIterator(timeseriesDisplacementImage, timeSeriesRegion); 
     IteratorType it( mask, mask->GetLargestPossibleRegion() );
     while( !it.IsAtEnd() )
       {
 
       if ( it.Value() > 0 )
         {
+
         ImageType::IndexType idx = it.GetIndex();
         ImageType::PointType pt;
         mask->TransformIndexToPhysicalPoint(idx,pt);
@@ -293,9 +335,14 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
           }
         meanDisplacement += dist;
         ++count;
-
+        if(timeseriesDisplacement) {
+          timeseriesIterator.Set(dist);
+        } 
         }
       ++it;
+      if(timeseriesDisplacement) {
+        ++timeseriesIterator; 
+      }
       }
 
     meanDisplacement /= count;
@@ -317,6 +364,15 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     {
     WriteImage<ImageType>( map, spatialOption->GetFunction(0)->GetName().c_str()  );
     }
+  
+  if(timeseriesDisplacement){
+	std::string tsOutImageName = outputName;
+    std::size_t lastdot = outputName.find_last_of(".");
+    if (lastdot != std::string::npos)
+    	tsOutImageName = outputName.substr(0, lastdot);
+    tsOutImageName += ".nii.gz";
+    WriteImage<TimeSeriesImageType>(timeseriesDisplacementImage, tsOutImageName.c_str());
+  }
 
   return EXIT_SUCCESS;
 }
@@ -389,6 +445,15 @@ void antsMotionCorrStatsInitializeCommandLineOptions( itk::ants::CommandLinePars
     parser->AddOption( option );
     }
 
+    { 
+    std::string description = 
+      std::string("output 4d time-series image of displacement magnitude");
+    OptionType::Pointer option = OptionType::New(); 
+    option->SetLongName("timeseries-displacement"); 
+    option->SetShortName('d');
+    option->SetDescription(description); 
+    parser->AddOption(option);  
+    }
     {
     std::string description = std::string( "Print the help menu (short version)." );
 
