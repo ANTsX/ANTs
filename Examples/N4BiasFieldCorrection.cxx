@@ -22,6 +22,8 @@
 #include <algorithm>
 #include <vector>
 
+#include "ANTsVersion.h"
+
 namespace ants
 {
 template <class TFilter>
@@ -82,7 +84,6 @@ int N4( itk::ants::CommandLineParser *parser )
   typedef itk::N4BiasFieldCorrectionImageFilter<ImageType, MaskImageType,
                                                 ImageType> CorrecterType;
   typename CorrecterType::Pointer correcter = CorrecterType::New();
-
   typename itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
   if( inputImageOption && inputImageOption->GetNumberOfFunctions() )
@@ -524,9 +525,18 @@ int N4( itk::ants::CommandLineParser *parser )
 void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
+  {
+  std::string description = std::string( "Get Version Information." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "version" );
+  option->SetShortName( 'v' );
+  option->SetDescription( description );
+  parser->AddOption( option );                                                  
+  
 
-    {
-    std::string description =
+  }
+  {
+  std::string description =
       std::string( "This option forces the image to be treated as a specified-" )
       + std::string( "dimensional image.  If not specified, N4 tries to " )
       + std::string( "infer the dimensionality from the input image." );
@@ -801,7 +811,19 @@ private:
     parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
-
+  // Show automatic version 
+  itk::ants::CommandLineParser::OptionType::Pointer versionOption = parser->GetOption( "version" );
+  if( versionOption && versionOption->GetNumberOfFunctions() )
+    {
+    std::string versionFunction = versionOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( versionFunction );
+    if( versionFunction.compare( "1" ) == 0 || versionFunction.compare( "true" ) == 0 )
+      {
+      //Print Version Information
+      std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
+      return EXIT_SUCCESS;
+      }
+    }
   // Get dimensionality
   unsigned int dimension = 3;
 
