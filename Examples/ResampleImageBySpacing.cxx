@@ -357,7 +357,7 @@ private:
     resampler->SetTransform( transform );
     resampler->Update();
     WriteImage<OutputImageType>( resampler->GetOutput(), argv[3] );
-    }
+   }
   return EXIT_SUCCESS;
 }
 } // namespace ants
