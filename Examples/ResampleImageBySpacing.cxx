@@ -405,7 +405,7 @@ addvox = atoi(argv[9]);
 bool nn = false;
 if( argc > 9 )
 {
-nn = atoi(argv[9]);
+nn = atoi(argv[10]);
 }
 std::cout << " spacing2 " << spacing << std::endl;
 InternalImageType::Pointer smoothedImage = inputImage;
