@@ -191,7 +191,7 @@
 
 #include "ConvertTransformFile.h"
 
-#include "compareTwoCompositeTransforms.h"
+#include "compareTwoTransforms.h"
 
 #include "GetConnectedComponentsFeatureImages.h"
 

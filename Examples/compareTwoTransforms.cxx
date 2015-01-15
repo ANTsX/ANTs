@@ -3,6 +3,7 @@
 #include "itkCompositeTransform.h"
 #include "itkantsReadWriteTransform.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkBSplineTransform.h"
 
 #include "antsUtilities.h"
 
@@ -63,7 +64,7 @@ protected:
 };
 
 template <unsigned int VImageDimension>
-int compareComposites( const typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer & firstTransform,
+int compareTransforms( const typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer & firstTransform,
                        const typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer & secondTransform )
 {
   typedef typename itk::CompositeTransform<double, VImageDimension>            CompositeTransformType;
@@ -76,6 +77,8 @@ int compareComposites( const typename itk::Transform<double, VImageDimension, VI
 
   if( firstTransform->GetNameOfClass() == CompositeTransformID && secondTransform->GetNameOfClass() == CompositeTransformID )
     {
+    std::cout << "The input transforms are composite transform types." << std::endl;
+
     const typename CompositeTransformType::ConstPointer Comp1 =
                                       dynamic_cast<const itk::CompositeTransform<double, VImageDimension> *>( firstTransform.GetPointer() );
     const typename CompositeTransformType::ConstPointer Comp2 =
@@ -143,14 +146,59 @@ int compareComposites( const typename itk::Transform<double, VImageDimension, VI
     }
   else
     {
-    std::cerr << "The input transforms MUST be composite transforms." << std::endl;
-    return EXIT_FAILURE;
+    std::cout << "The input transforms are not composite transforms." << std::endl;
+    const std::string DisplacementFieldTransformID ("DisplacementFieldTransform");
+
+    if( firstTransform->GetNameOfClass() == DisplacementFieldTransformID && secondTransform->GetNameOfClass() == DisplacementFieldTransformID )
+      {
+      std::cout << "The input transforms are displacement field transform type." << std::endl;
+
+      // compare two displacement field transforms by considering a tolerance
+      const typename DisplacementFieldTransformType::ConstPointer DispTrans1 = dynamic_cast<DisplacementFieldTransformType *>( firstTransform.GetPointer() );
+      const typename DisplacementFieldTransformType::ConstPointer DispTrans2 = dynamic_cast<DisplacementFieldTransformType *>( secondTransform.GetPointer() );
+
+      const typename DisplacementFieldType::ConstPointer DispField1 = DispTrans1->GetDisplacementField();
+      const typename DisplacementFieldType::ConstPointer DispField2 = DispTrans2->GetDisplacementField();
+
+      typedef itk::ImageRegionConstIteratorWithIndex<DisplacementFieldType> DispIteratorType;
+      DispIteratorType dit1( DispField1, DispField1->GetLargestPossibleRegion() );
+      DispIteratorType dit2( DispField2, DispField2->GetLargestPossibleRegion() );
+
+      dit1.GoToBegin();
+      dit2.GoToBegin();
+
+      while( !dit1.IsAtEnd() && !dit2.IsAtEnd() )
+        {
+        typename DisplacementFieldType::PixelType v1 = dit1.Get();
+        typename DisplacementFieldType::PixelType v2 = dit2.Get();
+        for (unsigned int index=0; index<VImageDimension; ++index) {
+          if( !CompareFloat::Is_Close( v1[index], v2[index]) ) // Compares two float numbers.
+            {
+            std::cerr << "The input displacement field transforms are not equal! The diffeomorphic transform parameters are different!" << std::endl;
+            return EXIT_FAILURE;
+            }
+        }
+        ++dit1; ++dit2;
+        }
+      }
+    else
+      {
+      std::cout << "The input tranforms are neither composite transform nor displacement field transform." << std::endl;
+      std::cout << "First Transform Type: " << firstTransform->GetNameOfClass() << std::endl;
+      std::cout << "Second Transform Type: " << secondTransform->GetNameOfClass() << std::endl;
+      if( firstTransform->GetFixedParameters() != secondTransform->GetFixedParameters() ||
+         firstTransform->GetParameters() != secondTransform->GetParameters() )
+        {
+        std::cerr << "The input transforms are not equal! The transform parameters are different!" << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
     }
-  std::cout << "Two input composite transforms are the same!" << std::endl;
+  std::cout << "Two input transforms are the same!" << std::endl;
   return EXIT_SUCCESS;
 }
 
-int compareTwoCompositeTransforms( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int compareTwoTransforms( std::vector<std::string> args, std::ostream* /* out_stream = NULL */ )
 {
   // the arguments coming in as 'args' is a replacement for the standard (argc,argv) format
   // Just notice that the argv[i] equals to args[i-1]
@@ -159,20 +207,28 @@ int compareTwoCompositeTransforms( std::vector<std::string> args, std::ostream* 
 
   if( argc != 3 )
     {
-    std::cerr << "Usage: compareTwoCompositeTransform\n"
-    <<
-    "<First Composite Transform> , <Second Composite Transform>"
-    << std::endl;
+    std::cerr << "Usage: compareTwoTransforms\n"
+    << "<First Transform> , <Second Transform>" << std::endl;
     return EXIT_FAILURE;
     }
 
-  // antscout->set_stream( out_stream );
   {
   itk::Transform<double, 2, 2>::Pointer firstTransform = itk::ants::ReadTransform<double, 2>(args[0]);
   itk::Transform<double, 2, 2>::Pointer secondTransform = itk::ants::ReadTransform<double, 2>(args[1]);
   if( firstTransform.IsNotNull() && secondTransform.IsNotNull() )
     {
-    return compareComposites<2>(firstTransform, secondTransform);
+    typedef itk::BSplineTransform< double, 2, 2>     BSplineTransformType;
+    BSplineTransformType::Pointer bsplineInput1 = dynamic_cast<BSplineTransformType *>( firstTransform.GetPointer() );
+    BSplineTransformType::Pointer bsplineInput2 = dynamic_cast<BSplineTransformType *>( secondTransform.GetPointer() );
+    if( bsplineInput1.IsNull() && bsplineInput2.IsNull() )
+      {
+      return compareTransforms<2>(firstTransform, secondTransform);
+      }
+    else
+      {
+      std::cerr << "BSpline transform type is not supported." << std::endl;
+      return EXIT_FAILURE;
+      }
     }
   }
   {
@@ -180,7 +236,18 @@ int compareTwoCompositeTransforms( std::vector<std::string> args, std::ostream* 
   itk::Transform<double, 3, 3>::Pointer secondTransform = itk::ants::ReadTransform<double, 3>(args[1]);
   if( firstTransform.IsNotNull() && secondTransform.IsNotNull() )
     {
-    return compareComposites<3>(firstTransform, secondTransform);
+    typedef itk::BSplineTransform< double, 3, 3>     BSplineTransformType;
+    BSplineTransformType::Pointer bsplineInput1 = dynamic_cast<BSplineTransformType *>(firstTransform.GetPointer() );
+    BSplineTransformType::Pointer bsplineInput2 = dynamic_cast<BSplineTransformType *>(secondTransform.GetPointer() );
+    if( bsplineInput1.IsNull() && bsplineInput2.IsNull() )
+      {
+      return compareTransforms<3>(firstTransform, secondTransform);
+      }
+    else
+      {
+      std::cerr << "BSpline transform type is not supported." << std::endl;
+      return EXIT_FAILURE;
+      }
     }
   }
   std::cerr << "Can't read input transforms" << std::endl;
