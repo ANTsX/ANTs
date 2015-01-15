@@ -391,7 +391,7 @@ spacing[2] = atof(argv[6]);
 }
 if( argc > 7 )
 {
-spacing[2] = atof(argv[7]);
+spacing[3] = atof(argv[7]);
 }
 if( argc > 8 )
 {
