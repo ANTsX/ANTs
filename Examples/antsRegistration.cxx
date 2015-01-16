@@ -21,13 +21,24 @@
 #include <string>
 #include "antsRegistrationTemplateHeader.h"
 
+#include "ANTsVersion.h"
+
 namespace ants
 {
 
 static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
 
-  // short names in use-  a:b:c:d:f:g:h:i:j:k:l:m:n:o:q:r:s:t:u:w:x:z
+  // short names in use-  a:b:c:d:f:g:h:i:j:k:l:m:n:o:q:r:s:t:u:v:w:x:z
+    {
+    const std::string description = std::string( "Get Version Information." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "version" );
+    option->SetShortName( 'v' );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
 
     {
     std::string description =
@@ -575,6 +586,18 @@ private:
       {
       parser->PrintMenu( std::cout, 5, true );
       return EXIT_SUCCESS;
+      }
+    ParserType::OptionType::Pointer versionOption = parser->GetOption( "version" );
+    if( versionOption && versionOption->GetNumberOfFunctions() )
+      {
+      std::string versionFunction = versionOption->GetFunction( 0 )->GetName();
+      ConvertToLowerCase( versionFunction );
+      if( versionFunction.compare( "1" ) == 0 || versionFunction.compare( "true" ) == 0 )
+        {
+        //Print Version Information
+        std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
+        return EXIT_SUCCESS;
+        }
       }
 
     unsigned int dimension = 3;

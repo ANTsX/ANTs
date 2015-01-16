@@ -15,13 +15,19 @@ link_directories( ${ITK_LIBRARY_PATH}  )
 # non-templated class -- this should be stored in a library and linked in...
 set(UI_SOURCES "../Utilities/antsCommandLineParser" "../Utilities/antsCommandLineOption" )
 
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ANTsVersionConfig.h.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/ANTsVersionConfig.h" @ONLY IMMEDIATE)
+
 ## Note that the antsUtilities can always be built static.  It will then be linked
 ## Directly into the other libraries.
 add_library(antsUtilities STATIC antsUtilities.cxx ../Utilities/ReadWriteData.cxx
             antsRegistrationTemplateHeader.cxx
             antsRegistration2DDouble.cxx antsRegistration2DFloat.cxx
             antsRegistration3DDouble.cxx antsRegistration3DFloat.cxx
-            antsRegistration4DDouble.cxx antsRegistration4DFloat.cxx)
+            antsRegistration4DDouble.cxx antsRegistration4DFloat.cxx
+            ANTsVersion.cxx
+            )
 target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
 
 macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
