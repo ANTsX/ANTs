@@ -451,11 +451,12 @@ private:
         }
         break;
       }
+    return EXIT_SUCCESS;
     }
   else
     {
     std::cout << "Input error!" << std::endl;
+    return EXIT_FAILURE;
     }
-  return EXIT_FAILURE;
 }
 } // namespace ants
