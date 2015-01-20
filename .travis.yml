@@ -7,6 +7,6 @@ before_install:
   - mkdir antsbin
   - cd antsbin
 install: 
-  - sudo apt-get install cmake
+  - sudo apt-get install -y cmake
 script: 
-  - cmake ./.. && make && make test
+  - cmake ./.. && make
