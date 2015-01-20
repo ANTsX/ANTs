@@ -9,4 +9,4 @@ before_install:
 install: 
   - sudo apt-get install cmake
 script: 
-  - ../cmake && make && make test
+  - cmake ./.. && make && make test
