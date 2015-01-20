@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/stnava/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
 ============================
 Advanced Normalization Tools
 ============================
