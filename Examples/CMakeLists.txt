@@ -144,7 +144,7 @@ set(BASE_ANTS_APPS
   ANTSIntegrateVelocityField
   Atropos
   ConvertTransformFile
-  compareTwoCompositeTransforms
+  compareTwoTransforms
   TimeSCCAN
   TextureCooccurrenceFeatures
   TextureRunLengthFeatures
