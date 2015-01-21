@@ -10,3 +10,7 @@ install:
   - sudo apt-get install -y cmake
 script: 
   - cmake -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=OFF ./.. && make -j 2
+notifications:
+  email:
+    recipients:
+      - arman.eshaghi@gmail.com
