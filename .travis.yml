@@ -9,4 +9,4 @@ before_install:
 install: 
   - sudo apt-get install -y cmake
 script: 
-  - cmake -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=OFF ./.. && make
+  - cmake -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=OFF ./.. && make -j 2
