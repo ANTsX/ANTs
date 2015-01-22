@@ -546,12 +546,9 @@ RegistrationHelper<TComputeType, VImageDimension>
 template <class TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType
 RegistrationHelper<TComputeType, VImageDimension>
-::CalculateShrinkFactorsPerDimension( unsigned int factor, ImagePointer image )
+::CalculateShrinkFactorsPerDimension( unsigned int factor, ImageSpacingType spacing )
 {
-  typedef typename ImageType::SpacingType SpacingType;
-  typedef RealType                          SpacingValueType;
-
-  SpacingType spacing = image->GetSpacing();
+  typedef RealType                        SpacingValueType;
 
   SpacingValueType minSpacing = spacing[0];
   unsigned int minIndex = 0;
@@ -568,7 +565,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   shrinkFactorsPerDimension.Fill( 0 );
   shrinkFactorsPerDimension[minIndex] = factor;
 
-  SpacingType newSpacing;
+  ImageSpacingType newSpacing;
   newSpacing[minIndex] = spacing[minIndex] * factor;
 
   for( unsigned int n = 0; n < VImageDimension; n++ )
@@ -612,28 +609,28 @@ RegistrationHelper<TComputeType, VImageDimension>
 {
   if( this->m_NumberOfStages == 0 )
     {
-    std::cout << "No transformations are specified." << std::endl;
+    std::cerr << "No transformations are specified." << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_Iterations.size() != this->m_NumberOfStages )
     {
-    std::cout << "The number of iteration sets specified does not match the number of stages." << std::endl;
+    std::cerr << "The number of iteration sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_ShrinkFactors.size() != this->m_NumberOfStages )
     {
-    std::cout << "The number of shrinkFactors specified does not match the number of stages." << std::endl;
+    std::cerr << "The number of shrinkFactors specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_SmoothingSigmas.size() != this->m_NumberOfStages )
     {
-    std::cout << "The number of smoothing sigma sets specified does not match the number of stages."
+    std::cerr << "The number of smoothing sigma sets specified does not match the number of stages."
                      << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_SmoothingSigmasAreInPhysicalUnits.size() != this->m_NumberOfStages )
     {
-    std::cout
+    std::cerr
       << "The number of smoothing sigma in physical units bool values does not match the number of stages."
       << std::endl;
     return EXIT_FAILURE;
@@ -645,7 +642,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       if( this->m_Metrics[i].m_FixedImage.IsNull() ||
         this->m_Metrics[i].m_MovingImage.IsNull() )
         {
-        std::cout << "The image metric has no fixed and/or moving image." << std::endl;
+        std::cerr << "The image metric has no fixed and/or moving image." << std::endl;
         return EXIT_FAILURE;
         }
       }
@@ -823,51 +820,6 @@ RegistrationHelper<TComputeType, VImageDimension>
         imageMetricIsUsedDuringThisStage = true;
         break;
         }
-      }
-
-    // These two variables are specified in setting up the registration method.
-    // However, for point set metrics, they are not required.
-    std::vector<ShrinkFactorsPerDimensionContainerType> shrinkFactorsPerDimensionForAllLevels;
-    typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
-
-    if( imageMetricIsUsedDuringThisStage )
-      {
-      // Get shrink factors and adjust according to the current image
-      const std::vector<unsigned int> factors( this->m_ShrinkFactors[currentStageNumber] );
-      if( factors.size() != numberOfLevels )
-        {
-        std::cout << "\n\n\n"
-                         << "ERROR:  The number of shrink factors does not match the number of levels."
-                         << "\nShrink Factors: " << factors.size()
-                         << "\nNumber Of Levels: " << numberOfLevels
-                         << "\n\n\n"
-                         << std::endl;
-        return EXIT_FAILURE;
-        }
-
-      for( unsigned int n = 0; n < numberOfLevels; n++ )
-        {
-        ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension =
-          this->CalculateShrinkFactorsPerDimension( factors[n], stageMetricList[0].m_FixedImage.GetPointer() );
-        shrinkFactorsPerDimensionForAllLevels.push_back( shrinkFactorsPerDimension );
-        this->Logger() << "  Shrink factors (level " << n+1 << " out of " << numberOfLevels << "): " << shrinkFactorsPerDimension << std::endl;
-        }
-
-      // Get smoothing sigmas
-      const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
-      smoothingSigmasPerLevel.SetSize( sigmas.size() );
-
-      if( sigmas.size() != numberOfLevels )
-        {
-        std::cout << "ERROR:  The number of smoothing sigmas "
-                         << "does not match the number of levels." << std::endl;
-        return EXIT_FAILURE;
-        }
-      for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
-        {
-        smoothingSigmasPerLevel[n] = sigmas[n];
-        }
-      this->Logger() << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
       }
 
     std::vector<typename ImageType::Pointer> preprocessedFixedImagesPerStage;
@@ -1105,9 +1057,12 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( this->m_FixedImageMask.IsNotNull() )
           {
-          pointSetMetric->SetVirtualDomainFromImage(
-            dynamic_cast<typename PointSetMetricType::VirtualImageType *>(
-              const_cast<MaskImageType *>( this->m_FixedImageMask->GetImage() ) ) );
+          typedef itk::CastImageFilter<MaskImageType, typename PointSetMetricType::VirtualImageType> CasterType;
+          typename CasterType::Pointer caster = CasterType::New();
+          caster->SetInput( this->m_FixedImageMask->GetImage() );
+          caster->Update();
+
+          pointSetMetric->SetVirtualDomainFromImage( caster->GetOutput() );
           }
         if( useMultiMetric )
           {
@@ -1125,6 +1080,58 @@ RegistrationHelper<TComputeType, VImageDimension>
       {
       multiMetric->SetMetricWeights( metricWeights );
       }
+
+    // These two variables are specified in setting up the registration method.
+    // However, for point set metrics, they are not required.
+    std::vector<ShrinkFactorsPerDimensionContainerType> shrinkFactorsPerDimensionForAllLevels;
+    typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
+
+    // Get shrink factors and adjust according to the current image
+    const std::vector<unsigned int> factors( this->m_ShrinkFactors[currentStageNumber] );
+    if( factors.size() != numberOfLevels )
+      {
+      std::cerr << "\n\n\n"
+                       << "ERROR:  The number of shrink factors does not match the number of levels."
+                       << "\nShrink Factors: " << factors.size()
+                       << "\nNumber Of Levels: " << numberOfLevels
+                       << "\n\n\n"
+                       << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    typename ImageBaseType::Pointer virtualDomainImage = ITK_NULLPTR;
+    if( useMultiMetric )
+      {
+      virtualDomainImage = multiMetric->GetVirtualImage();
+      }
+    else
+      {
+      virtualDomainImage = singleMetric->GetVirtualImage();
+      }
+
+    for( unsigned int n = 0; n < numberOfLevels; n++ )
+      {
+      ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension =
+        this->CalculateShrinkFactorsPerDimension( factors[n], virtualDomainImage->GetSpacing() );
+      shrinkFactorsPerDimensionForAllLevels.push_back( shrinkFactorsPerDimension );
+      this->Logger() << "  Shrink factors (level " << n+1 << " out of " << numberOfLevels << "): " << shrinkFactorsPerDimension << std::endl;
+      }
+
+    // Get smoothing sigmas
+    const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
+    smoothingSigmasPerLevel.SetSize( sigmas.size() );
+
+    if( sigmas.size() != numberOfLevels )
+      {
+      std::cerr << "ERROR:  The number of smoothing sigmas "
+                       << "does not match the number of levels." << std::endl;
+      return EXIT_FAILURE;
+      }
+    for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
+      {
+      smoothingSigmasPerLevel[n] = sigmas[n];
+      }
+    this->Logger() << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
 
     // The sampling strategy/percentage is only specified once for the image registration
     // method.  We might need to change this in the future.
@@ -1145,12 +1152,12 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else if( samplingStrategy == none )
       {
-      std::cout << "  Using default NONE metricSamplingStrategy " << std::endl;
+      this->Logger() << "  Using default NONE metricSamplingStrategy " << std::endl;
       }
     else
       {
-      std::cout << "ERROR: samplingStrategy is incorrectly specified" << std::endl;
-      exit( -1 );
+      this->Logger() << "ERROR: samplingStrategy is incorrectly specified" << std::endl;
+      return EXIT_FAILURE;
       }
 
     // Set up the optimizers.  To change the iteration number for each level we rely
@@ -1318,10 +1325,10 @@ RegistrationHelper<TComputeType, VImageDimension>
           if( this->m_InitializeTransformsPerStage )
             {
             const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
-            std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
+            this->Logger() << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
             for(unsigned int i=0; i<numOfTransforms; i++)
               {
-              std::cout << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
+              this->Logger() << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
               }
             typename AffineTransformType::Pointer initialTransform = AffineTransformType::New();
             if( InitializeWithPreviousLinearTransform<AffineTransformType>(this->m_CompositeTransform,
@@ -1358,7 +1365,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1443,10 +1450,10 @@ RegistrationHelper<TComputeType, VImageDimension>
           if( this->m_InitializeTransformsPerStage )
             {
             const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
-            std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
+            this->Logger() << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
             for(unsigned int i=0; i<numOfTransforms; i++)
               {
-              std::cout << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
+              this->Logger() << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
               }
             typename RigidTransformType::Pointer initialTransform = RigidTransformType::New();
             if( InitializeWithPreviousLinearTransform<RigidTransformType>(this->m_CompositeTransform,
@@ -1485,7 +1492,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1572,7 +1579,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1678,7 +1685,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1758,10 +1765,10 @@ RegistrationHelper<TComputeType, VImageDimension>
           if( this->m_InitializeTransformsPerStage )
             {
             const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
-            std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
-            for(unsigned int i=0; i<numOfTransforms; i++)
+            this->Logger() << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
+            for( unsigned int i = 0; i < numOfTransforms; i++ )
               {
-              std::cout << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
+              this->Logger() << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
               }
             typename TranslationTransformType::Pointer initialTransform = TranslationTransformType::New();
             if( InitializeWithPreviousLinearTransform<TranslationTransformType>(this->m_CompositeTransform,
@@ -1800,7 +1807,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1963,7 +1970,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2024,7 +2031,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
           {
-          std::cout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
+          std::cerr << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2140,7 +2147,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2285,7 +2292,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -2526,7 +2533,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -2546,7 +2553,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           this->m_TransformMethods[currentStageNumber].m_VelocityFieldMeshSize;
         if( meshSize.size() != VImageDimension + 1 )
           {
-          std::cout << "The transform domain mesh size does not have the correct number of elements."
+          std::cerr << "The transform domain mesh size does not have the correct number of elements."
                            << "For image dimension = " << VImageDimension << ", you need " << VImageDimension + 1
                            << "elements. " << std::endl;
           return EXIT_FAILURE;
@@ -2757,7 +2764,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -2772,11 +2779,10 @@ RegistrationHelper<TComputeType, VImageDimension>
         VectorType zeroVector( 0.0 );
         //typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
 
-        typename DisplacementFieldType::Pointer displacementField = AllocImage<DisplacementFieldType>(
-            preprocessedFixedImagesPerStage[0], zeroVector );
-
-        typename DisplacementFieldType::Pointer inverseDisplacementField = AllocImage<DisplacementFieldType>(
-            preprocessedFixedImagesPerStage[0], zeroVector );
+        typename DisplacementFieldType::Pointer displacementField =
+          AllocImage<DisplacementFieldType>( virtualDomainImage, zeroVector );
+        typename DisplacementFieldType::Pointer inverseDisplacementField =
+          AllocImage<DisplacementFieldType>( virtualDomainImage, zeroVector );
 
         typedef itk::SyNImageRegistrationMethod<ImageType, ImageType,
                                                 DisplacementFieldTransformType> DisplacementFieldRegistrationType;
@@ -2882,7 +2888,7 @@ RegistrationHelper<TComputeType, VImageDimension>
             if( fixedToMiddle.IsNotNull() && movingToMiddle.IsNotNull()
                && fixedToMiddle->GetInverseDisplacementField() && movingToMiddle->GetInverseDisplacementField() )
               {
-              std::cout << "Current SyN transform is directly initialized from the previous stage." << std::endl;
+              this->Logger() << "Current SyN transform is directly initialized from the previous stage." << std::endl;
               displacementFieldRegistration->SetFixedToMiddleTransform( fixedToMiddle );
               displacementFieldRegistration->SetMovingToMiddleTransform( movingToMiddle );
 
@@ -2966,7 +2972,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2990,13 +2996,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         {
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        //typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
 
-        typename DisplacementFieldType::Pointer displacementField = AllocImage<DisplacementFieldType>(
-            preprocessedFixedImagesPerStage[0], zeroVector );
-
-        typename DisplacementFieldType::Pointer inverseDisplacementField = AllocImage<DisplacementFieldType>(
-            preprocessedFixedImagesPerStage[0], zeroVector );
+        typename DisplacementFieldType::Pointer displacementField =
+          AllocImage<DisplacementFieldType>( virtualDomainImage, zeroVector );
+        typename DisplacementFieldType::Pointer inverseDisplacementField =
+          AllocImage<DisplacementFieldType>( virtualDomainImage, zeroVector );
 
         typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           BSplineDisplacementFieldTransformType;
@@ -3035,7 +3039,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
           {
-          std::cout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
+          std::cerr << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -3046,6 +3050,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           updateMeshSize[d] = meshSizeForTheUpdateField[d];
           totalMeshSize[d] = meshSizeForTheTotalField[d];
           }
+
         // Create the transform adaptors
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
@@ -3164,7 +3169,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -3330,7 +3335,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -3399,7 +3404,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheVelocityField.size() !=
             VImageDimension )
           {
-          std::cout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
+          std::cerr << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -3514,7 +3519,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -3525,7 +3530,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         }
         break;
       default:
-        std::cout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
+        std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
       }
     timer.Stop();
@@ -3654,7 +3659,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       movingToMiddleTransform->SetDisplacementField( movingToMiddleForwardTx->GetDisplacementField() );
       movingToMiddleTransform->SetInverseDisplacementField( movingToMiddleInverseTx->GetDisplacementField() );
 
-      std::cout << "Initial FixedToMiddle and MovingToMiddle transforms are restored from the registration state file."
+      this->Logger() << "Initial FixedToMiddle and MovingToMiddle transforms are restored from the registration state file."
                 << std::endl;
 
       compToRestore->RemoveTransform();
@@ -4061,10 +4066,10 @@ RegistrationHelper<TComputeType, VImageDimension>
     }
   else
     {
-    std::cout << "ERROR: INITIALIZATION RETURNS FALSE. Previous Linear Transform is Null" << std::endl;
+    std::cerr << "ERROR: INITIALIZATION RETURNS FALSE. Previous Linear Transform is Null" << std::endl;
     return false;
     }
-  std::cout << "Try to initialize the current " << transformTypeName
+  this->Logger() << "Try to initialize the current " << transformTypeName
             << " from previous " << previousTxFileType << "." << std::endl;
 /////
   if( transformTypeName == "Translation" )
@@ -4078,8 +4083,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<TranslationTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cout << "WARNING: Initialization Failed" << std::endl;
-        return false;
+        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        return EXIT_FAILURE;
         }
       //Translation to Translation
       initialTransform->SetFixedParameters( tempInitializerTransform->GetFixedParameters() );
@@ -4087,8 +4092,8 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else
       {
-      std::cout << "WARNING: Initialization Failed" << std::endl;
-      return false;
+      std::cerr << "WARNING: Initialization Failed" << std::endl;
+      return EXIT_FAILURE;
       }
     }
 /////
@@ -4103,8 +4108,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<TranslationTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cout << "WARNING: Initialization Failed" << std::endl;
-        return false;
+        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        return EXIT_FAILURE;
         }
       //Translation to Rigid
       initialTransform->SetOffset( tempInitializerTransform->GetOffset() );
@@ -4115,8 +4120,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<RigidTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cout << "WARNING: Initialization Failed" << std::endl;
-        return false;
+        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        return EXIT_FAILURE;
         }
       //Rigid to Rigid
       initialTransform->SetFixedParameters( tempInitializerTransform->GetFixedParameters() );
@@ -4124,8 +4129,8 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else
       {
-      std::cout << "WARNING: Initialization Failed" << std::endl;
-      return false;
+      std::cerr << "WARNING: Initialization Failed" << std::endl;
+      return EXIT_FAILURE;
       }
     }
 /////
@@ -4141,8 +4146,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<TranslationTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cout << "WARNING: Initialization Failed" << std::endl;
-        return false;
+        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        return EXIT_FAILURE;
         }
       //Translation to Affine
       initialTransform->SetOffset( tempInitializerTransform->GetOffset() );
@@ -4153,8 +4158,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<RigidTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cout << "WARNING: Initialization Failed" << std::endl;
-        return false;
+        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        return EXIT_FAILURE;
         }
       //Rigid to Affine
       initialTransform->SetCenter( tempInitializerTransform->GetCenter() );
@@ -4167,8 +4172,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<AffineTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cout << "WARNING: Initialization Failed" << std::endl;
-        return false;
+        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        return EXIT_FAILURE;
         }
       //Affine to Affine
       initialTransform->SetFixedParameters( tempInitializerTransform->GetFixedParameters() );
@@ -4176,17 +4181,17 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else
       {
-      std::cout << "WARNING: Initialization Failed" << std::endl;
-      return false;
+      std::cerr << "WARNING: Initialization Failed" << std::endl;
+      return EXIT_FAILURE;
       }
     }
   else
     {
-    std::cout << "WARNING: Initialization Failed" << std::endl;
-    return false;
+    std::cerr << "WARNING: Initialization Failed" << std::endl;
+    return EXIT_FAILURE;
     }
 /////
-  return true;
+  return EXIT_SUCCESS;
 }
 
 template <class TComputeType, unsigned VImageDimension>

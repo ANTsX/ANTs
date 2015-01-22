@@ -30,6 +30,7 @@
 #include "itkBSplineSyNImageRegistrationMethod.h"
 #include "itkBSplineTransform.h"
 #include "itkBSplineTransformParametersAdaptor.h"
+#include "itkCastImageFilter.h"
 #include "itkCenteredAffineTransform.h"
 #include "itkCenteredTransformInitializer.h"
 #include "itkCommand.h"
@@ -116,6 +117,7 @@ public:
   typedef itk::Image<PixelType, VImageDimension>                                     ImageType;
   typedef typename ImageType::Pointer                                                ImagePointer;
   typedef itk::ImageBase<VImageDimension>                                            ImageBaseType;
+  typedef typename ImageType::SpacingType                                            ImageSpacingType;
   typedef itk::PointSet<unsigned int, VImageDimension>                               PointSetType;
   typedef typename PointSetType::Pointer                                             PointSetPointer;
 
@@ -614,7 +616,7 @@ public:
    * Then, for each other dimension, we find the factor ( < specified factor ) which
    * makes the subsampled image as close to isotropic (in terms of spacing) as possible.
    */
-  ShrinkFactorsPerDimensionContainerType CalculateShrinkFactorsPerDimension( unsigned int, ImagePointer );
+  ShrinkFactorsPerDimensionContainerType CalculateShrinkFactorsPerDimension( unsigned int, ImageSpacingType );
 
   /**
    * turn on histogram matching of the input images
@@ -1050,7 +1052,6 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
     if( !calculatedTransformFromImages )
       {
-
       typedef typename RegistrationHelperType::TransformType TransformType;
       typename TransformType::Pointer initialTransform;
       if( std::strcmp( initialTransformName.c_str(), "identity" ) == 0 || std::strcmp( initialTransformName.c_str(), "Identity" ) == 0 )
