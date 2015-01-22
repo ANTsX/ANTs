@@ -825,6 +825,8 @@ RegistrationHelper<TComputeType, VImageDimension>
     std::vector<typename ImageType::Pointer> preprocessedFixedImagesPerStage;
     std::vector<typename ImageType::Pointer> preprocessedMovingImagesPerStage;
 
+    typename ImageBaseType::Pointer virtualDomainImage = ITK_NULLPTR;
+
     for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
       {
       MetricEnumeration currentMetricType = stageMetricList[currentMetricNumber].m_MetricType;
@@ -1038,6 +1040,10 @@ RegistrationHelper<TComputeType, VImageDimension>
           {
           imageMetric->SetMovingImageMask( this->m_MovingImageMask );
           }
+        if( virtualDomainImage.IsNull() )
+          {
+          virtualDomainImage = imageMetric->GetVirtualImage();
+          }
 
         if( useMultiMetric )
           {
@@ -1063,6 +1069,10 @@ RegistrationHelper<TComputeType, VImageDimension>
           caster->Update();
 
           pointSetMetric->SetVirtualDomainFromImage( caster->GetOutput() );
+          if( virtualDomainImage.IsNull() )
+            {
+            virtualDomainImage = pointSetMetric->GetVirtualImage();
+            }
           }
         if( useMultiMetric )
           {
@@ -1097,16 +1107,6 @@ RegistrationHelper<TComputeType, VImageDimension>
                        << "\n\n\n"
                        << std::endl;
       return EXIT_FAILURE;
-      }
-
-    typename ImageBaseType::Pointer virtualDomainImage = ITK_NULLPTR;
-    if( useMultiMetric )
-      {
-      virtualDomainImage = multiMetric->GetVirtualImage();
-      }
-    else
-      {
-      virtualDomainImage = singleMetric->GetVirtualImage();
       }
 
     for( unsigned int n = 0; n < numberOfLevels; n++ )
