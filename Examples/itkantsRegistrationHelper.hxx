@@ -821,6 +821,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         break;
         }
       }
+    imageMetricIsUsedDuringThisStage = true;
 
     std::vector<typename ImageType::Pointer> preprocessedFixedImagesPerStage;
     std::vector<typename ImageType::Pointer> preprocessedMovingImagesPerStage;
@@ -2919,6 +2920,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         displacementFieldRegistration->SetAverageMidPointGradients( false );
 
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
+
         if( imageMetricIsUsedDuringThisStage )
           {
           for( unsigned int level = 0; level < numberOfLevels; ++level )
