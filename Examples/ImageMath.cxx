@@ -369,7 +369,7 @@ void MakeAffineTransform(int argc, char *argv[])
     {
     std::cout << " need more args -- see usage   " << std::endl;
     }
-  typedef float                                        PixelType;
+
   typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
@@ -4575,77 +4575,127 @@ int StackImage(int argc, char *argv[])
     std::cout << " too few options " << std::endl;
     return 1;
     }
-  typedef float                                                           PixelType;
-  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  typedef float                                          PixelType;
+  typedef itk::Image<PixelType, ImageDimension>          ImageType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>   Iterator;
+  typedef itk::ImageFileReader<ImageType>                ReaderType;
 
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
   argct += 2;
+
   std::string fn1 = std::string(argv[argct]);
 
-  unsigned int nSlices = argc - argct;
+  //unsigned int nImages = argc - argct;
+  //std::cout << "Stacking " << nImages << " images" << std::endl;
 
   typename ImageType::Pointer image1 = ITK_NULLPTR;
-  if( fn1.length() > 3 )
+
+  typename ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( fn1.c_str() );
+  reader->Update();
+
+  typename ImageType::SpacingType refSpacing = reader->GetOutput()->GetSpacing();
+  typename ImageType::DirectionType refDirection = reader->GetOutput()->GetDirection();
+  typename ImageType::PointType refOrigin = reader->GetOutput()->GetOrigin();
+  typename ImageType::SizeType refSize;
+
+  itk::ImageIOBase::Pointer imageIO =
+    itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::ReadMode);
+  imageIO->SetFileName(fn1.c_str() );
+  imageIO->ReadImageInformation();
+
+  unsigned int nDims = imageIO->GetNumberOfDimensions();
+  if ( nDims != ImageDimension )
+  {
+    std::cout << "Image dimensions not consistent with passed parameters" << std::endl;
+    return EXIT_FAILURE;
+  }
+  for (unsigned int i=0; i<nDims; i++)
+  {
+    refSize[i] = imageIO->GetDimensions(i);
+  }
+
+  unsigned int stackLength = refSize[nDims-1];
+
+  for ( unsigned int i=(argct+1); i<argc; i++)
+  {
+    imageIO->SetFileName( argv[i] );
+    imageIO->ReadImageInformation();
+
+    if ( imageIO->GetNumberOfDimensions() != nDims )
     {
-    ReadImage<ImageType>(image1, fn1.c_str() );
+      std::cout << "Inconsistent image dimension in " << argv[i] << std::endl;
+      return EXIT_FAILURE;
     }
 
-  typename ImageType::PointType origin2 = image1->GetOrigin();
-  typename ImageType::SizeType newsize = image1->GetLargestPossibleRegion().GetSize();
-  typename ImageType::RegionType newregion;
-  newsize[ImageDimension - 1] = nSlices * image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-  unsigned int constantPad = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-
-  newregion.SetSize(newsize);
-  newregion.SetIndex(image1->GetLargestPossibleRegion().GetIndex() );
-
-  typename ImageType::Pointer padimage =
-    AllocImage<ImageType>(newregion,
-                          image1->GetSpacing(),
-                          origin2,
-                          image1->GetDirection(),
-                          0);
-  typename ImageType::IndexType index; index.Fill(0);
-  typename ImageType::IndexType index2; index2.Fill(0);
-  typename ImageType::PointType point1, pointpad;
-  image1->TransformIndexToPhysicalPoint(index, point1);
-  padimage->TransformIndexToPhysicalPoint(index2, pointpad);
-  for( unsigned int i = 0; i < ImageDimension; i++ )
+    // Check input images
+    for ( unsigned int d=0; d<nDims; d++)
     {
-    origin2[i] += (point1[i] - pointpad[i]);
+      if ( imageIO->GetSpacing(d) != refSpacing[d] )
+      {
+        std::cout << "Inconsistent image spacing not allowed" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      for ( unsigned int d2=0; d2<nDims; d2++)
+      {
+        if ( imageIO->GetDirection(d)[d2] != refDirection(d,d2) )
+        {
+          std::cout << "Inconsistent image direction not allowed" << std::endl;
+          return EXIT_FAILURE;
+        }
+      }
+
+      if ( d < (nDims-1) )
+      {
+        if ( imageIO->GetOrigin(d) != refOrigin[d] )
+        {
+          std::cout << "Inconsistent image origins not allowed" << std::endl;
+          return EXIT_FAILURE;
+        }
+
+        if ( imageIO->GetDimensions(d) != refSize[d] )
+        {
+          std::cout << "Size variation in stacking dimension only" << std::endl;
+          return EXIT_FAILURE;
+        }
+      }
+
+
     }
-  padimage->SetOrigin(origin2);
+
+    stackLength += imageIO->GetDimensions(nDims-1);
+  }
+
+  typename ImageType::SizeType stackSize  = refSize;
+  stackSize[nDims-1] = stackLength;
+
+  typename ImageType::RegionType region = reader->GetOutput()->GetLargestPossibleRegion();
+  region.SetSize( stackSize );
+  typename ImageType::Pointer stackImage = ImageType::New();
+  stackImage->SetRegions( region );
+  stackImage->Allocate();
 
   unsigned int offset = 0;
   while( argc > argct )
     {
+
     std::string fn2 = std::string(argv[argct++]);
-
-    ReadImage<ImageType>(image1, fn2.c_str() );
-
-    const float padvalue = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-    if( padvalue != constantPad )
-      {
-      std::cout << "All inputs must be of same size" << std::endl;
-      return 1;
-      }
+    ReadImage<ImageType>(image1, fn2.c_str());
 
     Iterator iter( image1,  image1->GetLargestPossibleRegion() );
     for( iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
-      typename ImageType::IndexType oindex = iter.GetIndex();
-      typename ImageType::IndexType padindex = iter.GetIndex();
-      padindex[ImageDimension - 1] = padindex[ImageDimension - 1] + offset;
-      padimage->SetPixel(padindex, image1->GetPixel(oindex) );
+      typename ImageType::IndexType oIndex = iter.GetIndex();
+      oIndex[nDims-1] = oIndex[nDims-1] + offset;
+      stackImage->SetPixel(oIndex, iter.Value() );
       }
 
-    offset += constantPad;
-
+    offset += image1->GetLargestPossibleRegion().GetSize()[nDims-1];
     }
 
-  WriteImage<ImageType>(padimage, outname.c_str() );
+  WriteImage<ImageType>(stackImage, outname.c_str() );
 
   return 0;
 }
