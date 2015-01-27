@@ -457,7 +457,6 @@ int GetLargestComponent(int argc, char *argv[])
   Iterator vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
 
   float maximum = relabel->GetNumberOfObjects();
-  std::cout << " #ob " << maximum << std::endl;
   float                     maxtstat = 0;
   std::vector<unsigned int> histogram( (int)maximum + 1);
   std::vector<float>        clustersum( (int)maximum + 1);
@@ -502,9 +501,6 @@ int GetLargestComponent(int argc, char *argv[])
       }
     }
 
-  std::cout << " max float size "
-            <<  (maximgval
-       * volumeelement) << " long-size: " << (unsigned long) (maximgval * volumeelement)  << std::endl;
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     if( Clusters->GetPixel( vfIter.GetIndex() ) >= maximgval )

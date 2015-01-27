@@ -1,9 +1,6 @@
 #include "antsUtilities.h"
 #include <algorithm>
-
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-
+#include "ReadWriteData.h"
 #include "itkDeformationFieldGradientTensorImageFilter.h"
 #include "itkDeterminantTensorImageFilter.h"
 #include "itkGeometricJacobianDeterminantImageFilter.h"
@@ -100,22 +97,12 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
     logFilter->SetInput( maxFilter->GetOutput() );
     logFilter->Update();
-
-    typedef itk::ImageFileWriter<ImageType> ImageWriterType;
-    typename ImageWriterType::Pointer writer = ImageWriterType::New();
-    writer->SetFileName( argv[3] );
-    writer->SetInput( logFilter->GetOutput() );
-    writer->Update();
+    WriteImage<ImageType>(logFilter->GetOutput(), argv[3] );
     }
   else
     {
-    typedef itk::ImageFileWriter<ImageType> ImageWriterType;
-    typename ImageWriterType::Pointer writer = ImageWriterType::New();
-    writer->SetFileName( argv[3] );
-    writer->SetInput( jacobian );
-    writer->Update();
+    WriteImage<ImageType>(jacobian, argv[3] );
     }
-
   return EXIT_SUCCESS;
 }
 
