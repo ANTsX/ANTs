@@ -930,6 +930,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           break;
         case ICP:
           {
+          this->Logger() << "  using the ICP metric (weight = "
+                         << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
           typedef itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> IcpPointSetMetricType;
           typename IcpPointSetMetricType::Pointer icpMetric = IcpPointSetMetricType::New();
 
@@ -939,6 +941,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           break;
         case PSE:
           {
+          this->Logger() << "  using the PSE metric (weight = "
+                         << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
           typedef itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PsePointSetMetricType;
           typename PsePointSetMetricType::Pointer pseMetric = PsePointSetMetricType::New();
           pseMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
@@ -950,6 +954,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           break;
         case JHCT:
           {
+          this->Logger() << "  using the JHCT metric (weight = "
+                         << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
           typedef itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<PointSetType, RealType> JhctPointSetMetricType;
           typename JhctPointSetMetricType::Pointer jhctMetric = JhctPointSetMetricType::New();
           jhctMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
@@ -964,7 +970,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
           break;
         default:
-          std::cerr << "ERROR: Unrecognized image metric. " << std::endl;
+          std::cerr << "ERROR: Unrecognized metric. " << std::endl;
           return EXIT_FAILURE;
         }
 
