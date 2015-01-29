@@ -1,3 +1,4 @@
+
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
@@ -4618,7 +4619,7 @@ int StackImage(int argc, char *argv[])
 
   unsigned int stackLength = refSize[nDims-1];
 
-  for ( unsigned int i=(argct+1); i<argc; i++)
+  for ( int i=(argct+1); i<argc; i++)
   {
     imageIO->SetFileName( argv[i] );
     imageIO->ReadImageInformation();
@@ -4675,6 +4676,9 @@ int StackImage(int argc, char *argv[])
   region.SetSize( stackSize );
   typename ImageType::Pointer stackImage = ImageType::New();
   stackImage->SetRegions( region );
+  stackImage->SetDirection( refDirection );
+  stackImage->SetOrigin( refOrigin );
+  stackImage->SetSpacing( refSpacing );
   stackImage->Allocate();
 
   unsigned int offset = 0;
