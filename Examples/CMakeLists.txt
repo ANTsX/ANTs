@@ -1,31 +1,13 @@
-set(PICSL_INCLUDE_DIRS
-../Utilities
-../ImageRegistration
-../ImageSegmentation
-../GraphTheory
-../Tensor
-../Temporary
-.
-)
-
-include_directories( ${BOOST_INCLUDE_DIR} ) #Define where to find Boost includes
-include_directories(${PICSL_INCLUDE_DIRS})
-link_directories( ${ITK_LIBRARY_PATH}  )
-# message("${ITK_LIBRARIES}")
-# non-templated class -- this should be stored in a library and linked in...
-set(UI_SOURCES "../Utilities/antsCommandLineParser" "../Utilities/antsCommandLineOption" )
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ANTsVersionConfig.h.in"
-               "${CMAKE_CURRENT_BINARY_DIR}/ANTsVersionConfig.h" @ONLY IMMEDIATE)
-
 ## Note that the antsUtilities can always be built static.  It will then be linked
 ## Directly into the other libraries.
-add_library(antsUtilities STATIC antsUtilities.cxx ../Utilities/ReadWriteData.cxx
+add_library(antsUtilities STATIC antsUtilities.cxx
             antsRegistrationTemplateHeader.cxx
             antsRegistration2DDouble.cxx antsRegistration2DFloat.cxx
             antsRegistration3DDouble.cxx antsRegistration3DFloat.cxx
             antsRegistration4DDouble.cxx antsRegistration4DFloat.cxx
+            ../Utilities/ReadWriteData.cxx
+            ../Utilities/antsCommandLineOption.cxx
+            ../Utilities/antsCommandLineParser.cxx
             ANTsVersion.cxx
             )
 target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
@@ -33,14 +15,14 @@ target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
 macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   set( ANTS_FUNCTION_NAME ${ANTS_FUNCTION_NAME} )
 
-  add_library(l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}.cxx ${UI_SOURCES})
+  add_library(l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}.cxx)
   SET_TARGET_PROPERTIES(l_${ANTS_FUNCTION_NAME} PROPERTIES
     SOVERSION ${LIBRARY_SOVERSION_INFO}  VERSION ${LIBRARY_VERSION_INFO})
   message(STATUS "${ANTS_FUNCTION_NAME} ${EXTRA_LIBS}")
-  target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${ITK_LIBRARIES} ${EXTRA_LIBS} )
+  target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${EXTRA_LIBS} )
   configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
   add_executable( ${ANTS_FUNCTION_NAME} cli_${ANTS_FUNCTION_NAME}.cxx )
-  target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME})
+  target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME} )
 
   install(TARGETS l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}
     RUNTIME DESTINATION bin

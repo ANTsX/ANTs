@@ -93,6 +93,27 @@ set(DART_TESTING_TIMEOUT ${CTEST_TEST_TIMEOUT} CACHE STRING "Maximum seconds all
 configure_file(${CMAKE_CURRENT_LIST_DIR}/CTestCustom.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake COPYONLY)
 
+include_directories( ${BOOST_INCLUDE_DIR} ) #Define where to find Boost includes
+link_directories( ${ITK_LIBRARY_PATH}  )
+# message("${ITK_LIBRARIES}")
+
+#----------------------------------------------------------------------------
+# Setup ants build environment
+set(PICSL_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/Utilities
+  ${CMAKE_CURRENT_SOURCE_DIR}/ImageRegistration
+  ${CMAKE_CURRENT_SOURCE_DIR}/ImageSegmentation
+  ${CMAKE_CURRENT_SOURCE_DIR}/GraphTheory
+  ${CMAKE_CURRENT_SOURCE_DIR}/Tensor
+  ${CMAKE_CURRENT_SOURCE_DIR}/Temporary
+  ${CMAKE_CURRENT_SOURCE_DIR}/Examples
+  ${CMAKE_CURRENT_BINARY_DIR}
+)
+include_directories(${PICSL_INCLUDE_DIRS})
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ANTsVersionConfig.h.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/ANTsVersionConfig.h" @ONLY IMMEDIATE)
+
 add_subdirectory(Examples)
 if(BUILD_EXTERNAL_APPLICATIONS)
   add_subdirectory(ExternalApplications)
