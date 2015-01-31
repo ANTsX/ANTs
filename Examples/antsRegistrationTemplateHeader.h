@@ -232,23 +232,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
         {
         std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
-
         typename MaskImageType::Pointer maskImage;
-        typename ImageReaderType::Pointer reader = ImageReaderType::New();
-
-        reader->SetFileName( fname.c_str() );
-        try
-          {
-          reader->Update();
-          maskImage = reader->GetOutput();
-          }
-        catch( itk::ExceptionObject & err )
-          {
-          std::cout << "Can't read specified mask image " << fname.c_str() << std::endl;
-          std::cout << "Exception Object caught: " << std::endl;
-          std::cout << err << std::endl;
-          return EXIT_FAILURE;
-          }
+        ReadImage<MaskImageType>( maskImage , fname );
         if( m == 0 )
           {
           regHelper->SetFixedImageMask( maskImage );
@@ -262,23 +247,8 @@ DoRegistration(typename ParserType::Pointer & parser)
     else
       {
       std::string fname = maskOption->GetFunction( 0 )->GetName();
-
       typename MaskImageType::Pointer maskImage;
-      typename ImageReaderType::Pointer reader = ImageReaderType::New();
-
-      reader->SetFileName( fname.c_str() );
-      try
-        {
-        reader->Update();
-        maskImage = reader->GetOutput();
-        }
-      catch( itk::ExceptionObject & err )
-        {
-        std::cout << "Can't read specified mask image " << fname.c_str() << std::endl;
-        std::cout << "Exception Object caught: " << std::endl;
-        std::cout << err << std::endl;
-        return EXIT_FAILURE;
-        }
+      ReadImage<MaskImageType>( maskImage , fname );
       regHelper->SetFixedImageMask( maskImage );
       }
     }
