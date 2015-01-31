@@ -234,7 +234,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
         typename MaskImageType::Pointer maskImage;
-        ReadImage<MaskImageType>( maskImage , fname );
+        ReadImage<MaskImageType>( maskImage , fname.c_str() );
         if( m == 0 )
           {
           regHelper->SetFixedImageMask( maskImage );
@@ -249,7 +249,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       std::string fname = maskOption->GetFunction( 0 )->GetName();
       typename MaskImageType::Pointer maskImage;
-      ReadImage<MaskImageType>( maskImage , fname );
+      ReadImage<MaskImageType>( maskImage , fname.c_str() );
       regHelper->SetFixedImageMask( maskImage );
       }
     }
