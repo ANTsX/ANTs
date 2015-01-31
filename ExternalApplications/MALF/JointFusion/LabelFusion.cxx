@@ -5,6 +5,12 @@
 
 #include "WeightedVotingLabelFusionImageFilter.txx"
 
+//Use versioning from ANTs
+//
+#include "ANTsVersion.h"
+#include "antsCommandLineParser.h"
+#include "antsUtilities.h"
+
 using namespace std;
 
 int usage()
@@ -610,7 +616,47 @@ cout<<999<<endl;
 
 int main(int argc, char *argv[])
 {
-  // Parse user input
+
+// Get version information consistent with the rest of ANTS
+    {
+    typedef itk::ants::CommandLineParser ParserType;
+    typedef ParserType::OptionType       OptionType;
+
+    ParserType::Pointer parser = ParserType::New();
+    parser->SetCommand( argv[0] );
+    std::string commandDescription = std::string( "Joint Fusion Program" );
+    parser->SetCommandDescription( commandDescription );
+
+      {
+      const std::string description = std::string( "Get Version Information." );
+
+      OptionType::Pointer option = OptionType::New();
+      option->SetLongName( "version" );
+      option->SetShortName( 'v' );
+      option->SetDescription( description );
+      parser->AddOption( option );
+      }
+    if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+      {
+      // Undefined behavior if failure occurs.  If the complete command line
+      // were wrapped conistently with the rest of ANTs, then this would
+      // be well defined.
+      }
+    ParserType::OptionType::Pointer versionOption = parser->GetOption( "version" );
+    if( versionOption && versionOption->GetNumberOfFunctions() )
+      {
+      std::string versionFunction = versionOption->GetFunction( 0 )->GetName();
+      ConvertToLowerCase( versionFunction );
+      if( versionFunction.compare( "1" ) == 0 || versionFunction.compare( "true" ) == 0 )
+        {
+        //Print Version Information
+        std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
+        return EXIT_SUCCESS;
+        }
+      }
+    }
+
+  // Parse user input using original joint fusion logic.
   if(argc < 5) return usage();
 
   // Get the first option
