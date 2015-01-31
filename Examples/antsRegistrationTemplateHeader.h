@@ -19,6 +19,7 @@
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
 #include "include/antsRegistration.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {
