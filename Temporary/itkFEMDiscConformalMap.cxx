@@ -1,10 +1,6 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkFEMDiscConformalMap.cxx,v $
-  Language:  C++
-  Date:      $Date: 2007/08/07 15:30:39 $
-  Version:   $Revision: 1.3 $
 
   Copyright (c) 2002 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for detailm_Solver.

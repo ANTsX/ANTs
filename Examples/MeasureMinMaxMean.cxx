@@ -1,13 +1,9 @@
 /*=========================================================================
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: MeasureMinMaxMean.cxx,v $
-  Language:  C++
-  Date:      $Date: 2008/12/16 17:56:34 $
-  Version:   $Revision: 1.20 $
 
   Copyright (c) ConsortiumOfANTS. All rights reserved.
   See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+ https://github.com/stnava/ANTs/blob/master/ANTSCopyright.txt for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR

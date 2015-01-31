@@ -7,7 +7,6 @@ applied in MICCAI 2012 Grand Challenge on Multi-Atlas Labeling and finished in t
 Joint label fusion is for combining candidate segmentations produced by registering and warping multiple atlases for a target image. Corrective learning can be applied to further reduce systematic errors produced by joint label fusion (see [2] for detail). In general, corrective learning can be applied to correct systematic errors produced by other segmentation methods as well. If you use this software to produce results for a publication, please cite the
 following paper(s) accordingly:
 
-Suggested Citation Language:
 ============================
 
 Multi-atlas label fusion is a segmentation strategy that has been applied to a number of medical image segmentation problems. The method makes use of a set of expert-labeled atlases, where each atlas consists of a sample image and a set of labels for the anatomic structures in that image.  When a new target image is presented for segmentation, each atlas image is registered to the target image.  The deformation fields obtained by registration are then used to propagate the atlas labels to the target image.  Depending on dissimilarities in anatomy and appearance between the atlas and target images, each atlas produces a different segmentation of the target image.  Multi-atlas label fusion combines these results to produce a consensus segmentation of the target image.

@@ -1,14 +1,10 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsListSampleFunction.h,v $
-  Language:  C++
-  Date:      $Date: 2008/10/18 00:20:04 $
-  Version:   $Revision: 1.1.1.1 $
 
   Copyright (c) ConsortiumOfANTS. All rights reserved.
   See accompanying COPYING.txt or
-  http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt
+  https://github.com/stnava/ANTs/blob/master/ANTSCopyright.txt
   for details.
 
   This software is distributed WITHOUT ANY WARRANTY; without even

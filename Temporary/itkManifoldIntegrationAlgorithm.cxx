@@ -1,10 +1,6 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit (ITK)
-  Module:    $RCSfile: itkManifoldIntegrationAlgorithm.cxx,v $
-  Language:  C++
-  Date:      $Date: 2006/10/13 19:21:27 $
-  Version:   $Revision: 1.3 $
 
 =========================================================================*/
 #ifndef _itkManifoldIntegrationAlgorithm_cxx_

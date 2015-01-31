@@ -1,10 +1,6 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkFEMElement3DC0LinearTriangular.cxx,v $
-  Language:  C++
-  Date:      $Date: 2005/11/08 15:34:16 $
-  Version:   $Revision: 1.1.1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.

@@ -1,10 +1,6 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit (ITK)
-  Module:    $RCSfile: itkDijkstrasAlgorithm.cxx,v $
-  Language:  C++
-  Date:      $Date: 2008/06/05 18:39:14 $
-  Version:   $Revision: 1.8 $
 
 =========================================================================*/
 #ifndef _itkDijkstrasAlgorithm_cxx_

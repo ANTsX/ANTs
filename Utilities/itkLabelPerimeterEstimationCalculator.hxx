@@ -2,7 +2,6 @@
 
   Program:   Insight Segmentation & Registration Toolkit
   Module:    itkLabelPerimeterEstimationCalculator.txx
-  Language:  C++
   Date:      $Date$
   Version:   $Revision$
 
