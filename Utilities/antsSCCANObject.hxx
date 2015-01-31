@@ -2,7 +2,7 @@
 
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsSCCANObject.txx,v $
+  Module:    $RCSfile: antsSCCANObject.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $

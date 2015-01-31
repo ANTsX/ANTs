@@ -1,7 +1,7 @@
 /*===================================================================
 
   Program:   ASHS (Automatic Segmentation of Hippocampal Subfields)
-  Module:    $Id: WeightedVotingLabelFusionImageFilter.txx,v 1.1 2012/09/05 14:39:51 zhuzhu771 Exp $
+  Module:    $Id: WeightedVotingLabelFusionImageFilter.hxx,v 1.1 2012/09/05 14:39:51 zhuzhu771 Exp $
   Language:  C++ program
   Copyright (c) 2012 Paul A. Yushkevich, University of Pennsylvania
 

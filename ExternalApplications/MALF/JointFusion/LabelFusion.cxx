@@ -3,7 +3,7 @@
 #include "itkImageFileWriter.h"
 #include <iostream>
 
-#include "WeightedVotingLabelFusionImageFilter.txx"
+#include "WeightedVotingLabelFusionImageFilter.hxx"
 
 //Use versioning from ANTs
 //
