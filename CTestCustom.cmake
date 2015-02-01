@@ -29,7 +29,7 @@ set(CTEST_CUSTOM_MEMCHECK_IGNORE
 
 set(CTEST_EXTRA_COVERAGE_GLOB
   Source/.*/*.h
-  Source/.*/*.txx
+  Source/.*/*.hxx
   Source/.*/*.cxx
   )
 

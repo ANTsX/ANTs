@@ -1,10 +1,6 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkDeterminantTensorImageFilter.h,v $
-  Language:  C++
-  Date:      $Date: 2008/10/18 00:16:52 $
-  Version:   $Revision: 1.1.1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.

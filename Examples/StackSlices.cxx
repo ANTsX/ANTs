@@ -1,10 +1,6 @@
 /*=========================================================================
 
   Program:   ITK General
-  Module:    $RCSfile: StackSlices.cxx,v $
-  Language:  C++
-  Date:      $Date: 2009/04/02 19:55:26 $
-  Version:   $Revision: 1.22 $
 
   Author: Jeffrey T. Duda (jtduda@seas.upenn.edu)
   Institution: PICSL

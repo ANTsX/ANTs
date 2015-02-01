@@ -2,7 +2,6 @@
 
   Program:   Insight Segmentation & Registration Toolkit
   Module:    itkLabelPerimeterEstimationCalculator.h
-  Language:  C++
   Date:      $Date$
   Version:   $Revision$
 
@@ -132,7 +131,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkLabelPerimeterEstimationCalculator.txx"
+#include "itkLabelPerimeterEstimationCalculator.hxx"
 #endif
 
 #endif

@@ -1,10 +1,6 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkJensenHavrdaCharvatTsallisPointSetMetric.h,v $
-  Language:  C++
-  Date:      $Date: 2008/12/06 04:52:56 $
-  Version:   $Revision: 1.3 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.

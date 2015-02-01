@@ -1,10 +1,6 @@
 /*=========================================================================
 
   Program:   ITK General
-  Module:    $RCSfile: TensorDerivedImage.cxx,v $
-  Language:  C++
-  Date:      $Date: 2009/03/17 18:58:59 $
-  Version:   $Revision: 1.2 $
 
   Author: Jeffrey T. Duda (jtduda@seas.upenn.edu)
   Institution: PICSL
