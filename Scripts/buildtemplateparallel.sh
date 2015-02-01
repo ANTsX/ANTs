@@ -92,6 +92,8 @@ Optional arguments:
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost),  3 == Apple XGrid, 4 == PBS qsub
 
+     -q:  Set default queue for PBS jobs (default: nopreempt)
+
      -g:  Gradient step size (default 0.25) for template update. Does not affect the step size of individual registrations. The
           default of 0.25 should not be increased, smaller numbers result in more cautious template update steps.
 
@@ -640,6 +642,7 @@ if [[ $dim == 4 ]] ; then
   TRANSFORMATIONTYPE="GR_Constrained"
 fi
 N4CORRECT=1 # initialize optional parameter
+DEFQUEUE=nopreempt
 DOQSUB=1 # By default, buildtemplateparallel tries to do things in parallel
 GRADIENTSTEP=0.25 # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
 ITERATIONLIMIT=4
@@ -676,7 +679,7 @@ if [ "$1" == "-h" ]
 fi
 
 # reading command line arguments
-while getopts "c:d:g:i:j:h:m:n:o:p:s:r:t:x:z:" OPT
+while getopts "c:q:d:g:i:j:h:m:n:o:p:s:r:t:x:z:" OPT
   do
   case $OPT in
       h) #help
@@ -689,6 +692,9 @@ while getopts "c:d:g:i:j:h:m:n:o:p:s:r:t:x:z:" OPT
 	      echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
 	      exit 1
 	  fi
+	  ;;
+      q) #override default qsub queue
+	  DEFQUEUE=$OPTARG
 	  ;;
       d) #dimensions
 	  DIM=$OPTARG
@@ -967,7 +973,7 @@ if [ "$RIGID" -eq 1 ] ;
 		    sleep 0.5
 		  elif [ $DOQSUB -eq 4 ]; then
         echo "cp -R /jobtmp/pbstmp.\$PBS_JOBID/* ${currentdir}" >> $qscript;
-		id=`qsub -N antsrigid -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $qscript | awk '{print $1}'`
+		id=`qsub -N antsrigid -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH $QSUBOPTS -q $DEFQUEUE -l nodes=1:ppn=1 -l walltime=4:00:00 $qscript | awk '{print $1}'`
 		jobIDs="$jobIDs $id"
 		    sleep 0.5
       elif  [ $DOQSUB -eq 2 ] ; then
@@ -1170,7 +1176,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 	    echo "$SCRIPTPREPEND" > $qscript
 	     echo "$exe" >> $qscript
       echo "cp -R /jobtmp/pbstmp.\$PBS_JOBID/* ${currentdir}" >> $qscript;
-	     id=`qsub -N antsdef${i} -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
+	     id=`qsub -N antsdef${i} -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH -q $DEFQUEUE -l nodes=1:ppn=1 -l walltime=4:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
 	     jobIDs="$jobIDs $id"
 	sleep 0.5
     elif [ $DOQSUB -eq 2 ] ; then
