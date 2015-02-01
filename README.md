@@ -1,7 +1,8 @@
-[![Build Status](https://travis-ci.org/stnava/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
 ============================
 Advanced Normalization Tools
 ============================
+
+[![Build Status](https://travis-ci.org/stnava/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
 
 Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2)
 
