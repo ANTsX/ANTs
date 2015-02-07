@@ -15,13 +15,13 @@ Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *n
  Install ANTs via pre-built:
 [Packages @ github](https://github.com/stnava/ANTs/releases) older
 versions [@ sourceforge](http://sourceforge.net/projects/advants/files/ANTS/)
-[Github Releases are here](https://github.com/stnava/ANTs/releases) thanks to Arman Eshagi.
+[Github Releases are here](https://github.com/stnava/ANTs/releases) thanks to Arman Eshaghi.
 
  Build [ANTs](https://github.com/stnava/ANTs) from:
 [Source-Code](http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/)
 (recommended)
 
-[ANTs Dashboard](https://travis-ci.org/stnava/ANTs/) thanks to Arman Eshagi and  Hans J. Johnson
+[ANTs Dashboard](https://travis-ci.org/stnava/ANTs/) thanks to Arman Eshaghi and  Hans J. Johnson
 
 ANTs extracts information from complex datasets that include imaging
 ([Word Cloud](http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg)).
