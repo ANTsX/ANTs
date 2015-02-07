@@ -55,10 +55,15 @@ set(CORE_ANTS_APPS
   LabelGeometryMeasures
   LabelClustersUniquely
   Atropos
+  ImageMath
+  AverageImages
+  StackSlices
+  AverageAffineTransform
+  AverageAffineTransformNoRigid
+  antsApplyTransformsToPoints
 )
 
 set(MORE_ANTS_APPS
-    ImageMath
     ANTS
     ANTSJacobian
     PrintHeader
@@ -77,7 +82,6 @@ set(MORE_ANTS_APPS
     ConvertImagePixelType
     ConvertInputImagePixelTypeToFloat
     FitBSplineCurveToPoints
-    AverageImages
     AverageTensorImages
     ImageSetStatistics
     MultiplyImages
@@ -88,7 +92,6 @@ set(MORE_ANTS_APPS
     MeasureMinMaxMean
     WarpImageMultiTransform
     ComposeMultiTransform
-    StackSlices
     MemoryTest
     PermuteFlipImageOrientationAxes
     ImageCompare
@@ -107,11 +110,8 @@ set(MORE_ANTS_APPS
     RebaseTensorImage
     KellySlater
     CreateDTICohort
-    AverageAffineTransform
-    AverageAffineTransformNoRigid
     antsAlignOrigin
     simpleSynRegistration
-    antsApplyTransformsToPoints
     CompositeTransformUtil
     antsMotionCorrDiffusionDirection
     antsSliceRegularizedRegistration
