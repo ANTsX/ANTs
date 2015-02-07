@@ -46,6 +46,10 @@ find_package(ITK 4 REQUIRED)
 include(${ITK_USE_FILE})
 
 
+# Set up which ANTs apps to build
+option(BUILD_ALL_ANTS_APPS "Use All ANTs Apps" ON)
+
+
 # Set up VTK
 option(USE_VTK "Use VTK Libraries" OFF)
 if(USE_VTK)

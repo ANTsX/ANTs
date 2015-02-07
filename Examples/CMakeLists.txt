@@ -36,7 +36,8 @@ endmacro()
 #add_executable(${PROG_WITH_NO_FLAG} ${PROG_WITH_NO_FLAG}.cxx)
 #target_link_libraries(${PROG_WITH_NO_FLAG} antsUtilities ${ITK_LIBRARIES})
 
-set(CORE_ANTS_APPS
+
+set(BASE_ANTS_APPS
   antsAffineInitializer
   ImageMath
   SurfaceCurvature
@@ -57,88 +58,101 @@ set(CORE_ANTS_APPS
   Atropos
 )
 
-set(MORE_ANTS_APPS
-  ANTS
-  ANTSJacobian
-  PrintHeader
-  ResetDirection
-  ANTSUseLandmarkImagesToGetAffineTransform
-  ANTSUseLandmarkImagesToGetBSplineDisplacementField
-  ANTSUseDeformationFieldToGetAffineTransform
-  LaplacianThickness
-  SetOrigin
-  SetSpacing
-  SetDirectionByMatrix
-  ConvertScalarImageToRGB
-  CreateWarpedGridImage
-  MeasureImageSimilarity
-  ConvertToJpg
-  ConvertImagePixelType
-  ConvertInputImagePixelTypeToFloat
-  FitBSplineCurveToPoints
-  AverageImages
-  AverageTensorImages
-  ImageSetStatistics
-  MultiplyImages
-  SmoothImage
-  ClusterImageStatistics
-  LabelOverlapMeasures
-  LesionFilling
-  MeasureMinMaxMean
-  WarpImageMultiTransform
-  ComposeMultiTransform
-  StackSlices
-  MemoryTest
-  PermuteFlipImageOrientationAxes
-  ImageCompare
-  ResampleImageBySpacing
-  CopyImageHeaderInformation
-  WarpTimeSeriesImageMultiTransform
-  ExtractSliceFromImage
-  ExtractRegionFromImage
-  ExtractRegionFromImageByMask
-  PasteImageIntoImage
-  TileImages
-  CreateTiledMosaic
-  CreateImage
-  WarpTensorImageMultiTransform
-  ReorientTensorImage
-  RebaseTensorImage
-  KellySlater
-  CreateDTICohort
-  AverageAffineTransform
-  AverageAffineTransformNoRigid
-  antsAlignOrigin
-  simpleSynRegistration
-  antsApplyTransformsToPoints
-  CompositeTransformUtil
-  antsMotionCorrDiffusionDirection
-  antsSliceRegularizedRegistration
-  CreateDisplacementField
-  ANTSIntegrateVectorField
-  ANTSIntegrateVelocityField
-  ConvertTransformFile
-  compareTwoTransforms
-  TimeSCCAN
-  TextureCooccurrenceFeatures
-  TextureRunLengthFeatures
-  ImageIntensityStatistics
-  GetConnectedComponentsFeatureImages
-  DeNrrd
-  antsTransformInfo
-  antsUtilitiesTesting
-)
-
-
-foreach(ANTS_APP ${CORE_ANTS_APPS})
-  STANDARD_ANTS_BUILD(${ANTS_APP} "")
-endforeach()
-
 if (BUILD_ALL_ANTS_APPS)
-foreach(ANTS_APP ${MORE_ANTS_APPS})
+set(BASE_ANTS_APPS
+  antsAffineInitializer
+  ImageMath
+  SurfaceCurvature
+  SurfaceBasedSmoothing
+  CreateJacobianDeterminantImage
+  ThresholdImage
+  ResampleImage
+  sccan
+  N4BiasFieldCorrection
+  N3BiasFieldCorrection
+  KellyKapowski
+  antsRegistration
+  antsMotionCorrStats
+  antsMotionCorr
+  antsApplyTransforms
+  LabelGeometryMeasures
+  LabelClustersUniquely
+  Atropos
+    ANTS
+    ANTSJacobian
+    PrintHeader
+    ResetDirection
+    ANTSUseLandmarkImagesToGetAffineTransform
+    ANTSUseLandmarkImagesToGetBSplineDisplacementField
+    ANTSUseDeformationFieldToGetAffineTransform
+    LaplacianThickness
+    SetOrigin
+    SetSpacing
+    SetDirectionByMatrix
+    ConvertScalarImageToRGB
+    CreateWarpedGridImage
+    MeasureImageSimilarity
+    ConvertToJpg
+    ConvertImagePixelType
+    ConvertInputImagePixelTypeToFloat
+    FitBSplineCurveToPoints
+    AverageImages
+    AverageTensorImages
+    ImageSetStatistics
+    MultiplyImages
+    SmoothImage
+    ClusterImageStatistics
+    LabelOverlapMeasures
+    LesionFilling
+    MeasureMinMaxMean
+    WarpImageMultiTransform
+    ComposeMultiTransform
+    StackSlices
+    MemoryTest
+    PermuteFlipImageOrientationAxes
+    ImageCompare
+    ResampleImageBySpacing
+    CopyImageHeaderInformation
+    WarpTimeSeriesImageMultiTransform
+    ExtractSliceFromImage
+    ExtractRegionFromImage
+    ExtractRegionFromImageByMask
+    PasteImageIntoImage
+    TileImages
+    CreateTiledMosaic
+    CreateImage
+    WarpTensorImageMultiTransform
+    ReorientTensorImage
+    RebaseTensorImage
+    KellySlater
+    CreateDTICohort
+    AverageAffineTransform
+    AverageAffineTransformNoRigid
+    antsAlignOrigin
+    simpleSynRegistration
+    antsApplyTransformsToPoints
+    CompositeTransformUtil
+    antsMotionCorrDiffusionDirection
+    antsSliceRegularizedRegistration
+    CreateDisplacementField
+    ANTSIntegrateVectorField
+    ANTSIntegrateVelocityField
+    ConvertTransformFile
+    compareTwoTransforms
+    TimeSCCAN
+    TextureCooccurrenceFeatures
+    TextureRunLengthFeatures
+    ImageIntensityStatistics
+    GetConnectedComponentsFeatureImages
+    DeNrrd
+    antsTransformInfo
+    antsUtilitiesTesting
+  )
+endif(BUILD_ALL_ANTS_APPS)
+
+foreach(ANTS_APP ${BASE_ANTS_APPS})
   STANDARD_ANTS_BUILD(${ANTS_APP} "")
 endforeach()
-endif(BUILD_ALL_ANTS_APPS)
 
 
 if(USE_VTK)
