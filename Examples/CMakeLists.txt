@@ -36,33 +36,41 @@ endmacro()
 #add_executable(${PROG_WITH_NO_FLAG} ${PROG_WITH_NO_FLAG}.cxx)
 #target_link_libraries(${PROG_WITH_NO_FLAG} antsUtilities ${ITK_LIBRARIES})
 
-set(BASE_ANTS_APPS
+set(CORE_ANTS_APPS
+  antsAffineInitializer
+  ImageMath
+  SurfaceCurvature
+  SurfaceBasedSmoothing
+  CreateJacobianDeterminantImage
+  ThresholdImage
+  ResampleImage
+  sccan
+  N4BiasFieldCorrection
+  N3BiasFieldCorrection
+  KellyKapowski
+  antsRegistration
+  antsMotionCorrStats
+  antsMotionCorr
+  antsApplyTransforms
+  LabelGeometryMeasures
+  LabelClustersUniquely
+  Atropos
+)
+
+set(MORE_ANTS_APPS
   ANTS
   ANTSJacobian
   PrintHeader
   ResetDirection
-  # ResetDirection2
-  # BoykovGraphCutFilter
-  # GeneralLinearModel
   ANTSUseLandmarkImagesToGetAffineTransform
   ANTSUseLandmarkImagesToGetBSplineDisplacementField
   ANTSUseDeformationFieldToGetAffineTransform
-  # FDR
-  antsAffineInitializer
-  # antsSimilarityInitializer
-  ImageMath
-  SurfaceCurvature
-  SurfaceBasedSmoothing
-  # test
-  # WarpImage
   LaplacianThickness
   SetOrigin
   SetSpacing
   SetDirectionByMatrix
-  # WarpFunctionalImage
   ConvertScalarImageToRGB
   CreateWarpedGridImage
-  CreateJacobianDeterminantImage
   MeasureImageSimilarity
   ConvertToJpg
   ConvertImagePixelType
@@ -71,12 +79,9 @@ set(BASE_ANTS_APPS
   AverageImages
   AverageTensorImages
   ImageSetStatistics
-  ThresholdImage
   MultiplyImages
   SmoothImage
   ClusterImageStatistics
-  LabelClustersUniquely
-  # StudentsTestOnImages
   LabelOverlapMeasures
   LesionFilling
   MeasureMinMaxMean
@@ -84,18 +89,14 @@ set(BASE_ANTS_APPS
   ComposeMultiTransform
   StackSlices
   MemoryTest
-  # ANTSOrientImage
   PermuteFlipImageOrientationAxes
   ImageCompare
   ResampleImageBySpacing
-  # ResampleImageByOtherImage
   CopyImageHeaderInformation
   WarpTimeSeriesImageMultiTransform
-  ResampleImage
   ExtractSliceFromImage
   ExtractRegionFromImage
   ExtractRegionFromImageByMask
-  LabelGeometryMeasures
   PasteImageIntoImage
   TileImages
   CreateTiledMosaic
@@ -103,28 +104,19 @@ set(BASE_ANTS_APPS
   WarpTensorImageMultiTransform
   ReorientTensorImage
   RebaseTensorImage
-  N3BiasFieldCorrection
-  N4BiasFieldCorrection
   KellySlater
-  KellyKapowski
   CreateDTICohort
   AverageAffineTransform
   AverageAffineTransformNoRigid
   antsAlignOrigin
-  antsRegistration
   simpleSynRegistration
-  antsApplyTransforms
   antsApplyTransformsToPoints
   CompositeTransformUtil
-  antsMotionCorr
-  antsMotionCorrStats
   antsMotionCorrDiffusionDirection
   antsSliceRegularizedRegistration
-  sccan
   CreateDisplacementField
   ANTSIntegrateVectorField
   ANTSIntegrateVelocityField
-  Atropos
   ConvertTransformFile
   compareTwoTransforms
   TimeSCCAN
@@ -136,9 +128,18 @@ set(BASE_ANTS_APPS
   antsTransformInfo
   antsUtilitiesTesting
 )
-foreach(ANTS_APP ${BASE_ANTS_APPS})
+
+
+foreach(ANTS_APP ${CORE_ANTS_APPS})
   STANDARD_ANTS_BUILD(${ANTS_APP} "")
 endforeach()
+
+if (BUILD_ALL_ANTS_APPS)
+foreach(ANTS_APP ${MORE_ANTS_APPS})
+  STANDARD_ANTS_BUILD(${ANTS_APP} "")
+endforeach()
+endif(BUILD_ALL_ANTS_APPS)
+
 
 if(USE_VTK)
 find_package(VTK 6.2 REQUIRED NO_MODULE)

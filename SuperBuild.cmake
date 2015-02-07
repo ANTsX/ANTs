@@ -95,6 +95,8 @@ CMAKE_DEPENDENT_OPTION(
 
 set(EXTERNAL_PROJECT_BUILD_TYPE "Release" CACHE STRING "Default build type for support libraries")
 
+option(BUILD_ALL_ANTS_APPS "Build all ANTs apps" ON)
+
 option(USE_SYSTEM_ITK "Build using an externally defined version of ITK" OFF)
 option(USE_SYSTEM_SlicerExecutionModel "Build using an externally defined version of SlicerExecutionModel"  OFF)
 

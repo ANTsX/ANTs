@@ -45,6 +45,7 @@ message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\""
 find_package(ITK 4 REQUIRED)
 include(${ITK_USE_FILE})
 
+
 # Set up VTK
 option(USE_VTK "Use VTK Libraries" OFF)
 if(USE_VTK)
