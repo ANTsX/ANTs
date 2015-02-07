@@ -39,7 +39,6 @@ endmacro()
 
 set(CORE_ANTS_APPS
   antsAffineInitializer
-  ImageMath
   SurfaceCurvature
   SurfaceBasedSmoothing
   CreateJacobianDeterminantImage
@@ -59,6 +58,7 @@ set(CORE_ANTS_APPS
 )
 
 set(MORE_ANTS_APPS
+    ImageMath
     ANTS
     ANTSJacobian
     PrintHeader
