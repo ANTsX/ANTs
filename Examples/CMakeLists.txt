@@ -37,7 +37,7 @@ endmacro()
 #target_link_libraries(${PROG_WITH_NO_FLAG} antsUtilities ${ITK_LIBRARIES})
 
 
-set(BASE_ANTS_APPS
+set(CORE_ANTS_APPS
   antsAffineInitializer
   ImageMath
   SurfaceCurvature
@@ -58,26 +58,7 @@ set(BASE_ANTS_APPS
   Atropos
 )
 
-if (BUILD_ALL_ANTS_APPS)
-set(BASE_ANTS_APPS
-  antsAffineInitializer
-  ImageMath
-  SurfaceCurvature
-  SurfaceBasedSmoothing
-  CreateJacobianDeterminantImage
-  ThresholdImage
-  ResampleImage
-  sccan
-  N4BiasFieldCorrection
-  N3BiasFieldCorrection
-  KellyKapowski
-  antsRegistration
-  antsMotionCorrStats
-  antsMotionCorr
-  antsApplyTransforms
-  LabelGeometryMeasures
-  LabelClustersUniquely
-  Atropos
+set(MORE_ANTS_APPS
     ANTS
     ANTSJacobian
     PrintHeader
@@ -148,11 +129,16 @@ set(BASE_ANTS_APPS
     antsTransformInfo
     antsUtilitiesTesting
   )
-endif(BUILD_ALL_ANTS_APPS)
 
-foreach(ANTS_APP ${BASE_ANTS_APPS})
+foreach(ANTS_APP ${CORE_ANTS_APPS})
   STANDARD_ANTS_BUILD(${ANTS_APP} "")
 endforeach()
+
+if (BUILD_ALL_ANTS_APPS)
+foreach(ANTS_APP ${MORE_ANTS_APPS})
+  STANDARD_ANTS_BUILD(${ANTS_APP} "")
+endforeach()
+endif(BUILD_ALL_ANTS_APPS)
 
 
 if(USE_VTK)
