@@ -76,6 +76,8 @@ Optional arguments:
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
+     -x:  mask for the fixed image space
+
      -p:  precision type (default = 'd')
         f: float
         d: double
@@ -142,6 +144,8 @@ Optional arguments:
      -r:  histogram bins for mutual information in SyN stage (default = 32)
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
+
+     -x:  mask for the fixed image space
 
      -p:  precision type (default = 'd')
         f: float
@@ -258,10 +262,10 @@ SPLINEDISTANCE=26
 TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
 CCRADIUS=32
-
+MASK=0
 USEHISTOGRAMMATCHING=0
 # reading command line arguments
-while getopts "d:f:h:m:j:n:o:p:r:s:t:" OPT
+while getopts "d:f:h:m:j:n:o:p:r:s:t:x:" OPT
   do
   case $OPT in
       h) #help
@@ -273,6 +277,9 @@ while getopts "d:f:h:m:j:n:o:p:r:s:t:" OPT
    ;;
       j)  # histogram matching
    USEHISTOGRAMMATCHING=$OPTARG
+   ;;
+      x)  # inclusive mask
+   MASK=$OPTARG
    ;;
       f)  # fixed image
    FIXEDIMAGES[${#FIXEDIMAGES[@]}]=$OPTARG
@@ -422,7 +429,8 @@ AFFINESTAGE="--transform Affine[0.1] \
 SYNMETRICS=''
 for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
   do
-    SYNMETRICS="$SYNMETRICS --metric MI[${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${CCRADIUS}]"
+    SYNMETRICS="$SYNMETRICS --metric
+      MI[${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${CCRADIUS}]"
   done
 
 SYNSTAGE="${SYNMETRICS} \
@@ -491,18 +499,23 @@ case "$PRECISIONTYPE" in
   ;;
 esac
 
+if [[ ${#MASK} -eq 1 ]] ; then
+  MASK=""
+else
+  MASK=" -x $MASK "
+fi
+
 COMMAND="${ANTS} --dimensionality $DIM $PRECISION \
                  --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \
                  --interpolation Linear \
                  --use-histogram-matching ${USEHISTOGRAMMATCHING} \
-                 --winsorize-image-intensities [0.005,0.995] \
+                 --winsorize-image-intensities [0.005,0.995] $MASK \
                  $STAGES"
 
 echo " antsRegistration call:"
 echo "--------------------------------------------------------------------------------------"
 echo ${COMMAND}
 echo "--------------------------------------------------------------------------------------"
-
 $COMMAND
 
 ###############################
