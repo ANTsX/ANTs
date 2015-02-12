@@ -27,8 +27,6 @@
 #include "itkGradientImageFilter.h"
 #include "itkBlackTopHatImageFilter.h"
 #include "itkBSplineControlPointImageFilter.h"
-#include "itkBayesianClassifierImageFilter.h"
-#include "itkBayesianClassifierInitializationImageFilter.h"
 #include "itkBilateralImageFilter.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkCSVNumericObjectFileWriter.h"
