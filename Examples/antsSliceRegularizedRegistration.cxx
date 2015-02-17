@@ -921,8 +921,9 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         }
       }
 
-// now apply to the inverse mapﬁ
-      for( unsigned int timedim = 0; timedim < timedims; timedim++ )
+// now apply to the inverse map
+      unsigned int timedim = 0;
+      for( timedim = 0; timedim < timedims; timedim++ )
         {
         typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType>
           _ConverterType;

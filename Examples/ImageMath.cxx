@@ -55,7 +55,6 @@
 #include "itkHistogram.h"
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkImage.h"
-#include "itkImageClassifierBase.h"
 #include "itkImageDuplicator.h"
 #include "itkImageFileWriter.h"
 #include "itkImageGaussianModelEstimator.h"
