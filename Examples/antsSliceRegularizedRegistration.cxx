@@ -922,40 +922,48 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
       }
 
 // now apply to the inverse map
-      unsigned int timedim = 0;
-      for( timedim = 0; timedim < timedims; timedim++ )
+      unsigned int timedimX = 0;
+      for( timedimX = 0; timedimX < timedims; timedimX++ )
         {
         typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType>
           _ConverterType;
         typename _ConverterType::Pointer converter = _ConverterType::New();
-        converter->SetOutputOrigin( movingSliceList[timedim]->GetOrigin() );
-        converter->SetOutputStartIndex( movingSliceList[timedim]->GetBufferedRegion().GetIndex() );
-        converter->SetSize( movingSliceList[timedim]->GetBufferedRegion().GetSize() );
-        converter->SetOutputSpacing( movingSliceList[timedim]->GetSpacing() );
-        converter->SetOutputDirection( movingSliceList[timedim]->GetDirection() );
-        typename TranslationTransformType::Pointer invtx = TranslationTransformType::New();
+        converter->SetOutputOrigin( movingSliceList[ timedimX ]->GetOrigin() );
+        converter->SetOutputStartIndex(
+          movingSliceList[ timedimX ]->GetBufferedRegion().GetIndex() );
+        converter->SetSize( movingSliceList[
+          timedimX ]->GetBufferedRegion().GetSize() );
+        converter->SetOutputSpacing(
+          movingSliceList[ timedimX ]->GetSpacing() );
+        converter->SetOutputDirection(
+          movingSliceList[ timedimX ]->GetDirection() );
+        typename TranslationTransformType::Pointer invtx =
+         TranslationTransformType::New();
         invtx->SetIdentity();
-        transformList[timedim]->GetInverse( invtx );
+        transformList[ timedimX ]->GetInverse( invtx );
         converter->SetTransform( invtx );
         converter->Update();
 
         // resample the moving image and then put it in its place
         typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> ResampleFilterType;
-        typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+        typename ResampleFilterType::Pointer resampler =
+          ResampleFilterType::New();
         resampler->SetTransform( invtx );
-        interpolator->SetInputImage( fixedSliceList[timedim] );
+        interpolator->SetInputImage( fixedSliceList[ timedimX ] );
         resampler->SetInterpolator( interpolator );
-        resampler->SetInput( fixedSliceList[timedim] );
-        resampler->SetOutputParametersFromImage( movingSliceList[timedim] );
+        resampler->SetInput( fixedSliceList[ timedimX ] );
+        resampler->SetOutputParametersFromImage( movingSliceList[ timedimX ] );
         resampler->SetDefaultPixelValue( 0 );
         resampler->Update();
 
         /** Here, we put the resampled 2D image into the 3D volume */
         typedef itk::ImageRegionIteratorWithIndex<FixedImageType> Iterator;
-        Iterator vfIter2(  resampler->GetOutput(), resampler->GetOutput()->GetLargestPossibleRegion() );
+        Iterator vfIter2(  resampler->GetOutput(),
+          resampler->GetOutput()->GetLargestPossibleRegion() );
         for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
           {
-          VectorType vec = converter->GetOutput()->GetPixel( vfIter2.GetIndex() );
+          VectorType vec = converter->GetOutput()->GetPixel(
+            vfIter2.GetIndex() );
           VectorIOType vecout;
           vecout.Fill( 0 );
           typename MovingIOImageType::IndexType ind;
@@ -964,7 +972,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
             ind[xx] = vfIter2.GetIndex()[xx];
             vecout[xx] = vec[xx];
             }
-          unsigned int tdim = timedim;
+          unsigned int tdim = timedimX;
           if( tdim > ( timedims - 1 ) )
             {
             tdim = timedims - 1;
