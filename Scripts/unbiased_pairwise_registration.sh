@@ -119,7 +119,7 @@ antsApplyTransforms -d $dim -i $B -o ${nm}_aff.nii.gz -t [ $initAmat, 1 ] -t  $i
                          -c [${synits},1.e-8,10]  \
                         -s 1x0 \
                         -f 2x1 \
-                       -u $uval -b 0 -z 1 \
+                       -u $uval -z 1 \
                        -o [${nm},${nm}_diff_symm.nii.gz]
 #    $reg -d $dim  --initial-fixed-transform $initBmat  --initial-moving-transform $initAmat \
 #                         -m cc[  $B, $A , 1 , 4 ] \
