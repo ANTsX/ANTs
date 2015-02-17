@@ -1174,12 +1174,7 @@ public:
       if( subsamplingfactors.size() > 0 )
         {
         std::vector<float> factors = this->m_Parser->template ConvertVector<float>( subsamplingfactors );
-        if( factors.size() != this->m_NumberOfLevels )
-          {
-          itkWarningMacro( "The number of levels does not match the size of factors."
-                           << "  Using default settings." );
-          }
-        else
+        if( factors.size() == this->m_NumberOfLevels )
           {
           this->m_SubsamplingFactors.SetSize( this->m_NumberOfLevels );
           for( unsigned int d = 0; d < this->m_NumberOfLevels; d++ )
@@ -1187,6 +1182,11 @@ public:
             this->m_SubsamplingFactors[d] = factors[d];
             }
           }
+//         else
+//           {
+//           itkWarningMacro( "The number of levels does not match the size of factors."
+//                            << "  Using default settings." );
+//           }
         }
       }
 
@@ -1197,12 +1197,7 @@ public:
       {
       std::string        gaussiansmoothingsigmas = gaussianSmoothingSigmasOption->GetFunction()->GetName();
       std::vector<float> sigmas = this->m_Parser->template ConvertVector<float>( gaussiansmoothingsigmas );
-      if( sigmas.size() != this->m_NumberOfLevels )
-        {
-        itkWarningMacro( "The number of levels does not match the size of sigmas."
-                         << "  Using default settings." );
-        }
-      else
+      if( sigmas.size() == this->m_NumberOfLevels )
         {
         this->m_GaussianSmoothingSigmas.SetSize( this->m_NumberOfLevels );
         for( unsigned int d = 0; d < this->m_NumberOfLevels; d++ )
@@ -1210,6 +1205,11 @@ public:
           this->m_GaussianSmoothingSigmas[d] = sigmas[d];
           }
         }
+//       else
+//         {
+//         itkWarningMacro( "The number of levels does not match the size of sigmas."
+//                          << "  Using default settings." );
+//         }
       }
 
     unsigned int maxits = 0;

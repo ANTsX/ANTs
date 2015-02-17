@@ -89,6 +89,11 @@ NB: All images to be added to the template should be in the same directory, and 
     script should be invoked from that directory.
 
 Optional arguments:
+     
+     -a   image statistic used to summarize images (default 1)
+          0 = mean
+          1 = mean of normalized intensities
+          2 = median
 
      -b:  Backup images and results from all iterations (default = 0):  Boolean to save
           the transform files, bias corrected, and warped images for each iteration.
@@ -101,11 +106,6 @@ Optional arguments:
           4 = PBS qsub
 
      -e   use single precision ( default 1 )
-
-     -a   image statistic used to summarize images (default 1)
-          0 = mean
-          1 = mean of normalized intensities
-          2 = median
 
      -g:  Gradient step size (default 0.25): smaller in magnitude results in more
           cautious steps.
@@ -176,11 +176,23 @@ Optional arguments:
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full
           path.
-
+          For multiple modalities, specify -z modality1.nii.gz -z modality2.nii.gz ...
+          in the same modality order as the input images.
 
 Example:
 
 `basename $0` -d 3 -i 3 -k 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN  -m CC -c 0 -o MY sub*avg.nii.gz
+
+Multimodal example:
+
+`basename $0` -d 3 -i 3 -k 2 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN -z t1.nii.gz -z t2.nii.gz \ 
+ -m CC -c 0 -o MY templateInput.csv
+
+where templateInput.csv contains
+
+subjectA_t1.nii.gz,subjectA_t2.nii.gz
+subjectB_t1.nii.gz,subjectB_t2.nii.gz
+...
 
 --------------------------------------------------------------------------------------
 ANTS was created by:
@@ -255,9 +267,10 @@ function summarizeimageset() {
       AverageImages $dim $output 1 ${images[*]}
       ;;
     2) #median
-      for i in "${images[@]}";
+      local image
+      for image in "${images[@]}";
         do
-          echo $i >> ${output}_list.txt
+          echo $image >> ${output}_list.txt
         done
 
       ImageSetStatistics $dim ${output}_list.txt ${output} 0
@@ -615,7 +628,8 @@ elif [[ $nargs -lt 6 ]]
     Usage >&2
 fi
 
-OUTPUT_DIR=${OUTPUTNAME%\/*}
+OUTPUT_DIR=`dirname ${OUTPUTNAME}`
+
 if [[ ! -d $OUTPUT_DIR ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
@@ -937,10 +951,10 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         summarizeimageset $DIM ${TEMPLATES[$i]} $STATSMETHOD ${CURRENTIMAGESET[@]}
         #${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
       fi
-
+ 
     if [[ ! -s ${TEMPLATES[$i]} ]];
       then
-        echo "Your template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
+        echo "Your initial template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
         exit 1
       fi
 done
