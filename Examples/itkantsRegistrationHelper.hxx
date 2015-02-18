@@ -233,8 +233,8 @@ RegistrationHelper<TComputeType, VImageDimension>
 ::AddMetric( MetricEnumeration metricType,
              ImageType *fixedImage,
              ImageType *movingImage,
-             PointSetType *fixedPointSet,
-             PointSetType *movingPointSet,
+             LabeledPointSetType *fixedPointSet,
+             LabeledPointSetType *movingPointSet,
              unsigned int stageID,
              RealType weighting,
              SamplingStrategy samplingStrategy,
@@ -835,7 +835,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       typename ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
       typename PointSetMetricType::Pointer pointSetMetric = ITK_NULLPTR;
 
-      typedef itk::LabeledPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> LabeledPointSetMetricType;
+      typedef itk::LabeledPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, RealType> LabeledPointSetMetricType;
       typename LabeledPointSetMetricType::Pointer labeledPointSetMetric = LabeledPointSetMetricType::New();
 
       switch( currentMetricType )
@@ -932,7 +932,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           {
           this->Logger() << "  using the ICP metric (weight = "
                          << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
-          typedef itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> IcpPointSetMetricType;
+          typedef itk::EuclideanDistancePointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, RealType> IcpPointSetMetricType;
           typename IcpPointSetMetricType::Pointer icpMetric = IcpPointSetMetricType::New();
 
           labeledPointSetMetric->SetPointSetMetric( icpMetric.GetPointer() );
@@ -943,7 +943,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           {
           this->Logger() << "  using the PSE metric (weight = "
                          << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
-          typedef itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PsePointSetMetricType;
+          typedef itk::ExpectationBasedPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, RealType> PsePointSetMetricType;
           typename PsePointSetMetricType::Pointer pseMetric = PsePointSetMetricType::New();
           pseMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
           pseMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
@@ -956,7 +956,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           {
           this->Logger() << "  using the JHCT metric (weight = "
                          << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
-          typedef itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<PointSetType, RealType> JhctPointSetMetricType;
+          typedef itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<LabeledPointSetType, RealType> JhctPointSetMetricType;
           typename JhctPointSetMetricType::Pointer jhctMetric = JhctPointSetMetricType::New();
           jhctMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
           jhctMetric->SetKernelSigma( 10.0 );
@@ -1186,7 +1186,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       typename VirtualPointSetType::Pointer virtualPointSet = VirtualPointSetType::New();
       virtualPointSet->Initialize();
       virtualPointSet->SetPoints(
-        const_cast<typename PointSetType::PointsContainer *>( pointSetMetric->GetFixedPointSet()->GetPoints() ) );
+        const_cast<typename LabeledPointSetType::PointsContainer *>( pointSetMetric->GetFixedPointSet()->GetPoints() ) );
       scalesEstimator->SetVirtualDomainPointSet( virtualPointSet );
       }
 
@@ -1392,7 +1392,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         {
         typedef typename RigidTransformTraits<TComputeType, VImageDimension>::TransformType RigidTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, RigidTransformType> RigidRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, RigidTransformType, ImageType, LabeledPointSetType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
         for( unsigned int n = 0; n < stageMetricList.size(); n++ )
           {
@@ -1520,7 +1520,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         typedef typename CompositeAffineTransformTraits<TComputeType, VImageDimension>::TransformType CompositeAffineTransformType;
 
         typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               CompositeAffineTransformType> CompositeAffineRegistrationType;
+          CompositeAffineTransformType, ImageType, LabeledPointSetType> CompositeAffineRegistrationType;
         typename CompositeAffineRegistrationType::Pointer affineRegistration = CompositeAffineRegistrationType::New();
         for( unsigned int n = 0; n < stageMetricList.size(); n++ )
           {
@@ -1606,8 +1606,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         {
         typedef typename SimilarityTransformTraits<TComputeType, VImageDimension>::TransformType SimilarityTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               SimilarityTransformType> SimilarityRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, SimilarityTransformType,
+          ImageType, LabeledPointSetType> SimilarityRegistrationType;
         typename SimilarityRegistrationType::Pointer similarityRegistration = SimilarityRegistrationType::New();
         for( unsigned int n = 0; n < stageMetricList.size(); n++ )
           {
@@ -1712,8 +1712,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         {
         typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               TranslationTransformType> TranslationRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, TranslationTransformType,
+          ImageType, LabeledPointSetType> TranslationRegistrationType;
         typename TranslationRegistrationType::Pointer translationRegistration = TranslationRegistrationType::New();
         for( unsigned int n = 0; n < stageMetricList.size(); n++ )
           {
@@ -1846,8 +1846,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           GaussianDisplacementFieldTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, GaussianDisplacementFieldTransformType>
-          DisplacementFieldRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, GaussianDisplacementFieldTransformType,
+          ImageType, LabeledPointSetType> DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
@@ -2001,8 +2001,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           BSplineDisplacementFieldTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineDisplacementFieldTransformType>
-          DisplacementFieldRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineDisplacementFieldTransformType,
+          ImageType, LabeledPointSetType> DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
@@ -2169,7 +2169,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         const unsigned int SplineOrder = 3;
         typedef itk::BSplineTransform<RealType, VImageDimension, SplineOrder> BSplineTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineTransformType> BSplineRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineTransformType,
+          ImageType, LabeledPointSetType> BSplineRegistrationType;
         typename BSplineRegistrationType::Pointer bsplineRegistration = BSplineRegistrationType::New();
 
         if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
@@ -2385,8 +2386,7 @@ RegistrationHelper<TComputeType, VImageDimension>
            TimeVaryingVelocityFieldOutputTransformType;
 
         typedef itk::TimeVaryingVelocityFieldImageRegistrationMethodv4<ImageType, ImageType,
-                                                                       TimeVaryingVelocityFieldOutputTransformType>
-                                                                                            VelocityFieldRegistrationType;
+          TimeVaryingVelocityFieldOutputTransformType, ImageType, LabeledPointSetType>  VelocityFieldRegistrationType;
         typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration =
           VelocityFieldRegistrationType::New();
 
@@ -2609,7 +2609,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           TimeVaryingBSplineVelocityFieldOutputTransformType;
 
         typedef itk::TimeVaryingBSplineVelocityFieldImageRegistrationMethod<ImageType, ImageType,
-          TimeVaryingBSplineVelocityFieldOutputTransformType>
+          TimeVaryingBSplineVelocityFieldOutputTransformType, ImageType, LabeledPointSetType>
           VelocityFieldRegistrationType;
         typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration =
           VelocityFieldRegistrationType::New();
@@ -2792,7 +2792,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           AllocImage<DisplacementFieldType>( virtualDomainImage, zeroVector );
 
         typedef itk::SyNImageRegistrationMethod<ImageType, ImageType,
-                                                DisplacementFieldTransformType> DisplacementFieldRegistrationType;
+          DisplacementFieldTransformType, ImageType, LabeledPointSetType> DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
@@ -3013,7 +3013,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           BSplineDisplacementFieldTransformType;
 
-        typedef itk::BSplineSyNImageRegistrationMethod<ImageType, ImageType, BSplineDisplacementFieldTransformType>
+        typedef itk::BSplineSyNImageRegistrationMethod<ImageType, ImageType,
+          BSplineDisplacementFieldTransformType, ImageType, LabeledPointSetType>
           DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
@@ -3200,8 +3201,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         typedef itk::GaussianExponentialDiffeomorphicTransform<RealType,
                                                                VImageDimension> GaussianDisplacementFieldTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, GaussianDisplacementFieldTransformType>
-          DisplacementFieldRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, GaussianDisplacementFieldTransformType,
+          ImageType, LabeledPointSetType> DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
@@ -3365,8 +3366,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         typedef itk::BSplineExponentialDiffeomorphicTransform<RealType, VImageDimension>
           BSplineDisplacementFieldTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineDisplacementFieldTransformType>
-          DisplacementFieldRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineDisplacementFieldTransformType,
+          ImageType, LabeledPointSetType> DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 

@@ -118,12 +118,13 @@ public:
   typedef typename ImageType::Pointer                                                ImagePointer;
   typedef itk::ImageBase<VImageDimension>                                            ImageBaseType;
   typedef typename ImageType::SpacingType                                            ImageSpacingType;
-  typedef itk::PointSet<unsigned int, VImageDimension>                               PointSetType;
-  typedef typename PointSetType::Pointer                                             PointSetPointer;
+  typedef itk::PointSet<unsigned int, VImageDimension>                               LabeledPointSetType;
+  typedef typename LabeledPointSetType::Pointer                                      PointSetPointer;
 
   typedef itk::Transform<TComputeType, VImageDimension, VImageDimension>             TransformType;
   typedef itk::AffineTransform<RealType, VImageDimension>                            AffineTransformType;
-  typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, AffineTransformType>  AffineRegistrationType;
+  typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, AffineTransformType,
+    ImageType, LabeledPointSetType>                                                  AffineRegistrationType;
   typedef typename AffineRegistrationType::ShrinkFactorsPerDimensionContainerType    ShrinkFactorsPerDimensionContainerType;
   typedef typename AffineTransformType::Superclass                                   MatrixOffsetTransformBaseType;
   typedef typename MatrixOffsetTransformBaseType::Pointer                            MatrixOffsetTransformBasePointer;
@@ -138,7 +139,8 @@ public:
   typedef itk::ObjectToObjectMultiMetricv4
                      <VImageDimension, VImageDimension, ImageType, RealType>         MultiMetricType;
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       ImageMetricType;
-  typedef itk::PointSetToPointSetMetricv4<PointSetType, PointSetType, RealType>      PointSetMetricType;
+  typedef itk::PointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType,
+                                                                      RealType>      PointSetMetricType;
   typedef itk::ImageMaskSpatialObject<VImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                             MaskImageType;
   typedef itk::InterpolateImageFunction<ImageType, RealType>                         InterpolatorType;
@@ -181,7 +183,7 @@ public:
   public:
     Metric( MetricEnumeration metricType,
             ImageType *fixedImage, ImageType *movingImage,
-            PointSetType *fixedPointSet, PointSetType *movingPointSet,
+            LabeledPointSetType *fixedPointSet, LabeledPointSetType *movingPointSet,
             unsigned int stageID, RealType weighting,
             SamplingStrategy samplingStrategy, int numberOfBins,
             unsigned int radius, bool useBoundaryPointsOnly,
@@ -429,8 +431,8 @@ public:
   void AddMetric( MetricEnumeration metricType,
                   ImageType *fixedImage,
                   ImageType *movingImage,
-                  PointSetType *fixedPointSet,
-                  PointSetType *movingPointSet,
+                  LabeledPointSetType *fixedPointSet,
+                  LabeledPointSetType *movingPointSet,
                   unsigned int stageID,
                   RealType weighting,
                   SamplingStrategy samplingStrategy,

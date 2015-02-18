@@ -33,7 +33,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   typedef TComputeType                                                     RealType;
   typedef typename ants::RegistrationHelper<TComputeType, VImageDimension> RegistrationHelperType;
   typedef typename RegistrationHelperType::ImageType                       ImageType;
-  typedef typename RegistrationHelperType::PointSetType                    PointSetType;
+  typedef typename RegistrationHelperType::LabeledPointSetType             LabeledPointSetType;
   typedef typename RegistrationHelperType::CompositeTransformType          CompositeTransformType;
 
   typename RegistrationHelperType::Pointer regHelper = RegistrationHelperType::New();
@@ -794,8 +794,8 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     typename ImageType::Pointer fixedImage = ITK_NULLPTR;
     typename ImageType::Pointer movingImage = ITK_NULLPTR;
-    typename PointSetType::Pointer fixedPointSet = ITK_NULLPTR;
-    typename PointSetType::Pointer movingPointSet = ITK_NULLPTR;
+    typename LabeledPointSetType::Pointer fixedPointSet = ITK_NULLPTR;
+    typename LabeledPointSetType::Pointer movingPointSet = ITK_NULLPTR;
 
     float metricWeighting = 1.0;
     if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 2 )
@@ -912,8 +912,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       std::cout << "  fixed point set: " << fixedFileName << std::endl;
       std::cout << "  moving point set: " << movingFileName << std::endl;
 
-      ReadPointSet<PointSetType>( fixedPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
-      ReadPointSet<PointSetType>( movingPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
+      ReadPointSet<LabeledPointSetType>( fixedPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
+      ReadPointSet<LabeledPointSetType>( movingPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
       fixedPointSet->DisconnectPipeline();
       movingPointSet->DisconnectPipeline();
       }
