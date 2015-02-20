@@ -1,7 +1,9 @@
-
 #include "antsUtilities.h"
 #include <algorithm>
 
+#include "itkCSVArray2DDataObject.h"
+#include "itkCSVArray2DFileReader.h"
+#include "itkCSVNumericObjectFileWriter.h"
 #include "itkHausdorffDistanceImageFilter.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -30,7 +32,7 @@ int LabelOverlapMeasures( int argc, char * argv[] )
     }
 
   bool outputCSVFormat = false;
-  if( argc == 5 && atoi( argv[4] ) == 1 )
+  if( argc > 4  )
     {
     outputCSVFormat = true;
     }
@@ -69,27 +71,64 @@ int LabelOverlapMeasures( int argc, char * argv[] )
 
   if( outputCSVFormat )
     {
-    std::cout << "Label,Total/Target,Jaccard,Dice,VolumeSimilarity,FalseNegative,FalsePositive" << std::endl;
-    std::cout << "All,";
-    std::cout << filter->GetTotalOverlap() << ",";
-    std::cout << filter->GetUnionOverlap() << ",";
-    std::cout << filter->GetMeanOverlap() << ",";
-    std::cout << filter->GetVolumeSimilarity() << ",";
-    std::cout << filter->GetFalseNegativeError() << ",";
-    std::cout << filter->GetFalsePositiveError();
-    std::cout << std::endl;
-    for( unsigned int i = 0; i < allLabels.size(); i++ )
-      {
-      int label = allLabels[i];
+    std::vector<std::string>   columnHeaders;
 
-      std::cout << label << ",";
-      std::cout << filter->GetTargetOverlap( label ) << ",";
-      std::cout << filter->GetUnionOverlap( label ) << ",";
-      std::cout << filter->GetMeanOverlap( label ) << ",";
-      std::cout << filter->GetVolumeSimilarity( label ) << ",";
-      std::cout << filter->GetFalseNegativeError( label ) << ",";
-      std::cout << filter->GetFalsePositiveError( label );
-      std::cout << std::endl;
+    columnHeaders.push_back( std::string( "Label" ) );
+    columnHeaders.push_back( std::string( "Total/Target" ) );
+    columnHeaders.push_back( std::string( "Jaccard" ) );
+    columnHeaders.push_back( std::string( "Dice" ) );
+    columnHeaders.push_back( std::string( "VolumeSimilarity" ) );
+    columnHeaders.push_back( std::string( "FalseNegative" ) );
+    columnHeaders.push_back( std::string( "FalsePositive" ) );
+
+    std::vector<std::string>   rowHeaders;
+    rowHeaders.push_back( std::string( "All" ) );
+
+    std::vector<int>::const_iterator itL = allLabels.begin();
+    while( itL != allLabels.end() )
+      {
+      int number = *itL;
+      std::string numberString = static_cast<std::ostringstream*>( &( std::ostringstream() << number ) )->str();
+      rowHeaders.push_back( numberString );
+      ++itL;
+      }
+
+    vnl_matrix<double> measures( allLabels.size() + 1, 6 );
+
+    measures( 0, 0 ) = filter->GetTotalOverlap();
+    measures( 0, 1 ) = filter->GetUnionOverlap();
+    measures( 0, 2 ) = filter->GetMeanOverlap();
+    measures( 0, 3 ) = filter->GetVolumeSimilarity();
+    measures( 0, 4 ) = filter->GetFalseNegativeError();
+    measures( 0, 5 ) = filter->GetFalsePositiveError();
+
+    unsigned int rowIndex = 1;
+    for( itL = allLabels.begin(); itL != allLabels.end(); ++itL )
+      {
+      measures( rowIndex, 0 ) = filter->GetTargetOverlap( *itL );
+      measures( rowIndex, 1 ) = filter->GetUnionOverlap( *itL );
+      measures( rowIndex, 2 ) = filter->GetMeanOverlap( *itL );
+      measures( rowIndex, 3 ) = filter->GetVolumeSimilarity( *itL );
+      measures( rowIndex, 4 ) = filter->GetFalseNegativeError( *itL );
+      measures( rowIndex, 5 ) = filter->GetFalsePositiveError( *itL );
+      rowIndex++;
+      }
+
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( argv[4] );
+    writer->SetColumnHeaders( columnHeaders );
+    writer->SetRowHeaders( rowHeaders );
+    writer->SetInput( &measures );
+    try
+      {
+      writer->Write();
+      }
+    catch( itk::ExceptionObject& exp )
+      {
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
+      return EXIT_FAILURE;
       }
     }
   else
@@ -189,8 +228,7 @@ private:
   if( argc < 4 )
     {
     std::cout << "Usage: " << argv[0] << " imageDimension sourceImage "
-              << "targetImage [outputCSVFormat=0]" << std::endl;
-    std::cout << "   If output format should be csv-compatible, set outputCSVFormat to 1." << std::endl;
+              << "targetImage [outputCSVFile]" << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
