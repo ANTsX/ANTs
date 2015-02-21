@@ -4,7 +4,7 @@ Advanced Normalization Tools
 
 [![Build Status](https://travis-ci.org/stnava/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
 
-Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2)
+Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2) ... also read our [guide to evaluation strategies and addressing new problems with ANTs or other software](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3766821/).
 
 [ANTsTalk - subject to change at any moment](http://stnava.github.io/ANTsTalk/)
 
