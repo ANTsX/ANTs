@@ -912,8 +912,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       std::cout << "  fixed point set: " << fixedFileName << std::endl;
       std::cout << "  moving point set: " << movingFileName << std::endl;
 
-      ReadPointSet<LabeledPointSetType>( fixedPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
-      ReadPointSet<LabeledPointSetType>( movingPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
+      ReadLabeledPointSet<LabeledPointSetType>( fixedPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
+      ReadLabeledPointSet<LabeledPointSetType>( movingPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
       fixedPointSet->DisconnectPipeline();
       movingPointSet->DisconnectPipeline();
       }

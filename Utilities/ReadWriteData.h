@@ -11,6 +11,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabeledPointSetFileReader.h"
 #include "itkLabeledPointSetFileWriter.h"
+#include "itkImageIntensityAndGradientToPointSetFilter.h"
 #include "itkWarpImageFilter.h"
 // #include "itkInverseWarpImageFilter.h"
 #include "itkAffineTransform.h"
@@ -337,7 +338,7 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
 
 template <class TPointSet>
 // void ReadImage(typename TPointSet::Pointer target, const char *file)
-bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file,
+bool ReadLabeledPointSet( itk::SmartPointer<TPointSet> & target, const char *file,
   bool boundaryPointsOnly = false, float samplingPercentage = 1.0 )
 {
   if( std::string( file ).length() < 3 )
@@ -375,8 +376,70 @@ bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file,
   return true;
 }
 
+template <class TImage, class TMask, class TPointSet>
+bool ReadImageIntensityPointSet( itk::SmartPointer<TPointSet> & target, const char *imageFile,
+  const char *maskFile, std::vector<unsigned int> neighborhoodRadius, double sigma )
+{
+  if( std::string( imageFile ).length() < 3 )
+    {
+    std::cerr << " bad image file name " << std::string( imageFile ) << std::endl;
+    target = ITK_NULLPTR;
+    return false;
+    }
+
+  if( !ANTSFileExists( std::string( imageFile ) ) )
+    {
+    std::cerr << " image file " << std::string( imageFile ) << " does not exist . " << std::endl;
+    target = ITK_NULLPTR;
+    return false;
+    }
+
+  if( std::string( maskFile ).length() < 3 )
+    {
+    std::cerr << " bad mask file name " << std::string( maskFile ) << std::endl;
+    target = ITK_NULLPTR;
+    return false;
+    }
+
+  if( !ANTSFileExists( std::string( maskFile ) ) )
+    {
+    std::cerr << " mask file " << std::string( maskFile ) << " does not exist . " << std::endl;
+    target = ITK_NULLPTR;
+    return false;
+    }
+
+  if( neighborhoodRadius.size() != TImage::ImageDimension )
+    {
+    std::cerr << " size of the neighborhood radius is not equal to the image dimension." << std::endl;
+    target = ITK_NULLPTR;
+    return false;
+    }
+
+  typename TImage::Pointer intensityImage = ReadImage<TImage>( imageFile );
+  typename TMask::Pointer maskImage = ReadImage<TMask>( maskFile );
+
+  typedef itk::ImageIntensityAndGradientToPointSetFilter<TImage, TMask, TPointSet> FilterType;
+
+  typename FilterType::NeighborhoodRadiusType radius;
+  for( unsigned int d = 0; d < TImage::ImageDimension; d++ )
+    {
+    radius[d] = neighborhoodRadius[d];
+    }
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput1( intensityImage );
+  filter->SetInput2( maskImage );
+  filter->SetSigma( sigma );
+  filter->SetNeighborhoodRadius( radius );
+  filter->Update();
+
+  target = filter->GetOutput();
+
+  return true;
+}
+
 template <class TPointSet>
-typename TPointSet::Pointer ReadPointSet( char* fn )
+typename TPointSet::Pointer ReadLabeledPointSet( char* fn )
 {
   if( !ANTSFileExists( std::string( fn ) ) )
     {
