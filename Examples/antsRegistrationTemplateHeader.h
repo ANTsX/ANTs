@@ -33,7 +33,9 @@ DoRegistration(typename ParserType::Pointer & parser)
   typedef TComputeType                                                     RealType;
   typedef typename ants::RegistrationHelper<TComputeType, VImageDimension> RegistrationHelperType;
   typedef typename RegistrationHelperType::ImageType                       ImageType;
+  typedef typename RegistrationHelperType::MaskImageType                   MaskImageType;
   typedef typename RegistrationHelperType::LabeledPointSetType             LabeledPointSetType;
+  typedef typename RegistrationHelperType::IntensityPointSetType           IntensityPointSetType;
   typedef typename RegistrationHelperType::CompositeTransformType          CompositeTransformType;
 
   typename RegistrationHelperType::Pointer regHelper = RegistrationHelperType::New();
@@ -225,7 +227,6 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   if( maskOption && maskOption->GetNumberOfFunctions() )
     {
-    typedef typename RegistrationHelperType::MaskImageType MaskImageType;
     typedef itk::ImageFileReader<MaskImageType>            ImageReaderType;
 
     if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
@@ -794,8 +795,10 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     typename ImageType::Pointer fixedImage = ITK_NULLPTR;
     typename ImageType::Pointer movingImage = ITK_NULLPTR;
-    typename LabeledPointSetType::Pointer fixedPointSet = ITK_NULLPTR;
-    typename LabeledPointSetType::Pointer movingPointSet = ITK_NULLPTR;
+    typename LabeledPointSetType::Pointer fixedLabeledPointSet = ITK_NULLPTR;
+    typename LabeledPointSetType::Pointer movingLabeledPointSet = ITK_NULLPTR;
+    typename IntensityPointSetType::Pointer fixedIntensityPointSet = ITK_NULLPTR;
+    typename IntensityPointSetType::Pointer movingIntensityPointSet = ITK_NULLPTR;
 
     float metricWeighting = 1.0;
     if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 2 )
@@ -912,17 +915,53 @@ DoRegistration(typename ParserType::Pointer & parser)
       std::cout << "  fixed point set: " << fixedFileName << std::endl;
       std::cout << "  moving point set: " << movingFileName << std::endl;
 
-      ReadLabeledPointSet<LabeledPointSetType>( fixedPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
-      ReadLabeledPointSet<LabeledPointSetType>( movingPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
-      fixedPointSet->DisconnectPipeline();
-      movingPointSet->DisconnectPipeline();
+      if( whichMetric == "igdm" )
+        {
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() != 8 )
+          {
+          std::cerr << "The expected number of parameters aren't specified.  Please see help menu." << std::endl;
+          return EXIT_FAILURE;
+          }
+
+        std::string fixedPointSetMaskFile = metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 );
+        std::string movingPointSetMaskFile = metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 );
+        double gradientPointSetSigma = parser->Convert<double>(
+          metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
+        std::vector<unsigned int> neighborhoodRadius = parser->ConvertVector<unsigned int>(
+          metricOption->GetFunction( currentMetricNumber )->GetParameter( 6 ) );
+
+        if( neighborhoodRadius.size() != VImageDimension )
+          {
+          std::cerr << "The neighborhood size must equal the dimension." << std::endl;
+          return EXIT_FAILURE;
+          }
+
+        ReadImageIntensityPointSet<ImageType, MaskImageType, IntensityPointSetType>(
+          fixedIntensityPointSet, fixedFileName.c_str(), fixedPointSetMaskFile.c_str(),
+          neighborhoodRadius, gradientPointSetSigma );
+
+        ReadImageIntensityPointSet<ImageType, MaskImageType, IntensityPointSetType>(
+          movingIntensityPointSet, movingFileName.c_str(), movingPointSetMaskFile.c_str(),
+          neighborhoodRadius, gradientPointSetSigma );
+
+        fixedIntensityPointSet->DisconnectPipeline();
+        movingIntensityPointSet->DisconnectPipeline();
+        }
+      else
+        {
+        ReadLabeledPointSet<LabeledPointSetType>( fixedLabeledPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
+        ReadLabeledPointSet<LabeledPointSetType>( movingLabeledPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
+
+        fixedLabeledPointSet->DisconnectPipeline();
+        movingLabeledPointSet->DisconnectPipeline();
+        }
       }
 
     regHelper->AddMetric( currentMetric,
                           fixedImage,
                           movingImage,
-                          fixedPointSet,
-                          movingPointSet,
+                          fixedLabeledPointSet,
+                          movingLabeledPointSet,
                           stageID,
                           metricWeighting,
                           samplingStrategy,
@@ -1142,10 +1181,10 @@ DoRegistration(typename ParserType::Pointer & parser)
               }
             catch( itk::ExceptionObject & err )
               {
-              std::cout << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
+              std::cerr << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
                 << std::endl;
-              std::cout << "Exception Object caught: " << std::endl;
-              std::cout << err << std::endl;
+              std::cerr << "Exception Object caught: " << std::endl;
+              std::cerr << err << std::endl;
               }
             }
           }

@@ -47,8 +47,8 @@ void
 ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
 ::GenerateData()
 {
-  typename InputImageType::ConstPointer inputImage = this->GetInput1();
-  typename MaskImageType::ConstPointer maskImage = this->GetInput2();
+  const InputImageType * inputImage = this->GetInputImage();
+  const MaskImageType * maskImage = this->GetMaskImage();
 
   // Calculate gradient image
 
@@ -86,8 +86,8 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
 
     if( maskImage->GetPixel( index ) && ItN.InBounds() )
       {
-      typename InputImagePixelType::PointType imagePoint;
-      inputImage->TransformIndexToPhysicalPoint( index, &imagePoint );
+      typename InputImageType::PointType imagePoint;
+      inputImage->TransformIndexToPhysicalPoint( index, imagePoint );
 
       PointType point;
       point.CastFrom( imagePoint );

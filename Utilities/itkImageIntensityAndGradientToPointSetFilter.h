@@ -43,7 +43,7 @@ public:
 
   /** Extract dimension from the input image. */
   itkStaticConstMacro( Dimension, unsigned int,
-                       TInputImage::Dimension );
+                       TInputImage::ImageDimension );
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( ImageIntensityAndGradientToPointSetFilter, MeshSource );
@@ -60,18 +60,30 @@ public:
   typedef typename OutputMeshType::PointType  PointType;
   typedef typename MeshTraits::PixelType      PointSetPixelType;
 
-  typedef ConstNeighborhoodIterator<TInputImage>              ConstNeighborhoodIteratorType;
-  typedef typename ConstNeighborhoodIteratorType::RadiusType  NeighborhoodRadiusType;
-
   typedef CovariantVector<InputImagePixelType, Dimension> GradientPixelType;
   typedef Image<GradientPixelType, Dimension>             GradientImageType;
+
+  typedef ConstNeighborhoodIterator<GradientImageType>        ConstNeighborhoodIteratorType;
+  typedef typename ConstNeighborhoodIteratorType::RadiusType  NeighborhoodRadiusType;
 
   typedef GradientRecursiveGaussianImageFilter<InputImageType, GradientImageType> GradientFilterType;
 
   /**
    * Set/Get the input image.
    */
-  void SetInput1( const InputImageType *image ) { this->SetInput( image ); }
+  void SetInputImage( const InputImageType *image )
+    {
+    this->SetNthInput( 0, const_cast<InputImageType *>( image ) );
+    }
+  void SetInput1( const InputImageType *image ) { this->SetInputImage( image ); }
+
+  /**
+   * Get mask image function.
+   */
+  const InputImageType* GetInputImage() const
+    {
+    return static_cast<const InputImageType*>( this->ProcessObject::GetInput( 0 ) );
+    }
 
   /**
    * Set mask image function.

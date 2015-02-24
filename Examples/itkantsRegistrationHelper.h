@@ -23,6 +23,7 @@
 #include "itkANTSCenteredAffine2DTransform.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkAffineTransform.h"
+#include "itkArray.h"
 #include "itkBSplineExponentialDiffeomorphicTransform.h"
 #include "itkBSplineExponentialDiffeomorphicTransformParametersAdaptor.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransform.h"
@@ -118,7 +119,10 @@ public:
   typedef typename ImageType::Pointer                                                ImagePointer;
   typedef itk::ImageBase<VImageDimension>                                            ImageBaseType;
   typedef typename ImageType::SpacingType                                            ImageSpacingType;
+
+  typedef itk::Array<TComputeType>                                                   IntensityAndGradientArrayType;
   typedef itk::PointSet<unsigned int, VImageDimension>                               LabeledPointSetType;
+  typedef itk::PointSet<IntensityAndGradientArrayType, VImageDimension>              IntensityPointSetType;
   typedef typename LabeledPointSetType::Pointer                                      PointSetPointer;
 
   typedef itk::Transform<TComputeType, VImageDimension, VImageDimension>             TransformType;
@@ -156,7 +160,8 @@ public:
     ICP = 6,
     PSE = 7,
     JHCT = 8,
-    IllegalMetric = 9
+    IGDM = 9,
+    IllegalMetric = 10
     };
   enum SamplingStrategy
     {
@@ -168,7 +173,7 @@ public:
 
   bool IsPointSetMetric( const MetricEnumeration metricType ) const
     {
-    if( metricType == ICP || metricType == PSE || metricType == JHCT )
+    if( metricType == ICP || metricType == PSE || metricType == JHCT || metricType == IGDM )
       {
       return true;
       }

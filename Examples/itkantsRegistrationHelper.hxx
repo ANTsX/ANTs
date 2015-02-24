@@ -115,7 +115,7 @@ typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  i
 template <class TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::MetricEnumeration
 RegistrationHelper<TComputeType, VImageDimension>
-::StringToMetricType(const std::string & str) const
+::StringToMetricType( const std::string & str ) const
 {
   if( str == "cc" )
     {
@@ -152,6 +152,10 @@ RegistrationHelper<TComputeType, VImageDimension>
   else if( str == "jhct" )
     {
     return JHCT;
+    }
+  else if( str == "igdm" )
+    {
+    return IGDM;
     }
   return IllegalMetric;
 }
