@@ -55,6 +55,7 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
   typename GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
   gradientFilter->SetInput( inputImage );
   gradientFilter->SetSigma( this->m_Sigma );
+  gradientFilter->UseImageOrientation( true );
 
   typename GradientImageType::Pointer gradientImage = gradientFilter->GetOutput();
   gradientImage->Update();
