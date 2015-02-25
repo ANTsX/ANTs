@@ -166,11 +166,11 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
       }
     }
 
-  measure = differenceIntensity.squared_magnitude();
+  measure = differenceIntensity.squared_magnitude() / static_cast<TInternalComputationValueType>( numberOfVoxelsInNeighborhood );
 
   for( SizeValueType d = 0; d < Dimension; d++ )
     {
-    localDerivative[d] /= static_cast<TInternalComputationValueType>( numberOfVoxelsInNeighborhood );
+    localDerivative[d] *= 2.0 * measure / static_cast<TInternalComputationValueType>( numberOfVoxelsInNeighborhood );
     }
 }
 
