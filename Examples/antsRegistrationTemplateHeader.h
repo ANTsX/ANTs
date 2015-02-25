@@ -962,6 +962,8 @@ DoRegistration(typename ParserType::Pointer & parser)
                           movingImage,
                           fixedLabeledPointSet,
                           movingLabeledPointSet,
+                          fixedIntensityPointSet,
+                          movingIntensityPointSet,
                           stageID,
                           metricWeighting,
                           samplingStrategy,

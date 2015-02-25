@@ -237,8 +237,10 @@ RegistrationHelper<TComputeType, VImageDimension>
 ::AddMetric( MetricEnumeration metricType,
              ImageType *fixedImage,
              ImageType *movingImage,
-             LabeledPointSetType *fixedPointSet,
-             LabeledPointSetType *movingPointSet,
+             LabeledPointSetType *fixedLabeledPointSet,
+             LabeledPointSetType *movingLabeledPointSet,
+             IntensityPointSetType *fixedIntensityPointSet,
+             IntensityPointSetType *movingIntensityPointSet,
              unsigned int stageID,
              RealType weighting,
              SamplingStrategy samplingStrategy,
@@ -251,7 +253,9 @@ RegistrationHelper<TComputeType, VImageDimension>
              bool useAnisotropicCovariances,
              RealType samplingPercentage )
 {
-  Metric init( metricType, fixedImage, movingImage, fixedPointSet, movingPointSet,
+  Metric init( metricType, fixedImage, movingImage,
+               fixedLabeledPointSet, movingLabeledPointSet,
+               fixedIntensityPointSet, movingIntensityPointSet,
                stageID, weighting, samplingStrategy, numberOfBins, radius,
                useBoundaryPointsOnly, pointSetSigma, evaluationKNeighborhood,
                alpha, useAnisotropicCovariances, samplingPercentage );
@@ -1091,8 +1095,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         if( !useMultiMetric || currentMetricNumber == 0 )
           {
-          pointSetMetric->SetFixedPointSet( stageMetricList[currentMetricNumber].m_FixedPointSet );
-          pointSetMetric->SetMovingPointSet( stageMetricList[currentMetricNumber].m_MovingPointSet );
+          pointSetMetric->SetFixedPointSet( stageMetricList[currentMetricNumber].m_FixedLabeledPointSet );
+          pointSetMetric->SetMovingPointSet( stageMetricList[currentMetricNumber].m_MovingLabeledPointSet );
           singleMetric = static_cast<ObjectMetricType *>( pointSetMetric );
           }
         }
@@ -1286,8 +1290,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            affineRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            affineRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            affineRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            affineRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -1407,8 +1411,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            rigidRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            rigidRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            rigidRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            rigidRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -1535,8 +1539,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            affineRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            affineRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            affineRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            affineRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -1622,8 +1626,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            similarityRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            similarityRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            similarityRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            similarityRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -1728,8 +1732,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            translationRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            translationRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            translationRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            translationRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -1922,8 +1926,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -2098,8 +2102,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -2242,8 +2246,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            bsplineRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            bsplineRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            bsplineRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            bsplineRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -2418,8 +2422,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            velocityFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            velocityFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            velocityFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            velocityFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -2642,8 +2646,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            velocityFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            velocityFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            velocityFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            velocityFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -2869,8 +2873,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -3119,8 +3123,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -3290,8 +3294,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -3473,8 +3477,8 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           else
             {
-            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedPointSet.GetPointer() );
-            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingPointSet.GetPointer() );
+            displacementFieldRegistration->SetFixedPointSet( n, stageMetricList[n].m_FixedLabeledPointSet.GetPointer() );
+            displacementFieldRegistration->SetMovingPointSet( n, stageMetricList[n].m_MovingLabeledPointSet.GetPointer() );
             }
           }
         if( useMultiMetric )
@@ -4246,8 +4250,8 @@ RegistrationHelper<TComputeType, VImageDimension>
     else
       {
       this->Logger() << "   Point Set Metric = " << curMetric.GetMetricAsString() << std::endl
-                     << "     Fixed point set = " << curMetric.m_FixedPointSet << std::endl
-                     << "     Moving point set = " << curMetric.m_MovingPointSet << std::endl
+                     << "     Fixed point set = " << curMetric.m_FixedLabeledPointSet << std::endl
+                     << "     Moving point set = " << curMetric.m_MovingLabeledPointSet << std::endl
                      << "     Weighting = " << curMetric.m_Weighting << std::endl
                      << "     Use only boundary points = " << ( curMetric.m_UseBoundaryPointsOnly ? "true" : "false" ) << std::endl
                      << "     Point set sigma = " << curMetric.m_PointSetSigma << std::endl

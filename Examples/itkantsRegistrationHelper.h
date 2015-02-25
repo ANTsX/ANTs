@@ -122,8 +122,9 @@ public:
 
   typedef itk::Array<TComputeType>                                                   IntensityAndGradientArrayType;
   typedef itk::PointSet<unsigned int, VImageDimension>                               LabeledPointSetType;
+  typedef typename LabeledPointSetType::Pointer                                      LabeledPointSetPointer;
   typedef itk::PointSet<IntensityAndGradientArrayType, VImageDimension>              IntensityPointSetType;
-  typedef typename LabeledPointSetType::Pointer                                      PointSetPointer;
+  typedef typename IntensityPointSetType::Pointer                                    IntensityPointSetPointer;
 
   typedef itk::Transform<TComputeType, VImageDimension, VImageDimension>             TransformType;
   typedef itk::AffineTransform<RealType, VImageDimension>                            AffineTransformType;
@@ -188,7 +189,8 @@ public:
   public:
     Metric( MetricEnumeration metricType,
             ImageType *fixedImage, ImageType *movingImage,
-            LabeledPointSetType *fixedPointSet, LabeledPointSetType *movingPointSet,
+            LabeledPointSetType *fixedLabeledPointSet, LabeledPointSetType *movingLabeledPointSet,
+            IntensityPointSetType *fixedIntensityPointSet, IntensityPointSetType *movingIntensityPointSet,
             unsigned int stageID, RealType weighting,
             SamplingStrategy samplingStrategy, int numberOfBins,
             unsigned int radius, bool useBoundaryPointsOnly,
@@ -203,8 +205,10 @@ public:
       m_SamplingStrategy( samplingStrategy ),
       m_NumberOfBins( numberOfBins ),
       m_Radius( radius ),
-      m_FixedPointSet( fixedPointSet ),
-      m_MovingPointSet( movingPointSet ),
+      m_FixedLabeledPointSet( fixedLabeledPointSet ),
+      m_MovingLabeledPointSet( movingLabeledPointSet ),
+      m_FixedIntensityPointSet( fixedIntensityPointSet ),
+      m_MovingIntensityPointSet( movingIntensityPointSet ),
       m_UseBoundaryPointsOnly( useBoundaryPointsOnly ),
       m_PointSetSigma( pointSetSigma ),
       m_EvaluationKNeighborhood( evaluationKNeighborhood ),
@@ -276,8 +280,11 @@ public:
 
     // Variables for point-set metrics
 
-    PointSetPointer     m_FixedPointSet;
-    PointSetPointer     m_MovingPointSet;
+    LabeledPointSetPointer       m_FixedLabeledPointSet;
+    LabeledPointSetPointer       m_MovingLabeledPointSet;
+    IntensityPointSetPointer     m_FixedIntensityPointSet;
+    IntensityPointSetPointer     m_MovingIntensityPointSet;
+
     bool                m_UseBoundaryPointsOnly;
     RealType            m_PointSetSigma;             // Only for PSE,JHCT metrics
     RealType            m_EvaluationKNeighborhood;   // Only for PSE,JHCT metrics
@@ -436,8 +443,10 @@ public:
   void AddMetric( MetricEnumeration metricType,
                   ImageType *fixedImage,
                   ImageType *movingImage,
-                  LabeledPointSetType *fixedPointSet,
-                  LabeledPointSetType *movingPointSet,
+                  LabeledPointSetType *fixedLabeledPointSet,
+                  LabeledPointSetType *movingLabeledPointSet,
+                  IntensityPointSetType *fixedIntensityPointSet,
+                  IntensityPointSetType *movingIntensityPointSet,
                   unsigned int stageID,
                   RealType weighting,
                   SamplingStrategy samplingStrategy,
