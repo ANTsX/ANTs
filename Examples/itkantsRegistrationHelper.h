@@ -471,6 +471,7 @@ public:
                   RealType samplingPercentage )
     {
     this->AddMetric( metricType, fixedImage, movingImage, ITK_NULLPTR, ITK_NULLPTR,
+      ITK_NULLPTR, ITK_NULLPTR,
       stageID, weighting, samplingStrategy, numberOfBins, radius,
       false, 1.0, 50, 1.1, false, samplingPercentage );
     }
