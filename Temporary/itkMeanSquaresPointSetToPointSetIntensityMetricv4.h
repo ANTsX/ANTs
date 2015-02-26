@@ -50,7 +50,7 @@ class MeanSquaresPointSetToPointSetIntensityMetricv4:
 public:
 
   /** Standard class typedefs. */
-  typedef MeanSquaresPointSetToPointSetIntensityMetricv4         Self;
+  typedef MeanSquaresPointSetToPointSetIntensityMetricv4               Self;
   typedef PointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet,
     TInternalComputationValueType>                                     Superclass;
   typedef SmartPointer<Self>                                           Pointer;
@@ -62,14 +62,38 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro( MeanSquaresPointSetToPointSetIntensityMetricv4, PointSetToPointSetMetricv4 );
 
-  /** Types transferred from the base class */
-  typedef typename Superclass::MeasureType          MeasureType;
-  typedef typename Superclass::DerivativeType       DerivativeType;
-  typedef typename Superclass::LocalDerivativeType  LocalDerivativeType;
-  typedef typename Superclass::PointType            PointType;
-  typedef typename Superclass::PixelType            PixelType;
-  typedef typename Superclass::PointIdentifier      PointIdentifier;
+  /**  Type of the fixed point set. */
+  typedef TFixedPointSet                               FixedPointSetType;
+  typedef typename TFixedPointSet::PointType           FixedPointType;
+  typedef typename TFixedPointSet::PixelType           FixedPixelType;
+  typedef typename TFixedPointSet::PointsContainer     FixedPointsContainer;
+  typedef typename TFixedPointSet::PointDataContainer  FixedPointDataContainer;
 
+  itkStaticConstMacro( FixedPointDimension, DimensionType, Superclass::FixedDimension );
+
+  /**  Type of the moving point set. */
+  typedef TMovingPointSet                              MovingPointSetType;
+  typedef typename TMovingPointSet::PointType          MovingPointType;
+  typedef typename TMovingPointSet::PixelType          MovingPixelType;
+  typedef typename TMovingPointSet::PointsContainer    MovingPointsContainer;
+
+  itkStaticConstMacro( MovingPointDimension, DimensionType, Superclass::MovingDimension );
+
+  /** Transform types from Superclass*/
+  typedef typename Superclass::FixedTransformType            FixedTransformType;
+
+  /** Dimension type */
+  typedef typename Superclass::DimensionType                  DimensionType;
+
+  itkStaticConstMacro( PointDimension, DimensionType, Superclass::PointDimension );
+
+  /** Types transferred from the base class */
+  typedef typename Superclass::MeasureType             MeasureType;
+  typedef typename Superclass::DerivativeType          DerivativeType;
+  typedef typename Superclass::LocalDerivativeType     LocalDerivativeType;
+  typedef typename Superclass::PointType               PointType;
+  typedef typename Superclass::PixelType               PixelType;
+  typedef typename Superclass::PointIdentifier         PointIdentifier;
 
   /**
    * Prepare point sets for use.
@@ -77,28 +101,13 @@ public:
   virtual void InitializePointSets() const;
 
   /**
-   * This method returns the value of the metric based on the current
-   * transformation(s).
-   */
-  virtual MeasureType GetValue() const ITK_OVERRIDE;
-
-  /**
-   * This method returns the derivative based on the current
-   * transformation(s).  We need to override this function since the pixel type
-   * is not a scalar.
-   */
-  virtual void GetDerivative( DerivativeType & ) const ITK_OVERRIDE;
-
-  /**
-   * This method returns the derivative and value based on the current
-   * transformation(s).
-   */
-  virtual void GetValueAndDerivative( MeasureType &, DerivativeType & ) const ITK_OVERRIDE;
-
-  /**
    * Calculates the local metric value for a single point.
    */
   virtual MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & pixel = 0 ) const ITK_OVERRIDE;
+
+  /** Helper method allows for code reuse while skipping the metric value
+   * calculation when appropriate */
+  void CalculateValueAndDerivative( MeasureType & value, DerivativeType & derivative, bool calculateValue ) const;
 
   /**
    * Calculates the local value and derivative for a single point.
