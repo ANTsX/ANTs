@@ -825,8 +825,8 @@ RegistrationHelper<TComputeType, VImageDimension>
       typedef itk::LabeledPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, RealType> LabeledPointSetMetricType;
       typename LabeledPointSetMetricType::Pointer labeledPointSetMetric = LabeledPointSetMetricType::New();
 
-//       typedef itk::MeanSquaresPointSetToPointSetIntensityMetricv4<IntensityPointSetType, IntensityPointSetType, RealType> IntensityPointSetMetricType;
-//       typename IntensityPointSetMetricType::Pointer intensityPointSetMetric = ITK_NULLPTR;
+      typedef itk::MeanSquaresPointSetToPointSetIntensityMetricv4<IntensityPointSetType, IntensityPointSetType, RealType> IntensityPointSetMetricType;
+      typename IntensityPointSetMetricType::Pointer intensityPointSetMetric = ITK_NULLPTR;
 
       switch( currentMetricType )
         {
@@ -960,10 +960,10 @@ RegistrationHelper<TComputeType, VImageDimension>
           {
           this->Logger() << "  using the IGDM metric (weight = "
                          << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
-//           typedef itk::MeanSquaresPointSetToPointSetIntensityMetricv4<IntensityPointSetType, IntensityPointSetType, RealType> MsqPointSetMetricType;
-//           typename MsqPointSetMetricType::Pointer msqMetric = MsqPointSetMetricType::New();
-//
-//           intensityPointSetMetric = msqMetric;
+          typedef itk::MeanSquaresPointSetToPointSetIntensityMetricv4<IntensityPointSetType, IntensityPointSetType, RealType> MsqPointSetMetricType;
+          typename MsqPointSetMetricType::Pointer msqMetric = MsqPointSetMetricType::New();
+
+          intensityPointSetMetric = msqMetric;
           }
           break;
         default:
@@ -1079,21 +1079,21 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           }
 
-//         if( intensityPointSetMetric.IsNotNull() )
-//           {
-//           if( useMultiMetric )
-//             {
-//             multiMetric->AddMetric( intensityPointSetMetric );
-//             }
-//           if( !useMultiMetric || currentMetricNumber == 0 )
-//             {
-//             intensityPointSetMetric->SetFixedPointSet( stageMetricList[currentMetricNumber].m_FixedIntensityPointSet );
-//             intensityPointSetMetric->SetMovingPointSet( stageMetricList[currentMetricNumber].m_MovingIntensityPointSet );
-//             singleMetric = static_cast<ObjectMetricType *>( intensityPointSetMetric );
-//             }
-//           }
-//         else
-//           {
+        if( intensityPointSetMetric.IsNotNull() )
+          {
+          if( useMultiMetric )
+            {
+            multiMetric->AddMetric( intensityPointSetMetric );
+            }
+          if( !useMultiMetric || currentMetricNumber == 0 )
+            {
+            intensityPointSetMetric->SetFixedPointSet( stageMetricList[currentMetricNumber].m_FixedIntensityPointSet );
+            intensityPointSetMetric->SetMovingPointSet( stageMetricList[currentMetricNumber].m_MovingIntensityPointSet );
+            singleMetric = static_cast<ObjectMetricType *>( intensityPointSetMetric );
+            }
+          }
+        else
+          {
           if( useMultiMetric )
             {
             multiMetric->AddMetric( labeledPointSetMetric );
@@ -1104,7 +1104,7 @@ RegistrationHelper<TComputeType, VImageDimension>
             labeledPointSetMetric->SetMovingPointSet( stageMetricList[currentMetricNumber].m_MovingLabeledPointSet );
             singleMetric = static_cast<ObjectMetricType *>( labeledPointSetMetric );
             }
-//           }
+          }
         }
       }
     if( useMultiMetric )
@@ -1193,29 +1193,32 @@ RegistrationHelper<TComputeType, VImageDimension>
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
     scalesEstimator->SetMetric( singleMetric );
     scalesEstimator->SetTransformForward( true );
-    typename LabeledPointSetMetricType::Pointer labeledPointSetMetric = dynamic_cast<LabeledPointSetMetricType *>( singleMetric.GetPointer() );
-    if( labeledPointSetMetric.IsNotNull() )
+
+    typedef itk::LabeledPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, RealType> LabeledPointSetMetricType;
+    typename LabeledPointSetMetricType::Pointer labeledPointSetMetric2 = dynamic_cast<LabeledPointSetMetricType *>( singleMetric.GetPointer() );
+    if( labeledPointSetMetric2.IsNotNull() )
       {
       typedef typename ScalesEstimatorType::VirtualPointSetType VirtualPointSetType;
       typename VirtualPointSetType::Pointer virtualPointSet = VirtualPointSetType::New();
       virtualPointSet->Initialize();
       virtualPointSet->SetPoints(
-        const_cast<typename LabeledPointSetType::PointsContainer *>( labeledPointSetMetric->GetFixedPointSet()->GetPoints() ) );
+        const_cast<typename LabeledPointSetType::PointsContainer *>( labeledPointSetMetric2->GetFixedPointSet()->GetPoints() ) );
       scalesEstimator->SetVirtualDomainPointSet( virtualPointSet );
       }
-//     else
-//       {
-//       typename IntensityPointSetMetricType::Pointer intensityPointSetMetric = dynamic_cast<IntensityPointSetMetricType *>( singleMetric.GetPointer() );
-//       if( intensityPointSetMetric.IsNotNull() )
-//         {
-//         typedef typename ScalesEstimatorType::VirtualPointSetType VirtualPointSetType;
-//         typename VirtualPointSetType::Pointer virtualPointSet = VirtualPointSetType::New();
-//         virtualPointSet->Initialize();
-//         virtualPointSet->SetPoints(
-//           const_cast<typename IntensityPointSetType::PointsContainer *>( intensityPointSetMetric->GetFixedPointSet()->GetPoints() ) );
-//         scalesEstimator->SetVirtualDomainPointSet( virtualPointSet );
-//         }
-//       }
+    else
+      {
+      typedef itk::MeanSquaresPointSetToPointSetIntensityMetricv4<IntensityPointSetType, IntensityPointSetType, RealType> IntensityPointSetMetricType;
+      typename IntensityPointSetMetricType::Pointer intensityPointSetMetric2 = dynamic_cast<IntensityPointSetMetricType *>( singleMetric.GetPointer() );
+      if( intensityPointSetMetric2.IsNotNull() )
+        {
+        typedef typename ScalesEstimatorType::VirtualPointSetType VirtualPointSetType;
+        typename VirtualPointSetType::Pointer virtualPointSet = VirtualPointSetType::New();
+        virtualPointSet->Initialize();
+        virtualPointSet->SetPoints(
+          const_cast<typename IntensityPointSetType::PointsContainer *>( intensityPointSetMetric2->GetFixedPointSet()->GetPoints() ) );
+        scalesEstimator->SetVirtualDomainPointSet( virtualPointSet );
+        }
+      }
 
     typename ConjugateGradientDescentOptimizerType::Pointer optimizer = ConjugateGradientDescentOptimizerType::New();
     optimizer->SetLowerLimit( 0 );
