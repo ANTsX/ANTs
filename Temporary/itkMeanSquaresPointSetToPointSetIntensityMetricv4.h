@@ -96,11 +96,6 @@ public:
   typedef typename Superclass::PointIdentifier         PointIdentifier;
 
   /**
-   * Prepare point sets for use.
-   */
-  virtual void InitializePointSets() const;
-
-  /**
    * Calculates the local metric value for a single point.
    */
   virtual MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & pixel = 0 ) const ITK_OVERRIDE;

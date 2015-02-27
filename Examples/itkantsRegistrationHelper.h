@@ -66,6 +66,7 @@
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkMeanSquaresImageToImageMetricv4.h"
+#include "itkMeanSquaresPointSetToPointSetIntensityMetricv4.h"
 #include "itkMultiGradientOptimizerv4.h"
 #include "itkObject.h"
 #include "itkObjectToObjectMetric.h"
@@ -96,6 +97,11 @@
 #include <iostream>
 #include <sstream>
 #include <deque>
+#include <iomanip>
+
+#include "antsRegistrationCommandIterationUpdate.h"
+#include "antsRegistrationOptimizerCommandIterationUpdate.h"
+#include "antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate.h"
 
 namespace ants
 {
@@ -145,10 +151,16 @@ public:
                      <VImageDimension, VImageDimension, ImageType, RealType>         MultiMetricType;
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       ImageMetricType;
   typedef itk::PointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType,
-                                                                      RealType>      PointSetMetricType;
+                                                                      RealType>      LabeledPointSetMetricType;
+  typedef itk::PointSetToPointSetMetricv4<IntensityPointSetType,
+    IntensityPointSetType, RealType>                                                 IntensityPointSetMetricType;
   typedef itk::ImageMaskSpatialObject<VImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                             MaskImageType;
   typedef itk::InterpolateImageFunction<ImageType, RealType>                         InterpolatorType;
+
+  typedef itk::ConjugateGradientLineSearchOptimizerv4Template<TComputeType>          ConjugateGradientDescentOptimizerType;
+    typedef itk::GradientDescentOptimizerv4Template<TComputeType>                    GradientDescentOptimizerType;
+
 
   enum MetricEnumeration
     {
@@ -777,6 +789,150 @@ private:
   {
     return *m_LogStream;
   }
+
+  template<class RegistrationMethodType>
+  int AddLinearTransformToCompositeTransform(
+    CompositeTransformType *compositeTransform, const unsigned int currentStageNumber,
+    std::vector<typename RegistrationMethodType::FixedImageType::Pointer> preprocessedFixedImagesPerStage,
+    std::vector<typename RegistrationMethodType::MovingImageType::Pointer> preprocessedMovingImagesPerStage,
+    std::vector<typename RegistrationMethodType::PointSetType::Pointer> fixedPointSetsPerStage,
+    std::vector<typename RegistrationMethodType::PointSetType::Pointer> movingPointSetsPerStage,
+    const MetricListType stageMetricList, ObjectMetricType *singleMetric, MultiMetricType *multiMetric,
+    ConjugateGradientDescentOptimizerType *optimizer, const unsigned int numberOfLevels,
+    const std::vector<ShrinkFactorsPerDimensionContainerType> shrinkFactorsPerDimensionForAllLevels,
+    const typename RegistrationMethodType::SmoothingSigmasArrayType smoothingSigmasPerLevel,
+    typename AffineRegistrationType::MetricSamplingStrategyType metricSamplingStrategy,
+    const float samplingPercentage
+    )
+  {
+  typename RegistrationMethodType::Pointer registrationMethod = RegistrationMethodType::New();
+  typedef typename RegistrationMethodType::OutputTransformType  TransformType;
+
+  for( unsigned int n = 0; n < stageMetricList.size(); n++ )
+    {
+    if( !this->IsPointSetMetric( stageMetricList[n].m_MetricType ) )
+      {
+      registrationMethod->SetFixedImage( n, preprocessedFixedImagesPerStage[n] );
+      registrationMethod->SetMovingImage( n, preprocessedMovingImagesPerStage[n] );
+      }
+    else
+      {
+      registrationMethod->SetFixedPointSet( n, fixedPointSetsPerStage[n] );
+      registrationMethod->SetMovingPointSet( n, movingPointSetsPerStage[n] );
+      }
+    }
+
+  if( multiMetric )
+    {
+    registrationMethod->SetMetric( multiMetric );
+    }
+  else
+    {
+    registrationMethod->SetMetric( singleMetric );
+    }
+
+  registrationMethod->SetNumberOfLevels( numberOfLevels );
+
+  for( unsigned int level = 0; level < numberOfLevels; ++level )
+    {
+    registrationMethod->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+    }
+  registrationMethod->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+  registrationMethod->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
+                                                                       currentStageNumber] );
+  registrationMethod->SetMetricSamplingStrategy(
+    static_cast<typename RegistrationMethodType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+  registrationMethod->SetMetricSamplingPercentage( samplingPercentage );
+
+  unsigned int parameterSize = TransformType::ParametersDimension;
+
+  if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
+    {
+    if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == parameterSize )
+      {
+      typename RegistrationMethodType::OptimizerWeightsType optimizerWeights( parameterSize );
+      for( unsigned int d = 0; d < parameterSize; d++ )
+        {
+        optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+        }
+      optimizer->SetWeights( optimizerWeights );
+      }
+    }
+
+  registrationMethod->SetOptimizer( optimizer );
+
+  typename TransformType::Pointer initialTransform = TransformType::New();
+
+  std::string t = initialTransform->GetNameOfClass();
+  std::string s = "Transform";
+  std::string::size_type index = t.find( s );
+
+  if( index != std::string::npos )
+    {
+    t.erase( index, s.length() );
+    }
+
+  if( compositeTransform->GetNumberOfTransforms() > 0 )
+    {
+    if( this->m_InitializeTransformsPerStage )
+      {
+      const unsigned int numOfTransforms = compositeTransform->GetNumberOfTransforms();
+      this->Logger() << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
+      for( unsigned int i = 0; i < numOfTransforms; i++ )
+        {
+        this->Logger() << i+1 << ") " << compositeTransform->GetNthTransform( i )->GetNameOfClass() << std::endl;
+        }
+
+      if( this->InitializeWithPreviousLinearTransform<TransformType>( compositeTransform, t.c_str(), initialTransform ) )
+        {
+        compositeTransform->RemoveTransform(); // Remove previous initial transform,
+                                                       // since it is included in current results.
+        registrationMethod->SetInitialTransform( initialTransform );
+        }
+      }
+    }
+
+  if( compositeTransform->GetNumberOfTransforms() > 0 )
+    {
+    registrationMethod->SetMovingInitialTransform( compositeTransform );
+    }
+  if( this->m_FixedInitialTransform->GetNumberOfTransforms() > 0 )
+    {
+    registrationMethod->SetFixedInitialTransform( this->m_FixedInitialTransform );
+    }
+
+  typedef antsRegistrationCommandIterationUpdate<RegistrationMethodType> TransformCommandType;
+  typename TransformCommandType::Pointer transformObserver = TransformCommandType::New();
+  transformObserver->SetLogStream( *this->m_LogStream );
+  transformObserver->SetNumberOfIterations( this->m_Iterations[currentStageNumber] );
+  registrationMethod->AddObserver( itk::IterationEvent(), transformObserver );
+  registrationMethod->AddObserver( itk::InitializeEvent(), transformObserver );
+  try
+    {
+    this->Logger() << std::endl << "*** Running " << t.c_str() << " registration ***" << std::endl << std::endl;
+    transformObserver->Execute( registrationMethod, itk::StartEvent() );
+    registrationMethod->Update();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Exception caught: " << e << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Add calculated transform to the composite transform or add it to the composite transform
+  // which is incorporated into the fixed image header.
+  if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
+    {
+    this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( registrationMethod->GetModifiableTransform() );
+    }
+  else
+    {
+    compositeTransform->AddTransform( registrationMethod->GetModifiableTransform() );
+    }
+
+  return EXIT_SUCCESS;
+  }
+
 
   typename CompositeTransformType::Pointer         m_CompositeTransform;
   typename CompositeTransformType::Pointer         m_RegistrationState;
