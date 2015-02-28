@@ -45,10 +45,20 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
 template <typename TInputImage, typename TMaskImage, typename TOutputMesh>
 void
 ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
+::Update()
+{
+  this->GenerateData();
+}
+
+template <typename TInputImage, typename TMaskImage, typename TOutputMesh>
+void
+ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
 ::GenerateData()
 {
   const InputImageType * inputImage = this->GetInputImage();
   const MaskImageType * maskImage = this->GetMaskImage();
+
+  typename OutputMeshType::Pointer output = this->GetOutput();
 
   // Calculate gradient image
 
@@ -70,12 +80,9 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
     {
     numberOfNeighborhoodVoxels *= ( 2 * this->m_NeighborhoodRadius[d] + 1 );
     }
-  const SizeValueType sizeOfPixelTypeArray = ( numberOfNeighborhoodVoxels + 1 ) * Dimension;
+  const SizeValueType sizeOfPixelTypeArray = numberOfNeighborhoodVoxels * ( 1 + Dimension );
 
   // Initialize output point set
-
-  typename OutputMeshType::Pointer output = OutputMeshType::New();
-  output->Initialize();
 
   SizeValueType count = 0;
 
@@ -114,8 +121,6 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
         }
       }
     }
-
-  this->GraftOutput( output );
 }
 
 template <typename TInputImage, typename TMaskImage, typename TOutputMesh>

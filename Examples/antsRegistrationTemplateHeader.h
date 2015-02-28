@@ -880,41 +880,6 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     else
       {
-      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 3 )
-        {
-        samplingPercentage =
-          parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 ) );
-        }
-      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 4 )
-        {
-        useBoundaryPointsOnly =
-          parser->Convert<bool>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 ) );
-        }
-      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 5 )
-        {
-        pointSetSigma =
-          parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
-        }
-      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 6 )
-        {
-        evaluationKNeighborhood =
-          parser->Convert<unsigned int>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 6 ) );
-        }
-      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 7 )
-        {
-        alpha =
-          parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 7 ) );
-        }
-      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 8 )
-        {
-        useAnisotropicCovariances =
-          parser->Convert<bool>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 8 ) );
-        }
-      std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
-      std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
-      std::cout << "  fixed point set: " << fixedFileName << std::endl;
-      std::cout << "  moving point set: " << movingFileName << std::endl;
-
       if( whichMetric == "igdm" )
         {
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() != 8 )
@@ -922,6 +887,12 @@ DoRegistration(typename ParserType::Pointer & parser)
           std::cerr << "The expected number of parameters aren't specified.  Please see help menu." << std::endl;
           return EXIT_FAILURE;
           }
+
+        std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
+        std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
+
+        std::cout << "  fixed intensity point set: " << fixedFileName << std::endl;
+        std::cout << "  moving intensity point set: " << movingFileName << std::endl;
 
         std::string fixedPointSetMaskFile = metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 );
         std::string movingPointSetMaskFile = metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 );
@@ -949,6 +920,41 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       else
         {
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 3 )
+          {
+          samplingPercentage =
+            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 ) );
+          }
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 4 )
+          {
+          useBoundaryPointsOnly =
+            parser->Convert<bool>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 ) );
+          }
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 5 )
+          {
+          pointSetSigma =
+            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
+          }
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 6 )
+          {
+          evaluationKNeighborhood =
+            parser->Convert<unsigned int>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 6 ) );
+          }
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 7 )
+          {
+          alpha =
+            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 7 ) );
+          }
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 8 )
+          {
+          useAnisotropicCovariances =
+            parser->Convert<bool>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 8 ) );
+          }
+        std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
+        std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
+        std::cout << "  fixed labeled point set: " << fixedFileName << std::endl;
+        std::cout << "  moving labeled point set: " << movingFileName << std::endl;
+
         ReadLabeledPointSet<LabeledPointSetType>( fixedLabeledPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
         ReadLabeledPointSet<LabeledPointSetType>( movingLabeledPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
 
