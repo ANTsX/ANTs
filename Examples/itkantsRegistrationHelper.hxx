@@ -1079,7 +1079,7 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           }
 
-        if( intensityPointSetMetric.IsNotNull() )
+        if( currentMetricType == IGDM  )
           {
           if( useMultiMetric )
             {
@@ -1316,70 +1316,147 @@ RegistrationHelper<TComputeType, VImageDimension>
       {
       case Affine:
         {
-        this->AddLinearTransformToCompositeTransform<AffineRegistrationType>(
-          this->m_CompositeTransform, currentStageNumber,
-          preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
-          fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
-          multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
-          smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+        if( stageMetricList[0].m_MetricType != IGDM )
+          {
+          this->AddLinearTransformToCompositeTransform<AffineRegistrationType>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
+        else
+          {
+          typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
+            AffineTransformType, ImageType, IntensityPointSetType>  AffineRegistrationType2;
+
+          this->AddLinearTransformToCompositeTransform<AffineRegistrationType2>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedIntensityPointSetsPerStage, movingIntensityPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
         }
         break;
       case Rigid:
         {
         typedef typename RigidTransformTraits<TComputeType, VImageDimension>::TransformType RigidTransformType;
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, RigidTransformType, ImageType, LabeledPointSetType> RigidRegistrationType;
 
-        this->AddLinearTransformToCompositeTransform<RigidRegistrationType>(
-          this->m_CompositeTransform, currentStageNumber,
-          preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
-          fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
-          multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
-          smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+        if( stageMetricList[0].m_MetricType != IGDM )
+          {
+          typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, RigidTransformType,
+            ImageType, LabeledPointSetType> RigidRegistrationType;
+
+          this->AddLinearTransformToCompositeTransform<RigidRegistrationType>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
+        else
+          {
+          typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, RigidTransformType,
+            ImageType, IntensityPointSetType> RigidRegistrationType;
+
+          this->AddLinearTransformToCompositeTransform<RigidRegistrationType>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedIntensityPointSetsPerStage, movingIntensityPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
         }
         break;
       case CompositeAffine:
         {
         typedef typename CompositeAffineTransformTraits<TComputeType, VImageDimension>::TransformType CompositeAffineTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-          CompositeAffineTransformType, ImageType, LabeledPointSetType> CompositeAffineRegistrationType;
+        if( stageMetricList[0].m_MetricType != IGDM )
+          {
+          typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
+            CompositeAffineTransformType, ImageType, LabeledPointSetType> CompositeAffineRegistrationType;
 
-        this->AddLinearTransformToCompositeTransform<CompositeAffineRegistrationType>(
-          this->m_CompositeTransform, currentStageNumber,
-          preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
-          fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
-          multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
-          smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          this->AddLinearTransformToCompositeTransform<CompositeAffineRegistrationType>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
+        else
+          {
+          typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
+            CompositeAffineTransformType, ImageType, IntensityPointSetType> CompositeAffineRegistrationType;
+
+          this->AddLinearTransformToCompositeTransform<CompositeAffineRegistrationType>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedIntensityPointSetsPerStage, movingIntensityPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
         }
         break;
       case Similarity:
         {
         typedef typename SimilarityTransformTraits<TComputeType, VImageDimension>::TransformType SimilarityTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, SimilarityTransformType,
-          ImageType, LabeledPointSetType> SimilarityRegistrationType;
+        if( stageMetricList[0].m_MetricType != IGDM )
+          {
+          typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, SimilarityTransformType,
+            ImageType, LabeledPointSetType> SimilarityRegistrationType;
 
-        this->AddLinearTransformToCompositeTransform<SimilarityRegistrationType>(
-          this->m_CompositeTransform, currentStageNumber,
-          preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
-          fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
-          multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
-          smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          this->AddLinearTransformToCompositeTransform<SimilarityRegistrationType>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
+        else
+          {
+          typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, SimilarityTransformType,
+            ImageType, IntensityPointSetType> SimilarityRegistrationType;
+
+          this->AddLinearTransformToCompositeTransform<SimilarityRegistrationType>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedIntensityPointSetsPerStage, movingIntensityPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
         }
         break;
       case Translation:
         {
         typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, TranslationTransformType,
-          ImageType, LabeledPointSetType> TranslationRegistrationType;
+        if( stageMetricList[0].m_MetricType != IGDM )
+          {
+          typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, TranslationTransformType,
+            ImageType, LabeledPointSetType> TranslationRegistrationType;
 
-        this->AddLinearTransformToCompositeTransform<TranslationRegistrationType>(
-          this->m_CompositeTransform, currentStageNumber,
-          preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
-          fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
-          multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
-          smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          this->AddLinearTransformToCompositeTransform<TranslationRegistrationType>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
+        else
+          {
+          typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, TranslationTransformType,
+            ImageType, IntensityPointSetType> TranslationRegistrationType;
+
+          this->AddLinearTransformToCompositeTransform<TranslationRegistrationType>(
+            this->m_CompositeTransform, currentStageNumber,
+            preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+            fixedIntensityPointSetsPerStage, movingIntensityPointSetsPerStage, stageMetricList, singleMetric,
+            multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+            smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+          }
         }
         break;
       case GaussianDisplacementField:

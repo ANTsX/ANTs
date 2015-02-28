@@ -266,6 +266,10 @@ public:
           {
           return std::string( "JHCT" );
           }
+        case IGDM:
+          {
+          return std::string( "IGDM" );
+          }
         default:
           {
           }
