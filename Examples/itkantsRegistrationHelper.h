@@ -838,8 +838,8 @@ private:
     registrationMethod->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
     }
   registrationMethod->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-  registrationMethod->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
-                                                                       currentStageNumber] );
+  registrationMethod->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
+    this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
   registrationMethod->SetMetricSamplingStrategy(
     static_cast<typename RegistrationMethodType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
   registrationMethod->SetMetricSamplingPercentage( samplingPercentage );

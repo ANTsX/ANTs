@@ -47,7 +47,15 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
 
   PixelType closestPixel;
-  this->m_MovingTransformedPointSet->GetPointData( pointId, &closestPixel );
+  NumericTraits<PixelType>::SetLength( closestPixel, 1 );
+  if( this->m_UsePointSetData )
+    {
+    bool doesPointDataExist = this->m_MovingPointSet->GetPointData( pointId, &closestPixel );
+    if( ! doesPointDataExist )
+      {
+      itkExceptionMacro( "The corresponding data for point " << point << "(pointId = " << pointId << ") does not exist." );
+      }
+    }
 
   SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
   SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
@@ -73,7 +81,15 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
 
   PixelType closestPixel;
-  this->m_MovingTransformedPointSet->GetPointData( pointId, &closestPixel );
+  NumericTraits<PixelType>::SetLength( closestPixel, 1 );
+  if( this->m_UsePointSetData )
+    {
+    bool doesPointDataExist = this->m_MovingPointSet->GetPointData( pointId, &closestPixel );
+    if( ! doesPointDataExist )
+      {
+      itkExceptionMacro( "The corresponding data for point " << point << " (pointId = " << pointId << ") does not exist." );
+      }
+    }
 
   SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
   SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
@@ -86,7 +102,6 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
     {
     localDerivative[d] += pixel[centerIntensityIndex + 1 + d];
     }
-
 }
 
 template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>

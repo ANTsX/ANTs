@@ -1065,22 +1065,22 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
 
-        if( this->m_FixedImageMask.IsNotNull() )
-          {
-          typedef itk::CastImageFilter<MaskImageType, typename LabeledPointSetMetricType::VirtualImageType> CasterType;
-          typename CasterType::Pointer caster = CasterType::New();
-          caster->SetInput( this->m_FixedImageMask->GetImage() );
-          caster->Update();
-
-          labeledPointSetMetric->SetVirtualDomainFromImage( caster->GetOutput() );
-          if( virtualDomainImage.IsNull() )
-            {
-            virtualDomainImage = labeledPointSetMetric->GetVirtualImage();
-            }
-          }
-
         if( currentMetricType == IGDM  )
           {
+          if( this->m_FixedImageMask.IsNotNull() )
+            {
+            typedef itk::CastImageFilter<MaskImageType, typename LabeledPointSetMetricType::VirtualImageType> CasterType;
+            typename CasterType::Pointer caster = CasterType::New();
+            caster->SetInput( this->m_FixedImageMask->GetImage() );
+            caster->Update();
+
+            intensityPointSetMetric->SetVirtualDomainFromImage( caster->GetOutput() );
+            if( virtualDomainImage.IsNull() )
+              {
+              virtualDomainImage = intensityPointSetMetric->GetVirtualImage();
+              }
+            }
+
           if( useMultiMetric )
             {
             multiMetric->AddMetric( intensityPointSetMetric );
@@ -1094,6 +1094,19 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         else
           {
+          if( this->m_FixedImageMask.IsNotNull() )
+            {
+            typedef itk::CastImageFilter<MaskImageType, typename LabeledPointSetMetricType::VirtualImageType> CasterType;
+            typename CasterType::Pointer caster = CasterType::New();
+            caster->SetInput( this->m_FixedImageMask->GetImage() );
+            caster->Update();
+
+            labeledPointSetMetric->SetVirtualDomainFromImage( caster->GetOutput() );
+            if( virtualDomainImage.IsNull() )
+              {
+              virtualDomainImage = labeledPointSetMetric->GetVirtualImage();
+              }
+            }
           if( useMultiMetric )
             {
             multiMetric->AddMetric( labeledPointSetMetric );
