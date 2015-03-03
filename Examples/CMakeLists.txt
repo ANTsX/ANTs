@@ -81,7 +81,7 @@ set(MORE_ANTS_APPS
     ConvertToJpg
     ConvertImagePixelType
     ConvertInputImagePixelTypeToFloat
-    FitBSplineCurveToPoints
+    FitBSplineToPoints
     AverageTensorImages
     ImageSetStatistics
     MultiplyImages

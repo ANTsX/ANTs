@@ -95,7 +95,7 @@
 
 #include "ExtractSliceFromImage.h"
 
-#include "FitBSplineCurveToPoints.h"
+#include "FitBSplineToPoints.h"
 
 #include "GetMeshAndTopology.h"
 
