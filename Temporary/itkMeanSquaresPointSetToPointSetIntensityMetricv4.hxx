@@ -44,6 +44,18 @@ typename MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingP
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::GetLocalNeighborhoodValue( const PointType & point, const PixelType & pixel ) const
 {
+#ifdef TEST
+  PointType closestPoint;
+  closestPoint.Fill( 0.0 );
+
+  PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
+  closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
+
+  const MeasureType distance = point.EuclideanDistanceTo( closestPoint );
+  return distance;
+#endif
+
+
   PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
 
   PixelType closestPixel;
@@ -72,6 +84,18 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 ::GetLocalNeighborhoodValueAndDerivative( const PointType & point,
   MeasureType &measure, LocalDerivativeType & localDerivative, const PixelType & pixel ) const
 {
+
+  PointType closestPoint;
+  closestPoint.Fill( 0.0 );
+
+  PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
+  closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
+
+  measure = point.EuclideanDistanceTo( closestPoint );
+  localDerivative = closestPoint - point;
+
+#ifdef TEST
+
   // Important note:  we assume that the gradients for each of the
   // neighborhood voxels that are located in the "pixel" variable
   // have been transformed according to the "fixed" transform.  This
@@ -95,13 +119,16 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
     * ( PointDimension + 1 );
 
-  measure = vnl_math_sqr( pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex] );
 
-  localDerivative.Fill( 0.0 );
+  MeasureType intensityDifference = ( pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex] );
+  measure = vnl_math_sqr( intensityDifference );
+
+  localDerivative.Fill( intensityDifference );
   for( SizeValueType d = 0; d < PointDimension; d++ )
     {
-    localDerivative[d] += pixel[centerIntensityIndex + 1 + d];
+    localDerivative[d] *= closestPixel[centerIntensityIndex + 1 + d];
     }
+  #endif
 }
 
 template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
