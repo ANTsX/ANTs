@@ -98,7 +98,7 @@ public:
   /**
    * Calculates the local metric value for a single point.
    */
-  virtual MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & pixel = 0 ) const ITK_OVERRIDE;
+  virtual MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & ) const ITK_OVERRIDE;
 
   /** Helper method allows for code reuse while skipping the metric value
    * calculation when appropriate */
@@ -108,7 +108,7 @@ public:
    * Calculates the local value and derivative for a single point.
    */
   virtual void GetLocalNeighborhoodValueAndDerivative( const PointType &,
-    MeasureType &, LocalDerivativeType &, const PixelType & pixel = 0 ) const ITK_OVERRIDE;
+    MeasureType &, LocalDerivativeType &, const PixelType & ) const ITK_OVERRIDE;
 
   /** Clone method will clone the existing instance of this type,
    *  including its internal member variables. */

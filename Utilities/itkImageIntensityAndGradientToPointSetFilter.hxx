@@ -115,10 +115,9 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
           {
           array[arrayIndex++] = gradient[d];
           }
-
-        output->SetPoint( count, point );
-        output->SetPointData( count++, array );
         }
+      output->SetPoint( count, point );
+      output->SetPointData( count++, array );
       }
     }
 }
