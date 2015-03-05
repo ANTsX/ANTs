@@ -28,6 +28,8 @@ template<typename TFixedPointSet, typename TMovingPointSet, class TInternalCompu
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::MeanSquaresPointSetToPointSetIntensityMetricv4()
 {
+  this->m_EuclideanDistanceSigma = std::sqrt( 5.0 );
+  this->m_IntensityDistanceSigma = std::sqrt( 5.0 );
   this->m_UsePointSetData = true;
 }
 
@@ -44,65 +46,8 @@ typename MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingP
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::GetLocalNeighborhoodValue( const PointType & point, const PixelType & pixel ) const
 {
-  PointType closestPoint;
-  closestPoint.Fill( 0.0 );
-
   PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
-  closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
 
-  const MeasureType distance = point.EuclideanDistanceTo( closestPoint );
-  MeasureType distanceProb = exp( -1.0 * distance * distance / 10.0 );
-
-  PixelType closestPixel;
-  NumericTraits<PixelType>::SetLength( closestPixel, 1 );
-  if( this->m_UsePointSetData )
-    {
-    bool doesPointDataExist = this->m_MovingPointSet->GetPointData( pointId, &closestPixel );
-    if( ! doesPointDataExist )
-      {
-      itkExceptionMacro( "The corresponding data for point " << point << "(pointId = " << pointId << ") does not exist." );
-      }
-    }
-
-  SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
-  SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
-    * ( PointDimension + 1 );
-
-  const MeasureType measure = exp( -1.0 *
-    vnl_math_sqr( pixel[centerIntensityIndex] -
-       closestPixel[centerIntensityIndex] ) / 10.0 ) * distanceProb * ( -1.0 );
-
-  return measure;
-}
-
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
-void
-MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
-::GetLocalNeighborhoodValueAndDerivative( const PointType & point,
-  MeasureType &measure, LocalDerivativeType & localDerivative, const PixelType & pixel ) const
-{
-
-  /** the icp term */
-  PointType closestPoint;
-  closestPoint.Fill( 0.0 );
-
-  PointIdentifier pointId =
-    this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
-
-  closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
-
-  /** the icp term measure */
-  MeasureType distance = point.EuclideanDistanceTo( closestPoint );
-  MeasureType distanceProb =
-    exp( -1.0 * distance * distance / 10.0 ); // probability
-
-  // Important note:  we assume that the gradients for each of the
-  // neighborhood voxels that are located in the "pixel" variable
-  // have been transformed according to the "fixed" transform.  This
-  // is why we override the GetValue() and GetValueAndDerivative()
-  // and IntializePointSets() functions.
-
-  /** the intensity term */
   PixelType closestPixel;
   NumericTraits<PixelType>::SetLength( closestPixel, 1 );
   if( this->m_UsePointSetData )
@@ -114,35 +59,75 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
       }
     }
 
-  SizeValueType numberOfVoxelsInNeighborhood = pixel.size() /
-    ( 1 + PointDimension );
+  PointType closestPoint;
+  closestPoint.Fill( 0.0 );
+  closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
+
+  // the probabilistic icp term
+  const MeasureType euclideanDistance = point.EuclideanDistanceTo( closestPoint );
+  MeasureType distanceProbability = std::exp( -0.5 * vnl_math_sqr( euclideanDistance / this->m_EuclideanDistanceSigma ) );
+
+  SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
+  SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
+    * ( PointDimension + 1 );
+
+  // the probabilistic intensity term
+  MeasureType intensityDistance = pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex];
+  MeasureType intensityProbability = std::exp( -0.5 * vnl_math_sqr( intensityDistance / this->m_IntensityDistanceSigma ) );
+
+  const MeasureType measure = ( -1.0 ) * intensityProbability * distanceProbability;
+
+  return measure;
+}
+
+template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+void
+MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
+::GetLocalNeighborhoodValueAndDerivative( const PointType & point,
+  MeasureType &measure, LocalDerivativeType & localDerivative, const PixelType & pixel ) const
+{
+  PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
+
+  PixelType closestPixel;
+  NumericTraits<PixelType>::SetLength( closestPixel, 1 );
+  if( this->m_UsePointSetData )
+    {
+    bool doesPointDataExist = this->m_MovingPointSet->GetPointData( pointId, &closestPixel );
+    if( ! doesPointDataExist )
+      {
+      itkExceptionMacro( "The corresponding data for point " << point << " (pointId = " << pointId << ") does not exist." );
+      }
+    }
+
+  PointType closestPoint;
+  closestPoint.Fill( 0.0 );
+  closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
+
+  // the probabilistic icp term
+  const MeasureType euclideanDistance = point.EuclideanDistanceTo( closestPoint );
+  MeasureType distanceProbability = std::exp( -0.5 * vnl_math_sqr( euclideanDistance / this->m_EuclideanDistanceSigma ) );
+
+  SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
   SizeValueType centerIntensityIndex =
-     static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
-       * ( PointDimension + 1 );
+     static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood ) * ( PointDimension + 1 );
 
+  // the probabilistic intensity term
+  MeasureType intensityDistance = pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex];
+  MeasureType intensityProbability = std::exp( -0.5 * vnl_math_sqr( intensityDistance / this->m_IntensityDistanceSigma ) );
 
-  MeasureType intensityDifference =
-    ( pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex] );
-  MeasureType intensityProb = exp( -1.0 *
-    vnl_math_sqr( intensityDifference ) / 10.0 );
+  measure = ( -1.0 ) * intensityProbability * distanceProbability;
 
   // total derivative is
   // d/dx( intProb * distProb ) =
   //   intProb * d/dx( distProb ) + distProb * d/dx( intProb ) =
   //   intProb * distProb * dist + distProb * intProb * intdiff =
-  if ( false )
-    std::cout << " intensityDifference " << intensityDifference <<
-      " iprob " << intensityProb << " distance " << distance << " distanceProb "
-      << distanceProb << std::endl;
-  localDerivative = ( closestPoint - point ) * intensityProb * distanceProb;
+
+  localDerivative = ( closestPoint - point ) * intensityProbability * distanceProbability;
   for( SizeValueType d = 0; d < PointDimension; d++ )
     {
-    localDerivative[d] = intensityProb * distanceProb * intensityDifference *
-      closestPixel[centerIntensityIndex + 1 + d] * (1) +
-      localDerivative[d];
+    localDerivative[d] += intensityProbability * distanceProbability * intensityDistance *
+      closestPixel[centerIntensityIndex + 1 + d];
     }
-
-  measure = intensityProb * distanceProb * (-1.0);
 }
 
 template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
@@ -164,6 +149,9 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 ::PrintSelf( std::ostream & os, Indent indent ) const
 {
   Superclass::PrintSelf( os, indent );
+
+  os << "Euclidean distance sigma = " << this->m_EuclideanDistanceSigma << std::endl;
+  os << "intensity distance sigma = " << this->m_IntensityDistanceSigma << std::endl;
 }
 
 } // end namespace itk

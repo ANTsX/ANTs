@@ -244,14 +244,17 @@ RegistrationHelper<TComputeType, VImageDimension>
              unsigned int evaluationKNeighborhood,
              RealType alpha,
              bool useAnisotropicCovariances,
-             RealType samplingPercentage )
+             RealType samplingPercentage,
+             RealType intensityDistanceSigma,
+             RealType euclideanDistanceSigma )
 {
   Metric init( metricType, fixedImage, movingImage,
                fixedLabeledPointSet, movingLabeledPointSet,
                fixedIntensityPointSet, movingIntensityPointSet,
                stageID, weighting, samplingStrategy, numberOfBins, radius,
                useBoundaryPointsOnly, pointSetSigma, evaluationKNeighborhood,
-               alpha, useAnisotropicCovariances, samplingPercentage );
+               alpha, useAnisotropicCovariances, samplingPercentage,
+               intensityDistanceSigma, euclideanDistanceSigma );
 
   this->m_Metrics.push_back( init );
 }
@@ -962,6 +965,9 @@ RegistrationHelper<TComputeType, VImageDimension>
                          << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
           typedef itk::MeanSquaresPointSetToPointSetIntensityMetricv4<IntensityPointSetType, IntensityPointSetType, RealType> MsqPointSetMetricType;
           typename MsqPointSetMetricType::Pointer msqMetric = MsqPointSetMetricType::New();
+
+          msqMetric->SetIntensityDistanceSigma( stageMetricList[currentMetricNumber].m_IntensityDistanceSigma );
+          msqMetric->SetEuclideanDistanceSigma( stageMetricList[currentMetricNumber].m_EuclideanDistanceSigma );
 
           intensityPointSetMetric = msqMetric;
           }

@@ -227,8 +227,6 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   if( maskOption && maskOption->GetNumberOfFunctions() )
     {
-    typedef itk::ImageFileReader<MaskImageType>            ImageReaderType;
-
     if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
@@ -812,13 +810,17 @@ DoRegistration(typename ParserType::Pointer & parser)
     unsigned int radius = 4;
 
     // assign default point-set variables
+
+    //   labeled point sets
     bool useBoundaryPointsOnly = false;
     float pointSetSigma = 1.0;
     unsigned int evaluationKNeighborhood = 50;
     float alpha = 1.1;
     float useAnisotropicCovariances = false;
-
     float samplingPercentage = 1.0;
+    //   intensity point sets
+    float intensityDistanceSigma = std::sqrt( 5.0 );
+    float euclideanDistanceSigma = std::sqrt( 5.0 );
 
     if( !regHelper->IsPointSetMetric( currentMetric ) )
       {
@@ -882,7 +884,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       if( whichMetric == "igdm" )
         {
-        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() != 8 )
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() != 5 )
           {
           std::cerr << "The expected number of parameters aren't specified.  Please see help menu." << std::endl;
           return EXIT_FAILURE;
@@ -896,10 +898,43 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         std::string fixedPointSetMaskFile = metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 );
         std::string movingPointSetMaskFile = metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 );
-        double gradientPointSetSigma = parser->Convert<double>(
-          metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
-        std::vector<unsigned int> neighborhoodRadius = parser->ConvertVector<unsigned int>(
-          metricOption->GetFunction( currentMetricNumber )->GetParameter( 6 ) );
+
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 6 )
+          {
+          intensityDistanceSigma =
+            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 6 ) );
+          }
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 7 )
+          {
+          euclideanDistanceSigma =
+            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 7 ) );
+          }
+        evaluationKNeighborhood = 1;
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 8 )
+          {
+          evaluationKNeighborhood =
+            parser->Convert<unsigned int>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 8 ) );
+          }
+
+        double gradientPointSetSigma = 1.0;
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 9 )
+          {
+          gradientPointSetSigma = parser->Convert<double>(
+            metricOption->GetFunction( currentMetricNumber )->GetParameter( 9 ) );
+          }
+        std::vector<unsigned int> neighborhoodRadius;
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 5 )
+          {
+          neighborhoodRadius = parser->ConvertVector<unsigned int>(
+            metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
+          }
+        else
+          {
+          for( unsigned d = 0; d < VImageDimension; d++ )
+            {
+            neighborhoodRadius.push_back( 0 );
+            }
+          }
 
         if( neighborhoodRadius.size() != VImageDimension )
           {
@@ -980,7 +1015,10 @@ DoRegistration(typename ParserType::Pointer & parser)
                           evaluationKNeighborhood,
                           alpha,
                           useAnisotropicCovariances,
-                          samplingPercentage );
+                          samplingPercentage,
+                          intensityDistanceSigma,
+                          euclideanDistanceSigma
+                          );
     }
 
   // Perform the registration

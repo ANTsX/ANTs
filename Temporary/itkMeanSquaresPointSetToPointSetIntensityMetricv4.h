@@ -96,6 +96,20 @@ public:
   typedef typename Superclass::PointIdentifier         PointIdentifier;
 
   /**
+   * Set/get intensity sigma -- modulate the intensity distance contribution in the
+   * metric formulation.  Default = sqrt( 5.0 ).
+   */
+  itkSetMacro( IntensityDistanceSigma, TInternalComputationValueType );
+  itkGetConstMacro( IntensityDistanceSigma, TInternalComputationValueType );
+
+  /**
+   * Set/get distance sigma -- modulate the Euclidean distance contribution in the
+   * metric formulation.   Default = sqrt( 5.0 ).
+   */
+  itkSetMacro( EuclideanDistanceSigma, TInternalComputationValueType );
+  itkGetConstMacro( EuclideanDistanceSigma, TInternalComputationValueType );
+
+  /**
    * Calculates the local metric value for a single point.
    */
   virtual MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & ) const ITK_OVERRIDE;
@@ -124,6 +138,10 @@ protected:
 private:
   MeanSquaresPointSetToPointSetIntensityMetricv4(const Self &); //purposely not implemented
   void operator=(const Self &);               //purposely not implemented
+
+  TInternalComputationValueType       m_IntensityDistanceSigma;
+  TInternalComputationValueType       m_EuclideanDistanceSigma;
+
 };
 } // end namespace itk
 

@@ -204,7 +204,8 @@ public:
             unsigned int radius, bool useBoundaryPointsOnly,
             RealType pointSetSigma, unsigned int evaluationKNeighborhood,
             RealType alpha, bool useAnisotropicCovariances,
-            RealType samplingPercentage ) :
+            RealType samplingPercentage, RealType intensityDistanceSigma,
+            RealType euclideanDistanceSigma ) :
       m_MetricType( metricType ),
       m_FixedImage( fixedImage ),
       m_MovingImage( movingImage ),
@@ -222,7 +223,9 @@ public:
       m_EvaluationKNeighborhood( evaluationKNeighborhood ),
       m_Alpha( alpha ),
       m_UseAnisotropicCovariances( useAnisotropicCovariances ),
-      m_SamplingPercentage( samplingPercentage )
+      m_SamplingPercentage( samplingPercentage ),
+      m_IntensityDistanceSigma( intensityDistanceSigma ),
+      m_EuclideanDistanceSigma( euclideanDistanceSigma )
     {
     }
 
@@ -303,9 +306,11 @@ public:
     RealType            m_Alpha;                     // Only for JHCT metric
     bool                m_UseAnisotropicCovariances; // Only for JHCT metric
 
-    // Variables for both
+    RealType            m_SamplingPercentage;        // Only for PSE,JHCT metrics
 
-    RealType            m_SamplingPercentage;
+    RealType            m_IntensityDistanceSigma;    // Only for IGDM metric
+    RealType            m_EuclideanDistanceSigma;    // Only for IGDM metric
+
   };
 
   typedef std::deque<Metric> MetricListType;
@@ -469,7 +474,10 @@ public:
                   unsigned int evaluationKNeighborhood,
                   RealType alpha,
                   bool useAnisotropicCovariances,
-                  RealType samplingPercentage );
+                  RealType samplingPercentage,
+                  RealType intensityDistanceSigma,
+                  RealType euclideanDistanceSigma
+                   );
 
   /** For backwards compatibility */
   inline void AddMetric( MetricEnumeration metricType,
@@ -485,7 +493,7 @@ public:
     this->AddMetric( metricType, fixedImage, movingImage, ITK_NULLPTR, ITK_NULLPTR,
       ITK_NULLPTR, ITK_NULLPTR,
       stageID, weighting, samplingStrategy, numberOfBins, radius,
-      false, 1.0, 50, 1.1, false, samplingPercentage );
+      false, 1.0, 50, 1.1, false, samplingPercentage, std::sqrt( 5 ), std::sqrt( 5 ) );
     }
 
 
