@@ -326,7 +326,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
       "JHCT[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=1>,<kNeighborhood=50>,<alpha=1.1>,<useAnisotropicCovariances=1>]" );
     option->SetUsageOption(
       9,
-      "IGDM[fixedImage,movingImage,metricWeight,fixedMask,movingMask,<neighborhoodRadius=0x0>,<intensitySigma=sqrt(5)>,<distanceSigma=sqrt(5)>,<kNeighborhood=1>,<gradientSigma=1>]" );
+      "IGDM[fixedImage,movingImage,metricWeight,fixedMask,movingMask,<neighborhoodRadius=0x0>,<intensitySigma=0>,<distanceSigma=0>,<kNeighborhood=1>,<gradientSigma=1>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

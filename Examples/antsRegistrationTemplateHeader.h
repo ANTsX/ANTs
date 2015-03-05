@@ -819,8 +819,8 @@ DoRegistration(typename ParserType::Pointer & parser)
     float useAnisotropicCovariances = false;
     float samplingPercentage = 1.0;
     //   intensity point sets
-    float intensityDistanceSigma = std::sqrt( 5.0 );
-    float euclideanDistanceSigma = std::sqrt( 5.0 );
+    float intensityDistanceSigma = 0.0;
+    float euclideanDistanceSigma = 0.0;
 
     if( !regHelper->IsPointSetMetric( currentMetric ) )
       {
