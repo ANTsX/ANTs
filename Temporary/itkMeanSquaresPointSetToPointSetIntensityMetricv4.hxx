@@ -30,6 +30,9 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 {
   this->m_EuclideanDistanceSigma = std::sqrt( 5.0 );
   this->m_IntensityDistanceSigma = std::sqrt( 5.0 );
+
+  this->m_EstimateDistanceSigmasAutomatically = true;
+
   this->m_UsePointSetData = true;
 }
 
@@ -38,6 +41,159 @@ template<typename TFixedPointSet, typename TMovingPointSet, class TInternalCompu
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::~MeanSquaresPointSetToPointSetIntensityMetricv4()
 {
+}
+
+/** Initialize the metric */
+template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+void
+MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
+::Initialize( void ) throw ( ExceptionObject )
+{
+  Superclass::Initialize();
+
+  if( this->m_EstimateDistanceSigmasAutomatically )
+    {
+    this->EstimateIntensityDistanceSigma();
+    this->EstimateEuclideanDistanceSigma();
+    }
+}
+
+template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+void
+MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
+::EstimateEuclideanDistanceSigma()
+{
+  TInternalComputationValueType runningDistanceMean = 0.0;
+  TInternalComputationValueType runningDistanceSigma = 0.0;
+
+  if( this->m_FixedTransformedPointSet->GetNumberOfPoints() <= 1 )
+    {
+    itkExceptionMacro( "Need more than 1 point to estimate the distance sigma." );
+    }
+
+  unsigned int count = 0;
+
+  PointsConstIterator ItF = this->m_FixedTransformedPointSet->GetPoints()->Begin();
+  while( ItF != this->m_FixedTransformedPointSet->GetPoints()->End() )
+    {
+    PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( ItF.Value() );
+
+    PointType closestPoint;
+    closestPoint.Fill( 0.0 );
+    closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
+
+    TInternalComputationValueType distance = closestPoint.EuclideanDistanceTo( ItF.Value() );
+
+    if( count == 0 )
+      {
+      runningDistanceMean = distance;
+      runningDistanceSigma = 0.0;
+      }
+    else
+      {
+      TInternalComputationValueType runningDistanceMeanPreviousIteration = runningDistanceMean;
+      runningDistanceMean = runningDistanceMeanPreviousIteration +
+        ( distance - runningDistanceMeanPreviousIteration ) / static_cast<TInternalComputationValueType>( count + 1 );
+      runningDistanceSigma +=
+        ( distance - runningDistanceMeanPreviousIteration ) * ( distance - runningDistanceMean );
+      }
+    ++count;
+
+    ++ItF;
+    }
+
+  this->m_EuclideanDistanceSigma = std::sqrt( runningDistanceSigma / static_cast<TInternalComputationValueType>( count ) );
+}
+
+template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+void
+MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
+::EstimateIntensityDistanceSigma()
+{
+  // Get the min/max intensities from the fixed point set
+
+  PointsConstIterator ItF = this->m_FixedPointSet->GetPoints()->Begin();
+
+  TInternalComputationValueType maxFixedIntensity =
+    NumericTraits<TInternalComputationValueType>::NonpositiveMin();
+  TInternalComputationValueType minFixedIntensity =
+    NumericTraits<TInternalComputationValueType>::max();
+
+  while( ItF != this->m_FixedPointSet->GetPoints()->End() )
+    {
+    PixelType pixel;
+    NumericTraits<PixelType>::SetLength( pixel, 1 );
+    if( this->m_UsePointSetData )
+      {
+      bool doesPointDataExist = this->m_FixedPointSet->GetPointData( ItF.Index(), &pixel );
+      if( ! doesPointDataExist )
+        {
+        itkExceptionMacro( "The corresponding data for point " << ItF.Value() << " (pointId = " << ItF.Index() << ") does not exist." );
+        }
+      }
+
+    SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
+    SizeValueType centerIntensityIndex =
+       static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood ) * ( PointDimension + 1 );
+
+    if( pixel[centerIntensityIndex] > maxFixedIntensity )
+      {
+      maxFixedIntensity = pixel[centerIntensityIndex];
+      }
+    else if( pixel[centerIntensityIndex] > minFixedIntensity )
+      {
+      minFixedIntensity = pixel[centerIntensityIndex];
+      }
+
+    ++ItF;
+    }
+
+  // Get the min/max intensities from the moving point set
+
+  PointsConstIterator ItM = this->m_MovingPointSet->GetPoints()->Begin();
+
+  TInternalComputationValueType maxMovingIntensity =
+    NumericTraits<TInternalComputationValueType>::NonpositiveMin();
+  TInternalComputationValueType minMovingIntensity =
+    NumericTraits<TInternalComputationValueType>::max();
+
+  while( ItM != this->m_MovingPointSet->GetPoints()->End() )
+    {
+    PixelType pixel;
+    NumericTraits<PixelType>::SetLength( pixel, 1 );
+    if( this->m_UsePointSetData )
+      {
+      bool doesPointDataExist = this->m_MovingPointSet->GetPointData( ItM.Index(), &pixel );
+      if( ! doesPointDataExist )
+        {
+        itkExceptionMacro( "The corresponding data for point " << ItM.Value() << " (pointId = " << ItM.Index() << ") does not exist." );
+        }
+      }
+
+    SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
+    SizeValueType centerIntensityIndex =
+       static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood ) * ( PointDimension + 1 );
+
+    if( pixel[centerIntensityIndex] > maxMovingIntensity )
+      {
+      maxMovingIntensity = pixel[centerIntensityIndex];
+      }
+    else if( pixel[centerIntensityIndex] > minMovingIntensity )
+      {
+      minMovingIntensity = pixel[centerIntensityIndex];
+      }
+
+    ++ItM;
+    }
+
+  // Now determine the sigma using a reasonable heuristic.
+
+  this->m_IntensityDistanceSigma = vnl_math_max( maxMovingIntensity, maxFixedIntensity )
+    - vnl_math_min( minMovingIntensity, maxMovingIntensity );
+  if( this->m_IntensityDistanceSigma == 0 )
+    {
+    this->m_IntensityDistanceSigma = vnl_math_max( maxMovingIntensity, maxFixedIntensity );
+    }
 }
 
 template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>

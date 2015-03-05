@@ -968,6 +968,14 @@ RegistrationHelper<TComputeType, VImageDimension>
 
           msqMetric->SetIntensityDistanceSigma( stageMetricList[currentMetricNumber].m_IntensityDistanceSigma );
           msqMetric->SetEuclideanDistanceSigma( stageMetricList[currentMetricNumber].m_EuclideanDistanceSigma );
+          if( msqMetric->GetEuclideanDistanceSigma() <= 0.0 || msqMetric->GetEuclideanDistanceSigma() )
+            {
+            msqMetric->EstimateDistanceSigmasAutomaticallyOn();
+            }
+          else
+            {
+            msqMetric->EstimateDistanceSigmasAutomaticallyOff();
+            }
 
           intensityPointSetMetric = msqMetric;
           }

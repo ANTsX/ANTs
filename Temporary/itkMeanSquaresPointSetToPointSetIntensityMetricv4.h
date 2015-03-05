@@ -94,6 +94,15 @@ public:
   typedef typename Superclass::PointType               PointType;
   typedef typename Superclass::PixelType               PixelType;
   typedef typename Superclass::PointIdentifier         PointIdentifier;
+  typedef typename Superclass::PointsConstIterator     PointsConstIterator;
+
+  /**
+   * Set/get estimate distance sigmas automatically based on reasonable
+   * heuristics.
+   */
+  itkSetMacro( EstimateDistanceSigmasAutomatically, bool );
+  itkGetConstMacro( EstimateDistanceSigmasAutomatically, bool );
+  itkBooleanMacro( EstimateDistanceSigmasAutomatically );
 
   /**
    * Set/get intensity sigma -- modulate the intensity distance contribution in the
@@ -108,6 +117,11 @@ public:
    */
   itkSetMacro( EuclideanDistanceSigma, TInternalComputationValueType );
   itkGetConstMacro( EuclideanDistanceSigma, TInternalComputationValueType );
+
+   /**
+    * Initialize the metric by estimating the intensity and distance sigmas
+    */
+  virtual void Initialize( void ) throw ( ExceptionObject ) ITK_OVERRIDE;
 
   /**
    * Calculates the local metric value for a single point.
@@ -132,6 +146,9 @@ protected:
   MeanSquaresPointSetToPointSetIntensityMetricv4();
   virtual ~MeanSquaresPointSetToPointSetIntensityMetricv4();
 
+  void EstimateIntensityDistanceSigma();
+  void EstimateEuclideanDistanceSigma();
+
   /** PrintSelf function */
   void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
 
@@ -139,6 +156,7 @@ private:
   MeanSquaresPointSetToPointSetIntensityMetricv4(const Self &); //purposely not implemented
   void operator=(const Self &);               //purposely not implemented
 
+  bool                                m_EstimateDistanceSigmasAutomatically;
   TInternalComputationValueType       m_IntensityDistanceSigma;
   TInternalComputationValueType       m_EuclideanDistanceSigma;
 
