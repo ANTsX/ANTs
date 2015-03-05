@@ -968,7 +968,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
           msqMetric->SetIntensityDistanceSigma( stageMetricList[currentMetricNumber].m_IntensityDistanceSigma );
           msqMetric->SetEuclideanDistanceSigma( stageMetricList[currentMetricNumber].m_EuclideanDistanceSigma );
-          if( msqMetric->GetEuclideanDistanceSigma() <= 0.0 || msqMetric->GetEuclideanDistanceSigma() )
+          if( msqMetric->GetEuclideanDistanceSigma() <= 0.0 || msqMetric->GetEuclideanDistanceSigma() <= 0.0 )
             {
             msqMetric->EstimateDistanceSigmasAutomaticallyOn();
             }
