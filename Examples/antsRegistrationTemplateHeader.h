@@ -884,7 +884,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       if( whichMetric == "igdm" )
         {
-        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() != 5 )
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() <= 5 )
           {
           std::cerr << "The expected number of parameters aren't specified.  Please see help menu." << std::endl;
           return EXIT_FAILURE;
