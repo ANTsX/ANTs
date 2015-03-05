@@ -3793,16 +3793,29 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else
       {
-      this->Logger() << "   Point Set Metric = " << curMetric.GetMetricAsString() << std::endl
-                     << "     Fixed point set = " << curMetric.m_FixedLabeledPointSet << std::endl
-                     << "     Moving point set = " << curMetric.m_MovingLabeledPointSet << std::endl
-                     << "     Weighting = " << curMetric.m_Weighting << std::endl
-                     << "     Use only boundary points = " << ( curMetric.m_UseBoundaryPointsOnly ? "true" : "false" ) << std::endl
-                     << "     Point set sigma = " << curMetric.m_PointSetSigma << std::endl
-                     << "     Evaluation K neighborhood = " << curMetric.m_EvaluationKNeighborhood << std::endl
-                     << "     Alpha = " << curMetric.m_Alpha << std::endl
-                     << "     Use anisotropic covariances = " << ( curMetric.m_UseAnisotropicCovariances ? "true" : "false" ) << std::endl
-                     << "     Sampling percentage = " << curMetric.m_SamplingPercentage << std::endl;
+      if( curMetric.m_MetricType == IGDM )
+        {
+        this->Logger() << "   Point Set Metric = " << curMetric.GetMetricAsString() << std::endl
+                       << "     Fixed intensity point set = " << curMetric.m_FixedIntensityPointSet << std::endl
+                       << "     Moving intensity point set = " << curMetric.m_MovingIntensityPointSet << std::endl
+                       << "     Weighting = " << curMetric.m_Weighting << std::endl
+                       << "     Intensity distance sigma = " << curMetric.m_IntensityDistanceSigma << std::endl
+                       << "     Euclidean distance sigma = " << curMetric.m_EuclideanDistanceSigma << std::endl
+                       << "     Evaluation K neighborhood = " << curMetric.m_EvaluationKNeighborhood << std::endl;
+        }
+      else
+        {
+        this->Logger() << "   Point Set Metric = " << curMetric.GetMetricAsString() << std::endl
+                       << "     Fixed labeled point set = " << curMetric.m_FixedLabeledPointSet << std::endl
+                       << "     Moving labeled point set = " << curMetric.m_MovingLabeledPointSet << std::endl
+                       << "     Weighting = " << curMetric.m_Weighting << std::endl
+                       << "     Use only boundary points = " << ( curMetric.m_UseBoundaryPointsOnly ? "true" : "false" ) << std::endl
+                       << "     Point set sigma = " << curMetric.m_PointSetSigma << std::endl
+                       << "     Evaluation K neighborhood = " << curMetric.m_EvaluationKNeighborhood << std::endl
+                       << "     Alpha = " << curMetric.m_Alpha << std::endl
+                       << "     Use anisotropic covariances = " << ( curMetric.m_UseAnisotropicCovariances ? "true" : "false" ) << std::endl
+                       << "     Sampling percentage = " << curMetric.m_SamplingPercentage << std::endl;
+        }
       }
     this->Logger() << "   Transform = " << curTransform.XfrmMethodAsString() << std::endl
                    << "     Gradient step = " << curTransform.m_GradientStep << std::endl
