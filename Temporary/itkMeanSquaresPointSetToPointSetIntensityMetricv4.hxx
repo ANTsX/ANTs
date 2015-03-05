@@ -44,7 +44,6 @@ typename MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingP
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::GetLocalNeighborhoodValue( const PointType & point, const PixelType & pixel ) const
 {
-#ifdef TEST
   PointType closestPoint;
   closestPoint.Fill( 0.0 );
 
@@ -52,11 +51,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
 
   const MeasureType distance = point.EuclideanDistanceTo( closestPoint );
-  return distance;
-#endif
-
-
-  PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
+  MeasureType distanceProb = exp( -1.0 * distance * distance / 2.0 );
 
   PixelType closestPixel;
   NumericTraits<PixelType>::SetLength( closestPixel, 1 );
@@ -73,7 +68,9 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
     * ( PointDimension + 1 );
 
-  const MeasureType measure = vnl_math_sqr( pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex] );
+  const MeasureType measure = exp( -1.0 *
+    vnl_math_sqr( pixel[centerIntensityIndex] -
+       closestPixel[centerIntensityIndex] ) / 2.0 ) * distanceProb * ( -1.0 );
 
   return measure;
 }
@@ -85,16 +82,19 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   MeasureType &measure, LocalDerivativeType & localDerivative, const PixelType & pixel ) const
 {
 
+  /** the icp term */
   PointType closestPoint;
   closestPoint.Fill( 0.0 );
 
-  PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
+  PointIdentifier pointId =
+    this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
+
   closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
 
-  measure = point.EuclideanDistanceTo( closestPoint );
-  localDerivative = closestPoint - point;
-
-#ifdef TEST
+  /** the icp term measure */
+  MeasureType distance = point.EuclideanDistanceTo( closestPoint );
+  MeasureType distanceProb =
+    exp( -1.0 * distance * distance / 2.0 ); // probability
 
   // Important note:  we assume that the gradients for each of the
   // neighborhood voxels that are located in the "pixel" variable
@@ -102,8 +102,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   // is why we override the GetValue() and GetValueAndDerivative()
   // and IntializePointSets() functions.
 
-  PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint( point );
-
+  /** the intensity term */
   PixelType closestPixel;
   NumericTraits<PixelType>::SetLength( closestPixel, 1 );
   if( this->m_UsePointSetData )
@@ -115,20 +114,35 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
       }
     }
 
-  SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
-  SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
-    * ( PointDimension + 1 );
+  SizeValueType numberOfVoxelsInNeighborhood = pixel.size() /
+    ( 1 + PointDimension );
+  SizeValueType centerIntensityIndex =
+     static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
+       * ( PointDimension + 1 );
 
 
-  MeasureType intensityDifference = ( pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex] );
-  measure = vnl_math_sqr( intensityDifference );
+  MeasureType intensityDifference =
+    ( pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex] );
+  MeasureType intensityProb = exp( -1.0 *
+    vnl_math_sqr( intensityDifference ) / 2.0 );
 
-  localDerivative.Fill( intensityDifference );
+  // total derivative is
+  // d/dx( intProb * distProb ) =
+  //   intProb * d/dx( distProb ) + distProb * d/dx( intProb ) =
+  //   intProb * distProb * dist + distProb * intProb * intdiff =
+
+  localDerivative = ( closestPoint - point ) * intensityProb * distanceProb;
+
+  LocalDerivativeType iDeriv( localDerivative );
+  iDeriv.Fill( 0 );
   for( SizeValueType d = 0; d < PointDimension; d++ )
     {
-    localDerivative[d] *= closestPixel[centerIntensityIndex + 1 + d];
+    iDeriv[d] = intensityProb * distanceProb * intensityDifference *
+      closestPixel[centerIntensityIndex + 1 + d] * (-1) +
+      localDerivative[d];
     }
-  #endif
+
+  measure = intensityProb * distanceProb * (-1.0);
 }
 
 template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
