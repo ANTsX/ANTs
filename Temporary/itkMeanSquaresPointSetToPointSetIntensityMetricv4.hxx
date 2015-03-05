@@ -51,7 +51,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   closestPoint = this->m_MovingTransformedPointSet->GetPoint( pointId );
 
   const MeasureType distance = point.EuclideanDistanceTo( closestPoint );
-  MeasureType distanceProb = exp( -1.0 * distance * distance / 2.0 );
+  MeasureType distanceProb = exp( -1.0 * distance * distance / 10.0 );
 
   PixelType closestPixel;
   NumericTraits<PixelType>::SetLength( closestPixel, 1 );
@@ -70,7 +70,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   const MeasureType measure = exp( -1.0 *
     vnl_math_sqr( pixel[centerIntensityIndex] -
-       closestPixel[centerIntensityIndex] ) / 2.0 ) * distanceProb * ( -1.0 );
+       closestPixel[centerIntensityIndex] ) / 10.0 ) * distanceProb * ( -1.0 );
 
   return measure;
 }
@@ -94,7 +94,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   /** the icp term measure */
   MeasureType distance = point.EuclideanDistanceTo( closestPoint );
   MeasureType distanceProb =
-    exp( -1.0 * distance * distance / 2.0 ); // probability
+    exp( -1.0 * distance * distance / 10.0 ); // probability
 
   // Important note:  we assume that the gradients for each of the
   // neighborhood voxels that are located in the "pixel" variable
@@ -124,21 +124,21 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   MeasureType intensityDifference =
     ( pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex] );
   MeasureType intensityProb = exp( -1.0 *
-    vnl_math_sqr( intensityDifference ) / 2.0 );
+    vnl_math_sqr( intensityDifference ) / 10.0 );
 
   // total derivative is
   // d/dx( intProb * distProb ) =
   //   intProb * d/dx( distProb ) + distProb * d/dx( intProb ) =
   //   intProb * distProb * dist + distProb * intProb * intdiff =
-
+  if ( false )
+    std::cout << " intensityDifference " << intensityDifference <<
+      " iprob " << intensityProb << " distance " << distance << " distanceProb "
+      << distanceProb << std::endl;
   localDerivative = ( closestPoint - point ) * intensityProb * distanceProb;
-
-  LocalDerivativeType iDeriv( localDerivative );
-  iDeriv.Fill( 0 );
   for( SizeValueType d = 0; d < PointDimension; d++ )
     {
-    iDeriv[d] = intensityProb * distanceProb * intensityDifference *
-      closestPixel[centerIntensityIndex + 1 + d] * (-1) +
+    localDerivative[d] = intensityProb * distanceProb * intensityDifference *
+      closestPixel[centerIntensityIndex + 1 + d] * (1) +
       localDerivative[d];
     }
 
