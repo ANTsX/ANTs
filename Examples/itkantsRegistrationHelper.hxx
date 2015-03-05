@@ -1474,6 +1474,12 @@ RegistrationHelper<TComputeType, VImageDimension>
         break;
       case GaussianDisplacementField:
         {
+        if( stageMetricList[0].m_MetricType == IGDM )
+          {
+          std::cerr << "Intensity point set metric is not implemented yet for the specified transform." << std::endl;
+          return EXIT_FAILURE;
+          }
+
         typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           GaussianDisplacementFieldTransformType;
         typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, GaussianDisplacementFieldTransformType,
@@ -1571,6 +1577,12 @@ RegistrationHelper<TComputeType, VImageDimension>
         break;
       case BSplineDisplacementField:
         {
+        if( stageMetricList[0].m_MetricType == IGDM )
+          {
+          std::cerr << "Intensity point set metric is not implemented yet for the specified transform." << std::endl;
+          return EXIT_FAILURE;
+          }
+
         typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           BSplineDisplacementFieldTransformType;
         typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineDisplacementFieldTransformType,
@@ -1689,6 +1701,12 @@ RegistrationHelper<TComputeType, VImageDimension>
         break;
       case SyN:
         {
+        if( stageMetricList[0].m_MetricType == IGDM )
+          {
+          std::cerr << "Intensity point set metric is not implemented yet for the specified transform." << std::endl;
+          return EXIT_FAILURE;
+          }
+
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
         //typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
@@ -1909,18 +1927,6 @@ RegistrationHelper<TComputeType, VImageDimension>
         typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           BSplineDisplacementFieldTransformType;
 
-        typedef itk::BSplineSyNImageRegistrationMethod<ImageType, ImageType,
-          BSplineDisplacementFieldTransformType, ImageType, LabeledPointSetType>
-          DisplacementFieldRegistrationType;
-
-        typename DisplacementFieldRegistrationType::Pointer registrationMethod =
-          this->PrepareRegistrationMethod<DisplacementFieldRegistrationType>(
-                this->m_CompositeTransform, currentStageNumber, VImageDimension,
-                preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
-                fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
-                multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
-                smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
-
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
 
@@ -1929,19 +1935,10 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldType::Pointer inverseDisplacementField =
           AllocImage<DisplacementFieldType>( virtualDomainImage, zeroVector );
 
-        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          registrationMethod->GetModifiableTransform();
-
-        // Create the transform adaptors
-
-        typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
-
         const std::vector<unsigned int> & meshSizeForTheUpdateField =
           this->m_TransformMethods[currentStageNumber].m_UpdateFieldMeshSizeAtBaseLevel;
         std::vector<unsigned int> meshSizeForTheTotalField =
           this->m_TransformMethods[currentStageNumber].m_TotalFieldMeshSizeAtBaseLevel;
-
-        outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStageNumber].m_SplineOrder );
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
           {
@@ -1957,89 +1954,220 @@ RegistrationHelper<TComputeType, VImageDimension>
           totalMeshSize[d] = meshSizeForTheTotalField[d];
           }
 
-        // Create the transform adaptors
-        for( unsigned int level = 0; level < numberOfLevels; level++ )
+        if( stageMetricList[0].m_MetricType != IGDM )
           {
-          // We use the shrink image filter to calculate the fixed parameters of the virtual
-          // domain at each level.  To speed up calculation and avoid unnecessary memory
-          // usage, we could calculate these fixed parameters directly.
+          typedef itk::BSplineSyNImageRegistrationMethod<ImageType, ImageType,
+            BSplineDisplacementFieldTransformType, ImageType, LabeledPointSetType>
+            DisplacementFieldRegistrationType;
 
-          typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
-          typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-          shrinkFilter->SetInput( displacementField );
-          shrinkFilter->Update();
+          typename DisplacementFieldRegistrationType::Pointer registrationMethod =
+            this->PrepareRegistrationMethod<DisplacementFieldRegistrationType>(
+                  this->m_CompositeTransform, currentStageNumber, VImageDimension,
+                  preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+                  fixedLabeledPointSetsPerStage, movingLabeledPointSetsPerStage, stageMetricList, singleMetric,
+                  multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+                  smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
 
-          typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
-              BSplineDisplacementFieldTransformType>
-            BSplineDisplacementFieldTransformAdaptorType;
-          typename BSplineDisplacementFieldTransformAdaptorType::Pointer bsplineFieldTransformAdaptor =
-            BSplineDisplacementFieldTransformAdaptorType::New();
-          bsplineFieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
-          bsplineFieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
-          bsplineFieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
-          bsplineFieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
-          bsplineFieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
+          typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
+            registrationMethod->GetModifiableTransform();
 
-          // A good heuristic is to RealType the b-spline mesh resolution at each level
-          typename BSplineDisplacementFieldTransformType::ArrayType newUpdateMeshSize = updateMeshSize;
-          typename BSplineDisplacementFieldTransformType::ArrayType newTotalMeshSize = totalMeshSize;
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          // Create the transform adaptors
+
+          typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
+
+          outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStageNumber].m_SplineOrder );
+
+          // Create the transform adaptors
+          for( unsigned int level = 0; level < numberOfLevels; level++ )
             {
-            newUpdateMeshSize[d] = newUpdateMeshSize[d] << ( level );
-            newTotalMeshSize[d] = newTotalMeshSize[d] << ( level );
+            // We use the shrink image filter to calculate the fixed parameters of the virtual
+            // domain at each level.  To speed up calculation and avoid unnecessary memory
+            // usage, we could calculate these fixed parameters directly.
+
+            typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
+            typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+            shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
+            shrinkFilter->SetInput( displacementField );
+            shrinkFilter->Update();
+
+            typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
+                BSplineDisplacementFieldTransformType>
+              BSplineDisplacementFieldTransformAdaptorType;
+            typename BSplineDisplacementFieldTransformAdaptorType::Pointer bsplineFieldTransformAdaptor =
+              BSplineDisplacementFieldTransformAdaptorType::New();
+            bsplineFieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
+            bsplineFieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
+            bsplineFieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
+            bsplineFieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+            bsplineFieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
+
+            // A good heuristic is to RealType the b-spline mesh resolution at each level
+            typename BSplineDisplacementFieldTransformType::ArrayType newUpdateMeshSize = updateMeshSize;
+            typename BSplineDisplacementFieldTransformType::ArrayType newTotalMeshSize = totalMeshSize;
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              newUpdateMeshSize[d] = newUpdateMeshSize[d] << ( level );
+              newTotalMeshSize[d] = newTotalMeshSize[d] << ( level );
+              }
+
+            bsplineFieldTransformAdaptor->SetMeshSizeForTheUpdateField( newUpdateMeshSize );
+            bsplineFieldTransformAdaptor->SetMeshSizeForTheTotalField( newTotalMeshSize );
+
+            adaptors.push_back( bsplineFieldTransformAdaptor.GetPointer() );
             }
 
-          bsplineFieldTransformAdaptor->SetMeshSizeForTheUpdateField( newUpdateMeshSize );
-          bsplineFieldTransformAdaptor->SetMeshSizeForTheTotalField( newTotalMeshSize );
+          registrationMethod->SetDownsampleImagesForMetricDerivatives( true );
+          registrationMethod->SetAverageMidPointGradients( false );
+          registrationMethod->SetNumberOfLevels( numberOfLevels );
 
-          adaptors.push_back( bsplineFieldTransformAdaptor.GetPointer() );
+          typename DisplacementFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
+          numberOfIterationsPerLevel.SetSize( numberOfLevels );
+          for( unsigned int d = 0; d < numberOfLevels; d++ )
+            {
+            numberOfIterationsPerLevel[d] = currentStageIterations[d];
+            }
+
+          registrationMethod->SetLearningRate( learningRate );
+          registrationMethod->SetConvergenceThreshold( convergenceThreshold );
+          registrationMethod->SetConvergenceWindowSize( convergenceWindowSize );
+          registrationMethod->SetNumberOfIterationsPerLevel( numberOfIterationsPerLevel );
+          registrationMethod->SetTransformParametersAdaptorsPerLevel( adaptors );
+          outputDisplacementFieldTransform->SetDisplacementField( displacementField );
+          outputDisplacementFieldTransform->SetInverseDisplacementField( inverseDisplacementField );
+
+          typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
+          typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
+            DisplacementFieldCommandType::New();
+          displacementFieldRegistrationObserver->SetLogStream( *this->m_LogStream );
+          displacementFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
+
+          registrationMethod->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
+          registrationMethod->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver );
+
+          try
+            {
+            this->Logger() << std::endl << "*** Running B-spline SyN registration (updateMeshSizeAtBaseLevel = "
+                           << updateMeshSize << ", totalMeshSizeAtBaseLevel = " << totalMeshSize << ") ***" << std::endl
+                           << std::endl;
+            displacementFieldRegistrationObserver->Execute( registrationMethod, itk::StartEvent() );
+            registrationMethod->Update();
+            }
+          catch( itk::ExceptionObject & e )
+            {
+            std::cerr << "Exception caught: " << e << std::endl;
+            return EXIT_FAILURE;
+            }
+
+          // Add calculated transform to the composite transform
+          this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
           }
-
-        registrationMethod->SetDownsampleImagesForMetricDerivatives( true );
-        registrationMethod->SetAverageMidPointGradients( false );
-        registrationMethod->SetNumberOfLevels( numberOfLevels );
-
-        typename DisplacementFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
-        numberOfIterationsPerLevel.SetSize( numberOfLevels );
-        for( unsigned int d = 0; d < numberOfLevels; d++ )
+        else
           {
-          numberOfIterationsPerLevel[d] = currentStageIterations[d];
+          typedef itk::BSplineSyNImageRegistrationMethod<ImageType, ImageType,
+            BSplineDisplacementFieldTransformType, ImageType, IntensityPointSetType>
+            DisplacementFieldRegistrationType;
+
+          typename DisplacementFieldRegistrationType::Pointer registrationMethod =
+            this->PrepareRegistrationMethod<DisplacementFieldRegistrationType>(
+                  this->m_CompositeTransform, currentStageNumber, VImageDimension,
+                  preprocessedFixedImagesPerStage, preprocessedMovingImagesPerStage,
+                  fixedIntensityPointSetsPerStage, movingIntensityPointSetsPerStage, stageMetricList, singleMetric,
+                  multiMetric, optimizer, numberOfLevels, shrinkFactorsPerDimensionForAllLevels,
+                  smoothingSigmasPerLevel, metricSamplingStrategy, samplingPercentage );
+
+          typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
+            registrationMethod->GetModifiableTransform();
+
+          // Create the transform adaptors
+
+          typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
+
+          outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStageNumber].m_SplineOrder );
+
+          // Create the transform adaptors
+          for( unsigned int level = 0; level < numberOfLevels; level++ )
+            {
+            // We use the shrink image filter to calculate the fixed parameters of the virtual
+            // domain at each level.  To speed up calculation and avoid unnecessary memory
+            // usage, we could calculate these fixed parameters directly.
+
+            typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
+            typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+            shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
+            shrinkFilter->SetInput( displacementField );
+            shrinkFilter->Update();
+
+            typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
+                BSplineDisplacementFieldTransformType>
+              BSplineDisplacementFieldTransformAdaptorType;
+            typename BSplineDisplacementFieldTransformAdaptorType::Pointer bsplineFieldTransformAdaptor =
+              BSplineDisplacementFieldTransformAdaptorType::New();
+            bsplineFieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
+            bsplineFieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
+            bsplineFieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
+            bsplineFieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+            bsplineFieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
+
+            // A good heuristic is to RealType the b-spline mesh resolution at each level
+            typename BSplineDisplacementFieldTransformType::ArrayType newUpdateMeshSize = updateMeshSize;
+            typename BSplineDisplacementFieldTransformType::ArrayType newTotalMeshSize = totalMeshSize;
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              newUpdateMeshSize[d] = newUpdateMeshSize[d] << ( level );
+              newTotalMeshSize[d] = newTotalMeshSize[d] << ( level );
+              }
+
+            bsplineFieldTransformAdaptor->SetMeshSizeForTheUpdateField( newUpdateMeshSize );
+            bsplineFieldTransformAdaptor->SetMeshSizeForTheTotalField( newTotalMeshSize );
+
+            adaptors.push_back( bsplineFieldTransformAdaptor.GetPointer() );
+            }
+
+          registrationMethod->SetDownsampleImagesForMetricDerivatives( true );
+          registrationMethod->SetAverageMidPointGradients( false );
+          registrationMethod->SetNumberOfLevels( numberOfLevels );
+
+          typename DisplacementFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
+          numberOfIterationsPerLevel.SetSize( numberOfLevels );
+          for( unsigned int d = 0; d < numberOfLevels; d++ )
+            {
+            numberOfIterationsPerLevel[d] = currentStageIterations[d];
+            }
+
+          registrationMethod->SetLearningRate( learningRate );
+          registrationMethod->SetConvergenceThreshold( convergenceThreshold );
+          registrationMethod->SetConvergenceWindowSize( convergenceWindowSize );
+          registrationMethod->SetNumberOfIterationsPerLevel( numberOfIterationsPerLevel );
+          registrationMethod->SetTransformParametersAdaptorsPerLevel( adaptors );
+          outputDisplacementFieldTransform->SetDisplacementField( displacementField );
+          outputDisplacementFieldTransform->SetInverseDisplacementField( inverseDisplacementField );
+
+          typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
+          typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
+            DisplacementFieldCommandType::New();
+          displacementFieldRegistrationObserver->SetLogStream( *this->m_LogStream );
+          displacementFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
+
+          registrationMethod->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
+          registrationMethod->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver );
+
+          try
+            {
+            this->Logger() << std::endl << "*** Running B-spline SyN registration (updateMeshSizeAtBaseLevel = "
+                           << updateMeshSize << ", totalMeshSizeAtBaseLevel = " << totalMeshSize << ") ***" << std::endl
+                           << std::endl;
+            displacementFieldRegistrationObserver->Execute( registrationMethod, itk::StartEvent() );
+            registrationMethod->Update();
+            }
+          catch( itk::ExceptionObject & e )
+            {
+            std::cerr << "Exception caught: " << e << std::endl;
+            return EXIT_FAILURE;
+            }
+
+          // Add calculated transform to the composite transform
+          this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
           }
-
-        registrationMethod->SetLearningRate( learningRate );
-        registrationMethod->SetConvergenceThreshold( convergenceThreshold );
-        registrationMethod->SetConvergenceWindowSize( convergenceWindowSize );
-        registrationMethod->SetNumberOfIterationsPerLevel( numberOfIterationsPerLevel );
-        registrationMethod->SetTransformParametersAdaptorsPerLevel( adaptors );
-        outputDisplacementFieldTransform->SetDisplacementField( displacementField );
-        outputDisplacementFieldTransform->SetInverseDisplacementField( inverseDisplacementField );
-
-        typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
-        typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
-          DisplacementFieldCommandType::New();
-        displacementFieldRegistrationObserver->SetLogStream( *this->m_LogStream );
-        displacementFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
-
-        registrationMethod->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
-        registrationMethod->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver );
-
-        try
-          {
-          this->Logger() << std::endl << "*** Running B-spline SyN registration (updateMeshSizeAtBaseLevel = "
-                         << updateMeshSize << ", totalMeshSizeAtBaseLevel = " << totalMeshSize << ") ***" << std::endl
-                         << std::endl;
-          displacementFieldRegistrationObserver->Execute( registrationMethod, itk::StartEvent() );
-          registrationMethod->Update();
-          }
-        catch( itk::ExceptionObject & e )
-          {
-          std::cerr << "Exception caught: " << e << std::endl;
-          return EXIT_FAILURE;
-          }
-
-        // Add calculated transform to the composite transform
-        this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
 
         this->m_AllPreviousTransformsAreLinear = false;
         }
