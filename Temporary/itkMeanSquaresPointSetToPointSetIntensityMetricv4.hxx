@@ -96,6 +96,10 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
       }
     SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
 
+    // Here we assume that transforming the vector at the neighborhood voxel
+    // is close to performing the transformation at the center voxel.
+    PointType transformedPoint = inverseTransform->TransformPoint( It.Value() );
+
     for( SizeValueType n = 0; n < numberOfVoxelsInNeighborhood; n++ )
       {
       CovariantVectorType covariantVector;
@@ -113,12 +117,9 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
       this->m_FixedTransformedPointSet->SetPoint( It.Index(), point );
       ++It;
 
-      // Here we assume that transforming the vector at the neighborhood voxel
-      // is close to performing the transformation at the center voxel.
       // First, transform from fixed to virtual domain.  Then go from virtual domain
       // to moving.
 
-      PointType transformedPoint = inverseTransform->TransformPoint( It.Value() );
       CovariantVectorType transformedCovariantVector =
         inverseTransform->TransformCovariantVector( covariantVector, It.Value() );
       transformedCovariantVector =
@@ -130,7 +131,6 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
         }
       }
 
-    // evaluation is performed in moving space, so just copy
     this->m_FixedTransformedPointSet->SetPointData( It.Index(), pixel );
     ++It;
     }
