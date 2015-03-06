@@ -72,10 +72,11 @@ public:
   itkStaticConstMacro( FixedPointDimension, DimensionType, Superclass::FixedDimension );
 
   /**  Type of the moving point set. */
-  typedef TMovingPointSet                              MovingPointSetType;
-  typedef typename TMovingPointSet::PointType          MovingPointType;
-  typedef typename TMovingPointSet::PixelType          MovingPixelType;
-  typedef typename TMovingPointSet::PointsContainer    MovingPointsContainer;
+  typedef TMovingPointSet                                  MovingPointSetType;
+  typedef typename TMovingPointSet::PointType              MovingPointType;
+  typedef typename TMovingPointSet::PixelType              MovingPixelType;
+  typedef typename TMovingPointSet::PointsContainer        MovingPointsContainer;
+  typedef typename TMovingPointSet::PointDataContainer     MovingPointDataContainer;
 
   itkStaticConstMacro( MovingPointDimension, DimensionType, Superclass::MovingDimension );
 
@@ -96,13 +97,23 @@ public:
   typedef typename Superclass::PointIdentifier         PointIdentifier;
   typedef typename Superclass::PointsConstIterator     PointsConstIterator;
 
+  typedef CovariantVector<TInternalComputationValueType, PointDimension> CovariantVectorType;
+
   /**
-   * Set/get estimate distance sigmas automatically based on reasonable
+   * Set/get estimate intensity distance sigma automatically based on reasonable
    * heuristics.
    */
-  itkSetMacro( EstimateDistanceSigmasAutomatically, bool );
-  itkGetConstMacro( EstimateDistanceSigmasAutomatically, bool );
-  itkBooleanMacro( EstimateDistanceSigmasAutomatically );
+  itkSetMacro( EstimateIntensityDistanceSigmaAutomatically, bool );
+  itkGetConstMacro( EstimateIntensityDistanceSigmaAutomatically, bool );
+  itkBooleanMacro( EstimateIntensityDistanceSigmaAutomatically );
+
+  /**
+   * Set/get estimate Euclidean distance sigma automatically based on reasonable
+   * heuristics.
+   */
+  itkSetMacro( EstimateEuclideanDistanceSigmaAutomatically, bool );
+  itkGetConstMacro( EstimateEuclideanDistanceSigmaAutomatically, bool );
+  itkBooleanMacro( EstimateEuclideanDistanceSigmaAutomatically );
 
   /**
    * Set/get intensity sigma -- modulate the intensity distance contribution in the
@@ -146,8 +157,26 @@ protected:
   MeanSquaresPointSetToPointSetIntensityMetricv4();
   virtual ~MeanSquaresPointSetToPointSetIntensityMetricv4();
 
+  /**
+   * Estimate the intensity distance sigma based on simple heuristic
+   */
   void EstimateIntensityDistanceSigma();
+
+  /**
+   * Estimate the Euclidean distance sigma based on simple heuristic
+   */
   void EstimateEuclideanDistanceSigma();
+
+  /**
+   * Warp the fixed point set gradients based on the fixed transform.
+   */
+  void TransformFixedPointSetGradients() const;
+
+  /**
+   * Warp the moving point set gradients based on the moving transform.
+   */
+  void TransformMovingPointSetGradients() const;
+
 
   /** PrintSelf function */
   void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
@@ -156,7 +185,8 @@ private:
   MeanSquaresPointSetToPointSetIntensityMetricv4(const Self &); //purposely not implemented
   void operator=(const Self &);               //purposely not implemented
 
-  bool                                m_EstimateDistanceSigmasAutomatically;
+  bool                                m_EstimateIntensityDistanceSigmaAutomatically;
+  bool                                m_EstimateEuclideanDistanceSigmaAutomatically;
   TInternalComputationValueType       m_IntensityDistanceSigma;
   TInternalComputationValueType       m_EuclideanDistanceSigma;
 

@@ -31,7 +31,8 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   this->m_EuclideanDistanceSigma = std::sqrt( 5.0 );
   this->m_IntensityDistanceSigma = std::sqrt( 5.0 );
 
-  this->m_EstimateDistanceSigmasAutomatically = true;
+  this->m_EstimateIntensityDistanceSigmaAutomatically = true;
+  this->m_EstimateEuclideanDistanceSigmaAutomatically = true;
 
   this->m_UsePointSetData = true;
 }
@@ -51,10 +52,81 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 {
   Superclass::Initialize();
 
-  if( this->m_EstimateDistanceSigmasAutomatically )
+  this->TransformMovingPointSetGradients();
+  this->TransformFixedPointSetGradients();
+
+  if( this->m_EstimateIntensityDistanceSigmaAutomatically )
     {
     this->EstimateIntensityDistanceSigma();
+    }
+  if( this->m_EstimateEuclideanDistanceSigmaAutomatically )
+    {
     this->EstimateEuclideanDistanceSigma();
+    }
+}
+
+template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+void
+MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
+::TransformFixedPointSetGradients() const
+{
+  // Transform the moving point set data with the moving transform.
+  // We calculate the value and derivatives in the moving space.
+
+  typename FixedPointsContainer::ConstIterator It = this->m_FixedPointSet->GetPoints()->Begin();
+
+  while( It != this->m_FixedPointSet->GetPoints()->End() )
+    {
+    PixelType pixel;
+    NumericTraits<PixelType>::SetLength( pixel, 1 );
+    bool doesPointDataExist = this->m_FixedPointSet->GetPointData( It.Index(), &pixel );
+    if( ! doesPointDataExist )
+      {
+      itkExceptionMacro( "The corresponding data for point " << It.Value() << " (pointId = " << It.Index() << ") does not exist." );
+      }
+    SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
+
+    for( SizeValueType n = 0; n < numberOfVoxelsInNeighborhood; n++ )
+      {
+      CovariantVectorType covariantVector;
+
+      for( unsigned int d = 0; d < PointDimension; d++ )
+        {
+        covariantVector[d] = pixel[n * ( PointDimension + 1 ) + d + 1];
+        }
+
+      // Here we assume that transforming the vector at the neighborhood voxel
+      // is close to performing the transformation at the center voxel.
+
+      CovariantVectorType transformedCovariantVector =
+        this->m_FixedTransform->TransformCovariantVector( covariantVector, It.Value() );
+
+      for( unsigned int d = 0; d < PointDimension; d++ )
+        {
+        pixel[n * ( PointDimension + 1 ) + d + 1] = transformedCovariantVector[d];
+        }
+      }
+
+    // evaluation is perfomed in moving space, so just copy
+    this->m_FixedTransformedPointSet->SetPointData( It.Index(), pixel );
+    ++It;
+    }
+}
+
+template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+void
+MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
+::TransformMovingPointSetGradients() const
+{
+  // Transform the moving point set data with the moving transform.
+  // We calculate the value and derivatives in the moving space.
+
+  typename MovingPointDataContainer::ConstIterator It = this->m_MovingPointSet->GetPointData()->Begin();
+  while( It != this->m_MovingPointSet->GetPointData()->End() )
+    {
+    // evaluation is perfomed in moving space, so just copy
+    this->m_MovingTransformedPointSet->SetPointData( It.Index(), It.Value() );
+    ++It;
     }
 }
 
