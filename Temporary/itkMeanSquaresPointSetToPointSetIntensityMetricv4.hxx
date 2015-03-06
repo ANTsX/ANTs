@@ -109,14 +109,6 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
         covariantVector[d] = pixel[n * ( PointDimension + 1 ) + d + 1];
         }
 
-      // txf into virtual space
-      PointType point = inverseTransform->TransformPoint( It.Value() );
-      this->m_VirtualTransformedPointSet->SetPoint( It.Index(), point );
-      // txf into moving space
-      point = this->m_MovingTransform->TransformPoint( point );
-      this->m_FixedTransformedPointSet->SetPoint( It.Index(), point );
-      ++It;
-
       // First, transform from fixed to virtual domain.  Then go from virtual domain
       // to moving.
 
