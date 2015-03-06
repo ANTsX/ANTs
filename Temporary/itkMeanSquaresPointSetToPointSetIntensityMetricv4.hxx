@@ -81,6 +81,8 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   // Transform the moving point set data with the moving transform.
   // We calculate the value and derivatives in the moving space.
 
+  typename FixedTransformType::InverseTransformBasePointer inverseTransform = this->m_FixedTransform->GetInverseTransform();
+
   typename FixedPointsContainer::ConstIterator It = this->m_FixedPointSet->GetPoints()->Begin();
 
   while( It != this->m_FixedPointSet->GetPoints()->End() )
@@ -103,11 +105,24 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
         covariantVector[d] = pixel[n * ( PointDimension + 1 ) + d + 1];
         }
 
+      // txf into virtual space
+      PointType point = inverseTransform->TransformPoint( It.Value() );
+      this->m_VirtualTransformedPointSet->SetPoint( It.Index(), point );
+      // txf into moving space
+      point = this->m_MovingTransform->TransformPoint( point );
+      this->m_FixedTransformedPointSet->SetPoint( It.Index(), point );
+      ++It;
+
       // Here we assume that transforming the vector at the neighborhood voxel
       // is close to performing the transformation at the center voxel.
+      // First, transform from fixed to virtual domain.  Then go from virtual domain
+      // to moving.
 
+      PointType transformedPoint = inverseTransform->TransformPoint( It.Value() );
       CovariantVectorType transformedCovariantVector =
-        this->m_FixedTransform->TransformCovariantVector( covariantVector, It.Value() );
+        inverseTransform->TransformCovariantVector( covariantVector, It.Value() );
+      transformedCovariantVector =
+        this->m_MovingTransform->TransformCovariantVector( covariantVector, transformedPoint );
 
       for( unsigned int d = 0; d < PointDimension; d++ )
         {
