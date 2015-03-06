@@ -69,8 +69,8 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 {
   Superclass::InitializePointSets();
 
-  this->TransformMovingPointSetGradients();
-  this->TransformFixedPointSetGradients();
+//   this->TransformMovingPointSetGradients();
+//   this->TransformFixedPointSetGradients();
 }
 
 template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
