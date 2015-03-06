@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "ReadWriteData.h"
 #include <algorithm>
 
 #include <stdio.h>
@@ -32,7 +33,6 @@ int ExtractRegionFromImage( int argc, char *argv[] )
   typename ImageType::RegionType region;
   typename ImageType::RegionType::SizeType size;
   typename ImageType::RegionType::IndexType index;
-
   if( argc == 6 )
     {
     std::vector<int> minIndex;
@@ -47,6 +47,25 @@ int ExtractRegionFromImage( int argc, char *argv[] )
     region.SetSize( size );
     region.SetIndex( index );
     }
+  else if ( argc == 7 )
+      {
+      typename ImageType::Pointer labimg;
+      ReadImage<ImageType>( labimg, argv[5] );
+      typedef itk::Image<unsigned short, ImageDimension>      ShortImageType;
+      typedef itk::CastImageFilter<ImageType, ShortImageType> CasterType;
+      typename CasterType::Pointer caster = CasterType::New();
+      caster->SetInput( labimg );
+      caster->Update();
+
+      typedef itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>
+        StatsFilterType;
+      typename StatsFilterType::Pointer stats = StatsFilterType::New();
+      stats->SetLabelInput( caster->GetOutput() );
+      stats->SetInput( caster->GetOutput() );
+      stats->Update();
+
+      region = stats->GetRegion( atoi( argv[4] ) );
+      }
   else
     {
     typedef itk::Image<unsigned short, ImageDimension>      ShortImageType;
@@ -129,12 +148,14 @@ private:
 
   // antscout->set_stream( out_stream );
 
-  if( argc < 5 || argc > 6 )
+  if( argc < 5 || argc > 7 )
     {
     std::cout << "Usage 1: " << argv[0] << " ImageDimension "
              << "inputImage outputImage minIndex maxIndex " << std::endl;
     std::cout << "Usage 2: " << argv[0] << " ImageDimension "
              << "inputImage outputImage label " << std::endl;
+    std::cout << "Usage 3: " << argv[0] << " ImageDimension "
+             << "inputImage outputImage label labelImage 1 " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -153,6 +174,11 @@ private:
     case 3:
       {
       ExtractRegionFromImage<3>( argc, argv );
+      }
+      break;
+    case 4:
+      {
+      ExtractRegionFromImage<4>( argc, argv );
       }
       break;
     default:
