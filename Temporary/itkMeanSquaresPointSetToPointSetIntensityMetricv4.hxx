@@ -52,9 +52,6 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 {
   Superclass::Initialize();
 
-  this->TransformMovingPointSetGradients();
-  this->TransformFixedPointSetGradients();
-
   if( this->m_EstimateIntensityDistanceSigmaAutomatically )
     {
     this->EstimateIntensityDistanceSigma();
@@ -63,6 +60,17 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
     {
     this->EstimateEuclideanDistanceSigma();
     }
+}
+
+template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+void
+MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
+::InitializePointSets() const
+{
+  Superclass::InitializePointSets();
+
+  this->TransformMovingPointSetGradients();
+  this->TransformFixedPointSetGradients();
 }
 
 template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
@@ -107,7 +115,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
         }
       }
 
-    // evaluation is perfomed in moving space, so just copy
+    // evaluation is performed in moving space, so just copy
     this->m_FixedTransformedPointSet->SetPointData( It.Index(), pixel );
     ++It;
     }
@@ -320,7 +328,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   NumericTraits<PixelType>::SetLength( closestPixel, 1 );
   if( this->m_UsePointSetData )
     {
-    bool doesPointDataExist = this->m_MovingPointSet->GetPointData( pointId, &closestPixel );
+    bool doesPointDataExist = this->m_MovingTransformedPointSet->GetPointData( pointId, &closestPixel );
     if( ! doesPointDataExist )
       {
       itkExceptionMacro( "The corresponding data for point " << point << " (pointId = " << pointId << ") does not exist." );

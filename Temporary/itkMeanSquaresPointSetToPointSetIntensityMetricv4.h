@@ -135,6 +135,11 @@ public:
   virtual void Initialize( void ) throw ( ExceptionObject ) ITK_OVERRIDE;
 
   /**
+   * Prepare point sets for use.
+   */
+  virtual void InitializePointSets() const;
+
+  /**
    * Calculates the local metric value for a single point.
    */
   virtual MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & ) const ITK_OVERRIDE;
