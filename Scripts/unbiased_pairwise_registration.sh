@@ -75,8 +75,8 @@ nmA=${prefix}_A_norm
 nmB=${prefix}_B_norm
 nm=${prefix}_B_to_A
 nminv=${prefix}_A_to_B
-initAmat=${prefix}_A_norm0GenericAffine.mat
-initBmat=${prefix}_B_norm0GenericAffine.mat
+initAmat=${prefix}_initA0GenericAffine.mat
+initBmat=${prefix}_initB0GenericAffine.mat
 FWD=" -t [ $initAmat , 1 ] -t ${nm}1Warp.nii.gz -t  $initB -r $A "
 INV=" -t [ $initBmat , 1 ] -t ${nm}1InverseWarp.nii.gz -t  $initA -r $B  "
 echo  FWD   $FWD
