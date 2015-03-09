@@ -8523,6 +8523,7 @@ int CannyImage(      int argc, char *argv[])
   FilterType;
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image );
+  filter->SetVariance( sig );
   if ( upperThreshold != -1.0) {
   filter->SetUpperThreshold( (PixelType) (upperThreshold) );
   }
