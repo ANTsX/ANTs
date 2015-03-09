@@ -8505,42 +8505,32 @@ int CannyImage(      int argc, char *argv[])
     {
     sig = 0.5;
     }
-  PixelType lowerThreshold = 0.5;
+  PixelType lowerThreshold = -1.0;
   if( argc > argct )
     {
     lowerThreshold = atof(argv[argct]); argct++;
     }
-  PixelType upperThreshold = 1;
+  PixelType upperThreshold = -1.0;
   if( argc > argct )
     {
     upperThreshold = atof(argv[argct]); argct++;
     }
 
   typename ImageType::Pointer image = ITK_NULLPTR;
-  typename ImageType::Pointer image2 = ITK_NULLPTR;
   ReadImage<ImageType>(image, fn1.c_str() );
   typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
-  typename RescaleFilterType::Pointer rescaler0 =
-    RescaleFilterType::New();
-  rescaler0->SetOutputMinimum(   0 );
-  rescaler0->SetOutputMaximum( 1 );
-  rescaler0->SetInput( image );
-  rescaler0->Update();
   typedef itk::CannyEdgeDetectionImageFilter< ImageType, ImageType >
   FilterType;
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( rescaler0->GetOutput() );
-  filter->SetVariance( sig );
-  filter->SetUpperThreshold( upperThreshold );
-  filter->SetLowerThreshold( lowerThreshold );
+  filter->SetInput( image );
+  if ( upperThreshold != -1.0) {
+  filter->SetUpperThreshold( (PixelType) (upperThreshold) );
+  }
+  if (lowerThreshold != -1.0) {
+  filter->SetLowerThreshold( (PixelType) (lowerThreshold) );
+  }
   filter->Update();
-  image2 = filter->GetOutput();
-  typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
-  rescaler->SetOutputMinimum(   0 );
-  rescaler->SetOutputMaximum( 1 );
-  rescaler->SetInput( image2 );
-  rescaler->Update();
-  WriteImage<ImageType>( rescaler->GetOutput(), outname.c_str() );
+  WriteImage<ImageType>( filter->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -14831,7 +14821,7 @@ private:
     std::cout
     << "\n  Canny        : Canny edge detector"
     << std::endl;
-    std::cout << "      Usage        : Canny Image.ext signa lowerThresh upperThresh" << std::endl;
+    std::cout << "      Usage        : Canny Image.ext sigma lowerThresh upperThresh" << std::endl;
 
     std::cout
     << "\n  CropBinaryImage        : returns cropped image"    << std::endl;
