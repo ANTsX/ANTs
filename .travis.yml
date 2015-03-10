@@ -1,3 +1,6 @@
+os:
+  - linux
+  - osx
 language: cpp
 compiler:
   #  - gcc it fails because of travis limited memory
