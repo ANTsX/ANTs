@@ -868,9 +868,9 @@ private:
 
     registrationMethod->SetOptimizer( optimizer );
 
-    typename TransformType::Pointer initialTransform = TransformType::New();
+    typename TransformType::Pointer currentTransform = TransformType::New();
 
-    std::string t = initialTransform->GetNameOfClass();
+    std::string t = currentTransform->GetNameOfClass();
     std::string s = "Transform";
     std::string::size_type index = t.find( s );
 
@@ -890,11 +890,11 @@ private:
           this->Logger() << i+1 << ") " << compositeTransform->GetNthTransform( i )->GetNameOfClass() << std::endl;
           }
 
-        if( this->InitializeWithPreviousLinearTransform<TransformType>( compositeTransform, t.c_str(), initialTransform ) )
+        if( this->InitializeWithPreviousLinearTransform<TransformType>( compositeTransform, t.c_str(), currentTransform ) )
           {
           compositeTransform->RemoveTransform(); // Remove previous initial transform,
                                                          // since it is included in current results.
-          registrationMethod->SetInitialTransform( initialTransform );
+          registrationMethod->SetInitialTransform( currentTransform );
           }
         }
       }
@@ -944,8 +944,11 @@ private:
 
     try
       {
+      typedef typename RegistrationMethodType::OutputTransformType  TransformType;
+      typename TransformType::Pointer currentTransform = TransformType::New();
+
       this->Logger() << std::endl << "*** Running " <<
-        compositeTransform->GetBackTransform()->GetNameOfClass() << " registration ***" << std::endl << std::endl;
+        currentTransform->GetNameOfClass() << " registration ***" << std::endl << std::endl;
       transformObserver->Execute( registrationMethod, itk::StartEvent() );
       registrationMethod->Update();
       }

@@ -3620,9 +3620,9 @@ template <class TComputeType, unsigned VImageDimension>
 template <class TTransformType>
 bool
 RegistrationHelper<TComputeType, VImageDimension>
-::InitializeWithPreviousLinearTransform(const CompositeTransformType * compositeTransform,
-                                        const std::string transformTypeName,
-                                        typename TTransformType::Pointer & resultTransform)
+::InitializeWithPreviousLinearTransform( const CompositeTransformType * compositeTransform,
+                                         const std::string transformTypeName,
+                                         typename TTransformType::Pointer & resultTransform )
 {
   typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
   typedef typename RigidTransformTraits<TComputeType, VImageDimension>::TransformType RigidTransformType;
