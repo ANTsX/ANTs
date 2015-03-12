@@ -470,7 +470,8 @@ case "$PRECISIONTYPE" in
   ;;
 esac
 
-COMMAND="${ANTS} --dimensionality $DIM $PRECISION \
+COMMAND="${ANTS} --verbose 1 \
+                 --dimensionality $DIM $PRECISION \
                  --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
                  --interpolation Linear \
                  --winsorize-image-intensities [0.005,0.995] \

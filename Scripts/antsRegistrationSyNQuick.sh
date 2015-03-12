@@ -505,7 +505,8 @@ else
   MASK=" -x $MASK "
 fi
 
-COMMAND="${ANTS} --dimensionality $DIM $PRECISION \
+COMMAND="${ANTS} --verbose 1 \
+                 --dimensionality $DIM $PRECISION \
                  --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \
                  --interpolation Linear \
                  --use-histogram-matching ${USEHISTOGRAMMATCHING} \

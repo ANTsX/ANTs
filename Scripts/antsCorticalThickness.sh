@@ -773,7 +773,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
                 basecall="${basecall} -p f"
               fi
         else
-          basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION}"
+          basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
           IMAGES="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
           if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
             then
@@ -829,7 +829,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
             exit 1
           fi
 
-        exe_brain_segmentation_2="${WARP} -d ${DIMENSION} -i ${PRIOR_IMAGE_FILENAMES[$i]} -o ${WARPED_PRIOR_IMAGE_FILENAMES[$i]} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian  -t ${SEGMENTATION_WARP} -t ${SEGMENTATION_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}"
+        exe_brain_segmentation_2="${WARP} -d ${DIMENSION} -i ${PRIOR_IMAGE_FILENAMES[$i]} -o ${WARPED_PRIOR_IMAGE_FILENAMES[$i]} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian  -t ${SEGMENTATION_WARP} -t ${SEGMENTATION_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1"
 
         logCmd $exe_brain_segmentation_2
       done
@@ -1023,7 +1023,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
       echo "The transform file ${REGISTRATION_SUBJECT_WARP} does not exist."
       exit 1
     fi
-    logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -o Linear[$REGISTRATION_SUBJECT_GENERIC_AFFINE,1] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE
+    logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -o Linear[$REGISTRATION_SUBJECT_GENERIC_AFFINE,1] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE --verbose 1
 
     time_end_template_registration=`date +%s`
     time_elapsed_template_registration=$((time_end_template_registration - time_start_template_registration))
@@ -1136,7 +1136,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 
     TMP_FILES=( $CORTICAL_THICKNESS_GM $CORTICAL_THICKNESS_WM $CORTICAL_THICKNESS_SEGMENTATION )
 
-    exe_direct="${DIRECT} -d ${DIMENSION} -s [${CORTICAL_THICKNESS_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}]"
+    exe_direct="${DIRECT} -d ${DIMENSION} -s [${CORTICAL_THICKNESS_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}] --verbose 1"
     exe_direct="${exe_direct} -g ${CORTICAL_THICKNESS_GM} -w ${CORTICAL_THICKNESS_WM} -o ${CORTICAL_THICKNESS_IMAGE}"
     exe_direct="${exe_direct} -c ${DIRECT_CONVERGENCE} -r ${DIRECT_GRAD_STEP_SIZE}"
     exe_direct="${exe_direct} -m ${DIRECT_SMOOTHING_PARAMETER} -n ${DIRECT_NUMBER_OF_DIFF_COMPOSITIONS} -b ${USE_BSPLINE_SMOOTHING}"
@@ -1149,7 +1149,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 #        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} 2.0
 
     	   logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -i ${CORTICAL_LABEL_IMAGE} -o ${CORTICAL_LABEL_THICKNESS_PRIOR} \
-	         -t $REGISTRATION_SUBJECT_GENERIC_AFFINE -t $REGISTRATION_SUBJECT_WARP -r  ${ANATOMICAL_IMAGES[0]}
+	         -t $REGISTRATION_SUBJECT_GENERIC_AFFINE -t $REGISTRATION_SUBJECT_WARP -r ${ANATOMICAL_IMAGES[0]} --verbose 1
 
         exe_direct="${exe_direct} -a ${CORTICAL_LABEL_THICKNESS_PRIOR}"
 
@@ -1200,7 +1200,7 @@ echo "--------------------------------------------------------------------------
 if [[ -f ${REGISTRATION_TEMPLATE_WARP} ]];
   then
     logCmd ${ANTSPATH}/CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
-    exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}"
+    exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1"
     logCmd $exe_template_registration_3
 
     EXTRACTED_SEGMENTATION_BRAIN_DEFORMED=${OUTPUT_PREFIX}BrainNormalizedToTemplate.${OUTPUT_SUFFIX}
@@ -1215,7 +1215,7 @@ if [[ -f ${REGISTRATION_TEMPLATE_WARP} ]];
 
     TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK} )
 
-    logCmd ${WARP} -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} -r ${REGISTRATION_TEMPLATE} -n Linear -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}
+    logCmd ${WARP} -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} -r ${REGISTRATION_TEMPLATE} -n Linear -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1
   fi
 
 ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK}`

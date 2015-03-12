@@ -89,7 +89,7 @@ NB: All images to be added to the template should be in the same directory, and 
     script should be invoked from that directory.
 
 Optional arguments:
-     
+
      -a   image statistic used to summarize images (default 1)
           0 = mean
           1 = mean of normalized intensities
@@ -185,7 +185,7 @@ Example:
 
 Multimodal example:
 
-`basename $0` -d 3 -i 3 -k 2 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN -z t1.nii.gz -z t2.nii.gz \ 
+`basename $0` -d 3 -i 3 -k 2 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN -z t1.nii.gz -z t2.nii.gz \
  -m CC -c 0 -o MY templateInput.csv
 
 where templateInput.csv contains
@@ -352,28 +352,28 @@ function shapeupdatetotemplate() {
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
         echo "   ${ANTSPATH}/${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
-        echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}"
+        echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template} --verbose 1"
         echo "--------------------------------------------------------------------------------------"
 
         ${ANTSPATH}/${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
 
         if [[ $NWARPS -ne 0 ]];
           then
-            ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
+            ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template} --verbose 1
             ${ANTSPATH}/MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
           fi
       fi
 
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---warp each template by the resulting transforms"
-    echo "   ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
+    echo "   ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
     echo "--------------------------------------------------------------------------------------"
 
     if [ -f "${templatename}0warp.nii.gz" ];
       then
-        ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
+        ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
       else
-        ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -r ${template}
+        ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -r ${template}
       fi
 
 }
@@ -951,7 +951,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         summarizeimageset $DIM ${TEMPLATES[$i]} $STATSMETHOD ${CURRENTIMAGESET[@]}
         #${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
       fi
- 
+
     if [[ ! -s ${TEMPLATES[$i]} ]];
       then
         echo "Your initial template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
@@ -981,7 +981,7 @@ if [[ "$RIGID" -eq 1 ]];
     for (( i = 0; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
       do
 
-        basecall="${ANTS} -d ${DIM} --float $USEFLOAT -u 1 -w [0.01,0.99] -z 1 -r [${TEMPLATES[0]},${IMAGESETARRAY[$i]},1]"
+        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1 -u 1 -w [0.01,0.99] -z 1 -r [${TEMPLATES[0]},${IMAGESETARRAY[$i]},1]"
 
         IMAGEMETRICSET=""
         for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
@@ -1016,8 +1016,8 @@ if [[ "$RIGID" -eq 1 ]];
             RIGID="${outdir}/rigid${i}_${j}_${IMGbase}"
             IMGbaseBASE=`basename ${IMAGESETARRAY[$i]}`
             BASENAMEBASE=` echo ${IMGbaseBASE} | cut -d '.' -f 1 `
-            exe2="$exe2 ${WARP} -d $DIM --float $USEFLOAT -i ${IMAGESETARRAY[$k]} -o $RIGID -t ${outdir}/rigid${i}_0GenericAffine.mat -r ${TEMPLATES[$j]}\n"
-            pexe2="$exe2 ${WARP} -d $DIM --float $USEFLOAT -i ${IMAGESETARRAY[$k]} -o $RIGID -t ${outdir}/rigid${i}_0GenericAffine.mat -r ${TEMPLATES[$j]} >> ${outdir}/job_${count}_metriclog.txt\n"
+            exe2="$exe2 ${WARP} -d $DIM --float $USEFLOAT --verbose 1 -i ${IMAGESETARRAY[$k]} -o $RIGID -t ${outdir}/rigid${i}_0GenericAffine.mat -r ${TEMPLATES[$j]}\n"
+            pexe2="$exe2 ${WARP} -d $DIM --float $USEFLOAT --verbose 1 -i ${IMAGESETARRAY[$k]} -o $RIGID -t ${outdir}/rigid${i}_0GenericAffine.mat -r ${TEMPLATES[$j]} >> ${outdir}/job_${count}_metriclog.txt\n"
           done
 
         echo -e "$exe2" >> $qscript;
@@ -1216,7 +1216,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
     for (( j = 0; j < ${#IMAGESETARRAY[@]}; j+=$NUMBEROFMODALITIES ))
       do
-        basecall="${ANTS} -d ${DIM} --float $USEFLOAT -u 1 -w [0.01,0.99] -z 1"
+        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1 -u 1 -w [0.01,0.99] -z 1"
 
         IMAGEMETRICLINEARSET=''
         IMAGEMETRICSET=''
@@ -1287,20 +1287,20 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             if [[ $N4CORRECT -eq 1 ]];
               then
                 REPAIRED="${outdir}/${OUTFN}Repaired.nii.gz"
-                exe=" $exe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2\n"
-                pexe=" $pexe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2  >> ${outdir}/job_${count}_metriclog.txt >> ${outdir}/job_${count}_metriclog.txt\n"
+                exe=" $exe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1\n"
+                pexe=" $pexe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1  >> ${outdir}/job_${count}_metriclog.txt >> ${outdir}/job_${count}_metriclog.txt\n"
 
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${REPAIRED},${METRICPARAMS}"
                 IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${REPAIRED},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
 
-                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
-                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
+                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
+                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
               else
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${METRICPARAMS}"
                 IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
 
-                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
-                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
+                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
+                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
               fi
 
         done
