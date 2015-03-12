@@ -142,6 +142,14 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   std::vector<typename ImageType::Pointer> outputImages;
   outputImages.clear();
 
+  bool verbose = false;
+  typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
+    parser->GetOption( "verbose" );
+  if( verboseOption && verboseOption->GetNumberOfFunctions() )
+    {
+    verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
+    }
+
   /**
    * Input object option - for now, we're limiting this to images.
    */
@@ -150,24 +158,36 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   if( inputImageType == 3 && inputOption && inputOption->GetNumberOfFunctions() )
     {
-    std::cout << "Input time-series image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    if( verbose )
+      {
+      std::cout << "Input time-series image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+      }
     ReadImage<TimeSeriesImageType>( timeSeriesImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str() );
     }
   else if( inputImageType == 2 && inputOption && inputOption->GetNumberOfFunctions() )
     {
-    std::cout << "Input tensor image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    if( verbose )
+      {
+      std::cout << "Input tensor image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+      }
     ReadTensorImage<TensorImageType>( tensorImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str(), true );
     }
   else if( inputImageType == 0 && inputOption && inputOption->GetNumberOfFunctions() )
     {
-    std::cout << "Input scalar image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    if( verbose )
+      {
+      std::cout << "Input scalar image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+      }
     typename ImageType::Pointer image;
     ReadImage<ImageType>( image, ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
     inputImages.push_back( image );
     }
   else if( inputImageType == 1 && inputOption && inputOption->GetNumberOfFunctions() )
     {
-    std::cout << "Input vector image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    if( verbose )
+      {
+      std::cout << "Input vector image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+      }
 
     typedef itk::ImageFileReader<DisplacementFieldType> ReaderType;
     typename ReaderType::Pointer reader = ReaderType::New();
@@ -181,7 +201,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       }
     catch( ... )
       {
-      std::cerr << "Unable to read vector image " << reader->GetFileName() << std::endl;
+      if( verbose )
+        {
+        std::cerr << "Unable to read vector image " << reader->GetFileName() << std::endl;
+        }
       return EXIT_FAILURE;
       }
     }
@@ -190,7 +213,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
         parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
       {
-      std::cerr << "An input image is required." << std::endl;
+      if( verbose )
+        {
+        std::cerr << "An input image is required." << std::endl;
+        }
       return EXIT_FAILURE;
       }
     }
@@ -217,12 +243,18 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   if( referenceOption && referenceOption->GetNumberOfFunctions() )
     {
-    std::cout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
+    if( verbose )
+      {
+      std::cout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
+      }
     ReadImage<ReferenceImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
     }
   else if( needReferenceImage == true )
     {
-    std::cerr << "A reference image is required." << std::endl;
+    if( verbose )
+      {
+      std::cerr << "A reference image is required." << std::endl;
+      }
     return EXIT_FAILURE;
     }
 
@@ -305,7 +337,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   if( !compositeTransform->GetNumberOfParameters() )
     {
-    std::cout << "WARNING: No transforms found, using identify transform" << std::endl;
+    if( verbose )
+      {
+      std::cout << "WARNING: No transforms found, using identify transform" << std::endl;
+      }
     typename MatrixOffsetTransformType::Pointer idTransform = MatrixOffsetTransformType::New();
     idTransform->SetIdentity();
     compositeTransform->AddTransform( idTransform );
@@ -341,7 +376,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     {
     defaultValue = parser->Convert<PixelType>( defaultOption->GetFunction( 0 )->GetName() );
     }
-  std::cout << "Default pixel value: " << defaultValue << std::endl;
+  if( verbose )
+    {
+    std::cout << "Default pixel value: " << defaultValue << std::endl;
+    }
   for( unsigned int n = 0; n < inputImages.size(); n++ )
     {
     typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
@@ -355,12 +393,17 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     resampleFilter->SetInterpolator( interpolator );
     if( n == 0 )
       {
-      std::cout << "Interpolation type: " << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
+      if( verbose )
+        {
+        std::cout << "Interpolation type: " << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
+        }
       }
     if( inputImageType == 3 )
       {
-      std::cout << "  Applying transform(s) to time point " << n << " (out of " << inputImages.size() << ")."
-                << std::endl;
+      if( verbose )
+        {
+        std::cout << "  Applying transform(s) to time point " << n << " (out of " << inputImages.size() << ")." << std::endl;
+        }
       }
     resampleFilter->Update();
     outputImages.push_back( resampleFilter->GetOutput() );
@@ -377,7 +420,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       {
       if( !compositeTransform->IsLinear() )
         {
-        std::cerr << "The transform or set of transforms is not linear." << std::endl;
+        if( verbose )
+          {
+          std::cerr << "The transform or set of transforms is not linear." << std::endl;
+          }
         return EXIT_FAILURE;
         }
       else
@@ -409,8 +455,11 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
              parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) != 0 )
       {
-      std::cout << "Output composite transform displacement field: "
-                << outputOption->GetFunction( 0 )->GetParameter( 0 ) << std::endl;
+      if( verbose )
+        {
+        std::cout << "Output composite transform displacement field: "
+                  << outputOption->GetFunction( 0 )->GetParameter( 0 ) << std::endl;
+        }
 
       typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType> ConverterType;
       typename ConverterType::Pointer converter = ConverterType::New();
@@ -440,13 +489,19 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         {
         outputFileName = outputOption->GetFunction( 0 )->GetName();
         }
-      std::cout << "Output warped image: " << outputFileName << std::endl;
+      if( verbose )
+        {
+        std::cout << "Output warped image: " << outputFileName << std::endl;
+        }
 
       if( inputImageType == 1 )
         {
         if( outputImages.size() != Dimension )
           {
-          std::cerr << "The number of output images does not match the number of vector components." << std::endl;
+          if( verbose )
+            {
+            std::cerr << "The number of output images does not match the number of vector components." << std::endl;
+            }
           return EXIT_FAILURE;
           }
 
@@ -480,7 +535,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         {
         if( outputImages.size() != NumberOfTensorElements )
           {
-          std::cerr << "The number of output images does not match the number of tensor elements." << std::endl;
+          if( verbose )
+            {
+            std::cerr << "The number of output images does not match the number of tensor elements." << std::endl;
+            }
           return EXIT_FAILURE;
           }
 
@@ -512,7 +570,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
         if( outputImages.size() != numberOfTimePoints )
           {
-          std::cerr << "The number of output images does not match the number of image time points." << std::endl;
+          if( verbose )
+            {
+            std::cerr << "The number of output images does not match the number of image time points." << std::endl;
+            }
           return EXIT_FAILURE;
           }
 
@@ -573,13 +634,19 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           }
         catch( itk::ExceptionObject & err )
           {
-          std::cerr << "Caught an ITK exception: " << std::endl;
-          std::cerr << err << " " << __FILE__ << " " << __LINE__ << std::endl;
+          if( verbose )
+            {
+            std::cerr << "Caught an ITK exception: " << std::endl;
+            std::cerr << err << " " << __FILE__ << " " << __LINE__ << std::endl;
+            }
           throw &err;
           }
         catch( ... )
           {
-          std::cerr << "Error while writing in image: " << outputFileName << std::endl;
+          if( verbose )
+            {
+            std::cerr << "Error while writing in image: " << outputFileName << std::endl;
+            }
           throw;
           }
         }
@@ -591,183 +658,193 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
 static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
+  {
+  std::string description =
+    std::string( "This option forces the image to be treated as a specified-" )
+    + std::string( "dimensional image.  If not specified, antsWarp tries to " )
+    + std::string( "infer the dimensionality from the input image." );
 
-    {
-    std::string description =
-      std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, antsWarp tries to " )
-      + std::string( "infer the dimensionality from the input image." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "dimensionality" );
+  option->SetShortName( 'd' );
+  option->SetUsageOption( 0, "2/3/4" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "dimensionality" );
-    option->SetShortName( 'd' );
-    option->SetUsageOption( 0, "2/3/4" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description =
+    std::string( "Option specifying the input image type of scalar (default), " )
+    + std::string( "vector, tensor, or time series." );
 
-    {
-    std::string description =
-      std::string( "Option specifying the input image type of scalar (default), " )
-      + std::string( "vector, tensor, or time series." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "input-image-type" );
+  option->SetShortName( 'e' );
+  option->SetUsageOption( 0, "0/1/2/3 " );
+  option->SetUsageOption( 1, "scalar/vector/tensor/time-series " );
+  option->AddFunction( std::string( "0" ) );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "input-image-type" );
-    option->SetShortName( 'e' );
-    option->SetUsageOption( 0, "0/1/2/3 " );
-    option->SetUsageOption( 1, "scalar/vector/tensor/time-series " );
-    option->AddFunction( std::string( "0" ) );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description =
+    std::string( "Currently, the only input objects supported are image " )
+    + std::string( "objects.  However, the current framework allows for " )
+    + std::string( "warping of other objects such as meshes and point sets. ");
 
-    {
-    std::string description =
-      std::string( "Currently, the only input objects supported are image " )
-      + std::string( "objects.  However, the current framework allows for " )
-      + std::string( "warping of other objects such as meshes and point sets. ");
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "input" );
+  option->SetShortName( 'i' );
+  option->SetUsageOption( 0, "inputFileName" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "input" );
-    option->SetShortName( 'i' );
-    option->SetUsageOption( 0, "inputFileName" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description =
+    std::string( "For warping input images, the reference image defines the " )
+    + std::string( "spacing, origin, size, and direction of the output warped " )
+    + std::string( "image. ");
 
-    {
-    std::string description =
-      std::string( "For warping input images, the reference image defines the " )
-      + std::string( "spacing, origin, size, and direction of the output warped " )
-      + std::string( "image. ");
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "reference-image" );
+  option->SetShortName( 'r' );
+  option->SetUsageOption( 0, "imageFileName" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "reference-image" );
-    option->SetShortName( 'r' );
-    option->SetUsageOption( 0, "imageFileName" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description =
+    std::string( "One can either output the warped image or, if the boolean " )
+    + std::string( "is set, one can print out the displacement field based on the " )
+    + std::string( "composite transform and the reference image.  A third option " )
+    + std::string( "is to compose all affine transforms and (if boolean is set) " )
+    + std::string( "calculate its inverse which is then written to an ITK file ");
 
-    {
-    std::string description =
-      std::string( "One can either output the warped image or, if the boolean " )
-      + std::string( "is set, one can print out the displacement field based on the " )
-      + std::string( "composite transform and the reference image.  A third option " )
-      + std::string( "is to compose all affine transforms and (if boolean is set) " )
-      + std::string( "calculate its inverse which is then written to an ITK file ");
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "output" );
+  option->SetShortName( 'o' );
+  option->SetUsageOption( 0, "warpedOutputFileName" );
+  option->SetUsageOption( 1, "[warpedOutputFileName or compositeDisplacementField,<printOutCompositeWarpFile=0>]" );
+  option->SetUsageOption( 2, "Linear[genericAffineTransformFile,<calculateInverse=0>]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "output" );
-    option->SetShortName( 'o' );
-    option->SetUsageOption( 0, "warpedOutputFileName" );
-    option->SetUsageOption( 1, "[warpedOutputFileName or compositeDisplacementField,<printOutCompositeWarpFile=0>]" );
-    option->SetUsageOption( 2, "Linear[genericAffineTransformFile,<calculateInverse=0>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description =
+    std::string( "Several interpolation options are available in ITK. " )
+    + std::string( "These have all been made available." );
 
-    {
-    std::string description =
-      std::string( "Several interpolation options are available in ITK. " )
-      + std::string( "These have all been made available." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "interpolation" );
+  option->SetShortName( 'n' );
+  option->SetUsageOption( 0, "Linear" );
+  option->SetUsageOption( 1, "NearestNeighbor" );
+  option->SetUsageOption( 2, "MultiLabel[<sigma=imageSpacing>,<alpha=4.0>]" );
+  option->SetUsageOption( 3, "Gaussian[<sigma=imageSpacing>,<alpha=1.0>]" );
+  option->SetUsageOption( 4, "BSpline[<order=3>]" );
+  option->SetUsageOption( 5, "CosineWindowedSinc" );
+  option->SetUsageOption( 6, "WelchWindowedSinc" );
+  option->SetUsageOption( 7, "HammingWindowedSinc" );
+  option->SetUsageOption( 8, "LanczosWindowedSinc" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "interpolation" );
-    option->SetShortName( 'n' );
-    option->SetUsageOption( 0, "Linear" );
-    option->SetUsageOption( 1, "NearestNeighbor" );
-    option->SetUsageOption( 2, "MultiLabel[<sigma=imageSpacing>,<alpha=4.0>]" );
-    option->SetUsageOption( 3, "Gaussian[<sigma=imageSpacing>,<alpha=1.0>]" );
-    option->SetUsageOption( 4, "BSpline[<order=3>]" );
-    option->SetUsageOption( 5, "CosineWindowedSinc" );
-    option->SetUsageOption( 6, "WelchWindowedSinc" );
-    option->SetUsageOption( 7, "HammingWindowedSinc" );
-    option->SetUsageOption( 8, "LanczosWindowedSinc" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description =
+    std::string( "Several transform options are supported including all " )
+    + std::string( "those defined in the ITK library in addition to " )
+    + std::string( "a deformation field transform.  The ordering of " )
+    + std::string( "the transformations follows the ordering specified " )
+    + std::string( "on the command line.  An identity transform is pushed " )
+    + std::string( "onto the transformation stack. Each new transform " )
+    + std::string( "encountered on the command line is also pushed onto " )
+    + std::string( "the transformation stack. Then, to warp the input object, " )
+    + std::string( "each point comprising the input object is warped first " )
+    + std::string( "according to the last transform pushed onto the stack " )
+    + std::string( "followed by the second to last transform, etc. until " )
+    + std::string( "the last transform encountered which is the identity " )
+    + std::string( "transform. " )
+    + std::string( "Also, it should be noted that the inverse transform can " )
+    + std::string( "be accommodated with the usual caveat that such an inverse " )
+    + std::string( "must be defined by the specified transform class " );
 
-    {
-    std::string description =
-      std::string( "Several transform options are supported including all " )
-      + std::string( "those defined in the ITK library in addition to " )
-      + std::string( "a deformation field transform.  The ordering of " )
-      + std::string( "the transformations follows the ordering specified " )
-      + std::string( "on the command line.  An identity transform is pushed " )
-      + std::string( "onto the transformation stack. Each new transform " )
-      + std::string( "encountered on the command line is also pushed onto " )
-      + std::string( "the transformation stack. Then, to warp the input object, " )
-      + std::string( "each point comprising the input object is warped first " )
-      + std::string( "according to the last transform pushed onto the stack " )
-      + std::string( "followed by the second to last transform, etc. until " )
-      + std::string( "the last transform encountered which is the identity " )
-      + std::string( "transform. " )
-      + std::string( "Also, it should be noted that the inverse transform can " )
-      + std::string( "be accommodated with the usual caveat that such an inverse " )
-      + std::string( "must be defined by the specified transform class " );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "transform" );
+  option->SetShortName( 't' );
+  option->SetUsageOption( 0, "transformFileName" );
+  option->SetUsageOption( 1, "[transformFileName,useInverse]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "transform" );
-    option->SetShortName( 't' );
-    option->SetUsageOption( 0, "transformFileName" );
-    option->SetUsageOption( 1, "[transformFileName,useInverse]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description =
+    std::string( "Default voxel value to be used with input images only. " )
+    + std::string( "Specifies the voxel value when the input point maps outside " )
+    + std::string( "the output domain" );
 
-    {
-    std::string description =
-      std::string( "Default voxel value to be used with input images only. " )
-      + std::string( "Specifies the voxel value when the input point maps outside " )
-      + std::string( "the output domain" );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "default-value" );
+  option->SetShortName( 'f' );
+  option->SetUsageOption( 0, "value" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "default-value" );
-    option->SetShortName( 'v' );
-    option->SetUsageOption( 0, "value" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string         description = std::string( "forces static cast in ReadTransform (for R)" );
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'z' );
+  option->SetDescription( description );
+  option->SetLongName( "static-cast-for-R" );
+  option->SetUsageOption( 0, "value" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string         description = std::string( "forces static cast in ReadTransform (for R)" );
-    OptionType::Pointer option = OptionType::New();
-    option->SetShortName( 'z' );
-    option->SetDescription( description );
-    option->SetLongName( "static-cast-for-R" );
-    option->SetUsageOption( 0, "value" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Use 'float' instead of 'double' for computations." );
 
-    {
-    std::string description = std::string( "Use 'float' instead of 'double' for computations." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "float" );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "0" ) );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "float" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Verbose output." );
 
-    {
-    std::string description = std::string( "Print the help menu (short version)." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'v' );
+  option->SetLongName( "verbose" );
+  option->SetUsageOption( 0, "(0)/1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetShortName( 'h' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Print the help menu (short version)." );
 
-    {
-    std::string description = std::string( "Print the help menu." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'h' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "help" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Print the help menu." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "help" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -832,6 +909,14 @@ private:
     return EXIT_FAILURE;
     }
 
+  bool verbose = false;
+  itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
+    parser->GetOption( "verbose" );
+  if( verboseOption && verboseOption->GetNumberOfFunctions() )
+    {
+    verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
+    }
+
   if( argc == 1 )
     {
     parser->PrintMenu( std::cout, 5, false );
@@ -847,31 +932,6 @@ private:
     parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
-
-#if 0 // HACK This makes no sense here, filename is never used.
-  // Perhaps the "input" option is not needed in this program
-  // but is a copy/paste error from another program.
-  // Read in the first intensity image to get the image dimension.
-  std::string                                       filename;
-  itk::ants::CommandLineParser::OptionType::Pointer inputOption =
-    parser->GetOption( "reference-image" );
-  if( inputOption && inputOption->GetNumberOfFunctions() )
-    {
-    if( inputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
-      {
-      filename = inputOption->GetFunction( 0 )->GetParameter( 0 );
-      }
-    else
-      {
-      filename = inputOption->GetFunction( 0 )->GetName();
-      }
-    }
-  else
-    {
-    std::cerr << "No reference image was specified." << std::endl;
-    return EXIT_FAILURE;
-    }
-#endif
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageTypeOption =
     parser->GetOption( "input-image-type" );
@@ -902,13 +962,19 @@ private:
   OptionType::Pointer typeOption = parser->GetOption( "float" );
   if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
     {
-    std::cout << "Using single precision for computations." << std::endl;
+    if( verbose )
+      {
+      std::cout << "Using single precision for computations." << std::endl;
+      }
     precisionType = "float";
     useDoublePrecision = false;
     }
   else
     {
-    std::cout << "Using double precision for computations." << std::endl;
+    if( verbose )
+      {
+      std::cout << "Using double precision for computations." << std::endl;
+      }
     precisionType = "double";
     useDoublePrecision = true;
     }
@@ -943,7 +1009,10 @@ private:
       }
     else
       {
-      std::cerr << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
+      if( verbose )
+        {
+        std::cerr << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
+        }
       return EXIT_FAILURE;
       }
     }
@@ -954,7 +1023,10 @@ private:
       {
       if( imageType == TENSOR )
         {
-        std::cerr << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
+        if( verbose )
+          {
+          std::cerr << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
+          }
         return EXIT_FAILURE;
         }
       else
@@ -986,11 +1058,17 @@ private:
       {
       if( imageType == TENSOR )
         {
-        std::cerr << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
+        if( verbose )
+          {
+          std::cerr << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
+          }
         }
       else if( imageType == TIME_SERIES )
         {
-        std::cerr << "antsApplyTransforms is not implemented for 4-D + time images." << std::endl;
+        if( verbose )
+          {
+          std::cerr << "antsApplyTransforms is not implemented for 4-D + time images." << std::endl;
+          }
         }
       else
         {
@@ -1006,8 +1084,13 @@ private:
       }
       break;
     default:
-      std::cerr << "Unsupported dimension" << std::endl;
+      {
+      if( verbose )
+        {
+        std::cerr << "Unsupported dimension" << std::endl;
+        }
       return EXIT_FAILURE;
+      }
     }
   return EXIT_SUCCESS;
 }

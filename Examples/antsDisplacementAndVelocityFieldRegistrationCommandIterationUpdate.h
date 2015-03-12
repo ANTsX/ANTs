@@ -154,8 +154,10 @@ public:
         }
       else
         {
-        std::cout << " "; // if the output of current iteration is written to disk, and star
+        this->Logger() << " "; // if the output of current iteration is written to disk, and star
         }                 // will appear before line, else a free space will be printed to keep visual alignment.
+
+      std::streamsize ss = std::cout.precision();
 
       this->Logger() << "1DIAGNOSTIC, "
                      << std::setw(5) << lCurrentIteration << ", "
@@ -172,6 +174,9 @@ public:
         {
         this->Logger() << std::endl;
         }
+
+      this->Logger() << std::setprecision( ss );
+      this->Logger().unsetf( std::ios::fixed | std::ios::scientific );
 
       this->m_lastTotalTime = now;
       m_clock.Start();

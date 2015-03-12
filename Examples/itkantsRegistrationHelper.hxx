@@ -613,28 +613,28 @@ RegistrationHelper<TComputeType, VImageDimension>
 {
   if( this->m_NumberOfStages == 0 )
     {
-    std::cerr << "No transformations are specified." << std::endl;
+    this->Logger() << "No transformations are specified." << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_Iterations.size() != this->m_NumberOfStages )
     {
-    std::cerr << "The number of iteration sets specified does not match the number of stages." << std::endl;
+    this->Logger() << "The number of iteration sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_ShrinkFactors.size() != this->m_NumberOfStages )
     {
-    std::cerr << "The number of shrinkFactors specified does not match the number of stages." << std::endl;
+    this->Logger() << "The number of shrinkFactors specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_SmoothingSigmas.size() != this->m_NumberOfStages )
     {
-    std::cerr << "The number of smoothing sigma sets specified does not match the number of stages."
+    this->Logger() << "The number of smoothing sigma sets specified does not match the number of stages."
                      << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_SmoothingSigmasAreInPhysicalUnits.size() != this->m_NumberOfStages )
     {
-    std::cerr
+    this->Logger()
       << "The number of smoothing sigma in physical units bool values does not match the number of stages."
       << std::endl;
     return EXIT_FAILURE;
@@ -646,7 +646,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       if( this->m_Metrics[i].m_FixedImage.IsNull() ||
         this->m_Metrics[i].m_MovingImage.IsNull() )
         {
-        std::cerr << "The image metric has no fixed and/or moving image." << std::endl;
+        this->Logger() << "The image metric has no fixed and/or moving image." << std::endl;
         return EXIT_FAILURE;
         }
       }
@@ -989,7 +989,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
           break;
         default:
-          std::cerr << "ERROR: Unrecognized metric. " << std::endl;
+          this->Logger() << "ERROR: Unrecognized metric. " << std::endl;
           return EXIT_FAILURE;
         }
 
@@ -1156,7 +1156,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     const std::vector<unsigned int> factors( this->m_ShrinkFactors[currentStageNumber] );
     if( factors.size() != numberOfLevels )
       {
-      std::cerr << "\n\n\n"
+      this->Logger() << "\n\n\n"
                        << "ERROR:  The number of shrink factors does not match the number of levels."
                        << "\nShrink Factors: " << factors.size()
                        << "\nNumber Of Levels: " << numberOfLevels
@@ -1179,7 +1179,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     if( sigmas.size() != numberOfLevels )
       {
-      std::cerr << "ERROR:  The number of smoothing sigmas "
+      this->Logger() << "ERROR:  The number of smoothing sigmas "
                        << "does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
@@ -1498,7 +1498,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         {
         if( stageMetricList[0].m_MetricType == IGDM )
           {
-          std::cerr << "Intensity point set metric is not implemented yet for the specified transform." << std::endl;
+          this->Logger() << "Intensity point set metric is not implemented yet for the specified transform." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1587,7 +1587,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1601,7 +1601,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         {
         if( stageMetricList[0].m_MetricType == IGDM )
           {
-          std::cerr << "Intensity point set metric is not implemented yet for the specified transform." << std::endl;
+          this->Logger() << "Intensity point set metric is not implemented yet for the specified transform." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1640,7 +1640,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
           {
-          std::cerr << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
+          this->Logger() << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1711,7 +1711,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1725,7 +1725,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         {
         if( stageMetricList[0].m_MetricType == IGDM )
           {
-          std::cerr << "Intensity point set metric is not implemented yet for the specified transform." << std::endl;
+          this->Logger() << "Intensity point set metric is not implemented yet for the specified transform." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1924,7 +1924,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1964,7 +1964,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
           {
-          std::cerr << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
+          this->Logger() << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2076,7 +2076,7 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           catch( itk::ExceptionObject & e )
             {
-            std::cerr << "Exception caught: " << e << std::endl;
+            this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
             }
 
@@ -2183,7 +2183,7 @@ RegistrationHelper<TComputeType, VImageDimension>
             }
           catch( itk::ExceptionObject & e )
             {
-            std::cerr << "Exception caught: " << e << std::endl;
+            this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
             }
 
@@ -2422,7 +2422,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -2442,7 +2442,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           this->m_TransformMethods[currentStageNumber].m_VelocityFieldMeshSize;
         if( meshSize.size() != VImageDimension + 1 )
           {
-          std::cerr << "The transform domain mesh size does not have the correct number of elements."
+          this->Logger() << "The transform domain mesh size does not have the correct number of elements."
                            << "For image dimension = " << VImageDimension << ", you need " << VImageDimension + 1
                            << "elements. " << std::endl;
           return EXIT_FAILURE;
@@ -2651,7 +2651,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -2814,7 +2814,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2883,7 +2883,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheVelocityField.size() !=
             VImageDimension )
           {
-          std::cerr << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
+          this->Logger() << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2995,7 +2995,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -3089,7 +3089,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -3099,7 +3099,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         }
         break;
       default:
-        std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
+        this->Logger() << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
       }
     timer.Stop();
@@ -3635,7 +3635,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     }
   else
     {
-    std::cerr << "ERROR: INITIALIZATION RETURNS FALSE. Previous Linear Transform is Null" << std::endl;
+    this->Logger() << "ERROR: INITIALIZATION RETURNS FALSE. Previous Linear Transform is Null" << std::endl;
     return false;
     }
   this->Logger() << "Try to initialize the current " << transformTypeName
@@ -3652,7 +3652,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<TranslationTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        this->Logger() << "WARNING: Initialization Failed" << std::endl;
         return EXIT_FAILURE;
         }
       //Translation to Translation
@@ -3661,7 +3661,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else
       {
-      std::cerr << "WARNING: Initialization Failed" << std::endl;
+      this->Logger() << "WARNING: Initialization Failed" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -3677,7 +3677,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<TranslationTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        this->Logger() << "WARNING: Initialization Failed" << std::endl;
         return EXIT_FAILURE;
         }
       //Translation to Rigid
@@ -3689,7 +3689,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<RigidTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        this->Logger() << "WARNING: Initialization Failed" << std::endl;
         return EXIT_FAILURE;
         }
       //Rigid to Rigid
@@ -3698,7 +3698,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else
       {
-      std::cerr << "WARNING: Initialization Failed" << std::endl;
+      this->Logger() << "WARNING: Initialization Failed" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -3715,7 +3715,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<TranslationTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        this->Logger() << "WARNING: Initialization Failed" << std::endl;
         return EXIT_FAILURE;
         }
       //Translation to Affine
@@ -3727,7 +3727,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<RigidTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        this->Logger() << "WARNING: Initialization Failed" << std::endl;
         return EXIT_FAILURE;
         }
       //Rigid to Affine
@@ -3741,7 +3741,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<AffineTransformType const *>( preTransform.GetPointer() );
       if( tempInitializerTransform.IsNull() )
         {
-        std::cerr << "WARNING: Initialization Failed" << std::endl;
+        this->Logger() << "WARNING: Initialization Failed" << std::endl;
         return EXIT_FAILURE;
         }
       //Affine to Affine
@@ -3750,13 +3750,13 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else
       {
-      std::cerr << "WARNING: Initialization Failed" << std::endl;
+      this->Logger() << "WARNING: Initialization Failed" << std::endl;
       return EXIT_FAILURE;
       }
     }
   else
     {
-    std::cerr << "WARNING: Initialization Failed" << std::endl;
+    this->Logger() << "WARNING: Initialization Failed" << std::endl;
     return EXIT_FAILURE;
     }
 /////

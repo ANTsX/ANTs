@@ -715,4 +715,28 @@ WriteDisplacementField2(TField* field, std::string filename, std::string app)
   return;
 }
 
+class nullBuf
+: public std::streambuf
+{
+public:
+  virtual std::streamsize xsputn( const char * itkNotUsed( s ), std::streamsize n )
+    {
+    return n;
+    }
+
+  virtual int overflow( int itkNotUsed( c ) )
+    {
+    return 1;
+    }
+};
+
+class nullStream
+: public std::ostream
+{
+  public:
+    nullStream() : std::ostream( &buf ) {}
+  private:
+    nullBuf buf;
+};
+
 #endif

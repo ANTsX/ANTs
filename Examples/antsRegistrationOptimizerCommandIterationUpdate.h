@@ -142,7 +142,7 @@ public:
         }
       else
         {
-        std::cout << " "; // if the output of current iteration is written to disk, and star
+        this->Logger() << " "; // if the output of current iteration is written to disk, and star
         }                 // will appear before line, else a free space will be printed to keep visual alignment.
 
       this->Logger() << "2DIAGNOSTIC, "

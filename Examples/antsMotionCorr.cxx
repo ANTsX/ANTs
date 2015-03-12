@@ -1498,193 +1498,203 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
-    {
-    std::string description =
-      std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, the program tries to " )
-      + std::string( "infer the dimensionality from the input image." );
+  {
+  std::string description =
+    std::string( "This option forces the image to be treated as a specified-" )
+    + std::string( "dimensional image.  If not specified, the program tries to " )
+    + std::string( "infer the dimensionality from the input image." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "dimensionality" );
-    option->SetShortName( 'd' );
-    option->SetUsageOption( 0, "2/3" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "dimensionality" );
+  option->SetShortName( 'd' );
+  option->SetUsageOption( 0, "2/3" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string(
-        "turn on the option that lets you estimate the learning rate step size only at the beginning of each level.  * useful as a second stage of fine-scale registration." );
+  {
+  std::string description = std::string(
+      "turn on the option that lets you estimate the learning rate step size only at the beginning of each level.  * useful as a second stage of fine-scale registration." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "use-estimate-learning-rate-once" );
-    option->SetShortName( 'l' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "use-estimate-learning-rate-once" );
+  option->SetShortName( 'l' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "This option sets the number of images to use to construct the template image.");
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "n-images" );
-    option->SetShortName( 'n' );
-    option->SetUsageOption( 0, "10" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description =
+    std::string( "This option sets the number of images to use to construct the template image.");
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "n-images" );
+  option->SetShortName( 'n' );
+  option->SetUsageOption( 0, "10" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Four image metrics are available--- " )
-      + std::string( "GC : global correlation, CC:  ANTS neighborhood cross correlation, MI:  Mutual information, and " )
-      + std::string( "Demons:  Thirion's Demons (modified mean-squares). " )
-      + std::string( "Note that the metricWeight is currently not used.  " )
-      + std::string( "Rather, it is a temporary place holder until multivariate metrics " )
-      + std::string( "are available for a single stage." );
+  {
+  std::string description = std::string( "Four image metrics are available--- " )
+    + std::string( "GC : global correlation, CC:  ANTS neighborhood cross correlation, MI:  Mutual information, and " )
+    + std::string( "Demons:  Thirion's Demons (modified mean-squares). " )
+    + std::string( "Note that the metricWeight is currently not used.  " )
+    + std::string( "Rather, it is a temporary place holder until multivariate metrics " )
+    + std::string( "are available for a single stage." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "metric" );
-    option->SetShortName( 'm' );
-    option->SetUsageOption(
-      0,
-      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption(
-      1,
-      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption(
-      2,
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "metric" );
+  option->SetShortName( 'm' );
+  option->SetUsageOption(
+    0,
+    "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    1,
+    "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    2,
 
-      "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption(
-      3,
-      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+    "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    3,
+    "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string(
-        "use a fixed reference image instead of the neighor in the time series." );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "useFixedReferenceImage" );
-    option->SetShortName( 'u' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string(
+      "use a fixed reference image instead of the neighor in the time series." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "useFixedReferenceImage" );
+  option->SetShortName( 'u' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string         description = std::string( "use the scale estimator to control optimization." );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "useScalesEstimator" );
-    option->SetShortName( 'e' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string         description = std::string( "use the scale estimator to control optimization." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "useScalesEstimator" );
+  option->SetShortName( 'e' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Several transform options are available.  The gradientStep or" )
-      + std::string( "learningRate characterizes the gradient descent optimization and is scaled appropriately " )
-      + std::string( "for each transform using the shift scales estimator.  Subsequent parameters are " )
-      + std::string( "transform-specific and can be determined from the usage. " );
+  {
+  std::string description = std::string( "Several transform options are available.  The gradientStep or" )
+    + std::string( "learningRate characterizes the gradient descent optimization and is scaled appropriately " )
+    + std::string( "for each transform using the shift scales estimator.  Subsequent parameters are " )
+    + std::string( "transform-specific and can be determined from the usage. " );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "transform" );
-    option->SetShortName( 't' );
-    option->SetUsageOption( 0, "Affine[gradientStep]" );
-    option->SetUsageOption( 1, "Rigid[gradientStep]" );
-    option->SetUsageOption(
-      2, "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
-    option->SetUsageOption(
-      3, "SyN[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "transform" );
+  option->SetShortName( 't' );
+  option->SetUsageOption( 0, "Affine[gradientStep]" );
+  option->SetUsageOption( 1, "Rigid[gradientStep]" );
+  option->SetUsageOption(
+    2, "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
+  option->SetUsageOption(
+    3, "SyN[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Specify the number of iterations at each level." );
+  {
+  std::string description = std::string( "Specify the number of iterations at each level." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "iterations" );
-    option->SetShortName( 'i' );
-    option->SetUsageOption( 0, "MxNx0..." );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "iterations" );
+  option->SetShortName( 'i' );
+  option->SetUsageOption( 0, "MxNx0..." );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Specify the amount of smoothing at each level." );
+  {
+  std::string description = std::string( "Specify the amount of smoothing at each level." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "smoothingSigmas" );
-    option->SetShortName( 's' );
-    option->SetUsageOption( 0, "MxNx0..." );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "smoothingSigmas" );
+  option->SetShortName( 's' );
+  option->SetUsageOption( 0, "MxNx0..." );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string(
-        "Specify the shrink factor for the virtual domain (typically the fixed image) at each level." );
+  {
+  std::string description = std::string(
+      "Specify the shrink factor for the virtual domain (typically the fixed image) at each level." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "shrinkFactors" );
-    option->SetShortName( 'f' );
-    option->SetUsageOption( 0, "MxNx0..." );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "shrinkFactors" );
+  option->SetShortName( 'f' );
+  option->SetUsageOption( 0, "MxNx0..." );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Specify the output transform prefix (output format is .nii.gz )." )
-      + std::string( "Optionally, one can choose to warp the moving image to the fixed space and, if the " )
-      + std::string( "inverse transform exists, one can also output the warped fixed image." );
+  {
+  std::string description = std::string( "Specify the output transform prefix (output format is .nii.gz )." )
+    + std::string( "Optionally, one can choose to warp the moving image to the fixed space and, if the " )
+    + std::string( "inverse transform exists, one can also output the warped fixed image." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "output" );
-    option->SetShortName( 'o' );
-    option->SetUsageOption( 0, "[outputTransformPrefix,<outputWarpedImage>,<outputAverageImage>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "output" );
+  option->SetShortName( 'o' );
+  option->SetUsageOption( 0, "[outputTransformPrefix,<outputWarpedImage>,<outputAverageImage>]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string         description = std::string( "Average the input time series image." );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "average-image" );
-    option->SetShortName( 'a' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string         description = std::string( "Average the input time series image." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "average-image" );
+  option->SetShortName( 'a' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string         description = std::string( "Write the low-dimensional 3D transforms to a 4D displacement field" );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "write-displacement" );
-    option->SetShortName( 'w' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string         description = std::string( "Write the low-dimensional 3D transforms to a 4D displacement field" );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "write-displacement" );
+  option->SetShortName( 'w' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
+  {
+  std::string description = std::string( "Verbose output." );
 
-    {
-    std::string description = std::string( "Print the help menu (short version)." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'v' );
+  option->SetLongName( "verbose" );
+  option->SetUsageOption( 0, "(0)/1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetShortName( 'h' );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Print the help menu (short version)." );
 
-    {
-    std::string description = std::string( "Print the help menu." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'h' );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "0" ) );
+  parser->AddOption( option );
+  }
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "help" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Print the help menu." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "help" );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "0" ) );
+  parser->AddOption( option );
+  }
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to

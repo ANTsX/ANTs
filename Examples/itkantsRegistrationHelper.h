@@ -954,7 +954,7 @@ private:
       }
     catch( itk::ExceptionObject & e )
       {
-      std::cerr << "Exception caught: " << e << std::endl;
+      this->Logger() << "Exception caught: " << e << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -1145,6 +1145,14 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
   typename ImageType::Pointer fixedImage = ITK_NULLPTR;
   typename ImageType::Pointer movingImage = ITK_NULLPTR;
 
+  bool verbose = false;
+  typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
+    parser->GetOption( "verbose" );
+  if( verboseOption && verboseOption->GetNumberOfFunctions() )
+    {
+    verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
+    }
+
   std::deque<std::string> transformNames;
   std::deque<std::string> transformTypes;
   derivedTransforms.resize( initialTransformOption->GetNumberOfFunctions() );
@@ -1280,7 +1288,10 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
       if( initialTransform.IsNull() )
         {
-        std::cout << "Can't read initial transform " << initialTransformName << std::endl;
+        if( verbose )
+          {
+          std::cout << "Can't read initial transform " << initialTransformName << std::endl;
+          }
         return ITK_NULLPTR;
         }
       if( useInverse )
@@ -1288,7 +1299,10 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         initialTransform = dynamic_cast<TransformType *>( initialTransform->GetInverseTransform().GetPointer() );
         if( initialTransform.IsNull() )
           {
-          std::cout << "Inverse does not exist for " << initialTransformName << std::endl;
+          if( verbose )
+            {
+            std::cout << "Inverse does not exist for " << initialTransformName << std::endl;
+            }
           return ITK_NULLPTR;
           }
         initialTransformName = std::string( "inverse of " ) + initialTransformName;
@@ -1316,13 +1330,16 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
       }
     }
-  std::cout << "=============================================================================" << std::endl;
-  std::cout << "The composite transform comprises the following transforms (in order): " << std::endl;
-  for( unsigned int n = 0; n < transformNames.size(); n++ )
+  if( verbose )
     {
-    std::cout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
+    std::cout << "=============================================================================" << std::endl;
+    std::cout << "The composite transform comprises the following transforms (in order): " << std::endl;
+    for( unsigned int n = 0; n < transformNames.size(); n++ )
+      {
+      std::cout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
+      }
+    std::cout << "=============================================================================" << std::endl;
     }
-  std::cout << "=============================================================================" << std::endl;
   return compositeTransform;
 }
 

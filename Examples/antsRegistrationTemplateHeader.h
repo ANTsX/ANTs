@@ -40,6 +40,20 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   typename RegistrationHelperType::Pointer regHelper = RegistrationHelperType::New();
 
+  bool verbose = false;
+  typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
+    parser->GetOption( "verbose" );
+  if( verboseOption && verboseOption->GetNumberOfFunctions() )
+    {
+    verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
+    }
+
+  nullStream cnul;
+  if( ! verbose )
+    {
+    regHelper->SetLogStream( cnul );
+    }
+
   OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
   OptionType::Pointer metricOption = parser->GetOption( "metric" );
@@ -69,8 +83,11 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     if( shouldCollapseBeDone )
       {
-      std::cout << "ERROR: initialize-transforms-per-stage & collapse-output-transforms options are mutually exclusive."
-                << std::endl;
+      if( verbose )
+        {
+        std::cerr << "ERROR: initialize-transforms-per-stage & collapse-output-transforms options are mutually exclusive."
+                  << std::endl;
+        }
       return EXIT_FAILURE;
       }
     regHelper->SetInitializeTransformsPerStage( true );
@@ -82,7 +99,10 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
     {
-    std::cout << "Output option not specified." << std::endl;
+    if( verbose )
+      {
+      std::cout << "Output option not specified." << std::endl;
+      }
     return EXIT_FAILURE;
     }
 
@@ -206,23 +226,35 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     if( initialMovingTransformOption->GetNumberOfFunctions() || initialFixedTransformOption->GetNumberOfFunctions() )
       {
-      std::cout << "restore-state option is mutually exclusive with "
-                << "initial-moving-transform & initial-fixed-transform options." << std::endl;
+      if( verbose )
+        {
+        std::cerr << "restore-state option is mutually exclusive with "
+                  << "initial-moving-transform & initial-fixed-transform options." << std::endl;
+        }
       return EXIT_FAILURE;
       }
 
-    std::cout << "Restoring previous registration state" << std::endl;
+    if( verbose )
+      {
+      std::cout << "Restoring previous registration state" << std::endl;
+      }
     std::vector<bool> isDerivedInitialMovingTransform;
     typename CompositeTransformType::Pointer compositeTransform =
       GetCompositeTransformFromParserOption<TComputeType, VImageDimension>( parser, restoreStateOption,
                                                                            isDerivedInitialMovingTransform );
-    std::cout << "+" << std::endl;
+    if( verbose )
+      {
+      std::cout << "+" << std::endl;
+      }
     if( compositeTransform.IsNull() )
       {
       return EXIT_FAILURE;
       }
     regHelper->SetRestoreStateTransform( compositeTransform );
-    std::cout << "+" << std::endl;
+    if( verbose )
+      {
+      std::cout << "+" << std::endl;
+      }
     }
 
   if( maskOption && maskOption->GetNumberOfFunctions() )
@@ -314,7 +346,10 @@ DoRegistration(typename ParserType::Pointer & parser)
   unsigned int numberOfTransforms = transformOption->GetNumberOfFunctions();
   if( transformOption.IsNull() || numberOfTransforms == 0 )
     {
-    std::cout << "No transformations are specified." << std::endl;
+    if( verbose )
+      {
+      std::cerr << "No transformations are specified." << std::endl;
+      }
     return EXIT_FAILURE;
     }
 
@@ -373,14 +408,20 @@ DoRegistration(typename ParserType::Pointer & parser)
                                                                 // points for interpolation.
         if( convergenceWindowSize < minAllowedconvergenceWindowSize )
           {
-          std::cout << "Convergence Window Size must be greater than or equal to " << minAllowedconvergenceWindowSize
-                    << std::endl;
+          if( verbose )
+            {
+            std::cerr << "Convergence Window Size must be greater than or equal to " << minAllowedconvergenceWindowSize << std::endl;
+            }
+          return EXIT_FAILURE;
           }
         }
       }
     else
       {
-      std::cerr << "No convergence criteria are specified." << std::endl;
+      if( verbose )
+        {
+        std::cerr << "No convergence criteria are specified." << std::endl;
+        }
       return EXIT_FAILURE;
       }
 
@@ -396,7 +437,10 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
 
     unsigned int numberOfLevels = iterations.size();
-    std::cout << "  number of levels = " << numberOfLevels << std::endl;
+    if( verbose )
+      {
+      std::cout << "  number of levels = " << numberOfLevels << std::endl;
+      }
 
     // Get the first metricOption for the currentStage (for use with the B-spline transforms)
     unsigned int numberOfMetrics = metricOption->GetNumberOfFunctions();
@@ -744,7 +788,11 @@ DoRegistration(typename ParserType::Pointer & parser)
         break;
       default:
         {
-        std::cout << "Unknown registration method " << "\"" << whichTransform << "\"" << std::endl;
+        if( verbose )
+          {
+          std::cerr << "Unknown registration method " << "\"" << whichTransform << "\"" << std::endl;
+          }
+        return EXIT_FAILURE;
         }
         break;
       }
@@ -777,10 +825,13 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       if( stageID != numberOfTransforms - 1 )
         {
-        std::cout << "\n\n\n"
-                  << "Error:  The number of stages does not match up with the metrics." << std::endl
-                  << "The number of transforms is " << numberOfTransforms << " and the last stage ID "
-                  << " as determined by the metrics is " << stageID << "." << std::endl;
+        if( verbose )
+          {
+          std::cerr << "\n\n\n"
+                    << "Error:  The number of stages does not match up with the metrics." << std::endl
+                    << "The number of transforms is " << numberOfTransforms << " and the last stage ID "
+                    << " as determined by the metrics is " << stageID << "." << std::endl;
+          }
         return EXIT_FAILURE;
         }
       }
@@ -831,8 +882,12 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
       std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
-      std::cout << "  fixed image: " << fixedFileName << std::endl;
-      std::cout << "  moving image: " << movingFileName << std::endl;
+
+      if( verbose )
+        {
+        std::cout << "  fixed image: " << fixedFileName << std::endl;
+        std::cout << "  moving image: " << movingFileName << std::endl;
+        }
 
       ReadImage<ImageType>( fixedImage, fixedFileName.c_str() );
       ReadImage<ImageType>( movingImage, movingFileName.c_str() );
@@ -861,7 +916,10 @@ DoRegistration(typename ParserType::Pointer & parser)
       else
         {
         samplingStrategy = RegistrationHelperType::invalid;
-        std::cout << "ERROR: invalid sampling strategy specified: " << strategy << std::endl;
+        if( verbose )
+          {
+          std::cerr << "ERROR: invalid sampling strategy specified: " << strategy << std::endl;
+          }
         return EXIT_FAILURE;
         }
       if( currentMetric == RegistrationHelperType::CC )
@@ -886,15 +944,21 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() < 5 )
           {
-          std::cerr << "The expected number of parameters aren't specified.  Please see help menu." << std::endl;
+          if( verbose )
+            {
+            std::cerr << "The expected number of parameters aren't specified.  Please see help menu." << std::endl;
+            }
           return EXIT_FAILURE;
           }
 
         std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
         std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
 
-        std::cout << "  fixed intensity point set: " << fixedFileName << std::endl;
-        std::cout << "  moving intensity point set: " << movingFileName << std::endl;
+        if( verbose )
+          {
+          std::cout << "  fixed intensity point set: " << fixedFileName << std::endl;
+          std::cout << "  moving intensity point set: " << movingFileName << std::endl;
+          }
 
         std::string fixedPointSetMaskFile = metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 );
         std::string movingPointSetMaskFile = metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 );
@@ -938,7 +1002,10 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         if( neighborhoodRadius.size() != VImageDimension )
           {
-          std::cerr << "The neighborhood size must equal the dimension." << std::endl;
+          if( verbose )
+            {
+            std::cerr << "The neighborhood size must equal the dimension." << std::endl;
+            }
           return EXIT_FAILURE;
           }
 
@@ -987,8 +1054,11 @@ DoRegistration(typename ParserType::Pointer & parser)
           }
         std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
         std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
-        std::cout << "  fixed labeled point set: " << fixedFileName << std::endl;
-        std::cout << "  moving labeled point set: " << movingFileName << std::endl;
+        if( verbose )
+          {
+          std::cout << "  fixed labeled point set: " << fixedFileName << std::endl;
+          std::cout << "  moving labeled point set: " << movingFileName << std::endl;
+          }
 
         ReadLabeledPointSet<LabeledPointSetType>( fixedLabeledPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
         ReadLabeledPointSet<LabeledPointSetType>( movingLabeledPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
@@ -1197,9 +1267,12 @@ DoRegistration(typename ParserType::Pointer & parser)
               }
             catch( itk::ExceptionObject & err )
               {
-              std::cout << "Can't write transform file " << curInverseFileName.str().c_str() << std::endl;
-              std::cout << "Exception Object caught: " << std::endl;
-              std::cout << err << std::endl;
+              if( verbose )
+                {
+                std::cerr << "Can't write transform file " << curInverseFileName.str().c_str() << std::endl;
+                std::cerr << "Exception Object caught: " << std::endl;
+                std::cerr << err << std::endl;
+                }
               }
             }
           }
@@ -1227,10 +1300,13 @@ DoRegistration(typename ParserType::Pointer & parser)
               }
             catch( itk::ExceptionObject & err )
               {
-              std::cerr << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
-                << std::endl;
-              std::cerr << "Exception Object caught: " << std::endl;
-              std::cerr << err << std::endl;
+              if( verbose )
+                {
+                std::cerr << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
+                  << std::endl;
+                std::cerr << "Exception Object caught: " << std::endl;
+                std::cerr << err << std::endl;
+                }
               }
             }
           }

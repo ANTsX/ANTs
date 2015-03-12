@@ -30,92 +30,91 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
 {
 
   // short names in use-  a:b:c:d:f:g:h:i:j:k:l:m:n:o:q:r:s:t:u:v:w:x:z
-    {
-    const std::string description = std::string( "Get Version Information." );
+  {
+  const std::string description = std::string( "Get Version Information." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "version" );
-    option->SetShortName( 'v' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "version" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, we try to " )
-      + std::string( "infer the dimensionality from the input image." );
+  {
+  std::string description =
+    std::string( "This option forces the image to be treated as a specified-" )
+    + std::string( "dimensional image.  If not specified, we try to " )
+    + std::string( "infer the dimensionality from the input image." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "dimensionality" );
-    option->SetShortName( 'd' );
-    option->SetUsageOption( 0, "2/3" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "dimensionality" );
+  option->SetShortName( 'd' );
+  option->SetUsageOption( 0, "2/3" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Specify the output transform prefix (output format is .nii.gz ). " )
-      + std::string( "Optionally, one can choose to warp the moving image to the fixed space and, if the " )
-      + std::string( "inverse transform exists, one can also output the warped fixed image.  Note that " )
-      + std::string( "only the images specified in the first metric call are warped.  Use antsApplyTransforms " )
-      + std::string( "to warp other images using the resultant transform(s)." );
+  {
+  std::string description = std::string( "Specify the output transform prefix (output format is .nii.gz ). " )
+    + std::string( "Optionally, one can choose to warp the moving image to the fixed space and, if the " )
+    + std::string( "inverse transform exists, one can also output the warped fixed image.  Note that " )
+    + std::string( "only the images specified in the first metric call are warped.  Use antsApplyTransforms " )
+    + std::string( "to warp other images using the resultant transform(s)." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "output" );
-    option->SetShortName( 'o' );
-    option->SetUsageOption( 0, "outputTransformPrefix" );
-    option->SetUsageOption( 1, "[outputTransformPrefix,<outputWarpedImage>,<outputInverseWarpedImage>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "output" );
+  option->SetShortName( 'o' );
+  option->SetUsageOption( 0, "outputTransformPrefix" );
+  option->SetUsageOption( 1, "[outputTransformPrefix,<outputWarpedImage>,<outputInverseWarpedImage>]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "A boolean specifying whether or not the " )
-      + std::string( "composite transform resulted from the current state of the registration " )
-      + std::string( "should be written to an hdf5 composite file. It is specially usefull if " )
-      + std::string( "we want to save the current state of a SyN registration to the disk, so " )
-      + std::string( "we can load and restore that later to continue the next registration " )
-      + std::string( "directly started from the same state that it was stored. " )
-      + std::string( "The output of this flag will be the same as the write-composite-transform, " )
-      + std::string( "unless the last transform is a SyN transform. In that case, the inverse " )
-      + std::string( "displacement field of the SyN transform is also added to the output composite transform. " )
-      + std::string( "To load the written file this flag, we must use restore-state." );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "save-state" );
-    option->SetShortName( 'j' );
-    option->SetUsageOption( 0, "saveSateAsTransform" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "A boolean specifying whether or not the " )
+    + std::string( "composite transform resulted from the current state of the registration " )
+    + std::string( "should be written to an hdf5 composite file. It is specially usefull if " )
+    + std::string( "we want to save the current state of a SyN registration to the disk, so " )
+    + std::string( "we can load and restore that later to continue the next registration " )
+    + std::string( "directly started from the same state that it was stored. " )
+    + std::string( "The output of this flag will be the same as the write-composite-transform, " )
+    + std::string( "unless the last transform is a SyN transform. In that case, the inverse " )
+    + std::string( "displacement field of the SyN transform is also added to the output composite transform. " )
+    + std::string( "To load the written file this flag, we must use restore-state." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "save-state" );
+  option->SetShortName( 'j' );
+  option->SetUsageOption( 0, "saveSateAsTransform" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Specify the initial state of the registration which get immediately " )
-      + std::string( "used to directly initialize the registration process. " )
-      + std::string( "The flag is mutually exclusive with other intialization flags." )
-      + std::string( "If this flag is used, none of the initial-moving-transform and initial-fixed-transform " )
-      + std::string( "cannot be used." );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "restore-state" );
-    option->SetShortName( 'k' );
-    option->SetUsageOption( 0, "restoreStateAsATransform" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Specify the initial state of the registration which get immediately " )
+    + std::string( "used to directly initialize the registration process. " )
+    + std::string( "The flag is mutually exclusive with other intialization flags." )
+    + std::string( "If this flag is used, none of the initial-moving-transform and initial-fixed-transform " )
+    + std::string( "cannot be used." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "restore-state" );
+  option->SetShortName( 'k' );
+  option->SetUsageOption( 0, "restoreStateAsATransform" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Boolean specifying whether or not the " )
-      + std::string( "composite transform (and its inverse, if it exists) should " )
-      + std::string( "be written to an hdf5 composite file.  This is false by default " )
-      + std::string( "so that only the transform for each stage is written to file." );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "write-composite-transform" );
-    option->SetShortName( 'a' );
-    option->SetUsageOption( 0, "1/(0)" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Boolean specifying whether or not the " )
+    + std::string( "composite transform (and its inverse, if it exists) should " )
+    + std::string( "be written to an hdf5 composite file.  This is false by default " )
+    + std::string( "so that only the transform for each stage is written to file." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "write-composite-transform" );
+  option->SetShortName( 'a' );
+  option->SetUsageOption( 0, "1/(0)" );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "0" ) );
+  parser->AddOption( option );
+  }
 
 // This is currently not functioning properly for all linear transforms.  If I
 // restrict the linear transforms to rigid transforms, then it seems to work.
@@ -138,351 +137,362 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
 //     parser->AddOption( option );
 //     }
 
-    {
-    std::string description = std::string( "Prints out the CC similarity metric measure " )
-      + std::string( "between the full-size input fixed and the transformed moving images at each iteration " )
-      + std::string( "a value of 0 (the default) indicates that the full scale computation should not take place")
-      + std::string( "any value greater than 0 represents the interval of full scale metric computation.");
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "print-similarity-measure-interval" );
-    option->SetShortName( 'p' );
-    option->SetUsageOption( 0, "<unsignedIntegerValue>" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Prints out the CC similarity metric measure " )
+    + std::string( "between the full-size input fixed and the transformed moving images at each iteration " )
+    + std::string( "a value of 0 (the default) indicates that the full scale computation should not take place")
+    + std::string( "any value greater than 0 represents the interval of full scale metric computation.");
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "print-similarity-measure-interval" );
+  option->SetShortName( 'p' );
+  option->SetUsageOption( 0, "<unsignedIntegerValue>" );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "0" ) );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string(
-        "Writes out the output volume at each iteration. It helps to present the registration process as a short movie " )
-      + std::string( "a value of 0 (the default) indicates that this option should not take place")
-      + std::string(
-        "any value greater than 0 represents the interval between the iterations which outputs are written to the disk.");
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "write-interval-volumes" );
-    option->SetShortName( 'v' );
-    option->SetUsageOption( 0, "<unsignedIntegerValue>" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string(
+      "Writes out the output volume at each iteration. It helps to present the registration process as a short movie " )
+    + std::string( "a value of 0 (the default) indicates that this option should not take place")
+    + std::string(
+      "any value greater than 0 represents the interval between the iterations which outputs are written to the disk.");
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "write-interval-volumes" );
+  option->SetShortName( 'v' );
+  option->SetUsageOption( 0, "<unsignedIntegerValue>" );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "0" ) );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Collapse output transforms. " )
-      + std::string( "Specifically, enabling this option combines all adjacent transforms where" )
-      + std::string( "possible.  All adjacent linear transforms are written to disk in the form" )
-      + std::string( "an itk affine transform (called xxxGenericAffine.mat).  Similarly, all " )
-      + std::string( "adjacent displacement field transforms are combined when written to disk " )
-      + std::string( "(e.g. xxxWarp.nii.gz and xxxInverseWarp.nii.gz (if available))." )
-      + std::string( "Also, an output composite transform including the collapsed transforms is " )
-      + std::string( "written to the disk (called outputCollapsed(Inverse)Composite).");
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "collapse-output-transforms" );
-    option->SetShortName( 'z' );
-    option->SetUsageOption( 0, "(1)/0" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "1" ) );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Collapse output transforms. " )
+    + std::string( "Specifically, enabling this option combines all adjacent transforms where" )
+    + std::string( "possible.  All adjacent linear transforms are written to disk in the form" )
+    + std::string( "an itk affine transform (called xxxGenericAffine.mat).  Similarly, all " )
+    + std::string( "adjacent displacement field transforms are combined when written to disk " )
+    + std::string( "(e.g. xxxWarp.nii.gz and xxxInverseWarp.nii.gz (if available))." )
+    + std::string( "Also, an output composite transform including the collapsed transforms is " )
+    + std::string( "written to the disk (called outputCollapsed(Inverse)Composite).");
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "collapse-output-transforms" );
+  option->SetShortName( 'z' );
+  option->SetUsageOption( 0, "(1)/0" );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "1" ) );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Initialize linear transforms from the previous stage. " )
-    + std::string( "By enabling this option, the current linear stage transform is directly intialized " )
-    + std::string( "from the previous stage's linear transform; this allows multiple linear stages to be run " )
-    + std::string( "where each stage directly updates the estimated linear transform from the previous stage. ")
-    + std::string( "(e.g. Translation -> Rigid -> Affine)." );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "initialize-transforms-per-stage" );
-    option->SetShortName( 'i' );
-    option->SetUsageOption( 0, "(1)/0" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
+  {
+  std::string description = std::string( "Initialize linear transforms from the previous stage. " )
+  + std::string( "By enabling this option, the current linear stage transform is directly intialized " )
+  + std::string( "from the previous stage's linear transform; this allows multiple linear stages to be run " )
+  + std::string( "where each stage directly updates the estimated linear transform from the previous stage. ")
+  + std::string( "(e.g. Translation -> Rigid -> Affine)." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "initialize-transforms-per-stage" );
+  option->SetShortName( 'i' );
+  option->SetUsageOption( 0, "(1)/0" );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "0" ) );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "Several interpolation options are available in ITK. " )
-      + std::string( "These have all been made available.  Currently the interpolator " )
-      + std::string( "choice is only used to warp (and possibly inverse warp) the final " )
-      + std::string( "output image(s)." );
+  {
+  std::string description =
+    std::string( "Several interpolation options are available in ITK. " )
+    + std::string( "These have all been made available.  Currently the interpolator " )
+    + std::string( "choice is only used to warp (and possibly inverse warp) the final " )
+    + std::string( "output image(s)." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "interpolation" );
-    option->SetShortName( 'n' );
-    option->SetUsageOption( 0, "Linear" );
-    option->SetUsageOption( 1, "NearestNeighbor" );
-    option->SetUsageOption( 2, "MultiLabel[<sigma=imageSpacing>,<alpha=4.0>]" );
-    option->SetUsageOption( 3, "Gaussian[<sigma=imageSpacing>,<alpha=1.0>]" );
-    option->SetUsageOption( 4, "BSpline[<order=3>]" );
-    option->SetUsageOption( 5, "CosineWindowedSinc" );
-    option->SetUsageOption( 6, "WelchWindowedSinc" );
-    option->SetUsageOption( 7, "HammingWindowedSinc" );
-    option->SetUsageOption( 8, "LanczosWindowedSinc" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "interpolation" );
+  option->SetShortName( 'n' );
+  option->SetUsageOption( 0, "Linear" );
+  option->SetUsageOption( 1, "NearestNeighbor" );
+  option->SetUsageOption( 2, "MultiLabel[<sigma=imageSpacing>,<alpha=4.0>]" );
+  option->SetUsageOption( 3, "Gaussian[<sigma=imageSpacing>,<alpha=1.0>]" );
+  option->SetUsageOption( 4, "BSpline[<order=3>]" );
+  option->SetUsageOption( 5, "CosineWindowedSinc" );
+  option->SetUsageOption( 6, "WelchWindowedSinc" );
+  option->SetUsageOption( 7, "HammingWindowedSinc" );
+  option->SetUsageOption( 8, "LanczosWindowedSinc" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "This option allows the user to restrict the " )
-      + std::string( "optimization of the displacement field, translation, rigid or affine " )
-      + std::string( "transform on a per-component basis.  For example, if one wants to limit " )
-      + std::string( "the deformation or rotation of 3-D volume to the first two dimensions, ")
-      + std::string( "this is possible by specifying a weight vector of \'1x1x0\' for a " )
-      + std::string( "deformation field or  \'1x1x0x1x1x0\' for a rigid transformation." )
-      + std::string( "Low-dimensional restriction only works if there are no preceding transformations." );
+  {
+  std::string description = std::string( "This option allows the user to restrict the " )
+    + std::string( "optimization of the displacement field, translation, rigid or affine " )
+    + std::string( "transform on a per-component basis.  For example, if one wants to limit " )
+    + std::string( "the deformation or rotation of 3-D volume to the first two dimensions, ")
+    + std::string( "this is possible by specifying a weight vector of \'1x1x0\' for a " )
+    + std::string( "deformation field or  \'1x1x0x1x1x0\' for a rigid transformation." )
+    + std::string( "Low-dimensional restriction only works if there are no preceding transformations." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "restrict-deformation" );
-    option->SetShortName( 'g' );
-    option->SetUsageOption( 0, "PxQxR" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "restrict-deformation" );
+  option->SetShortName( 'g' );
+  option->SetUsageOption( 0, "PxQxR" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
-      + std::string( "incorporated into the composite transform.  The order of the " )
-      + std::string( "transforms is stack-esque in that the last transform specified on " )
-      + std::string( "the command line is the first to be applied.  In addition to initialization " )
-      + std::string( "with ITK transforms, the user can perform an initial translation alignment " )
-      + std::string( "by specifying the fixed and moving images and selecting an initialization " )
-      + std::string( "feature.  These features include using the geometric center of the images (=0), " )
-      + std::string( "the image intensities (=1), or the origin of the images (=2)." );
+  {
+  std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
+    + std::string( "incorporated into the composite transform.  The order of the " )
+    + std::string( "transforms is stack-esque in that the last transform specified on " )
+    + std::string( "the command line is the first to be applied.  In addition to initialization " )
+    + std::string( "with ITK transforms, the user can perform an initial translation alignment " )
+    + std::string( "by specifying the fixed and moving images and selecting an initialization " )
+    + std::string( "feature.  These features include using the geometric center of the images (=0), " )
+    + std::string( "the image intensities (=1), or the origin of the images (=2)." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "initial-fixed-transform" );
-    option->SetShortName( 'q' );
-    option->SetUsageOption( 0, "initialTransform" );
-    option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
-    option->SetUsageOption( 2, "[fixedImage,movingImage,initializationFeature]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "initial-fixed-transform" );
+  option->SetShortName( 'q' );
+  option->SetUsageOption( 0, "initialTransform" );
+  option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
+  option->SetUsageOption( 2, "[fixedImage,movingImage,initializationFeature]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Specify the initial moving transform(s) which get immediately " )
-      + std::string( "incorporated into the composite transform.  The order of the " )
-      + std::string( "transforms is stack-esque in that the last transform specified on " )
-      + std::string( "the command line is the first to be applied.  In addition to initialization " )
-      + std::string( "with ITK transforms, the user can perform an initial translation alignment " )
-      + std::string( "by specifying the fixed and moving images and selecting an initialization " )
-      + std::string( "feature.  These features include using the geometric center of the images (=0), " )
-      + std::string( "the image intensities (=1), or the origin of the images (=2)." );
+  {
+  std::string description = std::string( "Specify the initial moving transform(s) which get immediately " )
+    + std::string( "incorporated into the composite transform.  The order of the " )
+    + std::string( "transforms is stack-esque in that the last transform specified on " )
+    + std::string( "the command line is the first to be applied.  In addition to initialization " )
+    + std::string( "with ITK transforms, the user can perform an initial translation alignment " )
+    + std::string( "by specifying the fixed and moving images and selecting an initialization " )
+    + std::string( "feature.  These features include using the geometric center of the images (=0), " )
+    + std::string( "the image intensities (=1), or the origin of the images (=2)." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "initial-moving-transform" );
-    option->SetShortName( 'r' );
-    option->SetUsageOption( 0, "initialTransform" );
-    option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
-    option->SetUsageOption( 2, "[fixedImage,movingImage,initializationFeature]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "initial-moving-transform" );
+  option->SetShortName( 'r' );
+  option->SetUsageOption( 0, "initialTransform" );
+  option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
+  option->SetUsageOption( 2, "[fixedImage,movingImage,initializationFeature]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "These image metrics are available--- " )
-      + std::string( "CC:  ANTS neighborhood cross correlation, MI:  Mutual information, " )
-      + std::string( "Demons: (Thirion), MeanSquares, and GC: Global Correlation. " )
-      + std::string( "The \"metricWeight\" variable is used to modulate the per stage weighting of the metrics.  " )
-      + std::string( "The metrics can also employ a sampling strategy defined by a " )
-      + std::string( "sampling percentage. The sampling strategy defaults to \'None\' (aka a dense sampling of ")
-      + std::string( "one sample per voxel), otherwise it defines a point set over which to optimize the metric. " )
-      + std::string( "The point set can be on a regular lattice or a random lattice of points slightly " )
-      + std::string( "perturbed to minimize aliasing artifacts. samplingPercentage defines the " )
-      + std::string( "fraction of points to select from the domain. " )
-      + std::string( "In addition, three point set metrics are available:  Euclidean " )
-      + std::string( "(ICP), Point-set expectation (PSE), and Jensen-Havrda-Charvet-Tsallis (JHCT)." );
+  {
+  std::string description = std::string( "These image metrics are available--- " )
+    + std::string( "CC:  ANTS neighborhood cross correlation, MI:  Mutual information, " )
+    + std::string( "Demons: (Thirion), MeanSquares, and GC: Global Correlation. " )
+    + std::string( "The \"metricWeight\" variable is used to modulate the per stage weighting of the metrics.  " )
+    + std::string( "The metrics can also employ a sampling strategy defined by a " )
+    + std::string( "sampling percentage. The sampling strategy defaults to \'None\' (aka a dense sampling of ")
+    + std::string( "one sample per voxel), otherwise it defines a point set over which to optimize the metric. " )
+    + std::string( "The point set can be on a regular lattice or a random lattice of points slightly " )
+    + std::string( "perturbed to minimize aliasing artifacts. samplingPercentage defines the " )
+    + std::string( "fraction of points to select from the domain. " )
+    + std::string( "In addition, three point set metrics are available:  Euclidean " )
+    + std::string( "(ICP), Point-set expectation (PSE), and Jensen-Havrda-Charvet-Tsallis (JHCT)." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "metric" );
-    option->SetShortName( 'm' );
-    option->SetUsageOption(
-      0,
-      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption(
-      1,
-      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption(
-      2,
-      "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption(
-      3,
-      "MeanSquares[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption(
-      4,
-      "Demons[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption(
-      5,
-      "GC[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption(
-      6,
-      "ICP[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>]" );
-    option->SetUsageOption(
-      7,
-      "PSE[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=1>,<kNeighborhood=50>]" );
-    option->SetUsageOption(
-      8,
-      "JHCT[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=1>,<kNeighborhood=50>,<alpha=1.1>,<useAnisotropicCovariances=1>]" );
-    option->SetUsageOption(
-      9,
-      "IGDM[fixedImage,movingImage,metricWeight,fixedMask,movingMask,<neighborhoodRadius=0x0>,<intensitySigma=0>,<distanceSigma=0>,<kNeighborhood=1>,<gradientSigma=1>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "metric" );
+  option->SetShortName( 'm' );
+  option->SetUsageOption(
+    0,
+    "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    1,
+    "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    2,
+    "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    3,
+    "MeanSquares[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    4,
+    "Demons[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    5,
+    "GC[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    6,
+    "ICP[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>]" );
+  option->SetUsageOption(
+    7,
+    "PSE[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=1>,<kNeighborhood=50>]" );
+  option->SetUsageOption(
+    8,
+    "JHCT[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=1>,<kNeighborhood=50>,<alpha=1.1>,<useAnisotropicCovariances=1>]" );
+  option->SetUsageOption(
+    9,
+    "IGDM[fixedImage,movingImage,metricWeight,fixedMask,movingMask,<neighborhoodRadius=0x0>,<intensitySigma=0>,<distanceSigma=0>,<kNeighborhood=1>,<gradientSigma=1>]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Several transform options are available.  The gradientStep or " )
-      + std::string( "learningRate characterizes the gradient descent optimization and is scaled appropriately " )
-      + std::string( "for each transform using the shift scales estimator.  Subsequent parameters are " )
-      + std::string( "transform-specific and can be determined from the usage. For the B-spline transforms " )
-      + std::string( "one can also specify the smoothing in terms of spline distance (i.e. knot spacing). " );
+  {
+  std::string description = std::string( "Several transform options are available.  The gradientStep or " )
+    + std::string( "learningRate characterizes the gradient descent optimization and is scaled appropriately " )
+    + std::string( "for each transform using the shift scales estimator.  Subsequent parameters are " )
+    + std::string( "transform-specific and can be determined from the usage. For the B-spline transforms " )
+    + std::string( "one can also specify the smoothing in terms of spline distance (i.e. knot spacing). " );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "transform" );
-    option->SetShortName( 't' );
-    option->SetUsageOption(  0, "Rigid[gradientStep]" );
-    option->SetUsageOption(  1, "Affine[gradientStep]" );
-    option->SetUsageOption(  2, "CompositeAffine[gradientStep]" );
-    option->SetUsageOption(  3, "Similarity[gradientStep]" );
-    option->SetUsageOption(  4, "Translation[gradientStep]" );
-    option->SetUsageOption(  5, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
-    option->SetUsageOption(
-      6, "GaussianDisplacementField[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
-    option->SetUsageOption(
-      7,
-      "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
-    option->SetUsageOption(
-      8,
-      "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldVarianceInVoxelSpace,updateFieldTimeVariance,totalFieldVarianceInVoxelSpace,totalFieldTimeVariance]" );
-    option->SetUsageOption(
-      9,
-      "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
-    option->SetUsageOption( 10, "SyN[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
-    option->SetUsageOption(
-      11, "BSplineSyN[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
-    option->SetUsageOption(
-      12,
-      "Exponential[gradientStep,updateFieldVarianceInVoxelSpace,velocityFieldVarianceInVoxelSpace,<numberOfIntegrationSteps>]" );
-    option->SetUsageOption(
-      13,
-      "BSplineExponential[gradientStep,updateFieldMeshSizeAtBaseLevel,velocityFieldMeshSizeAtBaseLevel,<numberOfIntegrationSteps>,<splineOrder=3>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "transform" );
+  option->SetShortName( 't' );
+  option->SetUsageOption(  0, "Rigid[gradientStep]" );
+  option->SetUsageOption(  1, "Affine[gradientStep]" );
+  option->SetUsageOption(  2, "CompositeAffine[gradientStep]" );
+  option->SetUsageOption(  3, "Similarity[gradientStep]" );
+  option->SetUsageOption(  4, "Translation[gradientStep]" );
+  option->SetUsageOption(  5, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
+  option->SetUsageOption(
+    6, "GaussianDisplacementField[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
+  option->SetUsageOption(
+    7,
+    "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+  option->SetUsageOption(
+    8,
+    "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldVarianceInVoxelSpace,updateFieldTimeVariance,totalFieldVarianceInVoxelSpace,totalFieldTimeVariance]" );
+  option->SetUsageOption(
+    9,
+    "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
+  option->SetUsageOption( 10, "SyN[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
+  option->SetUsageOption(
+    11, "BSplineSyN[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+  option->SetUsageOption(
+    12,
+    "Exponential[gradientStep,updateFieldVarianceInVoxelSpace,velocityFieldVarianceInVoxelSpace,<numberOfIntegrationSteps>]" );
+  option->SetUsageOption(
+    13,
+    "BSplineExponential[gradientStep,updateFieldMeshSizeAtBaseLevel,velocityFieldMeshSizeAtBaseLevel,<numberOfIntegrationSteps>,<splineOrder=3>]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "Convergence is determined from the number of iterations per level " )
-      + std::string( "and is determined by fitting a line to the normalized energy " )
-      + std::string( "profile of the last N iterations (where N is specified by " )
-      + std::string( "the window size) and determining the slope which is then " )
-      + std::string( "compared with the convergence threshold." );
+  {
+  std::string description =
+    std::string( "Convergence is determined from the number of iterations per level " )
+    + std::string( "and is determined by fitting a line to the normalized energy " )
+    + std::string( "profile of the last N iterations (where N is specified by " )
+    + std::string( "the window size) and determining the slope which is then " )
+    + std::string( "compared with the convergence threshold." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "convergence" );
-    option->SetShortName( 'c' );
-    option->SetUsageOption( 0, "MxNxO" );
-    option->SetUsageOption( 1, "[MxNxO,<convergenceThreshold=1e-6>,<convergenceWindowSize=10>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "convergence" );
+  option->SetShortName( 'c' );
+  option->SetUsageOption( 0, "MxNxO" );
+  option->SetUsageOption( 1, "[MxNxO,<convergenceThreshold=1e-6>,<convergenceWindowSize=10>]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Specify the sigma of gaussian smoothing at each level.  " )
-      + std::string( "Units are given in terms of voxels (\'vox\') or physical spacing (\'mm\'). " )
-      + std::string( "Example usage is \'4x2x1mm\' and \'4x2x1vox\' where no units implies voxel spacing." );
+  {
+  std::string description = std::string( "Specify the sigma of gaussian smoothing at each level.  " )
+    + std::string( "Units are given in terms of voxels (\'vox\') or physical spacing (\'mm\'). " )
+    + std::string( "Example usage is \'4x2x1mm\' and \'4x2x1vox\' where no units implies voxel spacing." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "smoothing-sigmas" );
-    option->SetShortName( 's' );
-    option->SetUsageOption( 0, "MxNxO..." );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "smoothing-sigmas" );
+  option->SetShortName( 's' );
+  option->SetUsageOption( 0, "MxNxO..." );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string(
-        "Specify the shrink factor for the virtual domain (typically the fixed image) at each level." );
+  {
+  std::string description = std::string(
+      "Specify the shrink factor for the virtual domain (typically the fixed image) at each level." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "shrink-factors" );
-    option->SetShortName( 'f' );
-    option->SetUsageOption( 0, "MxNxO..." );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "shrink-factors" );
+  option->SetShortName( 'f' );
+  option->SetUsageOption( 0, "MxNxO..." );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Histogram match the images before registration." );
+  {
+  std::string description = std::string( "Histogram match the images before registration." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "use-histogram-matching" );
-    option->SetShortName( 'u' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "use-histogram-matching" );
+  option->SetShortName( 'u' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string(
-        "turn on the option that lets you estimate the learning rate step size only at the beginning of each level.  * useful as a second stage of fine-scale registration." );
+  {
+  std::string description = std::string(
+      "turn on the option that lets you estimate the learning rate step size only at the beginning of each level.  * useful as a second stage of fine-scale registration." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "use-estimate-learning-rate-once" );
-    option->SetShortName( 'l' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "use-estimate-learning-rate-once" );
+  option->SetShortName( 'l' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Winsorize data based on specified quantiles." );
+  {
+  std::string description = std::string( "Winsorize data based on specified quantiles." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "winsorize-image-intensities" );
-    option->SetShortName( 'w' );
-    option->SetUsageOption( 0, "[lowerQuantile,upperQuantile]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "winsorize-image-intensities" );
+  option->SetShortName( 'w' );
+  option->SetUsageOption( 0, "[lowerQuantile,upperQuantile]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string         description = "Image masks to limit voxels considered by the metric.";
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "masks" );
-    option->SetShortName( 'x' );
-    option->SetUsageOption( 0, "[fixedImageMask,movingImageMask]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  {
+  std::string         description = "Image masks to limit voxels considered by the metric.";
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "masks" );
+  option->SetShortName( 'x' );
+  option->SetUsageOption( 0, "[fixedImageMask,movingImageMask]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Use 'float' instead of 'double' for computations." );
+  {
+  std::string description = std::string( "Use 'float' instead of 'double' for computations." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "float" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "float" );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "0" ) );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Print the help menu (short version)." );
+  {
+  std::string description = std::string( "Verbose output." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetShortName( 'h' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'v' );
+  option->SetLongName( "verbose" );
+  option->SetUsageOption( 0, "(0)/1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Print the help menu.  Will also print values " )
-      + std::string( "used on the current command line call." );
+  {
+  std::string description = std::string( "Print the help menu (short version)." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "help" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'h' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "Print the help menu.  Will also print values " )
+    + std::string( "used on the current command line call." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "help" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 }
 
 
@@ -553,6 +563,15 @@ private:
       {
       return EXIT_FAILURE;
       }
+
+    bool verbose = false;
+    itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
+      parser->GetOption( "verbose" );
+    if( verboseOption && verboseOption->GetNumberOfFunctions() )
+      {
+      verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
+      }
+
     OptionType::Pointer collapseOutputTransformsOption = parser->GetOption( "collapse-output-transforms" );
     OptionType::Pointer compositeOutputOption = parser->GetOption( "write-composite-transform" );
     OptionType::Pointer initializePerStageOption = parser->GetOption( "initialize-transforms-per-stage" );
@@ -562,18 +581,27 @@ private:
     const bool shouldInitializePerStage = parser->Convert<bool>( initializePerStageOption->GetFunction( 0 )->GetName() );
     if ( shouldInitializePerStage && ( ! writeCompositeTransform ) )
        {
-       std::cerr << "ERROR:  --initialize-transforms-per-stage requires --write-composite-transform" << std::endl;
-       std::cerr << "        because the initializizing transform is collapsed into each stage for optimization" << std::endl;
+       if( verbose )
+         {
+         std::cerr << "ERROR:  --initialize-transforms-per-stage requires --write-composite-transform" << std::endl;
+         std::cerr << "        because the initializizing transform is collapsed into each stage for optimization" << std::endl;
+         }
        return EXIT_FAILURE;
        }
     if ( ( saveStateOption && saveStateOption->GetNumberOfFunctions() ) && ( ! writeCompositeTransform ) )
        {
-       std::cerr << "ERROR:  --save-state requires --write-composite-transform" << std::endl;
-       std::cerr << "        because the the output transform will contain the this processes initializer" << std::endl;
+       if( verbose )
+         {
+         std::cerr << "ERROR:  --save-state requires --write-composite-transform" << std::endl;
+         std::cerr << "        because the the output transform will contain the this processes initializer" << std::endl;
+         }
        return EXIT_FAILURE;
        }
 
-    std::cout << "All_Command_lines_OK" << std::endl;
+    if( verbose )
+      {
+      std::cout << "All_Command_lines_OK" << std::endl;
+      }
 
     if( argc == 1 )
       {
@@ -598,7 +626,10 @@ private:
       if( versionFunction.compare( "1" ) == 0 || versionFunction.compare( "true" ) == 0 )
         {
         //Print Version Information
-        std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
+        if( verbose )
+          {
+          std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
+          }
         return EXIT_SUCCESS;
         }
       }
@@ -612,7 +643,10 @@ private:
       }
     else
       {
-      std::cerr << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
+      if( verbose )
+        {
+        std::cerr << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
+        }
       return EXIT_FAILURE;
       }
 
@@ -620,12 +654,18 @@ private:
     OptionType::Pointer typeOption = parser->GetOption( "float" );
     if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
       {
-      std::cout << "Using single precision for computations." << std::endl;
+      if( verbose )
+        {
+        std::cout << "Using single precision for computations." << std::endl;
+        }
       precisionType = "float";
       }
     else
       {
-      std::cout << "Using double precision for computations." << std::endl;
+      if( verbose )
+        {
+        std::cout << "Using double precision for computations." << std::endl;
+        }
       precisionType = "double";
       }
 
@@ -665,8 +705,13 @@ private:
           }
         }
       default:
-        std::cerr << "bad image dimension " << dimension << std::endl;
+        {
+        if( verbose )
+          {
+          std::cerr << "bad image dimension " << dimension << std::endl;
+          }
         return EXIT_FAILURE;
+        }
       }
     }
   catch( itk::ExceptionObject & err )
