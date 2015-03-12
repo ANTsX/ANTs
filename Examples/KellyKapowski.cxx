@@ -77,6 +77,20 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   typedef itk::DiReCTImageFilter<LabelImageType, ImageType> DiReCTFilterType;
   typename DiReCTFilterType::Pointer direct = DiReCTFilterType::New();
   typedef typename DiReCTFilterType::LabelType DirectLabelType;
+
+  bool verbose = false;
+  typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
+    parser->GetOption( "verbose" );
+  if( verboseOption && verboseOption->GetNumberOfFunctions() )
+    {
+    verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
+    }
+
+  if( verbose )
+    {
+    std::cout << "Running DiReCT for " << ImageDimension << "-dimensional images." << std::endl << std::endl;
+    }
+
   //
   // debugging information
   //
@@ -123,7 +137,10 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cout << "Segmentation image not specified." << std::endl;
+    if( verbose )
+      {
+      std::cerr << "Segmentation image not specified." << std::endl;
+      }
     return EXIT_FAILURE;
     }
   direct->SetSegmentationImage( segmentationImage );
@@ -139,8 +156,11 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cout << "  Grey matter probability image not specified. "
-             << "Creating one from the segmentation image." << std::endl;
+    if( verbose )
+      {
+      std::cout << "  Grey matter probability image not specified. "
+               << "Creating one from the segmentation image." << std::endl;
+      }
 
     typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType> ThresholderType;
     typename ThresholderType::Pointer thresholder = ThresholderType::New();
@@ -173,8 +193,11 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cout << "  White matter probability image not specified. "
-             << "Creating one from the segmentation image." << std::endl << std::endl;
+    if( verbose )
+      {
+      std::cout << "  White matter probability image not specified. "
+               << "Creating one from the segmentation image." << std::endl << std::endl;
+      }
 
     typedef itk::BinaryThresholdImageFilter<LabelImageType, ImageType>
       ThresholderType;
@@ -317,26 +340,34 @@ int DiReCT( itk::ants::CommandLineParser *parser )
                                                                  numberOfInvertDisplacementFieldIterationsOption->GetFunction( 0 )->GetName() ) );
     }
 
-  typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
-  typename CommandType::Pointer observer = CommandType::New();
-  direct->AddObserver( itk::IterationEvent(), observer );
+  if( verbose )
+    {
+    typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
+    typename CommandType::Pointer observer = CommandType::New();
+    direct->AddObserver( itk::IterationEvent(), observer );
+    }
+
   itk::TimeProbe timer;
+  timer.Start();
   try
     {
-    //    direct->DebugOn();
-    timer.Start();
     direct->Update(); // causes problems with ANTsR , unknown reason
-    timer.Stop();
     }
   catch( itk::ExceptionObject & e )
     {
-    std::cout << "Exception caught: " << e << std::endl;
+    if( verbose )
+      {
+      std::cerr << "Exception caught: " << e << std::endl;
+      }
     return EXIT_FAILURE;
     }
+  timer.Stop();
 
-  direct->Print( std::cout, 3 );
-
-  std::cout << "DiReCT elapsed time: " << timer.GetMean() << std::endl;
+  if( verbose )
+    {
+    direct->Print( std::cout, 3 );
+    std::cout << "DiReCT elapsed time: " << timer.GetMean() << std::endl;
+    }
 
   /**
    * output
@@ -381,210 +412,221 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
-    {
-    std::string description =
-      std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, DiReCT tries to " )
-      + std::string( "infer the dimensionality from the input image." );
+  {
+  std::string description =
+    std::string( "This option forces the image to be treated as a specified-" )
+    + std::string( "dimensional image.  If not specified, DiReCT tries to " )
+    + std::string( "infer the dimensionality from the input image." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "image-dimensionality" );
-    option->SetShortName( 'd' );
-    option->SetUsageOption( 0, "2/3" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "image-dimensionality" );
+  option->SetShortName( 'd' );
+  option->SetUsageOption( 0, "2/3" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "A segmentation image must be supplied labeling the gray" )
-      + std::string( "and white matters.  Ddefault values = 2 and 3, respectively." );
+  {
+  std::string description =
+    std::string( "A segmentation image must be supplied labeling the gray" )
+    + std::string( "and white matters.  Ddefault values = 2 and 3, respectively." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "segmentation-image" );
-    option->SetShortName( 's' );
-    option->SetUsageOption( 0, "imageFilename" );
-    option->SetUsageOption( 1, "[imageFilename,<grayMatterLabel=2>,<whiteMatterLabel=3>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "segmentation-image" );
+  option->SetShortName( 's' );
+  option->SetUsageOption( 0, "imageFilename" );
+  option->SetUsageOption( 1, "[imageFilename,<grayMatterLabel=2>,<whiteMatterLabel=3>]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "In addition to the segmentation image, a gray matter " )
-      + std::string( "probability image can be used. If no such image is " )
-      + std::string( "supplied, one is created using the segmentation image " )
-      + std::string( "and a variance of 1.0 mm." );
+  {
+  std::string description =
+    std::string( "In addition to the segmentation image, a gray matter " )
+    + std::string( "probability image can be used. If no such image is " )
+    + std::string( "supplied, one is created using the segmentation image " )
+    + std::string( "and a variance of 1.0 mm." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "gray-matter-probability-image" );
-    option->SetShortName( 'g' );
-    option->SetUsageOption( 0, "imageFilename" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "gray-matter-probability-image" );
+  option->SetShortName( 'g' );
+  option->SetUsageOption( 0, "imageFilename" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "In addition to the segmentation image, a white matter " )
-      + std::string( "probability image can be used. If no such image is " )
-      + std::string( "supplied, one is created using the segmentation image " )
-      + std::string( "and a variance of 1.0 mm." );
+  {
+  std::string description =
+    std::string( "In addition to the segmentation image, a white matter " )
+    + std::string( "probability image can be used. If no such image is " )
+    + std::string( "supplied, one is created using the segmentation image " )
+    + std::string( "and a variance of 1.0 mm." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "white-matter-probability-image" );
-    option->SetShortName( 'w' );
-    option->SetUsageOption( 0, "imageFilename" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "white-matter-probability-image" );
+  option->SetShortName( 'w' );
+  option->SetUsageOption( 0, "imageFilename" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "Convergence is determined by fitting a line to the normalized energy " )
-      + std::string( "profile of the last N iterations (where N is specified by " )
-      + std::string( "the window size) and determining the slope which is then " )
-      + std::string( "compared with the convergence threshold." );
+  {
+  std::string description =
+    std::string( "Convergence is determined by fitting a line to the normalized energy " )
+    + std::string( "profile of the last N iterations (where N is specified by " )
+    + std::string( "the window size) and determining the slope which is then " )
+    + std::string( "compared with the convergence threshold." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "convergence" );
-    option->SetShortName( 'c' );
-    option->SetUsageOption( 0, "[<numberOfIterations=50>,<convergenceThreshold=0.001>,<convergenceWindowSize=10>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "convergence" );
+  option->SetShortName( 'c' );
+  option->SetUsageOption( 0, "[<numberOfIterations=50>,<convergenceThreshold=0.001>,<convergenceWindowSize=10>]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "Provides a prior constraint on the final thickness measurement. Default = 10 mm." );
+  {
+  std::string description =
+    std::string( "Provides a prior constraint on the final thickness measurement. Default = 10 mm." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "thickness-prior-estimate" );
-    option->SetShortName( 't' );
-    option->SetUsageOption( 0, "thicknessPriorEstimate" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "thickness-prior-estimate" );
+  option->SetShortName( 't' );
+  option->SetUsageOption( 0, "thicknessPriorEstimate" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "An image containing spatially varying prior thickness values." );
+  {
+  std::string description =
+    std::string( "An image containing spatially varying prior thickness values." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "thickness-prior-image" );
-    option->SetShortName( 'a' );
-    option->SetUsageOption( 0, "thicknessPriorFileName" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "thickness-prior-image" );
+  option->SetShortName( 'a' );
+  option->SetUsageOption( 0, "thicknessPriorFileName" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "Gradient step size for the optimization.  Default = 0.025." );
+  {
+  std::string description =
+    std::string( "Gradient step size for the optimization.  Default = 0.025." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "gradient-step" );
-    option->SetShortName( 'r' );
-    option->SetUsageOption( 0, "stepSize" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "gradient-step" );
+  option->SetShortName( 'r' );
+  option->SetUsageOption( 0, "stepSize" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "Defines the Gaussian smoothing of the hit and total images.  Default = 1.0." );
+  {
+  std::string description =
+    std::string( "Defines the Gaussian smoothing of the hit and total images.  Default = 1.0." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "smoothing-variance" );
-    option->SetShortName( 'l' );
-    option->SetUsageOption( 0, "variance" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "smoothing-variance" );
+  option->SetShortName( 'l' );
+  option->SetUsageOption( 0, "variance" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "Defines the Gaussian smoothing of the velocity field (default = 1.5)." )
-      + std::string( "If the b-spline smoothing option is chosen, then this " )
-      + std::string( "defines the isotropic mesh spacing for the smoothing spline (default = 15)." );
+  {
+  std::string description =
+    std::string( "Defines the Gaussian smoothing of the velocity field (default = 1.5)." )
+    + std::string( "If the b-spline smoothing option is chosen, then this " )
+    + std::string( "defines the isotropic mesh spacing for the smoothing spline (default = 15)." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "smoothing-velocity-field-parameter" );
-    option->SetShortName( 'm' );
-    option->SetUsageOption( 0, "variance" );
-    option->SetUsageOption( 1, "isotropicMeshSpacing" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "smoothing-velocity-field-parameter" );
+  option->SetShortName( 'm' );
+  option->SetUsageOption( 0, "variance" );
+  option->SetUsageOption( 1, "isotropicMeshSpacing" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( " Sets the option for B-spline smoothing of the velocity field." )
-      + std::string( "Default = false." );
+  {
+  std::string description =
+    std::string( " Sets the option for B-spline smoothing of the velocity field." )
+    + std::string( "Default = false." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "use-bspline-smoothing" );
-    option->SetShortName( 'b' );
-    option->SetUsageOption( 0, "1/(0)" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "use-bspline-smoothing" );
+  option->SetShortName( 'b' );
+  option->SetUsageOption( 0, "1/(0)" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "Number of compositions of the diffeomorphism per iteration.  Default = 10." );
+  {
+  std::string description =
+    std::string( "Number of compositions of the diffeomorphism per iteration.  Default = 10." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "number-of-integration-points" );
-    option->SetShortName( 'n' );
-    option->SetUsageOption( 0, "numberOfPoints" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "number-of-integration-points" );
+  option->SetShortName( 'n' );
+  option->SetUsageOption( 0, "numberOfPoints" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "Maximum number of iterations for estimating the invert displacement field.  Default = 20." );
+  {
+  std::string description =
+    std::string( "Maximum number of iterations for estimating the invert displacement field.  Default = 20." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "maximum-number-of-invert-displacement-field-iterations" );
-    option->SetShortName( 'p' );
-    option->SetUsageOption( 0, "numberOfIterations" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "maximum-number-of-invert-displacement-field-iterations" );
+  option->SetShortName( 'p' );
+  option->SetUsageOption( 0, "numberOfIterations" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description =
-      std::string( "The output consists of a thickness map defined in the " )
-      + std::string( "segmented gray matter. " );
+  {
+  std::string description =
+    std::string( "The output consists of a thickness map defined in the " )
+    + std::string( "segmented gray matter. " );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "output" );
-    option->SetShortName( 'o' );
-    option->SetUsageOption( 0, "imageFileName" );
-    option->SetUsageOption( 1, "[imageFileName,warpedWhiteMatterImageFileName]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "output" );
+  option->SetShortName( 'o' );
+  option->SetUsageOption( 0, "imageFileName" );
+  option->SetUsageOption( 1, "[imageFileName,warpedWhiteMatterImageFileName]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Print the help menu (short version)." );
+  {
+  std::string description = std::string( "Verbose output." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetShortName( 'h' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'v' );
+  option->SetLongName( "verbose" );
+  option->SetUsageOption( 0, "(0)/1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
-    {
-    std::string description = std::string( "Print the help menu." );
+  {
+  std::string description = std::string( "Print the help menu (short version)." );
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "help" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'h' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "Print the help menu." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "help" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -706,8 +748,6 @@ private:
         filename.c_str(), itk::ImageIOFactory::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
-
-  std::cout << std::endl << "Running DiReCT for " << dimension << "-dimensional images." << std::endl << std::endl;
 
   switch( dimension )
     {

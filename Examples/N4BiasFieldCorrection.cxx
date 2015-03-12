@@ -81,7 +81,7 @@ int N4( itk::ants::CommandLineParser *parser )
   typedef itk::Image<RealType, ImageDimension> MaskImageType;
   typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
 
-  bool verbose = true;
+  bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
     parser->GetOption( "verbose" );
   if( verboseOption && verboseOption->GetNumberOfFunctions() )
@@ -743,7 +743,7 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   OptionType::Pointer option = OptionType::New();
   option->SetShortName( 'v' );
   option->SetLongName( "verbose" );
-  option->SetUsageOption( 0, "0/(1)" );
+  option->SetUsageOption( 0, "(0)/1" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
