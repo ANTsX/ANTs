@@ -214,7 +214,6 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
   enum { ImageDimension = TImageType::ImageDimension };
   if( std::string(file).length() < 3 )
     {
-    std::cerr << " bad file name " << std::string(file) << std::endl;
     target = ITK_NULLPTR;
     return false;
     }
@@ -343,7 +342,6 @@ bool ReadLabeledPointSet( itk::SmartPointer<TPointSet> & target, const char *fil
 {
   if( std::string( file ).length() < 3 )
     {
-    std::cerr << " bad file name " << std::string(file) << std::endl;
     target = ITK_NULLPTR;
     return false;
     }
