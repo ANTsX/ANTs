@@ -453,7 +453,7 @@ public:
     MatrixType cov = this->CovarianceMatrix(p, reg);
     MatrixType invcov = this->PseudoInverse( cov, true );
     bool       debug = false;
-    if( debug )
+    if( ( ! this->m_Silent )  &&  ( debug ) )
       {
       std::cout << " cov " << std::endl;   std::cout << cov << std::endl;
       std::cout << " invcov " << std::endl;   std::cout << invcov << std::endl;
@@ -521,7 +521,7 @@ public:
 
   MatrixType PartialOutZ( MatrixType /*X*/, MatrixType /*Y*/, MatrixType /*Z*/ )
   {
-    std::cout << "ERROR:  This function not yet implemented." << std::endl;
+    if ( ! this->m_Silent )  std::cout << "ERROR:  This function not yet implemented." << std::endl;
     /** compute the effect of Z and store it for later use */
   }
 
@@ -604,8 +604,8 @@ public:
     // std::cout << p.size() <<v.size() <<std::endl;
     if( p.size() != v.size() )
       {
-      std::cout << "FastOuterProductVectorMultiplication Usage Error " << std::endl;
-      std::cout << "Size 1: " << p.size() << "Size 2: " << v.size() << std::endl;
+      if ( ! this->m_Silent )  std::cout << "FastOuterProductVectorMultiplication Usage Error " << std::endl;
+      if ( ! this->m_Silent )  std::cout << "Size 1: " << p.size() << "Size 2: " << v.size() << std::endl;
       return v;
       }
     RealType   ip = inner_product( p, v );
@@ -987,7 +987,7 @@ protected:
   {
     if( x_k1.size() != refvec.size() )
       {
-      std::cout << " sizes dont match " << std::endl; std::exception();
+      if ( ! this->m_Silent )  std::cout << " sizes dont match " << std::endl; std::exception();
       }
     for( unsigned int i = 0; i < x_k1.size(); i++ )
       {
@@ -1170,15 +1170,15 @@ protected:
   {
     if( this->m_MaskImageP && this->m_MaskImageQ && this->m_MaskImageR )
       {
-      std::cout << " 3 matrices " << std::endl;
+      if ( ! this->m_Silent )  std::cout << " 3 matrices " << std::endl;
       }
     else if( this->m_MaskImageP && this->m_MaskImageQ  )
       {
-      std::cout << " 2 matrices " << std::endl;
+      if ( ! this->m_Silent )  std::cout << " 2 matrices " << std::endl;
       }
     else
       {
-      std::cout << " fewer than 2 matrices " << std::endl;
+      if ( ! this->m_Silent )  std::cout << " fewer than 2 matrices " << std::endl;
       }
   }
 
