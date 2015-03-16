@@ -88,6 +88,9 @@ int ResampleImage( int argc, char *argv[] )
   typename ResamplerType::Pointer resampler = ResamplerType::New();
   typename ResamplerType::SpacingType spacing;
   typename ResamplerType::SizeType size;
+  typename ImageType::IndexType oldStartIndex = image->GetIndex();
+  typename ImageType::IndexType newStartIndex;
+  newStartIndex.Fill(0); // should be "same" as original start index but in new physical space
 
   std::vector<RealType> sp = ConvertVector<RealType>( std::string( argv[4] ) );
 
@@ -113,6 +116,8 @@ int ResampleImage( int argc, char *argv[] )
       RealType spacing_old = image->GetSpacing()[i];
       RealType size_old = image->GetLargestPossibleRegion().GetSize()[i];
       size[i] = static_cast<int>( ( spacing_old * size_old ) / spacing[i] + 0.5 );
+      RealType oldstart = static_cast<float>( oldStartIndex[i] );
+      newStartIndex[i] = static_cast<int>( ( spacing_old * oldstart ) / spacing[i] + 0.5 );
       }
     }
   else
@@ -136,8 +141,11 @@ int ResampleImage( int argc, char *argv[] )
       {
       RealType spacing_old = image->GetSpacing()[i];
       RealType size_old = image->GetLargestPossibleRegion().GetSize()[i];
-      spacing[i] = spacing_old * static_cast<float>( size_old - 1.0 )
-        / static_cast<float>( size[i] - 1.0 );
+      float ratio = static_cast<float>( size_old - 1.0 )
+                  / static_cast<float>( size[i] - 1.0 );
+      spacing[i] = spacing_old * ratio;
+      RealType oldstart = static_cast<float>( oldStartIndex[i] );
+      newStartIndex[i] = static_cast<int>( oldstart * ratio + 0.5 );
       }
     }
 
@@ -240,8 +248,6 @@ int ResampleImage( int argc, char *argv[] )
   resampler->SetOutputOrigin( image->GetOrigin() );
   resampler->SetOutputDirection( image->GetDirection() );
   resampler->SetOutputSpacing( spacing );
-  typename ImageType::IndexType newStartIndex;
-  newStartIndex.Fill(0); // should be "same" as original start index but in new physical space
   resampler->SetOutputStartIndex( newStartIndex );
   resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
