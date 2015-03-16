@@ -250,13 +250,13 @@ typename ImageType::IndexType newStartIndex;
   resampler->SetOutputOrigin( image->GetOrigin() );
   resampler->SetOutputDirection( image->GetDirection() );
   resampler->SetOutputSpacing( spacing );
-  resampler->SetOutputStartIndex( baseStartIndex );
+  resampler->SetOutputStartIndex( newStartIndex );
   resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
   typename ImageType::Pointer outimage = resampler->GetOutput();
-  typename ImageType::RegionType region = outimage->GetLargestPossibleRegion();
-  region.SetIndex( newStartIndex );
-  outimage->SetLargestPossibleRegion( region );
+//  typename ImageType::RegionType region = outimage->GetLargestPossibleRegion();
+//  region.SetIndex( newStartIndex );
+//  outimage->SetLargestPossibleRegion( region );
   WriteImage<ImageType>( outimage , argv[3] );
   return EXIT_SUCCESS;
 }
