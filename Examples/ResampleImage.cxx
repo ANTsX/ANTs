@@ -248,7 +248,7 @@ typename ImageType::IndexType newStartIndex;
   resampler->SetOutputOrigin( image->GetOrigin() );
   resampler->SetOutputDirection( image->GetDirection() );
   resampler->SetOutputSpacing( spacing );
-  resampler->SetOutputStartIndex( newStartIndex );
+//  resampler->SetOutputStartIndex( newStartIndex );
   resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
   typename ImageType::Pointer outimage = resampler->GetOutput();
