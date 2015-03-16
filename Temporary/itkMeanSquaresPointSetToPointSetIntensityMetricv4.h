@@ -82,6 +82,7 @@ public:
 
   /** Transform types from Superclass*/
   typedef typename Superclass::FixedTransformType            FixedTransformType;
+  typedef typename Superclass::MovingTransformType           MovingTransformType;
 
   /** Dimension type */
   typedef typename Superclass::DimensionType                  DimensionType;

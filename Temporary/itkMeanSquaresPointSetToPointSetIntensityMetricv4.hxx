@@ -69,8 +69,11 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 {
   Superclass::InitializePointSets();
 
-//   this->TransformMovingPointSetGradients();
-//   this->TransformFixedPointSetGradients();
+  if( this->m_CalculateValueAndDerivativeInTangentSpace == true )
+    {
+    this->TransformMovingPointSetGradients();
+    this->TransformFixedPointSetGradients();
+    }
 }
 
 template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
@@ -78,9 +81,6 @@ void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::TransformFixedPointSetGradients() const
 {
-  // Transform the moving point set data with the moving transform.
-  // We calculate the value and derivatives in the moving space.
-
   typename FixedTransformType::InverseTransformBasePointer inverseTransform = this->m_FixedTransform->GetInverseTransform();
 
   typename FixedPointsContainer::ConstIterator It = this->m_FixedPointSet->GetPoints()->Begin();
@@ -98,8 +98,6 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
     // Here we assume that transforming the vector at the neighborhood voxel
     // is close to performing the transformation at the center voxel.
-    PointType transformedPoint = inverseTransform->TransformPoint( It.Value() );
-
     for( SizeValueType n = 0; n < numberOfVoxelsInNeighborhood; n++ )
       {
       CovariantVectorType covariantVector;
@@ -114,8 +112,6 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
       CovariantVectorType transformedCovariantVector =
         inverseTransform->TransformCovariantVector( covariantVector, It.Value() );
-      transformedCovariantVector =
-        this->m_MovingTransform->TransformCovariantVector( covariantVector, transformedPoint );
 
       for( unsigned int d = 0; d < PointDimension; d++ )
         {
@@ -133,14 +129,44 @@ void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::TransformMovingPointSetGradients() const
 {
-  // Transform the moving point set data with the moving transform.
-  // We calculate the value and derivatives in the moving space.
+  typename MovingTransformType::InverseTransformBasePointer inverseTransform = this->m_MovingTransform->GetInverseTransform();
 
-  typename MovingPointDataContainer::ConstIterator It = this->m_MovingPointSet->GetPointData()->Begin();
-  while( It != this->m_MovingPointSet->GetPointData()->End() )
+  typename MovingPointsContainer::ConstIterator It = this->m_MovingPointSet->GetPoints()->Begin();
+
+  while( It != this->m_MovingPointSet->GetPoints()->End() )
     {
-    // evaluation is perfomed in moving space, so just copy
-    this->m_MovingTransformedPointSet->SetPointData( It.Index(), It.Value() );
+    PixelType pixel;
+    NumericTraits<PixelType>::SetLength( pixel, 1 );
+    bool doesPointDataExist = this->m_MovingPointSet->GetPointData( It.Index(), &pixel );
+    if( ! doesPointDataExist )
+      {
+      itkExceptionMacro( "The corresponding data for point " << It.Value() << " (pointId = " << It.Index() << ") does not exist." );
+      }
+    SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
+
+    // Here we assume that transforming the vector at the neighborhood voxel
+    // is close to performing the transformation at the center voxel.
+    for( SizeValueType n = 0; n < numberOfVoxelsInNeighborhood; n++ )
+      {
+      CovariantVectorType covariantVector;
+
+      for( unsigned int d = 0; d < PointDimension; d++ )
+        {
+        covariantVector[d] = pixel[n * ( PointDimension + 1 ) + d + 1];
+        }
+
+      // First, transform from fixed to virtual domain.  Then go from virtual domain
+      // to moving.
+
+      CovariantVectorType transformedCovariantVector =
+        inverseTransform->TransformCovariantVector( covariantVector, It.Value() );
+
+      for( unsigned int d = 0; d < PointDimension; d++ )
+        {
+        pixel[n * ( PointDimension + 1 ) + d + 1] = transformedCovariantVector[d];
+        }
+      }
+    this->m_MovingTransformedPointSet->SetPointData( It.Index(), pixel );
     ++It;
     }
 }
@@ -188,7 +214,6 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
     ++ItF;
     }
-
   this->m_EuclideanDistanceSigma = std::sqrt( runningDistanceSigma / static_cast<TInternalComputationValueType>( count ) );
 }
 
@@ -295,7 +320,15 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   NumericTraits<PixelType>::SetLength( closestPixel, 1 );
   if( this->m_UsePointSetData )
     {
-    bool doesPointDataExist = this->m_MovingPointSet->GetPointData( pointId, &closestPixel );
+    bool doesPointDataExist = false;
+    if( this->m_CalculateValueAndDerivativeInTangentSpace == true )
+      {
+      doesPointDataExist = this->m_MovingTransformedPointSet->GetPointData( pointId, &closestPixel );
+      }
+    else
+      {
+      doesPointDataExist = this->m_MovingPointSet->GetPointData( pointId, &closestPixel );
+      }
     if( ! doesPointDataExist )
       {
       itkExceptionMacro( "The corresponding data for point " << point << " (pointId = " << pointId << ") does not exist." );
@@ -335,7 +368,15 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   NumericTraits<PixelType>::SetLength( closestPixel, 1 );
   if( this->m_UsePointSetData )
     {
-    bool doesPointDataExist = this->m_MovingTransformedPointSet->GetPointData( pointId, &closestPixel );
+    bool doesPointDataExist = false;
+    if( this->m_CalculateValueAndDerivativeInTangentSpace == true )
+      {
+      doesPointDataExist = this->m_MovingTransformedPointSet->GetPointData( pointId, &closestPixel );
+      }
+    else
+      {
+      doesPointDataExist = this->m_MovingPointSet->GetPointData( pointId, &closestPixel );
+      }
     if( ! doesPointDataExist )
       {
       itkExceptionMacro( "The corresponding data for point " << point << " (pointId = " << pointId << ") does not exist." );
