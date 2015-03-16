@@ -240,6 +240,9 @@ int ResampleImage( int argc, char *argv[] )
   resampler->SetOutputOrigin( image->GetOrigin() );
   resampler->SetOutputDirection( image->GetDirection() );
   resampler->SetOutputSpacing( spacing );
+  typename ImageType::IndexType newStartIndex;
+  newStartIndex.Fill(0); // should be "same" as original start index but in new physical space
+  resampler->SetOutputStartIndex( newStartIndex );
   resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
 
