@@ -89,7 +89,9 @@ int ResampleImage( int argc, char *argv[] )
   typename ResamplerType::SpacingType spacing;
   typename ResamplerType::SizeType size;
   typename ImageType::IndexType oldStartIndex = image->GetLargestPossibleRegion().GetIndex();
-  typename ImageType::IndexType newStartIndex;
+  typename ImageType::IndexType baseStartIndex;
+  baseStartIndex.Fill(0);
+typename ImageType::IndexType newStartIndex;
   newStartIndex.Fill(0); // should be "same" as original start index but in new physical space
 
   std::vector<RealType> sp = ConvertVector<RealType>( std::string( argv[4] ) );
@@ -248,11 +250,14 @@ int ResampleImage( int argc, char *argv[] )
   resampler->SetOutputOrigin( image->GetOrigin() );
   resampler->SetOutputDirection( image->GetDirection() );
   resampler->SetOutputSpacing( spacing );
-  resampler->SetOutputStartIndex( newStartIndex );
+  resampler->SetOutputStartIndex( baseStartIndex );
   resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
-
-  WriteImage<ImageType>( resampler->GetOutput() , argv[3] );
+  typename ImageType::Pointer outimage = resampler->GetOutput();
+  typename ImageType::RegionType region = outimage->GetLargestPossibleRegion();
+  region.SetIndex( newStartIndex );
+  outimage->SetLargestPossibleRegion( region );
+  WriteImage<ImageType>( outimage , argv[3] );
   return EXIT_SUCCESS;
 }
 
