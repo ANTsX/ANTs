@@ -1,0 +1,86 @@
+---
+title: Mulivariate analysis of neural development in GSE$^\dagger$ adolescents with
+  ANTs
+author: "Brian B. Avants et al."
+date: "March 16, 2015"
+output: html_document
+bibliography: ants.bib
+---
+
+# Specific Aims
+
+The overall specific aims have not changed.
+
+$\dagger$: Gestational substance exposure
+
+# Studies and Results
+
+We summarize current results in the context of the original aims.
+
+## Aim 1
+
+Aim 1 proposed to develop and evaluate a publicly available computational tool for template construction and image registration of multiple modality datasets.  The links below are available from the root ANTs website [http://stnava.github.io/ANTs/](http://stnava.github.io/ANTs/) or the ANTsR website [http://stnava.github.io/ANTs/](http://stnava.github.io/ANTs/):
+
+**Tutorial materials:** We have contributed several different examples for template construction and related analysis with ANTs.  
+
+  * Template creation: 
+    * [high-level guide](http://miykael.github.io/nipype-beginner-s-guide/ANTS.html)
+    * [reproducible examples in article form](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3065962/)
+    * [in a stand-alone github repository](http://ntustison.github.io/TemplateBuildingExample/)
+    * [pre-built templates](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436)
+    * [how to build priors](https://github.com/ntustison/antsCookTemplatePriorsExample)
+
+  * Morphometry:  
+    * [Shape asymmetry with the jacobian](http://stnava.github.io/asymmetry/)
+    * [Multivariate tumor segmentation](https://github.com/ntustison/BRATS2013)
+    * [Multi-atlas segmentation](https://github.com/ntustison/MalfLabelingExample)
+
+  * Functional image analysis (based on ANTsR)
+    * [Cerebral blood flow](https://github.com/stnava/fMRIANTs/blob/master/ANTsRBayesianCBF2.Rmd)
+    * [Basic fMRI *pre*-processing](http://stnava.github.io/fMRIANTs/)
+    * [Basic fMRI processing](http://htmlpreview.github.io/?https://github.com/stnava/fMRIANTs/blob/master/ANTsRfMRI_FAQ.html)
+    * [fMRI reproducibility](http://stnava.github.io/RfMRI/)
+    * [fMRI decoding](http://stnava.github.io/Haxby2001/)
+    * [More advanced fMRI decoding analyses](http://stnava.github.io/RKRNS/)
+  
+**Evaluation Studies**: As mentioned above, (@Avants2011) provides a reproducible template creation, evaluation and morphometry study.  More recently, (@Avants2014) and (@Tustison2014) provide complementary morphometry and large-scale analyses based on more recent ANTs versions that derive from our latest contributions to the Insight ToolKit.
+
+
+## Aim 2 
+
+Aim 2 focused on extending basic scalar image mapping to multiple modalities in the context of large deformation mapping.  Tutorial examples on this topic include:
+
+* [multiple modality basics](https://github.com/stnava/ANTS_MultiModality)
+
+* [with additional fully reproducible analyses with adolescent data](http://jeffduda.github.io/NeuroBattery/)
+
+We also used these methods in a multiple modality study of tumor segmentation (@Tustison2014a)  which includes tensor-appropriate large deformation mapping. Others have also evaluated this work [in dementia (http://www.ncbi.nlm.nih.gov/pubmed/24650605)](http://www.ncbi.nlm.nih.gov/pubmed/24650605).
+
+
+## Aim 3
+
+We recently analyzed a demographically similar cohort with the methods developed in this grant (@Avants2015). This established and evaluated core approaches to multiple modality analysis in a relatively large control cohort.  However, we have yet to apply this same full analysis strategy to the final GSE cohort.  This is, in part, because additional data curation is needed due to the long-standing nature of the original study (over 20 years).  The study length led to changes in data quality and organization that we are currently seeking to resolve in a consistent manner before proceeding to the final analysis ( see Plans section.)
+
+However, a smaller subset of the cohort (n=53) with a focus on age 18 was used in a publication that is currently under revision in PLoSOne (@Avants2015a).  Along with this manuscript, we have made substantial progress towards integrative statistical analyses as described here:
+
+* [SCCAN tutorial](http://stnava.github.io/sccanTutorial/)
+
+* [R in medical imaging](https://github.com/stnava/RMI) from MICCAI 2013
+
+These methods form the core for the analysis of (@Avants2015) with full details at the [Pediatric Template of Brain Perfusion Figshare site](http://figshare.com/articles/The_Pediatric_Template_of_Brain_Perfusion_PTBP_/923555).
+
+# Significance 
+
+While the effect of gestational substance exposure on brain development is detectable in some brain structures (@Avants2007a), it is possible that other aspects of post-natal experience may have an even stronger and more long-lasting impact on outcomes (@Avants2015a).  The current study is the first to elaborate, in detail, on these differential effects and their longevity.  While more work is needed to elucidate this interplay over time (i.e. a full analysis on the final cohort), the current studies have established that both toxic prenatal environment and normal early experience may influence developmental pathways that lead to observable effects in structural MRI.  The next frontier relevant to both of these areas of research is to seek understanding of how both prenatal and postnatal environment interact, mitigate or amplify effects on neural structure, function and, ultimately, positive lifetime experience.
+
+# Plans
+
+We currently plan to proceed with additional analysis relevant to aim 3 as part of a data release project.  The full longitudinal cohort with T1, DTI, BOLD and ASL will be released via an open publication.  A reproducible analysis pipeline will accompany the data release along with our final set of findings for this dataset. The analysis will be based on a mixed effects model and eigenanatomy.  An example of a recent pilot analysis in control data that parallels our ultimate wrap-up study for this grant is here (@Kandel2014a).
+
+# Project generated resources
+
+The project has fed resources into further development of the Insight ToolKit (www.itk.org), Advanced Normalization Tools (http://stnava.github.io/ANTs/) and ANTsR (ANTs with *R*, http://stnava.github.io/ANTsR/).  ANTs, ITK and ANTsR are tested regularly (with every public change to the software) via unit-testing frameworks.  Several tutorials, talks and reproducible analysis examples are available via the ANTs and ANTsR websites, as detailed above.
+
+According to the ANTs google scholar page, there were nearly 2000 citations to the website or related papers in 2014 (https://scholar.google.com/citations?user=ox-mhOkAAAAJ&hl=en).  The citation trend is also rising steadily in each of the last 5 years.  Futhermore, the primary (new) ANTs website receives over 100 unique visitors every two weeks about half of whom clone the source code.  The other half tend to download binaries.   The original ANTs website at sourceforge received several thousand visits over the last year with nearly 4000 binary downloads.  ANTs is also accessed via Brainssuite, Neurodebian, NiPy and the Slicer tools.  While it is challenging to document specific ANTs usage by these packages, regular interaction with the developers of these tools assures us that there is demand and relevance of ANTs within external software contexts.  Thus, ANTs is useful as both a *developer library* on which others build and also as a user-level package that provides practical functionality otherwise not available.
+
+# Publications

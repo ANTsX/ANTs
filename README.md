@@ -14,7 +14,7 @@ Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *n
 
  Install ANTs via pre-built:
 [Packages @ github](https://github.com/stnava/ANTs/releases) older
-versions [@ sourceforge](http://sourceforge.net/projects/advants/files/ANTS/)
+versions [@ sourceforge](http://sourceforge.net/projects/advants/files/ANTS/) ... also,
 [Github Releases are here](https://github.com/stnava/ANTs/releases) thanks to Arman Eshaghi.
 
  Build [ANTs](https://github.com/stnava/ANTs) from:
@@ -33,7 +33,7 @@ considered a state-of-the-art medical image registration and
 segmentation toolkit. ANTsR is an emerging tool supporting standardized
 multimodality image analysis. ANTs depends on the Insight ToolKit
 [(ITK)](http://www.itk.org), a widely used medical image processing
-library to which ANTs developers contribute.
+library to which ANTs developers contribute.  A summary of some ANTs findings and tutorial material (most of which is on this page) is [here](http://rpubs.com/stnava/ANTsTut).
 
 Authors
 -------
