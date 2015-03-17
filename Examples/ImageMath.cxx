@@ -789,6 +789,34 @@ int ThresholdAtMean(int argc, char *argv[])
   return 0;
 }
 
+
+
+template <unsigned int ImageDimension>
+int SetTimeSpacing(int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  float       timespacing = 1.0;
+  if( argc > argct )
+    {
+    timespacing = atof(argv[argct]); argct++;
+    }
+
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
+  ReadImage<ImageType>(image1, fn1.c_str() );
+  typename ImageType::SpacingType spacing = image1->GetSpacing();
+  spacing[ ImageDimension - 1 ] = timespacing;
+  image1->SetSpacing( spacing );
+  WriteImage<ImageType>( image1 , outname.c_str() );
+  return 0;
+}
+
+
 template <unsigned int ImageDimension>
 int FlattenImage(int argc, char *argv[])
 {
@@ -14056,6 +14084,11 @@ ImageMathHelperAll(int argc, char **argv)
     ThresholdAtMean<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
+  if( operation == "SetTimeSpacing" )
+    {
+    SetTimeSpacing<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
   if( operation == "FlattenImage" )
     {
     FlattenImage<DIM>(argc, argv);
@@ -14902,13 +14935,8 @@ private:
     std::cout << "                You can also pass a boolean at the end to force the physical space to be used"
               << std::endl;
 
-    std::cout
-      << "\n  Segment        : Segment an Image  with option of Priors, weight 1 => maximally local/prior-based )"
-      << std::endl;
-    std::cout
-      <<
-      "      Usage        : Segment Image1.ext N-Classes LocalityVsGlobalityWeight-In-ZeroToOneRange OptionalPriorImages"
-      << std::endl;
+    std::cout << "\n  SetTimeSpacing            : sets spacing for last dimension" << std::endl;
+    std::cout << "      Usage        : SetTimeSpacing Image.ext tspacing" << std::endl;
 
     std::cout << "\n  stack            : Will put 2 images in the same volume" << std::endl;
     std::cout << "      Usage        : Stack Image1.ext Image2.ext" << std::endl;
