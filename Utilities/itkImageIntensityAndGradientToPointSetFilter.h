@@ -111,6 +111,12 @@ public:
   itkGetConstMacro( Sigma, double );
 
   /**
+   * Set/Get boolean for gradient calculation.
+   */
+  itkSetMacro( UseCentralDifferenceFunction, bool );
+  itkGetConstMacro( UseCentralDifferenceFunction, bool );
+
+  /**
    * Set/Get neighborhood radius
    */
   itkSetMacro( NeighborhoodRadius, NeighborhoodRadiusType );
@@ -129,6 +135,8 @@ protected:
   double                    m_Sigma;
 
   NeighborhoodRadiusType    m_NeighborhoodRadius;
+
+  bool                      m_UseCentralDifferenceFunction;
 
 private:
   ImageIntensityAndGradientToPointSetFilter( const Self & ); // purposely not implemented

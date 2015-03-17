@@ -16,6 +16,7 @@
 
 #include "itkImageIntensityAndGradientToPointSetFilter.h"
 
+#include "itkCentralDifferenceImageFunction.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
@@ -33,6 +34,8 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
 
   this->m_NeighborhoodRadius.Fill( 1 );
   this->m_Sigma = 1.5;
+
+  this->m_UseCentralDifferenceFunction = true;
 
   //
   // Create the output
@@ -62,14 +65,40 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
 
   // Calculate gradient image
 
-  typename GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
-  gradientFilter->SetInput( inputImage );
-  gradientFilter->SetSigma( this->m_Sigma );
-  gradientFilter->SetUseImageDirection( true );
+  typename GradientImageType::Pointer gradientImage = ITK_NULLPTR;
+  if( this->m_UseCentralDifferenceFunction )
+    {
+    GradientPixelType zeroVector;
+    zeroVector.Fill( 0 );
 
-  typename GradientImageType::Pointer gradientImage = gradientFilter->GetOutput();
-  gradientImage->Update();
-  gradientImage->DisconnectPipeline();
+    gradientImage = GradientImageType::New();
+    gradientImage->CopyInformation( inputImage );
+    gradientImage->SetRegions( inputImage->GetRequestedRegion() );
+    gradientImage->Allocate();
+    gradientImage->FillBuffer( zeroVector );
+
+    typedef CentralDifferenceImageFunction<InputImageType, InputImagePixelType, GradientPixelType> GradientCalculatorType;
+    typename GradientCalculatorType::Pointer gradientCalculator = GradientCalculatorType::New();
+    gradientCalculator->SetInputImage( inputImage );
+    gradientCalculator->SetUseImageDirection( true );
+
+    ImageRegionIteratorWithIndex<GradientImageType> It( gradientImage, gradientImage->GetRequestedRegion() );
+    for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+      {
+      It.Set( gradientCalculator->EvaluateAtIndex( It.GetIndex() ) );
+      }
+    }
+  else
+    {
+    typename GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+    gradientFilter->SetInput( inputImage );
+    gradientFilter->SetSigma( this->m_Sigma );
+    gradientFilter->SetUseImageDirection( true );
+
+    gradientImage = gradientFilter->GetOutput();
+    gradientImage->Update();
+    gradientImage->DisconnectPipeline();
+    }
 
   // Set up the point set pixel type characteristics
   //    size of pixel type array = intensities + gradientXs + gradientYs + ...
