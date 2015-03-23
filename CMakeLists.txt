@@ -31,6 +31,9 @@ mark_as_advanced(${LOCAL_PROJECT_NAME}_USE_QT)
 option(${LOCAL_PROJECT_NAME}_INSTALL_DEVELOPMENT "Install development support include and libraries for external packages." OFF)
 mark_as_advanced(${LOCAL_PROJECT_NAME}_INSTALL_DEVELOPMENT)
 
+option(COPY_SCRIPT_FILES_TO_BIN_DIR "Copy the script files to the ANTS bin directory." ON)
+mark_as_advanced(COPY_SCRIPT_FILES_TO_BIN_DIR)
+
 set(CPACK_PACKAGE_NAME "ANTs")
 set(CPACK_PACKAGE_VENDOR "CMake.org")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - Advanced Normalization Tools")

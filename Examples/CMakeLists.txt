@@ -200,27 +200,27 @@ install(PROGRAMS ../Scripts/ANTSpexec.sh
                 CONFIGURATIONS  Release
         )
 
+if( COPY_SCRIPT_FILES_TO_BIN_DIR )
+  message( "-- Copy scripts." )
+  file( GLOB SCRIPT_FILES "../Scripts/*.sh" )
+  file( GLOB PSCRIPT_FILES "../Scripts/*.pl" )
+  foreach( SCRIPT_FILE ${SCRIPT_FILES} )
+    message( "  Copying ${SCRIPT_FILE} to ${CMAKE_CURRENT_BINARY_DIR}/../../bin" )
+    CONFIGURE_FILE( ${SCRIPT_FILE} ${CMAKE_CURRENT_BINARY_DIR}/../../bin COPYONLY )
+    CONFIGURE_FILE( ${SCRIPT_FILE} ${CMAKE_INSTALL_PREFIX} COPYONLY )
+  endforeach( SCRIPT_FILE )
+  foreach( SCRIPT_FILE ${PSCRIPT_FILES} )
+    message( "  Copying ${SCRIPT_FILE} to ${CMAKE_CURRENT_BINARY_DIR}/../../bin" )
+    CONFIGURE_FILE( ${SCRIPT_FILE} ${CMAKE_CURRENT_BINARY_DIR}/../../bin COPYONLY )
+    CONFIGURE_FILE( ${SCRIPT_FILE} ${CMAKE_INSTALL_PREFIX} COPYONLY )
+  endforeach( SCRIPT_FILE )
+endif( COPY_SCRIPT_FILES_TO_BIN_DIR )
 
 ## Build test option
 if(BUILD_TESTING)
     add_subdirectory(TestSuite)
 endif(BUILD_TESTING)
 
-# Copy all the shell scripts in the Scripts/ directory to the bin directory
-##
-option( COPY_SCRIPT_FILES_TO_BIN_DIR "Copy the script files to the ANTS bin directory." ON )
-if( COPY_SCRIPT_FILES_TO_BIN_DIR )
-  file( GLOB SCRIPT_FILES "${CMAKE_SOURCE_DIR}/../Scripts/*.sh" )
-  file( GLOB PSCRIPT_FILES "${CMAKE_SOURCE_DIR}/../Scripts/*.pl" )
-  foreach( SCRIPT_FILE ${SCRIPT_FILES} )
-    add_custom_command( TARGET ANTS POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${SCRIPT_FILE} ${CMAKE_BINARY_DIR} )
-  endforeach( SCRIPT_FILE )
-  foreach( SCRIPT_FILE ${PSCRIPT_FILES} )
-    add_custom_command( TARGET ANTS POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy ${SCRIPT_FILE} ${CMAKE_BINARY_DIR} )
-  endforeach( SCRIPT_FILE )
-endif( COPY_SCRIPT_FILES_TO_BIN_DIR )
 set(CPACK_PACKAGE_NAME "ANTs")
 set(CPACK_PACKAGE_VENDOR "CMake.org")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - Advanced Normalization Tools")
