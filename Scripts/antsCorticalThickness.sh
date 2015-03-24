@@ -475,7 +475,6 @@ if [[ $DEBUG_MODE -gt 0 ]];
 # Preliminaries:
 #  1. Check existence of inputs
 #  2. Figure out output directory and mkdir if necessary
-#  3. See if $REGISTRATION_TEMPLATE is the same as $BRAIN_TEMPLATE
 #
 ################################################################################
 
@@ -487,19 +486,6 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
       exit 1
     fi
   done
-
-if [[ ! -f ${BRAIN_TEMPLATE} ]];
-  then
-    echo "The extraction template doesn't exist:"
-    echo "   $BRAIN_TEMPLATE"
-    exit 1
-  fi
-if [[ ! -f ${EXTRACTION_PRIOR} ]];
-  then
-    echo "The brain extraction prior doesn't exist:"
-    echo "   $EXTRACTION_PRIOR"
-    exit 1
-  fi
 
 FORMAT=${SEGMENTATION_PRIOR}
 PREFORMAT=${FORMAT%%\%*}
@@ -670,6 +656,20 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 
 if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
   then
+
+    if [[ ! -f ${BRAIN_TEMPLATE} ]];
+      then
+        echo "The extraction template doesn't exist:"
+        echo "   $BRAIN_TEMPLATE"
+        exit 1
+      fi
+    if [[ ! -f ${EXTRACTION_PRIOR} ]];
+      then
+        echo "The brain extraction prior doesn't exist:"
+        echo "   $EXTRACTION_PRIOR"
+        exit 1
+      fi
+
     if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]]
       then
         logCmd ${ANTSPATH}/antsBrainExtraction.sh \
@@ -708,7 +708,7 @@ if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
 
 EXTRACTION_GENERIC_AFFINE=${OUTPUT_PREFIX}BrainExtractionPrior0GenericAffine.mat
 EXTRACTED_BRAIN_TEMPLATE=${OUTPUT_PREFIX}ExtractedTemplateBrain.${OUTPUT_SUFFIX}
-if [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
+if [[ -f ${BRAIN_TEMPLATE} ]] && [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
   then
     logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_PRIOR} ${EXTRACTED_BRAIN_TEMPLATE} 0.1 1.01 1 0
     logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_BRAIN_TEMPLATE} m ${BRAIN_TEMPLATE} ${EXTRACTED_BRAIN_TEMPLATE}
@@ -738,101 +738,117 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     echo "--------------------------------------------------------------------------------------"
     echo
 
-    # Check inputs
-    if [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
-      then
-        echo "The segmentation template doesn't exist:"
-        echo "   ${EXTRACTED_BRAIN_TEMPLATE}"
-        exit 1
-      fi
-    if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
-      then
-        echo "The extracted brain doesn't exist:"
-        echo "   ${EXTRACTED_SEGMENTATION_BRAIN}"
-        exit 1
-      fi
-
     time_start_brain_segmentation=`date +%s`
 
+    # Check to see if the warped priors exist.  If so, we don't need to warp
+    # the template and priors to the individual subject.
 
-    TMP_FILES=()
-    ## Step 1 ##
-    if [[ ! -f ${SEGMENTATION_WARP} ]];
-      then
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
-
-        basecall=''
-        if [[ ${RUN_QUICK} -ne 0 ]];
-          then
-            TMP_FILES=( ${TMP_FILES[@]} "${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped.nii.gz" )
-
-            basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${EXTRACTED_SEGMENTATION_BRAIN}"
-            basecall="${basecall} -m ${EXTRACTED_BRAIN_TEMPLATE} -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -j 1"
-            if [[ ${USE_FLOAT_PRECISION} -ne 0 ]];
-              then
-                basecall="${basecall} -p f"
-              fi
-        else
-          basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
-          IMAGES="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
-          if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
-            then
-              basecall="${basecall} -r [${EXTRACTION_GENERIC_AFFINE},1]"
-            else
-              basecall="${basecall} -r [${IMAGES},1]"
-            fi
-          basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
-          stage1="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
-          stage2="-m CC[${IMAGES},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
-
-          basecall="${basecall} ${stage1} ${stage2}"
-        fi
-
-        exe_brain_segmentation_1=${basecall}
-
-
-        # Precision errors in .nii (which stores things as float) headers can cause problems, so attempt to make everything consistent.
-        # Won't be perfectly consistent because we don't change ${ANATOMICAL_IMAGES[0]} and CopyImageHeaderInformation does not make
-        # a perfect copy. But hopefully close enough
-        for img in ${BRAIN_EXTRACTION_MASK} ${EXTRACTED_SEGMENTATION_BRAIN} ${SEGMENTATION_MASK_DILATED};
-          do
-            logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${img} ${img} 1 1 1
-          done
-
-        logCmd $exe_brain_segmentation_1
-
-      fi
-
-    ## check to see if the output registration transforms exist
-    if [[ ! -f ${SEGMENTATION_GENERIC_AFFINE} ]];
-      then
-        echo "The registration component of the segmentation step didn't complete properly."
-        echo "The transform file ${SEGMENTATION_GENERIC_AFFINE} does not exist."
-        exit 1
-      fi
-
-    if [[ ! -f ${SEGMENTATION_WARP} ]];
-      then
-        echo "The registration component of the segmentation step didn't complete properly."
-        echo "The transform file ${SEGMENTATION_WARP} does not exist."
-        exit 1
-      fi
-
-    ## Step 2 ##
-
+    WARPED_PRIORS_ALREADY_EXIST=1;
     for (( i = 0; i < ${NUMBER_OF_PRIOR_IMAGES}; i++ ))
       do
-        if [[ ! -f ${PRIOR_IMAGE_FILENAMES[$i]} ]];
+        if [[ ! -f ${WARPED_PRIOR_IMAGE_FILENAMES[$i]} ]];
           then
-            echo "The prior image file name does not exist:"
-            echo "   ${PRIOR_IMAGE_FILENAMES[$i]}"
+            WARPED_PRIORS_ALREADY_EXIST=0
+            break
+          fi
+      done
+
+    TMP_FILES=()
+
+    if [[ $WARPED_PRIORS_ALREADY_EXIST -eq 0 ]]
+      then
+
+      # Check inputs
+      if [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
+        then
+          echo "The segmentation template doesn't exist:"
+          echo "   ${EXTRACTED_BRAIN_TEMPLATE}"
+          exit 1
+        fi
+      if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
+        then
+          echo "The extracted brain doesn't exist:"
+          echo "   ${EXTRACTED_SEGMENTATION_BRAIN}"
+          exit 1
+        fi
+
+        if [[ ! -f ${SEGMENTATION_WARP} ]];
+          then
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
+
+            basecall=''
+            if [[ ${RUN_QUICK} -ne 0 ]];
+              then
+                TMP_FILES=( ${TMP_FILES[@]} "${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped.nii.gz" )
+
+                basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${EXTRACTED_SEGMENTATION_BRAIN}"
+                basecall="${basecall} -m ${EXTRACTED_BRAIN_TEMPLATE} -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -j 1"
+                if [[ ${USE_FLOAT_PRECISION} -ne 0 ]];
+                  then
+                    basecall="${basecall} -p f"
+                  fi
+            else
+              basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
+              IMAGES="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
+              if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
+                then
+                  basecall="${basecall} -r [${EXTRACTION_GENERIC_AFFINE},1]"
+                else
+                  basecall="${basecall} -r [${IMAGES},1]"
+                fi
+              basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
+              stage1="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
+              stage2="-m CC[${IMAGES},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+
+              basecall="${basecall} ${stage1} ${stage2}"
+            fi
+
+            exe_brain_segmentation_1=${basecall}
+
+
+            # Precision errors in .nii (which stores things as float) headers can cause problems, so attempt to make everything consistent.
+            # Won't be perfectly consistent because we don't change ${ANATOMICAL_IMAGES[0]} and CopyImageHeaderInformation does not make
+            # a perfect copy. But hopefully close enough
+            for img in ${BRAIN_EXTRACTION_MASK} ${EXTRACTED_SEGMENTATION_BRAIN} ${SEGMENTATION_MASK_DILATED};
+              do
+                logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${img} ${img} 1 1 1
+              done
+
+            logCmd $exe_brain_segmentation_1
+
+          fi
+
+        ## check to see if the output registration transforms exist
+        if [[ ! -f ${SEGMENTATION_GENERIC_AFFINE} ]];
+          then
+            echo "The registration component of the segmentation step didn't complete properly."
+            echo "The transform file ${SEGMENTATION_GENERIC_AFFINE} does not exist."
             exit 1
           fi
 
-        exe_brain_segmentation_2="${WARP} -d ${DIMENSION} -i ${PRIOR_IMAGE_FILENAMES[$i]} -o ${WARPED_PRIOR_IMAGE_FILENAMES[$i]} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian  -t ${SEGMENTATION_WARP} -t ${SEGMENTATION_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1"
+        if [[ ! -f ${SEGMENTATION_WARP} ]];
+          then
+            echo "The registration component of the segmentation step didn't complete properly."
+            echo "The transform file ${SEGMENTATION_WARP} does not exist."
+            exit 1
+          fi
 
-        logCmd $exe_brain_segmentation_2
-      done
+        ## Step 2 ##
+
+        for (( i = 0; i < ${NUMBER_OF_PRIOR_IMAGES}; i++ ))
+          do
+            if [[ ! -f ${PRIOR_IMAGE_FILENAMES[$i]} ]];
+              then
+                echo "The prior image file name does not exist:"
+                echo "   ${PRIOR_IMAGE_FILENAMES[$i]}"
+                exit 1
+              fi
+
+            exe_brain_segmentation_2="${WARP} -d ${DIMENSION} -i ${PRIOR_IMAGE_FILENAMES[$i]} -o ${WARPED_PRIOR_IMAGE_FILENAMES[$i]} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian  -t ${SEGMENTATION_WARP} -t ${SEGMENTATION_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1"
+
+            logCmd $exe_brain_segmentation_2
+          done
+      fi
 
     # We do two stages of antsAtroposN4.  The first stage is to get a good N4
     # bias corrected image(s).  This bias corrected image(s) is used as input to the
