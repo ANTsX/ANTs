@@ -626,10 +626,7 @@ private:
       if( versionFunction.compare( "1" ) == 0 || versionFunction.compare( "true" ) == 0 )
         {
         //Print Version Information
-        if( verbose )
-          {
-          std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
-          }
+        std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
         return EXIT_SUCCESS;
         }
       }
