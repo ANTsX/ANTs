@@ -815,7 +815,7 @@ private:
     )
   {
     typename RegistrationMethodType::Pointer registrationMethod = RegistrationMethodType::New();
-    typedef typename RegistrationMethodType::OutputTransformType  TransformType;
+    typedef typename RegistrationMethodType::OutputTransformType  RegistrationMethodTransformType;
 
     for( unsigned int n = 0; n < stageMetricList.size(); n++ )
       {
@@ -868,7 +868,7 @@ private:
 
     registrationMethod->SetOptimizer( optimizer );
 
-    typename TransformType::Pointer currentTransform = TransformType::New();
+    typename RegistrationMethodTransformType::Pointer currentTransform = RegistrationMethodTransformType::New();
 
     std::string t = currentTransform->GetNameOfClass();
     std::string s = "Transform";
@@ -890,7 +890,7 @@ private:
           this->Logger() << i+1 << ") " << compositeTransform->GetNthTransform( i )->GetNameOfClass() << std::endl;
           }
 
-        if( this->InitializeWithPreviousLinearTransform<TransformType>( compositeTransform, t.c_str(), currentTransform ) )
+        if( this->InitializeWithPreviousLinearTransform<RegistrationMethodTransformType>( compositeTransform, t.c_str(), currentTransform ) )
           {
           compositeTransform->RemoveTransform(); // Remove previous initial transform,
                                                          // since it is included in current results.
@@ -944,8 +944,8 @@ private:
 
     try
       {
-      typedef typename RegistrationMethodType::OutputTransformType  TransformType;
-      typename TransformType::Pointer currentTransform = TransformType::New();
+      typedef typename RegistrationMethodType::OutputTransformType  RegistrationMethodTransformType;
+      typename RegistrationMethodTransformType::Pointer currentTransform = RegistrationMethodTransformType::New();
 
       this->Logger() << std::endl << "*** Running " <<
         currentTransform->GetNameOfClass() << " registration ***" << std::endl << std::endl;
