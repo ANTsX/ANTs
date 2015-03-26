@@ -372,13 +372,16 @@ antsMotionCorr  -d $DIM \
   -t Affine[ 0.1 ] -u 1 -e 1 -s 4x2x1x0 -f 6x4x2x1 \
   -i 100x100x100x15 -n ${#MOVINGIMAGES[@]} -w 1
 ImageMath $DIMP1 ${nm}affWarp.nii.gz SetTimeSpacingWarp ${nm}affWarp.nii.gz $timespacing
-antsRegistration -d $DIMP1 -r ${nm}affWarp.nii.gz \
- -c [100x70x50x0,1e-6,10] \
+ImageMath $DIMP1 ${nm}affInverseWarp.nii.gz SetTimeSpacingWarp ${nm}affInverseWarp.nii.gz $timespacing
+# if below does not work - have to drop the -r
+# and put the aff version into the metric
+antsRegistration -d $DIMP1 -r ${nm}affWarp.nii.gz  \
+ -c [100x70x50x10,1e-6,10] \
  -f 6x4x2x1               \
  -s 3x2x1x0vox            \
- -m MI[ $stacktemplate, $stack, 1, 32 ] \
+ -m CC[ $stacktemplate, ${nm}stack.nii.gz, 1, 2 ] \
  -t SyN[0.15,3,0] --restrict-deformation $rxt \
- -o [${nm},${nm}diffeoWarped.nii.gz]
+ -o [${nm},${nm}diffeoWarped.nii.gz,${nm}diffeoInvWarped.nii.gz] -a 0
  CreateJacobianDeterminantImage $DIMP1 ${nm}0Warp.nii.gz ${nm}0logjacobian.nii.gz 1 1
 ###############################
 #
