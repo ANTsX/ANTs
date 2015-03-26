@@ -382,7 +382,7 @@ antsRegistration -d $DIMP1 -r ${nm}affWarp.nii.gz  \
  -m CC[ $stacktemplate, ${nm}stack.nii.gz, 1, 2 ] \
  -t SyN[0.15,3,0] --restrict-deformation $rxt \
  -o [${nm},${nm}diffeoWarped.nii.gz,${nm}diffeoInvWarped.nii.gz] -z 0
- CreateJacobianDeterminantImage $DIMP1 ${nm}0Warp.nii.gz ${nm}0logjacobian.nii.gz 1 1
+ CreateJacobianDeterminantImage $DIMP1 ${nm}1Warp.nii.gz ${nm}0logjacobian.nii.gz 1 1
 ###############################
 #
 # Restore original number of threads
