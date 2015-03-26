@@ -581,6 +581,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType, AffineTransformType> AffineRegistrationType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   typename DisplacementIOFieldType::Pointer displacementout = ITK_NULLPTR;
+  typename DisplacementIOFieldType::Pointer displacementinv = ITK_NULLPTR;
 
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
@@ -662,6 +663,18 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       idconverter->SetTransform( identityIOTransform );
       idconverter->Update();
       displacementout = idconverter->GetOutput();
+
+
+      typename ConverterType::Pointer invconverter = ConverterType::New();
+      invconverter->SetOutputOrigin( movingInImage->GetOrigin() );
+      invconverter->SetOutputStartIndex(
+        movingInImage->GetBufferedRegion().GetIndex() );
+      invconverter->SetSize( movingInImage->GetBufferedRegion().GetSize() );
+      invconverter->SetOutputSpacing( movingInImage->GetSpacing() );
+      invconverter->SetOutputDirection( movingInImage->GetDirection() );
+      invconverter->SetTransform( identityIOTransform );
+      invconverter->Update();
+      displacementinv = invconverter->GetOutput();
       }
 
 
@@ -1392,6 +1405,40 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           ind[ImageDimension] = tdim;
           displacementout->SetPixel( ind, vecout );
           }
+#
+        typename ConverterType::Pointer converter2 = ConverterType::New();
+        converter2->SetOutputOrigin( moving_time_slice->GetOrigin() );
+        converter2->SetOutputStartIndex(
+          moving_time_slice->GetBufferedRegion().GetIndex() );
+        converter2->SetSize( moving_time_slice->GetBufferedRegion().GetSize() );
+        converter2->SetOutputSpacing( moving_time_slice->GetSpacing() );
+        converter2->SetOutputDirection( moving_time_slice->GetDirection() );
+        converter2->SetTransform( compositeTransform->GetInverseTransform() );
+        converter2->Update();
+        /** Here, we put the 3d tx into a 4d displacement field */
+        typedef itk::ImageRegionIteratorWithIndex<FixedImageType> Iterator;
+        Iterator vfIterInv(  moving_time_slice,
+          moving_time_slice->GetLargestPossibleRegion() );
+        for(  vfIterInv.GoToBegin(); !vfIterInv.IsAtEnd(); ++vfIterInv )
+          {
+          VectorType vec =
+            converter2->GetOutput()->GetPixel( vfIterInv.GetIndex() );
+          VectorIOType vecout;
+          vecout.Fill( 0 );
+          typename MovingIOImageType::IndexType ind;
+          for( unsigned int xx = 0; xx < ImageDimension; xx++ )
+            {
+            ind[xx] = vfIterInv.GetIndex()[xx];
+            vecout[xx] = vec[xx];
+            }
+          unsigned int tdim = timedim;
+          if( tdim > ( timedims - 1 ) )
+            {
+            tdim = timedims - 1;
+            }
+          ind[ImageDimension] = tdim;
+          displacementinv->SetPixel( ind, vecout );
+          }
         }
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1  && currentStage == 0 )
@@ -1447,6 +1494,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     {
     std::string dfn = outputPrefix + std::string("Warp.nii.gz");
     WriteImage<DisplacementIOFieldType>( displacementout, dfn.c_str()  );
+    dfn = outputPrefix + std::string("InverseWarp.nii.gz");
+    WriteImage<DisplacementIOFieldType>( displacementinv, dfn.c_str()  );
     }
 
   totalTimer.Stop();
