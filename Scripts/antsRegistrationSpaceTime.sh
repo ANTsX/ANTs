@@ -334,7 +334,7 @@ reportMappingParameters
 # register with -r warp to the stacked template
 # jacobian ...
 let DIMP1=$DIM+1
-zero=${nm}zero.nii.gz
+zero=${OUTPUTNAME}zero.nii.gz
 stack=${OUTPUTNAME}stack.nii.gz
 nmov=${#MOVINGIMAGES[@]}
 let nmov=$nmov-1
