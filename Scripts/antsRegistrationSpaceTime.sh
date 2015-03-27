@@ -382,14 +382,13 @@ if [[ $DIM == 2 ]] ; then rxt="1x1x0"; fi
 if [[ $DIM == 3 ]] ; then rxt="1x1x1x0"; fi
 antsMotionCorr  -d $DIM \
   -o [ ${nm}aff, ${nm}aff.nii.gz,${nm}_affavg.nii.gz] \
-  -m MI[${FIXEDIMAGES}, ${stack}, 1 , 20, Regular, 0.2 ] \
+  -m MI[${FIXEDIMAGES}, ${stack}, 1 , 20, Regular, 0.1 ] \
   -t rigid[ 0.1 ] -u 1 -e 1 -s 4x2x1x0 -f 6x4x2x1 \
-  -i 100x100x100x15 \
+  -i 100x100x0x0 \
   -m MI[${FIXEDIMAGES}, ${stack}, 1 , 20, Regular, 0.2 ] \
   -t Affine[ 0.1 ] -u 1 -e 1 -s 4x2x1x0 -f 6x4x2x1 \
   -i 100x100x100x15 \
   -n ${#MOVINGIMAGES[@]} -w 1 --verbose 1
-exit
 ImageMath $DIMP1 ${nm}affWarp.nii.gz SetTimeSpacingWarp ${nm}affWarp.nii.gz $timespacing
 ImageMath $DIMP1 ${nm}affInverseWarp.nii.gz SetTimeSpacingWarp ${nm}affInverseWarp.nii.gz $timespacing
 # if below does not work - have to drop the -r
