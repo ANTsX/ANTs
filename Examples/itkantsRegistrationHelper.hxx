@@ -3369,51 +3369,49 @@ RegistrationHelper<TComputeType, VImageDimension>
 }
 
 template <class TComputeType, unsigned VImageDimension>
-typename RegistrationHelper<TComputeType, VImageDimension>::DisplacementFieldTransformPointer
+typename RegistrationHelper<TComputeType, VImageDimension>::CompositeTransformType::Pointer
 RegistrationHelper<TComputeType, VImageDimension>
 ::CollapseDisplacementFieldTransforms( const CompositeTransformType * compositeTransform )
 {
+  typename CompositeTransformType::Pointer combinedCompositeTransform = CompositeTransformType::New();
+
   if( compositeTransform->GetTransformCategory() != TransformType::DisplacementField  )
     {
     itkExceptionMacro( "The composite transform is not composed strictly of displacement fields." );
     }
 
-  DisplacementFieldTransformPointer totalTransform = DisplacementFieldTransformType::New();
-
   if( compositeTransform->GetNumberOfTransforms() == 0 )
     {
     itkWarningMacro( "The composite transform is empty.  Returning empty displacement field transform." );
-
-    return totalTransform;
+    return combinedCompositeTransform;
     }
 
-  bool hasInverse = true;
-  for( unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++ )
-    {
-    typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n );
+  typename TransformType::Pointer transform = compositeTransform->GetNthTransform( 0 );
 
+  typename DisplacementFieldTransformType::Pointer currentTransform =
+    dynamic_cast<DisplacementFieldTransformType *>( transform.GetPointer() );
+
+  bool isCurrentTransformInvertible = false;
+  if( currentTransform->GetInverseDisplacementField() )
+    {
+    isCurrentTransformInvertible = true;
+    }
+
+  for( unsigned int n = 1; n < compositeTransform->GetNumberOfTransforms(); n++ )
+    {
+    transform = compositeTransform->GetNthTransform( n );
     typename DisplacementFieldTransformType::Pointer nthTransform =
       dynamic_cast<DisplacementFieldTransformType *>( transform.GetPointer() );
 
-    if( n == 0 )
+    if( ( isCurrentTransformInvertible && nthTransform->GetInverseDisplacementField() ) ||
+        ! ( isCurrentTransformInvertible || nthTransform->GetInverseDisplacementField() ) )
       {
-      totalTransform->SetDisplacementField( nthTransform->GetModifiableDisplacementField() );
-      if( nthTransform->GetInverseDisplacementField() )
-        {
-        totalTransform->SetInverseDisplacementField( nthTransform->GetModifiableInverseDisplacementField() );
-        }
-      else
-        {
-        hasInverse = false;
-        }
-      }
-    else
-      {
+      // Adjacent transforms are the same so we can combine
       typedef itk::ComposeDisplacementFieldsImageFilter<DisplacementFieldType> ComposerType;
 
       typename ComposerType::Pointer composer = ComposerType::New();
       composer->SetWarpingField( nthTransform->GetDisplacementField() );
-      composer->SetDisplacementField( totalTransform->GetDisplacementField() );
+      composer->SetDisplacementField( currentTransform->GetDisplacementField() );
 
       typename DisplacementFieldType::Pointer totalField = composer->GetOutput();
       totalField->Update();
@@ -3421,26 +3419,45 @@ RegistrationHelper<TComputeType, VImageDimension>
 
       typename DisplacementFieldType::Pointer totalInverseField = ITK_NULLPTR;
 
-      if( hasInverse && nthTransform->GetInverseDisplacementField() )
+      if( isCurrentTransformInvertible )
         {
         typename ComposerType::Pointer inverseComposer = ComposerType::New();
-        inverseComposer->SetWarpingField( totalTransform->GetInverseDisplacementField() );
+        inverseComposer->SetWarpingField( currentTransform->GetInverseDisplacementField() );
         inverseComposer->SetDisplacementField( nthTransform->GetInverseDisplacementField() );
 
         totalInverseField = inverseComposer->GetOutput();
         totalInverseField->Update();
         totalInverseField->DisconnectPipeline();
         }
+      currentTransform->SetDisplacementField( totalField );
+      currentTransform->SetInverseDisplacementField( totalInverseField );
+      }
+    else
+      {
+      DisplacementFieldTransformPointer displacementFieldTransform = DisplacementFieldTransformType::New();
+      displacementFieldTransform->SetDisplacementField( currentTransform->GetModifiableDisplacementField() );
+      if( isCurrentTransformInvertible )
+        {
+        displacementFieldTransform->SetInverseDisplacementField( currentTransform->GetModifiableInverseDisplacementField() );
+        }
+
+      combinedCompositeTransform->AddTransform( displacementFieldTransform );
+
+      currentTransform->SetDisplacementField( nthTransform->GetModifiableDisplacementField() );
+      currentTransform->SetInverseDisplacementField( nthTransform->GetModifiableInverseDisplacementField() );
+      if( currentTransform->GetInverseDisplacementField() )
+        {
+        isCurrentTransformInvertible = true;
+        }
       else
         {
-        hasInverse = false;
+        isCurrentTransformInvertible = false;
         }
-      totalTransform->SetDisplacementField( totalField );
-      totalTransform->SetInverseDisplacementField( totalInverseField );
       }
     }
+  combinedCompositeTransform->AddTransform( currentTransform );
 
-  return totalTransform;
+  return combinedCompositeTransform;
 }
 
 template <class TComputeType, unsigned VImageDimension>
@@ -3460,6 +3477,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   else if( compositeTransform->GetTransformCategory() == TransformType::DisplacementField )
     {
     collapsedCompositeTransform->AddTransform( this->CollapseDisplacementFieldTransforms( compositeTransform ) );
+    collapsedCompositeTransform->FlattenTransformQueue();
     return collapsedCompositeTransform;
     }
 
@@ -3536,6 +3554,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     }
 
+  collapsedCompositeTransform->FlattenTransformQueue();
   return collapsedCompositeTransform;
 }
 

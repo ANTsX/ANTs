@@ -747,9 +747,11 @@ public:
                                                    const bool applyInverse );
 
   /**
-   * Collapse a composite transform composed of displacement field transforms to a single displacement field transform.
+   * Collapse a composite transform composed of displacement field transforms.
+   * We return a composite transform since we don't combine mixed displacement field
+   * transforms (i.e., transforms that do and do not have inverses).
    */
-  DisplacementFieldTransformPointer CollapseDisplacementFieldTransforms( const CompositeTransformType * );
+  typename CompositeTransformType::Pointer CollapseDisplacementFieldTransforms( const CompositeTransformType * );
 
   /**
    * Collapse a composite linear transform to a generic affine transform.
