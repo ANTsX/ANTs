@@ -244,6 +244,7 @@ PRECISIONTYPE='d'
 nrepeats=2
 MASK=0
 USEHISTOGRAMMATCHING=0
+timespacing=1
 # reading command line arguments
 while getopts "d:f:h:m:j:n:o:p:r:s:t:x:" OPT
   do
@@ -334,22 +335,31 @@ reportMappingParameters
 # register with -r warp to the stacked template
 # jacobian ...
 let DIMP1=$DIM+1
+echo $DIMP1
 zero=${OUTPUTNAME}zero.nii.gz
+zerob=${OUTPUTNAME}zerob.nii.gz
 stack=${OUTPUTNAME}stack.nii.gz
 nmov=${#MOVINGIMAGES[@]}
 let nmov=$nmov-1
-MultiplyImages $DIM ${MOVINGIMAGES[0]} 0 $zero
+MultiplyImages $DIM ${MOVINGIMAGES[0]} 1 $zero
 stackmovparam=" $zero $zero "
 for mov in ${MOVINGIMAGES[@]} ; do
   for k in `seq 1 $nrepeats ` ; do
     stackmovparam=" $stackmovparam $mov "
   done
 done
-stackmovparam=" $stackmovparam $zero $zero "
-StackSlices $stack -1 -1 0 $stackmovparam | grep -v Slice
+let nm1=${#MOVINGIMAGES[@]}-1
+MultiplyImages $DIM ${MOVINGIMAGES[nm1]} 1 $zerob
+stackmovparam=" $stackmovparam $zerob $zerob "
+if [[ $DIM == 2 ]] ; then
+  StackSlices $stack -1 -1 0 $stackmovparam | grep -v Slice
+fi
+if [[ $DIM == 3 ]] ; then
+  ImageMath $DIMP1 $stack TimeSeriesAssemble $timespacing 0 ${stackmovparam}
+fi
 ImageMath $DIMP1 $stack SetTimeSpacing $stack $timespacing
 nm=${OUTPUTNAME}
-MultiplyImages $DIM ${FIXEDIMAGES} 0 $zero
+MultiplyImages $DIM ${FIXEDIMAGES} 1 $zero
 stackparam=" $zero $zero  "
 stacktemplate=${OUTPUTNAME}template.nii.gz
 for mov in ${MOVINGIMAGES[@]} ; do
@@ -358,9 +368,13 @@ for mov in ${MOVINGIMAGES[@]} ; do
   done
 done
 stackparam=" $stackparam $zero $zero  "
-StackSlices $stacktemplate -1 -1 0 ${stackparam}
+if [[ $DIM == 2 ]] ; then
+  StackSlices $stacktemplate -1 -1 0 ${stackparam}
+fi
+if [[ $DIM == 3 ]] ; then
+  ImageMath $DIMP1 $stacktemplate TimeSeriesAssemble  $timespacing 0  ${stackparam}
+fi
 ImageMath $DIMP1 $stacktemplate SetTimeSpacing $stacktemplate $timespacing
-PrintHeader $stacktemplate | grep Dim
 # echo $stackparam
 # echo $stackmovparam
 # echo $nrepeats $timespacing
@@ -368,9 +382,14 @@ if [[ $DIM == 2 ]] ; then rxt="1x1x0"; fi
 if [[ $DIM == 3 ]] ; then rxt="1x1x1x0"; fi
 antsMotionCorr  -d $DIM \
   -o [ ${nm}aff, ${nm}aff.nii.gz,${nm}_affavg.nii.gz] \
-  -m gc[${FIXEDIMAGES}, ${stack}, 1 , 20  ] \
+  -m MI[${FIXEDIMAGES}, ${stack}, 1 , 20, Regular, 0.2 ] \
+  -t rigid[ 0.1 ] -u 1 -e 1 -s 4x2x1x0 -f 6x4x2x1 \
+  -i 100x100x100x15 \
+  -m MI[${FIXEDIMAGES}, ${stack}, 1 , 20, Regular, 0.2 ] \
   -t Affine[ 0.1 ] -u 1 -e 1 -s 4x2x1x0 -f 6x4x2x1 \
-  -i 100x100x100x15 -n ${#MOVINGIMAGES[@]} -w 1
+  -i 100x100x100x15 \
+  -n ${#MOVINGIMAGES[@]} -w 1 --verbose 1
+exit
 ImageMath $DIMP1 ${nm}affWarp.nii.gz SetTimeSpacingWarp ${nm}affWarp.nii.gz $timespacing
 ImageMath $DIMP1 ${nm}affInverseWarp.nii.gz SetTimeSpacingWarp ${nm}affInverseWarp.nii.gz $timespacing
 # if below does not work - have to drop the -r

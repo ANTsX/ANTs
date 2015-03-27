@@ -431,6 +431,14 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
 template <unsigned int ImageDimension>
 int ants_motion( itk::ants::CommandLineParser *parser )
 {
+  unsigned int verbose = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer vOption =
+    parser->GetOption( "verbose" );
+  if( vOption && vOption->GetNumberOfFunctions() )
+      {
+      verbose = parser->Convert<unsigned int>( vOption->GetFunction( 0 )->GetName() );
+      }
+  if ( verbose ) std::cout << " verbose " << std::endl;
   // We infer the number of stages by the number of transformations
   // specified by the user which should match the number of metrics.
   unsigned numberOfStages = 0;
@@ -449,7 +457,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   vMatrix param_values;
   typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;
   std::vector<typename CompositeTransformType::Pointer> CompositeTransformVector;
-  bool verbose = false;
   typedef typename itk::ants::CommandLineParser ParserType;
   typedef typename ParserType::OptionType       OptionType;
 
