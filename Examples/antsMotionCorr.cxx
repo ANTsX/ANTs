@@ -28,6 +28,7 @@
 #include "itkCorrelationImageToImageMetricv4.h"
 #include "itkImageToImageMetricv4.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
+#include "itkImageMomentsCalculator.h"
 #include "itkImageToHistogramFilter.h"
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkIntensityWindowingImageFilter.h"
@@ -624,9 +625,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       outSpacing[d] = fixedImage->GetSpacing()[d];
       outOrigin[d] = fixedImage->GetOrigin()[d];
       for( unsigned int e = 0; e < ImageDimension; e++ )
-	{
-	outDirection(e, d) = fixedImage->GetDirection() (e, d);
-	}
+      	{
+	      outDirection(e, d) = fixedImage->GetDirection() (e, d);
+	      }
       }
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
@@ -760,7 +761,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       typename MovingImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
       extractRegion.SetSize(ImageDimension, 0);
       bool maptoneighbor = false;
-      typename OptionType::Pointer fixedOption = parser->GetOption( "useFixedReferenceImage" );
+      typename OptionType::Pointer fixedOption =
+        parser->GetOption( "useFixedReferenceImage" );
       if( fixedOption && fixedOption->GetNumberOfFunctions() )
         {
         std::string fixedFunction = fixedOption->GetFunction( 0 )->GetName();
@@ -818,18 +820,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         moving_time_slice = extractFilter2->GetOutput();
         }
 
-      // bool directionmatricesok = true;
-      // for( unsigned int i = 0; i < ImageDimension; i++ )
-      //   {
-      //   for( unsigned int j = 0; j < ImageDimension; j++ )
-      //     {
-      //     if( fabs( moving_time_slice->GetDirection()[i][j] - fixed_time_slice->GetDirection()[i][j] ) > 1.e-6 )
-      //       {
-      //       directionmatricesok = false;
-      //       }
-      //     }
-      //   }
-
       typename FixedImageType::Pointer preprocessFixedImage =
         PreprocessImage<FixedImageType>( fixed_time_slice, 0,
                                          1, 0.001, 0.999,
@@ -879,15 +869,14 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
       if( std::strcmp( whichMetric.c_str(), "cc" ) == 0 )
         {
-        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction(
-                                                                     currentStage )->GetParameter(  3 ) );
+        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
 
         if( timedim == 0 )
           {
           if ( verbose ) std::cout << "  using the CC metric (radius = " << radiusOption << ")." << std::endl;
           }
         typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType,
-                                                                     FixedImageType> CorrelationMetricType;
+          FixedImageType> CorrelationMetricType;
         typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
         typename CorrelationMetricType::RadiusType radius;
         radius.Fill( radiusOption );
@@ -938,10 +927,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         return EXIT_FAILURE;
         }
       metric->SetVirtualDomainFromImage(  fixed_time_slice );
-      // Set up the optimizer.  To change the iteration number for each level we rely
-      // on the command observer.
-      //    typedef itk::JointHistogramMutualInformationImageToImageMetricv4<FixedImageType, FixedImageType>
-      // MutualInformationMetricType;
 
       typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
       typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
@@ -988,11 +973,51 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       // Set up the image registration methods along with the transforms
       std::string whichTransform = transformOption->GetFunction( currentStage )->GetName();
       ConvertToLowerCase( whichTransform );
+
+      // initialize with moments
+      typedef typename itk::ImageMomentsCalculator<FixedImageType> ImageCalculatorType;
+      typename ImageCalculatorType::Pointer calculator1 =
+        ImageCalculatorType::New();
+      typename ImageCalculatorType::Pointer calculator2 =
+        ImageCalculatorType::New();
+      calculator1->SetImage(  fixed_time_slice );
+      calculator2->SetImage(  moving_time_slice );
+      typename ImageCalculatorType::VectorType fixed_center;
+      fixed_center.Fill(0);
+      typename ImageCalculatorType::VectorType moving_center;
+      moving_center.Fill(0);
+      try
+        {
+        calculator1->Compute();
+        fixed_center = calculator1->GetCenterOfGravity();
+        try
+          {
+          calculator2->Compute();
+          moving_center = calculator2->GetCenterOfGravity();
+          }
+        catch( ... )
+          {
+          fixed_center.Fill(0);
+          }
+        }
+      catch( ... )
+        {
+        // Rcpp::Rcerr << " zero image1 error ";
+        }
+      typename AffineTransformType::OffsetType trans;
+      itk::Point<RealType, ImageDimension> trans2;
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        trans[i] = moving_center[i] - fixed_center[i];
+        trans2[i] =  fixed_center[i];
+        }
       if( std::strcmp( whichTransform.c_str(), "affine" ) == 0 )
         {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetIdentity();
+        affineTransform->SetOffset( trans );
+        affineTransform->SetCenter( trans2 );
         nparams = affineTransform->GetNumberOfParameters() + 2;
         metric->SetFixedImage( preprocessFixedImage );
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
@@ -1058,6 +1083,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         typedef typename RigidTransformTraits<ImageDimension>::TransformType RigidTransformType;
         typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
+        rigidTransform->SetOffset( trans );
+        rigidTransform->SetCenter( trans2 );
         nparams = rigidTransform->GetNumberOfParameters() + 2;
         typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
                                                RigidTransformType> RigidRegistrationType;
@@ -1066,8 +1093,10 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
         metric->SetMovingImage( preprocessMovingImage );
         metric->SetMovingTransform( rigidTransform );
-        typename ScalesEstimatorType::ScalesType scales(rigidTransform->GetNumberOfParameters() );
-        typename MetricType::ParametersType      newparams(  rigidTransform->GetParameters() );
+        typename ScalesEstimatorType::ScalesType
+          scales(  rigidTransform->GetNumberOfParameters() );
+        typename MetricType::ParametersType
+          newparams(  rigidTransform->GetParameters() );
         metric->SetParameters( newparams );
         metric->Initialize();
         scalesEstimator->SetMetric(metric);
@@ -1152,8 +1181,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
         // Create the transform adaptors
 
-        typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
-            GaussianDisplacementFieldTransformType> DisplacementFieldTransformAdaptorType;
+        typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<GaussianDisplacementFieldTransformType> DisplacementFieldTransformAdaptorType;
         typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
         // Extract parameters
