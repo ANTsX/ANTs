@@ -334,7 +334,7 @@ reportMappingParameters
 # register with -r warp to the stacked template
 # jacobian ...
 let DIMP1=$DIM+1
-zero=${nm}zero.nii.gz
+zero=${OUTPUTNAME}zero.nii.gz
 stack=${OUTPUTNAME}stack.nii.gz
 nmov=${#MOVINGIMAGES[@]}
 let nmov=$nmov-1
@@ -381,8 +381,8 @@ antsRegistration -d $DIMP1 -r ${nm}affWarp.nii.gz  \
  -s 3x2x1x0vox            \
  -m CC[ $stacktemplate, ${nm}stack.nii.gz, 1, 2 ] \
  -t SyN[0.15,3,0] --restrict-deformation $rxt \
- -o [${nm},${nm}diffeoWarped.nii.gz,${nm}diffeoInvWarped.nii.gz] -a 0
- CreateJacobianDeterminantImage $DIMP1 ${nm}0Warp.nii.gz ${nm}0logjacobian.nii.gz 1 1
+ -o [${nm},${nm}diffeoWarped.nii.gz,${nm}diffeoInvWarped.nii.gz] -z 0
+ CreateJacobianDeterminantImage $DIMP1 ${nm}1Warp.nii.gz ${nm}0logjacobian.nii.gz 1 1
 ###############################
 #
 # Restore original number of threads
