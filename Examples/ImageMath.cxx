@@ -4943,7 +4943,7 @@ int LabelSurfaceArea(int argc, char *argv[])
     typename ImageType::IndexType ind = GHood.GetIndex();
     Scalar area = 0.0;
     Scalar locrefarea = refarea * GHood.GetCenterPixel();
-    if ( locrefarea > 0)
+    if (  GHood.GetCenterPixel() > 0.1 )
     {
     for( unsigned int i = 0; i < GHood.Size(); i++ )
       {
