@@ -4925,21 +4925,26 @@ int LabelSurfaceArea(int argc, char *argv[])
   typename ImageType::Pointer input = ITK_NULLPTR;
   ReadImage<ImageType>( input, fn1.c_str() );
   typename   ImageType::Pointer areaImage = AllocImage<ImageType>( input );
+  typedef itk::NeighborhoodIterator<ImageType> iteratorType;
+  typename iteratorType::RadiusType rad;
+  rad.Fill( 1 );
+  if ( argc > argct )  rad.Fill( atoi( argv[argct] ) );
   Scalar voxspc = 0;
   for ( unsigned int i = 0; i < ImageDimension; i++ )
     voxspc += input->GetSpacing()[i];
   voxspc = voxspc / static_cast<Scalar>( ImageDimension );
   Scalar voxspc2 = voxspc * voxspc;
-  typedef itk::NeighborhoodIterator<ImageType> iteratorType;
-  typename iteratorType::RadiusType rad;
-  rad.Fill( 1 );
-  if ( argc > argct )  rad.Fill( atoi( argv[argct] ) );
+  Scalar dm1 = static_cast<Scalar>( ImageDimension - 1 );
+  Scalar refarea = vcl_pow( static_cast<Scalar>( rad[1] ) , dm1 );
   iteratorType GHood(rad, input, input->GetLargestPossibleRegion() );
   GHood.GoToBegin();
   while( !GHood.IsAtEnd() )
     {
     typename ImageType::IndexType ind = GHood.GetIndex();
     Scalar area = 0.0;
+    Scalar locrefarea = refarea * GHood.GetCenterPixel();
+    if ( locrefarea > 0)
+    {
     for( unsigned int i = 0; i < GHood.Size(); i++ )
       {
       const typename ImageType::IndexType & ind2 = GHood.GetIndex(i);
@@ -4951,9 +4956,10 @@ int LabelSurfaceArea(int argc, char *argv[])
       dist = sqrt( dist );
       if( dist <  (2.0*voxspc) )
         {
-        area += ( GHood.GetPixel( i ) * voxspc2 );
+        area += ( ( GHood.GetPixel( i ) * voxspc2 ) / locrefarea );
         }
       }
+    }
     areaImage->SetPixel( ind, area );
     ++GHood;
     }
