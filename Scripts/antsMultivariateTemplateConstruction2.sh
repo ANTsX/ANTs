@@ -585,7 +585,7 @@ while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
    SCRIPTPREPEND=$OPTARG
    ;;
       m) #similarity model
-	  METRICTYPE[${#METRICTYPE[@]}]=$OPTARG
+   METRICTYPE[${#METRICTYPE[@]}]=$OPTARG
    ;;
       r) #start with rigid-body registration
    RIGID=$OPTARG
@@ -1462,7 +1462,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Backing up results from iteration $itdisplay"
         echo "--------------------------------------------------------------------------------------"
         mkdir ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
-        cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${OUTPUTNAME}*.nii.gz ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}/
+        cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${OUTPUTNAME}*.nii.gz ${OUTPUTNAME}*.mat ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}/
         # backup logs
         if [[ $DOQSUB -eq 1 ]];
             then
