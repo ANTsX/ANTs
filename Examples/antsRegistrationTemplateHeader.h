@@ -169,7 +169,6 @@ DoRegistration(typename ParserType::Pointer & parser)
     typename CompositeTransformType::Pointer compositeTransform =
       GetCompositeTransformFromParserOption<TComputeType, VImageDimension>( parser, initialMovingTransformOption,
                                                                             isDerivedInitialMovingTransform );
-
     if( compositeTransform.IsNull() )
       {
       return EXIT_FAILURE;
@@ -186,7 +185,10 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
           compositeTransform->GetNthTransform( n );
-        itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
+        if( curTransform->IsLinear() && isDerivedInitialMovingTransform[n] )
+          {
+          itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
+          }
         }
       }
     }
@@ -215,7 +217,10 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
           compositeTransform->GetNthTransform( n );
-        itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
+        if( curTransform->IsLinear() && isDerivedInitialFixedTransform[n] )
+          {
+          itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
+          }
         }
       }
     }
@@ -1103,8 +1108,6 @@ DoRegistration(typename ParserType::Pointer & parser)
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
 
   ////
-
-
   typedef typename RegistrationHelperType::CompositeTransformType         CompositeTransformType;
   typedef typename CompositeTransformType::Pointer                        CompositeTransformPointer;
   typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
@@ -1217,17 +1220,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       const unsigned int startIndex = ( shouldCollapseBeDone ) ? 0 : initialMovingTransformOption->GetNumberOfFunctions();
       for( unsigned int i = startIndex; i < numTransforms; ++i )
         {
-        typename CompositeTransformType::TransformTypePointer curTransform;
-        if( shouldCollapseBeDone )
-          {
-          curTransform = transformToWrite->GetNthTransform( i );
-          }
-        else
-          {
-          curTransform = transformToWrite->GetNthTransform( i );
-          }
+        typename CompositeTransformType::TransformTypePointer curTransform = transformToWrite->GetNthTransform( i );
 
-        //
         // only registrations not part of the initial transforms in the
         // TransformTypeNames list.
         const std::string curTransformType = TransformTypeNames.front();

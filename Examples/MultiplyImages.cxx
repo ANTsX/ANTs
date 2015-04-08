@@ -71,10 +71,10 @@ int MultiplyImages(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " Rather than opening " << fn2
-             <<
-      " as an image file, this program has decided, in its great wisdom, to consider it to be a floating point numerical value, and has acted accordingly -- i.e. read this as a number. "
-             << std::endl;
+//    std::cout << " Rather than opening " << fn2
+//             <<
+//      " as an image file, this program has decided, in its great wisdom, to consider it to be a floating point numerical value, and has acted accordingly -- i.e. read this as a number. "
+//             << std::endl;
     isfloat = true;
     }
 
@@ -173,6 +173,8 @@ private:
     {
     std::cout << "Usage:  " << std::endl;
     std::cout << argv[0] << " ImageDimension img1.nii img2.nii product.nii {smoothing}" << std::endl;
+    std::cout <<     " 2nd image file may also be floating point numerical value, and program will act accordingly -- i.e. read as a number. " << std::endl;
+    std::cout << " Program handles vector and tensor images as well " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {

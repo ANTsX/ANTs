@@ -4850,12 +4850,8 @@ template <class TImage>
 typename TImage::Pointer
 LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
 {
-  // std::cout << " Label Surf " << std::endl;
-
   typedef TImage ImageType;
   enum { ImageDimension = ImageType::ImageDimension };
-  // ORIENTATION ALERT -- original code set size,spacing,and origin
-  // without setting orientation
   typename   ImageType::Pointer Image =
     AllocImage<ImageType>(input);
 
@@ -4910,6 +4906,67 @@ LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
 
   return Image;
 }
+
+
+template <unsigned int ImageDimension>
+int LabelSurfaceArea(int argc, char *argv[])
+{
+  typedef float                                        PixelType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
+  typedef typename OutImageType::IndexType             OutIndexType;
+  typedef typename ImageType::IndexType                IndexType;
+
+  typedef double                                            Scalar;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  typename ImageType::Pointer input = ITK_NULLPTR;
+  ReadImage<ImageType>( input, fn1.c_str() );
+  typename   ImageType::Pointer areaImage = AllocImage<ImageType>( input );
+  typedef itk::NeighborhoodIterator<ImageType> iteratorType;
+  typename iteratorType::RadiusType rad;
+  rad.Fill( 1 );
+  if ( argc > argct )  rad.Fill( atoi( argv[argct] ) );
+  Scalar voxspc = 0;
+  for ( unsigned int i = 0; i < ImageDimension; i++ )
+    voxspc += input->GetSpacing()[i];
+  voxspc = voxspc / static_cast<Scalar>( ImageDimension );
+  Scalar voxspc2 = voxspc * voxspc;
+  Scalar dm1 = static_cast<Scalar>( ImageDimension - 1 );
+  Scalar refarea = vcl_pow( static_cast<Scalar>( rad[1] ) , dm1 );
+  iteratorType GHood(rad, input, input->GetLargestPossibleRegion() );
+  GHood.GoToBegin();
+  while( !GHood.IsAtEnd() )
+    {
+    typename ImageType::IndexType ind = GHood.GetIndex();
+    Scalar area = 0.0;
+    Scalar locrefarea = refarea;
+    if (  GHood.GetCenterPixel() > 0.1 )
+    {
+    for( unsigned int i = 0; i < GHood.Size(); i++ )
+      {
+      const typename ImageType::IndexType & ind2 = GHood.GetIndex(i);
+      float dist = 0.0;
+      for( unsigned int j = 0; j < ImageDimension; j++ )
+        {
+        dist += (float)(ind[j] - ind2[j]) * (float)(ind[j] - ind2[j]);
+        }
+      dist = sqrt( dist );
+      if( dist <  (2.0*voxspc) )
+        {
+        area += ( ( GHood.GetPixel( i ) * voxspc2 ) / locrefarea );
+        }
+      }
+    }
+    areaImage->SetPixel( ind, area );
+    ++GHood;
+    }
+  WriteImage<ImageType>( areaImage, outname.c_str() );
+  return 0;
+}
+
 
 template <unsigned int ImageDimension>
 int FitSphere(int argc, char *argv[])
@@ -13618,11 +13675,6 @@ ImageMathHelper3DOr4D(int argc, char **argv)
     ConvertLandmarkFile<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
-  if( operation == "FitSphere" )
-    {
-    FitSphere<DIM>(argc, argv);
-    return EXIT_SUCCESS;
-    }
   if( operation == "PASLQuantifyCBF" )
     {
     PASLQuantifyCBF<DIM>(argc, argv);
@@ -14016,6 +14068,11 @@ ImageMathHelperAll(int argc, char **argv)
     {
       CropBinaryImage<DIM>(argc, argv);
       return EXIT_SUCCESS;
+    }
+  if( operation == "LabelSurfaceArea" )
+    {
+    LabelSurfaceArea<DIM>(argc, argv);
+    return EXIT_SUCCESS;
     }
   if( operation == "PH" )
     {
@@ -14815,8 +14872,8 @@ private:
     std::cout << "  Finite            : replace non-finite values with finite-value (default = 0)" << std::endl;
     std::cout << "      Usage        : Finite Image.exdt {replace-value=0}" << std::endl;
 
-    std::cout << "\n  FitSphere        : " << std::endl;
-    std::cout << "      Usage        : FitSphere GM-ImageIn {WM-Image} {MaxRad-Default=5}" << std::endl;
+    std::cout << "\n  LabelSurfaceArea        : " << std::endl;
+    std::cout << "      Usage        : LabelSurfaceArea ImageIn {MaxRad-Default=1}" << std::endl;
 
     std::cout << "\n  FlattenImage        : Replaces values greater than %ofMax*Max to the value %ofMax*Max "
               << std::endl;
