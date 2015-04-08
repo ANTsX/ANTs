@@ -991,7 +991,7 @@ if [[ "$RIGID" -eq 1 ]];
             IMAGEMETRICSET="$IMAGEMETRICSET -m MI[${TEMPLATES[$j]},${IMAGESETARRAY[$k]},${MODALITYWEIGHTS[$j]},32,Regular,0.25]"
           done
 
-        stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
+        stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [1000x500x250x0,1e-6,10] -f 6x4x2x1 -s 3x2x1x0 -o ${outdir}/rigid${i}_"
         #stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
         exe="${basecall} ${stage1}"
 
@@ -1311,8 +1311,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
         stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[$j]},1]"
-        stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
-        stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x0,1e-6,10] -f 6x4x2x1 -s 4x2x1x0"
+        stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x0,1e-6,10] -f 6x4x2x1 -s 4x2x1x0"
         #stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         #stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [${MAXITERATIONS},1e-9,10] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
@@ -1329,9 +1329,9 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             exe="$exe ${basecall} ${stageId} ${stage3}\n"
             pexe="$pexe ${basecall} ${stageId} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
           fi
-        if [[ $NOWARP -eq 1 ]];
+        if [[ $NOWARP -eq 0 ]];
           then
-           exe="$exebase ${basecall} ${stage0} ${stage1} ${stage3}\n";
+           exe="$exebase ${basecall} ${stage0} ${stage1} ${stage2} ${stage3}\n";
            pexe="$pexebase ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
         fi
 
