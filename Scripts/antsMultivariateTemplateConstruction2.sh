@@ -1461,18 +1461,18 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo "--------------------------------------------------------------------------------------"
         echo " Backing up results from iteration $itdisplay"
         echo "--------------------------------------------------------------------------------------"
-        mkdir ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
-        cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${OUTPUTNAME}*.nii.gz ${OUTPUTNAME}*.mat ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}/
+        mkdir ${outdir}/ANTs_iteration_${i}
+        cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${OUTPUTNAME}*.nii.gz ${OUTPUTNAME}*.mat ${outdir}/ANTs_iteration_${i}/
         # backup logs
         if [[ $DOQSUB -eq 1 ]];
             then
-            mv ${outdir}/antsBuildTemplate_deformable_* ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
+            mv ${outdir}/antsBuildTemplate_deformable_* ${outdir}/ANTs_iteration_${i}
         elif [[ $DOQSUB -eq 4 ]];
             then
-            mv ${outdir}/antsdef* ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
+            mv ${outdir}/antsdef* ${outdir}/ANTs_iteration_${i}
         elif [[ $DOQSUB -eq 2 ]];
             then
-            mv ${outdir}/job*.txt ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
+            mv ${outdir}/job*.txt ${outdir}/ANTs_iteration_${i}
         elif [[ $DOQSUB -eq 3 ]];
             then
             rm -f ${outdir}/job_*.sh
