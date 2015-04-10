@@ -79,6 +79,7 @@ set(MORE_ANTS_APPS
     CreateWarpedGridImage
     MeasureImageSimilarity
     ConvertToJpg
+    ConvertImage
     ConvertImagePixelType
     ConvertInputImagePixelTypeToFloat
     FitBSplineToPoints

@@ -63,6 +63,8 @@
 
 #include "ConformalMapping.h"
 
+#include "ConvertImage.h"
+
 #include "ConvertImagePixelType.h"
 
 #include "ConvertInputImagePixelTypeToFloat.h"
