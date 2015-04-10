@@ -1,12 +1,6 @@
-
 #include "antsUtilities.h"
-#include <algorithm>
 
-#include <stdio.h>
-
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "ReadWriteData.h"
 #include "itkExtractImageFilter.h"
 
 namespace ants
@@ -19,13 +13,11 @@ int ExtractSliceFromImage( int itkNotUsed( argc ), char *argv[] )
   typedef itk::Image<PixelType, ImageDimension>     ImageType;
   typedef itk::Image<PixelType, ImageDimension - 1> SliceType;
 
-  typedef itk::ImageFileReader<ImageType> ReaderType;
-  typename ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( argv[2] );
-  reader->Update();
+  typename ImageType::Pointer inputImage;
+  ReadImage<ImageType>( inputImage, argv[2] );
 
   typename ImageType::RegionType region;
-  typename ImageType::RegionType::SizeType size = reader->GetOutput()->GetLargestPossibleRegion().GetSize();
+  typename ImageType::RegionType::SizeType size = inputImage->GetLargestPossibleRegion().GetSize();
   size[atoi( argv[4] )] = 0;
   typename ImageType::IndexType index;
   index.Fill( 0 );
@@ -35,16 +27,12 @@ int ExtractSliceFromImage( int itkNotUsed( argc ), char *argv[] )
 
   typedef itk::ExtractImageFilter<ImageType, SliceType> ExtracterType;
   typename ExtracterType::Pointer extracter = ExtracterType::New();
-  extracter->SetInput( reader->GetOutput() );
+  extracter->SetInput( inputImage );
   extracter->SetExtractionRegion( region );
   extracter->SetDirectionCollapseToIdentity();
   extracter->Update();
 
-  typedef itk::ImageFileWriter<SliceType> WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[3] );
-  writer->SetInput( extracter->GetOutput() );
-  writer->Update();
+  WriteImage<SliceType>( extracter->GetOutput(), argv[3] );
 
   return EXIT_SUCCESS;
 }

@@ -45,7 +45,7 @@ public:
     {
     return false;
     }
-  return( (static_cast<unsigned int>(abs( long(a - b) ))) < unitsDelta );
+  return( (static_cast<unsigned int>(std::abs( long(a - b) ))) < unitsDelta );
   }
 
 protected:

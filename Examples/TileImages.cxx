@@ -1,12 +1,9 @@
-
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-
 #include "itkExtractImageFilter.h"
 #include "itkTileImageFilter.h"
+#include "ReadWriteData.h"
 
 #include <string>
 #include <vector>
@@ -32,20 +29,14 @@ int TileImages( unsigned int argc, char *argv[] )
   filter->SetLayout( array );
   for( unsigned int n = 4; n < argc; n++ )
     {
-    typedef itk::ImageFileReader<ImageType> ReaderType;
-    typename ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName( argv[n] );
-    reader->Update();
+    typename ImageType::Pointer inputImage;
+    ReadImage<ImageType>( inputImage, argv[n] );
 
-    filter->SetInput( n - 4, reader->GetOutput() );
+    filter->SetInput( n - 4, inputImage );
     }
   filter->Update();
 
-  typedef itk::ImageFileWriter<ImageType> WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[2] );
-  writer->SetInput( filter->GetOutput() );
-  writer->Update();
+  WriteImage<ImageType>( filter->GetOutput(), argv[2] );
 
   return EXIT_SUCCESS;
 }
@@ -64,10 +55,8 @@ int CreateMosaic( unsigned int argc, char *argv[] )
   typedef itk::Image<PixelType, ImageDimension>   ImageType;
   typedef itk::Image<PixelType, ImageDimension-1> SliceType;
 
-  typedef itk::ImageFileReader<ImageType> ReaderType;
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( argv[4] );
-  reader->Update();
+  ImageType::Pointer inputImage;
+  ReadImage<ImageType>( inputImage, argv[4] );
 
   std::vector<int> layout = ConvertVector<int>( std::string( argv[3] ) );
   if( layout.size() != 3 )
@@ -80,8 +69,8 @@ int CreateMosaic( unsigned int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  ImageType::SpacingType spacing = reader->GetOutput()->GetSpacing();
-  ImageType::SizeType size = reader->GetOutput()->GetRequestedRegion().GetSize();
+  ImageType::SpacingType spacing = inputImage->GetSpacing();
+  ImageType::SizeType size = inputImage->GetRequestedRegion().GetSize();
 
   if( layout[0] < 0 || layout[0] > 2 )
     {
@@ -130,8 +119,6 @@ int CreateMosaic( unsigned int argc, char *argv[] )
   ImageType::RegionType region;
   size[layout[0]] = 0;
 
-  ImageType::Pointer inputImage = reader->GetOutput();
-
   FilterType::Pointer filter = FilterType::New();
   filter->SetLayout( array );
 
@@ -145,7 +132,7 @@ int CreateMosaic( unsigned int argc, char *argv[] )
 
     typedef itk::ExtractImageFilter<ImageType, SliceType> ExtracterType;
     ExtracterType::Pointer extracter = ExtracterType::New();
-    extracter->SetInput( reader->GetOutput() );
+    extracter->SetInput( inputImage );
     extracter->SetExtractionRegion( region );
     extracter->SetDirectionCollapseToIdentity();
     extracter->Update();
@@ -154,11 +141,7 @@ int CreateMosaic( unsigned int argc, char *argv[] )
     }
   filter->Update();
 
-  typedef itk::ImageFileWriter<SliceType> WriterType;
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[2] );
-  writer->SetInput( filter->GetOutput() );
-  writer->Update();
+  WriteImage<SliceType>( filter->GetOutput(), argv[2] );
 
   return EXIT_SUCCESS;
 }
