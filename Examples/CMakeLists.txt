@@ -39,6 +39,7 @@ endmacro()
 
 set(CORE_ANTS_APPS
   antsAffineInitializer
+  antsAI
   SurfaceCurvature
   SurfaceBasedSmoothing
   CreateJacobianDeterminantImage

@@ -1,6 +1,10 @@
 #ifndef ants_h
 #define ants_h
 
+#include "antsAffineInitializer.h"
+
+#include "antsAI.h"
+
 #include "antsApplyTransforms.h"
 
 #include "antsAlignOrigin.h"
@@ -106,8 +110,6 @@
 #include "ImageMath.h"
 
 #include "ImageIntensityStatistics.h"
-
-#include "antsAffineInitializer.h"
 
 // #include "antsSimilarityInitializer.h"
 
