@@ -525,11 +525,23 @@ int antsAI( itk::ants::CommandLineParser *parser )
   std::string outputTransformTypeName = "";
   RealType learningRate = 0.1;
   RealType searchFactor = 10.0 * vnl_math::pi / 180.0;
+  RealType arcFraction = 1.0;
 
   itk::ants::CommandLineParser::OptionType::Pointer searchFactorOption = parser->GetOption( "search-factor" );
   if( searchFactorOption && searchFactorOption->GetNumberOfFunctions() )
     {
-    searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetName() ) * vnl_math::pi / 180.0;
+    if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetName() ) * vnl_math::pi / 180.0;
+      }
+    if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter() ) * vnl_math::pi / 180.0;
+      }
+    if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+      {
+      arcFraction = parser->Convert<RealType>( searchFactorOption->GetFunction( 1 )->GetParameter() );
+      }
     }
 
   itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
@@ -651,7 +663,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
     }
 
   typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
-  for( RealType angle1 = ( vnl_math::pi_over_4 * -1.0 ); angle1 < ( vnl_math::pi_over_4 + searchFactor ); angle1 += searchFactor )
+  for( RealType angle1 = ( vnl_math::pi_over_4 * -arcFraction ); angle1 <= ( vnl_math::pi_over_4 * arcFraction ); angle1 += searchFactor )
     {
     if( ImageDimension == 2 )
       {
@@ -690,7 +702,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     if( ImageDimension == 3 )
       {
-      for( RealType angle2 = ( vnl_math::pi_over_4 * -1.0 ); angle2 < ( vnl_math::pi_over_4 + searchFactor ); angle2 += searchFactor )
+      for( RealType angle2 = ( vnl_math::pi_over_4 * -arcFraction ); angle2 <= ( vnl_math::pi_over_4 * arcFraction ); angle2 += searchFactor )
         {
         affineSearchTransform->SetIdentity();
         affineSearchTransform->SetCenter( initialTransform->GetCenter() );
@@ -847,11 +859,14 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   }
 
   {
-  std::string description = std::string( "Incremental search factor (in degrees)." );
+  std::string description = std::string( "Incremental search factor (in degrees) which will " )
+   + std::string( "sample the arc fraction around the principal axis or default axis." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "search-factor" );
   option->SetShortName( 's' );
+  option->SetUsageOption( 0, "searchFactor" );
+  option->SetUsageOption( 1, "[searchFactor,<arcFraction=1.0>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
