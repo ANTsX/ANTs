@@ -275,7 +275,7 @@ private:
        {
        ConvertImage<unsigned char, 2>( argc, argv );
        }
-     if( argc > 4 && atoi( argv[4] ) == 2 )
+     else if( argc > 4 && atoi( argv[4] ) == 2 )
        {
        ConvertImage<unsigned short, 2>( argc, argv );
        }
@@ -313,7 +313,7 @@ private:
        {
        ConvertImage<unsigned char, 3>( argc, argv );
        }
-     if( argc > 4 && atoi( argv[4] ) == 2 )
+     else if( argc > 4 && atoi( argv[4] ) == 2 )
        {
        ConvertImage<unsigned short, 3>( argc, argv );
        }
