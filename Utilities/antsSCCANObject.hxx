@@ -67,6 +67,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_FractionNonZeroR = 0.5;
   this->m_ConvergenceThreshold = 1.e-6;
   this->m_Epsilon = 1.e-12;
+  this->m_GetSmall = true;
   this->m_GradStep = 0.1;
   this->m_UseLongitudinalFormulation = 0;
   this->m_RowSparseness = 0;
@@ -2277,9 +2278,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       tempMatrix.set_column( a, zero );
       MatrixType partialmatrix = matrixB * tempMatrix.transpose();
       for(  unsigned int interc = 0; interc < this->m_MatrixP.rows(); interc++ )
-	{
-        partialmatrix.set_row( interc, partialmatrix.get_row( interc ) + icept( interc ) );
-	}
+	      {
+        partialmatrix.set_row( interc,
+          partialmatrix.get_row( interc ) + icept( interc ) );
+ 	      }
       partialmatrix = this->m_MatrixP - partialmatrix;
       this->m_CanonicalCorrelations[a] = 1 - ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       VectorType evec = this->m_VariatesP.get_column( a );
@@ -4653,6 +4655,7 @@ template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseArnoldiSVD_Other( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A )
 {
+  std::cout << " SparseArnoldiSVD_Other " << std::endl;
   if ( vnl_math_abs(this->m_RowSparseness) <= 1.e-9 ) return 0;
   unsigned int maxrowtoorth = ( unsigned int ) ( 1.0 / vnl_math_abs( this->m_RowSparseness ) ) - 0;
   unsigned int maxloop = 10;
@@ -4664,7 +4667,19 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for( unsigned int k = 0; k < A.columns(); k++ )
       {
       VectorType pveck = Asparse.get_column( k );
-      pveck = ( pveck * A ) * A.transpose();
+      if ( !this->m_GetSmall ) pveck = ( pveck * A ) * A.transpose();
+      if (  this->m_GetSmall )
+      {
+      RealType traceest = 0;
+      for ( unsigned int kcol = 0; kcol < Asparse.columns(); kcol++ )
+        traceest += inner_product( Asparse.get_column( kcol ),
+                                   Asparse.get_column( kcol ) );
+        traceest = traceest + 1.e-6;
+        VectorType p1 = ( pveck * A ) * A.transpose();
+        vnl_diag_matrix<TRealType> trid( this->m_MatrixP.cols(), traceest );
+        VectorType p2 = ( pveck * trid );
+        pveck = p2 - p1;
+        }
       pveck = pveck / pveck.two_norm();
       unsigned int startingm = 0;
       if ( k > maxrowtoorth ) startingm = k - maxrowtoorth;

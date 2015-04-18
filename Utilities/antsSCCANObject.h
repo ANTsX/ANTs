@@ -270,6 +270,7 @@ public:
   }
 
   itkSetMacro( Covering, unsigned int );
+  itkSetMacro( GetSmall, bool );
   itkSetMacro( UseL1, bool );
   itkSetMacro( GradStep, RealType );
   itkSetMacro( FractionNonZeroR, RealType );
@@ -1284,6 +1285,7 @@ private:
    *     rather than the default update      : if ( beta > thresh )  beta <- beta  */
   unsigned int     m_Covering;
   unsigned int     m_VecToMaskSize;
+  bool     m_GetSmall;
   bool     m_UseL1;
   bool     m_AlreadyWhitened;
   bool     m_SpecializationForHBM2011;

@@ -1083,7 +1083,8 @@ template <unsigned int ImageDimension, class PixelType>
 int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec,
                   unsigned int robustify, unsigned int p_cluster_thresh, unsigned int iterct,
                   unsigned int svd_option, PixelType usel1, PixelType row_sparseness, PixelType smoother,
-                  unsigned int covering, bool verbosity )
+                  unsigned int covering, bool verbosity,
+                  bool getSmall=0 )
 {
   // std::cout << "SVD_One_View" << std::endl;
 
@@ -1093,6 +1094,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   typedef typename SCCANType::MatrixType                vMatrix;
   typedef typename SCCANType::VectorType                vVector;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
+  sccanobj->SetGetSmall( static_cast<bool>(getSmall)  );
   vMatrix priorROIMat;
   if( svd_option == 1 )
     {
@@ -2210,6 +2212,18 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     priorWeight = sccanparser->Convert<matPixelType>( pwoption->GetFunction()->GetName() );
     }
 
+  bool                                      getSmall = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer getsmallopt =
+    sccanparser->GetOption( "get-small" );
+  if( !getsmallopt || getsmallopt->GetNumberOfFunctions() == 0 )
+    {
+    }
+  else
+    {
+    getSmall = sccanparser->Convert<matPixelType>(
+        getsmallopt->GetFunction()->GetName() );
+    }
+
   matPixelType                                      row_sparseness = 0;
   itk::ants::CommandLineParser::OptionType::Pointer row_option =
     sccanparser->GetOption( "row_sparseness" );
@@ -2364,7 +2378,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
       {
       SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6, usel1,
                                              row_sparseness, smoother, covering,
-                                             verbosity );
+                                             verbosity, getSmall );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "recon4d" ) )  )
@@ -2722,6 +2736,16 @@ private:
       std::string( "Scalar value weight on prior between 0 (prior is weak) and 1 (prior is strong).  Only engaged if initialization is used." );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "prior-weight" );
+    option->SetUsageOption( 0, "0.0" );
+    option->SetDescription( description );
+    sccanparser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Find smallest eigenvectors" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "get-small" );
     option->SetUsageOption( 0, "0.0" );
     option->SetDescription( description );
     sccanparser->AddOption( option );
