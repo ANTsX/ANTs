@@ -130,12 +130,11 @@ int LabelGeometryMeasures( int argc, char * argv[] )
       }
 
     std::vector<std::string>   rowHeaders;
-
+    std::ostringstream convert;// stream used for the conversion
     for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
       {
-      int number = *allLabelsIt;
-      std::string numberString = static_cast<std::ostringstream*>( &( std::ostringstream() << number ) )->str();
-      rowHeaders.push_back( numberString );
+      convert << *allLabelsIt;   // insert the textual representation of 'Number' in the characters in the stream
+      rowHeaders.push_back( convert.str() ); // set 'Result' to the contents of the stream
       }
 
     vnl_matrix<double> measures( allLabels.size(), columnHeaders.size() - 1 );
