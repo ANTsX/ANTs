@@ -4655,7 +4655,6 @@ template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseArnoldiSVD_Other( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A )
 {
-  std::cout << " SparseArnoldiSVD_Other " << std::endl;
   if ( vnl_math_abs(this->m_RowSparseness) <= 1.e-9 ) return 0;
   unsigned int maxrowtoorth = ( unsigned int ) ( 1.0 / vnl_math_abs( this->m_RowSparseness ) ) - 0;
   unsigned int maxloop = 10;
