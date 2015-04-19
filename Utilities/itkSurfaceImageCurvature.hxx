@@ -213,11 +213,11 @@ void  SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood
 
   if( this->m_Debug )
     {
-    std::cout << " point list size " << this->m_PointList.size() << std::endl;
+    // std::cout << " point list size " << this->m_PointList.size() << std::endl;
     //  for(int i = 0; i < this->m_PointList.size(); i++) {
     //    std:: cout << " point  " << this->m_PointList[i];
     //  }
-    std::cout << std::endl;
+    // std::cout << std::endl;
     }
 }
 
@@ -432,9 +432,6 @@ void  SurfaceImageCurvature<TSurface>
 {
   typename ImageType::Pointer image = GetInput();
 
-  std::cout << " compute normals " << this->m_Sigma << " hood " << (this->m_NeighborhoodRadius)
-                   << " spacing " << image->GetSpacing() <<  std::endl;
-
   if( !image )
     {
     return;
@@ -454,7 +451,7 @@ void  SurfaceImageCurvature<TSurface>
   IteratorType Iterator( image, image->GetLargestPossibleRegion().GetSize() );
   bool         wmgmcurv = true;
   Iterator.GoToBegin();
-  std::cout <<" ASS " << std::endl;
+  // std::cout <<" ASS " << std::endl;
   while(  !Iterator.IsAtEnd()  )
     {
     float pix = Iterator.Get();
@@ -465,7 +462,7 @@ void  SurfaceImageCurvature<TSurface>
     ++Iterator;
     }
 
-  std::cout << " Using Binary Segmentation curv? " << wmgmcurv << std::endl;
+  // std::cout << " Using Binary Segmentation curv? " << wmgmcurv << std::endl;
 
   if( wmgmcurv )
     {
@@ -495,7 +492,7 @@ void  SurfaceImageCurvature<TSurface>
     unsigned int totit = 50;
     for( unsigned int iterations = 0; iterations < totit; iterations++ )
       {
-      std::cout << " % " << (float)iterations / (float)(totit) << std::endl;
+      // std::cout << " % " << (float)iterations / (float)(totit) << std::endl;
       while(  !Iterator.IsAtEnd()  )
         {
         IndexType ind = Iterator.GetIndex();
@@ -552,7 +549,7 @@ void  SurfaceImageCurvature<TSurface>
     filter->Update();
     this->m_GradientImage = filter->GetOutput();
     }
-  std::cout << " compute normals done ";
+  // std::cout << " compute normals done ";
 }
 
 template <typename TSurface>
@@ -809,13 +806,13 @@ void  SurfaceImageCurvature<TSurface>
       this->m_PointList.clear();
       if( ct % 1000 == 0 )
         {
-        std::cout << " ind " << index << " area " << area << std::endl;
+        // std::cout << " ind " << index << " area " << area << std::endl;
         }
       }
     ++ti;
     }
 
-  std::cout << " surface area " << this->m_TotalArea << std::endl;
+  // std::cout << " surface area " << this->m_TotalArea << std::endl;
   return;
 }
 
@@ -854,10 +851,10 @@ SurfaceImageCurvature<TSurface>
 
   if( !image )
     {
-    std::cout << " no image " << std::endl; return 0;
+    // std::cout << " no image " << std::endl; return 0;
     }
 
-  //  std::cout << "  allocating temp image ";
+  //  // std::cout << "  allocating temp image ";
   typename OutputImageType::Pointer tempimage = OutputImageType::New();
   tempimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
   tempimage->SetBufferedRegion( image->GetLargestPossibleRegion() );
@@ -1100,7 +1097,7 @@ void  SurfaceImageCurvature<TSurface>
     index = ti.GetIndex();
     if( ct2 % 200000 == 0 && ct2 > 0 )
       {
-      std::cout << " ind " << index << " kp " << kpix << std::endl;
+      // std::cout << " ind " << index << " kp " << kpix << std::endl;
       }
     kpix = 0.0;
     if(  // ti.Get() == this->m_SurfaceLabel &&
@@ -1175,7 +1172,7 @@ void  SurfaceImageCurvature<TSurface>
 //         this->EstimateCurvature(this->m_A,this->m_B,this->m_B,this->m_C);
 //         this->EstimateCurvature();
           }
-        std::cout << " best error " << error << std::endl;
+        // std::cout << " best error " << error << std::endl;
         }
 
 //    kpix=fabs(2.0/(3.1416)*atan((this->m_Kappa1+this->m_Kappa2)/(this->m_Kappa2-this->m_Kappa1)));
@@ -1243,7 +1240,7 @@ void  SurfaceImageCurvature<TSurface>
     ++ti;
     }
 
-  std::cout << " average curvature " << thresh / (float)ct << " kSign " << this->m_kSign <<  std::endl;
+  // std::cout << " average curvature " << thresh / (float)ct << " kSign " << this->m_kSign <<  std::endl;
 
 /* now get s.d.
   float sd=0.0;

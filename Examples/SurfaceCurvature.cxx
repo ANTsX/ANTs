@@ -126,7 +126,6 @@ private:
     {
     sig = atof( argv[3]);
     }
-  std::cout << " sigma " << sig << std::endl;
   if( argc > 4 )
     {
     opt = (int) atoi(argv[4]);
@@ -153,12 +152,10 @@ private:
 
   //  Parameterizer->ProcessLabelImage();
   Parameterizer->SetNeighborhoodRadius( 1. );
-//  std::cout << " set sig " ;  std::cin >> sig;
   if( sig <= 0.5 )
     {
     sig = 1.66;
     }
-  std::cout << " sigma " << sig << " option " << opt << std::endl;
   Parameterizer->SetSigma(sig);
 
   if( opt == 1 )
@@ -175,7 +172,6 @@ private:
       {
       sign = -1.0;
       }
-    std::cout << " setting outward direction as " << sign;
     Parameterizer->SetkSign(sign);
     Parameterizer->SetThreshold(0);
     }
@@ -183,7 +179,6 @@ private:
 //  Parameterizer->IntegrateFunctionOverSurface();
 //  Parameterizer->IntegrateFunctionOverSurface(true);
 
-  std::cout << " computing frame " << std::endl;
   if( opt != 5 && opt != 6 )
     {
     Parameterizer->ComputeFrameOverDomain( 3 );
