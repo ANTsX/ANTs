@@ -1,13 +1,7 @@
-
-
-
-
 #include "antsUtilities.h"
 #include <algorithm>
-
 #include "itkSurfaceCurvatureBase.h"
 #include "itkSurfaceImageCurvature.h"
-
 #include "ReadWriteData.h"
 
 namespace ants
@@ -146,7 +140,10 @@ private:
 
   ImageType::Pointer input;
   ReadImage<ImageType>(input, argv[1]);
-  std::cout << " done reading " << std::string(argv[1]) << std::endl;
+  ImageType::DirectionType imgdir = input->GetDirection();
+  ImageType::DirectionType iddir = input->GetDirection();
+  iddir.SetIdentity();
+  input->SetDirection( iddir );
 
   //  float ballradius = 2.0;
   // if (argc >= 6) ballradius = (float) atof(argv[5]);
@@ -204,8 +201,7 @@ private:
   //  Parameterizer->IntegrateFunctionOverSurface(true);
   //   for (int i=0; i<1; i++) Parameterizer->PostProcessGeometry();
 
-  ImageType::Pointer output = ITK_NULLPTR;
-
+  ImageType::Pointer output = Parameterizer->GetFunctionImage();
   //  Parameterizer->GetFunctionImage()->SetSpacing( input->GetSpacing() );
   //  Parameterizer->GetFunctionImage()->SetDirection( input->GetDirection() );
   //  Parameterizer->GetFunctionImage()->SetOrigin( input->GetOrigin() );
@@ -213,11 +209,8 @@ private:
   // SmoothImage(Parameterizer->GetFunctionImage(),smooth,3);
   // NormalizeImage(smooth,output,mn);
   //  NormalizeImage(Parameterizer->GetFunctionImage(),output,mn);
-
-  WriteImage<floatImageType>(Parameterizer->GetFunctionImage(), argv[2]);
-
-  std::cout << " done writing ";
-
-  return 1;
+  output->SetDirection( imgdir );
+  WriteImage<floatImageType>( output, argv[2]);
+  return 0;
 }
 } // namespace ants

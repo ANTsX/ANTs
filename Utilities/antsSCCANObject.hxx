@@ -4668,12 +4668,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType pveck = Asparse.get_column( k );
       if ( !this->m_GetSmall ) pveck = ( pveck * A ) * A.transpose();
       if (  this->m_GetSmall )
-      {
-      RealType traceest = 0;
-      for ( unsigned int kcol = 0; kcol < Asparse.columns(); kcol++ )
-        traceest += inner_product( Asparse.get_column( kcol ),
+        {
+        RealType traceest = 0;
+        for ( unsigned int kcol = 0; kcol < Asparse.columns(); kcol++ )
+          traceest += inner_product( Asparse.get_column( kcol ),
                                    Asparse.get_column( kcol ) );
-        traceest = traceest + 1.e-6;
+        traceest = traceest + 1;
         VectorType p1 = ( pveck * A ) * A.transpose();
         vnl_diag_matrix<TRealType> trid( this->m_MatrixP.cols(), traceest );
         VectorType p2 = ( pveck * trid );
