@@ -70,16 +70,16 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
   }
 
   {
-  std::string description = std::string( "A boolean specifying whether or not the " )
-    + std::string( "composite transform resulted from the current state of the registration " )
-    + std::string( "should be written to an hdf5 composite file. It is specially usefull if " )
+  std::string description = std::string( "Specify the output file for the current state of the registration. " )
+    + std::string( "The state file is written to an hdf5 composite file. It is specially usefull if " )
     + std::string( "we want to save the current state of a SyN registration to the disk, so " )
-    + std::string( "we can load and restore that later to continue the next registration " )
-    + std::string( "directly started from the same state that it was stored. " )
-    + std::string( "The output of this flag will be the same as the write-composite-transform, " )
+    + std::string( "we can load and restore that later to continue the next registration process " )
+    + std::string( "directly started from the last saved state. " )
+    + std::string( "The output file of this flag is the same as the write-composite-transform, " )
     + std::string( "unless the last transform is a SyN transform. In that case, the inverse " )
     + std::string( "displacement field of the SyN transform is also added to the output composite transform. " )
-    + std::string( "To load the written file this flag, we must use restore-state." );
+    + std::string( "Again notice that this file cannot be treated as a transform, and restore-state option " )
+    + std::string( "must be used to load the written file by this flag." );
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "save-state" );
   option->SetShortName( 'j' );
