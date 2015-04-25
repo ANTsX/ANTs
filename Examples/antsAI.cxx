@@ -1099,9 +1099,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
               {
               point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
               }
-            typename ImageType::IndexType imageIndex;
-            fixedImage->TransformPhysicalPointToIndex( point, imageIndex );
-            if( !fixedMask || fixedMask->GetPixel( imageIndex ) != 0 )
+            if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInside( point ) )
               {
               samplePointSet->SetPoint( index, point );
               ++index;
@@ -1127,9 +1125,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
             {
             point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
             }
-          typename ImageType::IndexType imageIndex;
-          fixedImage->TransformPhysicalPointToIndex( point, imageIndex );
-          if( !fixedMask || fixedMask->GetPixel( imageIndex ) != 0 )
+          if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInside( point ) )
             {
             samplePointSet->SetPoint( index, point );
             ++index;
