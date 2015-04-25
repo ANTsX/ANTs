@@ -12,12 +12,17 @@
 #include "itkImageMomentsCalculator.h"
 #include "itkImageToImageMetricv4.h"
 #include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
+#include "itkLandmarkBasedTransformInitializer.h"
+#include "itkLinearInterpolateImageFunction.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
+#include "itkMultiScaleLaplacianBlobDetectorImageFilter.h"
 #include "itkMultiStartOptimizerv4.h"
 #include "itkRegistrationParameterScalesFromPhysicalShift.h"
+#include "itkRigid2DTransform.h"
 #include "itkSimilarity2DTransform.h"
 #include "itkSimilarity3DTransform.h"
+#include "itkVersorRigid3DTransform.h"
 #include "itkTransformFileWriter.h"
 
 #include "vnl/vnl_cross.h"
@@ -32,6 +37,15 @@ namespace ants
 
 template <class TComputeType, unsigned int ImageDimension>
 class RigidTransformTraits
+{
+  // Don't worry about the fact that the default option is the
+  // affine Transform, that one will not actually be instantiated.
+public:
+typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
+};
+
+template <class TComputeType, unsigned int ImageDimension>
+class LandmarkRigidTransformTraits
 {
   // Don't worry about the fact that the default option is the
   // affine Transform, that one will not actually be instantiated.
@@ -71,6 +85,34 @@ public:
 typedef itk::Euler3DTransform<float> TransformType;
 };
 
+template <>
+class LandmarkRigidTransformTraits<double, 2>
+{
+public:
+typedef itk::Rigid2DTransform<double> TransformType;
+};
+
+template <>
+class LandmarkRigidTransformTraits<float, 2>
+{
+public:
+typedef itk::Rigid2DTransform<float> TransformType;
+};
+
+template <>
+class LandmarkRigidTransformTraits<double, 3>
+{
+public:
+typedef itk::VersorRigid3DTransform<double> TransformType;
+};
+
+template <>
+class LandmarkRigidTransformTraits<float, 3>
+{
+public:
+typedef itk::VersorRigid3DTransform<float> TransformType;
+};
+
 template <class TComputeType, unsigned int ImageDimension>
 class SimilarityTransformTraits
 {
@@ -108,9 +150,458 @@ public:
 typedef itk::Similarity3DTransform<float> TransformType;
 };
 
+// ##########################################################################
+// ##########################################################################
 
-// ##########################################################################
-// ##########################################################################
+template<class TImage, class TGradientImage, class TInterpolator, class TReal>
+TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
+                        itk::NeighborhoodIterator<TImage> movingNeighborhood,
+                        std::vector<unsigned int> activeIndex,
+                        std::vector<TReal> weights,
+                        typename TGradientImage::Pointer fixedGradientImage,
+                        typename TGradientImage::Pointer movingGradientImage,
+                        typename TInterpolator::Pointer movingInterpolator )
+{
+  typedef TReal                                          RealType;
+  typedef TImage                                         ImageType;
+  typedef TGradientImage                                 GradientImageType;
+
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+
+  typedef typename ImageType::PointType                  PointType;
+  typedef itk::CovariantVector<RealType, ImageDimension> GradientPixelType;
+  typedef vnl_vector<RealType>                           VectorType;
+  typedef typename ImageType::IndexType                  IndexType;
+
+  unsigned int           numberOfIndices = activeIndex.size();
+  std::vector<PointType> movingImagePatchPoints;
+  VectorType             fixedSamples( numberOfIndices, 0 );
+  VectorType             movingSamples( numberOfIndices, 0 );
+
+  vnl_matrix<RealType> fixedGradientMatrix( numberOfIndices, ImageDimension, 0.0 );
+  vnl_matrix<RealType> movingGradientMatrix( numberOfIndices, ImageDimension, 0.0 );
+
+  PointType movingPointCentroid( 0.0 );
+
+  RealType weight = 1.0 / static_cast<RealType>( numberOfIndices );
+  for( unsigned int i = 0; i < numberOfIndices; i++ )
+    {
+    fixedSamples[i] = fixedNeighborhood.GetPixel( activeIndex[i] );
+    movingSamples[i] = movingNeighborhood.GetPixel( activeIndex[i] );
+
+    IndexType fixedIndex = fixedNeighborhood.GetIndex( activeIndex[i] );
+    IndexType movingIndex = movingNeighborhood.GetIndex( activeIndex[i] );
+
+    if( fixedGradientImage->GetRequestedRegion().IsInside( fixedIndex ) &&
+        movingGradientImage->GetRequestedRegion().IsInside( movingIndex ) )
+      {
+      GradientPixelType fixedGradient = fixedGradientImage->GetPixel( fixedIndex ) * weights[i];
+      GradientPixelType movingGradient = movingGradientImage->GetPixel( movingIndex ) * weights[i];
+      for( unsigned int j = 0; j < ImageDimension; j++ )
+        {
+        fixedGradientMatrix(i, j) = fixedGradient[j];
+        movingGradientMatrix(i, j) = movingGradient[j];
+        }
+      PointType movingPoint( 0.0 );
+      movingGradientImage->TransformIndexToPhysicalPoint( movingIndex, movingPoint );
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        movingPointCentroid[d] += movingPoint[d] * weight;
+        }
+      movingImagePatchPoints.push_back( movingPoint );
+      }
+    else
+      {
+      return 0.0;
+      }
+    }
+
+  fixedSamples -= fixedSamples.mean();
+  movingSamples -= movingSamples.mean();
+
+  RealType fixedSd = std::sqrt( fixedSamples.squared_magnitude() );
+
+  // compute patch orientation
+
+  vnl_matrix<RealType> fixedCovariance = fixedGradientMatrix.transpose() * fixedGradientMatrix;
+  vnl_matrix<RealType> movingCovariance = movingGradientMatrix.transpose() * movingGradientMatrix;
+
+  vnl_symmetric_eigensystem<RealType> fixedImagePrincipalAxes( fixedCovariance );
+  vnl_symmetric_eigensystem<RealType> movingImagePrincipalAxes( movingCovariance );
+
+  vnl_vector<RealType> fixedPrimaryEigenVector;
+  vnl_vector<RealType> fixedSecondaryEigenVector;
+  vnl_vector<RealType> fixedTertiaryEigenVector;
+  vnl_vector<RealType> movingPrimaryEigenVector;
+  vnl_vector<RealType> movingSecondaryEigenVector;
+
+  vnl_matrix<RealType> B;
+
+  if( ImageDimension == 2 )
+    {
+    fixedPrimaryEigenVector = fixedImagePrincipalAxes.get_eigenvector( 1 );
+    movingPrimaryEigenVector = movingImagePrincipalAxes.get_eigenvector( 1 );
+
+    B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector );
+    }
+  else if( ImageDimension == 3 )
+    {
+    fixedPrimaryEigenVector = fixedImagePrincipalAxes.get_eigenvector( 2 );
+    fixedSecondaryEigenVector = fixedImagePrincipalAxes.get_eigenvector( 1 );
+
+    movingPrimaryEigenVector = movingImagePrincipalAxes.get_eigenvector( 2 );
+    movingSecondaryEigenVector = movingImagePrincipalAxes.get_eigenvector( 1 );
+
+    B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector ) +
+      outer_product( movingSecondaryEigenVector, fixedSecondaryEigenVector );
+    }
+
+  vnl_svd<RealType> wahba( B );
+  vnl_matrix<RealType> A = wahba.V() * wahba.U().transpose();
+
+  bool patchIsInside = true;
+  for( unsigned int i = 0; i < numberOfIndices; i++ )
+    {
+    PointType movingImagePoint = movingImagePatchPoints[i];
+    vnl_vector<RealType> movingImageVector( ImageDimension, 0.0 );
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      movingImagePoint[d] -= movingPointCentroid[d];
+      movingImageVector[d] = movingImagePoint[d];
+      }
+
+    vnl_vector<RealType> movingImagePointRotated = A * movingImageVector;
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      movingImagePoint[d] = movingImagePointRotated[d] + movingPointCentroid[d];
+      }
+    if( movingInterpolator->IsInsideBuffer( movingImagePoint ) )
+      {
+      movingSamples[i] = movingInterpolator->Evaluate( movingImagePoint );
+      }
+    else
+      {
+      patchIsInside = false;
+      break;
+      }
+    }
+
+  RealType correlation = 0.0;
+  if( patchIsInside )
+    {
+    movingSamples -= movingSamples.mean();
+    RealType movingSd = std::sqrt( movingSamples.squared_magnitude() );
+    correlation = inner_product( fixedSamples, movingSamples ) / ( fixedSd * movingSd );
+
+    if( vnl_math_isnan( correlation ) || vnl_math_isinf( correlation )  )
+      {
+      correlation = 0.0;
+      }
+    }
+
+  return correlation;
+}
+
+template<class TImage, class TBlobFilter>
+void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename TImage::Pointer movingImage,
+                                  typename TBlobFilter::BlobsListType fixedBlobs, typename TBlobFilter::BlobsListType movingBlobs,
+                                  float sigma, unsigned int radiusValue,
+                                  vnl_matrix<float> & correspondenceMatrix )
+{
+  typedef TImage                                 ImageType;
+  typedef float                                  RealType;
+  typedef typename ImageType::IndexType          IndexType;
+  typedef itk::NeighborhoodIterator<ImageType>   NeighborhoodIteratorType;
+  typedef TBlobFilter                            BlobFilterType;
+  typedef typename BlobFilterType::BlobPointer   BlobPointer;
+
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+
+  typedef itk::CovariantVector<RealType, ImageDimension>       GradientVectorType;
+  typedef itk::Image<GradientVectorType, ImageDimension>       GradientImageType;
+  typedef itk::GradientRecursiveGaussianImageFilter<ImageType,
+                                            GradientImageType> GradientImageFilterType;
+  typedef typename GradientImageFilterType::Pointer            GradientImageFilterPointer;
+
+  typename GradientImageFilterType::Pointer fixedGradientFilter = GradientImageFilterType::New();
+  fixedGradientFilter->SetInput( fixedImage );
+  fixedGradientFilter->SetSigma( sigma );
+
+  typename GradientImageType::Pointer fixedGradientImage = fixedGradientFilter->GetOutput();
+  fixedGradientImage->Update();
+  fixedGradientImage->DisconnectPipeline();
+
+  GradientImageFilterPointer movingGradientFilter = GradientImageFilterType::New();
+  movingGradientFilter->SetInput( movingImage );
+  movingGradientFilter->SetSigma( sigma );
+
+  typename GradientImageType::Pointer movingGradientImage = movingGradientFilter->GetOutput();
+  movingGradientImage->Update();
+  movingGradientImage->DisconnectPipeline();
+
+  correspondenceMatrix.set_size( fixedBlobs.size(), movingBlobs.size() );
+  correspondenceMatrix.fill( 0 );
+
+  typename NeighborhoodIteratorType::RadiusType radius;
+  radius.Fill( radiusValue );
+
+  NeighborhoodIteratorType ItF( radius, fixedImage, fixedImage->GetLargestPossibleRegion() );
+  NeighborhoodIteratorType ItM( radius, movingImage, movingImage->GetLargestPossibleRegion() );
+
+  IndexType zeroIndex;
+  zeroIndex.Fill( radiusValue );
+  ItF.SetLocation( zeroIndex );
+
+  std::vector<unsigned int> activeIndex;
+  std::vector<RealType> weights;
+  RealType weightSum = 0.0;
+  for( unsigned int i = 0; i < ItF.Size(); i++ )
+    {
+    IndexType index = ItF.GetIndex( i );
+    RealType distance = 0.0;
+    for( unsigned int j = 0; j < ImageDimension; j++ )
+      {
+      distance += vnl_math_sqr( index[j] - zeroIndex[j] );
+      }
+    distance = std::sqrt( distance );
+    if( distance <= radiusValue )
+      {
+      activeIndex.push_back( i );
+      RealType weight = std::exp( -1.0 * distance / vnl_math_sqr( radiusValue ) );
+      weights.push_back( weight );
+      weightSum += ( weight );
+      }
+    }
+  for( unsigned int i = 0; i < weights.size(); i++ )
+    {
+    weights[i] /= weightSum;
+    }
+
+  typedef itk::LinearInterpolateImageFunction<ImageType, RealType> ScalarInterpolatorType;
+  typename ScalarInterpolatorType::Pointer movingInterpolator =  ScalarInterpolatorType::New();
+  movingInterpolator->SetInputImage( movingImage );
+
+  for( unsigned int i = 0; i < fixedBlobs.size(); i++ )
+    {
+    IndexType fixedIndex = fixedBlobs[i]->GetCenter();
+    if( fixedImage->GetPixel( fixedIndex ) > 1.0e-4 )
+      {
+      ItF.SetLocation( fixedIndex );
+      for( unsigned int j = 0; j < movingBlobs.size(); j++ )
+        {
+        IndexType movingIndex = movingBlobs[j]->GetCenter();
+        if( movingImage->GetPixel( movingIndex ) > 1.0e-4 )
+          {
+          ItM.SetLocation( movingIndex );
+
+          RealType correlation = PatchCorrelation<ImageType, GradientImageType, ScalarInterpolatorType, RealType>
+            ( ItF, ItM, activeIndex, weights, fixedGradientImage, movingGradientImage, movingInterpolator );
+
+          if( correlation < 0.0 )
+            {
+            correlation = 0.0;
+            }
+
+          correspondenceMatrix(i, j) = correlation;
+          }
+        }
+      }
+    }
+
+  return;
+}
+
+template <class TImage, class TTransform>
+typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::Pointer fixedImage,
+  typename TImage::Pointer movingImage, unsigned int numberOfBlobsToExtract, unsigned int numberOfBlobsToMatch )
+{
+  typedef float                                     PixelType;
+  typedef float                                     RealType;
+  typedef TImage                                    ImageType;
+  typedef TTransform                                TransformType;
+  typedef typename ImageType::IndexType             IndexType;
+  typedef typename ImageType::PointType             PointType;
+
+  /////////////////////////////////////////////////////////////////
+  //
+  //         Values taken from Brian in ImageMath.cxx
+  //
+  /////////////////////////////////////////////////////////////////
+
+  unsigned int radiusValue = 20;
+  RealType     gradientSigma = 1.0;
+  RealType     maxRadiusDifferenceAllowed = 0.25;
+  RealType     distancePreservationThreshold = 0.02;
+  RealType     minimumNumberOfNeighborhoodNodes = 3;
+
+  RealType minScale = std::pow( 1.0, 1.0 );
+  RealType maxScale = std::pow( 2.0, 10.0 );
+  unsigned int stepsPerOctave = 10;
+
+  ///////////////////////////////////////////////////////////////
+
+  typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
+  typedef typename BlobFilterType::BlobPointer                       BlobPointer;
+  typedef std::pair<BlobPointer, BlobPointer>                        BlobPairType;
+  typedef typename BlobFilterType::BlobsListType                     BlobsListType;
+
+  typename BlobFilterType::Pointer blobFixedImageFilter = BlobFilterType::New();
+  blobFixedImageFilter->SetStartT( minScale );
+  blobFixedImageFilter->SetEndT( maxScale );
+  blobFixedImageFilter->SetStepsPerOctave( stepsPerOctave );
+  blobFixedImageFilter->SetNumberOfBlobs( numberOfBlobsToExtract );
+  blobFixedImageFilter->SetInput( fixedImage );
+  blobFixedImageFilter->Update();
+
+  BlobsListType fixedImageBlobs = blobFixedImageFilter->GetBlobs();
+
+  typename BlobFilterType::Pointer blobMovingImageFilter = BlobFilterType::New();
+  blobMovingImageFilter->SetStartT( minScale );
+  blobMovingImageFilter->SetEndT( maxScale );
+  blobMovingImageFilter->SetStepsPerOctave( stepsPerOctave );
+  blobMovingImageFilter->SetNumberOfBlobs( numberOfBlobsToExtract );
+  blobMovingImageFilter->SetInput( movingImage );
+  blobMovingImageFilter->Update();
+
+  BlobsListType movingImageBlobs = blobMovingImageFilter->GetBlobs();
+
+  if( movingImageBlobs.empty() || fixedImageBlobs.empty() )
+    {
+    std::cerr << "The moving image or fixed image blobs list is empty." << std::endl;
+    return ITK_NULLPTR;
+    }
+
+  vnl_matrix<RealType> correspondenceMatrix;
+
+  /////////////////////////////////////////////////////////////////
+  //
+  //         Get the correspondence matrix based on local image patches
+  //
+  /////////////////////////////////////////////////////////////////
+
+  GetBlobCorrespondenceMatrix<ImageType, BlobFilterType>
+     ( fixedImage, movingImage, fixedImageBlobs, movingImageBlobs, gradientSigma, radiusValue, correspondenceMatrix );
+
+  /////////////////////////////////////////////////////////////////
+  //
+  //         Pick the first numberOfBlobsToMatch pairs based on the correlation matrix
+  //
+  /////////////////////////////////////////////////////////////////
+
+  std::vector<BlobPairType> blobPairs;
+
+  BlobPointer bestBlob = ITK_NULLPTR;
+
+  unsigned int matchPoint = 1;
+  unsigned int fixedCount = 0;
+  while( ( matchPoint <= numberOfBlobsToMatch ) && ( fixedCount < fixedImageBlobs.size() ) )
+    {
+    unsigned int maxPair = correspondenceMatrix.arg_max();
+    unsigned int maxRow = static_cast<unsigned int>( maxPair / correspondenceMatrix.cols() );
+    unsigned int maxCol = maxPair - maxRow * correspondenceMatrix.cols();
+    BlobPointer fixedBlob = fixedImageBlobs[maxRow];
+    bestBlob = movingImageBlobs[maxCol];
+
+    if( bestBlob && bestBlob->GetObjectRadius() > 1 )
+      {
+      if( std::fabs( bestBlob->GetObjectRadius() - fixedBlob->GetObjectRadius() ) < maxRadiusDifferenceAllowed )
+        {
+        if( ( fixedImage->GetPixel( fixedBlob->GetCenter() ) > 1.0e-4 ) &&
+            ( movingImage->GetPixel( bestBlob->GetCenter() ) > 1.0e-4 ) )
+          {
+          BlobPairType blobPairing = std::make_pair( fixedBlob, bestBlob );
+          blobPairs.push_back( blobPairing );
+          matchPoint++;
+          }
+        }
+      }
+    correspondenceMatrix.set_row( maxRow, correspondenceMatrix.get_row( 0 ).fill( 0 ) );
+    correspondenceMatrix.set_column( maxCol, correspondenceMatrix.get_column( 0 ).fill( 0 ) );
+    fixedCount++;
+    }
+
+  /////////////////////////////////////////////////////////////////
+  //
+  //         For every blob pair compute the relative distance from its
+  //         neighbors in both the fixed and moving images.
+  //
+  /////////////////////////////////////////////////////////////////
+
+  vnl_matrix<RealType> distanceRatios( blobPairs.size(), blobPairs.size(), 0.0 );
+  for( unsigned int i = 0; i < blobPairs.size(); i++ )
+    {
+    PointType fixedPoint( 0.0 );
+    fixedImage->TransformIndexToPhysicalPoint( blobPairs[i].first->GetCenter(), fixedPoint );
+
+    PointType movingPoint( 0.0 );
+    movingImage->TransformIndexToPhysicalPoint( blobPairs[i].second->GetCenter(), movingPoint );
+
+    for( unsigned int j = 0; j < blobPairs.size(); j++ )
+      {
+      PointType fixedNeighborPoint( 0.0 );
+      fixedImage->TransformIndexToPhysicalPoint( blobPairs[j].first->GetCenter(), fixedNeighborPoint );
+
+      PointType movingNeighborPoint( 0.0 );
+      movingImage->TransformIndexToPhysicalPoint( blobPairs[j].second->GetCenter(), movingNeighborPoint );
+
+      distanceRatios(i, j) = distanceRatios(j, i) =
+        fixedNeighborPoint.SquaredEuclideanDistanceTo( movingNeighborPoint ) /
+        fixedPoint.SquaredEuclideanDistanceTo( movingPoint );
+      }
+    }
+
+  /////////////////////////////////////////////////////////////////
+  //
+  //         Keep those blob pairs which have close to the same
+  //         distance in both the fixed and moving images.
+  //
+  /////////////////////////////////////////////////////////////////
+
+  typename TransformType::Pointer transform = TransformType::New();
+
+  typedef itk::LandmarkBasedTransformInitializer<TransformType, ImageType, ImageType> TransformInitializerType;
+
+  typedef typename TransformInitializerType::LandmarkPointContainer PointsContainerType;
+  PointsContainerType fixedLandmarks;
+  PointsContainerType movingLandmarks;
+
+  for( unsigned int i = 0; i < blobPairs.size(); i++ )
+    {
+    unsigned int neighborhoodCount = 0;
+    for( unsigned int j = 0; j < blobPairs.size(); j++ )
+      {
+      if( ( j != i ) && ( std::fabs( distanceRatios( i, j ) - 1.0 ) <  distancePreservationThreshold ) )
+        {
+        neighborhoodCount++;
+        }
+      }
+    if( neighborhoodCount >= minimumNumberOfNeighborhoodNodes )
+      {
+      PointType fixedPoint( 0.0 );
+      fixedImage->TransformIndexToPhysicalPoint( blobPairs[i].first->GetCenter(), fixedPoint );
+      fixedLandmarks.push_back( fixedPoint );
+
+      PointType movingPoint( 0.0 );
+      movingImage->TransformIndexToPhysicalPoint( blobPairs[i].second->GetCenter(), movingPoint );
+      movingLandmarks.push_back( movingPoint );
+      }
+    }
+
+  /////////////////////////////////////////////////////////////////
+  //
+  //         Compute initial transform from the landmarks
+  //
+  /////////////////////////////////////////////////////////////////
+
+  typename TransformInitializerType::Pointer transformInitializer = TransformInitializerType::New();
+  transformInitializer->SetFixedLandmarks( fixedLandmarks );
+  transformInitializer->SetMovingLandmarks( movingLandmarks );
+
+  transformInitializer->SetTransform( transform );
+  transformInitializer->InitializeTransform();
+
+  return transform;
+}
 
 template <unsigned int ImageDimension>
 int antsAI( itk::ants::CommandLineParser *parser )
@@ -122,9 +613,10 @@ int antsAI( itk::ants::CommandLineParser *parser )
   typedef itk::Vector<FloatType, ImageDimension>      VectorType;
   typedef itk::Image<PixelType, ImageDimension>       ImageType;
 
-  typedef itk::AffineTransform<RealType, ImageDimension>                              AffineTransformType;
-  typedef typename RigidTransformTraits<RealType, ImageDimension>::TransformType      RigidTransformType;
-  typedef typename SimilarityTransformTraits<RealType, ImageDimension>::TransformType SimilarityTransformType;
+  typedef itk::AffineTransform<RealType, ImageDimension>                                 AffineTransformType;
+  typedef typename RigidTransformTraits<RealType, ImageDimension>::TransformType         RigidTransformType;
+  typedef typename SimilarityTransformTraits<RealType, ImageDimension>::TransformType    SimilarityTransformType;
+  typedef typename LandmarkRigidTransformTraits<RealType, ImageDimension>::TransformType LandmarkRigidTransformType;
 
   enum SamplingStrategyType { NONE, REGULAR, RANDOM };
 
@@ -207,116 +699,255 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
   /////////////////////////////////////////////////////////////////
   //
-  //         Align the images
-  //           1. align the image centers of mass
-  //           2. if desired, align the principal axes
+  //         Get the transform
   //
   /////////////////////////////////////////////////////////////////
 
-  bool doAlignPrincipalAxes = false;
+  std::string transform = "";
+  std::string outputTransformTypeName = "";
+  RealType learningRate = 0.1;
+  RealType searchFactor = 10.0 * vnl_math::pi / 180.0;
+  RealType arcFraction = 1.0;
 
-  itk::ants::CommandLineParser::OptionType::Pointer axesOption = parser->GetOption( "align-principal-axes" );
-  if( axesOption && axesOption->GetNumberOfFunctions() )
+  itk::ants::CommandLineParser::OptionType::Pointer searchFactorOption = parser->GetOption( "search-factor" );
+  if( searchFactorOption && searchFactorOption->GetNumberOfFunctions() )
     {
-    doAlignPrincipalAxes = parser->Convert<bool>( axesOption->GetFunction( 0 )->GetName() );
+    if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetName() ) * vnl_math::pi / 180.0;
+      }
+    if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter() ) * vnl_math::pi / 180.0;
+      }
+    if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+      {
+      arcFraction = parser->Convert<RealType>( searchFactorOption->GetFunction( 1 )->GetParameter() );
+      }
     }
 
-  typedef typename itk::ImageMomentsCalculator<ImageType> ImageMomentsCalculatorType;
-  typedef typename ImageMomentsCalculatorType::MatrixType MatrixType;
+  itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
+  if( transformOption && transformOption->GetNumberOfFunctions() )
+    {
+    transform = transformOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( transform );
+    if( transformOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      learningRate = parser->Convert<RealType>( transformOption->GetFunction( 0 )->GetParameter( 0 ) );
+      }
+    }
 
-  typename ImageMomentsCalculatorType::Pointer fixedImageMomentsCalculator = ImageMomentsCalculatorType::New();
-  typename ImageMomentsCalculatorType::Pointer movingImageMomentsCalculator = ImageMomentsCalculatorType::New();
+  typename AffineTransformType::Pointer affineSearchTransform = AffineTransformType::New();
+  typename RigidTransformType::Pointer rigidSearchTransform = RigidTransformType::New();
+  typename SimilarityTransformType::Pointer similaritySearchTransform = SimilarityTransformType::New();
 
-  fixedImageMomentsCalculator->SetImage( fixedImage );
-  fixedImageMomentsCalculator->Compute();
-  VectorType fixedImageCenterOfGravity = fixedImageMomentsCalculator->GetCenterOfGravity();
-  MatrixType fixedImagePrincipalAxes = fixedImageMomentsCalculator->GetPrincipalAxes();
+  unsigned int numberOfTransformParameters = 0;
+  if( strcmp( transform.c_str(), "affine" ) == 0 )
+    {
+    numberOfTransformParameters = AffineTransformType::ParametersDimension;
+    outputTransformTypeName = std::string( "Affine" );
+    }
+  else if( strcmp( transform.c_str(), "rigid" ) == 0 )
+    {
+    numberOfTransformParameters = RigidTransformType::ParametersDimension;
+    outputTransformTypeName = std::string( "Rigid" );
+    }
+  else if( strcmp( transform.c_str(), "similarity" ) == 0 )
+    {
+    numberOfTransformParameters = SimilarityTransformType::ParametersDimension;
+    outputTransformTypeName = std::string( "Similarity" );
+    }
+  else
+    {
+    if( verbose )
+      {
+      std::cerr << "Unrecognized transform option." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
 
-  movingImageMomentsCalculator->SetImage( movingImage );
-  movingImageMomentsCalculator->Compute();
-  VectorType movingImageCenterOfGravity = movingImageMomentsCalculator->GetCenterOfGravity();
-  MatrixType movingImagePrincipalAxes = movingImageMomentsCalculator->GetPrincipalAxes();
+  /////////////////////////////////////////////////////////////////
+  //
+  //         Align the images using center of mass and principal axes
+  //         or feature blobs.
+  //
+  /////////////////////////////////////////////////////////////////
 
-  RealType bestScale = 1.0; // movingImageMomentsCalculator->GetTotalMass() / fixedImageMomentsCalculator->GetTotalMass();
+  itk::Vector<RealType, ImageDimension> axis1( 0.0 );
+  itk::Vector<RealType, ImageDimension> axis2( 0.0 );
+  axis1[0] = 1.0;
+  axis2[1] = 1.0;
 
-  /** Align centers of mass **/
+  RealType bestScale = 1.0;
 
   typename AffineTransformType::Pointer initialTransform = AffineTransformType::New();
   initialTransform->SetIdentity();
 
-  typename AffineTransformType::OffsetType offset;
-  itk::Point<RealType, ImageDimension> center;
-  for( unsigned int i = 0; i < ImageDimension; i++ )
+  const unsigned int minimumNumberOfBlobs = 3;  // should a different min number of blobs be expected?
+
+  unsigned int numberOfBlobsToExtract = 0;
+  unsigned int numberOfBlobsToMatch = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer blobsOption = parser->GetOption( "align-blobs" );
+  if( blobsOption && blobsOption->GetNumberOfFunctions() )
     {
-    offset[i] = movingImageCenterOfGravity[i] - fixedImageCenterOfGravity[i];
-    center[i] = fixedImageCenterOfGravity[i];
-    }
-  initialTransform->SetOffset( offset );
-
-  /** Solve Wahba's problem --- http://en.wikipedia.org/wiki/Wahba%27s_problem */
-
-  vnl_vector<RealType> fixedPrimaryEigenVector;
-  vnl_vector<RealType> fixedSecondaryEigenVector;
-  vnl_vector<RealType> fixedTertiaryEigenVector;
-  vnl_vector<RealType> movingPrimaryEigenVector;
-  vnl_vector<RealType> movingSecondaryEigenVector;
-
-  vnl_matrix<RealType> B;
-
-  if( ImageDimension == 2 )
-    {
-    fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
-    movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
-
-    B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector );
-    }
-  else if( ImageDimension == 3 )
-    {
-    fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
-    fixedSecondaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
-
-    movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
-    movingSecondaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
-
-    B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector ) +
-      outer_product( movingSecondaryEigenVector, fixedSecondaryEigenVector );
-    }
-
-  if( doAlignPrincipalAxes )
-    {
-    vnl_svd<RealType> wahba( B );
-    vnl_matrix<RealType> A = wahba.V() * wahba.U().transpose();
-    A = vnl_inverse( A );
-    RealType det = vnl_determinant( A );
-
-    if( det < 0.0 )
+    if( blobsOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      if( verbose )
+      numberOfBlobsToExtract = parser->Convert<unsigned int>( blobsOption->GetFunction( 0 )->GetName() );
+      numberOfBlobsToMatch = numberOfBlobsToExtract;
+      }
+    if( blobsOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      numberOfBlobsToExtract = parser->Convert<unsigned int>( blobsOption->GetFunction( 0 )->GetParameter( 0 ) );
+      numberOfBlobsToMatch = numberOfBlobsToExtract;
+      }
+    if( blobsOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      numberOfBlobsToMatch = parser->Convert<unsigned int>( blobsOption->GetFunction( 0 )->GetParameter( 1 ) );
+      }
+    if( numberOfBlobsToExtract < minimumNumberOfBlobs )
+      {
+      std::cerr << "Please specify a greater number of blobs (>=" << minimumNumberOfBlobs << ")." << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  if( numberOfBlobsToExtract >= minimumNumberOfBlobs )
+    {
+    if( strcmp( transform.c_str(), "affine" ) == 0 )
+      {
+      typename AffineTransformType::Pointer initialAffineTransform =
+        GetTransformFromFeatureMatching<ImageType, AffineTransformType>( fixedImage, movingImage, numberOfBlobsToExtract, numberOfBlobsToMatch );
+
+      initialTransform->SetOffset( initialAffineTransform->GetOffset() );
+      initialTransform->SetMatrix( initialAffineTransform->GetMatrix() );
+      }
+    else  // RigidTransform or SimilarityTransform
+      {
+      typename LandmarkRigidTransformType::Pointer initialRigidTransform =
+        GetTransformFromFeatureMatching<ImageType, LandmarkRigidTransformType>( fixedImage, movingImage, numberOfBlobsToExtract, numberOfBlobsToMatch );
+
+      initialTransform->SetOffset( initialRigidTransform->GetOffset() );
+      initialTransform->SetMatrix( initialRigidTransform->GetMatrix() );
+      }
+    }
+  else
+    {
+    bool doAlignPrincipalAxes = false;
+
+    itk::ants::CommandLineParser::OptionType::Pointer axesOption = parser->GetOption( "align-principal-axes" );
+    if( axesOption && axesOption->GetNumberOfFunctions() )
+      {
+      doAlignPrincipalAxes = parser->Convert<bool>( axesOption->GetFunction( 0 )->GetName() );
+      }
+
+    typedef typename itk::ImageMomentsCalculator<ImageType> ImageMomentsCalculatorType;
+    typedef typename ImageMomentsCalculatorType::MatrixType MatrixType;
+
+    typename ImageMomentsCalculatorType::Pointer fixedImageMomentsCalculator = ImageMomentsCalculatorType::New();
+    typename ImageMomentsCalculatorType::Pointer movingImageMomentsCalculator = ImageMomentsCalculatorType::New();
+
+    fixedImageMomentsCalculator->SetImage( fixedImage );
+    fixedImageMomentsCalculator->Compute();
+    VectorType fixedImageCenterOfGravity = fixedImageMomentsCalculator->GetCenterOfGravity();
+    MatrixType fixedImagePrincipalAxes = fixedImageMomentsCalculator->GetPrincipalAxes();
+
+    movingImageMomentsCalculator->SetImage( movingImage );
+    movingImageMomentsCalculator->Compute();
+    VectorType movingImageCenterOfGravity = movingImageMomentsCalculator->GetCenterOfGravity();
+    MatrixType movingImagePrincipalAxes = movingImageMomentsCalculator->GetPrincipalAxes();
+
+    // RealType bestScale = 1.0; // movingImageMomentsCalculator->GetTotalMass() / fixedImageMomentsCalculator->GetTotalMass();
+
+    typename AffineTransformType::OffsetType offset;
+    itk::Point<RealType, ImageDimension> center;
+    for( unsigned int i = 0; i < ImageDimension; i++ )
+      {
+      offset[i] = movingImageCenterOfGravity[i] - fixedImageCenterOfGravity[i];
+      center[i] = fixedImageCenterOfGravity[i];
+      }
+    initialTransform->SetOffset( offset );
+
+    /** Solve Wahba's problem --- http://en.wikipedia.org/wiki/Wahba%27s_problem */
+
+    vnl_vector<RealType> fixedPrimaryEigenVector;
+    vnl_vector<RealType> fixedSecondaryEigenVector;
+    vnl_vector<RealType> fixedTertiaryEigenVector;
+    vnl_vector<RealType> movingPrimaryEigenVector;
+    vnl_vector<RealType> movingSecondaryEigenVector;
+
+    vnl_matrix<RealType> B;
+
+    if( ImageDimension == 2 )
+      {
+      fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+      movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+
+      B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector );
+      }
+    else if( ImageDimension == 3 )
+      {
+      fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
+      fixedSecondaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+
+      movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
+      movingSecondaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+
+      B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector ) +
+        outer_product( movingSecondaryEigenVector, fixedSecondaryEigenVector );
+      }
+
+    if( doAlignPrincipalAxes )
+      {
+      vnl_svd<RealType> wahba( B );
+      vnl_matrix<RealType> A = wahba.V() * wahba.U().transpose();
+      A = vnl_inverse( A );
+      RealType det = vnl_determinant( A );
+
+      if( det < 0.0 )
         {
-        std::cout << "Bad determinant = " << det << std::endl;
-        std::cout <<  "  det( V ) = " <<  vnl_determinant( wahba.V() ) << std::endl;
-        std::cout <<  "  det( U ) = " << vnl_determinant( wahba.U() )  << std::endl;
-        }
-      vnl_matrix<RealType> I( A );
-      I.set_identity();
-      for( unsigned int i = 0; i < ImageDimension; i++ )
-        {
-        if( A( i, i ) < 0.0 )
+        if( verbose )
           {
-          I( i, i ) = -1.0;
+          std::cout << "Bad determinant = " << det << std::endl;
+          std::cout <<  "  det( V ) = " <<  vnl_determinant( wahba.V() ) << std::endl;
+          std::cout <<  "  det( U ) = " << vnl_determinant( wahba.U() )  << std::endl;
+          }
+        vnl_matrix<RealType> I( A );
+        I.set_identity();
+        for( unsigned int i = 0; i < ImageDimension; i++ )
+          {
+          if( A( i, i ) < 0.0 )
+            {
+            I( i, i ) = -1.0;
+            }
+          }
+        A = A * I.transpose();
+        det = vnl_determinant( A );
+
+        if( verbose )
+          {
+          std::cout << "New determinant = " << det << std::endl;
           }
         }
-      A = A * I.transpose();
-      det = vnl_determinant( A );
-
-      if( verbose )
-        {
-        std::cout << "New determinant = " << det << std::endl;
-        }
+      initialTransform->SetMatrix( A );
       }
-    initialTransform->SetMatrix( A );
+    initialTransform->SetCenter( center );
+
+    if( ImageDimension == 2 )
+      {
+      fixedTertiaryEigenVector = fixedSecondaryEigenVector;
+      fixedSecondaryEigenVector = fixedPrimaryEigenVector;
+      }
+    if( ImageDimension == 3 )
+      {
+      fixedTertiaryEigenVector = vnl_cross_3d( fixedPrimaryEigenVector, fixedSecondaryEigenVector );
+      }
+
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      axis1[d] = fixedTertiaryEigenVector[d];
+      axis2[d] = fixedSecondaryEigenVector[d];
+      }
     }
-  initialTransform->SetCenter( center );
 
   /////////////////////////////////////////////////////////////////
   //
@@ -515,80 +1146,25 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
   imageMetric->Initialize();
 
-  /////////////////////////////////////////////////////////////////
-  //
-  //         Get the transform and set up the optimizers
-  //
-  /////////////////////////////////////////////////////////////////
-
-  std::string transform = "";
-  std::string outputTransformTypeName = "";
-  RealType learningRate = 0.1;
-  RealType searchFactor = 10.0 * vnl_math::pi / 180.0;
-  RealType arcFraction = 1.0;
-
-  itk::ants::CommandLineParser::OptionType::Pointer searchFactorOption = parser->GetOption( "search-factor" );
-  if( searchFactorOption && searchFactorOption->GetNumberOfFunctions() )
-    {
-    if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
-      {
-      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetName() ) * vnl_math::pi / 180.0;
-      }
-    if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
-      {
-      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter() ) * vnl_math::pi / 180.0;
-      }
-    if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
-      {
-      arcFraction = parser->Convert<RealType>( searchFactorOption->GetFunction( 1 )->GetParameter() );
-      }
-    }
-
-  itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
-  if( transformOption && transformOption->GetNumberOfFunctions() )
-    {
-    transform = transformOption->GetFunction( 0 )->GetName();
-    ConvertToLowerCase( transform );
-    if( transformOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
-      {
-      learningRate = parser->Convert<RealType>( transformOption->GetFunction( 0 )->GetParameter( 0 ) );
-      }
-    }
-
-  typename AffineTransformType::Pointer affineSearchTransform = AffineTransformType::New();
-  typename RigidTransformType::Pointer rigidSearchTransform = RigidTransformType::New();
-  typename SimilarityTransformType::Pointer similaritySearchTransform = SimilarityTransformType::New();
-
-  unsigned int numberOfTransformParameters = 0;
   if( strcmp( transform.c_str(), "affine" ) == 0 )
     {
-    numberOfTransformParameters = AffineTransformType::ParametersDimension;
-    outputTransformTypeName = std::string( "Affine" );
-
     imageMetric->SetMovingTransform( affineSearchTransform );
     }
   else if( strcmp( transform.c_str(), "rigid" ) == 0 )
     {
-    numberOfTransformParameters = RigidTransformType::ParametersDimension;
-    outputTransformTypeName = std::string( "Rigid" );
-
     imageMetric->SetMovingTransform( rigidSearchTransform );
     }
   else if( strcmp( transform.c_str(), "similarity" ) == 0 )
     {
-    numberOfTransformParameters = SimilarityTransformType::ParametersDimension;
-    outputTransformTypeName = std::string( "Similarity" );
-
     imageMetric->SetMovingTransform( similaritySearchTransform );
     }
-  else
-    {
-    if( verbose )
-      {
-      std::cerr << "Unrecognized transform option." << std::endl;
-      }
-    return EXIT_FAILURE;
-    }
+
+
+  /////////////////////////////////////////////////////////////////
+  //
+  //         Set up the optimizers
+  //
+  /////////////////////////////////////////////////////////////////
 
   unsigned int numberOfIterations = 20;
   unsigned int convergenceWindowSize = 5;
@@ -642,25 +1218,6 @@ int antsAI( itk::ants::CommandLineParser *parser )
   typename MultiStartOptimizerType::Pointer multiStartOptimizer = MultiStartOptimizerType::New();
   multiStartOptimizer->SetScales( movingScales );
   multiStartOptimizer->SetMetric( imageMetric );
-
-  if( ImageDimension == 2 )
-    {
-    fixedTertiaryEigenVector = fixedSecondaryEigenVector;
-    fixedSecondaryEigenVector = fixedPrimaryEigenVector;
-    }
-  if( ImageDimension == 3 )
-    {
-    fixedTertiaryEigenVector = vnl_cross_3d( fixedPrimaryEigenVector, fixedSecondaryEigenVector );
-    }
-
-  itk::Vector<RealType, ImageDimension> axis1;
-  itk::Vector<RealType, ImageDimension> axis2;
-
-  for( unsigned int d = 0; d < ImageDimension; d++ )
-    {
-    axis1[d] = fixedTertiaryEigenVector[d];
-    axis2[d] = fixedSecondaryEigenVector[d];
-    }
 
   typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
   for( RealType angle1 = ( vnl_math::pi_over_4 * -arcFraction ); angle1 <= ( vnl_math::pi_over_4 * arcFraction ); angle1 += searchFactor )
@@ -849,11 +1406,25 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   }
 
   {
-  std::string description = std::string( "Boolean indicating alignment by principal axes." );
+  std::string description = std::string( "Boolean indicating alignment by principal axes.  " )
+    + std::string( "Alternatively, one can align using blobs (see -b option)." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "align-principal-axes" );
   option->SetShortName( 'p' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "Boolean indicating alignment by a set of blobs.  " )
+    + std::string( "Alternatively, one can align using blobs (see -p option)." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "align-blobs" );
+  option->SetShortName( 'b' );
+  option->SetUsageOption(  0, "numberOfBlobsToExtract" );
+  option->SetUsageOption(  1, "[numberOfBlobsToExtract,<numberOfBlobsToMatch=numberOfBlobsToExtract>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
