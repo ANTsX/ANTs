@@ -156,7 +156,7 @@ int antsApplyTransformsToPoints(
 
     std::vector<bool> isDerivedTransform;
     typename CompositeTransformType::Pointer compositeTransform =
-      GetCompositeTransformFromParserOption<RealType, Dimension>( parser, transformOption, isDerivedTransform );
+      GetCompositeTransformFromParserOption<RealType, Dimension>( parser, transformOption, isDerivedTransform, forANTsR );
 
     if ( compositeTransform->GetNumberOfTransforms() == 0 )
       compositeTransform->AddTransform( aff );
