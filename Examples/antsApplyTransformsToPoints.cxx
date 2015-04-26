@@ -24,7 +24,8 @@
 namespace ants
 {
 template <unsigned int Dimension, class RealType>
-int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser )
+int antsApplyTransformsToPoints(
+  itk::ants::CommandLineParser::Pointer & parser )
 {
   typedef vnl_matrix<RealType> MatrixType;
   MatrixType points_out;
@@ -35,6 +36,15 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
   typedef typename DataFrameObjectType::StringVectorType StringVectorType;
   StringVectorType colheadernames;
   typename ImageType::Pointer pointimage = ITK_NULLPTR;
+
+  itk::ants::CommandLineParser::OptionType::Pointer antsrOption =
+    parser->GetOption( "forantsr" );
+  unsigned int forANTsR = 0;
+  if( antsrOption && antsrOption->GetNumberOfFunctions() > 0 )
+    {
+    forANTsR = parser->Convert<unsigned int>(
+      antsrOption->GetFunction( 0 )->GetName() );
+    }
 
   /**
    * Input object option - for now, we're limiting this to images.
@@ -76,7 +86,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       points_in = dfo->GetMatrix();
       points_out.set_size( points_in.rows(),  points_in.cols() );
       }
-    else if( strcmp(ext.c_str(), ".mha") == 0 )
+    else if( strcmp(ext.c_str(), ".mha") == 0 || forANTsR )
       {
       std::string fn1 = inputOption->GetFunction( 0 )->GetName();
       ReadImage<ImageType>( pointimage, fn1.c_str() );
@@ -210,8 +220,9 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
           return EXIT_FAILURE;
           }
         }
-      if( ( strcmp(exto.c_str(), ".mha" ) == 0 ) &&
-          (  ! pointimage.IsNull() ) )
+      if( ( strcmp(exto.c_str(), ".mha" ) == 0 ||
+            forANTsR )
+         &&  (  ! pointimage.IsNull() ) )
         {
         typename ImageType::IndexType ind;
         ind.Fill(0);
@@ -261,6 +272,17 @@ static void antsApplyTransformsToPointsInitializeCommandLineOptions( itk::ants::
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "precision" );
     option->SetShortName( 'p' );
+    option->SetUsageOption( 0, "0/1" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "set true for ANTsR IO" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "forantsr" );
+    option->SetShortName( 'f' );
     option->SetUsageOption( 0, "0/1" );
     option->SetDescription( description );
     parser->AddOption( option );
