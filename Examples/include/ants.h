@@ -105,6 +105,8 @@
 
 #include "GetMeshAndTopology.h"
 
+#include "iMath.h"
+
 #include "ImageCompare.h"
 
 #include "ImageMath.h"
