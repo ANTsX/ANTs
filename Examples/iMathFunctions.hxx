@@ -20,6 +20,8 @@
 #include "itkCastImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
+#include "itkShiftScaleImageFilter.h"
+#include "itkStatisticsImageFilter.h"
 
 namespace ants
 {
@@ -182,41 +184,21 @@ iMathNormalize( typename ImageType::Pointer image )
   typedef itk::ImageRegionIteratorWithIndex<ImageType>  Iterator;
   typedef typename ImageType::Pointer                   ImagePointerType;
 
-  PixelType         max = 0;
-  PixelType         min = 1.e9;
-  unsigned long     ct = 0;
+  typedef itk::StatisticsImageFilter<ImageType> StatsFilterType;
+  typename StatsFilterType::Pointer statsFilter = StatsFilterType::New();
+  statsFilter->SetInput( image );
+  statsFilter->Update();
+  PixelType max = statsFilter->GetMaximum();
+  PixelType min = statsFilter->GetMinimum();
 
-  typedef itk::CastImageFilter<ImageType,ImageType> CopyFilterType;
-  typename CopyFilterType::Pointer copyFilter = CopyFilterType::New();
-  copyFilter->SetInput( image );
-  copyFilter->Update();
-  ImagePointerType output = copyFilter->GetOutput();
+  typedef itk::ShiftScaleImageFilter<ImageType,ImageType> NormFilterType;
+  typename NormFilterType::Pointer normFilter = NormFilterType::New();
+  normFilter->SetInput( image );
+  normFilter->SetShift( -min );
+  normFilter->SetScale( 1.0/(max-min) );
+  normFilter->Update();
 
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  Iterator iter( output,  output->GetLargestPossibleRegion() );
-  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
-    float pix = iter.Get();
-
-    ct++;
-    if( pix > max )
-      {
-      max = pix;
-      }
-    if( pix < min )
-      {
-      min = pix;
-      }
-    }
-
-  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
-    float pix = iter.Get();
-    pix = (pix - min) / (max - min);
-    iter.Set(pix);
-    }
-
-  return output;
+  return normFilter->GetOutput();
 }
 
 
