@@ -162,7 +162,43 @@ iMathHelperAll(int argc, char **argv)
   std::string inName = std::string(argv[4]);
   std::string outName = std::string(argv[2]);
 
-  if( operation == "GetLargestComponent" )
+  if( operation == "Canny" )
+    {
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    if ( argc < 8 )
+    {
+      std::cout << "Canny: Not enough input parameters" << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    double sigma = atof( argv[5] );
+    double lower = atof( argv[6] );
+    double upper = atof( argv[7] );
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathCanny<ImageType>(input,sigma,lower,upper);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "Canny: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "GetLargestComponent" )
     {
     unsigned long smallest = 50;
     if ( argc > 5)
@@ -194,6 +230,33 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if( operation == "Normalize" )
+    {
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathNormalize<ImageType>(input);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "Normalize: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+
 
   return EXIT_FAILURE;
 }

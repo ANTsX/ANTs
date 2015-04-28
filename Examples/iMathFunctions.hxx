@@ -16,12 +16,35 @@
 #include "antsUtilities.h"
 
 #include "itkBinaryThresholdImageFilter.h"
+#include "itkCannyEdgeDetectionImageFilter.h"
+#include "itkCastImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 
 namespace ants
 {
 
+template <class ImageType>
+typename ImageType::Pointer
+iMathCanny( typename ImageType::Pointer image,
+            double sigma,
+            double lowerThreshold,
+            double upperThreshold )
+{
+
+  typedef typename ImageType::PixelType            PixelType;
+  typedef itk::CannyEdgeDetectionImageFilter< ImageType, ImageType >  FilterType;
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetVariance( sigma );
+  filter->SetUpperThreshold( (PixelType) upperThreshold );
+  filter->SetLowerThreshold( (PixelType) lowerThreshold );
+  filter->Update();
+
+  return filter->GetOutput();
+
+}
 
 template <class ImageType>
 typename ImageType::Pointer
@@ -145,6 +168,57 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
 
   return image;
 }
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathNormalize( typename ImageType::Pointer image )
+{
+  if ( image->GetNumberOfComponentsPerPixel() != 1 )
+    {
+    // NOPE
+    }
+
+  typedef typename ImageType::PixelType                 PixelType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>  Iterator;
+  typedef typename ImageType::Pointer                   ImagePointerType;
+
+  PixelType         max = 0;
+  PixelType         min = 1.e9;
+  unsigned long     ct = 0;
+
+  typedef itk::CastImageFilter<ImageType,ImageType> CopyFilterType;
+  typename CopyFilterType::Pointer copyFilter = CopyFilterType::New();
+  copyFilter->SetInput( image );
+  copyFilter->Update();
+  ImagePointerType output = copyFilter->GetOutput();
+
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  Iterator iter( output,  output->GetLargestPossibleRegion() );
+  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+    {
+    float pix = iter.Get();
+
+    ct++;
+    if( pix > max )
+      {
+      max = pix;
+      }
+    if( pix < min )
+      {
+      min = pix;
+      }
+    }
+
+  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+    {
+    float pix = iter.Get();
+    pix = (pix - min) / (max - min);
+    iter.Set(pix);
+    }
+
+  return output;
+}
+
 
 
 } // namespace ants

@@ -20,11 +20,19 @@ namespace ants
 {
 // Templated functions that perform the work for
 // iMath.cxx and iMath.cpp (in ANTSR)
+template <class ImageType>
+typename ImageType::Pointer
+iMathCanny(typename ImageType::Pointer image,
+                    unsigned long smallest );
 
 template <class ImageType>
 typename ImageType::Pointer
 iMathGetLargestComponent(typename ImageType::Pointer image,
                     unsigned long smallest );
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGetLargestComponent(typename ImageType::Pointer image);
 
 }
 
