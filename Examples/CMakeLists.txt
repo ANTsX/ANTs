@@ -40,7 +40,6 @@ endmacro()
 set(CORE_ANTS_APPS
   antsAffineInitializer
   antsAI
-  SurfaceCurvature
   SurfaceBasedSmoothing
   CreateJacobianDeterminantImage
   ThresholdImage
@@ -77,6 +76,7 @@ set(MORE_ANTS_APPS
     SetOrigin
     SetSpacing
     SetDirectionByMatrix
+    SurfaceCurvature
     ConvertScalarImageToRGB
     CreateWarpedGridImage
     MeasureImageSimilarity

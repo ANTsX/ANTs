@@ -11,6 +11,7 @@
 #include "itkConstantPadImageFilter.h"
 #include "itkExtractImageFilter.h"
 #include "itkFlipImageFilter.h"
+#include "itkImageDuplicator.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkLabelStatisticsImageFilter.h"
@@ -34,7 +35,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
   typedef itk::Image<PixelType, ImageDimension-1>    SliceType;
   typedef itk::Image<RgbPixelType, ImageDimension-1> RgbSliceType;
 
-  typedef itk::Image<RgbPixelType, ImageDimension> RgbImageType;
+  typedef itk::Image<RgbPixelType, ImageDimension>   RgbImageType;
 
   // Read in input image
 
@@ -80,6 +81,143 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     stats->Update();
 
     maskRegion = stats->GetRegion( 1 );
+    }
+
+  // Read in optional Rgb image
+
+  RgbImageType::Pointer rgbImage = ITK_NULLPTR;
+
+  itk::ants::CommandLineParser::OptionType::Pointer rgbImageOption =
+    parser->GetOption( "rgb-image" );
+  if( rgbImageOption && rgbImageOption->GetNumberOfFunctions() )
+    {
+    std::string rgbFile = rgbImageOption->GetFunction( 0 )->GetName();
+    ReadImage<RgbImageType>( rgbImage, rgbFile.c_str() );
+    }
+
+  RealType minIntensityValue = 0.0;
+  RealType maxIntensityValue = 1.0;
+  if( inputImage )
+    {
+    typedef itk::StatisticsImageFilter<ImageType> StatisticsImageFilterType;
+    StatisticsImageFilterType::Pointer statisticsImageFilter = StatisticsImageFilterType::New();
+    statisticsImageFilter->SetInput( inputImage );
+    statisticsImageFilter->Update();
+
+    minIntensityValue = statisticsImageFilter->GetMinimum();
+    maxIntensityValue = statisticsImageFilter->GetMaximum();
+    }
+
+  RealType alpha = 1.0;
+
+  itk::ants::CommandLineParser::OptionType::Pointer alphaOption =
+    parser->GetOption( "alpha" );
+  if( alphaOption && alphaOption->GetNumberOfFunctions() )
+    {
+    alpha = parser->Convert<RealType>( alphaOption->GetFunction( 0 )->GetName() );
+
+    if( alpha < 0 || alpha > 1.0 )
+      {
+      std::cerr << "The alpha parameter must be between 0 and 1." << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  // Add the functional overlays
+
+  std::vector<RgbImageType::Pointer>    functionalRgbImages;
+  std::vector<ImageType::Pointer>       functionalMaskImages;
+  std::vector<RealType>                 functionalAlphaValues;
+
+  if( rgbImage )
+    {
+    functionalRgbImages.push_back( rgbImage );
+    functionalAlphaValues.push_back( alpha );
+    if( maskImage.IsNull() )
+      {
+      maskImage = ImageType::New();
+      maskImage->CopyInformation( rgbImage );
+      maskImage->SetRegions( rgbImage->GetRequestedRegion() );
+      maskImage->Allocate();
+      maskImage->FillBuffer( 1 );
+
+      typedef itk::Image<unsigned short, ImageDimension>      ShortImageType;
+      typedef itk::CastImageFilter<ImageType, ShortImageType> CasterType;
+      CasterType::Pointer caster = CasterType::New();
+      caster->SetInput( maskImage );
+      caster->Update();
+
+      typedef itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType> StatsFilterType;
+      StatsFilterType::Pointer stats = StatsFilterType::New();
+      stats->SetLabelInput( caster->GetOutput() );
+      stats->SetInput( caster->GetOutput() );
+      stats->Update();
+
+      maskRegion = stats->GetRegion( 1 );
+      }
+    functionalMaskImages.push_back( maskImage );
+    }
+
+  itk::ants::CommandLineParser::OptionType::Pointer functionalOverlayOption =
+    parser->GetOption( "functional-overlay" );
+  if( functionalOverlayOption && functionalOverlayOption->GetNumberOfFunctions() )
+    {
+    for( unsigned int n = 0; n < functionalOverlayOption->GetNumberOfFunctions(); n++ )
+      {
+      if( functionalOverlayOption->GetFunction( n )->GetNumberOfParameters() < 2 )
+        {
+        std::cerr << "Error:  each functional overlay must have an RGB image and mask."
+          << "See help menu." << std::endl;
+        return EXIT_FAILURE;
+        }
+
+      // read RGB image
+
+      std::string rgbFileName = functionalOverlayOption->GetFunction( n )->GetParameter( 0 );
+
+      typedef itk::ImageFileReader<RgbImageType> RgbReaderType;
+      RgbReaderType::Pointer rgbReader = RgbReaderType::New();
+      rgbReader->SetFileName( rgbFileName.c_str() );
+      try
+        {
+        rgbReader->Update();
+        }
+      catch( ... )
+        {
+        std::cerr << "Error reading RGB file " << rgbFileName << std::endl;
+        return EXIT_FAILURE;
+        }
+      functionalRgbImages.push_back( rgbReader->GetOutput() );
+
+      // read mask
+
+      std::string maskFileName = functionalOverlayOption->GetFunction( n )->GetParameter( 1 );
+
+      typedef itk::ImageFileReader<ImageType> MaskReaderType;
+      MaskReaderType::Pointer maskReader = MaskReaderType::New();
+      maskReader->SetFileName( maskFileName.c_str() );
+      try
+        {
+        maskReader->Update();
+        }
+      catch( ... )
+        {
+        std::cerr << "Error reading mask file " << maskFileName << std::endl;
+        return EXIT_FAILURE;
+        }
+      functionalMaskImages.push_back( maskReader->GetOutput() );
+
+      if( functionalOverlayOption->GetFunction( n )->GetNumberOfParameters() > 2 )
+        {
+        RealType localAlpha = parser->Convert<RealType>(
+          functionalOverlayOption->GetFunction( n )->GetParameter( 2 ) );
+        functionalAlphaValues.push_back( localAlpha );
+        }
+      else
+        {
+        functionalAlphaValues.push_back( 1.0 );
+        }
+      }
     }
 
   // Get direction.  If not specified, pick direction with coarsest spacing.
@@ -478,46 +616,6 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     doPermute = parser->Convert<bool>( permuteOption->GetFunction( 0 )->GetName() );
     }
 
-  // Read in optional Rgb image
-
-  RgbImageType::Pointer rgbImage = ITK_NULLPTR;
-
-  itk::ants::CommandLineParser::OptionType::Pointer rgbImageOption =
-    parser->GetOption( "rgb-image" );
-  if( rgbImageOption && rgbImageOption->GetNumberOfFunctions() )
-    {
-    std::string rgbFile = rgbImageOption->GetFunction( 0 )->GetName();
-    ReadImage<RgbImageType>( rgbImage, rgbFile.c_str() );
-    }
-
-  RealType minIntensityValue = 0.0;
-  RealType maxIntensityValue = 1.0;
-  if( rgbImage )
-    {
-    typedef itk::StatisticsImageFilter<ImageType> StatisticsImageFilterType;
-    StatisticsImageFilterType::Pointer statisticsImageFilter = StatisticsImageFilterType::New();
-    statisticsImageFilter->SetInput( inputImage );
-    statisticsImageFilter->Update();
-
-    minIntensityValue = statisticsImageFilter->GetMinimum();
-    maxIntensityValue = statisticsImageFilter->GetMaximum();
-    }
-
-  RealType alpha = 1.0;
-
-  itk::ants::CommandLineParser::OptionType::Pointer alphaOption =
-    parser->GetOption( "alpha" );
-  if( alphaOption && alphaOption->GetNumberOfFunctions() )
-    {
-    alpha = parser->Convert<RealType>( alphaOption->GetFunction( 0 )->GetName() );
-
-    if( alpha < 0 || alpha > 1.0 )
-      {
-      std::cerr << "The alpha parameter must be between 0 and 1." << std::endl;
-      return EXIT_FAILURE;
-      }
-    }
-
   // Now do the tiling
 
   std::cout << "Slices[" << direction << "]: " << whichSlices.size() << std::endl;
@@ -543,13 +641,13 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
   for( unsigned int i = 0; i < whichSlices.size(); i++ )
     {
-    unsigned int n = whichSlices[i];
+    unsigned int whichSlice = whichSlices[i];
 
-    std::cout << "Processing slice " << n << std::endl;
+    std::cout << "Processing slice " << whichSlice << std::endl;
 
     ImageType::IndexType index;
     index.Fill( 0 );
-    index[direction] = static_cast<int>( n );
+    index[direction] = static_cast<int>( whichSlice );
     region.SetIndex( index );
     region.SetSize( size );
 
@@ -620,16 +718,18 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     outputSlice2->Update();
     outputSlice2->DisconnectPipeline();
 
-    if( rgbImage )
+    if( functionalRgbImages.size() > 0 )
       {
+      RgbSliceType::Pointer compositeRgbSlice = ITK_NULLPTR;
+      RealType compositeAlpha = 1.0;
 
-      SliceType::Pointer outputMaskSlice = ITK_NULLPTR;
-      SliceType::Pointer outputMaskSlice2 = ITK_NULLPTR;
-
-      if( maskImage )
+      for( unsigned int n = 0; n < functionalRgbImages.size(); n++ )
         {
+        SliceType::Pointer outputMaskSlice = ITK_NULLPTR;
+        SliceType::Pointer outputMaskSlice2 = ITK_NULLPTR;
+
         ExtracterType::Pointer maskExtracter = ExtracterType::New();
-        maskExtracter->SetInput( maskImage );
+        maskExtracter->SetInput( functionalMaskImages[n] );
         maskExtracter->SetExtractionRegion( region );
         maskExtracter->SetDirectionCollapseToIdentity();
 
@@ -676,103 +776,148 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         outputMaskSlice2 = maskPermuteAxesFilter->GetOutput();
         outputMaskSlice2->Update();
         outputMaskSlice2->DisconnectPipeline();
-        }
 
-      RgbSliceType::Pointer outputRgbSlice = ITK_NULLPTR;
-      RgbSliceType::Pointer outputRgbSlice2 = ITK_NULLPTR;
+        typedef itk::ExtractImageFilter<RgbImageType, RgbSliceType> RgbExtracterType;
+        RgbExtracterType::Pointer rgbExtracter = RgbExtracterType::New();
+        rgbExtracter->SetInput( functionalRgbImages[n] );
+        rgbExtracter->SetExtractionRegion( region );
+        rgbExtracter->SetDirectionCollapseToIdentity();
 
-      typedef itk::ExtractImageFilter<RgbImageType, RgbSliceType> RgbExtracterType;
-      RgbExtracterType::Pointer rgbExtracter = RgbExtracterType::New();
-      rgbExtracter->SetInput( rgbImage );
-      rgbExtracter->SetExtractionRegion( region );
-      rgbExtracter->SetDirectionCollapseToIdentity();
+        RgbSliceType::Pointer outputRgbSlice = ITK_NULLPTR;
+        RgbSliceType::Pointer outputRgbSlice2 = ITK_NULLPTR;
 
-      if( paddingType == -1 )
-        {
-        typedef itk::ExtractImageFilter<RgbSliceType, RgbSliceType> RgbExtracterType2;
-        RgbExtracterType2::Pointer rgbExtracter2 = RgbExtracterType2::New();
-        rgbExtracter2->SetInput( rgbExtracter->GetOutput() );
-        rgbExtracter2->SetExtractionRegion( croppedSliceRegion );
-        rgbExtracter2->SetDirectionCollapseToIdentity();
-
-        outputRgbSlice = rgbExtracter2->GetOutput();
-        outputRgbSlice->Update();
-        outputRgbSlice->DisconnectPipeline();
-        }
-      else if( paddingType == 1 )
-        {
-        typedef itk::ConstantPadImageFilter<RgbSliceType, RgbSliceType> RgbPadderType;
-        RgbPadderType::Pointer rgbPadder = RgbPadderType::New();
-        rgbPadder->SetInput( rgbExtracter->GetOutput() );
-        rgbPadder->SetPadLowerBound( lowerBound );
-        rgbPadder->SetPadUpperBound( upperBound );
-        rgbPadder->SetConstant( static_cast<PixelType>( padValue ) );
-
-        outputRgbSlice = rgbPadder->GetOutput();
-        outputRgbSlice->Update();
-        outputRgbSlice->DisconnectPipeline();
-        }
-      else // paddingType == 0
-        {
-        outputRgbSlice = rgbExtracter->GetOutput();
-        outputRgbSlice->Update();
-        outputRgbSlice->DisconnectPipeline();
-        }
-
-      typedef itk::FlipImageFilter<RgbSliceType> RgbFlipFilterType;
-      RgbFlipFilterType::Pointer rgbFlipper = RgbFlipFilterType::New();
-      RgbFlipFilterType::FlipAxesArrayType rgbFlipArray;
-      rgbFlipArray[0] = doFlipHorizontally;
-      rgbFlipArray[1] = doFlipVertically;
-
-      rgbFlipper->SetInput( outputRgbSlice );
-      rgbFlipper->SetFlipAxes( rgbFlipArray );
-
-      typedef itk::PermuteAxesImageFilter<RgbSliceType> RgbPermuteAxesImageFilterType;
-      itk::FixedArray<unsigned int, 2> rgbOrder;
-      rgbOrder[0] = 0;
-      rgbOrder[1] = 1;
-      if( doPermute )
-        {
-        rgbOrder[0] = 1;
-        rgbOrder[1] = 0;
-        }
-      RgbPermuteAxesImageFilterType::Pointer rgbPermuteAxesFilter = RgbPermuteAxesImageFilterType::New();
-      rgbPermuteAxesFilter->SetInput( rgbFlipper->GetOutput() );
-      rgbPermuteAxesFilter->SetOrder( rgbOrder );
-
-      outputRgbSlice2 = rgbPermuteAxesFilter->GetOutput();
-      outputRgbSlice2->Update();
-      outputRgbSlice2->DisconnectPipeline();
-
-      // combine grayscale slice and rgb slice
-      itk::ImageRegionConstIteratorWithIndex<SliceType> It( outputSlice2,
-        outputSlice2->GetRequestedRegion() );
-      itk::ImageRegionIterator<RgbSliceType> ItRgb( outputRgbSlice2,
-        outputRgbSlice2->GetRequestedRegion() );
-      for( It.GoToBegin(), ItRgb.GoToBegin(); !It.IsAtEnd(); ++It, ++ItRgb )
-        {
-        RgbPixelType rgbPixel = ItRgb.Get();
-        PixelType pixel = ( It.Get() - minIntensityValue ) / ( maxIntensityValue - minIntensityValue )
-          * itk::NumericTraits<RgbComponentType>::max();
-
-        if( outputMaskSlice2 && outputMaskSlice2->GetPixel( It.GetIndex() ) == 0 )
+        if( paddingType == -1 )
           {
-          rgbPixel.SetRed( pixel );
-          rgbPixel.SetGreen( pixel );
-          rgbPixel.SetBlue( pixel );
+          typedef itk::ExtractImageFilter<RgbSliceType, RgbSliceType> RgbExtracterType2;
+          RgbExtracterType2::Pointer rgbExtracter2 = RgbExtracterType2::New();
+          rgbExtracter2->SetInput( rgbExtracter->GetOutput() );
+          rgbExtracter2->SetExtractionRegion( croppedSliceRegion );
+          rgbExtracter2->SetDirectionCollapseToIdentity();
+
+          outputRgbSlice = rgbExtracter2->GetOutput();
+          outputRgbSlice->Update();
+          outputRgbSlice->DisconnectPipeline();
           }
-        else
+        else if( paddingType == 1 )
           {
-          rgbPixel.SetRed( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetRed() ) );
-          rgbPixel.SetGreen( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetGreen() ) );
-          rgbPixel.SetBlue( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetBlue() ) );
+          typedef itk::ConstantPadImageFilter<RgbSliceType, RgbSliceType> RgbPadderType;
+          RgbPadderType::Pointer rgbPadder = RgbPadderType::New();
+          rgbPadder->SetInput( rgbExtracter->GetOutput() );
+          rgbPadder->SetPadLowerBound( lowerBound );
+          rgbPadder->SetPadUpperBound( upperBound );
+          rgbPadder->SetConstant( static_cast<PixelType>( padValue ) );
+
+          outputRgbSlice = rgbPadder->GetOutput();
+          outputRgbSlice->Update();
+          outputRgbSlice->DisconnectPipeline();
+          }
+        else // paddingType == 0
+          {
+          outputRgbSlice = rgbExtracter->GetOutput();
+          outputRgbSlice->Update();
+          outputRgbSlice->DisconnectPipeline();
           }
 
-        ItRgb.Set( rgbPixel );
-        }
+        typedef itk::FlipImageFilter<RgbSliceType> RgbFlipFilterType;
+        RgbFlipFilterType::Pointer rgbFlipper = RgbFlipFilterType::New();
+        RgbFlipFilterType::FlipAxesArrayType rgbFlipArray;
+        rgbFlipArray[0] = doFlipHorizontally;
+        rgbFlipArray[1] = doFlipVertically;
 
-      rgbTileFilter->SetInput( i, outputRgbSlice2 );
+        rgbFlipper->SetInput( outputRgbSlice );
+        rgbFlipper->SetFlipAxes( rgbFlipArray );
+
+        typedef itk::PermuteAxesImageFilter<RgbSliceType> RgbPermuteAxesImageFilterType;
+        itk::FixedArray<unsigned int, 2> rgbOrder;
+        rgbOrder[0] = 0;
+        rgbOrder[1] = 1;
+        if( doPermute )
+          {
+          rgbOrder[0] = 1;
+          rgbOrder[1] = 0;
+          }
+        RgbPermuteAxesImageFilterType::Pointer rgbPermuteAxesFilter = RgbPermuteAxesImageFilterType::New();
+        rgbPermuteAxesFilter->SetInput( rgbFlipper->GetOutput() );
+        rgbPermuteAxesFilter->SetOrder( rgbOrder );
+
+        outputRgbSlice2 = rgbPermuteAxesFilter->GetOutput();
+        outputRgbSlice2->Update();
+        outputRgbSlice2->DisconnectPipeline();
+
+        RealType functionalAlpha = functionalAlphaValues[n];
+        RealType backgroundAlpha = compositeAlpha;
+        RealType currentAlpha = 1.0 - ( 1.0 - functionalAlpha ) * ( 1.0 - backgroundAlpha );
+
+        // combine grayscale slice and rgb slice
+        itk::ImageRegionConstIteratorWithIndex<SliceType> It( outputSlice2,
+          outputSlice2->GetRequestedRegion() );
+        itk::ImageRegionIterator<RgbSliceType> ItRgb( outputRgbSlice2,
+          outputRgbSlice2->GetRequestedRegion() );
+        for( It.GoToBegin(), ItRgb.GoToBegin(); !It.IsAtEnd(); ++It, ++ItRgb )
+          {
+          RgbPixelType rgbPixel = ItRgb.Get();
+
+          if( n == 0 )
+            {
+            PixelType pixel = 255 * ( It.Get() - minIntensityValue ) / ( maxIntensityValue - minIntensityValue );
+
+            if( outputMaskSlice2 && outputMaskSlice2->GetPixel( It.GetIndex() ) != 0 )
+              {
+              rgbPixel.SetRed( static_cast<RgbComponentType>( ( 1.0 - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetRed() ) );
+              rgbPixel.SetGreen( static_cast<RgbComponentType>( ( 1.0 - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetGreen() ) );
+              rgbPixel.SetBlue( static_cast<RgbComponentType>( ( 1.0 - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetBlue() ) );
+              }
+            else
+              {
+              rgbPixel.SetRed( pixel );
+              rgbPixel.SetGreen( pixel );
+              rgbPixel.SetBlue( pixel );
+              }
+            ItRgb.Set( rgbPixel );
+            }
+          else
+            {
+            // http://stackoverflow.com/questions/726549/algorithm-for-additive-color-mixing-for-rgb-values
+            // or
+            // http://en.wikipedia.org/wiki/Alpha_compositing
+
+            if( outputMaskSlice2 && outputMaskSlice2->GetPixel( It.GetIndex() ) != 0 )
+              {
+
+              RealType functionalRed = rgbPixel.GetRed() / 255.0;
+              RealType functionalGreen = rgbPixel.GetGreen() / 255.0;
+              RealType functionalBlue = rgbPixel.GetBlue() / 255.0;
+
+              RgbPixelType backgroundRgbPixel = compositeRgbSlice->GetPixel( It.GetIndex() );
+
+              RealType backgroundRed   = backgroundRgbPixel.GetRed() / 255.0;
+              RealType backgroundGreen = backgroundRgbPixel.GetGreen() / 255.0;
+              RealType backgroundBlue  = backgroundRgbPixel.GetBlue() / 255.0;
+
+              RealType currentRed   = functionalRed   * functionalAlpha / currentAlpha + backgroundRed   * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
+              RealType currentGreen = functionalGreen * functionalAlpha / currentAlpha + backgroundGreen * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
+              RealType currentBlue  = functionalBlue  * functionalAlpha / currentAlpha + backgroundBlue  * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
+
+              rgbPixel.SetRed( currentRed * 255.0 );
+              rgbPixel.SetGreen( currentGreen * 255.0 );
+              rgbPixel.SetBlue( currentBlue * 255.0 );
+
+              compositeRgbSlice->SetPixel( It.GetIndex(), rgbPixel );
+              }
+            }
+          }
+        if( n == 0 )
+          {
+          typedef itk::ImageDuplicator<RgbSliceType> DuplicatorType;
+          DuplicatorType::Pointer duplicator = DuplicatorType::New();
+          duplicator->SetInputImage( outputRgbSlice2 );
+          duplicator->Update();
+
+          compositeRgbSlice = duplicator->GetOutput();
+          }
+        compositeAlpha = currentAlpha;
+        }
+      rgbTileFilter->SetInput( i, compositeRgbSlice );
       }
     else
       {
@@ -785,7 +930,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     std::string outputFile = outputOption->GetFunction( 0 )->GetName();
-    if( rgbImage )
+    if( functionalRgbImages.size() > 0 )
       {
       rgbTileFilter->Update();
       WriteImage<RgbSliceType>( rgbTileFilter->GetOutput(), outputFile.c_str() );
@@ -856,6 +1001,26 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "alpha" );
     option->SetShortName( 'a' );
     option->SetUsageOption( 0, "value" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "A functional overlay can be specified using both " )
+      + std::string( "and rgb image and a mask specifying where that " )
+      + std::string( "rgb image should be applied.  Both images must " )
+      + std::string( "have the same image geometry as the input image. " )
+      + std::string( "Optionally, an alpha parameter can be specified." )
+      + std::string( "Note that more than one functional overlays can " )
+      + std::string( "be rendered, the order in which they are specified " )
+      + std::string( "on the command line matters, and rgb images are " )
+      + std::string( "assumed to be unsigned char [0,255]." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "functional-overlay" );
+    option->SetShortName( 'e' );
+    option->SetUsageOption( 0, "[rgbImageFileName,maskImageFileName,<alpha=1>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

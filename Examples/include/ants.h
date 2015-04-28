@@ -1,6 +1,10 @@
 #ifndef ants_h
 #define ants_h
 
+#include "../../Utilities/itkSurfaceCurvatureBase.h"
+
+#include "../../Utilities/itkSurfaceImageCurvature.h"
+
 #include "antsAffineInitializer.h"
 
 #include "antsAI.h"
