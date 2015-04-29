@@ -5,6 +5,12 @@
 
 #include "../../Utilities/itkSurfaceImageCurvature.h"
 
+#include "../../Utilities/itkAlternatingValueSimpleSubtractionImageFilter.h"
+
+#include "../../Utilities/itkAverageOverDimensionImageFilter.h"
+
+#include "../../Utilities/itkAlternatingValueDifferenceImageFilter.h"
+
 #include "antsAffineInitializer.h"
 
 #include "antsAI.h"
