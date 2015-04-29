@@ -27,23 +27,23 @@ iMathCanny(typename ImageType::Pointer image );
 template <class ImageType>
 typename ImageType::Pointer
 iMathGetLargestComponent(typename ImageType::Pointer image,
-                         unsigned long smallest );
-
-template <class ImageType>
-typename ImageType::Pointer
-iMathGetLargestComponent(typename ImageType::Pointer image);
+                         unsigned long minSize );
+#define iMathGetLargestComponentMinSize 50;
 
 template <class ImageType>
 typename ImageType::Pointer
 iMathMD(typename ImageType::Pointer image, unsigned long radius );
+#define iMathMDRadius 1;
 
 template <class ImageType>
 typename ImageType::Pointer
 iMathME(typename ImageType::Pointer image, unsigned long radius );
+#define iMathMERadius 1;
 
 template <class ImageType>
 typename ImageType::Pointer
 iMathMO(typename ImageType::Pointer image, unsigned long radius );
+#define iMathMORadius 1;
 
 template <class ImageType>
 typename ImageType::Pointer

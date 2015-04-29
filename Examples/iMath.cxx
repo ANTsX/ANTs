@@ -200,10 +200,10 @@ iMathHelperAll(int argc, char **argv)
     }
   else if( operation == "GetLargestComponent" )
     {
-    unsigned long smallest = 50;
+    unsigned long minSize = iMathGetLargestComponentMinSize;
     if ( argc > 5)
     {
-      smallest = atoi( argv[5] );
+      minSize = atoi( argv[5] );
     }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -218,11 +218,11 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathGetLargestComponent<ImageType>(input, smallest);
+      output = iMathGetLargestComponent<ImageType>(input, minSize);
       }
     catch( itk::ExceptionObject & excep )
       {
-      std::cout << "GetLargestComponent: exception caught !" << std::endl;
+      std::cout << "GetLargestComponents: exception caught !" << std::endl;
       std::cout << excep << std::endl;
       }
 
@@ -232,13 +232,13 @@ iMathHelperAll(int argc, char **argv)
     }
   else if( operation == "MD" )
     {
-    if ( argc < 6 )
-      {
-      std::cout << "MD: too few inputs" << std::endl;
-      return EXIT_FAILURE;
-      }
 
-    unsigned long radius = atoi( argv[5] );
+    unsigned long radius = iMathMDRadius;
+
+    if ( argc >= 6 )
+      {
+      radius = atoi(argv[5]);
+      }
 
     typedef itk::Image<float,DIM> ImageType;
     typename ImageType::Pointer input = NULL;
@@ -264,15 +264,14 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
-  else if( operation == "Me" )
+  else if( operation == "ME" )
     {
-    if ( argc < 6 )
-      {
-      std::cout << "ME: too few inputs" << std::endl;
-      return EXIT_FAILURE;
-      }
+    unsigned long radius = iMathMERadius;
 
-    unsigned long radius = atoi( argv[5] );
+    if ( argc >= 6 )
+      {
+      radius = atoi(argv[5]);
+      }
 
     typedef itk::Image<float,DIM> ImageType;
     typename ImageType::Pointer input = NULL;
@@ -300,13 +299,12 @@ iMathHelperAll(int argc, char **argv)
     }
   else if( operation == "MO" )
     {
-    if ( argc < 6 )
-      {
-      std::cout << "MO: too few inputs" << std::endl;
-      return EXIT_FAILURE;
-      }
+    unsigned long radius = iMathMORadius;
 
-    unsigned long radius = atoi( argv[5] );
+    if ( argc >= 6 )
+      {
+      radius = atoi(argv[5]);
+      }
 
     typedef itk::Image<float,DIM> ImageType;
     typename ImageType::Pointer input = NULL;
