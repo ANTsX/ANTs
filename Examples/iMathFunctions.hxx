@@ -15,6 +15,10 @@
 #include "ReadWriteData.h"
 #include "antsUtilities.h"
 
+#include "itkBinaryBallStructuringElement.h"
+#include "itkBinaryErodeImageFilter.h"
+#include "itkBinaryDilateImageFilter.h"
+#include "itkBinaryMorphologicalOpeningImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkCannyEdgeDetectionImageFilter.h"
 #include "itkCastImageFilter.h"
@@ -169,6 +173,80 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     }
 
   return image;
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathMD( typename ImageType::Pointer image, unsigned long radius )
+{
+
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType                         PixelType;
+
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
+    StructuringElementType;
+
+  typedef itk::BinaryDilateImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetKernel( structuringElement );
+  filter->Update();
+
+  return filter->GetOutput();
+
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathME( typename ImageType::Pointer image, unsigned long radius )
+{
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType                         PixelType;
+
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
+    StructuringElementType;
+
+  typedef itk::BinaryErodeImageFilter< ImageType, ImageType, StructuringElementType >   FilterType;
+
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetKernel( structuringElement );
+  filter->Update();
+
+  return filter->GetOutput();
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathMO( typename ImageType::Pointer image, unsigned long radius )
+{
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType                         PixelType;
+
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
+    StructuringElementType;
+
+  typedef itk::BinaryMorphologicalOpeningImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetKernel( structuringElement );
+  filter->Update();
+
+  return filter->GetOutput();
 }
 
 template <class ImageType>

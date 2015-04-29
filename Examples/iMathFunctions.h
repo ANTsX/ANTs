@@ -22,18 +22,32 @@ namespace ants
 // iMath.cxx and iMath.cpp (in ANTSR)
 template <class ImageType>
 typename ImageType::Pointer
-iMathCanny(typename ImageType::Pointer image,
-                    unsigned long smallest );
+iMathCanny(typename ImageType::Pointer image );
 
 template <class ImageType>
 typename ImageType::Pointer
 iMathGetLargestComponent(typename ImageType::Pointer image,
-                    unsigned long smallest );
+                         unsigned long smallest );
 
 template <class ImageType>
 typename ImageType::Pointer
 iMathGetLargestComponent(typename ImageType::Pointer image);
 
+template <class ImageType>
+typename ImageType::Pointer
+iMathMD(typename ImageType::Pointer image, unsigned long radius );
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathME(typename ImageType::Pointer image, unsigned long radius );
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathMO(typename ImageType::Pointer image, unsigned long radius );
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathNormalize( typename ImageType::Pointer image );
 }
 
 #include "iMathFunctions.hxx"

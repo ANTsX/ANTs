@@ -230,6 +230,108 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if( operation == "MD" )
+    {
+    if ( argc < 6 )
+      {
+      std::cout << "MD: too few inputs" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    unsigned long radius = atoi( argv[5] );
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathMD<ImageType>(input, radius);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "MD: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "Me" )
+    {
+    if ( argc < 6 )
+      {
+      std::cout << "ME: too few inputs" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    unsigned long radius = atoi( argv[5] );
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathME<ImageType>(input, radius);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "ME: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "MO" )
+    {
+    if ( argc < 6 )
+      {
+      std::cout << "MO: too few inputs" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    unsigned long radius = atoi( argv[5] );
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathMO<ImageType>(input, radius);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "MO: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
   else if( operation == "Normalize" )
     {
     typedef itk::Image<float,DIM> ImageType;
