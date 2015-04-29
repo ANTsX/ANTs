@@ -699,6 +699,38 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
   /////////////////////////////////////////////////////////////////
   //
+  //         Read in convergence options
+  //
+  /////////////////////////////////////////////////////////////////
+
+  unsigned int numberOfIterations = 0;
+  unsigned int convergenceWindowSize = 5;
+  RealType convergenceThreshold = 1e-6;
+
+  itk::ants::CommandLineParser::OptionType::Pointer convergenceOption = parser->GetOption( "convergence" );
+  if( convergenceOption && convergenceOption->GetNumberOfFunctions() )
+    {
+    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      numberOfIterations = parser->Convert<unsigned int>( convergenceOption->GetFunction( 0 )->GetName() );
+      }
+    else
+      {
+      numberOfIterations = parser->Convert<unsigned int>( convergenceOption->GetFunction( 0 )->GetParameter( 0 ) );
+      if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+        {
+        convergenceThreshold = parser->Convert<RealType>( convergenceOption->GetFunction( 0 )->GetParameter( 1 ) );
+        }
+      if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
+        {
+        convergenceWindowSize = parser->Convert<unsigned int>( convergenceOption->GetFunction( 0 )->GetParameter( 2 ) );
+        }
+      }
+    }
+
+
+  /////////////////////////////////////////////////////////////////
+  //
   //         Get the transform
   //
   /////////////////////////////////////////////////////////////////
@@ -858,14 +890,14 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
     // RealType bestScale = 1.0; // movingImageMomentsCalculator->GetTotalMass() / fixedImageMomentsCalculator->GetTotalMass();
 
-    typename AffineTransformType::OffsetType offset;
+    typename AffineTransformType::OutputVectorType translation;
     itk::Point<RealType, ImageDimension> center;
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      offset[i] = movingImageCenterOfGravity[i] - fixedImageCenterOfGravity[i];
+      translation[i] = movingImageCenterOfGravity[i] - fixedImageCenterOfGravity[i];
       center[i] = fixedImageCenterOfGravity[i];
       }
-    initialTransform->SetOffset( offset );
+    initialTransform->SetTranslation( translation );
 
     /** Solve Wahba's problem --- http://en.wikipedia.org/wiki/Wahba%27s_problem */
 
@@ -947,6 +979,58 @@ int antsAI( itk::ants::CommandLineParser *parser )
       axis1[d] = fixedTertiaryEigenVector[d];
       axis2[d] = fixedSecondaryEigenVector[d];
       }
+    }
+
+  /////////////////////////////////////////////////////////////////
+  //
+  //         Write the output if the number of iterations == 0
+  //
+  /////////////////////////////////////////////////////////////////
+
+  if( numberOfIterations == 0 )
+    {
+    itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
+    if( outputOption && outputOption->GetNumberOfFunctions() )
+      {
+      std::string outputName = std::string( "" );
+      if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+        {
+        outputName = outputOption->GetFunction( 0 )->GetName();
+        }
+      else
+        {
+        outputName = outputOption->GetFunction( 0 )->GetParameter( 0 );
+        }
+      typedef itk::TransformFileWriter TransformWriterType;
+      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+
+      if( strcmp( transform.c_str(), "affine" ) == 0 )
+        {
+        typename AffineTransformType::Pointer bestAffineTransform = AffineTransformType::New();
+        bestAffineTransform->SetMatrix( initialTransform->GetMatrix() );
+        bestAffineTransform->SetOffset( initialTransform->GetOffset() );
+        transformWriter->SetInput( bestAffineTransform );
+        }
+      else if( strcmp( transform.c_str(), "rigid" ) == 0 )
+        {
+        typename RigidTransformType::Pointer bestRigidTransform = RigidTransformType::New();
+        bestRigidTransform->SetMatrix( initialTransform->GetMatrix() );
+        bestRigidTransform->SetOffset( initialTransform->GetOffset() );
+        transformWriter->SetInput( bestRigidTransform );
+        }
+      else if( strcmp( transform.c_str(), "similarity" ) == 0 )
+        {
+        typename SimilarityTransformType::Pointer bestSimilarityTransform = SimilarityTransformType::New();
+        bestSimilarityTransform->SetMatrix( initialTransform->GetMatrix() );
+        bestSimilarityTransform->SetOffset( initialTransform->GetOffset() );
+        transformWriter->SetInput( bestSimilarityTransform );
+        }
+
+      transformWriter->SetFileName( outputName.c_str() );
+      transformWriter->Update();
+      }
+
+    return EXIT_SUCCESS;
     }
 
   /////////////////////////////////////////////////////////////////
@@ -1158,34 +1242,9 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
   /////////////////////////////////////////////////////////////////
   //
-  //         Set up the optimizers
+  //         Set up the optimizer
   //
   /////////////////////////////////////////////////////////////////
-
-  unsigned int numberOfIterations = 20;
-  unsigned int convergenceWindowSize = 5;
-  RealType convergenceThreshold = 1e-6;
-
-  itk::ants::CommandLineParser::OptionType::Pointer convergenceOption = parser->GetOption( "convergence" );
-  if( convergenceOption && convergenceOption->GetNumberOfFunctions() )
-    {
-    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
-      {
-      numberOfIterations = parser->Convert<unsigned int>( convergenceOption->GetFunction( 0 )->GetName() );
-      }
-    else
-      {
-      numberOfIterations = parser->Convert<unsigned int>( convergenceOption->GetFunction( 0 )->GetParameter( 0 ) );
-      if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
-        {
-        convergenceThreshold = parser->Convert<RealType>( convergenceOption->GetFunction( 0 )->GetParameter( 1 ) );
-        }
-      if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
-        {
-        convergenceWindowSize = parser->Convert<unsigned int>( convergenceOption->GetFunction( 0 )->GetParameter( 2 ) );
-        }
-      }
-    }
 
   typedef itk::RegistrationParameterScalesFromPhysicalShift<ImageMetricType> RegistrationParameterScalesFromPhysicalShiftType;
   typename RegistrationParameterScalesFromPhysicalShiftType::Pointer scalesEstimator = RegistrationParameterScalesFromPhysicalShiftType::New();
@@ -1221,11 +1280,10 @@ int antsAI( itk::ants::CommandLineParser *parser )
     if( ImageDimension == 2 )
       {
       affineSearchTransform->SetIdentity();
-      affineSearchTransform->SetCenter( initialTransform->GetCenter() );
-      affineSearchTransform->SetOffset( initialTransform->GetOffset() );
       affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
-
       affineSearchTransform->Rotate2D( angle1, 1 );
+      affineSearchTransform->SetCenter( initialTransform->GetCenter() );
+      affineSearchTransform->SetTranslation( initialTransform->GetTranslation() );
 
       if( strcmp( transform.c_str(), "affine" ) == 0 )
         {
@@ -1235,18 +1293,16 @@ int antsAI( itk::ants::CommandLineParser *parser )
       else if( strcmp( transform.c_str(), "rigid" ) == 0 )
         {
         rigidSearchTransform->SetIdentity();
-        rigidSearchTransform->SetCenter( affineSearchTransform->GetCenter() );
-        rigidSearchTransform->SetOffset( affineSearchTransform->GetOffset() );
         rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
+        rigidSearchTransform->SetOffset( affineSearchTransform->GetOffset() );
 
         parametersList.push_back( rigidSearchTransform->GetParameters() );
         }
       else if( strcmp( transform.c_str(), "similarity" ) == 0 )
         {
         similaritySearchTransform->SetIdentity();
-        similaritySearchTransform->SetCenter( affineSearchTransform->GetCenter() );
-        similaritySearchTransform->SetOffset( affineSearchTransform->GetOffset() );
         similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
+        similaritySearchTransform->SetOffset( affineSearchTransform->GetOffset() );
 
         similaritySearchTransform->SetScale( bestScale );
 
@@ -1258,12 +1314,13 @@ int antsAI( itk::ants::CommandLineParser *parser )
       for( RealType angle2 = ( vnl_math::pi_over_4 * -arcFraction ); angle2 <= ( vnl_math::pi_over_4 * arcFraction ); angle2 += searchFactor )
         {
         affineSearchTransform->SetIdentity();
-        affineSearchTransform->SetCenter( initialTransform->GetCenter() );
-        affineSearchTransform->SetOffset( initialTransform->GetOffset() );
         affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
-
         affineSearchTransform->Rotate3D( axis1, angle1, 1 );
         affineSearchTransform->Rotate3D( axis2, angle2, 1 );
+        affineSearchTransform->SetCenter( initialTransform->GetCenter() );
+        affineSearchTransform->SetTranslation( initialTransform->GetTranslation() );
+
+        affineSearchTransform->SetOffset( initialTransform->GetOffset() );
 
         if( strcmp( transform.c_str(), "affine" ) == 0 )
           {
@@ -1273,7 +1330,6 @@ int antsAI( itk::ants::CommandLineParser *parser )
         else if( strcmp( transform.c_str(), "rigid" ) == 0 )
           {
           rigidSearchTransform->SetIdentity();
-          rigidSearchTransform->SetCenter( affineSearchTransform->GetCenter() );
           rigidSearchTransform->SetOffset( affineSearchTransform->GetOffset() );
           rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
 
@@ -1282,7 +1338,6 @@ int antsAI( itk::ants::CommandLineParser *parser )
         else if( strcmp( transform.c_str(), "similarity" ) == 0 )
           {
           similaritySearchTransform->SetIdentity();
-          similaritySearchTransform->SetCenter( affineSearchTransform->GetCenter() );
           similaritySearchTransform->SetOffset( affineSearchTransform->GetOffset() );
           similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
           similaritySearchTransform->SetScale( bestScale );
@@ -1293,16 +1348,12 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     }
   multiStartOptimizer->SetParametersList( parametersList );
-
-  if( numberOfIterations > 0 )
-    {
-    multiStartOptimizer->SetLocalOptimizer( localOptimizer );
-    }
+  multiStartOptimizer->SetLocalOptimizer( localOptimizer );
   multiStartOptimizer->StartOptimization();
 
   /////////////////////////////////////////////////////////////////
   //
-  //         Write the output
+  //         Write the output after convergence
   //
   /////////////////////////////////////////////////////////////////
 
@@ -1325,18 +1376,21 @@ int antsAI( itk::ants::CommandLineParser *parser )
     if( strcmp( transform.c_str(), "affine" ) == 0 )
       {
       typename AffineTransformType::Pointer bestAffineTransform = AffineTransformType::New();
+      bestAffineTransform->SetCenter( initialTransform->GetCenter() );
       bestAffineTransform->SetParameters( multiStartOptimizer->GetBestParameters() );
       transformWriter->SetInput( bestAffineTransform );
       }
     else if( strcmp( transform.c_str(), "rigid" ) == 0 )
       {
       typename RigidTransformType::Pointer bestRigidTransform = RigidTransformType::New();
+      bestRigidTransform->SetCenter( initialTransform->GetCenter() );
       bestRigidTransform->SetParameters( multiStartOptimizer->GetBestParameters() );
       transformWriter->SetInput( bestRigidTransform );
       }
     else if( strcmp( transform.c_str(), "similarity" ) == 0 )
       {
       typename SimilarityTransformType::Pointer bestSimilarityTransform = SimilarityTransformType::New();
+      bestSimilarityTransform->SetCenter( initialTransform->GetCenter() );
       bestSimilarityTransform->SetParameters( multiStartOptimizer->GetBestParameters() );
       transformWriter->SetInput( bestSimilarityTransform );
       }
