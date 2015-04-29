@@ -162,6 +162,8 @@ iMathHelperAll(int argc, char **argv)
   std::string inName = std::string(argv[4]);
   std::string outName = std::string(argv[2]);
 
+  typedef float PixelType;
+
   if( operation == "Canny" )
     {
     typedef itk::Image<float,DIM> ImageType;
@@ -230,14 +232,19 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
-  else if( operation == "MD" )
+  else if( operation == "MC" )
     {
 
-    unsigned long radius = iMathMDRadius;
+    unsigned long radius = iMathMCRadius;
+    PixelType value = iMathMCValue;
 
     if ( argc >= 6 )
       {
       radius = atoi(argv[5]);
+      }
+    if ( argc >= 7 )
+      {
+      value = (PixelType)( atof( argv[6]) );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -252,7 +259,46 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathMD<ImageType>(input, radius);
+      output = iMathMC<ImageType>(input, radius, value);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "MC: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "MD" )
+    {
+
+    unsigned long radius = iMathMDRadius;
+    PixelType value = iMathMDValue;
+
+    if ( argc >= 6 )
+      {
+      radius = atoi(argv[5]);
+      }
+    if ( argc >= 7 )
+      {
+      value = (PixelType)( atof( argv[6]) );
+      }
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathMD<ImageType>(input, radius, value);
       }
     catch( itk::ExceptionObject & excep )
       {
@@ -267,10 +313,15 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "ME" )
     {
     unsigned long radius = iMathMERadius;
+    PixelType value = iMathMEValue;
 
     if ( argc >= 6 )
       {
       radius = atoi(argv[5]);
+      }
+    if ( argc >= 7 )
+      {
+      value = (PixelType)( atof( argv[6]) );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -285,7 +336,7 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathME<ImageType>(input, radius);
+      output = iMathME<ImageType>(input, radius, value);
       }
     catch( itk::ExceptionObject & excep )
       {
@@ -300,10 +351,15 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "MO" )
     {
     unsigned long radius = iMathMORadius;
+    PixelType value = iMathMOValue;
 
     if ( argc >= 6 )
       {
       radius = atoi(argv[5]);
+      }
+    if ( argc >= 7 )
+      {
+      value = (PixelType)( atof( argv[6]) );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -318,7 +374,7 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathMO<ImageType>(input, radius);
+      output = iMathMO<ImageType>(input, radius, value);
       }
     catch( itk::ExceptionObject & excep )
       {

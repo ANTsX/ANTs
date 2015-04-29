@@ -18,6 +18,7 @@
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
+#include "itkBinaryMorphologicalClosingImageFilter.h"
 #include "itkBinaryMorphologicalOpeningImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkCannyEdgeDetectionImageFilter.h"
@@ -177,7 +178,37 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathMD( typename ImageType::Pointer image, unsigned long radius )
+iMathMC(typename ImageType::Pointer image, unsigned long radius,
+        typename ImageType::PixelType closeValue)
+{
+
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType                         PixelType;
+
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
+    StructuringElementType;
+
+  typedef itk::BinaryMorphologicalClosingImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetKernel( structuringElement );
+  filter->SetForegroundValue( closeValue );
+  //filter->SetBackgroundValue(0);
+  filter->Update();
+
+  return filter->GetOutput();
+
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathMD(typename ImageType::Pointer image, unsigned long radius,
+        typename ImageType::PixelType dilateValue)
 {
 
   const unsigned int ImageDimension = ImageType::ImageDimension;
@@ -195,6 +226,8 @@ iMathMD( typename ImageType::Pointer image, unsigned long radius )
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image );
   filter->SetKernel( structuringElement );
+  filter->SetDilateValue( dilateValue );
+  filter->SetBackgroundValue(0);
   filter->Update();
 
   return filter->GetOutput();
@@ -203,7 +236,8 @@ iMathMD( typename ImageType::Pointer image, unsigned long radius )
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathME( typename ImageType::Pointer image, unsigned long radius )
+iMathME( typename ImageType::Pointer image, unsigned long radius,
+         typename ImageType::PixelType erodeValue )
 {
   const unsigned int ImageDimension = ImageType::ImageDimension;
   typedef typename ImageType::PixelType                         PixelType;
@@ -220,6 +254,8 @@ iMathME( typename ImageType::Pointer image, unsigned long radius )
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image );
   filter->SetKernel( structuringElement );
+  filter->SetErodeValue( erodeValue );
+  filter->SetBackgroundValue(0);
   filter->Update();
 
   return filter->GetOutput();
@@ -227,7 +263,8 @@ iMathME( typename ImageType::Pointer image, unsigned long radius )
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathMO( typename ImageType::Pointer image, unsigned long radius )
+iMathMO( typename ImageType::Pointer image, unsigned long radius,
+         typename ImageType::PixelType openValue )
 {
   const unsigned int ImageDimension = ImageType::ImageDimension;
   typedef typename ImageType::PixelType                         PixelType;
@@ -244,6 +281,8 @@ iMathMO( typename ImageType::Pointer image, unsigned long radius )
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image );
   filter->SetKernel( structuringElement );
+  filter->SetForegroundValue( openValue );
+  filter->SetBackgroundValue( 0 );
   filter->Update();
 
   return filter->GetOutput();

@@ -32,18 +32,31 @@ iMathGetLargestComponent(typename ImageType::Pointer image,
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathMD(typename ImageType::Pointer image, unsigned long radius );
+iMathMC(typename ImageType::Pointer image, unsigned long radius,
+        typename ImageType::PixelType closeValue );
+#define iMathMCRadius 1;
+#define iMathMCValue 1;
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathMD(typename ImageType::Pointer image, unsigned long radius,
+        typename ImageType::PixelType dilateValue );
 #define iMathMDRadius 1;
+#define iMathMDValue 1;
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathME(typename ImageType::Pointer image, unsigned long radius );
+iMathME(typename ImageType::Pointer image, unsigned long radius,
+        typename ImageType::Pointer erodeValue );
 #define iMathMERadius 1;
+#define iMathMEValue 1;
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathMO(typename ImageType::Pointer image, unsigned long radius );
+iMathMO(typename ImageType::Pointer image, unsigned long radius,
+        typename ImageType::PixelType openValue );
 #define iMathMORadius 1;
+#define iMathMOValue 1;
 
 template <class ImageType>
 typename ImageType::Pointer
