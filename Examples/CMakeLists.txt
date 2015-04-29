@@ -61,6 +61,7 @@ set(CORE_ANTS_APPS
   AverageAffineTransform
   AverageAffineTransformNoRigid
   antsApplyTransformsToPoints
+  iMath
 )
 
 set(MORE_ANTS_APPS
