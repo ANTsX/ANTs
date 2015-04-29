@@ -20,9 +20,14 @@ namespace ants
 {
 // Templated functions that perform the work for
 // iMath.cxx and iMath.cpp (in ANTSR)
+// after each function, suggested default parameters are defined
+
 template <class ImageType>
 typename ImageType::Pointer
-iMathCanny(typename ImageType::Pointer image );
+iMathCanny(typename ImageType::Pointer image,
+           double sigma,
+           double lowerThreshold,
+           double upperThreshold );
 
 template <class ImageType>
 typename ImageType::Pointer
@@ -57,6 +62,30 @@ iMathMO(typename ImageType::Pointer image, unsigned long radius,
         typename ImageType::PixelType openValue );
 #define iMathMORadius 1;
 #define iMathMOValue 1;
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGC(typename ImageType::Pointer image, unsigned long radius);
+#define iMathGCRadius 1;
+#define iMathGCValue 1;
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGD(typename ImageType::Pointer image, unsigned long radius);
+#define iMathGDRadius 1;
+#define iMathGDValue 1;
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGE(typename ImageType::Pointer image, unsigned long radius);
+#define iMathGERadius 1;
+#define iMathGEValue 1;
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGO(typename ImageType::Pointer image, unsigned long radius);
+#define iMathGORadius 1;
+#define iMathGOValue 1;
 
 template <class ImageType>
 typename ImageType::Pointer

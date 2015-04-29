@@ -200,6 +200,138 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if( operation == "GC" )
+    {
+    unsigned long radius = iMathGCRadius;
+
+    if ( argc >= 6 )
+      {
+      radius = atoi(argv[5]);
+      }
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathGC<ImageType>(input, radius);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "GC: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "GD" )
+    {
+    unsigned long radius = iMathGDRadius;
+
+    if ( argc >= 6 )
+      {
+      radius = atoi(argv[5]);
+      }
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathGD<ImageType>(input, radius);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "GD: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "GE" )
+    {
+    unsigned long radius = iMathGERadius;
+
+    if ( argc >= 6 )
+      {
+      radius = atoi(argv[5]);
+      }
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathGE<ImageType>(input, radius);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "GE: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "GO" )
+    {
+    unsigned long radius = iMathMORadius;
+
+    if ( argc >= 6 )
+      {
+      radius = atoi(argv[5]);
+      }
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathGO<ImageType>(input, radius);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "GO: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
   else if( operation == "GetLargestComponent" )
     {
     unsigned long minSize = iMathGetLargestComponentMinSize;
