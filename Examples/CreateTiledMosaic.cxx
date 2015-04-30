@@ -1027,7 +1027,13 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "The output consists of the tiled mosaic image." );
+      std::string( "The output is the tiled mosaic image.  Without an RGB overlay" )
+      + std::string( "we do not alter the intensity values of the input image.  " )
+      + std::string( "Therefore, the output suffix needs to be associated with a " )
+      + std::string( "format that supports float images (not .jpg or .png).  If " )
+      + std::string( "one or more RGB overlays are supported then we rescale " )
+      + std::string( "the input image intensities to also be in the range of [0,255] " )
+      + std::string( "which permits a .png or .jpg output." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
