@@ -65,6 +65,12 @@ iMathMO(typename ImageType::Pointer image, unsigned long radius,
 
 template <class ImageType>
 typename ImageType::Pointer
+iMathMaurerDistance(typename ImageType::Pointer image,
+                    typename ImageType::PixelType foreground );
+#define iMathMaurerDistanceForeground 1;
+
+template <class ImageType>
+typename ImageType::Pointer
 iMathGC(typename ImageType::Pointer image, unsigned long radius);
 #define iMathGCRadius 1;
 #define iMathGCValue 1;

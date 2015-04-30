@@ -30,6 +30,7 @@
 #include "itkGrayscaleMorphologicalOpeningImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkShiftScaleImageFilter.h"
+#include "itkSignedMaurerDistanceMapImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 
 namespace ants
@@ -278,6 +279,31 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     }
 
   return image;
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathMaurerDistance(typename ImageType::Pointer image,
+                    typename ImageType::PixelType foreground )
+{
+
+  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
+  typename ThresholderType::Pointer thresholder = ThresholderType::New();
+  thresholder->SetInput( image);
+  thresholder->SetLowerThreshold( foreground );
+  thresholder->SetUpperThreshold( foreground );
+  thresholder->SetInsideValue( 1 );
+  thresholder->SetOutsideValue( 0 );
+
+  typedef itk::SignedMaurerDistanceMapImageFilter<ImageType, ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( thresholder->GetOutput() );
+  filter->SetSquaredDistance( false );
+  filter->SetUseImageSpacing( true );
+  filter->SetInsideIsPositive( false );
+  filter->Update();
+
+  return filter->GetOutput();
 }
 
 template <class ImageType>
