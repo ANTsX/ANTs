@@ -24,8 +24,13 @@
 #include "itkCannyEdgeDetectionImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
+#include "itkGrayscaleDilateImageFilter.h"
+#include "itkGrayscaleErodeImageFilter.h"
+#include "itkGrayscaleMorphologicalClosingImageFilter.h"
+#include "itkGrayscaleMorphologicalOpeningImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkShiftScaleImageFilter.h"
+#include "itkSignedMaurerDistanceMapImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 
 namespace ants
@@ -51,6 +56,106 @@ iMathCanny( typename ImageType::Pointer image,
 
   return filter->GetOutput();
 
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGC(typename ImageType::Pointer image, unsigned long radius)
+{
+
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType                         PixelType;
+
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
+    StructuringElementType;
+
+  typedef itk::GrayscaleMorphologicalClosingImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetKernel( structuringElement );
+  filter->Update();
+
+  return filter->GetOutput();
+
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGD(typename ImageType::Pointer image, unsigned long radius)
+{
+
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType                         PixelType;
+
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
+    StructuringElementType;
+
+  typedef itk::GrayscaleDilateImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetKernel( structuringElement );
+  filter->Update();
+
+  return filter->GetOutput();
+
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGE( typename ImageType::Pointer image, unsigned long radius)
+{
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType                         PixelType;
+
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
+    StructuringElementType;
+
+  typedef itk::GrayscaleErodeImageFilter< ImageType, ImageType, StructuringElementType >   FilterType;
+
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetKernel( structuringElement );
+  filter->Update();
+
+  return filter->GetOutput();
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGO( typename ImageType::Pointer image, unsigned long radius)
+{
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType                         PixelType;
+
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
+    StructuringElementType;
+
+  typedef itk::GrayscaleMorphologicalOpeningImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetKernel( structuringElement );
+  filter->Update();
+
+  return filter->GetOutput();
 }
 
 template <class ImageType>
@@ -174,6 +279,31 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     }
 
   return image;
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathMaurerDistance(typename ImageType::Pointer image,
+                    typename ImageType::PixelType foreground )
+{
+
+  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
+  typename ThresholderType::Pointer thresholder = ThresholderType::New();
+  thresholder->SetInput( image);
+  thresholder->SetLowerThreshold( foreground );
+  thresholder->SetUpperThreshold( foreground );
+  thresholder->SetInsideValue( 1 );
+  thresholder->SetOutsideValue( 0 );
+
+  typedef itk::SignedMaurerDistanceMapImageFilter<ImageType, ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( thresholder->GetOutput() );
+  filter->SetSquaredDistance( false );
+  filter->SetUseImageSpacing( true );
+  filter->SetInsideIsPositive( false );
+  filter->Update();
+
+  return filter->GetOutput();
 }
 
 template <class ImageType>
