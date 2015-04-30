@@ -551,6 +551,44 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if( operation == "PeronaMalik" )
+    {
+    double conductance = iMathPeronaMalikConductance;
+    unsigned long nIterations = iMathPeronaMalikNIterations;
+
+    if ( argc >= 6 )
+      {
+      conductance = (PixelType) atof(argv[5]);
+      }
+    if ( argc >= 6 )
+      {
+      nIterations = atoi(argv[6]);
+      }
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathPeronaMalik<ImageType>(input, conductance, nIterations);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "PeronaMalik: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
   else if( operation == "Normalize" )
     {
     typedef itk::Image<float,DIM> ImageType;

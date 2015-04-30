@@ -96,8 +96,17 @@ iMathGO(typename ImageType::Pointer image, unsigned long radius);
 template <class ImageType>
 typename ImageType::Pointer
 iMathNormalize( typename ImageType::Pointer image );
-}
 
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathPeronaMalik( typename ImageType::Pointer image, double conductance,
+                  unsigned long nIterations );
+
+#define iMathPeronaMalikConductance 0.25;
+#define iMathPeronaMalikNIterations 1;
+
+}
 #include "iMathFunctions.hxx"
 
 #endif

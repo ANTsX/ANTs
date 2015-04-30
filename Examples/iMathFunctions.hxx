@@ -24,6 +24,7 @@
 #include "itkCannyEdgeDetectionImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
+#include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkGrayscaleDilateImageFilter.h"
 #include "itkGrayscaleErodeImageFilter.h"
 #include "itkGrayscaleMorphologicalClosingImageFilter.h"
@@ -428,7 +429,6 @@ iMathNormalize( typename ImageType::Pointer image )
     }
 
   typedef typename ImageType::PixelType                 PixelType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>  Iterator;
   typedef typename ImageType::Pointer                   ImagePointerType;
 
   typedef itk::StatisticsImageFilter<ImageType> StatsFilterType;
@@ -448,6 +448,49 @@ iMathNormalize( typename ImageType::Pointer image )
   return normFilter->GetOutput();
 }
 
+template <class ImageType>
+typename ImageType::Pointer
+iMathPeronaMalik( typename ImageType::Pointer image, double conductance,
+                  unsigned long nIterations )
+{
+  if ( image->GetNumberOfComponentsPerPixel() != 1 )
+    {
+    // NOPE
+    }
 
+  typedef typename ImageType::PixelType                 PixelType;
+  typedef typename ImageType::Pointer                   ImagePointerType;
+
+  typedef itk::GradientAnisotropicDiffusionImageFilter< ImageType, ImageType >
+    FilterType;
+  typedef typename FilterType::TimeStepType             TimeStepType;
+
+  // Select time step size.
+  TimeStepType  spacingsize = 0;
+  for( unsigned int d = 0; d < ImageType::ImageDimension; d++ )
+    {
+    TimeStepType sp = image->GetSpacing()[d];
+    spacingsize += sp * sp;
+    }
+  spacingsize = sqrt( spacingsize );
+
+  // FIXME - cite reason for this step
+  double dimPlusOne = ImageType::ImageDimension + 1;
+  TimeStepType mytimestep = spacingsize / vcl_pow( 2.0 , dimPlusOne );
+  TimeStepType reftimestep = 0.4 / vcl_pow( 2.0 , dimPlusOne );
+  if ( mytimestep > reftimestep )
+    {
+    mytimestep = reftimestep;
+    }
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetConductanceParameter( conductance ); // might need to change this
+  filter->SetNumberOfIterations( nIterations );
+  filter->SetTimeStep( mytimestep );
+
+  filter->Update();
+  return filter->GetOutput();
+}
 
 } // namespace ants
