@@ -1,45 +1,58 @@
-#!/usr/bin/env Rscript 
-require(ANTsR)
-usePkg('optparse')
-usePkg('tools')
+#!/usr/bin/env Rscript
+library(ANTsR)
+library(tools)
+if(!usePkg('optparse') | !usePkg('ANTsR')){
+  stop("optparse and ANTsR packages required.")
+}
 
-optlist <- list(make_option(c('-a', '--anatomical'), default='', help='anatomical image (skull stripped)'),
-  make_option(c('-p', '--priors'), default='', help='brain segmentation priors (C-style, e.g. priors%d.nii.gz)'),
-  make_option(c('-g', '--segmentation'), default='', help='hard brain segmentation'), 
-  make_option(c('-x', '--mask'), default='', help='t1 brain mask'),
+optlist <- list(
   make_option(c('-s', '--pCASL'), default='', help=' raw pCASL image'),
-  make_option(c('-e', '--template'), default='', help='brain template'),
-  make_option(c('-t', '--transformpre'), default='', help='skull-stripped t1 to template transform prefix'),
-  make_option(c('-l', '--labels'),  default='', help='template labels'),
-  make_option(c('-o', '--outputpre'), default='CBF_', help='output prefix (defaults to %default)'),
-  make_option(c('-m', '--method'), default='RobustRegression', help=' method for perfusion calculation. \n\t\tOne of: "SimpleSubtraction", "SurroundSubtraction", "SincSubtraction", "RobustRegression", "BayesianRegression", "LocalBayesianRegression."'),
-  make_option(c('-d', '--denoising'), default='CompCorMotion', help='denoising method.  Options are: "CompCor", "Motion", "Detrending", \n\t\t"Cross-Validation", "OutlierRejection".  Multiple options can be specified (e.g., "CompCorMotion" is legal).  Default is %default.'), 
-  make_option(c('-b', '--bloodT1'), default=0.67, help='blood T1 value (defaults to %default s^-1)'),
-  make_option(c('-r', '--robustness'), default=0.95, help='robustness parameter (defaults to %default).'),
-  make_option(c('-n', '--bootstrapNumber'), default=20, help=' number of bootstrap samples (defaults to %default)'),
-  make_option(c('-c', '--bootstrapPercent'), default=0.70, help='percent to sample per bootstrap run (defaults to %default)'),
-  make_option(c('-k', '--keepTmp'), default=F, action='store_true', help='keep tmp files, including warps (defaults to %default--takes lots of space to save)'),
-  make_option(c('-f', '--bootstrapReplace'), default=F, action='store_true', help='bootstrap with replacement?  takes arguments "false" or "true"; defaults to false.'), 
-  make_option(c('-v', '--verbose'), default=F, action='store_true', help='verbose output.')) 
+  make_option(c('-o', '--outputpre'), default='CBF_',
+              help='output prefix (defaults to %default)'),
+  make_option(c('t', '--antsCorticalThicknessPrefix'),
+              default='', help='prefix of antsCorticalThickness output'),
+  make_option(c('l', '--labelSet'),
+              default='', help='label set in template space to warp to ASL'),
+  make_option(c('c', '--paramFile'), default='',
+              help='parameter file containing ASL acquisition parameters'),
+  make_option(c('-m', '--method'), default='RobustRegression',
+              help=paste(' method for perfusion calculation. \n\t\tOne of:',
+                '"SimpleSubtraction", "SurroundSubtraction", "SincSubtraction",',
+                '"RobustRegression", "BayesianRegression", "LocalBayesianRegression."')),
+  make_option(c('-d', '--denoising'), default='CompCorMotion',
+                help=paste('denoising method.',
+                'Options are: "CompCor", "Motion", "Detrending",',
+                '\n\t\t"Cross-Validation", "OutlierRejection".',
+                'Multiple options can be specified',
+                '(e.g., "CompCorMotion" is legal).  Default is %default.')),
+  make_option(c('-b', '--bloodT1'), default=0.67,
+              help='blood T1 value (defaults to %default s^-1)'),
+  make_option(c('-r', '--robustness'), default=0.95,
+              help='robustness parameter (defaults to %default).'),
+  make_option(c('-n', '--bootstrapNumber'), default=20,
+              help=' number of bootstrap samples (defaults to %default)'),
+  make_option(c('-c', '--bootstrapPercent'), default=0.70,
+              help='percent to sample per bootstrap run (defaults to %default)'),
+  make_option(c('-k', '--keepTmp'), default=F, action='store_true',
+              help=paste('keep tmp files, including warps',
+                         '(defaults to %default--takes lots of space to save)')),
+  make_option(c('-f', '--bootstrapReplace'), default=F, action='store_true',
+              help=paste('bootstrap with replacement?  takes arguments',
+                         '"false" or "true"; defaults to false.')),
+  make_option(c('-v', '--verbose'), default=F, action='store_true',
+              help='verbose output.'))
 
-usage <- OptionParser(option_list=optlist, usage='Usage: %prog <apgxset> [lomdbrnckfv]') 
-opt <- parse_args(usage) 
+usage <- OptionParser(option_list=optlist, usage='Usage: %prog <s> [apgxetlomdbrnckfv]')
+opt <- parse_args(usage)
+## debug
+#opt <- data.frame(pCASL='data/101_pcasl.nii.gz',
+#                  out='test')
 
-if(!file.exists(opt$anatomical)) 
-  stop(paste('Anatomical image', opt$anatomical, 
-    'does not exist.  For usage, see -h option.')
-if(!file.exists(opt$segmentation))
-  stop(paste('Brain segmentation', opt$segmentation, 
-    'does not exist.  For usage, see -h option.')
-if(!file.exists(opt$mask)) 
-  stop(paste('Brain mask', opt$mask, 
-    'does not exist.  For usage, see -h option.')
-if(!file.exists(opt$template))
-  stop(paste('Template', opt$template,  
-    'does not exist.  For usage, see -h option.')
-if(!file.exists(opt$pCASL)) 
-  stop(paste('pCASL image', opt$pCASL, 
-    'does not exist.  For usage, see -h option.')
+
+if(!file.exists(as.character(opt$pCASL))) {
+  stop(paste('pCASL image', opt$pCASL,
+    'does not exist.'))
+}
 
 if(opt$verbose) {
   cat('Running antsASLProcessing.R with the following options:\n')
@@ -50,39 +63,77 @@ if(opt$verbose) {
 
 if(length(grep(.Platform$file.sep, opt$outputpre)) > 0) {
   outdir <- dirname(opt$outpre)
-  if(!file.exists(outdir)) dir.create(outdir) 
+  if(!file.exists(outdir)) dir.create(outdir)
 }
 
-problist <- list() 
-for(ii in 1:6){
-  probname <- sprintf(opt$priors, ii)
-  if(!file.exists(probname)) 
-    stop('6-tissue probability priors do not exist.  For usage, see -h option.')
-  problist[[ii]] <- antsImageRead(probname, 3) 
+pcasl <- antsImageRead(as.character(opt$pCASL), 4)
+if(length(opt$paramFile) > 0){
+  if(file.exists(as.character(opt$paramFile))) {
+    config <- read.csv(opt$paramFile)
+  } else {
+    config <- data.frame(tagFirst=T, sequence='pcasl')
+  }
 }
-
-template <- antsImageRead(opt$template, 3)
-templateseg <- antsImageRead(opt$segmentation, 3) 
-pcasl <- antsImageRead(opt$pCASL, 4)
 avg <- getAverageOfTimeSeries(pcasl)
-N3BiasFieldCorrection(3, avg, avg, 2)
-N3BiasFieldCorrection(3, avg, avg, 2)
-maskavg <- getMask(avg, mean(avg), Inf, 2)
-avg[maskavg==0] <- 0
+avg <- n3BiasFieldCorrection(avg, 2)
+avg <- n3BiasFieldCorrection(avg, 2)
+mask <- getMask(avg, mean(avg), Inf, 2)
+avg[mask==0] <- 0
 
-if(opt$verbose) print('Performing pCASL to template registration.')
-reg.pcasl2template <- antsRegistration(avg, template, 
-  typeofTransform='SyNBold',  outprefix=opt$outputpre)
-seg.pcasl <- antsApplyTransforms(avg, templateseg,
-   reg.pcasl2template$fwdtransforms,
-   "MultiLabel") 
-pcasl.probs <- list()
-for (ii in 1:6){
-  prob.warped2pcasl <- antsApplyTransforms(avg,
-    problist[[ii]], reg.pcasl2template$fwdtransforms)
-  pcasl.probs[[i]]<-prob.warped2pcasl
-  antsImageWrite(prob.warped2pcasl, 
-    paste(outfn, 'Probability0', i, '.nii.gz', sep=''))
+moco <- antsMotionCalculation(pcasl, moreaccurate=2)
+tag.first <- config$tagFirst
+ts <- timeseries2matrix(moco$moco_img, moco$moco_mask)
+if (!tag.first) {
+  tc <- (rep(c(1, 0), dim(ts)[1])[1:dim(ts)[1]] - 0.5)  # control minus tag
+} else {
+  tc <- (rep(c(0, 1), dim(ts)[1])[1:dim(ts)[1]] - 0.5)  # tag minus control
+}
+nuisance <- getASLNoisePredictors(ts, tc)
+noise.all <- cbind(moco$moco_params, moco$dvars, nuisance)
+noise.combined <- as.matrix(combineNuisancePredictors(ts, tc, noise.all))
+censored <- aslCensoring(pcasl, mask, nuis=noise.combined, method='robust')
+noise.censored <- noise.combined[censored$which.inliers, ]
+perf <- aslAveraging(censored$asl.inlier, mask=moco$moco_mask,
+                     nuisance=noise.censored, method='regression')
+
+mvals2 <- apply(ts[tc == 0.5, ], 2, mean)
+mvals1 <- apply(ts[tc == -0.5, ], 2, mean)
+# mean control should exceed mean tag
+if (mean(mvals2) > mean(mvals1)) {
+  m0vals<-mvals2
+  m1vals<-mvals1
+} else {
+  m0vals<-mvals1
+  m1vals<-mvals2
 }
 
+m0 <- antsImageClone(moco$moco_mask)
 
+m0[moco$moco_mask == 0] <- 0
+m0[moco$moco_mask == 1] <- m0vals
+m0<-n3BiasFieldCorrection(m0,4)
+m0<-n3BiasFieldCorrection(m0,2)
+
+cbf <- quantifyCBF(perf, mask=moco$moco_mask,
+                   parameters=list(sequence="pcasl", m0=antsImageClone(m0)))
+antsImageWrite(cbf$meancbf, paste(opt$outprefix, "_cbf.nii.gz", sep=""))
+
+if (length(opt$antsCorticalThicknessPrefix) > 0){
+  act <- as.character(opt$antsCorticalThicknessPrefix)
+  braint1 <- antsImageRead(paste(act, "ExtractedBrain0N4.nii.gz", sep=""))
+  probs <- imageFileNames2ImageList(glob2rx(paste(act,
+    "BrainSegmentationPosteriors*.nii.gz", sep="")))
+  seg <- antsImageRead(paste(act, "BrainSegmentation.nii.gz", sep=""))
+  reg.t12asl <- antsRegistration(fixed=avg, moving=braint1,
+    typeofTransform="SynBold", outprefix=opt$outputpre)
+  seg.asl <- antsApplyTransforms(avg, seg, reg.t12asl$fwdtransforms, "MultiLabel")
+  tx.template2t1 <- c(paste(act, "_SubjectToTemplate0GenericAffine.mat", sep=""),
+                      paste(act, "_SubjectToTemplate1Warp.nii.gz", sep=""))
+  tx.template2asl <- c(tx.template2t1, reg.t12asl$invtransforms)
+  if (length(opt$labelSet) > 0) {
+    label <- antsImageRead(opt$labelSet)
+    label.asl <- antsApplyTransforms(avg, label, tx.template2asl)
+    antsImageWrite(label.asl, paste(opt$outputpre,
+      'LabelWarpedToASL.nii.gz', sep=''))
+  }
+}
