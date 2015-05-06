@@ -105,6 +105,8 @@
 
 #include "DeNrrd.h"
 
+#include "DenoiseImage.h"
+
 #include "ExtractRegionFromImageByMask.h"
 
 #include "ExtractRegionFromImage.h"
