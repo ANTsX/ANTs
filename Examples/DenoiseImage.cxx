@@ -116,11 +116,17 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer shrinkFactorOption =
     parser->GetOption( "shrink-factor" );
-  int shrinkFactor = 2;
+  int shrinkFactor = 1;
   if( shrinkFactorOption && shrinkFactorOption->GetNumberOfFunctions() )
     {
     shrinkFactor = parser->Convert<int>( shrinkFactorOption->GetFunction( 0 )->GetName() );
     }
+
+  if( shrinkFactor != 1 && verbose )
+    {
+    std::cout << "A shrink factor of > 1 doesn't seem to be working.  I'm turning off this option for now." << std::endl;
+    }
+
   shrinker->SetShrinkFactors( shrinkFactor );
   shrinker->Update();
 
@@ -308,12 +314,12 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string( "Running noise correction on large images can be time consuming. " )
     + std::string( "To lessen computation time, the input image can be resampled. " )
     + std::string( "The shrink factor, specified as a single integer, describes " )
-    + std::string( "this resampling.  Shrink factor = 2 is the default." );
+    + std::string( "this resampling.  Shrink factor = 1 is the default." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "shrink-factor" );
   option->SetShortName( 's' );
-  option->SetUsageOption( 0, "1/(2)/3/..." );
+  option->SetUsageOption( 0, "(1)/2/3/..." );
   option->SetDescription( description );
   parser->AddOption( option );
   }
