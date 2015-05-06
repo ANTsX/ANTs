@@ -66,7 +66,13 @@ if(length(grep(.Platform$file.sep, opt$outputpre)) > 0) {
   if(!file.exists(outdir)) dir.create(outdir)
 }
 
-pcasl <- antsImageRead(as.character(opt$pCASL), 4)
+pcasl <- tryCatch({
+    antsImageRead(as.character(opt$pCASL), 4)
+  }, error = function(e) {
+    print(paste('pCASL image', as.character(opt$pCASL),
+                'does not exist.'))
+})
+
 if(length(opt$paramFile) > 0){
   if(file.exists(as.character(opt$paramFile))) {
     config <- read.csv(opt$paramFile)
@@ -121,9 +127,21 @@ antsImageWrite(cbf$meancbf, paste(opt$outprefix, "_cbf.nii.gz", sep=""))
 if (length(opt$antsCorticalThicknessPrefix) > 0){
   act <- as.character(opt$antsCorticalThicknessPrefix)
   braint1 <- antsImageRead(paste(act, "ExtractedBrain0N4.nii.gz", sep=""))
+  braint1 <- tryCatch({
+      antsImageRead(paste(act, "ExtractedBrain0N4.nii.gz", sep=""))
+    }, error = function(e) {
+      print(paste('T1 brain image', paste(act, "ExtractedBrain0N4.nii.gz", sep=""),
+                  'does not exist.'))
+  })
   probs <- imageFileNames2ImageList(glob2rx(paste(act,
     "BrainSegmentationPosteriors*.nii.gz", sep="")))
   seg <- antsImageRead(paste(act, "BrainSegmentation.nii.gz", sep=""))
+  seg <- tryCatch({
+      antsImageRead(paste(act, "BrainSegmentation.nii.gz", sep=""))
+    }, error = function(e) {
+      print(paste('Segmentation image', paste(act, "BrainSegmentation.nii.gz", sep=""),
+                  'does not exist.'))
+  })
   reg.t12asl <- antsRegistration(fixed=avg, moving=braint1,
     typeofTransform="SynBold", outprefix=opt$outputpre)
   seg.asl <- antsApplyTransforms(avg, seg, reg.t12asl$fwdtransforms, "MultiLabel")
