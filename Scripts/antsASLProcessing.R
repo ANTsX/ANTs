@@ -31,7 +31,7 @@ optlist <- list(
               help='robustness parameter (defaults to %default).'),
   make_option(c('-n', '--bootstrapNumber'), default=20,
               help=' number of bootstrap samples (defaults to %default)'),
-  make_option(c('-c', '--bootstrapPercent'), default=0.70,
+  make_option(c('-e', '--bootstrapPercent'), default=0.70,
               help='percent to sample per bootstrap run (defaults to %default)'),
   make_option(c('-k', '--keepTmp'), default=F, action='store_true',
               help=paste('keep tmp files, including warps',
