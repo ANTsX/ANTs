@@ -22,6 +22,7 @@ namespace ants
 // iMath.cxx and iMath.cpp (in ANTSR)
 // after each function, suggested default parameters are defined
 
+// Canny Edge Filter
 template <class ImageType>
 typename ImageType::Pointer
 iMathCanny(typename ImageType::Pointer image,
@@ -29,12 +30,14 @@ iMathCanny(typename ImageType::Pointer image,
            double lowerThreshold,
            double upperThreshold );
 
+// Return the largest connected component in a mask
 template <class ImageType>
 typename ImageType::Pointer
 iMathGetLargestComponent(typename ImageType::Pointer image,
                          unsigned long minSize );
 #define iMathGetLargestComponentMinSize 50;
 
+// Morphological Closing
 template <class ImageType>
 typename ImageType::Pointer
 iMathMC(typename ImageType::Pointer image, unsigned long radius,
@@ -42,6 +45,7 @@ iMathMC(typename ImageType::Pointer image, unsigned long radius,
 #define iMathMCRadius 1;
 #define iMathMCValue 1;
 
+// Morphological dilation
 template <class ImageType>
 typename ImageType::Pointer
 iMathMD(typename ImageType::Pointer image, unsigned long radius,
@@ -49,6 +53,7 @@ iMathMD(typename ImageType::Pointer image, unsigned long radius,
 #define iMathMDRadius 1;
 #define iMathMDValue 1;
 
+// Morphological erosion
 template <class ImageType>
 typename ImageType::Pointer
 iMathME(typename ImageType::Pointer image, unsigned long radius,
@@ -56,6 +61,7 @@ iMathME(typename ImageType::Pointer image, unsigned long radius,
 #define iMathMERadius 1;
 #define iMathMEValue 1;
 
+// Morphological opening
 template <class ImageType>
 typename ImageType::Pointer
 iMathMO(typename ImageType::Pointer image, unsigned long radius,
@@ -63,48 +69,57 @@ iMathMO(typename ImageType::Pointer image, unsigned long radius,
 #define iMathMORadius 1;
 #define iMathMOValue 1;
 
+// Maurer distance - returns Euclidean distance to binary object
 template <class ImageType>
 typename ImageType::Pointer
 iMathMaurerDistance(typename ImageType::Pointer image,
                     typename ImageType::PixelType foreground );
 #define iMathMaurerDistanceForeground 1;
 
+// Grayscale morphological closing
 template <class ImageType>
 typename ImageType::Pointer
 iMathGC(typename ImageType::Pointer image, unsigned long radius);
 #define iMathGCRadius 1;
 #define iMathGCValue 1;
 
+// Grayscale morphological dilation
 template <class ImageType>
 typename ImageType::Pointer
 iMathGD(typename ImageType::Pointer image, unsigned long radius);
 #define iMathGDRadius 1;
 #define iMathGDValue 1;
 
+// Grayscale morphological erosion
 template <class ImageType>
 typename ImageType::Pointer
 iMathGE(typename ImageType::Pointer image, unsigned long radius);
 #define iMathGERadius 1;
 #define iMathGEValue 1;
 
+// Grayscale morphological opening
 template <class ImageType>
 typename ImageType::Pointer
 iMathGO(typename ImageType::Pointer image, unsigned long radius);
 #define iMathGORadius 1;
 #define iMathGOValue 1;
 
+// Normalize intensity values to lie in [0,1]
 template <class ImageType>
 typename ImageType::Pointer
 iMathNormalize( typename ImageType::Pointer image );
 
+template <class ImageType>
+typename ImageType::Pointer
+iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,
+                  double conductance );
+#define iMathPeronaMalikConductance 0.25;
+#define iMathPeronaMalikNIterations 1;
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathPeronaMalik( typename ImageType::Pointer image, double conductance,
-                  unsigned long nIterations );
+iMathSharpen( typename ImageType::Pointer image );
 
-#define iMathPeronaMalikConductance 0.25;
-#define iMathPeronaMalikNIterations 1;
 
 }
 #include "iMathFunctions.hxx"
