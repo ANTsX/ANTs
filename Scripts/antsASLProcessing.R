@@ -99,8 +99,26 @@ noise.all <- cbind(moco$moco_params, moco$dvars, nuisance)
 noise.combined <- as.matrix(combineNuisancePredictors(ts, tc, noise.all))
 censored <- aslCensoring(pcasl, mask, nuis=noise.combined, method='robust')
 noise.censored <- noise.combined[censored$which.inliers, ]
-perf <- aslAveraging(censored$asl.inlier, mask=moco$moco_mask,
-                     nuisance=noise.censored, method='regression')
+if (opt$method == 'regression') {
+  perf <- aslAveraging(censored$asl.inlier, mask=moco$moco_mask,
+                       nuisance=noise.censored, method='regression')
+} else if (opt$method == 'bayesian') {
+  if (nchar(opt$antsCorticalThicknessPrefix) == 0) {
+    stop("For Bayesian regression, segmentations are required.")
+  }
+  act <- as.character(opt$antsCorticalThicknessPrefix)
+  segmentation <- tryCatch({
+        antsImageRead(paste(act, "BrainSegmentation.nii.gz", sep=""))
+      }, error = function(e) {
+        print(paste('Segmentation image', paste(act, "BrainSegmentation.nii.gz", sep=""),
+                    'does not exist.'))
+  })
+  tissuelist <- imageFileNames2ImageList(glob2rx(paste(act,
+    "BrainSegmentationPosteriors*.nii.gz", sep="")))
+  perf <- aslAveraging(censored$asl.inlier, mask=moco$moco <- mask,
+                       nuisance=noise.censored, method='bayesian',
+                       segmentation=segmentation, tissuelist=tissuelist)
+}
 
 mvals2 <- apply(ts[tc == 0.5, ], 2, mean)
 mvals1 <- apply(ts[tc == -0.5, ], 2, mean)
@@ -126,7 +144,6 @@ antsImageWrite(cbf$meancbf, paste(opt$outprefix, "_cbf.nii.gz", sep=""))
 
 if (length(opt$antsCorticalThicknessPrefix) > 0){
   act <- as.character(opt$antsCorticalThicknessPrefix)
-  braint1 <- antsImageRead(paste(act, "ExtractedBrain0N4.nii.gz", sep=""))
   braint1 <- tryCatch({
       antsImageRead(paste(act, "ExtractedBrain0N4.nii.gz", sep=""))
     }, error = function(e) {
@@ -135,7 +152,6 @@ if (length(opt$antsCorticalThicknessPrefix) > 0){
   })
   probs <- imageFileNames2ImageList(glob2rx(paste(act,
     "BrainSegmentationPosteriors*.nii.gz", sep="")))
-  seg <- antsImageRead(paste(act, "BrainSegmentation.nii.gz", sep=""))
   seg <- tryCatch({
       antsImageRead(paste(act, "BrainSegmentation.nii.gz", sep=""))
     }, error = function(e) {
