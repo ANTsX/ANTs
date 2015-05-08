@@ -29,6 +29,7 @@
 #include "itkGrayscaleErodeImageFilter.h"
 #include "itkGrayscaleMorphologicalClosingImageFilter.h"
 #include "itkGrayscaleMorphologicalOpeningImageFilter.h"
+#include "itkLaplacianSharpeningImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
@@ -450,8 +451,8 @@ iMathNormalize( typename ImageType::Pointer image )
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathPeronaMalik( typename ImageType::Pointer image, double conductance,
-                  unsigned long nIterations )
+iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,
+  double conductance )
 {
   if ( image->GetNumberOfComponentsPerPixel() != 1 )
     {
@@ -492,5 +493,26 @@ iMathPeronaMalik( typename ImageType::Pointer image, double conductance,
   filter->Update();
   return filter->GetOutput();
 }
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathSharpen( typename ImageType::Pointer image )
+{
+  if ( image->GetNumberOfComponentsPerPixel() != 1 )
+    {
+    // NOPE
+    }
+
+  typedef typename ImageType::PixelType                 PixelType;
+  typedef typename ImageType::Pointer                   ImagePointerType;
+
+  typedef itk::LaplacianSharpeningImageFilter<ImageType, ImageType> FilterType;
+  typename FilterType::Pointer sharpenFilter = FilterType::New();
+  sharpenFilter->SetInput( image );
+  sharpenFilter->Update();
+
+  return sharpenFilter->GetOutput();
+}
+
 
 } // namespace ants
