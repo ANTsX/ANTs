@@ -641,6 +641,57 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if( operation == "TruncateIntensity" )
+    {
+    typedef itk::Image<float,DIM>         ImageType;
+    typedef itk::Image<unsigned int,DIM>  MaskType;
+
+    int nBins = iMathTruncateIntensityNBins;
+
+    if ( argc < 7 )
+      {
+      std::cout << "TruncateIntensity needs a lower and upper quantile" << std::endl;
+      EXIT_FAILURE;
+      }
+
+    double lowerQ = atof( argv[5] );
+    double upperQ = atof( argv[6] );
+
+    if ( argc >= 8 )
+      {
+      nBins= atoi(argv[7]);
+      }
+
+    typename MaskType::Pointer mask = NULL;
+    if ( argc >= 9 )
+      {
+      ReadImage<MaskType>( mask, argv[8] );
+      }
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathTruncateIntensity<ImageType>(input, lowerQ, upperQ, nBins, mask);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "TruncateIntensity: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
 
   return EXIT_FAILURE;
 }
