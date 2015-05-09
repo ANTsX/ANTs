@@ -3,12 +3,9 @@
 #include "itkImageFileWriter.h"
 #include <iostream>
 
-#include "WeightedVotingLabelFusionImageFilter.hxx"
-
 //Use versioning from ANTs
 //
 #include "ANTsVersion.h"
-#include "antsCommandLineParser.h"
 #include "antsUtilities.h"
 
 using namespace std;
@@ -28,7 +25,7 @@ int usage()
   cout << "                                  Target image(s)" << endl;
   cout << "  -l label1.nii ... labelN.nii    Warped atlas segmentation" << endl;
   cout << "  -m <method> [parameters]        Select voting method. Options: Joint (Joint Label Fusion) " << endl;
-  cout << "                                  May be followed by optional parameters in brackets, e.g., -m Joint[0.1,2]."<<endl; 
+  cout << "                                  May be followed by optional parameters in brackets, e.g., -m Joint[0.1,2]."<<endl;
   cout << "                                  See below for parameters" << endl;
   cout << "other options: " << endl;
   cout << "  -rp radius                      Patch radius for similarity measures, scalar or vector (AxBxC) " << endl;
@@ -54,10 +51,10 @@ int usage()
 
 enum LFMethod
 {
-  JOINT, GAUSSIAN, INVERSE 
+  JOINT, GAUSSIAN, INVERSE
 };
 
-template<unsigned int VDim> 
+template<unsigned int VDim>
 struct LFParam
 {
   vector<string> fnAtlas;
@@ -74,7 +71,7 @@ struct LFParam
   int modality;
   double alpha, beta, sigma;
   itk::Size<VDim> r_patch, r_search;
-  
+
   LFParam()
     {
     alpha = 0.1;
@@ -151,7 +148,7 @@ void ExpandRegion(itk::ImageRegion<VDim> &r, bool &isinit, const itk::Index<VDim
       else if(idx[d] >= x + s)
         {
         r.SetSize(d, 1 + idx[d] - x);
-        } 
+        }
       }
     }
 }
@@ -195,7 +192,7 @@ int lfapp(int argc, char *argv[])
   for(int j = 3; j < argc-2; j++)
     {
     string arg = argv[j];
-    
+
     if(arg == "-g")
       {
       // Read the following options as images
@@ -212,7 +209,7 @@ int lfapp(int argc, char *argv[])
       {
       // Read the following options as the group weight of the atlases
       while(argv[j+1][0] != '-' && j < argend)
-        p.GroupWeight.push_back(atof(argv[++j]));      
+        p.GroupWeight.push_back(atof(argv[++j]));
       }
     else if(arg == "-tg")
       {
@@ -275,7 +272,7 @@ int lfapp(int argc, char *argv[])
         return -1;
         }
       }
-    
+
     else if(arg == "-rp" && j < argend)
       {
       if(!parse_vector<VDim>(argv[++j], p.r_patch))
@@ -359,12 +356,12 @@ cout<<999<<endl;
       sum += p.GroupWeight[i];
     if (sum>0)
       for (size_t i=0;i<p.GroupWeight.size();i++)
-        p.GroupWeight[i] /= sum;    
+        p.GroupWeight[i] /= sum;
     else
     {
       cout<<"Error: The total group weights should be positive."<<endl;
       return -1;
-    }    
+    }
   }
 
 //  voter->SetGroupID(p.AtlasGroupID);
@@ -436,8 +433,8 @@ cout<<999<<endl;
 
   voter->SetGroupID(p.AtlasGroupID);
   voter->SetGroupWeight(p.GroupWeight);
- 
- 
+
+
   // Compute the output region by merging all segmentations
   itk::ImageRegion<VDim> rMask;
   bool isMaskInit = false;
@@ -618,50 +615,51 @@ int main(int argc, char *argv[])
 {
 
 // Get version information consistent with the rest of ANTS
-    {
-    typedef itk::ants::CommandLineParser ParserType;
-    typedef ParserType::OptionType       OptionType;
+//     {
+//     typedef itk::ants::CommandLineParser ParserType;
+//     typedef ParserType::OptionType       OptionType;
+//
+//     ParserType::Pointer parser = ParserType::New();
+//     parser->SetCommand( argv[0] );
+//     std::string commandDescription = std::string( "Joint Fusion Program" );
+//     parser->SetCommandDescription( commandDescription );
+//
+//       {
+//       const std::string description = std::string( "Get Version Information." );
+//
+//       OptionType::Pointer option = OptionType::New();
+//       option->SetLongName( "version" );
+//       option->SetShortName( 'v' );
+//       option->SetDescription( description );
+//       parser->AddOption( option );
+//       }
+//     if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+//       {
+//       // Undefined behavior if failure occurs.  If the complete command line
+//       // were wrapped conistently with the rest of ANTs, then this would
+//       // be well defined.
+//       }
 
-    ParserType::Pointer parser = ParserType::New();
-    parser->SetCommand( argv[0] );
-    std::string commandDescription = std::string( "Joint Fusion Program" );
-    parser->SetCommandDescription( commandDescription );
-
-      {
-      const std::string description = std::string( "Get Version Information." );
-
-      OptionType::Pointer option = OptionType::New();
-      option->SetLongName( "version" );
-      option->SetShortName( 'v' );
-      option->SetDescription( description );
-      parser->AddOption( option );
-      }
-    if( parser->Parse( argc, argv ) == EXIT_FAILURE )
-      {
-      // Undefined behavior if failure occurs.  If the complete command line
-      // were wrapped conistently with the rest of ANTs, then this would
-      // be well defined.
-      }
-    ParserType::OptionType::Pointer versionOption = parser->GetOption( "version" );
-    if( versionOption && versionOption->GetNumberOfFunctions() )
-      {
-      std::string versionFunction = versionOption->GetFunction( 0 )->GetName();
-      ConvertToLowerCase( versionFunction );
-      if( versionFunction.compare( "1" ) == 0 || versionFunction.compare( "true" ) == 0 )
-        {
-        //Print Version Information
-        std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
-        return EXIT_SUCCESS;
-        }
-      }
-    }
+//     ParserType::OptionType::Pointer versionOption = parser->GetOption( "version" );
+//     if( versionOption && versionOption->GetNumberOfFunctions() )
+//       {
+//       std::string versionFunction = versionOption->GetFunction( 0 )->GetName();
+//       ConvertToLowerCase( versionFunction );
+//       if( versionFunction.compare( "1" ) == 0 || versionFunction.compare( "true" ) == 0 )
+//         {
+//         //Print Version Information
+//         std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
+//         return EXIT_SUCCESS;
+//         }
+//       }
+//     }
 
   // Parse user input using original joint fusion logic.
   if(argc < 5) return usage();
 
   // Get the first option
   int dim = atoi(argv[1]);
-  
+
   // Call the templated method
   if(dim == 2)
     return lfapp<2>(argc, argv);
