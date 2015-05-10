@@ -655,7 +655,7 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "shrink-factor" );
   option->SetShortName( 's' );
-  option->SetUsageOption( 0, "1/2/3/4/..." );
+  option->SetUsageOption( 0, "1/2/3/(4)/..." );
   option->SetDescription( description );
   parser->AddOption( option );
   }
