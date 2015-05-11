@@ -123,6 +123,10 @@ iMathNormalize( typename ImageType::Pointer image );
 
 template <class ImageType>
 typename ImageType::Pointer
+iMathPad( typename ImageType::Pointer image, int padding );
+
+template <class ImageType>
+typename ImageType::Pointer
 iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,
                   double conductance );
 #define iMathPeronaMalikConductance 0.25;

@@ -653,6 +653,35 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if( operation == "Pad" )
+    {
+
+    int padding = atoi(argv[5]);
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathPad<ImageType>(input, padding);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "Pad: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
   else if( operation == "PeronaMalik" )
     {
     double conductance = iMathPeronaMalikConductance;

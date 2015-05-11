@@ -30,10 +30,12 @@
 #include "itkGrayscaleErodeImageFilter.h"
 #include "itkGrayscaleMorphologicalClosingImageFilter.h"
 #include "itkGrayscaleMorphologicalOpeningImageFilter.h"
+#include "itkIdentityTransform.h"
 #include "itkIntensityWindowingImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkLaplacianSharpeningImageFilter.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
@@ -497,6 +499,46 @@ iMathNormalize( typename ImageType::Pointer image )
 
   return normFilter->GetOutput();
 }
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathPad( typename ImageType::Pointer image, int padding )
+{
+  typedef typename ImageType::PixelType                 PixelType;
+  typedef typename ImageType::Pointer                   ImagePointerType;
+
+  typename ImageType::PointType origin = image->GetOrigin();
+
+  typename ImageType::SizeType size = image->GetLargestPossibleRegion().GetSize();
+  for (unsigned int i=0; i<ImageType::ImageDimension; i++)
+    {
+    size[i] += 2*padding;
+    origin[i] -= (padding * image->GetSpacing()[i]);
+    }
+
+  typedef itk::IdentityTransform<double,ImageType::ImageDimension> TransformType;
+  typename TransformType::Pointer id = TransformType::New();
+  id->SetIdentity();
+
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType> InterpType;
+  typename InterpType::Pointer interp = InterpType::New();
+
+  typedef itk::ResampleImageFilter<ImageType,ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetOutputSpacing( image->GetSpacing() );
+  filter->SetOutputOrigin( origin );
+  filter->SetOutputDirection( image->GetDirection() );
+  filter->SetDefaultPixelValue( 0 );
+  filter->SetSize( size );
+  filter->SetTransform( id );
+  filter->SetInterpolator( interp );
+  filter->SetDebug(true);
+  filter->Update();
+
+  return filter->GetOutput();
+}
+
 
 template <class ImageType>
 typename ImageType::Pointer
