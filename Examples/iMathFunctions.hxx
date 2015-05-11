@@ -31,6 +31,7 @@
 #include "itkGrayscaleMorphologicalOpeningImageFilter.h"
 #include "itkIntensityWindowingImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
+#include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkLaplacianSharpeningImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
@@ -283,6 +284,32 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     }
 
   return image;
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathLaplacian(typename ImageType::Pointer image, double sigma, bool normalize )
+{
+
+  typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType,ImageType> FilterType;
+  typename FilterType::Pointer laplacian = FilterType::New();
+  laplacian->SetInput( image );
+  laplacian->SetSigma( sigma );
+  laplacian->Update();
+
+  typename ImageType::Pointer output = laplacian->GetOutput();
+  if ( normalize )
+    {
+    typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+    typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+    rescaler->SetOutputMinimum( 0 );
+    rescaler->SetOutputMaximum( 1 );
+    rescaler->SetInput( laplacian->GetOutput() );
+    rescaler->Update();
+    output = rescaler->GetOutput();
+    }
+
+  return output;
 }
 
 template <class ImageType>
@@ -541,10 +568,10 @@ iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ, double
   PixelType minValue = stats->GetMinimum( 1 );
   PixelType maxValue = stats->GetMaximum( 1 );
 
-  // Hack increment
+  // Hack increment by delta
   if (minValue == 0)
     {
-    minValue = (PixelType) minValue + 1e-6;
+    minValue = (PixelType) (minValue + 1e-6);
     }
   if (minValue == 0)
     {
