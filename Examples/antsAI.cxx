@@ -750,11 +750,11 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter() ) * vnl_math::pi / 180.0;
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter( 0 ) ) * vnl_math::pi / 180.0;
       }
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
-      arcFraction = parser->Convert<RealType>( searchFactorOption->GetFunction( 1 )->GetParameter() );
+      arcFraction = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter( 1 ) );
       }
     }
 
