@@ -25,6 +25,7 @@
 #include "itkCastImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
+#include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
 #include "itkGrayscaleDilateImageFilter.h"
 #include "itkGrayscaleErodeImageFilter.h"
 #include "itkGrayscaleMorphologicalClosingImageFilter.h"
@@ -284,6 +285,32 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     }
 
   return image;
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )
+{
+
+  typedef itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType,ImageType> FilterType;
+  typename FilterType::Pointer grad = FilterType::New();
+  grad->SetInput( image );
+  grad->SetSigma( sigma );
+  grad->Update();
+
+  typename ImageType::Pointer output = grad->GetOutput();
+  if ( normalize )
+    {
+    typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+    typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+    rescaler->SetOutputMinimum( 0 );
+    rescaler->SetOutputMaximum( 1 );
+    rescaler->SetInput( grad->GetOutput() );
+    rescaler->Update();
+    output = rescaler->GetOutput();
+    }
+
+  return output;
 }
 
 template <class ImageType>
