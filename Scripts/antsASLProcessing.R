@@ -94,14 +94,15 @@ if (!tag.first) {
 } else {
   tc <- (rep(c(0, 1), dim(ts)[1])[1:dim(ts)[1]] - 0.5)  # tag minus control
 }
-nuisance <- getASLNoisePredictors(ts, tc)
+nuisance <- getASLNoisePredictors(ts, tc, polydegree='gam')
 noise.all <- cbind(moco$moco_params, moco$dvars, nuisance)
-noise.combined <- as.matrix(combineNuisancePredictors(ts, tc, noise.all))
+noise.combined <- as.matrix(combineNuisancePredictors(ts, noise.all))
 censored <- aslCensoring(pcasl, mask, nuis=noise.combined, method='robust')
+tc <- tc[-censored$which.outliers]
 noise.censored <- noise.combined[censored$which.inliers, ]
 if (opt$method == 'regression') {
   perf <- aslAveraging(censored$asl.inlier, mask=moco$moco_mask,
-                       nuisance=noise.censored, method='regression')
+                tc=tc, nuisance=noise.censored, method='regression')
 } else if (opt$method == 'bayesian') {
   if (nchar(opt$antsCorticalThicknessPrefix) == 0) {
     stop("For Bayesian regression, segmentations are required.")
@@ -116,7 +117,7 @@ if (opt$method == 'regression') {
   tissuelist <- imageFileNames2ImageList(glob2rx(paste(act,
     "BrainSegmentationPosteriors*.nii.gz", sep="")))
   perf <- aslAveraging(censored$asl.inlier, mask=moco$moco <- mask,
-                       nuisance=noise.censored, method='bayesian',
+                tc=tc, nuisance=noise.censored, method='bayesian',
                        segmentation=segmentation, tissuelist=tissuelist)
 }
 
@@ -140,7 +141,7 @@ m0<-n3BiasFieldCorrection(m0,2)
 
 cbf <- quantifyCBF(perf, mask=moco$moco_mask,
                    parameters=list(sequence="pcasl", m0=antsImageClone(m0)))
-antsImageWrite(cbf$meancbf, paste(opt$outprefix, "_cbf.nii.gz", sep=""))
+antsImageWrite(cbf$meancbf, paste(opt$outprefix, "CBF.nii.gz", sep=""))
 
 if (length(opt$antsCorticalThicknessPrefix) > 0){
   act <- as.character(opt$antsCorticalThicknessPrefix)
