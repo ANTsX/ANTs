@@ -750,11 +750,11 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter() ) * vnl_math::pi / 180.0;
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter( 0 ) ) * vnl_math::pi / 180.0;
       }
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
-      arcFraction = parser->Convert<RealType>( searchFactorOption->GetFunction( 1 )->GetParameter() );
+      arcFraction = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter( 1 ) );
       }
     }
 
@@ -1275,15 +1275,15 @@ int antsAI( itk::ants::CommandLineParser *parser )
   multiStartOptimizer->SetMetric( imageMetric );
 
   typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
-  for( RealType angle1 = ( vnl_math::pi_over_4 * -arcFraction ); angle1 <= ( vnl_math::pi_over_4 * arcFraction ); angle1 += searchFactor )
+  for( RealType angle1 = ( vnl_math::pi * -arcFraction ); angle1 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle1 += searchFactor )
     {
     if( ImageDimension == 2 )
       {
       affineSearchTransform->SetIdentity();
+      affineSearchTransform->SetCenter( initialTransform->GetCenter() );
+      affineSearchTransform->SetOffset( initialTransform->GetOffset() );
       affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
       affineSearchTransform->Rotate2D( angle1, 1 );
-      affineSearchTransform->SetCenter( initialTransform->GetCenter() );
-      affineSearchTransform->SetTranslation( initialTransform->GetTranslation() );
 
       if( strcmp( transform.c_str(), "affine" ) == 0 )
         {
@@ -1293,16 +1293,19 @@ int antsAI( itk::ants::CommandLineParser *parser )
       else if( strcmp( transform.c_str(), "rigid" ) == 0 )
         {
         rigidSearchTransform->SetIdentity();
+        rigidSearchTransform->SetCenter( initialTransform->GetCenter() );
+        rigidSearchTransform->SetOffset( initialTransform->GetOffset() );
         rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
-        rigidSearchTransform->SetOffset( affineSearchTransform->GetOffset() );
 
         parametersList.push_back( rigidSearchTransform->GetParameters() );
         }
       else if( strcmp( transform.c_str(), "similarity" ) == 0 )
         {
         similaritySearchTransform->SetIdentity();
+        similaritySearchTransform->SetCenter( initialTransform->GetCenter() );
+        similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
         similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
-        similaritySearchTransform->SetOffset( affineSearchTransform->GetOffset() );
+        similaritySearchTransform->SetScale( bestScale );
 
         similaritySearchTransform->SetScale( bestScale );
 
@@ -1311,16 +1314,14 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     if( ImageDimension == 3 )
       {
-      for( RealType angle2 = ( vnl_math::pi_over_4 * -arcFraction ); angle2 <= ( vnl_math::pi_over_4 * arcFraction ); angle2 += searchFactor )
+      for( RealType angle2 = ( vnl_math::pi * -arcFraction ); angle2 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle2 += searchFactor )
         {
         affineSearchTransform->SetIdentity();
+        affineSearchTransform->SetCenter( initialTransform->GetCenter() );
+        affineSearchTransform->SetOffset( initialTransform->GetOffset() );
         affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
         affineSearchTransform->Rotate3D( axis1, angle1, 1 );
         affineSearchTransform->Rotate3D( axis2, angle2, 1 );
-        affineSearchTransform->SetCenter( initialTransform->GetCenter() );
-        affineSearchTransform->SetTranslation( initialTransform->GetTranslation() );
-
-        affineSearchTransform->SetOffset( initialTransform->GetOffset() );
 
         if( strcmp( transform.c_str(), "affine" ) == 0 )
           {
@@ -1330,7 +1331,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
         else if( strcmp( transform.c_str(), "rigid" ) == 0 )
           {
           rigidSearchTransform->SetIdentity();
-          rigidSearchTransform->SetOffset( affineSearchTransform->GetOffset() );
+          rigidSearchTransform->SetCenter( initialTransform->GetCenter() );
+          rigidSearchTransform->SetOffset( initialTransform->GetOffset() );
           rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
 
           parametersList.push_back( rigidSearchTransform->GetParameters() );
@@ -1338,7 +1340,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
         else if( strcmp( transform.c_str(), "similarity" ) == 0 )
           {
           similaritySearchTransform->SetIdentity();
-          similaritySearchTransform->SetOffset( affineSearchTransform->GetOffset() );
+          similaritySearchTransform->SetCenter( initialTransform->GetCenter() );
+          similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
           similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
           similaritySearchTransform->SetScale( bestScale );
 

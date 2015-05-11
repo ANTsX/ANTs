@@ -43,7 +43,7 @@ public:
                       TInputImage::ImageDimension);
   itkStaticConstMacro(OutputImageDimension, unsigned int,
                       TOutputImage::ImageDimension);
-                                                                               
+
   /** Set target image */
   void SetTargetImage(InputImageList image)
     { m_Target = image; UpdateInputs(); }
@@ -103,7 +103,7 @@ public:
   /** Set the requested region */
   void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
-  /** 
+  /**
    * Whether the posterior maps should be retained. This can have a negative effect
    * on memory use, so it should only be done if one wishes to save the posterior
    * maps. The posterior maps given the probability of each voxel in the target image
@@ -119,7 +119,7 @@ public:
   typedef itk::Image<float, InputImageDimension> PosteriorImage;
   typedef typename PosteriorImage::Pointer PosteriorImagePtr;
   typedef typename std::map<InputImagePixelType, PosteriorImagePtr> PosteriorMap;
-                                                                    
+
   /**
    * Get the posterior maps (if they have been retained)
    */
@@ -136,13 +136,13 @@ public:
 
 
   void GenerateData() ITK_OVERRIDE;
- 
+
 protected:
 
-  WeightedVotingLabelFusionImageFilter() 
-    { 
-    m_Alpha=0.1; 
-    m_Beta=2; 
+  WeightedVotingLabelFusionImageFilter()
+    {
+    m_Alpha=0.1;
+    m_Beta=2;
     m_RetainPosteriorMaps = false;
     m_RetainVotingWeight = false;
     }
@@ -158,7 +158,7 @@ private:
     size_t n, int *offsets, InputImagePixelType &psearchSum, InputImagePixelType &psearchSSQ);
 
   void ComputeOffsetTable(
-    const InputImageType *image, const SizeType &radius, 
+    const InputImageType *image, const SizeType &radius,
     int **offset, size_t &nPatch, int **manhattan = ITK_NULLPTR);
 
   void UpdateInputs();
@@ -172,7 +172,7 @@ private:
   double m_Alpha, m_Beta;
 
   typedef std::map<InputImagePixelType, InputImagePointer> ExclusionMap;
-  
+
   typedef std::vector<int> ArrayInt;
 
   ArrayInt m_GroupID;
@@ -195,5 +195,6 @@ private:
 
 };
 
+#include "WeightedVotingLabelFusionImageFilter.hxx"
 
 #endif

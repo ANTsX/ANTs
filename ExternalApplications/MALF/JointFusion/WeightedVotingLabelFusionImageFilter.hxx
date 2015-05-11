@@ -37,6 +37,9 @@
 #include <set>
 #include <map>
 #include <vector>
+
+#include "WeightedVotingLabelFusionImageFilter.h"
+
 using namespace std;
 
 template <class TInputImage, class TOutputImage>
