@@ -120,6 +120,13 @@ template <class ImageType>
 typename ImageType::Pointer
 iMathSharpen( typename ImageType::Pointer image );
 
+template <class ImageType>
+typename ImageType::Pointer
+iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ,
+                        double upperQ, int nBins,
+                        typename itk::Image<unsigned int, ImageType::ImageDimension>::Pointer maskImage );
+#define iMathTruncateIntensityNBins 64;
+
 
 }
 #include "iMathFunctions.hxx"

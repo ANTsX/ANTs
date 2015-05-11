@@ -29,11 +29,13 @@
 #include "itkGrayscaleErodeImageFilter.h"
 #include "itkGrayscaleMorphologicalClosingImageFilter.h"
 #include "itkGrayscaleMorphologicalOpeningImageFilter.h"
+#include "itkIntensityWindowingImageFilter.h"
+#include "itkLabelStatisticsImageFilter.h"
 #include "itkLaplacianSharpeningImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
-#include "itkShiftScaleImageFilter.h"
+#include "itkRescaleIntensityImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
-#include "itkStatisticsImageFilter.h"
+
 
 namespace ants
 {
@@ -432,18 +434,11 @@ iMathNormalize( typename ImageType::Pointer image )
   typedef typename ImageType::PixelType                 PixelType;
   typedef typename ImageType::Pointer                   ImagePointerType;
 
-  typedef itk::StatisticsImageFilter<ImageType> StatsFilterType;
-  typename StatsFilterType::Pointer statsFilter = StatsFilterType::New();
-  statsFilter->SetInput( image );
-  statsFilter->Update();
-  PixelType max = statsFilter->GetMaximum();
-  PixelType min = statsFilter->GetMinimum();
-
-  typedef itk::ShiftScaleImageFilter<ImageType,ImageType> NormFilterType;
+  typedef itk::RescaleIntensityImageFilter<ImageType,ImageType> NormFilterType;
   typename NormFilterType::Pointer normFilter = NormFilterType::New();
   normFilter->SetInput( image );
-  normFilter->SetShift( -min );
-  normFilter->SetScale( 1.0/(max-min) );
+  normFilter->SetOutputMinimum( itk::NumericTraits<PixelType>::ZeroValue() );
+  normFilter->SetOutputMaximum( itk::NumericTraits<PixelType>::OneValue() );
   normFilter->Update();
 
   return normFilter->GetOutput();
@@ -512,6 +507,71 @@ iMathSharpen( typename ImageType::Pointer image )
   sharpenFilter->Update();
 
   return sharpenFilter->GetOutput();
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ, double upperQ, int nBins,
+                        typename itk::Image<unsigned int, ImageType::ImageDimension>::Pointer mask )
+{
+
+  typedef typename ImageType::PixelType                     PixelType;
+  typedef typename ImageType::Pointer                       ImagePointerType;
+  typedef unsigned int                                      LabelType;
+  typedef itk::Image<LabelType, ImageType::ImageDimension>  MaskType;
+
+  if( mask.IsNull() )
+    {
+    typedef itk::BinaryThresholdImageFilter<ImageType, MaskType> ThresholdFilterType;
+    typename ThresholdFilterType::Pointer thresh = ThresholdFilterType::New();
+    thresh->SetInput( image );
+    thresh->SetLowerThreshold( 1e-6 );
+    thresh->SetUpperThreshold( itk::NumericTraits<PixelType>::max() );
+    thresh->SetInsideValue(1);
+    thresh->SetOutsideValue(0);
+    thresh->Update();
+    mask = thresh->GetOutput();
+    }
+  typedef itk::LabelStatisticsImageFilter<ImageType, MaskType> HistogramFilterType;
+  typename HistogramFilterType::Pointer stats = HistogramFilterType::New();
+
+  stats->SetInput( image );
+  stats->SetLabelInput( mask );
+  stats->Update();
+  PixelType minValue = stats->GetMinimum( 1 );
+  PixelType maxValue = stats->GetMaximum( 1 );
+
+  // Hack increment
+  if (minValue == 0)
+    {
+    minValue = (PixelType) minValue + 1e-6;
+    }
+  if (minValue == 0)
+    {
+    minValue++;
+    }
+
+  stats->SetUseHistograms( true );
+  stats->SetHistogramParameters( nBins, minValue, maxValue );
+  stats->Update();
+
+  typedef typename HistogramFilterType::HistogramPointer HistogramPointer;
+  HistogramPointer histogram = stats->GetHistogram( 1 );
+
+  PixelType lowerQuantile = histogram->Quantile( 0, lowerQ );
+  PixelType upperQuantile = histogram->Quantile( 0, upperQ );
+
+  typedef itk::IntensityWindowingImageFilter<ImageType,ImageType> WindowFilterType;
+  typename WindowFilterType::Pointer windowFilter = WindowFilterType::New();
+  windowFilter->SetInput( image );
+  windowFilter->SetWindowMinimum( lowerQuantile );
+  windowFilter->SetOutputMinimum( lowerQuantile );
+  windowFilter->SetWindowMaximum( upperQuantile );
+  windowFilter->SetOutputMaximum( upperQuantile );
+  windowFilter->Update();
+
+  return windowFilter->GetOutput();
+
 }
 
 
