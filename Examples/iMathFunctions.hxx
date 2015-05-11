@@ -533,7 +533,6 @@ iMathPad( typename ImageType::Pointer image, int padding )
   filter->SetSize( size );
   filter->SetTransform( id );
   filter->SetInterpolator( interp );
-  filter->SetDebug(true);
   filter->Update();
 
   return filter->GetOutput();
