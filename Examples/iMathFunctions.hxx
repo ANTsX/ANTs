@@ -25,13 +25,17 @@
 #include "itkCastImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
+#include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
 #include "itkGrayscaleDilateImageFilter.h"
 #include "itkGrayscaleErodeImageFilter.h"
 #include "itkGrayscaleMorphologicalClosingImageFilter.h"
 #include "itkGrayscaleMorphologicalOpeningImageFilter.h"
+#include "itkIdentityTransform.h"
 #include "itkIntensityWindowingImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
+#include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkLaplacianSharpeningImageFilter.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
@@ -287,6 +291,58 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
 
 template <class ImageType>
 typename ImageType::Pointer
+iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )
+{
+
+  typedef itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType,ImageType> FilterType;
+  typename FilterType::Pointer grad = FilterType::New();
+  grad->SetInput( image );
+  grad->SetSigma( sigma );
+  grad->Update();
+
+  typename ImageType::Pointer output = grad->GetOutput();
+  if ( normalize )
+    {
+    typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+    typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+    rescaler->SetOutputMinimum( 0 );
+    rescaler->SetOutputMaximum( 1 );
+    rescaler->SetInput( grad->GetOutput() );
+    rescaler->Update();
+    output = rescaler->GetOutput();
+    }
+
+  return output;
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathLaplacian(typename ImageType::Pointer image, double sigma, bool normalize )
+{
+
+  typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType,ImageType> FilterType;
+  typename FilterType::Pointer laplacian = FilterType::New();
+  laplacian->SetInput( image );
+  laplacian->SetSigma( sigma );
+  laplacian->Update();
+
+  typename ImageType::Pointer output = laplacian->GetOutput();
+  if ( normalize )
+    {
+    typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+    typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+    rescaler->SetOutputMinimum( 0 );
+    rescaler->SetOutputMaximum( 1 );
+    rescaler->SetInput( laplacian->GetOutput() );
+    rescaler->Update();
+    output = rescaler->GetOutput();
+    }
+
+  return output;
+}
+
+template <class ImageType>
+typename ImageType::Pointer
 iMathMaurerDistance(typename ImageType::Pointer image,
                     typename ImageType::PixelType foreground )
 {
@@ -446,6 +502,45 @@ iMathNormalize( typename ImageType::Pointer image )
 
 template <class ImageType>
 typename ImageType::Pointer
+iMathPad( typename ImageType::Pointer image, int padding )
+{
+  typedef typename ImageType::PixelType                 PixelType;
+  typedef typename ImageType::Pointer                   ImagePointerType;
+
+  typename ImageType::PointType origin = image->GetOrigin();
+
+  typename ImageType::SizeType size = image->GetLargestPossibleRegion().GetSize();
+  for (unsigned int i=0; i<ImageType::ImageDimension; i++)
+    {
+    size[i] += 2*padding;
+    origin[i] -= (padding * image->GetSpacing()[i]);
+    }
+
+  typedef itk::IdentityTransform<double,ImageType::ImageDimension> TransformType;
+  typename TransformType::Pointer id = TransformType::New();
+  id->SetIdentity();
+
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType> InterpType;
+  typename InterpType::Pointer interp = InterpType::New();
+
+  typedef itk::ResampleImageFilter<ImageType,ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetOutputSpacing( image->GetSpacing() );
+  filter->SetOutputOrigin( origin );
+  filter->SetOutputDirection( image->GetDirection() );
+  filter->SetDefaultPixelValue( 0 );
+  filter->SetSize( size );
+  filter->SetTransform( id );
+  filter->SetInterpolator( interp );
+  filter->Update();
+
+  return filter->GetOutput();
+}
+
+
+template <class ImageType>
+typename ImageType::Pointer
 iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,
   double conductance )
 {
@@ -541,10 +636,10 @@ iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ, double
   PixelType minValue = stats->GetMinimum( 1 );
   PixelType maxValue = stats->GetMaximum( 1 );
 
-  // Hack increment
+  // Hack increment by delta
   if (minValue == 0)
     {
-    minValue = (PixelType) minValue + 1e-6;
+    minValue = (PixelType) (minValue + 1e-6);
     }
   if (minValue == 0)
     {

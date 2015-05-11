@@ -104,10 +104,26 @@ iMathGO(typename ImageType::Pointer image, unsigned long radius);
 #define iMathGORadius 1;
 #define iMathGOValue 1;
 
+template <class ImageType>
+typename ImageType::Pointer
+iMathGrad( typename ImageType::Pointer image, double sigma, bool normalize );
+#define iMathGradSigma 0.5;
+#define iMathGradNormalize false;
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathLaplacian( typename ImageType::Pointer image, double sigma, bool normalize );
+#define iMathLaplacianSigma 0.5;
+#define iMathLaplacianNormalize false;
+
 // Normalize intensity values to lie in [0,1]
 template <class ImageType>
 typename ImageType::Pointer
 iMathNormalize( typename ImageType::Pointer image );
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathPad( typename ImageType::Pointer image, int padding );
 
 template <class ImageType>
 typename ImageType::Pointer

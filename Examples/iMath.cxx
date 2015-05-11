@@ -364,6 +364,82 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if( operation == "Grad" )
+    {
+    double sigma = iMathGradSigma;
+    bool normalize = iMathGradNormalize;
+
+    if ( argc >= 6 )
+      {
+      sigma = atof(argv[5]);
+      }
+    if ( argc >= 7 )
+      {
+      normalize = (bool) atoi(argv[6]);
+      }
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathGrad<ImageType>(input, sigma, normalize);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "Grad: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "Laplacian" )
+    {
+    double sigma = iMathLaplacianSigma;
+    bool normalize = iMathLaplacianNormalize;
+
+    if ( argc >= 6 )
+      {
+      sigma = atof(argv[5]);
+      }
+    if ( argc >= 7 )
+      {
+      normalize = (bool) atoi(argv[6]);
+      }
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathLaplacian<ImageType>(input, sigma, normalize);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "Laplacian: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
   else if( operation == "MC" )
     {
 
@@ -570,6 +646,35 @@ iMathHelperAll(int argc, char **argv)
     catch( itk::ExceptionObject & excep )
       {
       std::cout << "Normalize: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "Pad" )
+    {
+
+    int padding = atoi(argv[5]);
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathPad<ImageType>(input, padding);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "Pad: exception caught !" << std::endl;
       std::cout << excep << std::endl;
       }
 
