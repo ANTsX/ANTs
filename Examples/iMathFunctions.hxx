@@ -102,9 +102,15 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )
 
   typedef typename ImageType::Pointer                ImagePointerType;
   typedef itk::Image<int, ImageType::ImageDimension> MaskType;
+  typedef typename ImageType::PixelType              PixelType;
+  typedef typename MaskType::PixelType               LabelType;
 
-  typedef itk::CastImageFilter<MaskType,ImageType>   MaskToImage;
+  const PixelType imageMax = itk::NumericTraits<PixelType>::max();
+  const LabelType labelMax = itk::NumericTraits<LabelType>::max();
+  const PixelType objectMin = 0.5;
+  const PixelType distanceMin = 0.001;
 
+  typedef itk::CastImageFilter<MaskType,ImageType>            MaskToImage;
   typedef itk::BinaryThresholdImageFilter<ImageType,MaskType> ThresholdFilterType;
   typedef itk::BinaryThresholdImageFilter<MaskType,MaskType>  ThresholdMaskFilterType;
 
@@ -112,8 +118,8 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )
   threshold->SetInput( image );
   threshold->SetInsideValue(1);
   threshold->SetOutsideValue(0);
-  threshold->SetLowerThreshold(0.5);  //FIXME - why these values?
-  threshold->SetUpperThreshold(1.e9);
+  threshold->SetLowerThreshold(objectMin);
+  threshold->SetUpperThreshold(imageMax);
 
   typedef itk::DanielssonDistanceMapImageFilter<MaskType, ImageType> FilterType;
   typename  FilterType::Pointer distance = FilterType::New();
@@ -125,8 +131,8 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )
   dThreshold->SetInput( distance->GetOutput() );
   dThreshold->SetInsideValue(1);
   dThreshold->SetOutsideValue(0);
-  dThreshold->SetLowerThreshold(0.001);  //FIXME - why these values?
-  dThreshold->SetUpperThreshold(1.e9);
+  dThreshold->SetLowerThreshold(distanceMin);
+  dThreshold->SetUpperThreshold(imageMax);
   dThreshold->Update();
 
   typedef itk::ConnectedComponentImageFilter<MaskType,MaskType> ConnectedFilterType;
@@ -134,7 +140,7 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )
   connected->SetInput( dThreshold->GetOutput() );
   connected->SetFullyConnected( false );
 
-  typedef itk::RelabelComponentImageFilter<MaskType, MaskType>    RelabelFilterType;
+  typedef itk::RelabelComponentImageFilter<MaskType, MaskType>  RelabelFilterType;
   typename RelabelFilterType::Pointer relabel = RelabelFilterType::New();
   relabel->SetInput( connected->GetOutput() );
   relabel->SetMinimumObjectSize( 0 );
@@ -147,7 +153,7 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )
     oThreshold->SetInsideValue(1);
     oThreshold->SetOutsideValue(0);
     oThreshold->SetLowerThreshold(2);
-    oThreshold->SetUpperThreshold(1.e9);
+    oThreshold->SetUpperThreshold(labelMax);
 
     typedef itk::AddImageFilter<MaskType,MaskType> AddFilterType;
     typename AddFilterType::Pointer add = AddFilterType::New();
@@ -200,12 +206,12 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )
             {
             ind2 = GHood.GetIndex(i);
             float val2 = threshold->GetOutput()->GetPixel(ind2);
-            if( val2 >= 0.5 && GHood.GetPixel(i) != lab )
+            if( (val2 == 1) && GHood.GetPixel(i) != lab )
               {
               objectedge++;
               totaledge++;
               }
-            else if( val2 < 0.5 && GHood.GetPixel(i) != lab )
+            else if( (val2 == 1) && GHood.GetPixel(i) != lab )
               {
               backgroundedge++;
               totaledge++;
