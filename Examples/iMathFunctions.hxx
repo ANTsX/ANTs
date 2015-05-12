@@ -82,13 +82,169 @@ iMathDistanceMap( typename ImageType::Pointer image, bool useSpacing )
   return filter->GetOutput();
 }
 
+
+// algorithm :
+// 1. get distance map of object
+// 2. threshold
+// 3. label connected components
+// 4. label surface
+// 5. if everywhere on surface is next to object then it's a hole
+// 6. make sure it's not the background
+template <class ImageType>
+typename ImageType::Pointer
+iMathFillHoles( typename ImageType::Pointer image, double holeParam )
+{
+
+  if ( holeParam > 2 )
+    {
+    // nope
+    }
+
+  typedef typename ImageType::Pointer                ImagePointerType;
+  typedef itk::Image<int, ImageType::ImageDimension> MaskType;
+
+  typedef itk::CastImageFilter<MaskType,ImageType>   MaskToImage;
+
+  typedef itk::BinaryThresholdImageFilter<ImageType,MaskType> ThresholdFilterType;
+  typedef itk::BinaryThresholdImageFilter<MaskType,MaskType>  ThresholdMaskFilterType;
+
+  typename ThresholdFilterType::Pointer threshold = ThresholdFilterType::New();
+  threshold->SetInput( image );
+  threshold->SetInsideValue(1);
+  threshold->SetOutsideValue(0);
+  threshold->SetLowerThreshold(0.5);  //FIXME - why these values?
+  threshold->SetUpperThreshold(1.e9);
+
+  typedef itk::DanielssonDistanceMapImageFilter<MaskType, ImageType> FilterType;
+  typename  FilterType::Pointer distance = FilterType::New();
+  distance->InputIsBinaryOff();
+  distance->SetUseImageSpacing(false);
+  distance->SetInput(threshold->GetOutput());
+
+  typename ThresholdFilterType::Pointer dThreshold = ThresholdFilterType::New();
+  dThreshold->SetInput( distance->GetOutput() );
+  dThreshold->SetInsideValue(1);
+  dThreshold->SetOutsideValue(0);
+  dThreshold->SetLowerThreshold(0.001);  //FIXME - why these values?
+  dThreshold->SetUpperThreshold(1.e9);
+  dThreshold->Update();
+
+  typedef itk::ConnectedComponentImageFilter<MaskType,MaskType> ConnectedFilterType;
+  typename ConnectedFilterType::Pointer connected = ConnectedFilterType::New();
+  connected->SetInput( dThreshold->GetOutput() );
+  connected->SetFullyConnected( false );
+
+  typedef itk::RelabelComponentImageFilter<MaskType, MaskType>    RelabelFilterType;
+  typename RelabelFilterType::Pointer relabel = RelabelFilterType::New();
+  relabel->SetInput( connected->GetOutput() );
+  relabel->SetMinimumObjectSize( 0 );
+  relabel->Update();
+
+  if( holeParam == 2 )
+    {
+    typename ThresholdMaskFilterType::Pointer oThreshold = ThresholdMaskFilterType::New();
+    oThreshold->SetInput( relabel->GetOutput() );
+    oThreshold->SetInsideValue(1);
+    oThreshold->SetOutsideValue(0);
+    oThreshold->SetLowerThreshold(2);
+    oThreshold->SetUpperThreshold(1.e9);
+
+    typedef itk::AddImageFilter<MaskType,MaskType> AddFilterType;
+    typename AddFilterType::Pointer add = AddFilterType::New();
+    add->SetInput1( threshold->GetOutput() );
+    add->SetInput2( oThreshold->GetOutput() );
+
+    typename MaskToImage::Pointer maskToImage = MaskToImage::New();
+    maskToImage->SetInput( add->GetOutput() );
+    maskToImage->Update();
+
+    return maskToImage->GetOutput();
+    }
+
+  // FIXME - add filter for below -- avoid iterators in these functions
+  typename MaskToImage::Pointer caster = MaskToImage::New();
+  caster->SetInput( threshold->GetOutput() );
+  caster->Update();
+  ImagePointerType imageout = caster->GetOutput();
+
+  typedef itk::NeighborhoodIterator<MaskType> iteratorType;
+  typename iteratorType::RadiusType rad;
+  for( unsigned int j = 0; j < ImageType::ImageDimension; j++ )
+    {
+    rad[j] = 1;
+    }
+  iteratorType GHood(rad, relabel->GetOutput(), relabel->GetOutput()->GetLargestPossibleRegion() );
+
+  float maximum = relabel->GetNumberOfObjects();
+  // now we have the exact number of objects labeled independently
+  for( int lab = 2; lab <= maximum; lab++ )
+    {
+    float erat = 2;
+    if( holeParam <= 1 )
+      {
+      GHood.GoToBegin();
+
+      unsigned long objectedge = 0;
+      unsigned long backgroundedge = 0;
+      unsigned long totaledge = 0;
+      unsigned long volume = 0;
+
+      while( !GHood.IsAtEnd() )
+        {
+        typename ImageType::PixelType p = GHood.GetCenterPixel();
+        typename ImageType::IndexType ind2;
+        if( p == lab )
+          {
+          volume++;
+          for( unsigned int i = 0; i < GHood.Size(); i++ )
+            {
+            ind2 = GHood.GetIndex(i);
+            float val2 = threshold->GetOutput()->GetPixel(ind2);
+            if( val2 >= 0.5 && GHood.GetPixel(i) != lab )
+              {
+              objectedge++;
+              totaledge++;
+              }
+            else if( val2 < 0.5 && GHood.GetPixel(i) != lab )
+              {
+              backgroundedge++;
+              totaledge++;
+              }
+            }
+          }
+        ++GHood;
+        }
+
+      erat = (float)objectedge / (float)totaledge;
+      }
+
+    if( erat > holeParam ) // fill the hole
+      {
+      // std::cout << " Filling " << lab << " of " << maximum <<  std::endl;
+      typedef itk::ImageRegionIteratorWithIndex<MaskType> RelabelIterator;
+      RelabelIterator vfIter( relabel->GetOutput(),
+                              relabel->GetOutput()->GetLargestPossibleRegion() );
+      for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+        {
+        if( vfIter.Get() == lab )
+          {
+          imageout->SetPixel(vfIter.GetIndex(), 1);
+          }
+        }
+      }
+    }
+
+  return imageout;
+}
+
+
 template <class ImageType>
 typename ImageType::Pointer
 iMathGC(typename ImageType::Pointer image, unsigned long radius)
 {
 
   const unsigned int ImageDimension = ImageType::ImageDimension;
-  typedef typename ImageType::PixelType                         PixelType;
+  typedef typename ImageType::PixelType            PixelType;
 
   typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
     StructuringElementType;

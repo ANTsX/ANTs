@@ -234,6 +234,40 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if( operation == "FillHoles" )
+    {
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    double holeType = iMathFillHolesHoleType;
+
+    if ( argc >= 6 )
+      {
+      holeType = atof(argv[5]);
+      }
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathFillHoles<ImageType>(input, holeType);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "FillHoles: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
   else if( operation == "GC" )
     {
     unsigned long radius = iMathGCRadius;

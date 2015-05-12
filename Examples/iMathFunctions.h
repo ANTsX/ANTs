@@ -36,6 +36,12 @@ typename ImageType::Pointer
 iMathDistanceMap(typename ImageType::Pointer image, bool useSpacing );
 #define iMathDistanceMapUseSpacing true;
 
+// Fill Holes in objects
+template <class ImageType>
+typename ImageType::Pointer
+iMathFillHoles(typename ImageType::Pointer image, double holeParam );
+#define iMathFillHolesHoleType 2;
+
 // Return the largest connected component in a mask
 template <class ImageType>
 typename ImageType::Pointer
