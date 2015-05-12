@@ -200,6 +200,40 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if( operation == "DistanceMap" )
+    {
+
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
+
+    bool useSpacing = iMathDistanceMapUseSpacing;
+
+    if ( argc >= 6 )
+      {
+      useSpacing = atoi(argv[5]);
+      }
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathDistanceMap<ImageType>(input, useSpacing);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "DistanceMap: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
   else if( operation == "GC" )
     {
     unsigned long radius = iMathGCRadius;

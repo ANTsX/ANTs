@@ -30,6 +30,12 @@ iMathCanny(typename ImageType::Pointer image,
            double lowerThreshold,
            double upperThreshold );
 
+// Distance Map
+template <class ImageType>
+typename ImageType::Pointer
+iMathDistanceMap(typename ImageType::Pointer image, bool useSpacing );
+#define iMathDistanceMapUseSpacing true;
+
 // Return the largest connected component in a mask
 template <class ImageType>
 typename ImageType::Pointer

@@ -24,6 +24,7 @@
 #include "itkCannyEdgeDetectionImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
+#include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
 #include "itkGrayscaleDilateImageFilter.h"
@@ -64,6 +65,21 @@ iMathCanny( typename ImageType::Pointer image,
 
   return filter->GetOutput();
 
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathDistanceMap( typename ImageType::Pointer image, bool useSpacing )
+{
+  typedef itk::DanielssonDistanceMapImageFilter<ImageType, ImageType> FilterType;
+
+  typename  FilterType::Pointer filter = FilterType::New();
+  filter->InputIsBinaryOff();
+  filter->SetUseImageSpacing(useSpacing);
+  filter->SetInput(image);
+  filter->Update();
+
+  return filter->GetOutput();
 }
 
 template <class ImageType>
