@@ -755,8 +755,8 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc < 7 )
       {
-      std::cout << "TruncateIntensity needs a lower and upper quantile" << std::endl;
-      EXIT_FAILURE;
+      std::cerr << "TruncateIntensity needs a lower and upper quantile" << std::endl;
+      return EXIT_FAILURE;
       }
 
     double lowerQ = atof( argv[5] );
