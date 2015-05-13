@@ -15,7 +15,7 @@ optlist <- list(
               default='', help='label set in template space to warp to ASL'),
   make_option(c('-c', '--paramFile'), default='',
               help='parameter file containing ASL acquisition parameters'),
-  make_option(c('-m', '--method'), default='RobustRegression',
+  make_option(c('-m', '--method'), default='regression',
               help=paste(' method for perfusion calculation. \n\t\tOne of:',
                 '"SimpleSubtraction", "SurroundSubtraction", "SincSubtraction",',
                 '"RobustRegression", "BayesianRegression", "LocalBayesianRegression."')),
@@ -25,6 +25,9 @@ optlist <- list(
                 '\n\t\t"Cross-Validation", "OutlierRejection".',
                 'Multiple options can be specified',
                 '(e.g., "CompCorMotion" is legal).  Default is %default.')),
+  make_option(c('-g', '--debug'), default=FALSE, action='store_true',
+               help=paste('Save debugging information, including motion',
+                  'correction and nuisance variables')),
   make_option(c('-b', '--bloodT1'), default=0.67,
               help='blood T1 value (defaults to %default s^-1)'),
   make_option(c('-r', '--robustness'), default=0.95,
@@ -42,7 +45,7 @@ optlist <- list(
   make_option(c('-v', '--verbose'), default=F, action='store_true',
               help='verbose output.'))
 
-usage <- OptionParser(option_list=optlist, usage='Usage: %prog <s> [apgxetlomdbrnckfv]')
+usage <- OptionParser(option_list=optlist, usage='Usage: %prog <s> [otlcmdgbrnekfv]')
 opt <- parse_args(usage)
 ## debug
 #opt <- data.frame(pCASL='data/101_pcasl.nii.gz',
@@ -62,14 +65,14 @@ if(opt$verbose) {
 }
 
 if(length(grep(.Platform$file.sep, opt$outputpre)) > 0) {
-  outdir <- dirname(opt$outpre)
+  outdir <- dirname(opt$outputpre)
   if(!file.exists(outdir)) dir.create(outdir)
 }
 
 pcasl <- tryCatch({
     antsImageRead(as.character(opt$pCASL), 4)
   }, error = function(e) {
-    print(paste('pCASL image', as.character(opt$pCASL),
+    stop(paste('pCASL image', as.character(opt$pCASL),
                 'does not exist.'))
 })
 
@@ -94,17 +97,29 @@ if (!tag.first) {
 } else {
   tc <- (rep(c(0, 1), dim(ts)[1])[1:dim(ts)[1]] - 0.5)  # tag minus control
 }
-nuisance <- getASLNoisePredictors(ts, tc, polydegree='gam')
-noise.all <- cbind(moco$moco_params, moco$dvars, nuisance)
-noise.combined <- as.matrix(combineNuisancePredictors(ts, noise.all))
+nuisance <- getASLNoisePredictors(ts, tc, polydegree='loess')
+noise.all <- cbind(moco$moco_params, nuisance)
+noise.combined <- as.matrix(combineNuisancePredictors(ts, tc, noise.all))
 censored <- aslCensoring(pcasl, mask, nuis=noise.combined, method='robust')
-tc <- tc[-censored$which.outliers]
-noise.censored <- noise.combined[censored$which.inliers, ]
+if (length(censored$which.outliers) > 0) {
+  tc <- tc[-censored$which.outliers]
+  noise.censored <- noise.combined[-censored$which.outliers, ]
+}
+
+if (opt$debug) {
+  mean.ts <- apply(ts, 1, mean)
+  dat.debug <- cbind(data.frame(MeanTimeSeries=mean.ts), noise.all)
+  write.csv(dat.debug, file=paste(opt$outputpre, 'TimeSeriesData.csv', sep=''),
+    row.names=as.character(1:nrow(ts)))
+  write.csv(data.frame(Outliers=censored$which.outliers),
+            file=paste(opt$outputpre, 'OutlierTimepoints.csv', sep=''))
+}
+
 if (opt$method == 'regression') {
   perf <- aslAveraging(censored$asl.inlier, mask=moco$moco_mask,
                 tc=tc, nuisance=noise.censored, method='regression')
 } else if (opt$method == 'bayesian') {
-  if (nchar(opt$antsCorticalThicknessPrefix) == 0) {
+  if (length(opt$antsCorticalThicknessPrefix) == 0) {
     stop("For Bayesian regression, segmentations are required.")
   }
   act <- as.character(opt$antsCorticalThicknessPrefix)
@@ -114,8 +129,13 @@ if (opt$method == 'regression') {
         print(paste('Segmentation image', paste(act, "BrainSegmentation.nii.gz", sep=""),
                     'does not exist.'))
   })
-  tissuelist <- imageFileNames2ImageList(glob2rx(paste(act,
-    "BrainSegmentationPosteriors*.nii.gz", sep="")))
+  postnames <- list.files(path=dirname(act),
+    glob2rx("*BrainSegmentationPosteriors*.nii.gz"), full.names=TRUE)
+  tissuelist <- tryCatch({
+    imageFileNames2ImageList(probs)
+  }, error = function(e) {
+    print(paste("Probability images", postnames, "cannot be loaded."))
+  })
   perf <- aslAveraging(censored$asl.inlier, mask=moco$moco <- mask,
                 tc=tc, nuisance=noise.censored, method='bayesian',
                        segmentation=segmentation, tissuelist=tissuelist)
@@ -139,11 +159,21 @@ m0[moco$moco_mask == 1] <- m0vals
 m0<-n3BiasFieldCorrection(m0,4)
 m0<-n3BiasFieldCorrection(m0,2)
 
-cbf <- quantifyCBF(perf, mask=moco$moco_mask,
-                   parameters=list(sequence="pcasl", m0=antsImageClone(m0)))
-antsImageWrite(cbf$meancbf, paste(opt$outprefix, "CBF.nii.gz", sep=""))
+if (length(opt$config > 0)) {
+  tryCatch({
+    config <- read.csv(opt$config, row.names=1)
+  }, error = function(e){
+    print(paste("Configuration file", opt$config, "does not exist."))
+  })
+  parameters <- c(list(m0=antsImageClone(m0)), config)
+} else {
+  parameters = list(sequence="pcasl", m0=antsImageClone(m0))
+}
 
-if (length(opt$antsCorticalThicknessPrefix) > 0){
+cbf <- quantifyCBF(perf, mask=moco$moco_mask, parameters=parameters)
+antsImageWrite(cbf$meancbf, paste(opt$outputpre, "CBF.nii.gz", sep=""))
+
+if (nchar(opt$antsCorticalThicknessPrefix) > 0){
   act <- as.character(opt$antsCorticalThicknessPrefix)
   braint1 <- tryCatch({
       antsImageRead(paste(act, "ExtractedBrain0N4.nii.gz", sep=""))
@@ -151,8 +181,6 @@ if (length(opt$antsCorticalThicknessPrefix) > 0){
       print(paste('T1 brain image', paste(act, "ExtractedBrain0N4.nii.gz", sep=""),
                   'does not exist.'))
   })
-  probs <- imageFileNames2ImageList(glob2rx(paste(act,
-    "BrainSegmentationPosteriors*.nii.gz", sep="")))
   seg <- tryCatch({
       antsImageRead(paste(act, "BrainSegmentation.nii.gz", sep=""))
     }, error = function(e) {
@@ -160,12 +188,14 @@ if (length(opt$antsCorticalThicknessPrefix) > 0){
                   'does not exist.'))
   })
   reg.t12asl <- antsRegistration(fixed=avg, moving=braint1,
-    typeofTransform="SynBold", outprefix=opt$outputpre)
+    typeofTransform="SyNBold", outprefix=as.character(opt$outputpre))
   seg.asl <- antsApplyTransforms(avg, seg, reg.t12asl$fwdtransforms, "MultiLabel")
+  antsImageWrite(seg.asl, paste(opt$outputpre,
+                      "SegmentationWarpedToASL.nii.gz", sep=''))
   tx.template2t1 <- c(paste(act, "_SubjectToTemplate0GenericAffine.mat", sep=""),
                       paste(act, "_SubjectToTemplate1Warp.nii.gz", sep=""))
   tx.template2asl <- c(tx.template2t1, reg.t12asl$invtransforms)
-  if (length(opt$labelSet) > 0) {
+  if (nchar(opt$labelSet) > 0) {
     label <- antsImageRead(opt$labelSet)
     label.asl <- antsApplyTransforms(avg, label, tx.template2asl)
     antsImageWrite(label.asl, paste(opt$outputpre,
