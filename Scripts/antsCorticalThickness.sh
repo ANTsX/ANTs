@@ -657,35 +657,6 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 
 ################################################################################
 #
-# Preprocess anatomical images
-#    1. Denoise input images (if requested)
-#
-################################################################################
-
-PREPROCESSED_ANATOMICAL_IMAGES=()
-if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
-  then
-    if [[ ! -s ${ANTSPATH}/DenoiseImage ]];
-      then
-        echo "Error:  we can't find the DenoiseImage program."
-        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment or update your repository."
-        exit
-      fi
-
-    for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
-      do
-        PREPROCESSED_ANATOMICAL_IMAGES[$i]=${OUTPUT_PREFIX}PreprocessedAnatomicalImage${i}.${OUTPUT_SUFFIX}
-        logCmd ${ANTSPATH}/DenoiseImage -d ${DIMENSION} -i ${ANATOMICAL_IMAGES[$i]} -o ${PREPROCESSED_ANATOMICAL_IMAGES[$i]} --verbose 1
-      done
-  else
-    for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
-      do
-        PREPROCESSED_ANATOMICAL_IMAGES[$i]=${ANATOMICAL_IMAGES[$i]}
-      done
-  fi
-
-################################################################################
-#
 # Brain extraction
 #
 ################################################################################
@@ -710,7 +681,7 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
       then
         logCmd ${ANTSPATH}/antsBrainExtraction.sh \
           -d ${DIMENSION} \
-          -a ${PREPROCESSED_ANATOMICAL_IMAGES[0]} \
+          -a ${ANATOMICAL_IMAGES[0]} \
           -e ${BRAIN_TEMPLATE} \
           -f ${EXTRACTION_REGISTRATION_MASK} \
           -m ${EXTRACTION_PRIOR} \
@@ -723,7 +694,7 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
       else
         logCmd ${ANTSPATH}/antsBrainExtraction.sh \
           -d ${DIMENSION} \
-          -a ${PREPROCESSED_ANATOMICAL_IMAGES[0]} \
+          -a ${ANATOMICAL_IMAGES[0]} \
           -e ${BRAIN_TEMPLATE} \
           -m ${EXTRACTION_PRIOR} \
           -o ${OUTPUT_PREFIX} \
@@ -739,7 +710,7 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
 EXTRACTED_SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
 if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
   then
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN} m ${PREPROCESSED_ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK}
+    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN} m ${ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK}
   fi
 
 EXTRACTION_GENERIC_AFFINE=${OUTPUT_PREFIX}BrainExtractionPrior0GenericAffine.mat
@@ -768,8 +739,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " Brain segmentation using the following steps:"
-    echo "   1) Register ${EXTRACTED_BRAIN_TEMPLATE} and ${SEGMENTATION_PRIOR} to ${PREPROCESSED_ANATOMICAL_IMAGES[0]}"
-    echo "   2) Warp priors to ${PREPROCESSED_ANATOMICAL_IMAGES[0]}"
+    echo "   1) Register ${EXTRACTED_BRAIN_TEMPLATE} and ${SEGMENTATION_PRIOR} to ${ANATOMICAL_IMAGES[0]}"
+    echo "   2) Warp priors to ${ANATOMICAL_IMAGES[0]}"
     echo "   3) N-tissue segmentation using Atropos and N4"
     echo "--------------------------------------------------------------------------------------"
     echo
@@ -843,11 +814,11 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
 
 
             # Precision errors in .nii (which stores things as float) headers can cause problems, so attempt to make everything consistent.
-            # Won't be perfectly consistent because we don't change ${PREPROCESSED_ANATOMICAL_IMAGES[0]} and CopyImageHeaderInformation does not make
+            # Won't be perfectly consistent because we don't change ${ANATOMICAL_IMAGES[0]} and CopyImageHeaderInformation does not make
             # a perfect copy. But hopefully close enough
             for img in ${BRAIN_EXTRACTION_MASK} ${EXTRACTED_SEGMENTATION_BRAIN} ${SEGMENTATION_MASK_DILATED};
               do
-                logCmd ${ANTSPATH}/CopyImageHeaderInformation ${PREPROCESSED_ANATOMICAL_IMAGES[0]} ${img} ${img} 1 1 1
+                logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${img} ${img} 1 1 1
               done
 
             logCmd $exe_brain_segmentation_1
@@ -880,7 +851,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
                 exit 1
               fi
 
-            exe_brain_segmentation_2="${WARP} -d ${DIMENSION} -i ${PRIOR_IMAGE_FILENAMES[$i]} -o ${WARPED_PRIOR_IMAGE_FILENAMES[$i]} -r ${PREPROCESSED_ANATOMICAL_IMAGES[0]} -n Gaussian  -t ${SEGMENTATION_WARP} -t ${SEGMENTATION_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1"
+            exe_brain_segmentation_2="${WARP} -d ${DIMENSION} -i ${PRIOR_IMAGE_FILENAMES[$i]} -o ${WARPED_PRIOR_IMAGE_FILENAMES[$i]} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian  -t ${SEGMENTATION_WARP} -t ${SEGMENTATION_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1"
 
             logCmd $exe_brain_segmentation_2
           done
@@ -890,10 +861,10 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     # bias corrected image(s).  This bias corrected image(s) is used as input to the
     # second stage where we only do 2 iterations.
 
-    ATROPOS_PREPROCESSED_ANATOMICAL_IMAGES_COMMAND_LINE='';
-    for (( j = 0; j < ${#PREPROCESSED_ANATOMICAL_IMAGES[@]}; j++ ))
+    ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
+    for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
-        ATROPOS_PREPROCESSED_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_PREPROCESSED_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${PREPROCESSED_ANATOMICAL_IMAGES[$j]}"
+        ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${ANATOMICAL_IMAGES[$j]}"
       done
 
     ATROPOS_LABEL_PROPAGATION_COMMAND_LINE=''
@@ -913,7 +884,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     logCmd ${ANTSPATH}/antsAtroposN4.sh \
       -d ${DIMENSION} \
       -b ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION} \
-      ${ATROPOS_PREPROCESSED_ANATOMICAL_IMAGES_COMMAND_LINE} \
+      ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
       ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
@@ -924,20 +895,21 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
       -u ${USE_RANDOM_SEEDING} \
+      -g ${DENOISE_ANATOMICAL_IMAGES} \
       -k ${KEEP_TMP_IMAGES} \
       -s ${OUTPUT_SUFFIX} \
       -z ${DEBUG_MODE}
 
-    ATROPOS_PREPROCESSED_ANATOMICAL_IMAGES_COMMAND_LINE=''
-    for (( j = 0; j < ${#PREPROCESSED_ANATOMICAL_IMAGES[@]}; j++ ))
+    ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE=''
+    for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
-        ATROPOS_PREPROCESSED_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_PREPROCESSED_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${OUTPUT_PREFIX}BrainSegmentation${j}N4.${OUTPUT_SUFFIX}";
+        ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${OUTPUT_PREFIX}BrainSegmentation${j}N4.${OUTPUT_SUFFIX}";
       done
 
     logCmd ${ANTSPATH}/antsAtroposN4.sh \
       -d ${DIMENSION} \
       -b ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION} \
-      ${ATROPOS_PREPROCESSED_ANATOMICAL_IMAGES_COMMAND_LINE} \
+      ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
       ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \
       -m 2 \
@@ -948,6 +920,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
       -u ${USE_RANDOM_SEEDING} \
+      -g ${DENOISE_ANATOMICAL_IMAGES} \
       -k ${KEEP_TMP_IMAGES} \
       -s ${OUTPUT_SUFFIX} \
       -z ${DEBUG_MODE}
@@ -1201,7 +1174,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 #        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} 2.0
 
     	   logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -i ${CORTICAL_LABEL_IMAGE} -o ${CORTICAL_LABEL_THICKNESS_PRIOR} \
-	         -t $REGISTRATION_SUBJECT_GENERIC_AFFINE -t $REGISTRATION_SUBJECT_WARP -r ${PREPROCESSED_ANATOMICAL_IMAGES[0]} --verbose 1
+	         -t $REGISTRATION_SUBJECT_GENERIC_AFFINE -t $REGISTRATION_SUBJECT_WARP -r ${ANATOMICAL_IMAGES[0]} --verbose 1
 
         exe_direct="${exe_direct} -a ${CORTICAL_LABEL_THICKNESS_PRIOR}"
 
