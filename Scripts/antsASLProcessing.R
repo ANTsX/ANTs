@@ -9,12 +9,16 @@ optlist <- list(
   make_option(c('-s', '--pCASL'), default='', help=' raw pCASL image'),
   make_option(c('-o', '--outputpre'), default='CBF_',
               help='output prefix (defaults to %default)'),
-  make_option(c('-t', '--antsCorticalThicknessPrefix'),
+  make_option(c('-a', '--antsCorticalThicknessPrefix'),
               default='', help='prefix of antsCorticalThickness output'),
   make_option(c('-l', '--labelSet'),
               default='', help='label set in template space to warp to ASL'),
+  make_option(c('-t', '--template'),
+              default='', help='Template to warp output to'),
   make_option(c('-c', '--paramFile'), default='',
               help='parameter file containing ASL acquisition parameters'),
+  make_option(c('-x', '--smoothingFWHM'), default=0,
+              help='Full width half max for smoothing'),
   make_option(c('-m', '--method'), default='regression',
               help=paste(' method for perfusion calculation. \n\t\tOne of:',
                 '"SimpleSubtraction", "SurroundSubtraction", "SincSubtraction",',
@@ -45,10 +49,22 @@ optlist <- list(
   make_option(c('-v', '--verbose'), default=F, action='store_true',
               help='verbose output.'))
 
-usage <- OptionParser(option_list=optlist, usage='Usage: %prog <s> [otlcmdgbrnekfv]')
+usage <- OptionParser(option_list=optlist, usage='Usage: %prog <s> [otlcxmdgbrnekfv]')
 opt <- parse_args(usage)
 ## debug
-#opt <- data.frame(pCASL='data/101_pcasl.nii.gz',
+#opt <- data.frame(
+# pCASL=paste('/data/jag/BD2K01/ASL_pipeline/data/AddictionCenter/ABART/imgs/',
+#             '../processed/ABART_Bac_106/ASL/ABART_Bac_106_pCASL.nii.gz', sep=''),
+# outputpre=paste('/data/jag/BD2K01/ASL_pipeline/data/AddictionCenter/ABART/imgs',
+#    '/../processed/ABART_Bac_106/ASL/ABART_Bac_106_', sep=''),
+# antsCorticalThicknessPrefix=paste('/data/jag/BD2K01/ASL_pipeline/',
+#      'data/AddictionCenter/ABART/imgs/../processed/ABART_Bac_106',
+#      '/ASL/../Anatomy/ABART_Bac_106_', sep=''),
+# labelSet=paste('/data/jag/BD2K01/ASL_pipeline/templates/',
+#                'HarvardOxford/ABART_rois.nii.gz', sep=''),
+# template=paste('/data/jag/BD2K01/ASL_pipeline/templates/',
+#                'HarvardOxford/MNI152_T1_2mm.nii.gz', sep=''))
+#                  pCASL='data/101_pcasl.nii.gz',
 #                  out='test')
 
 
@@ -83,6 +99,12 @@ if(length(opt$paramFile) > 0){
     config <- data.frame(tagFirst=T, sequence='pcasl')
   }
 }
+
+if (opt$smoothingFWHM > 0) {
+  mysmoother <- c(rep(opt$smoothingFWHM, 3), 0)
+  pcasl <- smoothImage(pcasl, mysmoother, FWHM=TRUE)
+}
+
 avg <- getAverageOfTimeSeries(pcasl)
 avg <- n3BiasFieldCorrection(avg, 2)
 avg <- n3BiasFieldCorrection(avg, 2)
@@ -104,6 +126,8 @@ censored <- aslCensoring(pcasl, mask, nuis=noise.combined, method='robust')
 if (length(censored$which.outliers) > 0) {
   tc <- tc[-censored$which.outliers]
   noise.censored <- noise.combined[-censored$which.outliers, ]
+} else {
+  noise.censored <- noise.combined
 }
 
 if (opt$debug) {
@@ -170,6 +194,10 @@ if (length(opt$config > 0)) {
   parameters = list(sequence="pcasl", m0=antsImageClone(m0))
 }
 
+if (opt$debug) {
+  antsImageWrite(perf, paste(opt$outputpre, 'Perfusion.nii.gz', sep=''))
+  antsImageWrite(m0, paste(opt$outputpre, 'M0.nii.gz', sep=''))
+}
 cbf <- quantifyCBF(perf, mask=moco$moco_mask, parameters=parameters)
 antsImageWrite(cbf$meancbf, paste(opt$outputpre, "CBF.nii.gz", sep=""))
 
@@ -192,13 +220,40 @@ if (nchar(opt$antsCorticalThicknessPrefix) > 0){
   seg.asl <- antsApplyTransforms(avg, seg, reg.t12asl$fwdtransforms, "MultiLabel")
   antsImageWrite(seg.asl, paste(opt$outputpre,
                       "SegmentationWarpedToASL.nii.gz", sep=''))
-  tx.template2t1 <- c(paste(act, "_SubjectToTemplate0GenericAffine.mat", sep=""),
-                      paste(act, "_SubjectToTemplate1Warp.nii.gz", sep=""))
-  tx.template2asl <- c(tx.template2t1, reg.t12asl$invtransforms)
-  if (nchar(opt$labelSet) > 0) {
-    label <- antsImageRead(opt$labelSet)
-    label.asl <- antsApplyTransforms(avg, label, tx.template2asl)
+  segstats <- labelStats(cbf$meancbf, seg.asl)
+  write.csv(segstats, paste(opt$outputpre, 'TissueStats.csv', sep=''),
+            row.names=FALSE)
+
+  tx.template2t1 <- c(paste(act, "TemplateToSubject0Warp.nii.gz", sep=""),
+                      paste(act, "TemplateToSubject1GenericAffine.mat", sep=""))
+  tx.t12template <- c(paste(act, "SubjectToTemplate1Warp.nii.gz", sep=""),
+                      paste(act, "SubjectToTemplate0GenericAffine.mat", sep=""))
+  tx.asl2template <- c(reg.t12asl$invtransforms, tx.t12template)
+
+  if (length(opt$template) > 0) {
+    template <- tryCatch({
+      antsImageRead(as.character(opt$template))
+    }, error = function(e) {
+      print(paste("Template image", template, "does not exist."))
+    })
+    asl.warped2template <- antsApplyTransforms(template, cbf$meancbf, tx.asl2template,
+                                    whichtoinvert=c(F, F, F, F))
+    antsImageWrite(asl.warped2template,
+                   paste(opt$outputpre, "CBFWarpedToTemplate.nii.gz", sep=''))
+  }
+
+  tx.template2asl <- c(tx.template2t1, reg.t12asl$fwdtransforms)
+  if (nchar(as.character(opt$labelSet)) > 0) {
+    label <- tryCatch({
+      antsImageRead(as.character(opt$labelSet))
+    }, error = function(e) {
+      print(paste("Label image", opt$labelSet, "does not exist."))
+    })
+    label.asl <- antsApplyTransforms(avg, label, tx.template2asl, "MultiLabel")
     antsImageWrite(label.asl, paste(opt$outputpre,
       'LabelWarpedToASL.nii.gz', sep=''))
+    labelstats.cbf <- labelStats(cbf$meancbf, label.asl)
+    write.csv(labelstats.cbf, paste(opt$outputpre, 'LabelStats.csv', sep=''),
+              row.names=FALSE)
   }
 }
