@@ -241,7 +241,7 @@ iMathHelperAll(int argc, char **argv)
     typename ImageType::Pointer input = NULL;
     typename ImageType::Pointer output = NULL;
 
-    double holeType = iMathFillHolesHoleType;
+    double holeType = iMathFillHolesHoleParam;
 
     if ( argc >= 6 )
       {
