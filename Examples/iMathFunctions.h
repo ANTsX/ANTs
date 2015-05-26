@@ -152,7 +152,7 @@ template <class ImageType>
 typename ImageType::Pointer
 iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ,
                         double upperQ, int nBins,
-                        typename itk::Image<unsigned int, ImageType::ImageDimension>::Pointer maskImage );
+                        typename itk::Image<int, ImageType::ImageDimension>::Pointer maskImage );
 #define iMathTruncateIntensityNBins 64;
 
 

@@ -49,25 +49,25 @@ namespace ants
 template <class ImageType>
 typename ImageType::Pointer
 BlobDetector( typename ImageType::Pointer image, unsigned int nBlobs,
-              typename ImageType::Pointer image2,
-              double corrThresh, double radius, double distanceThresh )
+              typename ImageType::Pointer itkNotUsed(image2),
+              double itkNotUsed(corrThresh), double itkNotUsed(radius), double itkNotUsed(distanceThresh) )
 {
   typedef float RealType;
 
   // FIXME - wtf goes on here
 
   // sensitive parameters are set here - begin
-  RealType     gradsig = 1.0;      // sigma for gradient filter
+  //RealType     gradsig = 1.0;      // sigma for gradient filter
   unsigned int stepsperoctave = 10; // number of steps between doubling of scale
   RealType     minscale = vcl_pow( 1.0, 1.0 );
   RealType     maxscale = vcl_pow( 2.0, 10.0 );
-  RealType     uniqfeat_thresh = 0.01;
-  RealType     smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
-  bool         dosinkhorn = false;
-  RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference
-  RealType     kneighborhoodval = 3;        // IMPORTANT - defines how many nhood nodes to use in k-hood definition
-  unsigned int radval = 20;                 // IMPORTANT radius for correlation
-  RealType     dthresh = 0.02;              // IMPORTANT distance preservation threshold
+  //RealType     uniqfeat_thresh = 0.01;
+  //RealType     smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
+  //bool         dosinkhorn = false;
+  //RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference
+  //RealType     kneighborhoodval = 3;        // IMPORTANT - defines how many nhood nodes to use in k-hood definition
+  //unsigned int radval = 20;                 // IMPORTANT radius for correlation
+  //RealType     dthresh = 0.02;              // IMPORTANT distance preservation threshold
   // sensitive parameters are set here - end
 
 
@@ -1015,12 +1015,12 @@ iMathSharpen( typename ImageType::Pointer image )
 template <class ImageType>
 typename ImageType::Pointer
 iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ, double upperQ, int nBins,
-                        typename itk::Image<unsigned int, ImageType::ImageDimension>::Pointer mask )
+                        typename itk::Image<int, ImageType::ImageDimension>::Pointer mask )
 {
 
   typedef typename ImageType::PixelType                     PixelType;
   typedef typename ImageType::Pointer                       ImagePointerType;
-  typedef unsigned int                                      LabelType;
+  typedef int                                               LabelType;
   typedef itk::Image<LabelType, ImageType::ImageDimension>  MaskType;
 
   if( mask.IsNull() )
