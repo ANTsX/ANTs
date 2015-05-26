@@ -1015,12 +1015,12 @@ iMathSharpen( typename ImageType::Pointer image )
 template <class ImageType>
 typename ImageType::Pointer
 iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ, double upperQ, int nBins,
-                        typename itk::Image<int, ImageType::ImageDimension>::Pointer mask )
+                        typename itk::Image<unsigned int, ImageType::ImageDimension>::Pointer mask )
 {
 
   typedef typename ImageType::PixelType                     PixelType;
   typedef typename ImageType::Pointer                       ImagePointerType;
-  typedef int                                               LabelType;
+  typedef unsigned int                                      LabelType;
   typedef itk::Image<LabelType, ImageType::ImageDimension>  MaskType;
 
   if( mask.IsNull() )

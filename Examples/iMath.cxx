@@ -817,7 +817,7 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "TruncateIntensity" )
     {
     typedef itk::Image<float,DIM>         ImageType;
-    typedef itk::Image<int,DIM>           MaskType;
+    typedef itk::Image<unsigned int,DIM>           MaskType;
 
     int nBins = iMathTruncateIntensityNBins;
 
