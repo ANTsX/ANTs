@@ -264,29 +264,32 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   if( maskOption && maskOption->GetNumberOfFunctions() )
     {
-    if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+    for( unsigned int l = 0; l < maskOption->GetNumberOfFunctions(); l++ )
       {
-      for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
+      if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
-        std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
-        typename MaskImageType::Pointer maskImage;
-        ReadImage<MaskImageType>( maskImage , fname.c_str() );
-        if( m == 0 )
+        for( unsigned m = 0; m < maskOption->GetFunction( l )->GetNumberOfParameters(); m++ )
           {
-          regHelper->SetFixedImageMask( maskImage );
-          }
-        else if( m == 1 )
-          {
-          regHelper->SetMovingImageMask( maskImage );
+          std::string fname = maskOption->GetFunction( l )->GetParameter( m );
+          typename MaskImageType::Pointer maskImage;
+          ReadImage<MaskImageType>( maskImage, fname.c_str() );
+          if( m == 0 )
+            {
+            regHelper->AddFixedImageMask( maskImage );
+            }
+          else if( m == 1 )
+            {
+            regHelper->AddMovingImageMask( maskImage );
+            }
           }
         }
-      }
-    else
-      {
-      std::string fname = maskOption->GetFunction( 0 )->GetName();
-      typename MaskImageType::Pointer maskImage;
-      ReadImage<MaskImageType>( maskImage , fname.c_str() );
-      regHelper->SetFixedImageMask( maskImage );
+      else
+        {
+        std::string fname = maskOption->GetFunction( l )->GetName();
+        typename MaskImageType::Pointer maskImage;
+        ReadImage<MaskImageType>( maskImage, fname.c_str() );
+        regHelper->AddFixedImageMask( maskImage );
+        }
       }
     }
 

@@ -651,6 +651,27 @@ RegistrationHelper<TComputeType, VImageDimension>
         }
       }
     }
+
+  // Check the number of masks.  We are going to allow the user 2 options w.r.t.
+  // mask specification:
+  //   1. Either the user specifies a single mask to be used for all stages or
+  //   2. the user specifies a mask for each stage.
+  // Note that we handle the fixed and moving masks separately to enforce this constraint.
+
+  if( this->m_FixedImageMasks.size() > 1 && this->m_FixedImageMasks.size() != this->m_NumberOfStages )
+    {
+    this->Logger() << "The number of fixed masks must be equal to 1 (i.e., use the masks for each "
+                   << "stage or the number of fixed masks must be equal to the number of stages." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( this->m_MovingImageMasks.size() > 1 && this->m_MovingImageMasks.size() != this->m_NumberOfStages )
+    {
+    this->Logger() << "The number of moving masks must be equal to 1 (i.e., use the masks for each "
+                   << "stage or the number of moving masks must be equal to the number of stages." << std::endl;
+    return EXIT_FAILURE;
+    }
+
   return EXIT_SUCCESS;
 }
 
@@ -705,23 +726,21 @@ RegistrationHelper<TComputeType, VImageDimension>
 template <class TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
-::SetFixedImageMask(typename MaskImageType::Pointer & fixedImageMask)
+::AddFixedImageMask( typename MaskImageType::Pointer & fixedImageMask )
 {
-  typename ImageMaskSpatialObjectType::Pointer so =
-    ImageMaskSpatialObjectType::New();
+  typename ImageMaskSpatialObjectType::Pointer so = ImageMaskSpatialObjectType::New();
   so->SetImage( fixedImageMask.GetPointer() );
-  this->SetFixedImageMask(so);
+  this->AddFixedImageMask( so );
 }
 
 template <class TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
-::SetMovingImageMask(typename MaskImageType::Pointer & movingImageMask)
+::AddMovingImageMask( typename MaskImageType::Pointer & movingImageMask )
 {
-  typename ImageMaskSpatialObjectType::Pointer so =
-    ImageMaskSpatialObjectType::New();
+  typename ImageMaskSpatialObjectType::Pointer so = ImageMaskSpatialObjectType::New();
   so->SetImage( movingImageMask.GetPointer() );
-  this->SetMovingImageMask(so);
+  this->AddMovingImageMask( so );
 }
 
 template <class TComputeType, unsigned VImageDimension>
@@ -794,6 +813,39 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     const unsigned int numberOfLevels = currentStageIterations.size();
     this->Logger() << "  number of levels = " << numberOfLevels << std::endl;
+
+    unsigned int fixedMaskIndex = -1;
+    unsigned int movingMaskIndex = -1;
+    bool useFixedImageMaskForThisStage = false;
+    bool useMovingImageMaskForThisStage = false;
+
+    // We already checked that number of masks = 1 or = number of stages
+    if( this->m_FixedImageMasks.size() > 0 )
+      {
+      useFixedImageMaskForThisStage = true;
+
+      if( this->m_FixedImageMasks.size() == 1 )
+        {
+        fixedMaskIndex = 0;
+        }
+      else
+        {
+        fixedMaskIndex = currentStageNumber;
+        }
+      }
+    if( this->m_MovingImageMasks.size() > 0 )
+      {
+      useMovingImageMaskForThisStage = true;
+
+      if( this->m_MovingImageMasks.size() == 1 )
+        {
+        movingMaskIndex = 0;
+        }
+      else
+        {
+        movingMaskIndex = currentStageNumber;
+        }
+      }
 
     // Get the number of metrics at the current stage.  If more than one metric
     // then we need to use the MultiMetricType.  Due to the way the metrics are
@@ -1041,11 +1093,11 @@ RegistrationHelper<TComputeType, VImageDimension>
                                                             dynamic_cast<ImageBaseType *>( preprocessFixedImage.
                                                                                            GetPointer() ), false );
 
-          if( this->m_FixedImageMask.IsNotNull() )
+          if( useFixedImageMaskForThisStage )
             {
             this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
                                                               dynamic_cast<ImageBaseType *>( const_cast<MaskImageType *>(
-                                                                                               this->m_FixedImageMask->
+                                                                                               this->m_FixedImageMasks[fixedMaskIndex]->
                                                                                                GetImage() ) ), false );
             }
           }
@@ -1058,13 +1110,13 @@ RegistrationHelper<TComputeType, VImageDimension>
         imageMetric->SetUseMovingImageGradientFilter( gradientfilter );
         imageMetric->SetUseFixedImageGradientFilter( gradientfilter );
         metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
-        if( this->m_FixedImageMask.IsNotNull() )
+        if( useFixedImageMaskForThisStage )
           {
-          imageMetric->SetFixedImageMask( this->m_FixedImageMask );
+          imageMetric->SetFixedImageMask( this->m_FixedImageMasks[fixedMaskIndex] );
           }
-        if( this->m_MovingImageMask.IsNotNull() )
+        if( useMovingImageMaskForThisStage )
           {
-          imageMetric->SetMovingImageMask( this->m_MovingImageMask );
+          imageMetric->SetMovingImageMask( this->m_MovingImageMasks[movingMaskIndex] );
           }
         if( virtualDomainImage.IsNull() )
           {
@@ -1089,11 +1141,11 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( currentMetricType == IGDM  )
           {
-          if( this->m_FixedImageMask.IsNotNull() )
+          if( useFixedImageMaskForThisStage )
             {
             typedef itk::CastImageFilter<MaskImageType, typename LabeledPointSetMetricType::VirtualImageType> CasterType;
             typename CasterType::Pointer caster = CasterType::New();
-            caster->SetInput( this->m_FixedImageMask->GetImage() );
+            caster->SetInput( this->m_FixedImageMasks[fixedMaskIndex]->GetImage() );
             caster->Update();
 
             intensityPointSetMetric->SetVirtualDomainFromImage( caster->GetOutput() );
@@ -1116,11 +1168,11 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         else
           {
-          if( this->m_FixedImageMask.IsNotNull() )
+          if( useFixedImageMaskForThisStage )
             {
             typedef itk::CastImageFilter<MaskImageType, typename LabeledPointSetMetricType::VirtualImageType> CasterType;
             typename CasterType::Pointer caster = CasterType::New();
-            caster->SetInput( this->m_FixedImageMask->GetImage() );
+            caster->SetInput( this->m_FixedImageMasks[fixedMaskIndex]->GetImage() );
             caster->Update();
 
             labeledPointSetMetric->SetVirtualDomainFromImage( caster->GetOutput() );

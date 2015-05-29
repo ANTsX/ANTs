@@ -228,7 +228,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     + std::string( "transform on a per-component basis.  For example, if one wants to limit " )
     + std::string( "the deformation or rotation of 3-D volume to the first two dimensions, ")
     + std::string( "this is possible by specifying a weight vector of \'1x1x0\' for a " )
-    + std::string( "deformation field or  \'1x1x0x1x1x0\' for a rigid transformation." )
+    + std::string( "deformation field or  \'1x1x0x1x1x0\' for a rigid transformation. " )
     + std::string( "Low-dimensional restriction only works if there are no preceding transformations." );
 
   OptionType::Pointer option = OptionType::New();
@@ -445,7 +445,12 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
   }
 
   {
-  std::string         description = "Image masks to limit voxels considered by the metric.";
+  std::string description =
+    std::string( "Image masks to limit voxels considered by the metric. " )
+    + std::string( "Two options are allowed for mask specification:  1) Either " )
+    + std::string( "the user specifies a single mask to be used for all stages or " )
+    + std::string( "2) the user specifies a mask for each stage.  Note that we handle " )
+    + std::string( "the fixed and moving masks separately to enforce this constraint." );
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "masks" );
   option->SetShortName( 'x' );
