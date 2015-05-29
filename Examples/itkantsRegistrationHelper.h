@@ -794,6 +794,10 @@ protected:
   RegistrationHelper();
   virtual ~RegistrationHelper();
 private:
+
+  typename itk::ImageBase<VImageDimension>::Pointer GetShrinkImageOutputInformation(const itk::ImageBase<VImageDimension> * inputImageInformation,
+                                const RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType &shrinkFactorsPerDimensionForCurrentLevel) const;
+
   int ValidateParameters();
 
   std::ostream & Logger() const

@@ -6,6 +6,36 @@
 
 namespace ants
 {
+
+/**
+* GetShrinkImageOutputInformation provides a consistent way to compute the
+* outputImage space for each level of a registration in a consistent way.
+* By always using the same reference image, we can ensure that the same
+* shrink results always are produced.
+*/
+template <class TComputeType, unsigned VImageDimension>
+typename itk::ImageBase<VImageDimension>::Pointer
+RegistrationHelper<TComputeType, VImageDimension>::GetShrinkImageOutputInformation(const itk::ImageBase<VImageDimension> * inputImageInformation,
+                                const RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType &shrinkFactorsPerDimensionForCurrentLevel) const
+{
+  typedef itk::Image<unsigned char, VImageDimension> DummyImageType;
+
+  typename DummyImageType::Pointer dummyImage = AllocImage<DummyImageType>( inputImageInformation, 0 );
+
+  // We use the shrink image filter to calculate the fixed parameters of the virtual
+  // domain at each level.  To speed up calculation and avoid unnecessary memory
+  // usage, we could calculate these fixed parameters directly.
+
+  typedef itk::ShrinkImageFilter<DummyImageType, DummyImageType> ShrinkFilterType;
+  typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+  shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForCurrentLevel );
+  shrinkFilter->SetInput( dummyImage );
+  shrinkFilter->GenerateOutputInformation(); //Don't need to allocate space or run the filter, just create output information
+  typename itk::ImageBase<VImageDimension>::Pointer returnImageBase=shrinkFilter->GetOutput();
+  return returnImageBase;
+}
+
+
 template <class TComputeType, unsigned VImageDimension>
 RegistrationHelper<TComputeType, VImageDimension>
 ::RegistrationHelper() :
@@ -1596,22 +1626,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         // GaussianSmoothingOnUpdateDisplacementFieldTransformAdaptor
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
-          // We use the shrink image filter to calculate the fixed parameters of the virtual
-          // domain at each level.  To speed up calculation and avoid unnecessary memory
-          // usage, we could calculate these fixed parameters directly.
-
-          typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
-          typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-          shrinkFilter->SetInput( displacementField );
-          shrinkFilter->Update();
+          typename itk::ImageBase<VImageDimension>::Pointer shrunkSpace=
+                     this->GetShrinkImageOutputInformation(
+                          virtualDomainImage.GetPointer(),
+                          shrinkFactorsPerDimensionForAllLevels[level]  );
 
           typename DisplacementFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
             DisplacementFieldTransformAdaptorType::New();
-          fieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
-          fieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
-          fieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
-          fieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+          fieldTransformAdaptor->SetRequiredSpacing( shrunkSpace->GetSpacing() );
+          fieldTransformAdaptor->SetRequiredSize( shrunkSpace->GetLargestPossibleRegion().GetSize() );
+          fieldTransformAdaptor->SetRequiredDirection( shrunkSpace->GetDirection() );
+          fieldTransformAdaptor->SetRequiredOrigin( shrunkSpace->GetOrigin() );
           fieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
 
           adaptors.push_back( fieldTransformAdaptor.GetPointer() );
@@ -1706,24 +1731,19 @@ RegistrationHelper<TComputeType, VImageDimension>
         // Create the transform adaptors specific to B-splines
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
-          // We use the shrink image filter to calculate the fixed parameters of the virtual
-          // domain at each level.  To speed up calculation and avoid unnecessary memory
-          // usage, we could calculate these fixed parameters directly.
-
-          typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
-          typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-          shrinkFilter->SetInput( displacementField );
-          shrinkFilter->Update();
+          typename itk::ImageBase<VImageDimension>::Pointer shrunkSpace=
+                     this->GetShrinkImageOutputInformation(
+                          virtualDomainImage.GetPointer(),
+                          shrinkFactorsPerDimensionForAllLevels[level]  );
 
           typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
               BSplineDisplacementFieldTransformType> BSplineDisplacementFieldTransformAdaptorType;
           typename BSplineDisplacementFieldTransformAdaptorType::Pointer bsplineFieldTransformAdaptor =
             BSplineDisplacementFieldTransformAdaptorType::New();
-          bsplineFieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
-          bsplineFieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
-          bsplineFieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
-          bsplineFieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+          bsplineFieldTransformAdaptor->SetRequiredSpacing( shrunkSpace->GetSpacing() );
+          bsplineFieldTransformAdaptor->SetRequiredSize( shrunkSpace->GetLargestPossibleRegion().GetSize() );
+          bsplineFieldTransformAdaptor->SetRequiredDirection( shrunkSpace->GetDirection() );
+          bsplineFieldTransformAdaptor->SetRequiredOrigin( shrunkSpace->GetOrigin() );
           bsplineFieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
 
           // A good heuristic is to double the b-spline mesh resolution at each level
@@ -1822,22 +1842,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         // GaussianSmoothingOnUpdateDisplacementFieldTransformAdaptor
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
-          // TODO:
-          // We use the shrink image filter to calculate the fixed parameters of the virtual
-          // domain at each level.  To speed up calculation and avoid unnecessary memory
-          // usage, we could calculate these fixed parameters directly.
-          typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
-          typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-          shrinkFilter->SetInput( displacementField );
-          shrinkFilter->Update();
+          typename itk::ImageBase<VImageDimension>::Pointer shrunkSpace=
+                     this->GetShrinkImageOutputInformation(
+                          virtualDomainImage.GetPointer(),
+                          shrinkFactorsPerDimensionForAllLevels[level]  );
 
           typename DisplacementFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
             DisplacementFieldTransformAdaptorType::New();
-          fieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
-          fieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
-          fieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
-          fieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+          fieldTransformAdaptor->SetRequiredSpacing( shrunkSpace->GetSpacing() );
+          fieldTransformAdaptor->SetRequiredSize( shrunkSpace->GetLargestPossibleRegion().GetSize() );
+          fieldTransformAdaptor->SetRequiredDirection( shrunkSpace->GetDirection() );
+          fieldTransformAdaptor->SetRequiredOrigin( shrunkSpace->GetOrigin() );
           fieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
 
           adaptors.push_back( fieldTransformAdaptor.GetPointer() );
@@ -2054,25 +2069,20 @@ RegistrationHelper<TComputeType, VImageDimension>
           // Create the transform adaptors
           for( unsigned int level = 0; level < numberOfLevels; level++ )
             {
-            // We use the shrink image filter to calculate the fixed parameters of the virtual
-            // domain at each level.  To speed up calculation and avoid unnecessary memory
-            // usage, we could calculate these fixed parameters directly.
-
-            typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
-            typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-            shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-            shrinkFilter->SetInput( displacementField );
-            shrinkFilter->Update();
+            typename itk::ImageBase<VImageDimension>::Pointer shrunkSpace=
+                     this->GetShrinkImageOutputInformation(
+                          virtualDomainImage.GetPointer(),
+                          shrinkFactorsPerDimensionForAllLevels[level]  );
 
             typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
                 BSplineDisplacementFieldTransformType>
               BSplineDisplacementFieldTransformAdaptorType;
             typename BSplineDisplacementFieldTransformAdaptorType::Pointer bsplineFieldTransformAdaptor =
               BSplineDisplacementFieldTransformAdaptorType::New();
-            bsplineFieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
-            bsplineFieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
-            bsplineFieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
-            bsplineFieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+            bsplineFieldTransformAdaptor->SetRequiredSpacing( shrunkSpace->GetSpacing() );
+            bsplineFieldTransformAdaptor->SetRequiredSize( shrunkSpace->GetLargestPossibleRegion().GetSize() );
+            bsplineFieldTransformAdaptor->SetRequiredDirection( shrunkSpace->GetDirection() );
+            bsplineFieldTransformAdaptor->SetRequiredOrigin( shrunkSpace->GetOrigin() );
             bsplineFieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
 
             // A good heuristic is to RealType the b-spline mesh resolution at each level
@@ -2161,25 +2171,20 @@ RegistrationHelper<TComputeType, VImageDimension>
           // Create the transform adaptors
           for( unsigned int level = 0; level < numberOfLevels; level++ )
             {
-            // We use the shrink image filter to calculate the fixed parameters of the virtual
-            // domain at each level.  To speed up calculation and avoid unnecessary memory
-            // usage, we could calculate these fixed parameters directly.
-
-            typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
-            typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-            shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-            shrinkFilter->SetInput( displacementField );
-            shrinkFilter->Update();
+            typename itk::ImageBase<VImageDimension>::Pointer shrunkSpace=
+                     this->GetShrinkImageOutputInformation(
+                          virtualDomainImage.GetPointer(),
+                          shrinkFactorsPerDimensionForAllLevels[level]  );
 
             typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
                 BSplineDisplacementFieldTransformType>
               BSplineDisplacementFieldTransformAdaptorType;
             typename BSplineDisplacementFieldTransformAdaptorType::Pointer bsplineFieldTransformAdaptor =
               BSplineDisplacementFieldTransformAdaptorType::New();
-            bsplineFieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
-            bsplineFieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
-            bsplineFieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
-            bsplineFieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+            bsplineFieldTransformAdaptor->SetRequiredSpacing( shrunkSpace->GetSpacing() );
+            bsplineFieldTransformAdaptor->SetRequiredSize( shrunkSpace->GetLargestPossibleRegion().GetSize() );
+            bsplineFieldTransformAdaptor->SetRequiredDirection( shrunkSpace->GetDirection() );
+            bsplineFieldTransformAdaptor->SetRequiredOrigin( shrunkSpace->GetOrigin() );
             bsplineFieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
 
             // A good heuristic is to RealType the b-spline mesh resolution at each level
@@ -2412,11 +2417,10 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename VelocityFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
-          typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkFilterType;
-          typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-          shrinkFilter->SetInput( preprocessedFixedImagesPerStage[0] );
-          shrinkFilter->Update();
+          typename itk::ImageBase<VImageDimension>::Pointer shrunkSpace=
+                     this->GetShrinkImageOutputInformation(
+                          virtualDomainImage.GetPointer(),
+                          shrinkFactorsPerDimensionForAllLevels[level]  );
 
           // Although we shrink the images for the given levels,
           // we keep the size in time the same
@@ -2426,10 +2430,10 @@ RegistrationHelper<TComputeType, VImageDimension>
           velocityFieldSpacing.Fill( 1.0 );
           velocityFieldDirection.SetIdentity();
 
-          fixedImageSize = shrinkFilter->GetOutput()->GetBufferedRegion().GetSize();
-          fixedImageOrigin = shrinkFilter->GetOutput()->GetOrigin();
-          fixedImageSpacing = shrinkFilter->GetOutput()->GetSpacing();
-          fixedImageDirection = shrinkFilter->GetOutput()->GetDirection();
+          fixedImageSize = shrunkSpace->GetLargestPossibleRegion().GetSize();
+          fixedImageOrigin = shrunkSpace->GetOrigin();
+          fixedImageSpacing = shrunkSpace->GetSpacing();
+          fixedImageDirection = shrunkSpace->GetDirection();
           for( unsigned int i = 0; i < VImageDimension; i++ )
             {
             velocityFieldSize[i] = fixedImageSize[i];
@@ -2778,22 +2782,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         // GaussianSmoothingOnUpdateDisplacementFieldTransformAdaptor
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
-          // We use the shrink image filter to calculate the fixed parameters of the virtual
-          // domain at each level.  To speed up calculation and avoid unnecessary memory
-          // usage, we could calculate these fixed parameters directly.
-
-          typedef itk::ShrinkImageFilter<ConstantVelocityFieldType, ConstantVelocityFieldType> ShrinkFilterType;
-          typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-          shrinkFilter->SetInput( constantVelocityField );
-          shrinkFilter->Update();
+          typename itk::ImageBase<VImageDimension>::Pointer shrunkSpace=
+                     this->GetShrinkImageOutputInformation(
+                          virtualDomainImage.GetPointer(),
+                          shrinkFactorsPerDimensionForAllLevels[level]  );
 
           typename DisplacementFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
             DisplacementFieldTransformAdaptorType::New();
-          fieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
-          fieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
-          fieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
-          fieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+          fieldTransformAdaptor->SetRequiredSpacing( shrunkSpace->GetSpacing() );
+          fieldTransformAdaptor->SetRequiredSize( shrunkSpace->GetLargestPossibleRegion().GetSize() );
+          fieldTransformAdaptor->SetRequiredDirection( shrunkSpace->GetDirection() );
+          fieldTransformAdaptor->SetRequiredOrigin( shrunkSpace->GetOrigin() );
           fieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
 
           fieldTransformAdaptor->SetGaussianSmoothingVarianceForTheUpdateField( varianceForUpdateField );
@@ -2949,24 +2948,20 @@ RegistrationHelper<TComputeType, VImageDimension>
         // Create the transform adaptors specific to B-splines
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
-          // We use the shrink image filter to calculate the fixed parameters of the virtual
-          // domain at each level.  To speed up calculation and avoid unnecessary memory
-          // usage, we could calculate these fixed parameters directly.
+          typename itk::ImageBase<VImageDimension>::Pointer shrunkSpace=
+                     this->GetShrinkImageOutputInformation(
+                          virtualDomainImage.GetPointer(),
+                          shrinkFactorsPerDimensionForAllLevels[level]  );
 
-          typedef itk::ShrinkImageFilter<ConstantVelocityFieldType, ConstantVelocityFieldType> ShrinkFilterType;
-          typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-          shrinkFilter->SetInput( constantVelocityField );
-          shrinkFilter->Update();
 
           typedef itk::BSplineExponentialDiffeomorphicTransformParametersAdaptor<BSplineDisplacementFieldTransformType>
             BSplineDisplacementFieldTransformAdaptorType;
           typename BSplineDisplacementFieldTransformAdaptorType::Pointer bsplineFieldTransformAdaptor =
             BSplineDisplacementFieldTransformAdaptorType::New();
-          bsplineFieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
-          bsplineFieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
-          bsplineFieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
-          bsplineFieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+          bsplineFieldTransformAdaptor->SetRequiredSpacing( shrunkSpace->GetSpacing() );
+          bsplineFieldTransformAdaptor->SetRequiredSize( shrunkSpace->GetLargestPossibleRegion().GetSize() );
+          bsplineFieldTransformAdaptor->SetRequiredDirection( shrunkSpace->GetDirection() );
+          bsplineFieldTransformAdaptor->SetRequiredOrigin( shrunkSpace->GetOrigin() );
           bsplineFieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
 
           // A good heuristic is to RealType the b-spline mesh resolution at each level
@@ -3091,11 +3086,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // Create the transform adaptors specific to B-splines
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
-          typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkFilterType;
-          typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
-          shrinkFilter->SetInput( preprocessedFixedImagesPerStage[0] );
-          shrinkFilter->Update();
+          typename itk::ImageBase<VImageDimension>::Pointer shrunkSpace=
+                     this->GetShrinkImageOutputInformation(
+                          virtualDomainImage.GetPointer(),
+                          shrinkFactorsPerDimensionForAllLevels[level]  );
+
 
           // A good heuristic is to RealType the b-spline mesh resolution at each level
 
@@ -3109,8 +3104,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           typename BSplineAdaptorType::Pointer bsplineAdaptor = BSplineAdaptorType::New();
           bsplineAdaptor->SetTransform( outputBSplineTransform );
           bsplineAdaptor->SetRequiredTransformDomainMeshSize( requiredMeshSize );
-          bsplineAdaptor->SetRequiredTransformDomainOrigin( shrinkFilter->GetOutput()->GetOrigin() );
-          bsplineAdaptor->SetRequiredTransformDomainDirection( shrinkFilter->GetOutput()->GetDirection() );
+          bsplineAdaptor->SetRequiredTransformDomainOrigin( shrunkSpace->GetOrigin() );
+          bsplineAdaptor->SetRequiredTransformDomainDirection( shrunkSpace->GetDirection() );
           bsplineAdaptor->SetRequiredTransformDomainPhysicalDimensions( physicalDimensions );
 
           adaptors.push_back( bsplineAdaptor.GetPointer() );
