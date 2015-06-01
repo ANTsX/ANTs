@@ -373,6 +373,11 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     parser->GetOption( "convergence" );
   if( convergenceOption && convergenceOption->GetNumberOfFunctions() )
     {
+    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      segmenter->SetMaximumNumberOfIterations( parser->Convert<unsigned int>(
+                                                 convergenceOption->GetFunction( 0 )->GetName() ) );
+      }
     if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       segmenter->SetMaximumNumberOfIterations( parser->Convert<unsigned int>(
@@ -1443,7 +1448,8 @@ void AtroposInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "convergence" );
   option->SetShortName( 'c' );
-  option->SetUsageOption( 0, "[<numberOfIterations=5>,<convergenceThreshold=0.001>]" );
+  option->SetUsageOption( 0, "numberOfIterations" );
+  option->SetUsageOption( 1, "[<numberOfIterations=5>,<convergenceThreshold=0.001>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
