@@ -22,6 +22,10 @@ namespace ants
 // iMath.cxx and iMath.cpp (in ANTSR)
 // after each function, suggested default parameters are defined
 
+template<class ImageType>
+typename ImageType::Pointer
+iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs);
+
 // Canny Edge Filter
 template <class ImageType>
 typename ImageType::Pointer

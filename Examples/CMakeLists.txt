@@ -55,16 +55,16 @@ set(CORE_ANTS_APPS
   LabelGeometryMeasures
   LabelClustersUniquely
   Atropos
-  ImageMath
   AverageImages
   StackSlices
   AverageAffineTransform
   AverageAffineTransformNoRigid
   antsApplyTransformsToPoints
-  iMath
 )
 
 set(MORE_ANTS_APPS
+    iMath
+    ImageMath
     ANTS
     ANTSJacobian
     PrintHeader
