@@ -690,15 +690,15 @@ RegistrationHelper<TComputeType, VImageDimension>
 
   if( this->m_FixedImageMasks.size() > 1 && this->m_FixedImageMasks.size() != this->m_NumberOfStages )
     {
-    this->Logger() << "The number of fixed masks must be equal to 1 (i.e., use the masks for each "
-                   << "stage or the number of fixed masks must be equal to the number of stages." << std::endl;
+    this->Logger() << "The number of fixed masks must be equal to 1 (use the mask for all "
+                   << "stages) or the number of fixed masks must be equal to the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   if( this->m_MovingImageMasks.size() > 1 && this->m_MovingImageMasks.size() != this->m_NumberOfStages )
     {
-    this->Logger() << "The number of moving masks must be equal to 1 (i.e., use the masks for each "
-                   << "stage or the number of moving masks must be equal to the number of stages." << std::endl;
+    this->Logger() << "The number of moving masks must be equal to 1 (i.e., use the mask for all "
+                   << "stages) or the number of moving masks must be equal to the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -758,8 +758,13 @@ void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddFixedImageMask( typename MaskImageType::Pointer & fixedImageMask )
 {
-  typename ImageMaskSpatialObjectType::Pointer so = ImageMaskSpatialObjectType::New();
-  so->SetImage( fixedImageMask.GetPointer() );
+  typename ImageMaskSpatialObjectType::Pointer so = ITK_NULLPTR;
+
+  if( fixedImageMask.IsNotNull() )
+    {
+    so = ImageMaskSpatialObjectType::New();
+    so->SetImage( fixedImageMask.GetPointer() );
+    }
   this->AddFixedImageMask( so );
 }
 
@@ -768,8 +773,13 @@ void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddMovingImageMask( typename MaskImageType::Pointer & movingImageMask )
 {
-  typename ImageMaskSpatialObjectType::Pointer so = ImageMaskSpatialObjectType::New();
-  so->SetImage( movingImageMask.GetPointer() );
+  typename ImageMaskSpatialObjectType::Pointer so = ITK_NULLPTR;
+
+  if( movingImageMask.IsNotNull() )
+    {
+    so = ImageMaskSpatialObjectType::New();
+    so->SetImage( movingImageMask.GetPointer() );
+    }
   this->AddMovingImageMask( so );
 }
 

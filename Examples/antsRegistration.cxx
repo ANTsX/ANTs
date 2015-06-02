@@ -449,8 +449,11 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     std::string( "Image masks to limit voxels considered by the metric. " )
     + std::string( "Two options are allowed for mask specification:  1) Either " )
     + std::string( "the user specifies a single mask to be used for all stages or " )
-    + std::string( "2) the user specifies a mask for each stage.  Note that we handle " )
-    + std::string( "the fixed and moving masks separately to enforce this constraint." );
+    + std::string( "2) the user specifies a mask for each stage.  With the latter " )
+    + std::string( "one can select to which stages masks are applied by supplying " )
+    + std::string( "valid file names.  If the file does not exist, a mask will not " )
+    + std::string( "be used for that stage.  Note that we handle the fixed and moving " )
+    + std::string( "masks separately to enforce this constraint." );
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "masks" );
   option->SetShortName( 'x' );
