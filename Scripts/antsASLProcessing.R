@@ -120,9 +120,14 @@ if (!tag.first) {
   tc <- (rep(c(0, 1), dim(ts)[1])[1:dim(ts)[1]] - 0.5)  # tag minus control
 }
 nuisance <- getASLNoisePredictors(ts, tc, polydegree='loess')
-noise.all <- cbind(moco$moco_params, nuisance)
+noise.all <- cbind(moco$moco_params, moco$fd$MeanDisplacement, nuisance)
 noise.combined <- as.matrix(combineNuisancePredictors(ts, tc, noise.all))
-censored <- aslCensoring(pcasl, mask, nuis=noise.combined, method='robust')
+onlypairs <- FALSE
+if (opt$method == 'subtract') {
+  onlypairs <- TRUE
+}
+censored <- aslCensoring(pcasl, mask, nuis=noise.combined, method='robust',
+                         reject.pairs=onlypairs)
 if (length(censored$which.outliers) > 0) {
   tc <- tc[-censored$which.outliers]
   noise.censored <- noise.combined[-censored$which.outliers, ]
@@ -147,22 +152,39 @@ if (opt$method == 'regression') {
     stop("For Bayesian regression, segmentations are required.")
   }
   act <- as.character(opt$antsCorticalThicknessPrefix)
+  braint1 <- tryCatch({
+        antsImageRead(paste(act, "ExtractedBrain0N4.nii.gz", sep=""))
+      }, error = function(e) {
+        print(paste('T1 brain image', paste(act, "ExtractedBrain0N4.nii.gz", sep=""),
+                    'does not exist.'))
+  })
   segmentation <- tryCatch({
         antsImageRead(paste(act, "BrainSegmentation.nii.gz", sep=""))
       }, error = function(e) {
-        print(paste('Segmentation image', paste(act, "BrainSegmentation.nii.gz", sep=""),
+        stop(paste('Segmentation image', paste(act, "BrainSegmentation.nii.gz", sep=""),
                     'does not exist.'))
   })
   postnames <- list.files(path=dirname(act),
     glob2rx("*BrainSegmentationPosteriors*.nii.gz"), full.names=TRUE)
   tissuelist <- tryCatch({
-    imageFileNames2ImageList(probs)
+    imageFileNames2ImageList(postnames)
   }, error = function(e) {
-    print(paste("Probability images", postnames, "cannot be loaded."))
+    stop(paste("Probability images", postnames, "cannot be loaded."))
   })
-  perf <- aslAveraging(censored$asl.inlier, mask=moco$moco <- mask,
+  reg.t12asl <- antsRegistration(fixed=avg, moving=braint1,
+    typeofTransform="SyNBold", outprefix=as.character(opt$outputpre))
+  seg.asl <- antsApplyTransforms(avg, segmentation, reg.t12asl$fwdtransforms,
+                                 "MultiLabel")
+  for (ii in 1:length(tissuelist)) {
+    tissuelist[[ii]] <- antsApplyTransforms(avg, tissuelist[[ii]],
+                                    reg.t12asl$fwdtransforms, "Linear")
+  }
+  perf <- aslAveraging(censored$asl.inlier, mask=moco$moco_mask,
                 tc=tc, nuisance=noise.censored, method='bayesian',
-                       segmentation=segmentation, tissuelist=tissuelist)
+                       segmentation=seg.asl, tissuelist=tissuelist)
+} else if(opt$method == 'subtract'){
+  perf <- aslAveraging(censored$asl.inlier, mask=moco$moco_mask,
+                       tc=tc, method='cubicSubtract')
 }
 
 mvals2 <- apply(ts[tc == 0.5, ], 2, mean)
@@ -180,8 +202,8 @@ m0 <- antsImageClone(moco$moco_mask)
 
 m0[moco$moco_mask == 0] <- 0
 m0[moco$moco_mask == 1] <- m0vals
-m0<-n3BiasFieldCorrection(m0,4)
-m0<-n3BiasFieldCorrection(m0,2)
+m0 <- n3BiasFieldCorrection(m0,4)
+m0 <- n3BiasFieldCorrection(m0,2)
 
 if (length(opt$config > 0)) {
   tryCatch({
