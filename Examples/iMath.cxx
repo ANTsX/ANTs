@@ -163,8 +163,41 @@ iMathHelperAll(int argc, char **argv)
   std::string outName = std::string(argv[2]);
 
   typedef float PixelType;
+  if( operation == "BlobDetector" )
+    {
+    typedef itk::Image<float,DIM> ImageType;
+    typename ImageType::Pointer input = NULL;
+    typename ImageType::Pointer output = NULL;
 
-  if( operation == "Canny" )
+    if ( argc < 6 )
+    {
+      std::cout << "BlobDetector: Not enough input parameters" << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    unsigned int nBlobs = atoi( argv[5] );
+
+    ReadImage<ImageType>( input, inName.c_str() );
+    if ( input.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+
+    try
+      {
+      output = iMathBlobDetector<ImageType>(input,nBlobs);
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cout << "BlobDetector: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
+      }
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+    }
+  else if( operation == "Canny" )
     {
     typedef itk::Image<float,DIM> ImageType;
     typename ImageType::Pointer input = NULL;
@@ -241,7 +274,7 @@ iMathHelperAll(int argc, char **argv)
     typename ImageType::Pointer input = NULL;
     typename ImageType::Pointer output = NULL;
 
-    double holeType = iMathFillHolesHoleType;
+    double holeType = iMathFillHolesHoleParam;
 
     if ( argc >= 6 )
       {
@@ -817,7 +850,7 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "TruncateIntensity" )
     {
     typedef itk::Image<float,DIM>         ImageType;
-    typedef itk::Image<unsigned int,DIM>  MaskType;
+    typedef itk::Image<unsigned int,DIM>           MaskType;
 
     int nBins = iMathTruncateIntensityNBins;
 

@@ -264,29 +264,73 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   if( maskOption && maskOption->GetNumberOfFunctions() )
     {
-    if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+    if( verbose )
       {
-      for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
+      std::cout << "  Reading mask(s)." << std::endl;
+      }
+    for( unsigned int l = 0; l < maskOption->GetNumberOfFunctions(); l++ )
+      {
+      if( verbose )
         {
-        std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
-        typename MaskImageType::Pointer maskImage;
-        ReadImage<MaskImageType>( maskImage , fname.c_str() );
-        if( m == 0 )
+        std::cout << "    Registration stage " << l << std::endl;
+        }
+      if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+        {
+        for( unsigned m = 0; m < maskOption->GetFunction( l )->GetNumberOfParameters(); m++ )
           {
-          regHelper->SetFixedImageMask( maskImage );
-          }
-        else if( m == 1 )
-          {
-          regHelper->SetMovingImageMask( maskImage );
+          std::string fname = maskOption->GetFunction( l )->GetParameter( m );
+          typename MaskImageType::Pointer maskImage;
+          ReadImage<MaskImageType>( maskImage, fname.c_str() );
+          if( m == 0 )
+            {
+            regHelper->AddFixedImageMask( maskImage );
+            if( verbose )
+              {
+              if( maskImage.IsNotNull() )
+                {
+                std::cout << "      Fixed mask = " << fname.c_str() << std::endl;
+                }
+              else
+                {
+                std::cout << "      No fixed mask" << std::endl;
+                }
+              }
+            }
+          else if( m == 1 )
+            {
+            regHelper->AddMovingImageMask( maskImage );
+            if( verbose )
+              {
+              if( maskImage.IsNotNull() )
+                {
+                std::cout << "      Moving mask = " << fname << std::endl;
+                }
+              else
+                {
+                std::cout << "      No moving mask" << std::endl;
+                }
+              }
+            }
           }
         }
-      }
-    else
-      {
-      std::string fname = maskOption->GetFunction( 0 )->GetName();
-      typename MaskImageType::Pointer maskImage;
-      ReadImage<MaskImageType>( maskImage , fname.c_str() );
-      regHelper->SetFixedImageMask( maskImage );
+      else
+        {
+        std::string fname = maskOption->GetFunction( l )->GetName();
+        typename MaskImageType::Pointer maskImage;
+        ReadImage<MaskImageType>( maskImage, fname.c_str() );
+        regHelper->AddFixedImageMask( maskImage );
+        if( verbose )
+          {
+          if( maskImage.IsNotNull() )
+            {
+            std::cout << "      Fixed mask = " << fname << std::endl;
+            }
+          else
+            {
+            std::cout << "      No fixed mask" << std::endl;
+            }
+          }
+        }
       }
     }
 

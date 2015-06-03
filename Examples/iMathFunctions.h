@@ -22,6 +22,10 @@ namespace ants
 // iMath.cxx and iMath.cpp (in ANTSR)
 // after each function, suggested default parameters are defined
 
+template<class ImageType>
+typename ImageType::Pointer
+iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs);
+
 // Canny Edge Filter
 template <class ImageType>
 typename ImageType::Pointer
@@ -40,7 +44,7 @@ iMathDistanceMap(typename ImageType::Pointer image, bool useSpacing );
 template <class ImageType>
 typename ImageType::Pointer
 iMathFillHoles(typename ImageType::Pointer image, double holeParam );
-#define iMathFillHolesHoleType 2;
+#define iMathFillHolesHoleParam 2;
 
 // Return the largest connected component in a mask
 template <class ImageType>
@@ -152,7 +156,7 @@ template <class ImageType>
 typename ImageType::Pointer
 iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ,
                         double upperQ, int nBins,
-                        typename itk::Image<unsigned int, ImageType::ImageDimension>::Pointer maskImage );
+                        typename itk::Image<int, ImageType::ImageDimension>::Pointer maskImage );
 #define iMathTruncateIntensityNBins 64;
 
 

@@ -152,6 +152,7 @@ public:
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       ImageMetricType;
   typedef itk::ImageMaskSpatialObject<VImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                             MaskImageType;
+
   typedef itk::InterpolateImageFunction<ImageType, RealType>                         InterpolatorType;
 
   typedef itk::ConjugateGradientLineSearchOptimizerv4Template<TComputeType>          ConjugateGradientDescentOptimizerType;
@@ -721,22 +722,22 @@ public:
   /**
    * Set the fixed/moving image masks with a spatial object
    */
-  void SetFixedImageMask( typename ImageMaskSpatialObjectType::Pointer & fixedImageMask )
+  void AddFixedImageMask( typename ImageMaskSpatialObjectType::Pointer & fixedImageMask )
   {
-    this->m_FixedImageMask = fixedImageMask;
+    this->m_FixedImageMasks.push_back( fixedImageMask );
   }
 
-  void SetMovingImageMask( typename ImageMaskSpatialObjectType::Pointer & movingImageMask )
+  void AddMovingImageMask( typename ImageMaskSpatialObjectType::Pointer & movingImageMask )
   {
-    this->m_MovingImageMask = movingImageMask;
+    this->m_MovingImageMasks.push_back( movingImageMask );
   }
 
   /**
    * Set the fixed/moving mask image. this will be used to instantiate
    * ImageMaskSpatialObject masks.
    */
-  void SetFixedImageMask(typename MaskImageType::Pointer & fixedImageMask);
-  void SetMovingImageMask(typename MaskImageType::Pointer & movingImageMask);
+  void AddFixedImageMask( typename MaskImageType::Pointer & fixedImageMask );
+  void AddMovingImageMask( typename MaskImageType::Pointer & movingImageMask );
 
   /**
    * Collapse a composite transform by adjacent linear or displacement field transforms.
@@ -793,6 +794,10 @@ protected:
   RegistrationHelper();
   virtual ~RegistrationHelper();
 private:
+
+  typename itk::ImageBase<VImageDimension>::Pointer GetShrinkImageOutputInformation(const itk::ImageBase<VImageDimension> * inputImageInformation,
+                                const RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType &shrinkFactorsPerDimensionForCurrentLevel) const;
+
   int ValidateParameters();
 
   std::ostream & Logger() const
@@ -978,8 +983,9 @@ private:
   typename CompositeTransformType::Pointer         m_CompositeTransform;
   typename CompositeTransformType::Pointer         m_RegistrationState;
   typename CompositeTransformType::Pointer         m_FixedInitialTransform;
-  typename ImageMaskSpatialObjectType::Pointer     m_FixedImageMask;
-  typename ImageMaskSpatialObjectType::Pointer     m_MovingImageMask;
+
+  std::vector<typename ImageMaskSpatialObjectType::Pointer>     m_FixedImageMasks;
+  std::vector<typename ImageMaskSpatialObjectType::Pointer>     m_MovingImageMasks;
 
   typename InterpolatorType::Pointer               m_Interpolator;
 

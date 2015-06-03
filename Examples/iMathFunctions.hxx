@@ -36,6 +36,7 @@
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkLaplacianSharpeningImageFilter.h"
+#include "itkMultiScaleLaplacianBlobDetectorImageFilter.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
@@ -44,6 +45,57 @@
 
 namespace ants
 {
+
+/*
+template <class ImageType>
+typename ImageType::Pointer
+BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
+              typename ImageType::Pointer itkNotUsed(image2),
+              double itkNotUsed(corrThresh), double itkNotUsed(radius), double itkNotUsed(distanceThresh) )
+{
+  typedef float RealType;
+
+  // sensitive parameters are set here - begin
+  //RealType     gradsig = 1.0;      // sigma for gradient filter
+  unsigned int stepsperoctave = 10; // number of steps between doubling of scale
+  RealType     minscale = vcl_pow( 1.0, 1.0 );
+  RealType     maxscale = vcl_pow( 2.0, 10.0 );
+  //RealType     uniqfeat_thresh = 0.01;
+  //RealType     smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
+  //bool         dosinkhorn = false;
+  //RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference
+  //RealType     kneighborhoodval = 3;        // IMPORTANT - defines how many nhood nodes to use in k-hood definition
+  //unsigned int radval = 20;                 // IMPORTANT radius for correlation
+  //RealType     dthresh = 0.02;              // IMPORTANT distance preservation threshold
+  // sensitive parameters are set here - end
+}
+*/
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs )
+{
+  typedef float RealType;
+
+  unsigned int stepsperoctave = 10; // number of steps between doubling of scale
+  RealType     minscale = vcl_pow( 1.0, 1.0 );
+  RealType     maxscale = vcl_pow( 2.0, 10.0 );
+
+  typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
+  typename BlobFilterType::Pointer blobFilter = BlobFilterType::New();
+  typedef typename BlobFilterType::BlobPointer BlobPointer;
+  blobFilter->SetStartT( minscale );
+  blobFilter->SetEndT( maxscale );
+  blobFilter->SetStepsPerOctave( stepsperoctave );
+  blobFilter->SetNumberOfBlobs( nBlobs );
+  blobFilter->SetInput( image );
+  blobFilter->Update();
+
+  typedef typename BlobFilterType::BlobRadiusImageType BlobRadiusImageType;
+  typename BlobRadiusImageType::Pointer labimg = blobFilter->GetBlobRadiusImage();
+
+  return( labimg );
+}
 
 template <class ImageType>
 typename ImageType::Pointer
@@ -95,9 +147,9 @@ typename ImageType::Pointer
 iMathFillHoles( typename ImageType::Pointer image, double holeParam )
 {
 
-  if ( holeParam > 2 )
+  if ( (holeParam < 0) || (holeParam > 2) )
     {
-    // nope
+    //itk::itkExceptionMacro("FillHoles: holeParam value must lie in [0,2]");
     }
 
   typedef typename ImageType::Pointer                ImagePointerType;
