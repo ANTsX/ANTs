@@ -60,11 +60,11 @@ set(CORE_ANTS_APPS
   AverageAffineTransform
   AverageAffineTransformNoRigid
   antsApplyTransformsToPoints
+  ImageMath
 )
 
 set(MORE_ANTS_APPS
     iMath
-    ImageMath
     ANTS
     ANTSJacobian
     PrintHeader
