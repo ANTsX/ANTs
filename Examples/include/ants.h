@@ -21,6 +21,8 @@
 
 #include "antsApplyTransformsToPoints.h"
 
+#include "antsJointFusion.h"
+
 #include "antsTransformInfo.h"
 
 #include "ANTSConformalMapping.h"

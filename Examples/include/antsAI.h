@@ -1,4 +1,3 @@
-
 #ifndef ANTSAI_H
 #define ANTSAI_H
 
@@ -9,4 +8,4 @@ extern int antsAI( std::vector<std::string>, // equivalent to argv of command li
                            );
 } // namespace ants
 
-#endif // ANTSAFFINEINITIALIZER_H
+#endif // ANTSAI_H

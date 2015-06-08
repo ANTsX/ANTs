@@ -807,7 +807,7 @@ private:
 
   void EvaluateMRFNeighborhoodWeights( ConstNeighborhoodIterator<ClassifiedImageType>, Array<RealType> & );
 
-  RealType PerformLocalLabelingUpdate(NeighborhoodIterator<ClassifiedImageType> );
+  RealType PerformLocalLabelingUpdate( NeighborhoodIterator<ClassifiedImageType> );
 
   // ivars
 

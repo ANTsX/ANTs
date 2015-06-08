@@ -1,7 +1,5 @@
-
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
-#include <algorithm>
 
 #include "itkBSplineControlPointImageFilter.h"
 #include "antsCommandLineParser.h"
