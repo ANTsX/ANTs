@@ -111,7 +111,7 @@ avg <- n3BiasFieldCorrection(avg, 2)
 mask <- getMask(avg, mean(avg), Inf, 2)
 avg[mask==0] <- 0
 
-moco <- antsMotionCalculation(pcasl, moreaccurate=2)
+moco <- antsMotionCalculation(pcasl, fixed=avg, mask=mask,  moreaccurate=4)
 tag.first <- config$tagFirst
 ts <- timeseries2matrix(moco$moco_img, moco$moco_mask)
 if (!tag.first) {
