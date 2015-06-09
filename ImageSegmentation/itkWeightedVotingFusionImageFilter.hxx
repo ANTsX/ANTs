@@ -624,6 +624,14 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   os << "Beta = " << this->m_Beta << std::endl;
   os << "Search neighborhood radius = " << this->m_SearchNeighborhoodRadius << std::endl;
   os << "Patch neighborhood radius = " << this->m_PatchNeighborhoodRadius << std::endl;
+
+  os << "Label set: ";
+  typename LabelSetType::const_iterator labelIt;
+  for( labelIt = this->m_LabelSet.begin(); labelIt != this->m_LabelSet.end(); ++labelIt )
+    {
+    os << *labelIt << " ";
+    }
+  os << std::endl;
 }
 
 } // end namespace itk
