@@ -799,6 +799,7 @@ typename antsSCCANObject<TInputImage, TRealType>::MatrixType
 antsSCCANObject<TInputImage, TRealType>
 ::NormalizeMatrix( typename antsSCCANObject<TInputImage, TRealType>::MatrixType p, bool makepositive )
 {
+  return(p);
   MatrixType np( p.rows(), p.columns() );
 
   for( unsigned long i = 0; i < p.columns(); i++ )
