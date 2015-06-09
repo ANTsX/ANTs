@@ -434,12 +434,26 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
         std::string labelString = convert.str();
 
         // Try to guess how the user is going to specify the file format.  May need to add more.
+        std::vector<std::string> possibleReplacements;
+        possibleReplacements.push_back( std::string( "%d" ) );
+        possibleReplacements.push_back( std::string( "%01d" ) );
+        possibleReplacements.push_back( std::string( "%02d" ) );
+        possibleReplacements.push_back( std::string( "%03d" ) );
+        possibleReplacements.push_back( std::string( "%04d" ) );
+
         std::string filename = labelPosteriorName;
-        ANTsStringReplace( filename, std::string( "%d" ), labelString );
-        ANTsStringReplace( filename, std::string( "%01d" ), labelString );
-        ANTsStringReplace( filename, std::string( "%02d" ), labelString );
-        ANTsStringReplace( filename, std::string( "%03d" ), labelString );
-        ANTsStringReplace( filename, std::string( "%04d" ), labelString );
+
+        for( unsigned int n = 0; n < possibleReplacements[n].size(); n++ )
+          {
+          for( size_t pos = 0; ; pos += labelString.length() )
+            {
+            pos = filename.find( possibleReplacements[n], pos );
+            if( pos == std::string::npos ) break;
+
+            filename.erase( pos, possibleReplacements[n].length() );
+            filename.insert( pos, labelString );
+            }
+          }
 
         WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), filename.c_str() );
         }
