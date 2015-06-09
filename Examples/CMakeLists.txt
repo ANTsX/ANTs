@@ -61,10 +61,10 @@ set(CORE_ANTS_APPS
   AverageAffineTransform
   AverageAffineTransformNoRigid
   antsApplyTransformsToPoints
-  ImageMath
 )
 
 set(MORE_ANTS_APPS
+    ImageMath
     iMath
     ANTS
     ANTSJacobian
