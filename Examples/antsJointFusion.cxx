@@ -342,6 +342,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   try
     {
+    std::cout << "Running antsFusion" << std::endl;
     fusionFilter->Update();
     }
   catch( itk::ExceptionObject & e )
@@ -424,40 +425,50 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
         WriteImage<ImageType>( jointIntensityFusionImage, imageNames[i].c_str() );
         }
       }
-    if( !labelPosteriorName.empty() && fusionFilter->GetRetainLabelPosteriorProbabilityImages() )
-      {
-      typename FusionFilterType::LabelSetType::const_iterator labelIt;
-      for( labelIt = fusionFilter->GetLabelSet().begin(); labelIt != fusionFilter->GetLabelSet().end(); ++labelIt )
-        {
-        std::ostringstream convert;
-        convert << *labelIt;
-        std::string labelString = convert.str();
-
-        // Try to guess how the user is going to specify the file format.  May need to add more.
-        std::vector<std::string> possibleReplacements;
-        possibleReplacements.push_back( std::string( "%d" ) );
-        possibleReplacements.push_back( std::string( "%01d" ) );
-        possibleReplacements.push_back( std::string( "%02d" ) );
-        possibleReplacements.push_back( std::string( "%03d" ) );
-        possibleReplacements.push_back( std::string( "%04d" ) );
-
-        std::string filename = labelPosteriorName;
-
-        for( unsigned int n = 0; n < possibleReplacements[n].size(); n++ )
-          {
-          for( size_t pos = 0; ; pos += labelString.length() )
-            {
-            pos = filename.find( possibleReplacements[n], pos );
-            if( pos == std::string::npos ) break;
-
-            filename.erase( pos, possibleReplacements[n].length() );
-            filename.insert( pos, labelString );
-            }
-          }
-
-        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), filename.c_str() );
-        }
-      }
+//     if( !labelPosteriorName.empty() && fusionFilter->GetRetainLabelPosteriorProbabilityImages() )
+//       {
+//       std::cout << "size = " << fusionFilter->GetLabelSet().size() << std::endl;
+//
+//       typename FusionFilterType::LabelSetType::const_iterator labelIt;
+//       for( labelIt = fusionFilter->GetLabelSet().begin(); labelIt != fusionFilter->GetLabelSet().end(); ++labelIt )
+//         {
+//         if( *labelIt == 0 )
+//           {
+//           continue;
+//           }
+//         if( verbose )
+//           {
+//           std::cout << "  Writing label probability image (label " << *labelIt << ")" << std::endl;
+//           }
+//         std::ostringstream convert;
+//         convert << *labelIt;
+//         std::string labelString = convert.str();
+//
+//         // Try to guess how the user is going to specify the file format.  May need to add more.
+//         std::vector<std::string> possibleReplacements;
+//         possibleReplacements.push_back( std::string( "%d" ) );
+//         possibleReplacements.push_back( std::string( "%01d" ) );
+//         possibleReplacements.push_back( std::string( "%02d" ) );
+//         possibleReplacements.push_back( std::string( "%03d" ) );
+//         possibleReplacements.push_back( std::string( "%04d" ) );
+//
+//         std::string filename = labelPosteriorName;
+//
+//         for( unsigned int n = 0; n < possibleReplacements[n].size(); n++ )
+//           {
+//           for( size_t pos = 0; ; pos += labelString.length() )
+//             {
+//             pos = filename.find( possibleReplacements[n], pos );
+//             if( pos == std::string::npos ) break;
+//
+//             filename.erase( pos, possibleReplacements[n].length() );
+//             filename.insert( pos, labelString );
+//             }
+//           }
+//
+//         WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), filename.c_str() );
+//         }
+//       }
     if( !atlasVotingName.empty() && fusionFilter->GetRetainAtlasVotingWeightImages() )
       {
       itk::NumericSeriesFileNames::Pointer fileNamesCreator = itk::NumericSeriesFileNames::New();
@@ -468,6 +479,10 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       const std::vector<std::string> & imageNames = fileNamesCreator->GetFileNames();
       for( unsigned int i = 0; i < imageNames.size(); i++ )
         {
+        if( verbose )
+          {
+          std::cout << "  Writing atlas voting image (atlas " << i+1 << ")" << std::endl;
+          }
         WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ), imageNames[i].c_str() );
         }
       }
@@ -565,7 +580,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "retain-label-posterior-images" );
-  option->SetShortName( 'p' );
+  option->SetShortName( 'r' );
   option->SetUsageOption( 0, "(0)/1" );
   option->SetDescription( description );
   parser->AddOption( option );

@@ -163,18 +163,22 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   typename LabelSetType::const_iterator labelIt;
   for( labelIt = this->m_LabelSet.begin(); labelIt != this->m_LabelSet.end(); ++labelIt )
     {
-    this->m_LabelPosteriorProbabilityImages[*labelIt] = ProbabilityImageType::New();
-    this->m_LabelPosteriorProbabilityImages[*labelIt]->CopyInformation( this->m_TargetImage[0] );
-    this->m_LabelPosteriorProbabilityImages[*labelIt]->SetRegions( this->m_TargetImage[0]->GetRequestedRegion() );
-    this->m_LabelPosteriorProbabilityImages[*labelIt]->SetLargestPossibleRegion( this->m_TargetImage[0]->GetLargestPossibleRegion() );
-    this->m_LabelPosteriorProbabilityImages[*labelIt]->Allocate();
-    this->m_LabelPosteriorProbabilityImages[*labelIt]->FillBuffer( 0.0 );
+    typename ProbabilityImageType::Pointer labelProbabilityImage = ProbabilityImageType::New();
+    labelProbabilityImage->CopyInformation( this->m_TargetImage[0] );
+    labelProbabilityImage->SetRegions( this->m_TargetImage[0]->GetRequestedRegion() );
+    labelProbabilityImage->SetLargestPossibleRegion( this->m_TargetImage[0]->GetLargestPossibleRegion() );
+    labelProbabilityImage->Allocate();
+    labelProbabilityImage->FillBuffer( 0.0 );
+
+    this->m_LabelPosteriorProbabilityImages.insert(
+      std::pair<LabelType, ProbabilityImagePointer>( *labelIt, labelProbabilityImage ) );
     }
 
   // Initialize the atlas voting weight images
   if( this->m_RetainAtlasVotingWeightImages )
     {
     this->m_AtlasVotingWeightImages.clear();
+    this->m_AtlasVotingWeightImages.resize( this->m_NumberOfAtlases );
 
     for( SizeValueType i = 0; i < this->m_NumberOfAtlases; i++ )
       {
@@ -189,6 +193,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   // Do the joint intensity fusion
   this->m_JointIntensityFusionImage.clear();
+  this->m_JointIntensityFusionImage.resize( this->m_NumberOfModalities );
 
   for( SizeValueType i = 0; i < this->m_NumberOfModalities; i++ )
     {
@@ -221,6 +226,16 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     this->m_SearchNeighborhoodOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
     }
 
+  // Determine neighborhood sizes
+
+  this->m_PatchNeighborhoodSize = 1;
+  this->m_SearchNeighborhoodSize = 1;
+  for( SizeValueType d = 0; d < ImageDimension; d++ )
+    {
+    this->m_PatchNeighborhoodSize *= ( 2 * this->m_PatchNeighborhoodRadius[d] + 1 );
+    this->m_SearchNeighborhoodSize *= ( 2 * this->m_SearchNeighborhoodRadius[d] + 1 );
+    }
+
   this->AllocateOutputs();
 }
 
@@ -240,23 +255,25 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   ConstNeighborhoodIteratorType ItN( this->m_PatchNeighborhoodRadius, this->m_TargetImage[0], region );
   for( ItN.GoToBegin(); !ItN.IsAtEnd(); ++ItN )
     {
+    IndexType currentCenterIndex = ItN.GetIndex();
+
     // We skip the current voxel if it has all non zero labels over all atlas segmentations
     bool hasNonZeroLabel = false;
     for( SizeValueType i = 0; i < this->m_NumberOfAtlasSegmentations; i++ )
       {
-      if( this->m_AtlasSegmentations[i]->GetPixel( ItN.GetIndex() ) )
+      if( this->m_AtlasSegmentations[i]->GetPixel( currentCenterIndex ) )
         {
         hasNonZeroLabel = true;
         break;
         }
       }
-    if( hasNonZeroLabel )
+    if( !hasNonZeroLabel )
       {
       continue;
       }
 
     InputImagePixelVectorType normalizedTargetPatch =
-      this->VectorizeImageListPatch( this->m_TargetImage, ItN.GetIndex(), true );
+      this->VectorizeImageListPatch( this->m_TargetImage, currentCenterIndex, true );
 
     // In each atlas, search for a patch that matches the target patch
     for( SizeValueType i = 0; i < this->m_NumberOfAtlases; i++ )
@@ -266,7 +283,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
       for( SizeValueType j = 0; j < this->m_SearchNeighborhoodSize; j++ )
         {
-        IndexType searchIndex = ItN.GetIndex() + this->m_SearchNeighborhoodOffsetList[j];
+        IndexType searchIndex = currentCenterIndex + this->m_SearchNeighborhoodOffsetList[j];
 
         InputImagePixelVectorType individualAtlasPatch =
           this->VectorizeImageListPatch( this->m_AtlasImages[i], searchIndex, false );
@@ -282,7 +299,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
       // Once the patch has been found, normalize it and then compute the absolute
       // difference with target patch
-      IndexType minimumIndex = ItN.GetIndex() +
+      IndexType minimumIndex = currentCenterIndex +
         this->m_SearchNeighborhoodOffsetList[minimumPatchOffsetIndex];
       InputImagePixelVectorType normalizedMinimumAtlasPatch =
         this->VectorizeImageListPatch( this->m_AtlasImages[i], minimumIndex, true );
@@ -340,8 +357,9 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     W *= 1.0 / dot_product( W, ones );
 
     // Do joint intensity fusion
-    VectorType estimatedNeighborhoodIntensityDifferences =
-      W.post_multiply( absoluteAtlasPatchDifferences );
+    VectorType estimatedNeighborhoodIntensityDifferences = W;
+
+    estimatedNeighborhoodIntensityDifferences.post_multiply( absoluteAtlasPatchDifferences );
 
     for( SizeValueType i = 0; i < this->m_NumberOfModalities; i++ )
       {
@@ -357,8 +375,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
         RealType estimatedValue = (
           estimatedNeighborhoodIntensityDifferences[i * this->m_PatchNeighborhoodSize + j] +
-          this->m_JointIntensityFusionImage[i]->GetPixel( neighborhoodIndex ) ) /
-          static_cast<RealType>( this->m_PatchNeighborhoodSize );
+          this->m_JointIntensityFusionImage[i]->GetPixel( neighborhoodIndex ) );
 
         this->m_JointIntensityFusionImage[i]->SetPixel( neighborhoodIndex,
            static_cast<InputImagePixelType>( estimatedValue ) );
@@ -373,6 +390,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       for( SizeValueType n = 0; n < this->m_PatchNeighborhoodSize; n++ )
         {
         IndexType neighborhoodIndex = ItN.GetIndex( n );
+
         if( output->GetRequestedRegion().IsInside( neighborhoodIndex ) )
           {
           for( SizeValueType i = 0; i < this->m_NumberOfAtlasSegmentations; i++ )
