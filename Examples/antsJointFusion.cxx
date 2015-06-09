@@ -435,13 +435,13 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
         // Try to guess how the user is going to specify the file format.  May need to add more.
         std::string filename = labelPosteriorName;
-        StringReplace( filename, std::string( "%d" ), labelString );
-        StringReplace( filename, std::string( "%01d" ), labelString );
-        StringReplace( filename, std::string( "%02d" ), labelString );
-        StringReplace( filename, std::string( "%03d" ), labelString );
-        StringReplace( filename, std::string( "%04d" ), labelString );
+        ANTsStringReplace( filename, std::string( "%d" ), labelString );
+        ANTsStringReplace( filename, std::string( "%01d" ), labelString );
+        ANTsStringReplace( filename, std::string( "%02d" ), labelString );
+        ANTsStringReplace( filename, std::string( "%03d" ), labelString );
+        ANTsStringReplace( filename, std::string( "%04d" ), labelString );
 
-        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), filename.c_str() );
+        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), filename );
         }
       }
     if( !atlasVotingName.empty() && fusionFilter->GetRetainAtlasVotingWeightImages() )
@@ -454,7 +454,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       const std::vector<std::string> & imageNames = fileNamesCreator->GetFileNames();
       for( unsigned int i = 0; i < imageNames.size(); i++ )
         {
-        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ), imageNames[i].c_str() );
+        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ) );
         }
       }
     }

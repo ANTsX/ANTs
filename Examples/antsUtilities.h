@@ -622,7 +622,7 @@ std::vector<TValue> ConvertVector( std::string optionString )
   return values;
 }
 
-void StringReplace( std::string &s, const std::string &search, const std::string &replace )
+void ANTsStringReplace( std::string &s, const std::string &search, const std::string &replace )
 {
   for( size_t pos = 0; ; pos += replace.length() )
  	  {
