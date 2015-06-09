@@ -39,8 +39,6 @@ endmacro()
 
 set(CORE_ANTS_APPS
   antsAffineInitializer
-  antsAI
-  antsJointFusion
   SurfaceBasedSmoothing
   CreateJacobianDeterminantImage
   ThresholdImage
@@ -64,6 +62,8 @@ set(CORE_ANTS_APPS
 )
 
 set(MORE_ANTS_APPS
+    antsAI
+    antsJointFusion
     ImageMath
     iMath
     ANTS
