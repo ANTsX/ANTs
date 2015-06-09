@@ -441,7 +441,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
         ANTsStringReplace( filename, std::string( "%03d" ), labelString );
         ANTsStringReplace( filename, std::string( "%04d" ), labelString );
 
-        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), filename );
+        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), filename.c_str() );
         }
       }
     if( !atlasVotingName.empty() && fusionFilter->GetRetainAtlasVotingWeightImages() )
@@ -454,7 +454,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       const std::vector<std::string> & imageNames = fileNamesCreator->GetFileNames();
       for( unsigned int i = 0; i < imageNames.size(); i++ )
         {
-        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ) );
+        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ), imageNames[i].c_str() );
         }
       }
     }
