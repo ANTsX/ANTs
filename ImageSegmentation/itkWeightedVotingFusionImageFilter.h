@@ -82,16 +82,16 @@ public:
   typedef std::vector<InputImagePixelType>           InputImagePixelVectorType;
 
   typedef TOutputImage                               OutputImageType;
+  typedef typename OutputImageType::PixelType        LabelType;
+  typedef std::set<LabelType>                        LabelSetType;
+  typedef Image<LabelType, ImageDimension>           LabelImageType;
+  typedef typename LabelImageType::Pointer           LabelImagePointer;
+  typedef std::vector<LabelImagePointer>             LabelImageList;
 
   typedef typename InputImageType::RegionType        RegionType;
   typedef typename InputImageType::SizeType          SizeType;
   typedef typename InputImageType::IndexType         IndexType;
 
-  typedef unsigned int                               LabelType;
-  typedef std::set<LabelType>                        LabelSetType;
-  typedef Image<LabelType, ImageDimension>           LabelImageType;
-  typedef typename LabelImageType::Pointer           LabelImagePointer;
-  typedef std::vector<LabelImagePointer>             LabelImageList;
 
   typedef Image<float, ImageDimension>               ProbabilityImageType;
   typedef typename ProbabilityImageType::Pointer     ProbabilityImagePointer;
@@ -168,11 +168,15 @@ public:
     }
 
   /**
-   * Set the number of modalities used in determining the optimal label fusion
+   * Get the number of modalities used in determining the optimal label fusion
    * or optimal fused image.
    */
-  itkSetMacro( NumberOfModalities, unsigned int );
   itkGetConstMacro( NumberOfModalities, unsigned int );
+
+  /**
+   * Get the label set.
+   */
+  itkGetConstMacro( LabelSet, LabelSetType );
 
   /**
    * Set/Get the local search neighborhood for minimizing potential registration error.
@@ -268,6 +272,22 @@ public:
     else
       {
       itkDebugMacro( "Not returning a voting weight image.  These images were not saved." );
+      return ITK_NULLPTR;
+      }
+    }
+
+  /**
+   * Get the joint intensity fusion output image
+   */
+  const ProbabilityImagePointer GetJointIntensityFusionImage( unsigned int n )
+    {
+    if( n < this->m_NumberOfModalities )
+      {
+      return this->m_JointIntensityFusionImage[n];
+      }
+    else
+      {
+      itkDebugMacro( "Not returning a joint intensity fusion image.  Requested index is greater than the number of modalities." );
       return ITK_NULLPTR;
       }
     }

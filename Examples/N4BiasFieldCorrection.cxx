@@ -102,8 +102,6 @@ int N4( itk::ants::CommandLineParser *parser )
     {
     std::string inputFile = inputImageOption->GetFunction( 0 )->GetName();
     ReadImage<ImageType>( inputImage, inputFile.c_str() );
-    inputImage->Update();
-    inputImage->DisconnectPipeline();
     }
   else
     {
@@ -158,8 +156,6 @@ int N4( itk::ants::CommandLineParser *parser )
     {
     std::string inputFile = weightImageOption->GetFunction( 0 )->GetName();
     ReadImage<ImageType>( weightImage, inputFile.c_str() );
-    weightImage->Update();
-    weightImage->DisconnectPipeline();
     }
 
   /**

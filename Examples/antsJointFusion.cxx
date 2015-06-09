@@ -4,9 +4,10 @@
 #include "ReadWriteData.h"
 
 #include "itkWeightedVotingFusionImageFilter.h"
+#include "itkNumericSeriesFileNames.h"
 #include "itkTimeProbe.h"
 
-
+#include <sstream>
 #include <string>
 #include <algorithm>
 #include <vector>
@@ -63,17 +64,16 @@ namespace ants
 template <unsigned int ImageDimension>
 int antsJointFusion( itk::ants::CommandLineParser *parser )
 {
-  typedef float RealType;
+  typedef float                                               RealType;
+  typedef itk::Image<RealType, ImageDimension>                ImageType;
+  typedef itk::Image<unsigned int, ImageDimension>            LabelImageType;
 
-  typedef itk::Image<RealType, ImageDimension> ImageType;
-  typename ImageType::Pointer inputImage = ITK_NULLPTR;
+  typedef typename itk::ants::CommandLineParser::OptionType   OptionType;
 
-  typedef itk::Image<unsigned, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  // Determine verbosity of output
 
   bool verbose = false;
-  typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
-    parser->GetOption( "verbose" );
+  typename OptionType::Pointer verboseOption = parser->GetOption( "verbose" );
   if( verboseOption && verboseOption->GetNumberOfFunctions() )
     {
     verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
@@ -85,9 +85,379 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
              << ImageDimension << "-dimensional images." << std::endl << std::endl;
     }
 
-  typedef itk::WeightedVotingFusionImageFilter<ImageType, ImageType> FusionFilterType;
+  // Instantiate the joint fusion filter
+
+  typedef itk::WeightedVotingFusionImageFilter<ImageType, LabelImageType> FusionFilterType;
   typename FusionFilterType::Pointer fusionFilter = FusionFilterType::New();
 
+  typedef typename FusionFilterType::LabelImageType            LabelImageType;
+  typedef typename LabelImageType::PixelType                   LabelType;
+
+
+  // Get the alpha and beta parameters
+
+  RealType alpha = 0.1;
+  typename OptionType::Pointer alphaOption = parser->GetOption( "alpha" );
+  if( alphaOption && alphaOption->GetNumberOfFunctions() )
+    {
+    alpha = parser->Convert<RealType>( alphaOption->GetFunction( 0 )->GetName() );
+    }
+
+  RealType beta = 2.0;
+  typename OptionType::Pointer betaOption = parser->GetOption( "beta" );
+  if( betaOption && betaOption->GetNumberOfFunctions() )
+    {
+    beta = parser->Convert<RealType>( betaOption->GetFunction( 0 )->GetName() );
+    }
+
+  fusionFilter->SetAlpha( alpha );
+  fusionFilter->SetBeta( beta );
+
+  // Get the search and patch radii
+
+  std::vector<unsigned int> searchRadius;
+  searchRadius.push_back( 3 );
+  typename OptionType::Pointer searchRadiusOption = parser->GetOption( "search-radius" );
+  if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
+    {
+    searchRadius = parser->ConvertVector<unsigned int>( searchRadiusOption->GetFunction( 0 )->GetName() );
+    }
+  if( searchRadius.size() == 1 )
+    {
+    for( unsigned int d = 1; d < ImageDimension; d++ )
+      {
+      searchRadius.push_back( searchRadius[0] );
+      }
+    }
+  if( searchRadius.size() != ImageDimension )
+    {
+    if( verbose )
+      {
+      std::cerr << "Search radius specified incorrectly.  Please see usage options." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
+  typename FusionFilterType::NeighborhoodRadiusType searchNeighborhoodRadius;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    searchNeighborhoodRadius[d] = searchRadius[d];
+    }
+
+  std::vector<unsigned int> patchRadius;
+  patchRadius.push_back( 3 );
+  typename OptionType::Pointer patchRadiusOption = parser->GetOption( "patch-radius" );
+  if( patchRadiusOption && patchRadiusOption->GetNumberOfFunctions() )
+    {
+    patchRadius = parser->ConvertVector<unsigned int>( patchRadiusOption->GetFunction( 0 )->GetName() );
+    }
+  if( patchRadius.size() == 1 )
+    {
+    for( unsigned int d = 1; d < ImageDimension; d++ )
+      {
+      patchRadius.push_back( patchRadius[0] );
+      }
+    }
+  if( patchRadius.size() != ImageDimension )
+    {
+    if( verbose )
+      {
+      std::cerr << "Patch radius specified incorrectly.  Please see usage options." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
+  typename FusionFilterType::NeighborhoodRadiusType patchNeighborhoodRadius;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    patchNeighborhoodRadius[d] = patchRadius[d];
+    }
+
+  fusionFilter->SetSearchNeighborhoodRadius( searchNeighborhoodRadius );
+  fusionFilter->SetPatchNeighborhoodRadius( patchNeighborhoodRadius );
+
+  // Retain atlas voting and label posterior images
+
+  bool retainAtlasVotingImages = false;
+  bool retainLabelPosteriorImages = false;
+
+  typename OptionType::Pointer retainLabelPosteriorOption = parser->GetOption( "retain-label-posterior-images" );
+  if( retainLabelPosteriorOption && retainLabelPosteriorOption->GetNumberOfFunctions() > 0 )
+    {
+    retainLabelPosteriorImages = parser->Convert<bool>( retainLabelPosteriorOption->GetFunction()->GetName() );
+    }
+
+  typename OptionType::Pointer retainAtlasVotingOption = parser->GetOption( "retain-atlas-voting-images" );
+  if( retainAtlasVotingOption && retainAtlasVotingOption->GetNumberOfFunctions() > 0 )
+    {
+    retainAtlasVotingImages = parser->Convert<bool>( retainAtlasVotingOption->GetFunction()->GetName() );
+    }
+  fusionFilter->SetRetainAtlasVotingWeightImages( retainAtlasVotingImages );
+  fusionFilter->SetRetainLabelPosteriorProbabilityImages( retainLabelPosteriorImages );
+
+  // Get the target image
+
+  unsigned int numberOfModalities = 0;
+
+  typename FusionFilterType::InputImageList targetImageList;
+
+  typename OptionType::Pointer targetImageOption = parser->GetOption( "target-image" );
+  if( targetImageOption && targetImageOption->GetNumberOfFunctions() )
+    {
+    if( targetImageOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      typename ImageType::Pointer targetImage = ITK_NULLPTR;
+
+      std::string targetFile = targetImageOption->GetFunction( 0 )->GetName();
+      ReadImage<ImageType>( targetImage, targetFile.c_str() );
+
+      targetImageList.push_back( targetImage );
+
+      numberOfModalities = 1;
+      }
+    else
+      {
+      numberOfModalities = targetImageOption->GetFunction( 0 )->GetNumberOfParameters();
+      for( unsigned int n = 0; n < numberOfModalities; n++ )
+        {
+        typename ImageType::Pointer targetImage = ITK_NULLPTR;
+
+        std::string targetFile = targetImageOption->GetFunction( 0 )->GetParameter( n );
+        ReadImage<ImageType>( targetImage, targetFile.c_str() );
+
+        targetImageList.push_back( targetImage );
+        }
+      }
+    }
+  else
+    {
+    if( verbose )
+      {
+      std::cerr << "Target image(s) not specified." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
+
+  fusionFilter->SetTargetImage( targetImageList );
+
+  // Get the atlas images and segmentations
+
+  typename OptionType::Pointer atlasImageOption = parser->GetOption( "atlas-image" );
+  typename OptionType::Pointer atlasSegmentationOption = parser->GetOption( "atlas-segmentation" );
+
+  unsigned int numberOfAtlases = 0;
+  unsigned int numberOfAtlasSegmentations = 0;
+
+  if( atlasImageOption && atlasImageOption->GetNumberOfFunctions() )
+    {
+    numberOfAtlases = atlasImageOption->GetNumberOfFunctions();
+    }
+  if( atlasSegmentationOption && atlasSegmentationOption->GetNumberOfFunctions() )
+    {
+    numberOfAtlasSegmentations = atlasSegmentationOption->GetNumberOfFunctions();
+    }
+
+  if( numberOfAtlases < 2 )
+    {
+    if( verbose )
+      {
+      std::cerr << "At least 2 atlases are required." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
+  if( numberOfAtlasSegmentations != 0 && numberOfAtlasSegmentations != numberOfAtlases )
+    {
+    if( verbose )
+      {
+      std::cout << "Warning:  the number of atlases does not match the number of "
+        << "segmentations.  Only performing joint intensity fusion."  << std::endl;
+      }
+    numberOfAtlasSegmentations = 0;
+    }
+
+  for( unsigned int m = 0; m < numberOfAtlases; m++ )
+    {
+    typename FusionFilterType::InputImageList atlasImageList;
+    typename LabelImageType::Pointer atlasSegmentation = ITK_NULLPTR;
+
+    if( atlasImageOption->GetFunction( m )->GetNumberOfParameters() == 0 )
+      {
+      if( numberOfModalities != 1 )
+        {
+        if( verbose )
+          {
+          std::cerr << "The number of atlas modalities does not match the number of target modalities." << std::endl;
+          }
+        return EXIT_FAILURE;
+        }
+      typename ImageType::Pointer atlasImage = ITK_NULLPTR;
+
+      std::string atlasFile = atlasImageOption->GetFunction( m )->GetName();
+      ReadImage<ImageType>( atlasImage, atlasFile.c_str() );
+      atlasImageList.push_back( atlasImage );
+      }
+    else
+      {
+      if( numberOfModalities != atlasImageOption->GetFunction( m )->GetNumberOfParameters() )
+        {
+        if( verbose )
+          {
+          std::cerr << "The number of atlas modalities does not match the number of target modalities." << std::endl;
+          }
+        return EXIT_FAILURE;
+        }
+      for( unsigned int n = 0; n < numberOfModalities; n++ )
+        {
+        typename ImageType::Pointer atlasImage = ITK_NULLPTR;
+
+        std::string atlasFile = atlasImageOption->GetFunction( m )->GetParameter( n );
+        ReadImage<ImageType>( atlasImage, atlasFile.c_str() );
+
+        atlasImageList.push_back( atlasImage );
+        }
+      }
+    if( numberOfAtlasSegmentations > 0 )
+      {
+      std::string atlasSegmentationFile = atlasSegmentationOption->GetFunction( m )->GetName();
+      ReadImage<LabelImageType>( atlasSegmentation, atlasSegmentationFile.c_str() );
+      }
+    fusionFilter->AddAtlas( atlasImageList, atlasSegmentation );
+    }
+
+  // Get the exclusion images
+
+  typename OptionType::Pointer exclusionImageOption = parser->GetOption( "exclusion-image" );
+  if( exclusionImageOption && exclusionImageOption->GetNumberOfFunctions() )
+    {
+    for( unsigned int n = 0; n < exclusionImageOption->GetNumberOfFunctions(); n++ )
+      {
+      LabelType label = parser->Convert<LabelType>( exclusionImageOption->GetFunction( n )->GetName() );
+
+      typename LabelImageType::Pointer exclusionImage = ITK_NULLPTR;
+      std::string exclusionFile = exclusionImageOption->GetFunction( n )->GetParameter( 0 );
+      ReadImage<LabelImageType>( exclusionImage, exclusionFile.c_str() );
+      fusionFilter->AddLabelExclusionImage( label, exclusionImage );
+      }
+    }
+
+  // Run the fusion program
+
+  try
+    {
+    fusionFilter->Update();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    if( verbose )
+      {
+      std::cerr << "Exception caught: " << e << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
+
+  // write the output
+
+  if( verbose )
+    {
+    std::cout << std::endl << "Writing output:" << std::endl;
+    }
+  typename OptionType::Pointer outputOption = parser->GetOption( "output" );
+  if( outputOption && outputOption->GetNumberOfFunctions() )
+    {
+    std::string labelFusionName;
+    std::string intensityFusionName;
+    std::string labelPosteriorName;
+    std::string atlasVotingName;
+
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      if( numberOfAtlasSegmentations != 0 )
+        {
+        labelFusionName = outputOption->GetFunction( 0 )->GetName();
+        }
+      else
+        {
+        intensityFusionName = outputOption->GetFunction( 0 )->GetName();
+        }
+      }
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      if( numberOfAtlasSegmentations != 0 )
+        {
+        labelFusionName = outputOption->GetFunction( 0 )->GetParameter( 0 );
+        }
+      }
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+      {
+      intensityFusionName = outputOption->GetFunction( 0 )->GetParameter( 1 );
+      }
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
+      {
+      if( numberOfAtlasSegmentations != 0 )
+        {
+        labelPosteriorName = outputOption->GetFunction( 0 )->GetParameter( 1 );
+        }
+      }
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 3 )
+      {
+      atlasVotingName = outputOption->GetFunction( 0 )->GetParameter( 3 );
+      }
+
+    if( !labelFusionName.empty() )
+      {
+      WriteImage<LabelImageType>( fusionFilter->GetOutput(), labelFusionName.c_str() );
+      }
+    if( !intensityFusionName.empty() )
+      {
+      itk::NumericSeriesFileNames::Pointer fileNamesCreator = itk::NumericSeriesFileNames::New();
+      fileNamesCreator->SetStartIndex( 1 );
+      fileNamesCreator->SetEndIndex( numberOfModalities );
+      fileNamesCreator->SetSeriesFormat( intensityFusionName.c_str() );
+
+      const std::vector<std::string> & imageNames = fileNamesCreator->GetFileNames();
+      for( unsigned int i = 0; i < imageNames.size(); i++ )
+        {
+        if( verbose )
+          {
+          std::cout << "  Writing intensity fusion image (modality " << i + 1 << ")" << std::endl;
+          }
+        typename ImageType::Pointer jointIntensityFusionImage
+          = fusionFilter->GetJointIntensityFusionImage( i );
+        WriteImage<ImageType>( jointIntensityFusionImage, imageNames[i].c_str() );
+        }
+      }
+    if( !labelPosteriorName.empty() && fusionFilter->GetRetainLabelPosteriorProbabilityImages() )
+      {
+      typename FusionFilterType::LabelSetType::const_iterator labelIt;
+      for( labelIt = fusionFilter->GetLabelSet().begin(); labelIt != fusionFilter->GetLabelSet().end(); ++labelIt )
+        {
+        std::ostringstream convert;
+        convert << *labelIt;
+        std::string labelString = convert.str();
+
+        // Try to guess how the user is going to specify the file format.  May need to add more.
+        std::string filename = labelPosteriorName;
+        StringReplace( filename, std::string( "%d" ), labelString );
+        StringReplace( filename, std::string( "%01d" ), labelString );
+        StringReplace( filename, std::string( "%02d" ), labelString );
+        StringReplace( filename, std::string( "%03d" ), labelString );
+        StringReplace( filename, std::string( "%04d" ), labelString );
+
+        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), filename.c_str() );
+        }
+      }
+    if( !atlasVotingName.empty() && fusionFilter->GetRetainAtlasVotingWeightImages() )
+      {
+      itk::NumericSeriesFileNames::Pointer fileNamesCreator = itk::NumericSeriesFileNames::New();
+      fileNamesCreator->SetStartIndex( 1 );
+      fileNamesCreator->SetEndIndex( numberOfAtlases );
+      fileNamesCreator->SetSeriesFormat( atlasVotingName.c_str() );
+
+      const std::vector<std::string> & imageNames = fileNamesCreator->GetFileNames();
+      for( unsigned int i = 0; i < imageNames.size(); i++ )
+        {
+        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ), imageNames[i].c_str() );
+        }
+      }
+    }
 
   return EXIT_SUCCESS;
 }
@@ -176,12 +546,25 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   {
   std::string description =
-    std::string( "Exponent for mapping intensity difference to the joint error.  Default = 2.0" );
+    std::string( "Retain label posterior probability images.  Requires atlas segmentations " )
+    + std::string( "to be specified.  Default = false" );
 
   OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "beta" );
-  option->SetShortName( 'b' );
-  option->SetUsageOption( 0, "2.0" );
+  option->SetLongName( "retain-label-posterior-images" );
+  option->SetShortName( 'p' );
+  option->SetUsageOption( 0, "(0)/1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "Retain atlas voting images.  Default = false" );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "retain-atlas-voting-images" );
+  option->SetShortName( 'v' );
+  option->SetUsageOption( 0, "(0)/1" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
@@ -219,7 +602,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "exclusion-image" );
   option->SetShortName( 'x' );
-  option->SetUsageOption( 0, "label[exclusion-image]" );
+  option->SetUsageOption( 0, "label[exclusionImage]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
@@ -233,13 +616,12 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "output" );
   option->SetShortName( 'o' );
-  option->SetUsageOption( 0, "intensityFusionImage" );
-  option->SetUsageOption( 1, "labelFusionImage" );
-  option->SetUsageOption( 2, "[intensityFusionImage,labelFusionImage,<labelPosteriorProbabilityImageFileNameFormat>,<atlasVotingWeightImageFileNameFormat>]" );
+  option->SetUsageOption( 0, "labelFusionImage" );
+  option->SetUsageOption( 1, "intensityFusionImageFileNameFormat" );
+  option->SetUsageOption( 2, "[labelFusionImage,intensityFusionImageFileNameFormat,<labelPosteriorProbabilityImageFileNameFormat>,<atlasVotingWeightImageFileNameFormat>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
-
 
   {
   std::string description = std::string( "Get version information." );
