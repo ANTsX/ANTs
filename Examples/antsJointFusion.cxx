@@ -3,9 +3,9 @@
 #include "antsAllocImage.h"
 #include "ReadWriteData.h"
 
-#include "itkWeightedVotingFusionImageFilter.h"
 #include "itkNumericSeriesFileNames.h"
 #include "itkTimeProbe.h"
+#include "itkWeightedVotingFusionImageFilter.h"
 
 #include <sstream>
 #include <string>
@@ -17,49 +17,69 @@
 namespace ants
 {
 
-// template <class TFilter>
-// class CommandIterationUpdate : public itk::Command
-// {
-// public:
-//   typedef CommandIterationUpdate  Self;
-//   typedef itk::Command            Superclass;
-//   typedef itk::SmartPointer<Self> Pointer;
-//   itkNewMacro( Self );
-// protected:
-//   CommandIterationUpdate()
-//   {
-//   };
-// public:
-//
-//   void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
-//   {
-//     Execute( (const itk::Object *) caller, event);
-//   }
-//
-//   void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
-//   {
-//     const TFilter * filter =
-//       dynamic_cast<const TFilter *>( object );
-//
-//     if( typeid( event ) != typeid( itk::IterationEvent ) )
-//       {
-//       return;
-//       }
-//     if( filter->GetElapsedIterations() == 1 )
-//       {
-//       std::cout << "Current level = " << filter->GetCurrentLevel() + 1
-//                << std::endl;
-//       }
-//     std::cout << "  Iteration " << filter->GetElapsedIterations()
-//              << " (of "
-//              << filter->GetMaximumNumberOfIterations()[filter->GetCurrentLevel()]
-//              << ").  ";
-//     std::cout << " Current convergence value = "
-//              << filter->GetCurrentConvergenceMeasurement()
-//              << " (threshold = " << filter->GetConvergenceThreshold()
-//              << ")" << std::endl;
-//   }
-// };
+template <class TFilter>
+class CommandProgressUpdate : public itk::Command
+{
+public:
+  typedef  CommandProgressUpdate                      Self;
+  typedef  itk::Command                               Superclass;
+  typedef  itk::SmartPointer<CommandProgressUpdate>  Pointer;
+  itkNewMacro( CommandProgressUpdate );
+protected:
+
+  CommandProgressUpdate() : m_CurrentProgress( 0 ) {};
+
+  typedef TFilter FilterType;
+
+  unsigned int m_CurrentProgress;
+
+public:
+
+  void Execute(itk::Object *caller, const itk::EventObject & event)
+    {
+    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>( caller );
+    if (! po) return;
+//    std::cout << po->GetProgress() << std::endl;
+    if( typeid( event ) == typeid ( itk::ProgressEvent )  )
+      {
+      if( this->m_CurrentProgress < 99 )
+        {
+        this->m_CurrentProgress++;
+        if( this->m_CurrentProgress % 10 == 0 )
+          {
+          std::cout << this->m_CurrentProgress << std::flush;
+          }
+        else
+          {
+          std::cout << "*" << std::flush;
+          }
+        }
+      }
+    }
+
+  void Execute(const itk::Object * object, const itk::EventObject & event)
+    {
+    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>(
+      const_cast<itk::Object *>( object ) );
+    if (! po) return;
+
+    if( typeid( event ) == typeid ( itk::ProgressEvent )  )
+      {
+      if( this->m_CurrentProgress < 99 )
+        {
+        this->m_CurrentProgress++;
+        if( this->m_CurrentProgress % 10 == 0 )
+          {
+          std::cout << this->m_CurrentProgress << std::flush;
+          }
+        else
+          {
+          std::cout << "*" << std::flush;
+          }
+        }
+      }
+    }
+};
 
 template <unsigned int ImageDimension>
 int antsJointFusion( itk::ants::CommandLineParser *parser )
@@ -358,6 +378,13 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   itk::TimeProbe timer;
   timer.Start();
 
+  if( verbose )
+    {
+    typedef CommandProgressUpdate<FusionFilterType> CommandType;
+    typename CommandType::Pointer observer = CommandType::New();
+    fusionFilter->AddObserver( itk::ProgressEvent(), observer );
+    }
+
   try
     {
     fusionFilter->Update();
@@ -375,6 +402,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   if( verbose )
     {
+    std::cout << std::endl << std::endl;
     fusionFilter->Print( std::cout, 3 );
     }
 

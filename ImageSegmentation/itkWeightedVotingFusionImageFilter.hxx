@@ -21,6 +21,7 @@
 #include "itkWeightedVotingFusionImageFilter.h"
 
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkProgressReporter.h"
 
 #include <vnl/algo/vnl_svd.h>
 
@@ -259,8 +260,10 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
-::ThreadedGenerateData( const RegionType & region, ThreadIdType itkNotUsed( threadId ) )
+::ThreadedGenerateData( const RegionType & region, ThreadIdType threadId )
 {
+  ProgressReporter progress( this, threadId, region.GetNumberOfPixels(), 100 );
+
   typename OutputImageType::Pointer output = this->GetOutput();
 
   MatrixType absoluteAtlasPatchDifferences( this->m_NumberOfAtlases,
@@ -277,6 +280,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     {
     if( this->m_MaskImage && this->m_MaskImage->GetPixel( ItN.GetIndex() ) != this->m_MaskLabel )
       {
+      progress.CompletedPixel();
       continue;
       }
 
@@ -420,8 +424,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
         RealType estimatedValue = (
           estimatedNeighborhoodIntensities[i * this->m_PatchNeighborhoodSize + j] +
-          this->m_JointIntensityFusionImage[i]->GetPixel( neighborhoodIndex ) ) /
-          static_cast<RealType>( this->m_PatchNeighborhoodSize );
+          this->m_JointIntensityFusionImage[i]->GetPixel( neighborhoodIndex ) );
+
         if( vnl_math_isnan( estimatedValue ) || vnl_math_isinf( estimatedValue ) )
           {
           estimatedValue = 0.0;
@@ -481,6 +485,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           }
         }
       }
+    progress.CompletedPixel();
     }
 }
 
@@ -679,7 +684,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 {
   Superclass::PrintSelf( os, indent );
 
-  os << "Number of atlas images = " << this->m_NumberOfAtlases << std::endl;
+  os << "Number of atlases = " << this->m_NumberOfAtlases << std::endl;
   os << "Number of atlas segmentations = " << this->m_NumberOfAtlasSegmentations << std::endl;
   os << "Number of modalities = " << this->m_NumberOfModalities << std::endl;
   os << "Alpha = " << this->m_Alpha << std::endl;
