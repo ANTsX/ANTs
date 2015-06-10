@@ -503,6 +503,11 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     {
     IndexType index = It.GetIndex();
 
+    if( this->m_MaskImage && this->m_MaskImage->GetPixel( It.GetIndex() ) != this->m_MaskLabel )
+      {
+      continue;
+      }
+
     RealType maxPosteriorProbability = 0.0;
     LabelType winningLabel = NumericTraits<LabelType>::ZeroValue();
 
