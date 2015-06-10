@@ -340,11 +340,13 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   // Run the fusion program
 
+  itk::TimeProbe timer;
+  timer.Start();
+
   try
     {
     std::cout << "Running antsFusion" << std::endl;
     fusionFilter->Update();
-    fusionFilter->Print( std::cout, 3 );
     }
   catch( itk::ExceptionObject & e )
     {
@@ -353,6 +355,13 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       std::cerr << "Exception caught: " << e << std::endl;
       }
     return EXIT_FAILURE;
+    }
+
+  timer.Stop();
+
+  if( verbose )
+    {
+    fusionFilter->Print( std::cout, 3 );
     }
 
   // write the output
@@ -487,6 +496,11 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
         WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ), imageNames[i].c_str() );
         }
       }
+    }
+
+  if( verbose )
+    {
+    std::cout << "Elapsed time: " << timer.GetMean() << std::endl;
     }
 
   return EXIT_SUCCESS;
