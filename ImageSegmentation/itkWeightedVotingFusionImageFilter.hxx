@@ -420,8 +420,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           continue;
           }
 
-        this->m_MutexLock.Lock();
-
         RealType estimatedValue = (
           estimatedNeighborhoodIntensities[i * this->m_PatchNeighborhoodSize + j] +
           this->m_JointIntensityFusionImage[i]->GetPixel( neighborhoodIndex ) );
@@ -433,8 +431,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
         this->m_JointIntensityFusionImage[i]->SetPixel( neighborhoodIndex,
            static_cast<InputImagePixelType>( estimatedValue ) );
-
-        this->m_MutexLock.Unlock();
         }
       }
 
@@ -467,8 +463,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
             continue;
             }
 
-          this->m_MutexLock.Lock();
-
           // Add that weight the posterior map for voxel at idx
           this->m_LabelPosteriorProbabilityImages[label]->SetPixel( neighborhoodIndex,
             this->m_LabelPosteriorProbabilityImages[label]->GetPixel( neighborhoodIndex ) + W[i] );
@@ -480,8 +474,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
             this->m_AtlasVotingWeightImages[i]->SetPixel( neighborhoodIndex,
               this->m_AtlasVotingWeightImages[i]->GetPixel( neighborhoodIndex ) + W[i] );
             }
-
-          this->m_MutexLock.Unlock();
           }
         }
       }

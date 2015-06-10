@@ -21,7 +21,6 @@
 #include "itkImageToImageFilter.h"
 
 #include "itkConstNeighborhoodIterator.h"
-#include "itkSimpleFastMutexLock.h"
 
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_vector.h>
@@ -363,8 +362,6 @@ private:
   VotingWeightImageList                                m_AtlasVotingWeightImages;
 
   InputImageList                                       m_JointIntensityFusionImage;
-
-  SimpleFastMutexLock                                  m_MutexLock;
 };
 
 } // namespace itk
