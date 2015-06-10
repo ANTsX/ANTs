@@ -124,8 +124,6 @@ int N4( itk::ants::CommandLineParser *parser )
     {
     std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
     ReadImage<MaskImageType>( maskImage, inputFile.c_str() );
-    maskImage->Update();
-    maskImage->DisconnectPipeline();
 
     isMaskImageSpecified = true;
     }

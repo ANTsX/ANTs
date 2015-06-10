@@ -88,6 +88,9 @@ public:
   typedef typename LabelImageType::Pointer           LabelImagePointer;
   typedef std::vector<LabelImagePointer>             LabelImageList;
 
+  typedef LabelImageType                             MaskImageType;
+  typedef typename MaskImageType::Pointer            MaskImagePointer;
+
   typedef typename InputImageType::RegionType        RegionType;
   typedef typename InputImageType::SizeType          SizeType;
   typedef typename InputImageType::IndexType         IndexType;
@@ -155,6 +158,17 @@ public:
       this->m_NumberOfAtlasSegmentations++;
       }
 
+    this->UpdateInputs();
+    }
+
+  /**
+   * Set mask image function.  If a binary mask image is specified, only
+   * those input image voxels corresponding with mask image values equal
+   * to one are used.
+   */
+  void SetMaskImage( MaskImageType *mask )
+    {
+    this->m_MaskImage = mask;
     this->UpdateInputs();
     }
 
@@ -322,6 +336,8 @@ private:
   InputImageSetList                                    m_AtlasImages;
   LabelImageList                                       m_AtlasSegmentations;
   LabelExclusionMap                                    m_LabelExclusionImages;
+  MaskImagePointer                                     m_MaskImage;
+  LabelType                                            m_MaskLabel;
 
   LabelSetType                                         m_LabelSet;
   SizeValueType                                        m_NumberOfAtlases;

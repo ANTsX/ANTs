@@ -67,6 +67,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   typedef float                                               RealType;
   typedef itk::Image<RealType, ImageDimension>                ImageType;
   typedef itk::Image<unsigned int, ImageDimension>            LabelImageType;
+  typedef LabelImageType                                      MaskImageType;
 
   typedef typename itk::ants::CommandLineParser::OptionType   OptionType;
 
@@ -144,7 +145,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     }
 
   std::vector<unsigned int> patchRadius;
-  patchRadius.push_back( 3 );
+  patchRadius.push_back( 2 );
   typename OptionType::Pointer patchRadiusOption = parser->GetOption( "patch-radius" );
   if( patchRadiusOption && patchRadiusOption->GetNumberOfFunctions() )
     {
@@ -338,6 +339,20 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       }
     }
 
+  // Get the mask
+
+  typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
+    parser->GetOption( "mask-image" );
+  if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
+    {
+    typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+
+    std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
+    ReadImage<MaskImageType>( maskImage, inputFile.c_str() );
+
+    fusionFilter->SetMaskImage( maskImage );
+    }
+
   // Run the fusion program
 
   itk::TimeProbe timer;
@@ -345,7 +360,6 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   try
     {
-    std::cout << "Running antsFusion" << std::endl;
     fusionFilter->Update();
     }
   catch( itk::ExceptionObject & e )
@@ -645,8 +659,20 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "exclusion-image" );
-  option->SetShortName( 'x' );
+  option->SetShortName( 'e' );
   option->SetUsageOption( 0, "label[exclusionImage]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "If a mask image is specified, fusion is only performed in the mask region." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "mask-image" );
+  option->SetShortName( 'x' );
+  option->SetUsageOption( 0, "maskImageFilename" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
@@ -666,6 +692,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetDescription( description );
   parser->AddOption( option );
   }
+
 
   {
   std::string description = std::string( "Get version information." );
