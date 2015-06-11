@@ -159,7 +159,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
       "any value greater than 0 represents the interval between the iterations which outputs are written to the disk.");
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "write-interval-volumes" );
-  option->SetShortName( 'v' );
+//  option->SetShortName( 'v' ); // BUG! dont set as v because v is verbose
   option->SetUsageOption( 0, "<unsignedIntegerValue>" );
   option->SetDescription( description );
   option->AddFunction( std::string( "0" ) );
