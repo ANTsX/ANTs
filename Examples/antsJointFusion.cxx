@@ -110,8 +110,6 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   typedef itk::WeightedVotingFusionImageFilter<ImageType, LabelImageType> FusionFilterType;
   typename FusionFilterType::Pointer fusionFilter = FusionFilterType::New();
-
-  typedef typename FusionFilterType::LabelImageType            LabelImageType;
   typedef typename LabelImageType::PixelType                   LabelType;
 
 
@@ -815,7 +813,7 @@ private:
     std::string( "antsJointFusion is an image fusion algorithm developed by Hongzhi Wang and " )
     + std::string( "Paul Yushkevich which won segmentation challenges at MICCAI 2012 and MICCAI 2013. " )
     + std::string( "The original label fusion framework was extended to accommodate intensities by " )
-    + std::string( "Brain Avants.  This implementation is based on Paul's original ITK-style " )
+    + std::string( "Brian Avants.  This implementation is based on Paul's original ITK-style " )
     + std::string( "implementation and Brian's ANTsR implementation.  References include  1) H. Wang, " )
     + std::string( "J. W. Suh, S. Das, J. Pluta, C. Craige, P. Yushkevich, Multi-atlas " )
     + std::string( "segmentation with joint label fusion IEEE Trans. on Pattern " )
