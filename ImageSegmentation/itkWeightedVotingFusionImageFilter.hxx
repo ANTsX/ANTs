@@ -370,6 +370,12 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           {
           mxValue = std::pow( mxValue, this->m_Beta );
           }
+
+        if( vnl_math_isnan( mxValue ) || vnl_math_isinf( mxValue ) )
+          {
+          mxValue = 0.0;
+          }
+
         Mx(i, j) = Mx(j, i) = mxValue;
         }
       }
