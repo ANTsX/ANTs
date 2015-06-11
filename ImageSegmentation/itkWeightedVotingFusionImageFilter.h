@@ -33,9 +33,9 @@ namespace itk
 {
 
 /** \class WeightedVotingFusionImageFilter
- * \brief Implementation of the MALF algorithm.
+ * \brief Implementation of the joint label fusion and joint intensity fusion algorithm
  *
- * \author Paul Yushkevich
+ * \author Paul Yushkevich with modifications by Brian Avants and Nick Tustison
  *
  * \par REFERENCE
  *
