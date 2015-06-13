@@ -570,9 +570,9 @@ if [[ $DOQSUB -eq 0 ]];
           fi
       done
 
-    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 3 ]];
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 2 ]];
       then
-        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        echo "Error:  At least 2 warped image/label pairs needs to exist for jointFusion."
         exit 1
       fi
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
