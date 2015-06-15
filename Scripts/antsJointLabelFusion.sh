@@ -38,14 +38,14 @@ if [[ ${#ANTSPATH} -le 3 ]];
 # No need to test this more than once. Can reside outside of the main loop.
 ANTS=${ANTSPATH}/antsRegistration
 WARP=${ANTSPATH}/antsApplyTransforms
-MALF=${ANTSPATH}/jointfusion
+JLF=${ANTSPATH}/antsJointFusion
 PEXEC=${ANTSPATH}ANTSpexec.sh
 SGE=${ANTSPATH}waitForSGEQJobs.pl
 PBS=${ANTSPATH}waitForPBSQJobs.pl
 XGRID=${ANTSPATH}waitForXGridJobs.pl
 
 fle_error=0
-for FLE in $MALF $ANTS $WARP $PEXEC $SGE $XGRID $PBS
+for FLE in $JLF $ANTS $WARP $PEXEC $SGE $XGRID $PBS
   do
   if [[ ! -x $FLE ]];
     then
@@ -117,7 +117,7 @@ Example:
               -g atlas3.nii.gz -l labels3.nii.gz
 
 --------------------------------------------------------------------------------------
-MALF was created by:
+JLF was created by:
 --------------------------------------------------------------------------------------
 Hongzhi Wang and Paul Yushkevich
 Penn Image Computing And Science Laboratory
@@ -140,7 +140,7 @@ USAGE
 function Help {
     cat <<HELP
 
-`basename $0` will propagate labels from a set of pre-labeled atlases using the MALF
+`basename $0` will propagate labels from a set of pre-labeled atlases using the JLF
 algorithm.
 
 Usage:
@@ -212,7 +212,7 @@ Read the ANTS documentation at:
 http://stnava.github.io/ANTs/
 
 --------------------------------------------------------------------------------------
-MALF was created by:
+JLF was created by:
 --------------------------------------------------------------------------------------
 Hongzhi Wang and Paul Yushkevich
 Penn Image Computing And Science Laboratory
@@ -280,20 +280,6 @@ control_c()
   exit $?
   echo -en "\n*** Script cancelled by user ***\n"
 }
-
-
-############
-#
-# Notice of eventual deprecation
-#
-echo "\n\n  ***********************************************************"
-echo "  * Note that this script is slated to be deprecated.            "
-echo "  * We recommend using the script antsJointLabelFusion.sh        "
-echo "  * which has the same options.  Press any key to continue or    "
-echo "  * control-c to exit.                                           "
-echo "  ***********************************************************\n\n"
-
-sed -n q </dev/tty
 
 #initializing variables with global scope
 time_start=`date +%s`
@@ -440,7 +426,7 @@ mkdir ${OUTPUT_DIR}
 
 ##########################################################################
 #
-# Perform MALF labeling by
+# Perform JLF labeling by
 #  1) registering all atlases to target image
 #  2) call 'jointfusion'
 #
@@ -448,7 +434,7 @@ mkdir ${OUTPUT_DIR}
 
 echo
 echo "--------------------------------------------------------------------------------------"
-echo " Start MALFization"
+echo " Start JLFization"
 echo "--------------------------------------------------------------------------------------"
 reportParameters
 
@@ -509,12 +495,12 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
 
     if [[ $DOQSUB -eq 1 ]];
       then
-        id=`qsub -cwd -S /bin/bash -N antsMalfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript | awk '{print $3}'`
+        id=`qsub -cwd -S /bin/bash -N antsJlfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript | awk '{print $3}'`
         jobIDs="$jobIDs $id"
         sleep 0.5
     elif [[ $DOQSUB -eq 4 ]];
       then
-        id=`qsub -N antsMalfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=20:00:00 $qscript | awk '{print $1}'`
+        id=`qsub -N antsJlfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=20:00:00 $qscript | awk '{print $1}'`
         jobIDs="$jobIDs $id"
         sleep 0.5
     elif [[ $DOQSUB -eq 3 ]];
@@ -532,24 +518,20 @@ if [[ $DOQSUB -eq 2 ]];
   then
     echo
     echo "--------------------------------------------------------------------------------------"
-    echo " Starting MALF on max ${CORES} cpucores. "
+    echo " Starting JLF on max ${CORES} cpucores. "
     echo "--------------------------------------------------------------------------------------"
     chmod +x ${OUTPUT_DIR}/job_*.sh
     $PEXEC -j ${CORES} "sh" ${OUTPUT_DIR}/job_*.sh
   fi
 
-malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE "
-if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
-  then
-    malfCall="${malfCall} -p ${OUTPUT_POSTERIORS_FORMAT}"
-  fi
+jlfCall="${ANTSPATH}/antsJointFusion -d ${DIM} -t $TARGET_IMAGE "
 
 if [[ $DOQSUB -eq 0 ]];
   then
     # Run job locally
     echo
     echo "--------------------------------------------------------------------------------------"
-    echo " Starting MALF"
+    echo " Starting JLF"
     echo "--------------------------------------------------------------------------------------"
 
     EXISTING_WARPED_ATLAS_IMAGES=()
@@ -594,15 +576,25 @@ if [[ $DOQSUB -eq 0 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
+      done
+
+    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+      then
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+      else
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+      fi
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
       fi
 
-    qscript2="${OUTPUT_PREFIX}MALF.sh"
-    echo "$malfCall" > $qscript2
+    qscript2="${OUTPUT_PREFIX}JLF.sh"
+    echo "$jlfCall" > $qscript2
 
     echo $qscript2
     bash $qscript2
@@ -612,7 +604,7 @@ if [[ $DOQSUB -eq 1 ]];
     # Run jobs on SGE and wait to finish
     echo
     echo "--------------------------------------------------------------------------------------"
-    echo " Starting MALF on SGE cluster. "
+    echo " Starting JLF on SGE cluster. "
     echo "--------------------------------------------------------------------------------------"
 
     ${ANTSPATH}/waitForSGEQJobs.pl 1 600 $jobIDs
@@ -666,17 +658,27 @@ if [[ $DOQSUB -eq 1 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    for (( i = 0; i < ${EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
+      done
+
+    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+      then
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+      else
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+      fi
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
       fi
 
-    qscript2="${OUTPUT_PREFIX}MALF.sh"
-    echo "$malfCall" > $qscript2
+    qscript2="${OUTPUT_PREFIX}JLF.sh"
+    echo "$jlfCall" > $qscript2
 
-    jobIDs=`qsub -cwd -S /bin/bash -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript2 | awk '{print $3}'`
+    jobIDs=`qsub -cwd -S /bin/bash -N antsJlf -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript2 | awk '{print $3}'`
     ${ANTSPATH}/waitForSGEQJobs.pl 1 600 $jobIDs
   fi
 if [[ $DOQSUB -eq 4 ]];
@@ -684,7 +686,7 @@ if [[ $DOQSUB -eq 4 ]];
     # Run jobs on PBS and wait to finish
     echo
     echo "--------------------------------------------------------------------------------------"
-    echo " Starting MALF on PBS cluster. "
+    echo " Starting JLF on PBS cluster. "
     echo "--------------------------------------------------------------------------------------"
 
     ${ANTSPATH}/waitForPBSQJobs.pl 1 600 $jobIDs
@@ -737,17 +739,22 @@ if [[ $DOQSUB -eq 4 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
+      done
 
-    if [[ $MAJORITYVOTE -eq 1 ]];
+    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
       then
-        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+      else
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
       fi
 
-    qscript2="${OUTPUT_PREFIX}MALF.sh"
-    echo "$malfCall" > $qscript2
+    qscript2="${OUTPUT_PREFIX}JLF.sh"
+    echo "$jlfCall" > $qscript2
 
-    jobIDs=`qsub -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=30:00:00 $qscript2 | awk '{print $1}'`
+    jobIDs=`qsub -N antsJlf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=30:00:00 $qscript2 | awk '{print $1}'`
     ${ANTSPATH}/waitForPBSQJobs.pl 1 600 $jobIDs
   fi
 
@@ -796,15 +803,25 @@ if [[ $DOQSUB -eq 2 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
+      done
+
+    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+      then
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+      else
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+      fi
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
       fi
 
-    qscript2="${OUTPUT_PREFIX}MALF.sh"
-    echo "$malfCall" > $qscript2
+    qscript2="${OUTPUT_PREFIX}JLF.sh"
+    echo "$jlfCall" > $qscript2
 
     sh $qscript2
   fi
@@ -813,7 +830,7 @@ if [[ $DOQSUB -eq 3 ]];
     # Run jobs on XGrid and wait to finish
     echo
     echo "--------------------------------------------------------------------------------------"
-    echo " Starting MALF on XGrid cluster. Submitted $count jobs "
+    echo " Starting JLF on XGrid cluster. Submitted $count jobs "
     echo "--------------------------------------------------------------------------------------"
 
     ${ANTSPATH}/waitForXGridJobs.pl -xgridflags "$XGRID_OPTS" -verbose -delay 30 $jobIDs
@@ -866,15 +883,25 @@ if [[ $DOQSUB -eq 3 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
+      done
+
+    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+      then
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+      else
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+      fi
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
       fi
 
-    qscript2="${OUTPUT_PREFIX}MALF.sh"
-    echo "$malfCall" > $qscript2
+    qscript2="${OUTPUT_PREFIX}JLF.sh"
+    echo "$jlfCall" > $qscript2
 
     sh $qscript2
   fi
@@ -901,7 +928,7 @@ if [[ $MAJORITYVOTE -eq 1 ]];
   then
     echo " Done creating: ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz"
   else
-    echo " Done creating: ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    echo " Done creating: ${OUTPUT_PREFIX}Labels.nii.gz"
   fi
 echo " Script executed in $time_elapsed seconds"
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
