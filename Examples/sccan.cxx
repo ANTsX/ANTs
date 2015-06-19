@@ -1265,7 +1265,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   double truecorr = 0;
   if( svd_option == 1 )
     {
-    truecorr = sccanobj->BasicSVD();                      // classic
+    truecorr = sccanobj->SparseReconHome(n_evec);
     }
   else if( svd_option == 3 )
     {
@@ -2350,8 +2350,9 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     std::string initializationStrategy = svdOption->GetFunction()->GetName();
     if(  !initializationStrategy.compare( std::string( "sparse" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 0, usel1,
-                                             row_sparseness, smoother, covering, verbosity );
+      SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct,
+        robustify, p_cluster_thresh, iterct, 1, usel1,
+        row_sparseness, smoother, covering, verbosity );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "cgspca" ) )  )
