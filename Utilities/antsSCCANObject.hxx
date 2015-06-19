@@ -2390,7 +2390,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     lastgrad = nvec;
     evec = evec * gamma + nvec;
     evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP );
-    this->CurvatureSparseness( evec,  ( 1 - this->m_FractionNonZeroP ) * 100, 5 , this->m_MaskImageP );
+//    this->CurvatureSparseness( evec,  ( 1 - this->m_FractionNonZeroP ) * 100, 5 , this->m_MaskImageP );
 
     this->SparsifyP( evec );
     // VectorType gradvec = this->ComputeVectorGradMag( evec, this->m_MaskImageP );
