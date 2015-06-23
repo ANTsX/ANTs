@@ -93,6 +93,8 @@ CMAKE_DEPENDENT_OPTION(
   "BUILD_STYLE_UTILS" OFF
   )
 
+option(ITK_BUILD_MINC_SUPPORT "Build support for MINC2" OFF)
+
 set(EXTERNAL_PROJECT_BUILD_TYPE "Release" CACHE STRING "Default build type for support libraries")
 
 
