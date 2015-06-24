@@ -11,6 +11,11 @@ add_library(antsUtilities STATIC antsUtilities.cxx
             ANTsVersion.cxx
             )
 target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
+install(TARGETS antsUtilities
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+  )
 
 macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   set( ANTS_FUNCTION_NAME ${ANTS_FUNCTION_NAME} )
