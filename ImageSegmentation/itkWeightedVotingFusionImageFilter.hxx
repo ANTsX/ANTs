@@ -671,6 +671,11 @@ typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::VectorType
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::NonNegativeLeastSquares( const MatrixType A, const VectorType y, const RealType tolerance )
 {
+  // Algorithm based on
+  // Lawson, Charles L.; Hanson, Richard J. (1995). Solving Least Squares Problems. SIAM.
+  // cf https://en.wikipedia.org/wiki/Non-negative_least_squares
+
+
   SizeValueType m = A.rows();
   SizeValueType n = A.cols();
 
