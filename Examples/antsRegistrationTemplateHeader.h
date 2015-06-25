@@ -268,13 +268,13 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       std::cout << "  Reading mask(s)." << std::endl;
       }
-    for( unsigned int l = 0; l < maskOption->GetNumberOfFunctions(); l++ )
+    for( int l = maskOption->GetNumberOfFunctions() - 1; l >= 0; l-- )
       {
       if( verbose )
         {
-        std::cout << "    Registration stage " << l << std::endl;
+        std::cout << "    Registration stage " << ( maskOption->GetNumberOfFunctions() - l - 1 ) << std::endl;
         }
-      if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      if( maskOption->GetFunction( l )->GetNumberOfParameters() > 0 )
         {
         for( unsigned m = 0; m < maskOption->GetFunction( l )->GetNumberOfParameters(); m++ )
           {
