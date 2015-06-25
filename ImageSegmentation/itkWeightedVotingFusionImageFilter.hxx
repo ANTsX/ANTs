@@ -393,11 +393,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
     if( this->m_ConstrainSolutionToNonnegativeWeights )
       {
-      MatrixType MxBarT = MxBar.transpose();
-
-      MatrixType Q = MxBarT * MxBar;
-      VectorType C = -MxBarT * ones;
-
       W = this->NonNegativeLeastSquares( MxBar, ones, 1e-6 );
       }
     else
