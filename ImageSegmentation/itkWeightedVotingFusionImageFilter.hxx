@@ -675,7 +675,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   // Lawson, Charles L.; Hanson, Richard J. (1995). Solving Least Squares Problems. SIAM.
   // cf https://en.wikipedia.org/wiki/Non-negative_least_squares
 
-
   SizeValueType m = A.rows();
   SizeValueType n = A.cols();
 
