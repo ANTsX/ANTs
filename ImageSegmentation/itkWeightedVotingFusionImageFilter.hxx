@@ -24,6 +24,7 @@
 #include "itkProgressReporter.h"
 
 #include <vnl/algo/vnl_svd.h>
+#include <vnl/vnl_inverse.h>
 
 namespace itk {
 
@@ -37,7 +38,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   m_Alpha( 0.1 ),
   m_Beta( 2.0 ),
   m_RetainLabelPosteriorProbabilityImages( false ),
-  m_RetainAtlasVotingWeightImages( false )
+  m_RetainAtlasVotingWeightImages( false ),
+  m_ConstrainSolutionToNonnegativeWeights( false )
 {
   this->m_MaskImage = ITK_NULLPTR;
   this->m_MaskLabel = NumericTraits<LabelType>::OneValue();
@@ -387,26 +389,35 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
     // Define a vector of all ones
     VectorType ones( this->m_NumberOfAtlases, 1.0 );
-    VectorType W = vnl_svd<RealType>( MxBar ).solve( ones );
+    VectorType W( this->m_NumberOfAtlases, 1.0 );
+
+    if( this->m_ConstrainSolutionToNonnegativeWeights )
+      {
+      MatrixType MxBarT = MxBar.transpose();
+
+      MatrixType Q = MxBarT * MxBar;
+      VectorType C = -MxBarT * ones;
+
+      W = this->NonNegativeLeastSquares( MxBar, ones, 1e-6 );
+      }
+    else
+      {
+      W = vnl_svd<RealType>( MxBar ).solve( ones );
+
+      for( SizeValueType i = 0; i < W.size(); i++ )
+        {
+        if( W[i] < 0.0 )
+          {
+          W[i] = 0.0;
+          }
+        }
+      }
 
     // Normalize the weights
     W *= 1.0 / dot_product( W, ones );
 
     // Do joint intensity fusion
     VectorType estimatedNeighborhoodIntensities = W;
-
-    for( SizeValueType i = 0; i < estimatedNeighborhoodIntensities.size(); i++ )
-      {
-      if( estimatedNeighborhoodIntensities[i] < 0.0 )
-        {
-        estimatedNeighborhoodIntensities[i] = 0.0;
-        }
-      }
-
-    if( estimatedNeighborhoodIntensities.one_norm() > 0 )
-      {
-      estimatedNeighborhoodIntensities /= estimatedNeighborhoodIntensities.one_norm();
-      }
 
     estimatedNeighborhoodIntensities.post_multiply( originalAtlasPatchIntensities );
 
@@ -653,6 +664,146 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   mean = sum / count;
   standardDeviation = std::sqrt( ( sumOfSquares - count * vnl_math_sqr( mean ) ) / ( count - 1.0 ) );
+}
+
+template <class TInputImage, class TOutputImage>
+typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::VectorType
+WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
+::NonNegativeLeastSquares( const MatrixType A, const VectorType y, const RealType tolerance )
+{
+  SizeValueType m = A.rows();
+  SizeValueType n = A.cols();
+
+  // Initialization
+
+  VectorType P( n, 0 );
+  VectorType R( n, 1 );
+  VectorType x( n, 0 );
+  VectorType s( n, 0 );
+  VectorType w = A.transpose() * ( y - A * x );
+
+  RealType wMaxValue = w.max_value();
+  SizeValueType maxIndex = NumericTraits<SizeValueType>::max();
+  wMaxValue = NumericTraits<RealType>::NonpositiveMin();
+  for( SizeValueType i = 0; i < n; i++ )
+    {
+    if( R[i] == 1 && wMaxValue < w[i] )
+      {
+      maxIndex = i;
+      wMaxValue = w[i];
+      }
+    }
+
+  // Outer loop
+  while( R.sum() > 0 && wMaxValue > tolerance )
+    {
+    P[maxIndex] = 1;
+    R[maxIndex] = 0;
+
+    SizeValueType sizeP = P.sum();
+
+    MatrixType AP( m, sizeP, 0 );
+    SizeValueType jIndex = 0;
+    for( SizeValueType j = 0; j < n; j++ )
+      {
+      if( P[j] == 1 )
+        {
+        AP.set_column( jIndex++, A.get_column( j ) );
+        }
+      }
+
+    VectorType sP = vnl_svd<RealType>( AP ).pinverse() * y;
+
+    SizeValueType iIndex = 0;
+
+    for( SizeValueType i = 0; i < n; i++ )
+      {
+      if( R[i] != 0 )
+        {
+        s[i] = 0;
+        }
+      else
+        {
+        s[i] = sP[iIndex++];
+        }
+      }
+
+    // Inner loop
+    while( sP.min_value() <= tolerance && sizeP > 0 )
+      {
+      RealType alpha = NumericTraits<RealType>::max();
+
+      for( SizeValueType i = 0; i < n; i++ )
+        {
+        if( P[i] == 1 && s[i] <= tolerance )
+          {
+          RealType value = x[i] / ( x[i] - s[i] );
+          if( value < alpha )
+            {
+            alpha = value;
+            }
+          }
+        }
+
+      x += alpha * ( s - x );
+
+      for( SizeValueType i = 0; i < n; i++ )
+        {
+        if( P[i] == 1 && std::fabs( x[i] ) < tolerance )
+          {
+          P[i] = 0;
+          R[i] = 1;
+          }
+        }
+
+      sizeP = P.sum();
+      if( sizeP == 0 )
+        {
+        break;
+        }
+
+      AP.set_size( m, sizeP );
+      jIndex = 0;
+      for( SizeValueType j = 0; j < n; j++ )
+        {
+        if( P[j] == 1 )
+          {
+          AP.set_column( jIndex++, A.get_column( j ) );
+          }
+        }
+
+      sP = vnl_svd<RealType>( AP ).pinverse() * y;
+
+      iIndex = 0;
+      for( SizeValueType i = 0; i < n; i++ )
+        {
+        if( R[i] != 0 )
+          {
+          s[i] = 0;
+          }
+        else
+          {
+          s[i] = sP[iIndex++];
+          }
+        }
+      }
+
+    x = s;
+    w = A.transpose() * ( y - A * x );
+
+    maxIndex = NumericTraits<SizeValueType>::max();
+    wMaxValue = NumericTraits<RealType>::NonpositiveMin();
+    for( SizeValueType i = 0; i < n; i++ )
+      {
+      if( R[i] == 1 && wMaxValue < w[i] )
+        {
+        maxIndex = i;
+        wMaxValue = w[i];
+        }
+      }
+    }
+
+  return x;
 }
 
 template <class TInputImage, class TOutputImage>

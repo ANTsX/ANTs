@@ -197,6 +197,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   bool retainAtlasVotingImages = false;
   bool retainLabelPosteriorImages = false;
+  bool constrainSolutionToNonnegativeWeights = false;
 
   typename OptionType::Pointer retainLabelPosteriorOption = parser->GetOption( "retain-label-posterior-images" );
   if( retainLabelPosteriorOption && retainLabelPosteriorOption->GetNumberOfFunctions() > 0 )
@@ -209,8 +210,15 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     {
     retainAtlasVotingImages = parser->Convert<bool>( retainAtlasVotingOption->GetFunction()->GetName() );
     }
+
+  typename OptionType::Pointer constrainWeightsOption = parser->GetOption( "constrain-nonnegative" );
+  if( constrainWeightsOption && constrainWeightsOption->GetNumberOfFunctions() > 0 )
+    {
+    constrainSolutionToNonnegativeWeights = parser->Convert<bool>( constrainWeightsOption->GetFunction()->GetName() );
+    }
   fusionFilter->SetRetainAtlasVotingWeightImages( retainAtlasVotingImages );
   fusionFilter->SetRetainLabelPosteriorProbabilityImages( retainLabelPosteriorImages );
+  fusionFilter->SetConstrainSolutionToNonnegativeWeights( constrainSolutionToNonnegativeWeights );
 
   // Get the target image
 
@@ -647,7 +655,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "retain-atlas-voting-images" );
-  option->SetShortName( 'v' );
+  option->SetShortName( 'm' );
+  option->SetUsageOption( 0, "(0)/1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "Constrain solution to non-negative weights." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'c' );
+  option->SetLongName( "constrain-nonnegative" );
   option->SetUsageOption( 0, "(0)/1" );
   option->SetDescription( description );
   parser->AddOption( option );

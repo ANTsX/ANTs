@@ -242,6 +242,14 @@ public:
   itkGetConstMacro( RetainAtlasVotingWeightImages, bool );
 
   /**
+   * Boolean for constraining the weights to be positive and sum to 1.  We use
+   * the vnl function vnl_solve_qp_non_neg_sum_one to do this.
+   */
+  itkSetMacro( ConstrainSolutionToNonnegativeWeights, bool );
+  itkGetConstMacro( ConstrainSolutionToNonnegativeWeights, bool );
+  itkBooleanMacro( ConstrainSolutionToNonnegativeWeights );
+
+  /**
    * Get the posterior probability image corresponding to a label.
    */
   const ProbabilityImagePointer GetLabelPosteriorProbabilityImage( LabelType label )
@@ -328,6 +336,8 @@ private:
 
   void GetMeanAndStandardDeviationOfVectorizedImagePatch( const InputImagePixelVectorType &, RealType &, RealType & );
 
+  VectorType NonNegativeLeastSquares( const MatrixType, const VectorType, const RealType );
+
   void UpdateInputs();
 
   /** Input variables   */
@@ -354,6 +364,7 @@ private:
 
   bool                                                 m_RetainLabelPosteriorProbabilityImages;
   bool                                                 m_RetainAtlasVotingWeightImages;
+  bool                                                 m_ConstrainSolutionToNonnegativeWeights;
 
   ProbabilityImagePointer                              m_WeightSumImage;
 
