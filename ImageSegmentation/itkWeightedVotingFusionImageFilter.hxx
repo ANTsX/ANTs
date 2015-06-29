@@ -33,7 +33,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::WeightedVotingFusionImageFilter() :
   m_NumberOfAtlases( 0 ),
   m_NumberOfAtlasSegmentations( 0 ),
-  m_NumberOfModalities( 0 ),
+  m_NumberOfAtlasModalities( 0 ),
   m_PatchNeighborhoodSize( 0 ),
   m_Alpha( 0.1 ),
   m_Beta( 2.0 ),
@@ -43,6 +43,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 {
   this->m_MaskImage = ITK_NULLPTR;
   this->m_MaskLabel = NumericTraits<LabelType>::OneValue();
+
+  this->m_CountImage = ITK_NULLPTR;
 }
 
 template <class TInputImage, class TOutputImage>
@@ -52,19 +54,19 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 {
   // Set all the inputs
 
-  this->SetNumberOfIndexedInputs( ( this->m_NumberOfAtlases  + 1 ) * this->m_NumberOfModalities +
-    this->m_NumberOfAtlasSegmentations + this->m_LabelExclusionImages.size() );
+  this->SetNumberOfIndexedInputs( this->m_NumberOfAtlases * this->m_NumberOfAtlasModalities +
+    this->m_NumberOfAtlasSegmentations + this->m_TargetImage.size() + this->m_LabelExclusionImages.size() );
 
   SizeValueType nthInput = 0;
 
-  for( SizeValueType i = 0; i < this->m_NumberOfModalities; i++ )
+  for( SizeValueType i = 0; i < this->m_TargetImage.size(); i++ )
     {
     this->SetNthInput( nthInput++, this->m_TargetImage[i] );
     }
 
   for( SizeValueType i = 0; i < this->m_NumberOfAtlases; i++ )
     {
-    for( SizeValueType j = 0; j < this->m_NumberOfModalities; j++ )
+    for( SizeValueType j = 0; j < this->m_NumberOfAtlasModalities; j++ )
       {
       this->SetNthInput( nthInput++, this->m_AtlasImages[i][j] );
       }
@@ -105,7 +107,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   // Iterate over all the inputs to this filter
 
-  for( SizeValueType i = 0; i < this->m_NumberOfModalities; i++ )
+  for( SizeValueType i = 0; i < this->m_TargetImage.size(); i++ )
     {
     InputImageType *input = this->m_TargetImage[i];
     RegionType region = outRegion;
@@ -115,7 +117,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   for( SizeValueType i = 0; i < this->m_NumberOfAtlases; i++ )
     {
-    for( SizeValueType j = 0; j < this->m_NumberOfModalities; j++ )
+    for( SizeValueType j = 0; j < this->m_NumberOfAtlasModalities; j++ )
       {
       InputImageType *input = this->m_AtlasImages[i][j];
       RegionType region = outRegion;
@@ -160,6 +162,13 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     // Set the number of atlas segmentations to 0 since we're just going to
     // doing joint intensity fusion
     this->m_NumberOfAtlasSegmentations = 0;
+    }
+
+  // Check to see if the number of target images is equal to 1 or equal to the number
+  // of atlas modalities
+  if( this->m_TargetImage.size() != 1 && this->m_TargetImage.size() != this->m_NumberOfAtlasModalities )
+    {
+    itkExceptionMacro( "The number of target images must be 1 or must be the number of atlas modalities." );
     }
 
   // Find all the unique labels in the atlas segmentations
@@ -213,14 +222,14 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   // Do the joint intensity fusion
   this->m_JointIntensityFusionImage.clear();
-  this->m_JointIntensityFusionImage.resize( this->m_NumberOfModalities );
+  this->m_JointIntensityFusionImage.resize( this->m_NumberOfAtlasModalities );
 
-  for( SizeValueType i = 0; i < this->m_NumberOfModalities; i++ )
+  for( SizeValueType i = 0; i < this->m_NumberOfAtlasModalities; i++ )
     {
     this->m_JointIntensityFusionImage[i] = InputImageType::New();
-    this->m_JointIntensityFusionImage[i]->CopyInformation( this->m_TargetImage[i] );
-    this->m_JointIntensityFusionImage[i]->SetRegions( this->m_TargetImage[i]->GetRequestedRegion() );
-    this->m_JointIntensityFusionImage[i]->SetLargestPossibleRegion( this->m_TargetImage[i]->GetLargestPossibleRegion() );
+    this->m_JointIntensityFusionImage[i]->CopyInformation( this->m_TargetImage[0] );
+    this->m_JointIntensityFusionImage[i]->SetRegions( this->m_TargetImage[0]->GetRequestedRegion() );
+    this->m_JointIntensityFusionImage[i]->SetLargestPossibleRegion( this->m_TargetImage[0]->GetLargestPossibleRegion() );
     this->m_JointIntensityFusionImage[i]->Allocate();
     this->m_JointIntensityFusionImage[i]->FillBuffer( 0.0 );
     }
@@ -232,6 +241,14 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   this->m_WeightSumImage->SetLargestPossibleRegion( this->m_TargetImage[0]->GetLargestPossibleRegion() );
   this->m_WeightSumImage->Allocate();
   this->m_WeightSumImage->FillBuffer( 0.0 );
+
+  // Initialize the count image
+  this->m_CountImage = CountImageType::New();
+  this->m_CountImage->CopyInformation( this->m_TargetImage[0] );
+  this->m_CountImage->SetRegions( this->m_TargetImage[0]->GetRequestedRegion() );
+  this->m_CountImage->SetLargestPossibleRegion( this->m_TargetImage[0]->GetLargestPossibleRegion() );
+  this->m_CountImage->Allocate();
+  this->m_CountImage->FillBuffer( 0 );
 
   // Determine the offset list
 
@@ -268,11 +285,13 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   typename OutputImageType::Pointer output = this->GetOutput();
 
+  SizeValueType numberOfTargetModalities = this->m_TargetImage.size();
+
   MatrixType absoluteAtlasPatchDifferences( this->m_NumberOfAtlases,
-    this->m_PatchNeighborhoodSize * this->m_NumberOfModalities );
+    this->m_PatchNeighborhoodSize * numberOfTargetModalities );
 
   MatrixType originalAtlasPatchIntensities( this->m_NumberOfAtlases,
-    this->m_PatchNeighborhoodSize * this->m_NumberOfModalities );
+    this->m_PatchNeighborhoodSize * this->m_NumberOfAtlasModalities );
 
   std::vector<SizeValueType> minimumAtlasOffsetIndices( this->m_NumberOfAtlases );
 
@@ -310,8 +329,17 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           continue;
           }
 
-        InputImagePixelVectorType individualAtlasPatch =
-          this->VectorizeImageListPatch( this->m_AtlasImages[i], searchIndex, false );
+        InputImagePixelVectorType individualAtlasPatch;
+        if( numberOfTargetModalities == this->m_NumberOfAtlasModalities )
+          {
+          individualAtlasPatch =
+            this->VectorizeImageListPatch( this->m_AtlasImages[i], searchIndex, false );
+          }
+        else
+          {
+          individualAtlasPatch =
+            this->VectorizeImagePatch( this->m_AtlasImages[i][0], searchIndex, false );
+          }
 
         RealType patchSimilarity = this->ComputePatchSimilarity( individualAtlasPatch, normalizedTargetPatch  );
 
@@ -324,24 +352,39 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
       // Once the patch has been found, normalize it and then compute the absolute
       // difference with target patch
+
       IndexType minimumIndex = currentCenterIndex +
         this->m_SearchNeighborhoodOffsetList[minimumPatchOffsetIndex];
-      InputImagePixelVectorType normalizedMinimumAtlasPatch =
-        this->VectorizeImageListPatch( this->m_AtlasImages[i], minimumIndex, true );
-      InputImagePixelVectorType originalMinimumAtlasPatch =
-        this->VectorizeImageListPatch( this->m_AtlasImages[i], minimumIndex, false );
+      InputImagePixelVectorType normalizedMinimumAtlasPatch;
+      if( numberOfTargetModalities == this->m_NumberOfAtlasModalities )
+        {
+        normalizedMinimumAtlasPatch =
+          this->VectorizeImageListPatch( this->m_AtlasImages[i], minimumIndex, true );
+        }
+      else
+        {
+        normalizedMinimumAtlasPatch =
+          this->VectorizeImagePatch( this->m_AtlasImages[i][0], minimumIndex, true );
+        }
 
       typename InputImagePixelVectorType::const_iterator itA = normalizedMinimumAtlasPatch.begin();
       typename InputImagePixelVectorType::const_iterator itT = normalizedTargetPatch.begin();
-      typename InputImagePixelVectorType::const_iterator itO = originalMinimumAtlasPatch.begin();
       while( itA != normalizedMinimumAtlasPatch.end() )
         {
         RealType value = std::fabs( *itA - *itT );
         absoluteAtlasPatchDifferences(i, itA - normalizedMinimumAtlasPatch.begin()) = value;
-        originalAtlasPatchIntensities(i, itO - originalMinimumAtlasPatch.begin()) = *itO;
 
         ++itA;
         ++itT;
+        }
+
+      InputImagePixelVectorType originalMinimumAtlasPatch =
+        this->VectorizeImageListPatch( this->m_AtlasImages[i], minimumIndex, false );
+
+      typename InputImagePixelVectorType::const_iterator itO = originalMinimumAtlasPatch.begin();
+      while( itO != originalMinimumAtlasPatch.end() )
+        {
+        originalAtlasPatchIntensities(i, itO - originalMinimumAtlasPatch.begin()) = *itO;
         ++itO;
         }
 
@@ -358,7 +401,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
         {
         RealType mxValue = 0.0;
 
-        for( unsigned int k = 0; k < this->m_PatchNeighborhoodSize * this->m_NumberOfModalities; k++ )
+        for( unsigned int k = 0; k < this->m_PatchNeighborhoodSize * numberOfTargetModalities; k++ )
           {
           mxValue += absoluteAtlasPatchDifferences[i][k] * absoluteAtlasPatchDifferences[j][k];
           }
@@ -416,7 +459,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
     estimatedNeighborhoodIntensities.post_multiply( originalAtlasPatchIntensities );
 
-    for( SizeValueType i = 0; i < this->m_NumberOfModalities; i++ )
+    for( SizeValueType i = 0; i < this->m_NumberOfAtlasModalities; i++ )
       {
       for( SizeValueType j = 0; j < this->m_PatchNeighborhoodSize; j++ )
         {
@@ -443,6 +486,11 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
         this->m_JointIntensityFusionImage[i]->SetPixel( neighborhoodIndex,
            static_cast<InputImagePixelType>( estimatedValue ) );
+        if( i == 0 )
+          {
+          this->m_CountImage->SetPixel( neighborhoodIndex,
+            this->m_CountImage->GetPixel( neighborhoodIndex ) + 1 );
+          }
         }
       }
 
@@ -579,6 +627,26 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
         }
       }
     }
+
+
+  // Normalize the joint intensity fusion images.
+  for( SizeValueType i = 0; i < this->m_NumberOfAtlasModalities; i++ )
+    {
+    ImageRegionIterator<InputImageType> ItJ( this->m_JointIntensityFusionImage[i],
+      this->m_JointIntensityFusionImage[i]->GetBufferedRegion() );
+    ImageRegionIterator<CountImageType> ItC( this->m_CountImage,
+      this->m_CountImage->GetBufferedRegion() );
+
+    for( ItJ.GoToBegin(), ItC.GoToBegin(); !ItJ.IsAtEnd(); ++ItJ, ++ItC )
+      {
+      typename CountImageType::PixelType count = ItC.Get();
+
+      if( count > 0 )
+        {
+        ItJ.Set( ItJ.Get() / static_cast<RealType>( count ) );
+        }
+      }
+    }
 }
 
 template <class TInputImage, class TOutputImage>
@@ -586,13 +654,8 @@ typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::InputImageP
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::VectorizeImageListPatch( const InputImageList &imageList, const IndexType index, const bool normalize )
 {
-  if( imageList.size() != this->m_NumberOfModalities )
-    {
-    itkExceptionMacro( "Input image list size does not equal the number of modalities." );
-    }
-
-  InputImagePixelVectorType patchVector( this->m_PatchNeighborhoodSize * this->m_NumberOfModalities );
-  for( unsigned int i = 0; i < this->m_NumberOfModalities; i++ )
+  InputImagePixelVectorType patchVector( this->m_PatchNeighborhoodSize * imageList.size() );
+  for( unsigned int i = 0; i < imageList.size(); i++ )
     {
     InputImagePixelVectorType patchVectorPerModality = this->VectorizeImagePatch( imageList[i], index, normalize );
     for( unsigned int j = 0; j < this->m_PatchNeighborhoodSize; j++ )
@@ -839,7 +902,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   os << "Number of atlases = " << this->m_NumberOfAtlases << std::endl;
   os << "Number of atlas segmentations = " << this->m_NumberOfAtlasSegmentations << std::endl;
-  os << "Number of modalities = " << this->m_NumberOfModalities << std::endl;
+  os << "Number of atlas modalities = " << this->m_NumberOfAtlasModalities << std::endl;
   os << "Alpha = " << this->m_Alpha << std::endl;
   os << "Beta = " << this->m_Beta << std::endl;
   os << "Search neighborhood radius = " << this->m_SearchNeighborhoodRadius << std::endl;

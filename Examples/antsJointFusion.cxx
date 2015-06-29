@@ -222,7 +222,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   // Get the target image
 
-  unsigned int numberOfModalities = 0;
+  unsigned int numberOfTargetModalities = 0;
 
   typename FusionFilterType::InputImageList targetImageList;
 
@@ -238,12 +238,12 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
       targetImageList.push_back( targetImage );
 
-      numberOfModalities = 1;
+      numberOfTargetModalities = 1;
       }
     else
       {
-      numberOfModalities = targetImageOption->GetFunction( 0 )->GetNumberOfParameters();
-      for( unsigned int n = 0; n < numberOfModalities; n++ )
+      numberOfTargetModalities = targetImageOption->GetFunction( 0 )->GetNumberOfParameters();
+      for( unsigned int n = 0; n < numberOfTargetModalities; n++ )
         {
         typename ImageType::Pointer targetImage = ITK_NULLPTR;
 
@@ -272,6 +272,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   unsigned int numberOfAtlases = 0;
   unsigned int numberOfAtlasSegmentations = 0;
+  unsigned int numberOfAtlasModalities = 0;
 
   if( atlasImageOption && atlasImageOption->GetNumberOfFunctions() )
     {
@@ -307,7 +308,9 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
     if( atlasImageOption->GetFunction( m )->GetNumberOfParameters() == 0 )
       {
-      if( numberOfModalities != 1 )
+      numberOfAtlasModalities = 1;
+
+      if( numberOfTargetModalities != 1 )
         {
         if( verbose )
           {
@@ -323,7 +326,12 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       }
     else
       {
-      if( numberOfModalities != atlasImageOption->GetFunction( m )->GetNumberOfParameters() )
+      if( m == 0 )
+        {
+        numberOfAtlasModalities = atlasImageOption->GetFunction( m )->GetNumberOfParameters();
+        }
+
+      if( numberOfAtlasModalities != atlasImageOption->GetFunction( m )->GetNumberOfParameters() )
         {
         if( verbose )
           {
@@ -331,7 +339,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
           }
         return EXIT_FAILURE;
         }
-      for( unsigned int n = 0; n < numberOfModalities; n++ )
+      for( unsigned int n = 0; n < numberOfAtlasModalities; n++ )
         {
         typename ImageType::Pointer atlasImage = ITK_NULLPTR;
 
@@ -468,7 +476,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       {
       itk::NumericSeriesFileNames::Pointer fileNamesCreator = itk::NumericSeriesFileNames::New();
       fileNamesCreator->SetStartIndex( 1 );
-      fileNamesCreator->SetEndIndex( numberOfModalities );
+      fileNamesCreator->SetEndIndex( numberOfAtlasModalities );
       fileNamesCreator->SetSeriesFormat( intensityFusionName.c_str() );
 
       const std::vector<std::string> & imageNames = fileNamesCreator->GetFileNames();

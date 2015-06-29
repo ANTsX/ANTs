@@ -87,6 +87,8 @@ public:
   typedef typename LabelImageType::Pointer           LabelImagePointer;
   typedef std::vector<LabelImagePointer>             LabelImageList;
 
+  typedef Image<unsigned int, ImageDimension>        CountImageType;
+
   typedef LabelImageType                             MaskImageType;
   typedef typename MaskImageType::Pointer            MaskImagePointer;
 
@@ -118,16 +120,6 @@ public:
   void SetTargetImage( InputImageList imageList )
     {
     this->m_TargetImage = imageList;
-
-    if( this->m_NumberOfModalities == 0 )
-      {
-      itkDebugMacro( "Setting the number of modalities to " << this->m_NumberOfModalities << "." );
-      this->m_NumberOfModalities = imageList.size();
-      }
-    else if( this->m_NumberOfModalities != imageList.size() )
-      {
-      itkExceptionMacro( "The number of target multimodal images is not equal to " <<  this->m_NumberOfModalities );
-      }
     this->UpdateInputs();
     }
 
@@ -140,14 +132,14 @@ public:
       {
       this->m_AtlasImages.push_back( imageList );
       }
-    if( this->m_NumberOfModalities == 0 )
+    if( this->m_NumberOfAtlasModalities == 0 )
       {
-      itkDebugMacro( "Setting the number of modalities to " << this->m_NumberOfModalities );
-      this->m_NumberOfModalities = imageList.size();
+      itkDebugMacro( "Setting the number of modalities to " << this->m_NumberOfAtlasModalities );
+      this->m_NumberOfAtlasModalities = imageList.size();
       }
-    else if( this->m_NumberOfModalities != imageList.size() )
+    else if( this->m_NumberOfAtlasModalities != imageList.size() )
       {
-      itkExceptionMacro( "The number of atlas multimodal images is not equal to " <<  this->m_NumberOfModalities );
+      itkExceptionMacro( "The number of atlas multimodal images is not equal to " <<  this->m_NumberOfAtlasModalities );
       }
     this->m_NumberOfAtlases++;
 
@@ -184,7 +176,7 @@ public:
    * Get the number of modalities used in determining the optimal label fusion
    * or optimal fused image.
    */
-  itkGetConstMacro( NumberOfModalities, unsigned int );
+  itkGetConstMacro( NumberOfAtlasModalities, unsigned int );
 
   /**
    * Get the label set.
@@ -302,7 +294,7 @@ public:
    */
   const ProbabilityImagePointer GetJointIntensityFusionImage( unsigned int n )
     {
-    if( n < this->m_NumberOfModalities )
+    if( n < this->m_NumberOfAtlasModalities )
       {
       return this->m_JointIntensityFusionImage[n];
       }
@@ -348,10 +340,12 @@ private:
   MaskImagePointer                                     m_MaskImage;
   LabelType                                            m_MaskLabel;
 
+  typename CountImageType::Pointer                     m_CountImage;
+
   LabelSetType                                         m_LabelSet;
   SizeValueType                                        m_NumberOfAtlases;
   SizeValueType                                        m_NumberOfAtlasSegmentations;
-  SizeValueType                                        m_NumberOfModalities;
+  SizeValueType                                        m_NumberOfAtlasModalities;
 
   NeighborhoodRadiusType                               m_SearchNeighborhoodRadius;
   NeighborhoodRadiusType                               m_PatchNeighborhoodRadius;
