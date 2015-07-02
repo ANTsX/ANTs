@@ -42,6 +42,7 @@ ReadTransform(const std::string & filename,
       && filename.find(".hdf4") == std::string::npos
       && filename.find(".mat") == std::string::npos
       && filename.find(".txt") == std::string::npos
+      && filename.find(".xfm") == std::string::npos
       )
     {
     try
