@@ -24,7 +24,7 @@
 namespace ants
 {
 
-extern const char * RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVelocityField);
+extern const char * RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVelocityField,bool minc);
 
 template <class TComputeType, unsigned VImageDimension>
 int
@@ -40,6 +40,9 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   typename RegistrationHelperType::Pointer regHelper = RegistrationHelperType::New();
 
+  OptionType::Pointer useMincFormatOption = parser->GetOption( "minc" );
+  const bool use_minc_format = parser->Convert<bool>( useMincFormatOption->GetFunction( 0 )->GetName() );
+  
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
     parser->GetOption( "verbose" );
@@ -181,7 +184,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       for( unsigned int n = 0; n < isDerivedInitialMovingTransform.size(); n++ )
         {
         std::stringstream curFileName;
-        curFileName << outputPrefix << n << "DerivedInitialMovingTranslation.mat";
+        curFileName << outputPrefix << n << (use_minc_format?"DerivedInitialMovingTranslation.xfm":"DerivedInitialMovingTranslation.mat");
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
           compositeTransform->GetNthTransform( n );
@@ -213,7 +216,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       for( unsigned int n = 0; n < isDerivedInitialFixedTransform.size(); n++ )
         {
         std::stringstream curFileName;
-        curFileName << outputPrefix << n << "DerivedInitialFixedTranslation.mat";
+        curFileName << outputPrefix << n << (use_minc_format?"DerivedInitialFixedTranslation.xfm"?"DerivedInitialFixedTranslation.mat");
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
           compositeTransform->GetNthTransform( n );
@@ -1244,8 +1247,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     if( writeCompositeTransform )
       {
-      std::string compositeTransformFileName = outputPrefix + std::string( "Composite.h5" );
-      std::string inverseCompositeTransformFileName = outputPrefix + std::string( "InverseComposite.h5" );
+      std::string compositeTransformFileName = outputPrefix + (use_minc_format?std::string( ".xfm" ):std::string( "Composite.h5" ));
+      std::string inverseCompositeTransformFileName = outputPrefix + (use_minc_format?std::string( "_inverse.xfm" ):std::string( "InverseComposite.h5" ));
 
       typename RegistrationHelperType::CompositeTransformType::TransformTypePointer compositeTransform =
         transformToWrite.GetPointer();
@@ -1274,7 +1277,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         bool writeInverse;
         bool writeVelocityField;
 
-        std::string transformTemplateName = RegTypeToFileName( curTransformType, writeInverse, writeVelocityField );
+        std::string transformTemplateName = RegTypeToFileName( curTransformType, writeInverse, writeVelocityField, use_minc_format );
 
         std::stringstream curFileName;
         curFileName << outputPrefix << i << transformTemplateName;
@@ -1294,7 +1297,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           if( inverseDispField.IsNotNull() )
             {
             std::stringstream curInverseFileName;
-            curInverseFileName << outputPrefix << i << "InverseWarp.nii.gz";
+            curInverseFileName << outputPrefix << i << (use_minc_format?"_inverse.xfm":"InverseWarp.nii.gz");
             typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
             typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
             inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
@@ -1326,7 +1329,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           if( !velocityFieldTransform.IsNull() )
             {
             std::stringstream curVelocityFieldFileName;
-            curVelocityFieldFileName << outputPrefix << i << "VelocityField.nii.gz";
+            curVelocityFieldFileName << outputPrefix << i << (use_minc_format?"VelocityField.mnc":"VelocityField.nii.gz");
 
             typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
             typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
