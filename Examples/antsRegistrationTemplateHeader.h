@@ -216,7 +216,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       for( unsigned int n = 0; n < isDerivedInitialFixedTransform.size(); n++ )
         {
         std::stringstream curFileName;
-        curFileName << outputPrefix << n << (use_minc_format?"DerivedInitialFixedTranslation.xfm"?"DerivedInitialFixedTranslation.mat");
+        curFileName << outputPrefix << n << (use_minc_format?"DerivedInitialFixedTranslation.xfm":"DerivedInitialFixedTranslation.mat");
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
           compositeTransform->GetNthTransform( n );
