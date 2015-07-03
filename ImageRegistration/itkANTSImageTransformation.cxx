@@ -28,7 +28,7 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkRecursiveGaussianImageFilter.h"
 #include "itkResampleImageFilter.h"
-// #include "itkVectorImageFileWriter.h"
+#include "itkTransformFileWriter.h"
 
 #include "vnl/vnl_math.h"
 
@@ -116,16 +116,55 @@ ANTSImageTransformation<TDimension, TReal>
 
     if( !is_supported )
       {
-      std::cout << " WARNING! we are guessing you want nii.gz for your image output instead of: " << extension
+      std::cout << " WARNING! we are guessing you want .mnc for your image output instead of: " << extension
                        << std::endl;
       filePrefix = this->m_NamingConvention;
-      extension = std::string(".nii.gz");
+      extension = std::string(".mnc");
       }
     }
   else
     {
-    extension = std::string( ".nii.gz" );
+    extension = std::string( ".mnc" );
     }
+    
+  if( extension==std::string( ".xfm") )
+    {
+      
+      std::string fw_filename = filePrefix + extension;
+      std::string bw_filename = filePrefix + "_inverse" + extension;
+      
+      //using ITKv4 functionality to write transforms
+      typedef itk::TransformFileWriterTemplate<float> TransformFileWriterFloat;
+      
+      TransformFileWriterFloat::Pointer fw_writer=TransformFileWriterFloat::New();
+      
+      if( this->m_AffineTransform )
+        fw_writer->AddTransform(this->m_AffineTransform);
+      if(this->m_DisplacementField)
+        fw_writer->AddTransform(this->m_DisplacementField);
+      
+      fw_writer->SetFileName(fw_filename);
+      fw_writer->Update();
+      
+      TransformFileWriterFloat::Pointer bw_writer=TransformFileWriterFloat::New();
+      
+      if(this->m_InverseDisplacementField)
+        bw_writer->AddTransform(this->m_InverseDisplacementField);
+      
+      typename AffineTransformType::Pointer tmp=AffineTransformType::New();
+      
+      if( this->m_AffineTransform )
+      {
+        this->m_AffineTransform->GetInverse(tmp);
+        bw_writer->AddTransform(tmp);
+      }
+      
+      bw_writer->SetFileName(bw_filename);
+      bw_writer->Update();
+    
+    } 
+  else 
+  {
   // Added by songgang
   if( this->m_AffineTransform )
     {
@@ -185,6 +224,7 @@ ANTSImageTransformation<TDimension, TReal>
       writer->Update();
       }
     }
+  }
 }
 
 /**
