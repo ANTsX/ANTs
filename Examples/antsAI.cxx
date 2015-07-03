@@ -431,7 +431,7 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
   unsigned int radiusValue = 20;
   RealType     gradientSigma = 1.0;
   RealType     maxRadiusDifferenceAllowed = 0.25;
-  RealType     distancePreservationThreshold = 0.02;
+  RealType     distancePreservationThreshold = 0.1;
   RealType     minimumNumberOfNeighborhoodNodes = 3;
 
   RealType minScale = std::pow( 1.0, 1.0 );
@@ -855,6 +855,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     else  // RigidTransform or SimilarityTransform
       {
+
       typename LandmarkRigidTransformType::Pointer initialRigidTransform =
         GetTransformFromFeatureMatching<ImageType, LandmarkRigidTransformType>( fixedImage, movingImage, numberOfBlobsToExtract, numberOfBlobsToMatch );
 
@@ -1007,6 +1008,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       if( strcmp( transform.c_str(), "affine" ) == 0 )
         {
         typename AffineTransformType::Pointer bestAffineTransform = AffineTransformType::New();
+        bestAffineTransform->SetCenter( initialTransform->GetCenter() );
         bestAffineTransform->SetMatrix( initialTransform->GetMatrix() );
         bestAffineTransform->SetOffset( initialTransform->GetOffset() );
         transformWriter->SetInput( bestAffineTransform );
@@ -1014,6 +1016,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       else if( strcmp( transform.c_str(), "rigid" ) == 0 )
         {
         typename RigidTransformType::Pointer bestRigidTransform = RigidTransformType::New();
+        bestRigidTransform->SetCenter( initialTransform->GetCenter() );
         bestRigidTransform->SetMatrix( initialTransform->GetMatrix() );
         bestRigidTransform->SetOffset( initialTransform->GetOffset() );
         transformWriter->SetInput( bestRigidTransform );
@@ -1021,6 +1024,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       else if( strcmp( transform.c_str(), "similarity" ) == 0 )
         {
         typename SimilarityTransformType::Pointer bestSimilarityTransform = SimilarityTransformType::New();
+        bestSimilarityTransform->SetCenter( initialTransform->GetCenter() );
         bestSimilarityTransform->SetMatrix( initialTransform->GetMatrix() );
         bestSimilarityTransform->SetOffset( initialTransform->GetOffset() );
         transformWriter->SetInput( bestSimilarityTransform );
@@ -1281,8 +1285,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
       {
       affineSearchTransform->SetIdentity();
       affineSearchTransform->SetCenter( initialTransform->GetCenter() );
-      affineSearchTransform->SetOffset( initialTransform->GetOffset() );
       affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
+      affineSearchTransform->SetOffset( initialTransform->GetOffset() );
       affineSearchTransform->Rotate2D( angle1, 1 );
 
       if( strcmp( transform.c_str(), "affine" ) == 0 )
@@ -1294,8 +1298,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
         {
         rigidSearchTransform->SetIdentity();
         rigidSearchTransform->SetCenter( initialTransform->GetCenter() );
-        rigidSearchTransform->SetOffset( initialTransform->GetOffset() );
         rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
+        rigidSearchTransform->SetOffset( initialTransform->GetOffset() );
 
         parametersList.push_back( rigidSearchTransform->GetParameters() );
         }
@@ -1303,8 +1307,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
         {
         similaritySearchTransform->SetIdentity();
         similaritySearchTransform->SetCenter( initialTransform->GetCenter() );
-        similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
         similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
+        similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
         similaritySearchTransform->SetScale( bestScale );
 
         similaritySearchTransform->SetScale( bestScale );
