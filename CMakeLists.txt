@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8.5)
-cmake_policy(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8.9)
+cmake_policy(VERSION 2.8.9)
 
 set(LIBRARY_SOVERSION_INFO 2)
 set(LIBRARY_VERSION_INFO 2.1.0)
