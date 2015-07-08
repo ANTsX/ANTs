@@ -33,6 +33,7 @@ ReadTransform(const std::string & filename,
   typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
   typedef itk::ImageFileReader<DisplacementFieldType>                       DisplacementFieldReaderType;
   typename DisplacementFieldReaderType::Pointer fieldReader = DisplacementFieldReaderType::New();
+  typedef typename itk::CompositeTransform<T, VImageDimension> CompositeTransformType;
 
   // There are known tranform type extentions that should not be considered as imaging files
   // That would be used as deformatino feilds
@@ -42,6 +43,7 @@ ReadTransform(const std::string & filename,
       && filename.find(".hdf4") == std::string::npos
       && filename.find(".mat") == std::string::npos
       && filename.find(".txt") == std::string::npos
+      && filename.find(".xfm") == std::string::npos
       )
     {
     try
@@ -98,7 +100,21 @@ ReadTransform(const std::string & filename,
 
     const typename itk::TransformFileReaderTemplate<T>::TransformListType * const listOfTransforms =
       transformReader->GetTransformList();
-    transform = dynamic_cast<TransformType *>( listOfTransforms->front().GetPointer() );
+    
+    if(listOfTransforms->size()>1)
+    {
+      typename CompositeTransformType::Pointer comp_transform=CompositeTransformType::New();
+      for(typename itk::TransformFileReaderTemplate<T>::TransformListType::const_iterator i=listOfTransforms->begin();
+          i!=listOfTransforms->end();
+          ++i)
+          {
+            comp_transform->AddTransform( dynamic_cast<TransformType *>(i->GetPointer()) );
+          }
+      transform = dynamic_cast<TransformType *>(comp_transform.GetPointer());
+    } else {
+    
+      transform = dynamic_cast<TransformType *>( listOfTransforms->front().GetPointer() );
+    }
 
     /** below is a bad thing but it's the only temporary fix i could find for ANTsR on unix --- B.A. */
     if ( transform.IsNull() && ( useStaticCastForR == true ) )

@@ -473,6 +473,16 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
   }
 
   {
+  std::string description = std::string( "Use MINC file formats for transformations." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "minc" );
+  option->SetDescription( description );
+  option->AddFunction( std::string( "0" ) );
+  parser->AddOption( option );
+  }
+
+  {
   std::string description = std::string( "Verbose output." );
 
   OptionType::Pointer option = OptionType::New();

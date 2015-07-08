@@ -28,7 +28,8 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkRecursiveGaussianImageFilter.h"
 #include "itkResampleImageFilter.h"
-// #include "itkVectorImageFileWriter.h"
+#include "itkTransformFileWriter.h"
+#include "itkDisplacementFieldTransform.h"
 
 #include "vnl/vnl_math.h"
 
@@ -73,6 +74,9 @@ ANTSImageTransformation<TDimension, TReal>
     filePrefix = std::string( filePrefix, 0, pos );
     extension = std::string( this->m_NamingConvention, pos,
                              this->m_NamingConvention.length() - 1 );
+    if( extension != std::string( ".xfm" ) )
+    {
+
     if( extension == std::string( ".gz" ) )
       {
       gzExtension = std::string( ".gz" );
@@ -81,7 +85,6 @@ ANTSImageTransformation<TDimension, TReal>
                                filePrefix.length() - 1 );
       filePrefix = std::string( filePrefix, 0, pos );
       }
-
     // GetSupportedWriteExtensions
     typedef itk::ImageIOBase                           IOBaseType;
     typedef std::list<itk::LightObject::Pointer>       ArrayOfImageIOType;
@@ -102,7 +105,7 @@ ANTSImageTransformation<TDimension, TReal>
         while( writeItr != writeExtensions.end() )
           {
           std::string test_ext = *writeItr;
-          //        std::cout <<" compare " << extension << " to " << test_ext << std::endl;
+          //  std::cout <<" compare " << extension << " to " << test_ext << std::endl;
           if( extension == test_ext )
             {
             is_supported = true;
@@ -116,16 +119,71 @@ ANTSImageTransformation<TDimension, TReal>
 
     if( !is_supported )
       {
-      std::cout << " WARNING! we are guessing you want nii.gz for your image output instead of: " << extension
+      std::cout << " WARNING! we are guessing you want .nii.gz for your image output instead of: " << extension
                        << std::endl;
       filePrefix = this->m_NamingConvention;
       extension = std::string(".nii.gz");
       }
     }
+    }
   else
     {
     extension = std::string( ".nii.gz" );
     }
+    
+  if( extension == std::string( ".xfm") )
+    {
+
+      typedef itk::DisplacementFieldTransform<TReal,TDimension>          DisplacementFieldTransform;
+      typedef typename DisplacementFieldTransform::DisplacementFieldType DisplacementFieldType;
+      
+      itk::TransformFactory< itk::DisplacementFieldTransform<TReal,TDimension> >::RegisterTransform ();
+      itk::TransformFactory< itk::MatrixOffsetTransformBase<TReal,TDimension,TDimension> >::RegisterTransform ();
+      
+      std::string fw_filename = filePrefix + extension;
+      std::string bw_filename = filePrefix + "_inverse" + extension;
+      
+      //using ITKv4 functionality to write transforms
+      typedef itk::TransformFileWriterTemplate<TReal> TransformFileWriterFloat;
+      
+      typename TransformFileWriterFloat::Pointer fw_writer=TransformFileWriterFloat::New();
+      
+      if( this->m_AffineTransform )
+        fw_writer->AddTransform(this->m_AffineTransform);
+      if(this->m_DisplacementField)
+      {
+        typename DisplacementFieldTransform::Pointer disp = DisplacementFieldTransform::New();
+        disp->SetDisplacementField(this->m_DisplacementField);
+        fw_writer->AddTransform(disp);
+      }
+      
+      fw_writer->SetFileName(fw_filename);
+      fw_writer->Update();
+      
+      typename TransformFileWriterFloat::Pointer bw_writer=TransformFileWriterFloat::New();
+      
+      if(this->m_InverseDisplacementField)
+      {
+        typename DisplacementFieldTransform::Pointer disp = DisplacementFieldTransform::New();
+        disp->SetDisplacementField(this->m_InverseDisplacementField);
+
+        bw_writer->AddTransform(disp);
+      }
+      
+      typename AffineTransformType::Pointer tmp=AffineTransformType::New();
+      if( this->m_AffineTransform )
+      {
+        this->m_AffineTransform->GetInverse(tmp);
+
+        bw_writer->AddTransform(tmp);
+      }
+      
+      bw_writer->SetFileName(bw_filename);
+      bw_writer->Update();
+    
+    } 
+  else 
+  {
   // Added by songgang
   if( this->m_AffineTransform )
     {
@@ -185,6 +243,7 @@ ANTSImageTransformation<TDimension, TReal>
       writer->Update();
       }
     }
+  }
 }
 
 /**
