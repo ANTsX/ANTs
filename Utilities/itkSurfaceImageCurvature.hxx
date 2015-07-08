@@ -570,6 +570,7 @@ void  SurfaceImageCurvature<TSurface>
     this->m_GaussianKappa = 0;
     this->m_Kappa1 = 0;
     this->m_Kappa2 = 0;
+    this->m_Area = 0;
     return;
     }
 
@@ -596,20 +597,24 @@ void  SurfaceImageCurvature<TSurface>
   for( j = 0; j < npts; j++ )
     {
     PointType Dif = Q - this->m_PointList[j];
-
+    typename ImageType::PointType pt;
+    pt[0] = this->m_PointList[j][0];
+    pt[1] = this->m_PointList[j][1];
+    pt[2] = this->m_PointList[j][2];
     float u1 = 0.0;
     float u2 = 0.0;
     wt = 1.0; // /difmag;
     totwt += wt;
 
     IndexType index;
+//    IndexType index2;
+//    image->TransformPhysicalPointToIndex( pt, index );
     for( i = 0; i < SurfaceDimension; i++ )
       {
       u1 += Dif[i] * this->m_Tangent1[i];
       u2 += Dif[i] * this->m_Tangent2[i];
       index[i] = (long) (this->m_PointList[j][i] + 0.5);
       }
-
 //    if (fabs(u1) < 1.e-6) u1=1.e-6;
 //    if (fabs(u2) < 1.e-6) u2=1.e-6;
 
@@ -700,6 +705,8 @@ void  SurfaceImageCurvature<TSurface>
   PointType dNdv;
   dNdv[0] = ax[2];  dNdv[1] = ay[2];  dNdv[2] = az[2];
 
+  this->m_Area = sqrt(  1.0 + dNdu[0] * dNdu[0] + dNdv[0] * dNdv[0] );
+
   float a = 0;
   float b = 0;
 
@@ -760,12 +767,15 @@ void  SurfaceImageCurvature<TSurface>
 ::ComputeSurfaceArea()
 {
   ImageType* image = GetInput();
-
+  typename ImageType::SpacingType ispacing = image->GetSpacing();
   if( !image )
     {
     return;
     }
-
+  FixedVectorType spacing;
+  spacing[0] = ispacing[0];
+  spacing[1] = ispacing[1];
+  spacing[2] = ispacing[2];
 // BUG FIXME
   if( !this->m_GradientImage )
     {
@@ -799,8 +809,8 @@ void  SurfaceImageCurvature<TSurface>
       ct++;
 //        this->EstimateFrameFromGradient(index);
 // BUG FIXME
-//        area=this->ComputeLocalArea(spacing);
-      area = 1.0;
+      area = this->ComputeLocalArea( spacing );
+//      area = 1.0;
       this->m_FunctionImage->SetPixel(index, area);
       this->m_TotalArea += area;
       this->m_PointList.clear();
@@ -1210,6 +1220,7 @@ void  SurfaceImageCurvature<TSurface>
         this->m_Kappa2 = 0.0;
         this->m_MeanKappa = 0.0;
         this->m_GaussianKappa = 0.0;
+        this->m_Area = 0.0;
         kpix = 0.0;
         }
 //      kpix=1.0+this->m_Kappa1*this->m_Kappa1+this->m_Kappa2*this->m_Kappa2;
@@ -1222,6 +1233,10 @@ void  SurfaceImageCurvature<TSurface>
         {
         kpix = this->m_GaussianKappa;
         }
+      if( which == 7 )
+        {
+        kpix = this->m_Area;
+        }
       ct++;
       this->m_PointList.clear();
       }
@@ -1229,13 +1244,13 @@ void  SurfaceImageCurvature<TSurface>
     float offset = 0;
     if( fabs( image->GetPixel(index) - 0 ) > 1.e-6  )
       {
-      offset = 128.0;
+      offset = 0;
       }
     if( which == 5 )
       {
       offset = 0;
       }
-    this->m_FunctionImage->SetPixel(index, offset + kpix);
+    this->m_FunctionImage->SetPixel(index, offset + kpix*100.0 );
     ct2++;
     ++ti;
     }

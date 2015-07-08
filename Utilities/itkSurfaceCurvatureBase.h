@@ -171,7 +171,7 @@ public:
 
   /** We use the cross-product of the tangents times the image spacing
       to get the local area. */
-  RealType ComputeLocalArea(const double* spacing);
+  RealType ComputeLocalArea( FixedVectorType );
 
   /** We estimate the integral as a sum, assuming the local
       area (from compute local area) scales the value of the

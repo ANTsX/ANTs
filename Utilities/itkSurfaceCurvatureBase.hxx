@@ -574,7 +574,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 template <typename TSurface, unsigned int TDimension>
 typename SurfaceCurvatureBase<TSurface, TDimension>::RealType
 SurfaceCurvatureBase<TSurface, TDimension>
-::ComputeLocalArea(const double* spacing)
+::ComputeLocalArea( FixedVectorType spacing )
 {
   PointType t1;
   PointType t2;

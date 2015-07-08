@@ -98,6 +98,7 @@ private:
     std::cout << " option 0 means just compute mean curvature from intensity " << std::endl;
     std::cout << " option 5 means characterize surface from intensity " << std::endl;
     std::cout << " option 6 means compute gaussian curvature " << std::endl;
+    std::cout << " option 7 means surface area " << std::endl;
     std::cout << " ... " << std::endl;
     std::cout << " for surface characterization " << std::endl;
     std::cout << " 1 == (+) bowl " << std::endl;
@@ -179,7 +180,7 @@ private:
 //  Parameterizer->IntegrateFunctionOverSurface();
 //  Parameterizer->IntegrateFunctionOverSurface(true);
 
-  if( opt != 5 && opt != 6 )
+  if( opt != 5 && opt != 6 && opt != 7 )
     {
     Parameterizer->ComputeFrameOverDomain( 3 );
     }

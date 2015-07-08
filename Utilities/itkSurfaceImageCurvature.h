@@ -231,6 +231,7 @@ private:
   float                    m_kSign;
   float                    m_Sigma;
   float                    m_Threshold;
+  float                    m_Area;
 };
 } // namespace itk
 
