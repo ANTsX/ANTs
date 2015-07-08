@@ -587,6 +587,8 @@ void  SurfaceImageCurvature<TSurface>
   ydists.fill(0.0);
   vnl_vector<double> zdists(npts);
   zdists.fill(0.0);
+  vnl_vector<double> f_uvs(npts);
+  f_uvs.fill(0.0);
 
 // go through all the points
 //  compute weight
@@ -603,6 +605,7 @@ void  SurfaceImageCurvature<TSurface>
     pt[2] = this->m_PointList[j][2];
     float u1 = 0.0;
     float u2 = 0.0;
+    float f_uv = 0.0;
     wt = 1.0; // /difmag;
     totwt += wt;
 
@@ -613,6 +616,7 @@ void  SurfaceImageCurvature<TSurface>
       {
       u1 += Dif[i] * this->m_Tangent1[i];
       u2 += Dif[i] * this->m_Tangent2[i];
+      f_uv += Dif[i] * this->m_Normal[i];
       index[i] = (long) (this->m_PointList[j][i] + 0.5);
       }
 //    if (fabs(u1) < 1.e-6) u1=1.e-6;
@@ -639,11 +643,16 @@ void  SurfaceImageCurvature<TSurface>
       PN *= 0.0;
       }
 
+// FIXME - should this be PN?
+    for( i = 0; i < SurfaceDimension; i++ )
+      f_uv += norm[i] * this->m_Normal[i];
+
 //    PointType dN=(PN-QN)*wt;
 
     xdists[j] = (PN[0]);
     ydists[j] = (PN[1]);
     zdists[j] = (PN[2]);
+    f_uvs[j] = f_uv;
 /*
     float a=0;
     float b=0;
@@ -695,6 +704,7 @@ void  SurfaceImageCurvature<TSurface>
   vnl_vector<double> ax = svd.solve(xdists); // /totwt);
   vnl_vector<double> ay = svd.solve(ydists); // /totwt);
   vnl_vector<double> az = svd.solve(zdists); // /totwt);
+  vnl_vector<double> df_uvs = svd.solve( f_uvs ); // /totwt);
 
 // now get the first partials of each of these terms w.r.t. u and v
 
@@ -705,8 +715,16 @@ void  SurfaceImageCurvature<TSurface>
   PointType dNdv;
   dNdv[0] = ax[2];  dNdv[1] = ay[2];  dNdv[2] = az[2];
 
-  this->m_Area = sqrt(  1.0 + dNdu[0] * dNdu[0] + dNdv[0] * dNdv[0] );
+  this->m_Area = sqrt(  1.0 + df_uvs[1] * df_uvs[1] + df_uvs[2] * df_uvs[2] );
 
+  if ( false ) {
+    std::cout << this->m_Area << std::endl;
+    std::cout << this->m_Normal << std::endl;
+    std::cout << f_uvs << std::endl;
+    std::cout << df_uvs << std::endl;
+    std::cout << " derka " << std::endl;
+    exit(0);
+  }
   float a = 0;
   float b = 0;
 
@@ -1250,7 +1268,7 @@ void  SurfaceImageCurvature<TSurface>
       {
       offset = 0;
       }
-    this->m_FunctionImage->SetPixel(index, offset + kpix*100.0 );
+    this->m_FunctionImage->SetPixel(index, offset + kpix );
     ct2++;
     ++ti;
     }
