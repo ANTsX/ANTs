@@ -286,12 +286,12 @@ control_c()
 #
 # Notice of eventual deprecation
 #
-echo "\n\n  ***********************************************************"
-echo "  * Note that this script is slated to be deprecated.            "
-echo "  * We recommend using the script antsJointLabelFusion.sh        "
-echo "  * which has the same options.  Press any key to continue or    "
-echo "  * control-c to exit.                                           "
-echo "  ***********************************************************\n\n"
+echo "  ***********************************************************"
+echo "  * Note that this script is slated to be deprecated.        "
+echo "  * We recommend using the script antsJointLabelFusion.sh    "
+echo "  * which has the same options.  Press any key to continue or"
+echo "  * control-c to exit.                                       "
+echo "  ***********************************************************"
 
 sed -n q </dev/tty
 
