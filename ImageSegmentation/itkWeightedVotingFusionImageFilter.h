@@ -352,6 +352,7 @@ private:
   SizeValueType                                        m_SearchNeighborhoodSize;
   SizeValueType                                        m_PatchNeighborhoodSize;
   std::vector<NeighborhoodOffsetType>                  m_SearchNeighborhoodOffsetList;
+  std::vector<NeighborhoodOffsetType>                  m_PatchNeighborhoodOffsetList;
 
   RealType                                             m_Alpha;
   RealType                                             m_Beta;
