@@ -250,7 +250,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   this->m_CountImage->Allocate();
   this->m_CountImage->FillBuffer( 0 );
 
-  // Determine the offset list
+  // Determine the offset lists
 
   ConstNeighborhoodIterator<InputImageType> It( this->m_SearchNeighborhoodRadius,
     this->GetInput(), this->GetInput()->GetRequestedRegion() );
@@ -263,14 +263,15 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     this->m_SearchNeighborhoodOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
     }
 
-  // Determine neighborhood sizes
+  ConstNeighborhoodIterator<InputImageType> It2( this->m_PatchNeighborhoodRadius,
+    this->GetInput(), this->GetInput()->GetRequestedRegion() );
 
-  this->m_PatchNeighborhoodSize = 1;
-  this->m_SearchNeighborhoodSize = 1;
-  for( SizeValueType d = 0; d < ImageDimension; d++ )
+  this->m_PatchNeighborhoodOffsetList.clear();
+
+  this->m_PatchNeighborhoodSize = ( It2.GetNeighborhood() ).Size();
+  for( unsigned int n = 0; n < this->m_PatchNeighborhoodSize; n++ )
     {
-    this->m_PatchNeighborhoodSize *= ( 2 * this->m_PatchNeighborhoodRadius[d] + 1 );
-    this->m_SearchNeighborhoodSize *= ( 2 * this->m_SearchNeighborhoodRadius[d] + 1 );
+    this->m_PatchNeighborhoodOffsetList.push_back( ( It2.GetNeighborhood() ).GetOffset( n ) );
     }
 
   this->AllocateOutputs();
@@ -671,16 +672,15 @@ typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::InputImageP
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::VectorizeImagePatch( const InputImagePointer image, const IndexType index, const bool normalize )
 {
-  ConstNeighborhoodIteratorType It( this->m_PatchNeighborhoodRadius, image, image->GetRequestedRegion() );
-  It.SetLocation( index );
-
   InputImagePixelVectorType patchVector( this->m_PatchNeighborhoodSize );
   for( SizeValueType i = 0; i < this->m_PatchNeighborhoodSize; i++ )
     {
-    bool isInBounds;
-    InputImagePixelType pixel = It.GetPixel( i, isInBounds );
+    IndexType neighborhoodIndex = index + this->m_PatchNeighborhoodOffsetList[i];
+
+    bool isInBounds = image->GetBufferedRegion().IsInside( neighborhoodIndex );
     if( isInBounds )
       {
+      InputImagePixelType pixel = image->GetPixel( neighborhoodIndex );
       patchVector[i] = pixel;
       }
     }
