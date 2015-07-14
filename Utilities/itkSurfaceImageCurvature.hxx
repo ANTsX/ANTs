@@ -607,7 +607,9 @@ void  SurfaceImageCurvature<TSurface>
     float f_uv = 0.0;
 //    PointType Dif = Q + this->m_Normal - this->m_PointList[j] - PN;
     PointType Dif = Q - this->m_PointList[j];
+    // this is the predefined u_i parameter
     u1 = this->innerProduct( Dif, this->m_Tangent1 );
+    // this is the predefined v_i parameter
     u2 = this->innerProduct( Dif, this->m_Tangent2 );
 // now the inner product of PN and the normal is f_uv ...
     f_uv = this->innerProduct( PN, this->m_Normal );
