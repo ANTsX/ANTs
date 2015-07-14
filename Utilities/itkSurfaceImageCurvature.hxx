@@ -629,18 +629,9 @@ void  SurfaceImageCurvature<TSurface>
       PN *= 0.0;
       }
 
-// ( x - u*e1 - v*e2 ) = f(u,v) e3
-    RealType t1 = this->innerProduct( PN, this->m_Tangent1 );
-    RealType t2 = this->innerProduct( PN, this->m_Tangent2 );
-    f_uv = this->innerProduct( PN, this->m_Normal );
-    PointType fuve3 = PN - this->m_Tangent1 * t1 - this->m_Tangent2 * t2;
+    PointType fuve3 = PN - this->m_Tangent1 * u1 - this->m_Tangent2 * u2;
 // now the inner product of fuve3 and the normal is f_uv ...
     f_uv = ( this->innerProduct( fuve3, this->m_Normal ) );
-//    std::cout << " PN " << PN << std::endl;
-//    std::cout << " ES " << this->m_Tangent1 * t1 + this->m_Tangent2 * t2 + this->m_Normal * f_uv << std::endl;
-    // std::cout << " f_uv " << f_uv << std::endl;
-    // std::cout << " u1 " << u1 << std::endl;
-    // std::cout << " u2 " << u2 << std::endl;
 
     xdists[j] = (PN[0]);
     ydists[j] = (PN[1]);
