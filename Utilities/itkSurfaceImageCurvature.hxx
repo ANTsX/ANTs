@@ -558,7 +558,7 @@ void  SurfaceImageCurvature<TSurface>
 
   unsigned int j = 0;
   unsigned int i = 0;
-  unsigned int npts = this->m_PointList.size() - 1;
+  unsigned int npts = this->m_PointList.size();
   unsigned int vars = 3;
   if( npts < (vars+1) )
     {
@@ -603,36 +603,23 @@ void  SurfaceImageCurvature<TSurface>
     wt = 1.0; // /difmag;
     totwt += wt;
 
-    for( i = 0; i < SurfaceDimension; i++ )
-      {
-      u1 += Dif[i] * this->m_Tangent1[i];
-      u2 += Dif[i] * this->m_Tangent2[i];
-      }
-
+    u1 = this->innerProduct( Dif, this->m_Tangent1 );
+    u2 = this->innerProduct( Dif, this->m_Tangent2 );
+    // std::cout << " j " << j << " " << u1 << " " << u2 << std::endl;
     // get the normal at the point
     GradientPixelType norm = this->m_Vinterp->Evaluate( pt );
-    PointType         PN;
-    float nmag = 0.0;
+    PointType         Grad;
     for( i = 0; i < SurfaceDimension; i++ )
       {
-      nmag += norm[i] * norm[i];
-      PN[i] = norm[i];
+      Grad[i] = norm[i];
       }
+    PointType PN = Grad / ( Grad.magnitude() + static_cast<RealType>(1.e-12) );
 
-    nmag = sqrt(nmag);
-    if( nmag >  1.e-9 )
-      {
-      PN /= (nmag);
-      }
-    else
-      {
-      PN *= 0.0;
-      }
-
-    PointType fuve3 = PN - this->m_Tangent1 * u1 - this->m_Tangent2 * u2;
-// now the inner product of fuve3 and the normal is f_uv ...
-    f_uv = ( this->innerProduct( fuve3, this->m_Normal ) );
-
+// now the inner product of PN and the normal is f_uv ...
+    f_uv = ( this->innerProduct( PN, this->m_Normal ) );
+// the point is therefore defined as:
+// surfacePoint = this->m_Tangent1 * u1 + this->m_Tangent2 * u2 +
+//                this->m_Normal * f_uv ;
     xdists[j] = (PN[0]);
     ydists[j] = (PN[1]);
     zdists[j] = (PN[2]);
@@ -651,8 +638,6 @@ void  SurfaceImageCurvature<TSurface>
     D(j, 0) = 1.0;
     }
 
-//  W=W/totwt;
-
   vnl_svd<double>    svd(D);
   vnl_vector<double> ax = svd.solve(xdists); // /totwt);
   vnl_vector<double> ay = svd.solve(ydists); // /totwt);
@@ -668,17 +653,9 @@ void  SurfaceImageCurvature<TSurface>
   PointType dNdv;
   dNdv[0] = ax[2];  dNdv[1] = ay[2];  dNdv[2] = az[2];
 
-//  this->m_Area = sqrt(  1.0 + df_uvs[1] * df_uvs[1] + df_uvs[2] * df_uvs[2] );
-  this->m_Area = sqrt(  df_uvs[1] * df_uvs[1] + df_uvs[2] * df_uvs[2] )*1000;
+  df_uvs = df_uvs * 1.e5; // scale up
+  this->m_Area = sqrt( 1.0 + df_uvs[1] * df_uvs[1] + df_uvs[2] * df_uvs[2] );
 
-  if ( false ) {
-    std::cout << this->m_Area << std::endl;
-//    std::cout << this->m_Normal << std::endl;
-    std::cout << f_uvs << std::endl;
-    std::cout << df_uvs << std::endl;
-    std::cout << " derka " << std::endl;
-//    exit(0);
-  }
   float a = 0;
   float b = 0;
   float c = 0;
@@ -725,12 +702,12 @@ void  SurfaceImageCurvature<TSurface>
 
   // rebuild the point list from gradients defined at u and v
   this->m_PointList.clear();
-  this->m_PointList.insert(this->m_PointList.begin(), this->m_Origin);
   PointType p;
   RealType paramdelt = this->m_MinSpacing*0.5;
-  for ( RealType ui = -1.0 * paramdelt; ui <= paramdelt; ui=ui+1.9999*paramdelt)
+  RealType eps=1.e-6;
+  for ( RealType ui = -1.0 * paramdelt; ui <= paramdelt+eps; ui=ui+paramdelt)
     {
-    for ( RealType vi = -1.0 * paramdelt; vi <= paramdelt; vi=vi+1.9999*paramdelt)
+    for ( RealType vi = -1.0 * paramdelt; vi <= paramdelt+eps; vi=vi+paramdelt)
       {
       p = this->m_Origin + this->m_Tangent1 * ui + this->m_Tangent2 * vi;
       this->m_PointList.insert( this->m_PointList.begin(), p );
@@ -738,167 +715,6 @@ void  SurfaceImageCurvature<TSurface>
     }
   this->WeingartenMap();
   return;
-
-  MatrixType D;
-
-  float totwt = 0, wt = 0;
-
-  unsigned int j = 0;
-  unsigned int i = 0;
-  unsigned int npts = this->m_PointList.size() - 1;
-
-  if( npts < 6 )
-    {
-    this->m_MeanKappa = 0;
-    this->m_GaussianKappa = 0;
-    this->m_Kappa1 = 0;
-    this->m_Kappa2 = 0;
-    this->m_Area = 0;
-    return;
-    }
-  unsigned int vars = 3;
-  D.set_size(npts, vars); // each row contains [u^2 , uv, v^2, u, v, 1] for point p
-  D.fill(0.0);
-
-  MatrixType W(2, 2);
-  W.fill(0.0);
-
-  vnl_vector<double> xdists(npts);
-  xdists.fill(0.0);
-  vnl_vector<double> ydists(npts);
-  ydists.fill(0.0);
-  vnl_vector<double> zdists(npts);
-  zdists.fill(0.0);
-  vnl_vector<double> f_uvs(npts);
-  f_uvs.fill(0.0);
-
-// go through all the points
-//  compute weight
-//  compute dist of unit dif and tangents
-//  compute dif of normal with grad at point
-
-  PointType Q = this->m_Origin;
-  for( j = 0; j < npts; j++ )
-    {
-    PointType Dif = Q - this->m_PointList[j];
-    typename ImageType::PointType pt;
-    pt[0] = this->m_PointList[j][0];
-    pt[1] = this->m_PointList[j][1];
-    pt[2] = this->m_PointList[j][2];
-    float u1 = 0.0;
-    float u2 = 0.0;
-    float f_uv = 0.0;
-    wt = 1.0; // /difmag;
-    totwt += wt;
-
-    for( i = 0; i < SurfaceDimension; i++ )
-      {
-      u1 += Dif[i] * this->m_Tangent1[i];
-      u2 += Dif[i] * this->m_Tangent2[i];
-      f_uv += Dif[i] * this->m_Normal[i];
-      }
-
-    // get the normal at the point
-    GradientPixelType norm = this->m_Vinterp->Evaluate( pt );
-    PointType         PN;
-    float nmag = 0.0;
-    for( i = 0; i < SurfaceDimension; i++ )
-      {
-      nmag += norm[i] * norm[i];
-      PN[i] = norm[i];
-      }
-
-    nmag = sqrt(nmag);
-    if( nmag >  1.e-9 )
-      {
-      PN /= (nmag);
-      }
-    else
-      {
-      PN *= 0.0;
-      }
-
-// FIXME - should this be PN?
-    for( i = 0; i < SurfaceDimension; i++ )
-      f_uv += norm[i] * this->m_Normal[i];
-
-//    PointType dN=(PN-QN)*wt;
-
-    xdists[j] = (PN[0]);
-    ydists[j] = (PN[1]);
-    zdists[j] = (PN[2]);
-    f_uvs[j] = f_uv;
-
-// each row contains [u^2 , uv, v^2, u, v, 1] for point p
-
-    if( vars == 6 )
-      {
-      D(j, 5) = u2 * u2; // (0   , 2*u2)
-      D(j, 4) = u1 * u1; // (2*u1, 0)
-      D(j, 3) = u1 * u2; // (u2  , u1)
-      }
-    D(j, 2) = u2; // (1   , 0)
-    D(j, 1) = u1; // (0   , 1)
-    D(j, 0) = 1.0;
-    }
-
-//  W=W/totwt;
-
-  vnl_svd<double>    svd(D);
-  vnl_vector<double> ax = svd.solve(xdists); // /totwt);
-  vnl_vector<double> ay = svd.solve(ydists); // /totwt);
-  vnl_vector<double> az = svd.solve(zdists); // /totwt);
-  vnl_vector<double> df_uvs = svd.solve( f_uvs ); // /totwt);
-
-// now get the first partials of each of these terms w.r.t. u and v
-
-// dN/du = (dN/du \dot T_1) T_1+ (dNdu dot T_2) T_2
-
-  PointType dNdu;
-  dNdu[0] = ax[1];  dNdu[1] = ay[1];  dNdu[2] = az[1];
-  PointType dNdv;
-  dNdv[0] = ax[2];  dNdv[1] = ay[2];  dNdv[2] = az[2];
-
-  this->m_Area = sqrt(  1.0 + df_uvs[1] * df_uvs[1] + df_uvs[2] * df_uvs[2] );
-
-  if ( false ) {
-    std::cout << this->m_Area << std::endl;
-    std::cout << this->m_Normal << std::endl;
-    std::cout << f_uvs << std::endl;
-    std::cout << df_uvs << std::endl;
-    std::cout << " derka " << std::endl;
-    exit(0);
-  }
-  float a = 0;
-  float b = 0;
-  float c = 0;
-  float d = 0;
-  for( i = 0; i < SurfaceDimension; i++ )
-    {
-    a += dNdu[i] * this->m_Tangent1[i];
-    b += dNdv[i] * this->m_Tangent1[i];
-
-    c += dNdu[i] * this->m_Tangent2[i];
-    d += dNdv[i] * this->m_Tangent2[i];
-    }
-  W(0, 0) = a;
-  W(0, 1) = b;
-  W(1, 0) = c;
-  W(1, 1) = d;
-
-  // Compute estimated frame using eigensystem of D'*D
-    {
-    vnl_real_eigensystem eig(W);
-//
-    vnl_diag_matrix<vcl_complex<double> > DD(eig.D.rows() ); //
-    this->m_Kappa1 = vcl_real(eig.D(1, 1) );
-    this->m_Kappa2 = vcl_real(eig.D(0, 0) );
-
-//    std::cout << " k1 " << this->m_Kappa1 << " k2 " << this->m_Kappa2 << " pt "<< this->m_Origin << std::endl;
-
-    this->m_MeanKappa = (this->m_Kappa1 + this->m_Kappa2) * 0.5;
-    this->m_GaussianKappa = (this->m_Kappa1 * this->m_Kappa2);
-    }
 }
 
 
