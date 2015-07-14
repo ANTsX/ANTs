@@ -140,15 +140,6 @@ private:
 
   ImageType::Pointer input;
   ReadImage<ImageType>(input, argv[1]);
-  ImageType::DirectionType imgdir = input->GetDirection();
-  ImageType::DirectionType iddir = input->GetDirection();
-  iddir.SetIdentity();
-  input->SetDirection( iddir );
-
-  //  float ballradius = 2.0;
-  // if (argc >= 6) ballradius = (float) atof(argv[5]);
-  // if (ballradius > 0 && thresh > 0) input = SegmentImage<ImageType>(input, thresh, ballradius);
-
   Parameterizer->SetInputImage(input);
 
   //  Parameterizer->ProcessLabelImage();
@@ -205,7 +196,6 @@ private:
   // SmoothImage(Parameterizer->GetFunctionImage(),smooth,3);
   // NormalizeImage(smooth,output,mn);
   //  NormalizeImage(Parameterizer->GetFunctionImage(),output,mn);
-  output->SetDirection( imgdir );
   WriteImage<floatImageType>( output, argv[2]);
   return 0;
 }

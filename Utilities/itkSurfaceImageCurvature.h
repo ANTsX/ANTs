@@ -19,6 +19,7 @@
 #include "itkSurfaceCurvatureBase.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkGradientImageFilter.h"
+#include "itkVectorLinearInterpolateImageFunction.h"
 
 namespace itk
 {
@@ -64,6 +65,7 @@ public:
   typedef typename Superclass::PointType  FixedVectorType;
   typedef typename Superclass::PointType  PointType;
   typedef typename Superclass::MatrixType MatrixType;
+  typedef typename ImageType::PointType ImagePointType;
 
   typedef  Image<PixelType, itkGetStaticConstMacro(ImageDimension)>
     OutputImageType;
@@ -79,6 +81,7 @@ public:
                           itkGetStaticConstMacro(ImageDimension)> GradientPixelType;
   typedef Image<GradientPixelType,
                 itkGetStaticConstMacro(ImageDimension)> GradientImageType;
+  typedef itk::VectorLinearInterpolateImageFunction<GradientImageType, RealType> VectorInterpolatorType;
   typedef SmartPointer<GradientImageType> GradientImagePointer;
   typedef GradientRecursiveGaussianImageFilter<OutputImageType, GradientImageType>
     GradientImageFilterType;
@@ -118,12 +121,16 @@ public:
   /** Use the Weingarten map to estimate the curvature.*/
   void WeingartenMap();
 
+  /** Use the Weingarten map to estimate the curvature.*/
+  void WeingartenMapGradients();
+
   /** Computes a neighborhood surface area function everywhere*/
   void ComputeSurfaceArea();
 
   /** Use the gradient estimated normal to get the local frame.
       Requires call to SetNormal to find tangents. */
   void EstimateFrameFromGradient(IndexType);
+  void EstimateFrameFromGradient(ImagePointType);
 
   /** Implemented version of virtual function from parent class.
       Here, we just sum the computed function, held in CurvatureImage,
@@ -178,11 +185,35 @@ public:
     return kpix;
   }
 
-  inline bool IsValidSurface(PixelType pix, IndexType /* ind */)
+  inline RealType innerProduct( PointType v1, PointType v2 )
+    {
+    return ( v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2] );
+    }
+
+  inline bool IsValidIndex( IndexType ind )
   {
-    //   std::cout << "m_UseLabel "<< m_UseLabel << " pix " << pix << " Thresh " << m_Threshold << " ind " << ind
-    // <<
-    // std::endl;
+    for( unsigned int i = 0; i < ImageDimension; i++ )
+      {
+      float shifted = ind[i];
+      if( shifted < 1 || shifted > ( this->m_ImageSize[i] - 1  ) )
+        {
+        return false;
+        }
+      }
+    return true;
+  }
+
+  inline bool IsValidSurface(PixelType pix, IndexType ind )
+  {
+    for( unsigned int i = 0; i < ImageDimension; i++ )
+      {
+      float shifted = ind[i];
+      if( shifted < 1 || shifted > ( this->m_ImageSize[i] - 1  ) )
+        {
+        return false;
+        }
+      }
+
     if( this->m_UseLabel )
       {
       if( pix == this->m_SurfaceLabel )
@@ -232,6 +263,8 @@ private:
   float                    m_Sigma;
   float                    m_Threshold;
   float                    m_Area;
+  RealType                 m_MinSpacing;
+  typename VectorInterpolatorType::Pointer m_Vinterp;
 };
 } // namespace itk
 

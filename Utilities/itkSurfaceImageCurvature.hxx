@@ -87,6 +87,8 @@ SurfaceImageCurvature<TSurface>
   m_kSign = -1.0;
   m_FunctionImage = ITK_NULLPTR;
   m_Sigma = 1.0;
+  this->m_Vinterp = ITK_NULLPTR;
+  this->m_MinSpacing = itk::NumericTraits<RealType>::max() ;
 }
 
 template <typename TSurface>
@@ -156,31 +158,32 @@ template <typename TSurface>
 void  SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood
   (typename SurfaceImageCurvature<TSurface>::PointType rootpoint)
 {
-  // Superclass::FindNeighborhood();
   this->m_AveragePoint = this->m_Origin;
-
   this->m_PointList.insert(this->m_PointList.begin(), this->m_Origin);
-
   typename ImageType::SizeType rad;
   IndexType oindex, index;
+  typename ImageType::PointType tempp;
+  tempp[0] = rootpoint[0];
+  tempp[1] = rootpoint[1];
+  tempp[2] = rootpoint[2];
+  this->m_FunctionImage->TransformPhysicalPointToIndex( tempp, oindex );
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     rad[i] = (long)(m_NeighborhoodRadius);
-    oindex[i] = (long) (rootpoint[i] + 0.5);
     }
-
   m_ti.SetLocation(oindex);
-
   unsigned int temp = 0;
   for( temp = 0; temp < m_ti.Size(); temp++ )
     {
     index = m_ti.GetIndex(temp);
-    float pix = m_ti.GetPixel(temp);
-
-//    if (pix == m_SurfaceLabel)
-    if( this->IsValidSurface(pix, index) )
+    if( this->IsValidIndex( index) )
+      {
+      float pix = m_ti.GetPixel( temp );
+      if( this->IsValidSurface( pix, index) )
       {
       PointType p;
+      typename ImageType::PointType ipt;
+      this->m_FunctionImage->TransformIndexToPhysicalPoint( index, ipt );
       float     dist = 0.0;
       bool      isorigin = true;
       for( unsigned int k = 0; k < ImageDimension; k++ )
@@ -189,8 +192,10 @@ void  SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood
           {
           isorigin = false;
           }
-        p[k] = (RealType) index[k];
-        dist += (p(k) - this->m_Origin[k]) * (p(k) - this->m_Origin[k]);
+        p[k] = ipt[k];
+        RealType delt = static_cast<RealType>(oindex[k]) -
+          static_cast<RealType>(index[k]);
+        dist +=  delt*delt;
         }
       dist = sqrt(dist);
       if( !isorigin && dist <= (m_NeighborhoodRadius) )
@@ -198,7 +203,7 @@ void  SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood
         this->m_AveragePoint = this->m_AveragePoint + p;
         this->m_PointList.insert(this->m_PointList.begin(), p);
         }
-      }
+      } } // test valid index and valid surface
     }
 
   unsigned int npts = this->m_PointList.size();
@@ -210,14 +215,13 @@ void  SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood
     {
     this->m_AveragePoint = this->m_Origin;
     }
-
   if( this->m_Debug )
     {
-    // std::cout << " point list size " << this->m_PointList.size() << std::endl;
-    //  for(int i = 0; i < this->m_PointList.size(); i++) {
-    //    std:: cout << " point  " << this->m_PointList[i];
-    //  }
-    // std::cout << std::endl;
+    std::cout << " point list size " << this->m_PointList.size() << std::endl;
+    for( unsigned int i = 0; i < this->m_PointList.size(); i++ ) {
+      std:: cout << " point  " << this->m_PointList[i];
+      }
+    std::cout << std::endl;
     }
 }
 
@@ -368,27 +372,13 @@ void  SurfaceImageCurvature<TSurface>::FindNeighborhood(unsigned int numMeanShif
     }
   else
     {
-    this->FindEuclideanNeighborhood(this->GetOrigin() );
+    this->FindEuclideanNeighborhood( this->GetOrigin() );
     for( unsigned int dd = 0; dd < numMeanShifts; dd++ )
       {
       this->m_PointList.clear();
       this->FindEuclideanNeighborhood(this->GetAveragePoint() );
       }
     }
-
-/*  if (this->m_Origin[0]==170 && this->m_Origin[1]==137 && this->m_Origin[2]==81)
-  if ( this->m_Origin[1]==146 && this->m_Origin[0] > 167 )
-  {
-    std::cout << " origin " << this->m_Origin << std::endl;
-    for (unsigned int tt=0; tt<this->m_PointList.size()-1; tt++)
-    {
-      PointType p=this->m_Origin-this->m_PointList[tt];
-      float dist = p.magnitude();
-      std::cout << " pt dist " << dist << " point " << this->m_PointList[tt] << std::endl;
-    }
-
-  }
-*/
 }
 
 template <typename TSurface>
@@ -451,7 +441,6 @@ void  SurfaceImageCurvature<TSurface>
   IteratorType Iterator( image, image->GetLargestPossibleRegion().GetSize() );
   bool         wmgmcurv = true;
   Iterator.GoToBegin();
-  // std::cout <<" ASS " << std::endl;
   while(  !Iterator.IsAtEnd()  )
     {
     float pix = Iterator.Get();
@@ -462,13 +451,13 @@ void  SurfaceImageCurvature<TSurface>
     ++Iterator;
     }
 
-  // std::cout << " Using Binary Segmentation curv? " << wmgmcurv << std::endl;
-
   if( wmgmcurv )
     {
     typename OutputImageType::Pointer laplacian =
       AllocImage<OutputImageType>( image->GetLargestPossibleRegion() );
     laplacian->SetSpacing(image->GetSpacing() );
+    laplacian->SetDirection(image->GetDirection() );
+    laplacian->SetOrigin(image->GetOrigin() );
     Iterator.GoToBegin();
     while(  !Iterator.IsAtEnd()  )
       {
@@ -492,7 +481,6 @@ void  SurfaceImageCurvature<TSurface>
     unsigned int totit = 50;
     for( unsigned int iterations = 0; iterations < totit; iterations++ )
       {
-      // std::cout << " % " << (float)iterations / (float)(totit) << std::endl;
       while(  !Iterator.IsAtEnd()  )
         {
         IndexType ind = Iterator.GetIndex();
@@ -518,9 +506,8 @@ void  SurfaceImageCurvature<TSurface>
       Iterator.GoToBegin();
       }
 //    WriteImage<TSurface>(laplacian,"lap.hdr");
-//    std::cout << "Laplacian Solved " << std::endl;
     GradientImageFilterPointer filter = GradientImageFilterType::New();
-    filter->SetInput( laplacian);
+    filter->SetInput( laplacian );
     RealType sigma = this->m_Sigma;
     filter->SetSigma( sigma );
     // Execute the filter
@@ -549,13 +536,22 @@ void  SurfaceImageCurvature<TSurface>
     filter->Update();
     this->m_GradientImage = filter->GetOutput();
     }
-  // std::cout << " compute normals done ";
+
+  this->m_Vinterp =  VectorInterpolatorType::New();
+  this->m_Vinterp->SetInputImage( this->m_GradientImage );
+
 }
 
 template <typename TSurface>
 void  SurfaceImageCurvature<TSurface>
 ::WeingartenMap()
 {
+  typename ImageType::Pointer image = this->GetInput();
+  if( !image )
+    {
+    return;
+    }
+
   MatrixType D;
 
   float totwt = 0, wt = 0;
@@ -563,8 +559,8 @@ void  SurfaceImageCurvature<TSurface>
   unsigned int j = 0;
   unsigned int i = 0;
   unsigned int npts = this->m_PointList.size() - 1;
-
-  if( npts < 4 )
+  unsigned int vars = 3;
+  if( npts < (vars+1) )
     {
     this->m_MeanKappa = 0;
     this->m_GaussianKappa = 0;
@@ -573,7 +569,202 @@ void  SurfaceImageCurvature<TSurface>
     this->m_Area = 0;
     return;
     }
+  D.set_size(npts, vars); // each row contains [u^2 , uv, v^2, u, v, 1] for point p
+  D.fill(0.0);
 
+  MatrixType W(2, 2);
+  W.fill(0.0);
+
+  vnl_vector<double> xdists(npts);
+  xdists.fill(0.0);
+  vnl_vector<double> ydists(npts);
+  ydists.fill(0.0);
+  vnl_vector<double> zdists(npts);
+  zdists.fill(0.0);
+  vnl_vector<double> f_uvs(npts);
+  f_uvs.fill(0.0);
+
+// go through all the points
+//  compute weight
+//  compute dist of unit dif and tangents
+//  compute dif of normal with grad at point
+
+  PointType Q = this->m_Origin;
+  for( j = 0; j < npts; j++ )
+    {
+    PointType Dif = Q - this->m_PointList[j];
+    typename ImageType::PointType pt;
+    pt[0] = this->m_PointList[j][0];
+    pt[1] = this->m_PointList[j][1];
+    pt[2] = this->m_PointList[j][2];
+    float u1 = 0.0;
+    float u2 = 0.0;
+    float f_uv = 0.0;
+    wt = 1.0; // /difmag;
+    totwt += wt;
+
+    for( i = 0; i < SurfaceDimension; i++ )
+      {
+      u1 += Dif[i] * this->m_Tangent1[i];
+      u2 += Dif[i] * this->m_Tangent2[i];
+      }
+
+    // get the normal at the point
+    GradientPixelType norm = this->m_Vinterp->Evaluate( pt );
+    PointType         PN;
+    float nmag = 0.0;
+    for( i = 0; i < SurfaceDimension; i++ )
+      {
+      nmag += norm[i] * norm[i];
+      PN[i] = norm[i];
+      }
+
+    nmag = sqrt(nmag);
+    if( nmag >  1.e-9 )
+      {
+      PN /= (nmag);
+      }
+    else
+      {
+      PN *= 0.0;
+      }
+
+// ( x - u*e1 - v*e2 ) = f(u,v) e3
+    RealType t1 = this->innerProduct( PN, this->m_Tangent1 );
+    RealType t2 = this->innerProduct( PN, this->m_Tangent2 );
+    f_uv = this->innerProduct( PN, this->m_Normal );
+    PointType fuve3 = PN - this->m_Tangent1 * t1 - this->m_Tangent2 * t2;
+// now the inner product of fuve3 and the normal is f_uv ...
+    f_uv = ( this->innerProduct( fuve3, this->m_Normal ) );
+//    std::cout << " PN " << PN << std::endl;
+//    std::cout << " ES " << this->m_Tangent1 * t1 + this->m_Tangent2 * t2 + this->m_Normal * f_uv << std::endl;
+    // std::cout << " f_uv " << f_uv << std::endl;
+    // std::cout << " u1 " << u1 << std::endl;
+    // std::cout << " u2 " << u2 << std::endl;
+
+    xdists[j] = (PN[0]);
+    ydists[j] = (PN[1]);
+    zdists[j] = (PN[2]);
+    f_uvs[j] = f_uv;
+
+// each row contains [u^2 , uv, v^2, u, v, 1] for point p
+
+    if( vars == 6 )
+      {
+      D(j, 5) = u2 * u2; // (0   , 2*u2)
+      D(j, 4) = u1 * u1; // (2*u1, 0)
+      D(j, 3) = u1 * u2; // (u2  , u1)
+      }
+    D(j, 2) = u2; // (1   , 0)
+    D(j, 1) = u1; // (0   , 1)
+    D(j, 0) = 1.0;
+    }
+
+//  W=W/totwt;
+
+  vnl_svd<double>    svd(D);
+  vnl_vector<double> ax = svd.solve(xdists); // /totwt);
+  vnl_vector<double> ay = svd.solve(ydists); // /totwt);
+  vnl_vector<double> az = svd.solve(zdists); // /totwt);
+  vnl_vector<double> df_uvs = svd.solve( f_uvs ); // /totwt);
+
+// now get the first partials of each of these terms w.r.t. u and v
+
+// dN/du = (dN/du \dot T_1) T_1+ (dNdu dot T_2) T_2
+
+  PointType dNdu;
+  dNdu[0] = ax[1];  dNdu[1] = ay[1];  dNdu[2] = az[1];
+  PointType dNdv;
+  dNdv[0] = ax[2];  dNdv[1] = ay[2];  dNdv[2] = az[2];
+
+//  this->m_Area = sqrt(  1.0 + df_uvs[1] * df_uvs[1] + df_uvs[2] * df_uvs[2] );
+  this->m_Area = sqrt(  df_uvs[1] * df_uvs[1] + df_uvs[2] * df_uvs[2] )*1000;
+
+  if ( false ) {
+    std::cout << this->m_Area << std::endl;
+//    std::cout << this->m_Normal << std::endl;
+    std::cout << f_uvs << std::endl;
+    std::cout << df_uvs << std::endl;
+    std::cout << " derka " << std::endl;
+//    exit(0);
+  }
+  float a = 0;
+  float b = 0;
+  float c = 0;
+  float d = 0;
+  for( i = 0; i < SurfaceDimension; i++ )
+    {
+    a += dNdu[i] * this->m_Tangent1[i];
+    b += dNdv[i] * this->m_Tangent1[i];
+
+    c += dNdu[i] * this->m_Tangent2[i];
+    d += dNdv[i] * this->m_Tangent2[i];
+    }
+  W(0, 0) = a;
+  W(0, 1) = b;
+  W(1, 0) = c;
+  W(1, 1) = d;
+
+  // Compute estimated frame using eigensystem of D'*D
+    {
+    vnl_real_eigensystem eig(W);
+//
+    vnl_diag_matrix<vcl_complex<double> > DD(eig.D.rows() ); //
+    this->m_Kappa1 = vcl_real(eig.D(1, 1) );
+    this->m_Kappa2 = vcl_real(eig.D(0, 0) );
+
+//    std::cout << " k1 " << this->m_Kappa1 << " k2 " << this->m_Kappa2 << " pt "<< this->m_Origin << std::endl;
+
+    this->m_MeanKappa = (this->m_Kappa1 + this->m_Kappa2) * 0.5;
+    this->m_GaussianKappa = (this->m_Kappa1 * this->m_Kappa2);
+    }
+}
+
+
+
+template <typename TSurface>
+void  SurfaceImageCurvature<TSurface>
+::WeingartenMapGradients()
+{
+  typename ImageType::Pointer image = this->GetInput();
+  if( !image )
+    {
+    return;
+    }
+
+  // rebuild the point list from gradients defined at u and v
+  this->m_PointList.clear();
+  this->m_PointList.insert(this->m_PointList.begin(), this->m_Origin);
+  PointType p;
+  RealType paramdelt = this->m_MinSpacing*0.5;
+  for ( RealType ui = -1.0 * paramdelt; ui <= paramdelt; ui=ui+1.9999*paramdelt)
+    {
+    for ( RealType vi = -1.0 * paramdelt; vi <= paramdelt; vi=vi+1.9999*paramdelt)
+      {
+      p = this->m_Origin + this->m_Tangent1 * ui + this->m_Tangent2 * vi;
+      this->m_PointList.insert( this->m_PointList.begin(), p );
+      }
+    }
+  this->WeingartenMap();
+  return;
+
+  MatrixType D;
+
+  float totwt = 0, wt = 0;
+
+  unsigned int j = 0;
+  unsigned int i = 0;
+  unsigned int npts = this->m_PointList.size() - 1;
+
+  if( npts < 6 )
+    {
+    this->m_MeanKappa = 0;
+    this->m_GaussianKappa = 0;
+    this->m_Kappa1 = 0;
+    this->m_Kappa2 = 0;
+    this->m_Area = 0;
+    return;
+    }
   unsigned int vars = 3;
   D.set_size(npts, vars); // each row contains [u^2 , uv, v^2, u, v, 1] for point p
   D.fill(0.0);
@@ -609,23 +800,16 @@ void  SurfaceImageCurvature<TSurface>
     wt = 1.0; // /difmag;
     totwt += wt;
 
-    IndexType index;
-//    IndexType index2;
-//    image->TransformPhysicalPointToIndex( pt, index );
     for( i = 0; i < SurfaceDimension; i++ )
       {
       u1 += Dif[i] * this->m_Tangent1[i];
       u2 += Dif[i] * this->m_Tangent2[i];
       f_uv += Dif[i] * this->m_Normal[i];
-      index[i] = (long) (this->m_PointList[j][i] + 0.5);
       }
-//    if (fabs(u1) < 1.e-6) u1=1.e-6;
-//    if (fabs(u2) < 1.e-6) u2=1.e-6;
 
     // get the normal at the point
-    GradientPixelType norm = this->m_GradientImage->GetPixel(index);
+    GradientPixelType norm = this->m_Vinterp->Evaluate( pt );
     PointType         PN;
-
     float nmag = 0.0;
     for( i = 0; i < SurfaceDimension; i++ )
       {
@@ -653,38 +837,7 @@ void  SurfaceImageCurvature<TSurface>
     ydists[j] = (PN[1]);
     zdists[j] = (PN[2]);
     f_uvs[j] = f_uv;
-/*
-    float a=0;
-    float b=0;
 
-    for (i=0; i<SurfaceDimension; i++)
-    {
-      a+=dN[i]*this->m_Tangent1[i];
-      b+=dN[i]*this->m_Tangent2[i];
-    }
-
-
-
-    if ( u1*u1 > u2*u2 )
-    {
-
-      W(0,0)=W(0,0)+a;
-      W(1,0)=W(1,0)+b;
-    }
-    else
-    {
-      W(0,1)=W(0,1)+a;
-      W(1,1)=W(1,1)+b;
-    }
-
-
-   D(j,0)=u1*u1;
-   D(j,1)=2.*u1*u2;
-   D(j,2)=u2*u2;
-   D(j,3)=u1;
-   D(j,4)=u2;
-   D(j,5)=1.0;
-*/
 // each row contains [u^2 , uv, v^2, u, v, 1] for point p
 
     if( vars == 6 )
@@ -727,7 +880,6 @@ void  SurfaceImageCurvature<TSurface>
   }
   float a = 0;
   float b = 0;
-
   float c = 0;
   float d = 0;
   for( i = 0; i < SurfaceDimension; i++ )
@@ -738,20 +890,6 @@ void  SurfaceImageCurvature<TSurface>
     c += dNdu[i] * this->m_Tangent2[i];
     d += dNdv[i] * this->m_Tangent2[i];
     }
-/*
-    dNdu=a/(c+a)*this->m_Tangent1+c/(c+a)*this->m_Tangent2;
-    dNdv=b/(b+d)*this->m_Tangent1+d/(b+d)*this->m_Tangent2;
-    a=0; b=0; c=0; d=0;
-
-    for (i=0; i<SurfaceDimension; i++)
-    {
-      a+=dNdu[i]*this->m_Tangent1[i];
-      b+=dNdv[i]*this->m_Tangent1[i];
-
-      c+=dNdu[i]*this->m_Tangent2[i];
-      d+=dNdv[i]*this->m_Tangent2[i];
-    }
-*/
   W(0, 0) = a;
   W(0, 1) = b;
   W(1, 0) = c;
@@ -762,23 +900,16 @@ void  SurfaceImageCurvature<TSurface>
     vnl_real_eigensystem eig(W);
 //
     vnl_diag_matrix<vcl_complex<double> > DD(eig.D.rows() ); //
-/*    for(i = 0; i < eig.D.n(); ++i) {
-     vnl_test_assert("All real", vcl_imag(eig.D(i,i)) < 1e-15);
-      DD(i,i) = vcl_real(eig.D(i,i));
-    }
-
-    vcl_cout << "D = " << eig.D << vcl_endl;
-    vcl_cout << "V = " << eig.V << vcl_endl;
-*/
     this->m_Kappa1 = vcl_real(eig.D(1, 1) );
     this->m_Kappa2 = vcl_real(eig.D(0, 0) );
 
-// std::cout << " k1 " << this->m_Kappa1 << " k2 " << this->m_Kappa2 << " pt "<< this->m_Origin << std::endl;
+//    std::cout << " k1 " << this->m_Kappa1 << " k2 " << this->m_Kappa2 << " pt "<< this->m_Origin << std::endl;
 
     this->m_MeanKappa = (this->m_Kappa1 + this->m_Kappa2) * 0.5;
     this->m_GaussianKappa = (this->m_Kappa1 * this->m_Kappa2);
     }
 }
+
 
 template <typename TSurface>
 void  SurfaceImageCurvature<TSurface>
@@ -825,7 +956,6 @@ void  SurfaceImageCurvature<TSurface>
       index[2] >  this->m_NeighborhoodRadius )
       {
       ct++;
-//        this->EstimateFrameFromGradient(index);
 // BUG FIXME
       area = this->ComputeLocalArea( spacing );
 //      area = 1.0;
@@ -844,14 +974,13 @@ void  SurfaceImageCurvature<TSurface>
   return;
 }
 
+
 template <typename TSurface>
 void  SurfaceImageCurvature<TSurface>
-::EstimateFrameFromGradient(IndexType index)
+::EstimateFrameFromGradient( IndexType  index )
 {
-  GradientPixelType g = this->m_GradientImage->GetPixel(index);
-
+  GradientPixelType g = this->m_GradientImage->GetPixel( index );
   RealType mag = 0.0;
-
   for( int i = 0; i < ImageDimension; i++ )
     {
     this->m_Normal(i) = (RealType) g[i];
@@ -866,7 +995,29 @@ void  SurfaceImageCurvature<TSurface>
     {
     this->m_Normal /= sqrt(mag);
     }
+  this->SetFrameFromNormal(this->m_Normal);
+}
 
+template <typename TSurface>
+void  SurfaceImageCurvature<TSurface>
+::EstimateFrameFromGradient( ImagePointType  ipt )
+{
+  GradientPixelType g = this->m_Vinterp->Evaluate( ipt );
+  RealType mag = 0.0;
+  for( int i = 0; i < ImageDimension; i++ )
+    {
+    this->m_Normal(i) = (RealType) g[i];
+    mag += g[i] * g[i];
+    }
+  mag = sqrt(mag);
+  if( mag <= 1.e-9 )
+    {
+    this->m_Normal.fill(0.);
+    }
+  else
+    {
+    this->m_Normal /= sqrt(mag);
+    }
   this->SetFrameFromNormal(this->m_Normal);
 }
 
@@ -876,19 +1027,10 @@ SurfaceImageCurvature<TSurface>
 ::IntegrateFunctionOverSurface(bool norm)
 {
   typename OutputImageType::Pointer image = this->m_FunctionImage;
-
-  if( !image )
-    {
-    // std::cout << " no image " << std::endl; return 0;
-    }
-
-  //  // std::cout << "  allocating temp image ";
   typename OutputImageType::Pointer tempimage = OutputImageType::New();
   tempimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
   tempimage->SetBufferedRegion( image->GetLargestPossibleRegion() );
   tempimage->Allocate();
-
-  //  std::cout << "  done allocating  ";
 
   typename ImageType::SizeType rad;
   typename ImageType::SizeType rad2;
@@ -933,17 +1075,8 @@ SurfaceImageCurvature<TSurface>
       this->SetOrigin(p);
 //          std::cout << " find nhood ";
       this->FindNeighborhood();
-//        std::cout << " get area ";
       RealType area = this->IntegrateFunctionOverNeighborhood(norm);
       tempimage->SetPixel(index, area);
-      //      if( ct % 10000 == 0 )
-      //        {
-      //        std::cout << " area is : " << area << " ct " << ct << " pix " << ti.Get() << std::endl;
-      //        }
-//        if ( area > 1) std::cout << " ind " << index << " area " << area  << std::endl;
-      // SD why sometimes a pixel is NaN ?
-      //      if ( !(area > 0)) std::cout << " ind " << index << " area " << area << " pix " << ti.Get() <<
-      // std::endl;
       }
     ++ti;
     }
@@ -984,9 +1117,6 @@ SurfaceImageCurvature<TSurface>
 {
   unsigned int npts = this->m_PointList.size();
   double       curvature = 0.0, tw = 0;
-
-  //  std::cout << " npts " << npts;
-
   for( unsigned int pp = 0; pp < npts; pp++ )
     {
     IndexType localindex;
@@ -1002,7 +1132,6 @@ SurfaceImageCurvature<TSurface>
       }
     tw += wi;
     RealType func = this->m_FunctionImage->GetPixel( localindex );
-    //    std::cout << " pp " << pp << " func " << func << std::endl;
     if( norm )
       {
       curvature += wi * func;
@@ -1096,15 +1225,15 @@ template <typename TSurface>
 void  SurfaceImageCurvature<TSurface>
 ::ComputeFrameOverDomain(unsigned int which)
 {
-  ImageType* image = GetInput();
-
+  ImageType* image = this->GetInput();
   if( !image )
     {
     return;
     }
-
+  for ( unsigned int d = 0; d < ImageDimension; d++ )
+    if ( image->GetSpacing()[d] < this->m_MinSpacing )
+      this->m_MinSpacing = image->GetSpacing()[d];
   IndexType index;
-
   typename ImageType::RegionType requestedRegion;
   this->m_ImageSize = image->GetLargestPossibleRegion().GetSize();
   ImageIteratorType ti( image, image->GetLargestPossibleRegion() );
@@ -1123,10 +1252,8 @@ void  SurfaceImageCurvature<TSurface>
   while( !ti.IsAtEnd()  )
     {
     index = ti.GetIndex();
-    if( ct2 % 200000 == 0 && ct2 > 0 )
-      {
-      // std::cout << " ind " << index << " kp " << kpix << std::endl;
-      }
+    typename ImageType::PointType pt;
+    image->TransformIndexToPhysicalPoint( index, pt );
     kpix = 0.0;
     if(  // ti.Get() == this->m_SurfaceLabel &&
       this->IsValidSurface(ti.Get(), index) &&
@@ -1137,16 +1264,14 @@ void  SurfaceImageCurvature<TSurface>
       index[2] < this->m_ImageSize[2] - 2 * this->m_NeighborhoodRadius &&
       index[2] >  2 * this->m_NeighborhoodRadius ) //
       {
-      // std::cout << " val " << (RealType) ti.Get() << std::endl;
       PointType p;
       for( unsigned int k = 0; k < ImageDimension; k++ )
         {
-        p[k] = (RealType) index[k];
+        p[k] = pt[k];
         }
       this->SetOrigin(p);
-      this->EstimateFrameFromGradient(index);
+      this->EstimateFrameFromGradient( pt );
       this->FindNeighborhood();
-
       switch( which )
         {
         case ( 0 ):
@@ -1166,7 +1291,7 @@ void  SurfaceImageCurvature<TSurface>
           break;
         case ( 3 ):
           {
-          this->WeingartenMap();
+          this->WeingartenMapGradients();
           }
           break;
         case ( 4 ):
@@ -1176,7 +1301,7 @@ void  SurfaceImageCurvature<TSurface>
           break;
         default:
           {
-          this->WeingartenMap();
+          this->WeingartenMapGradients();
           }
         }
 
@@ -1203,34 +1328,13 @@ void  SurfaceImageCurvature<TSurface>
         // std::cout << " best error " << error << std::endl;
         }
 
-//    kpix=fabs(2.0/(3.1416)*atan((this->m_Kappa1+this->m_Kappa2)/(this->m_Kappa2-this->m_Kappa1)));
-//    if (kpix >= 0)
-//    kpix = (sqrt(this->m_Kappa1*this->m_Kappa1+this->m_Kappa2*this->m_Kappa2));
-//      kpix=1.0;
-//    if (this->m_MeanKappa > 0.)  kpix +=fabs(this->m_MeanKappa);
-//      kpix =fabs(this->m_MeanKappa);
-//    kpix = kpix+10.0;
-//    if (this->m_Kappa1 > 0) kpix+=fabs(this->m_Kappa1);
-//    if (this->m_Kappa2 > 0) kpix+=fabs(this->m_Kappa2);
-//    else kpix = -1.0*(sqrt(this->m_Kappa1*this->m_Kappa1+this->m_Kappa2*this->m_Kappa2));
-
-//    std::cout << " kpix " << kpix << " thresh " << thresh << std::endl;
-
-//
-//    if ( fabs(kpix) >  100 ) kpix=0.0;
-//    else if (kpix < -1.0*thresh/ct ) kpix=2;
-//    else kpix=0;
-
-      kpix = 1.1;
+      kpix = 0;
       float fval = this->m_GaussianKappa;
       fval = this->m_MeanKappa;
-//      fval=fval*(1.0+fabs(this->m_Kappa2-this->m_Kappa1));
-      if( fabs(fval) > 1 )
-        {
-        fval /= fval;
-        }
-//      if (fval > 0.0) kpix+=(fval); // gyri
-//      if (fval < 0.0) kpix-=(fval); // sulci bright
+//      if( fabs(fval) > 1 )
+//        {
+//        fval = 0;
+//        }
       kpix = this->m_kSign * fval; // sulci
       if( vnl_math_isnan(kpix)  || vnl_math_isinf(kpix) )
         {
@@ -1241,8 +1345,6 @@ void  SurfaceImageCurvature<TSurface>
         this->m_Area = 0.0;
         kpix = 0.0;
         }
-//      kpix=1.0+this->m_Kappa1*this->m_Kappa1+this->m_Kappa2*this->m_Kappa2;
-//    kpix=fabs(this->m_Normal[0]);
       if( which == 5 )
         {
         kpix = this->CharacterizeSurface();
@@ -1260,50 +1362,15 @@ void  SurfaceImageCurvature<TSurface>
       }
     thresh += kpix;
     float offset = 0;
-    if( fabs( image->GetPixel(index) - 0 ) > 1.e-6  )
-      {
-      offset = 0;
-      }
     if( which == 5 )
       {
       offset = 0;
       }
-    this->m_FunctionImage->SetPixel(index, offset + kpix );
+//    if (  ()  && ( )  ) kpix=0;
+    this->m_FunctionImage->SetPixel( index, offset + kpix );
     ct2++;
     ++ti;
     }
-
-  // std::cout << " average curvature " << thresh / (float)ct << " kSign " << this->m_kSign <<  std::endl;
-
-/* now get s.d.
-  float sd=0.0;
-  float avgc=thresh/(float)ct;
-  ti.GoToBegin();
-  while(!ti.IsAtEnd()  )
-  {
-    PixelType pix=ti.Get();
-    if ( //ti.Get() == this->m_SurfaceLabel
-      this->IsValidSurface(ti.Get(),index)
-    )
-      sd+=(this->m_FunctionImage->GetPixel(ti.GetIndex())-avgc)*
-          (this->m_FunctionImage->GetPixel(ti.GetIndex())-avgc);
-    ++ti;
-  }
-
-  sd=sqrt(sd/(float)ct);
-  float nsd=1.0;
-  ti.GoToBegin();
-  while(!ti.IsAtEnd()  )
-  {
-    PixelType pix=ti.Get();
-    if ( //ti.Get() == this->m_SurfaceLabel
-        this->IsValidSurface(ti.Get(),index) &&
-        (this->m_FunctionImage->GetPixel(ti.GetIndex()) - avgc) > nsd*sd )
-      this->m_FunctionImage->SetPixel(ti.GetIndex(),avgc+nsd*sd);
-
-    ++ti;
-  }
-*/
 }
 
 template <typename TSurface>
@@ -1337,25 +1404,17 @@ SurfaceImageCurvature<TSurface>
 ::SetInputImage(typename  ImageType::Pointer & input)
 {
   this->ProcessObject::SetNthInput(0,  input);
-
   this->m_ImageSize = input->GetLargestPossibleRegion().GetSize();
-
-  typename OutputImageType::RegionType region;
-  region.SetSize( this->m_ImageSize );
-
+  typename OutputImageType::RegionType region =
+    input->GetLargestPossibleRegion();
   if( !this->m_FunctionImage )
     {
     this->m_FunctionImage = OutputImageType::New();
-    this->m_FunctionImage->SetLargestPossibleRegion( region );
-    this->m_FunctionImage->SetBufferedRegion( region );
+    this->m_FunctionImage->CopyInformation( input );
+    this->m_FunctionImage->SetRegions( region );
     this->m_FunctionImage->Allocate();
-    this->m_FunctionImage->SetSpacing( input->GetSpacing() );
-    this->m_FunctionImage->SetDirection( input->GetDirection() );
-    this->m_FunctionImage->SetOrigin( input->GetOrigin() );
+    this->m_FunctionImage->FillBuffer( 0 );
     }
-  // this->ProcessLabelImage();
-
-  // this->ProcessObject::SetNthOutput( 0, this->m_FunctionImage );
 }
 } // namespace itk
 
