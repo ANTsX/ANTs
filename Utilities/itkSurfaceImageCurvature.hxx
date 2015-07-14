@@ -553,9 +553,6 @@ void  SurfaceImageCurvature<TSurface>
     }
 
   MatrixType D;
-
-  float totwt = 0, wt = 0;
-
   unsigned int j = 0;
   unsigned int i = 0;
   unsigned int npts = this->m_PointList.size();
@@ -592,19 +589,10 @@ void  SurfaceImageCurvature<TSurface>
   PointType Q = this->m_Origin;
   for( j = 0; j < npts; j++ )
     {
-    PointType Dif = Q - this->m_PointList[j];
     typename ImageType::PointType pt;
     pt[0] = this->m_PointList[j][0];
     pt[1] = this->m_PointList[j][1];
     pt[2] = this->m_PointList[j][2];
-    float u1 = 0.0;
-    float u2 = 0.0;
-    float f_uv = 0.0;
-    wt = 1.0; // /difmag;
-    totwt += wt;
-
-    u1 = this->innerProduct( Dif, this->m_Tangent1 );
-    u2 = this->innerProduct( Dif, this->m_Tangent2 );
     // std::cout << " j " << j << " " << u1 << " " << u2 << std::endl;
     // get the normal at the point
     GradientPixelType norm = this->m_Vinterp->Evaluate( pt );
@@ -613,8 +601,16 @@ void  SurfaceImageCurvature<TSurface>
       {
       Grad[i] = norm[i];
       }
-    PointType PN = Grad / ( Grad.magnitude() + static_cast<RealType>(1.e-12) );
+    PointType PN = Grad / ( Grad.magnitude() );
 
+// get the surface parameterization ...
+    float u1 = 0.0;
+    float u2 = 0.0;
+    float f_uv = 0.0;
+//    PointType Dif = Q + this->m_Normal - this->m_PointList[j] - PN;
+    PointType Dif = Q - this->m_PointList[j];
+    u1 = this->innerProduct( Dif, this->m_Tangent1 );
+    u2 = this->innerProduct( Dif, this->m_Tangent2 );
 // now the inner product of PN and the normal is f_uv ...
     f_uv = ( this->innerProduct( PN, this->m_Normal ) );
 // the point is therefore defined as:
