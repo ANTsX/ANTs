@@ -593,8 +593,6 @@ void  SurfaceImageCurvature<TSurface>
     pt[0] = this->m_PointList[j][0];
     pt[1] = this->m_PointList[j][1];
     pt[2] = this->m_PointList[j][2];
-    // std::cout << " j " << j << " " << u1 << " " << u2 << std::endl;
-    // get the normal at the point
     GradientPixelType norm = this->m_Vinterp->Evaluate( pt );
     PointType         Grad;
     for( i = 0; i < SurfaceDimension; i++ )
@@ -612,7 +610,7 @@ void  SurfaceImageCurvature<TSurface>
     u1 = this->innerProduct( Dif, this->m_Tangent1 );
     u2 = this->innerProduct( Dif, this->m_Tangent2 );
 // now the inner product of PN and the normal is f_uv ...
-    f_uv = ( this->innerProduct( PN, this->m_Normal ) );
+    f_uv = this->innerProduct( PN, this->m_Normal );
 // the point is therefore defined as:
 // surfacePoint = this->m_Tangent1 * u1 + this->m_Tangent2 * u2 +
 //                this->m_Normal * f_uv ;
@@ -621,14 +619,14 @@ void  SurfaceImageCurvature<TSurface>
     zdists[j] = (PN[2]);
     f_uvs[j] = f_uv;
 
-// each row contains [u^2 , uv, v^2, u, v, 1] for point p
-
     if( vars == 6 )
       {
+      // each row contains [u^2 , uv, v^2, u, v, 1] for point p
       D(j, 5) = u2 * u2; // (0   , 2*u2)
       D(j, 4) = u1 * u1; // (2*u1, 0)
       D(j, 3) = u1 * u2; // (u2  , u1)
       }
+    // each row contains [ u, v, 1] for point p
     D(j, 2) = u2; // (1   , 0)
     D(j, 1) = u1; // (0   , 1)
     D(j, 0) = 1.0;
@@ -672,13 +670,9 @@ void  SurfaceImageCurvature<TSurface>
   // Compute estimated frame using eigensystem of D'*D
     {
     vnl_real_eigensystem eig(W);
-//
     vnl_diag_matrix<vcl_complex<double> > DD(eig.D.rows() ); //
     this->m_Kappa1 = vcl_real(eig.D(1, 1) );
     this->m_Kappa2 = vcl_real(eig.D(0, 0) );
-
-//    std::cout << " k1 " << this->m_Kappa1 << " k2 " << this->m_Kappa2 << " pt "<< this->m_Origin << std::endl;
-
     this->m_MeanKappa = (this->m_Kappa1 + this->m_Kappa2) * 0.5;
     this->m_GaussianKappa = (this->m_Kappa1 * this->m_Kappa2);
     }
