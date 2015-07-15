@@ -586,6 +586,7 @@ void  SurfaceImageCurvature<TSurface>
 //  compute dist of unit dif and tangents
 //  compute dif of normal with grad at point
 
+  this->m_Area = 1.0;
   PointType Q = this->m_Origin;
   for( j = 0; j < npts; j++ )
     {
@@ -632,6 +633,7 @@ void  SurfaceImageCurvature<TSurface>
     D(j, 2) = u2; // (1   , 0)
     D(j, 1) = u1; // (0   , 1)
     D(j, 0) = 1.0;
+    this->m_Area += vnl_math_abs( f_uv - 1.0 );
     }
 
   vnl_svd<double>    svd(D);
@@ -649,8 +651,8 @@ void  SurfaceImageCurvature<TSurface>
   PointType dNdv;
   dNdv[0] = ax[2];  dNdv[1] = ay[2];  dNdv[2] = az[2];
 
-  df_uvs = df_uvs * 1.e5; // scale up
-  this->m_Area = sqrt( 1.0 + df_uvs[1] * df_uvs[1] + df_uvs[2] * df_uvs[2] );
+//  df_uvs = df_uvs * 1.e5; // scale up
+//  this->m_Area = sqrt( 1.0 + df_uvs[1] * df_uvs[1] + df_uvs[2] * df_uvs[2] );
 
   float a = 0;
   float b = 0;
