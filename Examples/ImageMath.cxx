@@ -10014,6 +10014,10 @@ int ReplicateImage( int argc, char *argv[] )
     {
     ind = It1.GetIndex();
     typename ImageType::PixelType vecx = It1.Get();
+    for( unsigned int i = 0; i < ImageDimension; i++ )
+      {
+      indp1[i] = ind[i];
+      }
     for( unsigned int i = 0; i < timedims; i++ )
       {
       indp1[ImageDimension] = i;
