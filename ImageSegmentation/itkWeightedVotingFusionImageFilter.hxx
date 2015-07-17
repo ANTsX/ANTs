@@ -927,7 +927,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   os << "Patch neighborhood radius = " << this->m_PatchNeighborhoodRadius << std::endl;
   if( this->m_UsePearsonCorrelationCoefficient )
     {
-    os << "Using Pearson correlation to measure the path similarity." << std::endl;
+    os << "Using Pearson correlation to measure the patch similarity." << std::endl;
     }
 
   os << "Label set: ";
