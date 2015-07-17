@@ -39,7 +39,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   m_Beta( 2.0 ),
   m_RetainLabelPosteriorProbabilityImages( false ),
   m_RetainAtlasVotingWeightImages( false ),
-  m_ConstrainSolutionToNonnegativeWeights( false )
+  m_ConstrainSolutionToNonnegativeWeights( false ),
+  m_UsePearsonCorrelationCoefficient( false )
 {
   this->m_MaskImage = ITK_NULLPTR;
   this->m_MaskLabel = NumericTraits<LabelType>::OneValue();
@@ -875,22 +876,39 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   const InputImagePixelVectorType &normalizedPatchVectorY )
 {
   RealType sumX = 0.0;
+  RealType sumY = 0.0;
   RealType sumOfSquaresX = 0.0;
+  RealType sumOfSquaresY = 0.0;
   RealType sumXY = 0.0;
   for( SizeValueType i = 0; i < patchVectorX.size(); i++ )
     {
     RealType x = static_cast<RealType>( patchVectorX[i] );
     RealType y = static_cast<RealType>( normalizedPatchVectorY[i] );
     sumX += x;
+    sumY += y;
     sumOfSquaresX += vnl_math_sqr( x );
+    sumOfSquaresY += vnl_math_sqr( y );
     sumXY += ( x * y );
     }
+  RealType N = static_cast<RealType>( patchVectorX.size() );
 
-  RealType varianceX =
-    sumOfSquaresX - vnl_math_sqr( sumX ) / static_cast<RealType>( patchVectorX.size() );
-  varianceX = vnl_math_max( varianceX, 1.0 );
+  if( this->m_UsePearsonCorrelationCoefficient )
+    {
+    RealType meanX = sumX / N;
+    RealType meanY = sumY / N;
+    RealType pearsonCorrelation = ( sumXY - N * meanX * meanY ) /
+      ( std::sqrt( sumOfSquaresX - N * vnl_math_sqr( meanX ) ) *
+        std::sqrt( sumOfSquaresY - N * vnl_math_sqr( meanY ) ) );
 
-  return ( sumXY > 0 ? -vnl_math_sqr( sumXY ) / varianceX : vnl_math_sqr( sumXY ) / varianceX );
+    return -pearsonCorrelation;
+    }
+  else
+    {
+    RealType varianceX = sumOfSquaresX - vnl_math_sqr( sumX ) / N;
+    varianceX = vnl_math_max( varianceX, 1.0 );
+
+    return ( sumXY > 0 ? -vnl_math_sqr( sumXY ) / varianceX : vnl_math_sqr( sumXY ) / varianceX );
+    }
 }
 
 template <class TInputImage, class TOutputImage>
@@ -907,6 +925,10 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   os << "Beta = " << this->m_Beta << std::endl;
   os << "Search neighborhood radius = " << this->m_SearchNeighborhoodRadius << std::endl;
   os << "Patch neighborhood radius = " << this->m_PatchNeighborhoodRadius << std::endl;
+  if( this->m_UsePearsonCorrelationCoefficient )
+    {
+    os << "Using Pearson correlation to measure the path similarity." << std::endl;
+    }
 
   os << "Label set: ";
   typename LabelSetType::const_iterator labelIt;

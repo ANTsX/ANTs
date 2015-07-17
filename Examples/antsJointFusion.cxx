@@ -198,6 +198,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   bool retainAtlasVotingImages = false;
   bool retainLabelPosteriorImages = false;
   bool constrainSolutionToNonnegativeWeights = false;
+  bool usePearson = false;
 
   typename OptionType::Pointer retainLabelPosteriorOption = parser->GetOption( "retain-label-posterior-images" );
   if( retainLabelPosteriorOption && retainLabelPosteriorOption->GetNumberOfFunctions() > 0 )
@@ -216,9 +217,17 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     {
     constrainSolutionToNonnegativeWeights = parser->Convert<bool>( constrainWeightsOption->GetFunction()->GetName() );
     }
+
+  typename OptionType::Pointer pearsonOption = parser->GetOption( "use-pearson" );
+  if( pearsonOption && pearsonOption->GetNumberOfFunctions() > 0 )
+    {
+    usePearson = parser->Convert<bool>( pearsonOption->GetFunction()->GetName() );
+    }
+
   fusionFilter->SetRetainAtlasVotingWeightImages( retainAtlasVotingImages );
   fusionFilter->SetRetainLabelPosteriorProbabilityImages( retainLabelPosteriorImages );
   fusionFilter->SetConstrainSolutionToNonnegativeWeights( constrainSolutionToNonnegativeWeights );
+  fusionFilter->SetUsePearsonCorrelationCoefficient( usePearson );
 
   // Get the target image
 
@@ -689,6 +698,19 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetShortName( 'p' );
   option->SetUsageOption( 0, "2" );
   option->SetUsageOption( 1, "2x2x2" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "Boolean to use the Pearson correlation coefficient as a similarity " )
+    + std::string( "measure.  Default = 0." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "use-pearson" );
+  option->SetShortName( 'q' );
+  option->SetUsageOption( 0, "(0)/1" );
   option->SetDescription( description );
   parser->AddOption( option );
   }

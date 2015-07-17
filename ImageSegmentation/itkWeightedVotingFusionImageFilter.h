@@ -232,6 +232,7 @@ public:
    */
   itkSetMacro( RetainAtlasVotingWeightImages, bool );
   itkGetConstMacro( RetainAtlasVotingWeightImages, bool );
+  itkBooleanMacro( RetainAtlasVotingWeightImages );
 
   /**
    * Boolean for constraining the weights to be positive and sum to 1.  We use
@@ -240,6 +241,13 @@ public:
   itkSetMacro( ConstrainSolutionToNonnegativeWeights, bool );
   itkGetConstMacro( ConstrainSolutionToNonnegativeWeights, bool );
   itkBooleanMacro( ConstrainSolutionToNonnegativeWeights );
+
+  /**
+   *
+   */
+  itkSetMacro( UsePearsonCorrelationCoefficient, bool );
+  itkGetConstMacro( UsePearsonCorrelationCoefficient, bool );
+  itkBooleanMacro( UsePearsonCorrelationCoefficient );
 
   /**
    * Get the posterior probability image corresponding to a label.
@@ -360,6 +368,7 @@ private:
   bool                                                 m_RetainLabelPosteriorProbabilityImages;
   bool                                                 m_RetainAtlasVotingWeightImages;
   bool                                                 m_ConstrainSolutionToNonnegativeWeights;
+  bool                                                 m_UsePearsonCorrelationCoefficient;
 
   ProbabilityImagePointer                              m_WeightSumImage;
 
