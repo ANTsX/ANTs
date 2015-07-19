@@ -85,9 +85,9 @@ int LabelOverlapMeasures( int argc, char * argv[] )
     rowHeaders.push_back( std::string( "All" ) );
 
     std::vector<int>::const_iterator itL = allLabels.begin();
-    std::ostringstream convert;// stream used for the conversion
     while( itL != allLabels.end() )
       {
+      std::ostringstream convert; // stream used for the conversion
       convert << *itL;   // insert the textual representation of 'Number' in the characters in the stream
       rowHeaders.push_back( convert.str() );
       ++itL;
