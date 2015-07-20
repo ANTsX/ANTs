@@ -138,10 +138,16 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
   DisplacementFieldTransformType *dispXfrm =
     dynamic_cast<DisplacementFieldTransformType *>(xfrm.GetPointer() );
 
-  // if it's a displacement field transform
+  // if it's a displacement field transform or output file indicates it should be a transform
   try
     {
-    if( dispXfrm != ITK_NULLPTR )
+    if( dispXfrm != ITK_NULLPTR 
+//       && filename.find(".h5") == std::string::npos
+//       && filename.find(".hdf5") == std::string::npos
+//       && filename.find(".hdf4") == std::string::npos
+      && filename.find(".mat") == std::string::npos
+      && filename.find(".txt") == std::string::npos
+      && filename.find(".xfm") == std::string::npos )
       {
       typename DisplacementFieldType::Pointer dispField = dispXfrm->GetModifiableDisplacementField();
       typename DisplacementFieldWriter::Pointer writer = DisplacementFieldWriter::New();
@@ -167,6 +173,52 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
     }
   return EXIT_SUCCESS;
 }
+
+template <class T, unsigned int VImageDimension>
+int
+WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimension>::Pointer & xfrm,
+               const std::string & filename)
+{
+  typedef typename itk::DisplacementFieldTransform<T, VImageDimension>      DisplacementFieldTransformType;
+  typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
+  typedef typename itk::ImageFileWriter<DisplacementFieldType>              DisplacementFieldWriter;
+  typedef itk::TransformFileWriterTemplate<T>                               TransformWriterType;
+  
+  typename DisplacementFieldType::Pointer inverseDispField = xfrm->GetModifiableInverseDisplacementField();
+
+  try
+    {
+      if( filename.find(".mat") == std::string::npos
+       && filename.find(".txt") == std::string::npos
+       && filename.find(".xfm") == std::string::npos )
+      {
+      typename DisplacementFieldWriter::Pointer writer = DisplacementFieldWriter::New();
+      writer->SetInput(inverseDispField);
+      writer->SetFileName(filename.c_str() );
+      writer->Update();
+      }
+    else
+    // regular transform, but need to create inverse
+      {
+      typename DisplacementFieldTransformType::Pointer inv_xfrm=DisplacementFieldTransformType::New();
+      inv_xfrm->SetDisplacementField(inverseDispField);
+      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+      transformWriter->SetInput(xfrm);
+      transformWriter->SetFileName(filename.c_str() );
+      transformWriter->Update();
+      }
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "Can't write transform file " << filename << std::endl;
+    std::cerr << "Exception Object caught: " << std::endl;
+    std::cerr << err << std::endl;
+    return EXIT_FAILURE;
+    }
+  return EXIT_SUCCESS;
+}
+
+
 } // namespace ants
 } // namespace itk
 #endif // itkantsReadWriteTransform_h

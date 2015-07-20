@@ -1329,32 +1329,12 @@ DoRegistration(typename ParserType::Pointer & parser)
         typedef typename DisplacementFieldTransformType::DisplacementFieldType  DisplacementFieldType;
         typename DisplacementFieldTransformType::Pointer dispTransform =
           dynamic_cast<DisplacementFieldTransformType *>(curTransform.GetPointer() );
-        // write inverse transform file
         if( writeInverse && dispTransform.IsNotNull() )
           {
-          typename DisplacementFieldType::ConstPointer inverseDispField = dispTransform->GetInverseDisplacementField();
-          if( inverseDispField.IsNotNull() )
-            {
-            std::stringstream curInverseFileName;
-            curInverseFileName << outputPrefix << i << (use_minc_format?"_inverse.xfm":"InverseWarp.nii.gz");
-            typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
-            typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
-            inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
-            inverseWriter->SetFileName( curInverseFileName.str().c_str() );
-            try
-              {
-              inverseWriter->Update();
-              }
-            catch( itk::ExceptionObject & err )
-              {
-              if( verbose )
-                {
-                std::cerr << "Can't write transform file " << curInverseFileName.str().c_str() << std::endl;
-                std::cerr << "Exception Object caught: " << std::endl;
-                std::cerr << err << std::endl;
-                }
-              }
-            }
+          std::stringstream curInverseFileName;
+          curInverseFileName << outputPrefix << i << (use_minc_format?"_inverse":"Inverse") << transformTemplateName;
+          // write inverse transform file
+          itk::ants::WriteInverseTransform<TComputeType, VImageDimension>( dispTransform, curInverseFileName.str() );
           }
         if( writeVelocityField )
           {
@@ -1368,7 +1348,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           if( !velocityFieldTransform.IsNull() )
             {
             std::stringstream curVelocityFieldFileName;
-            curVelocityFieldFileName << outputPrefix << i << (use_minc_format?"VelocityField.mnc":"VelocityField.nii.gz");
+            curVelocityFieldFileName << outputPrefix << i << (use_minc_format?"_VelocityField.mnc":"VelocityField.nii.gz");
 
             typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
             typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
