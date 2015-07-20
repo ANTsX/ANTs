@@ -4,7 +4,7 @@ Advanced Normalization Tools
 
 [![Build Status](https://travis-ci.org/stnava/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs) [ ![Codeship Status for stnava/ANTs](https://codeship.com/projects/1d8dc570-dbb9-0132-934e-42ca4e970282/status?branch=master)](https://codeship.com/projects/79731) [![Coverage Status](https://coveralls.io/repos/stnava/ANTs/badge.svg)](https://coveralls.io/r/stnava/ANTs)
 
-Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2) ... also read our [guide to evaluation strategies and addressing new problems with ANTs or other software](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3766821/).
+Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2) ... also read our [guide to evaluation strategies and addressing new problems with ANTs or other software](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3766821/).  *New* [ANTs handout](https://github.com/stnava/ANTsTutorial/raw/master/handout/antsHandout.pdf), part of forthcoming [ANTs tutorial]() material.
 
 [ANTsTalk - subject to change at any moment](http://stnava.github.io/ANTsTalk/)
 
