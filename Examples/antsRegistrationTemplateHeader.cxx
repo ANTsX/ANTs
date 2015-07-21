@@ -86,8 +86,8 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
            str == "symmetricnormalization" ||
            str == "bsplinesyn" )
     {
-      if(minc)
-      return ".xfm";
+    if(minc)
+      return "_NL.xfm";
     else
       return "Warp.nii.gz";
     } 
@@ -99,7 +99,7 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
            str == "exponential" ||
            str == "bsplineexponential" )
     {
-      if(minc)
+    if(minc)
       return "_Warp.mnc";
     else
       return "Warp.nii.gz";

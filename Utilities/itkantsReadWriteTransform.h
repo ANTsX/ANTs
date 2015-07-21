@@ -203,7 +203,7 @@ WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimensio
       typename DisplacementFieldTransformType::Pointer inv_xfrm=DisplacementFieldTransformType::New();
       inv_xfrm->SetDisplacementField(inverseDispField);
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-      transformWriter->SetInput(xfrm);
+      transformWriter->SetInput(inv_xfrm);
       transformWriter->SetFileName(filename.c_str() );
       transformWriter->Update();
       }
