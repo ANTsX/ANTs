@@ -37,7 +37,7 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
   if( str == "rigid" )
     {
       if(minc)
-        return "Rigid.xfm";
+        return "_Rigid.xfm";
       else
         return "Rigid.mat";
     }
@@ -45,33 +45,36 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
            str == "compositeaffine" || str == "compaff" )
     {
     if(minc)
-      return "Affine.xfm";
+      return "_Affine.xfm";
     else
       return "Affine.mat";
     }
   else if( str == "similarity" )
     {
     if(minc)
-      return "Similarity.xfm";
+      return "_Similarity.xfm";
     else
       return "Similarity.mat";
     }
   else if( str == "translation" )
     {
     if(minc)
-      return "Translation.xfm";
+      return "_Translation.xfm";
     else
       return "Translation.mat";
     }
   else if( str == "bspline" ||
            str == "ffd" )
     {
-    return "BSpline.txt";
+    if(minc)
+      return "_BSpline.txt";
+    else
+      return "BSpline.txt";
     }
   else if( str == "genericaffine" )
     {
     if(minc)
-      return "GenericAffine.xfm";
+      return "_GenericAffine.xfm";
     else
       return "GenericAffine.mat";
     }
@@ -81,8 +84,14 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
            str == "dmffd" ||
            str == "syn" ||
            str == "symmetricnormalization" ||
-           str == "bsplinesyn" ||
-           str == "timevaryingvelocityfield" ||
+           str == "bsplinesyn" )
+    {
+    if(minc)
+      return "_NL.xfm";
+    else
+      return "Warp.nii.gz";
+    } 
+  else if( str == "timevaryingvelocityfield" ||
            str == "tvf" ||
            str == "timevaryingbsplinevelocityfield" ||
            str == "tvdmffd" ||
@@ -90,8 +99,8 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
            str == "exponential" ||
            str == "bsplineexponential" )
     {
-      if(minc)
-      return ".xfm";
+    if(minc)
+      return "_Warp.mnc";
     else
       return "Warp.nii.gz";
     }
