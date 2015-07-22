@@ -572,7 +572,7 @@ private:
       + std::string( "any number of \"stages\" where a stage consists of a transform; an image metric; " )
       + std::string( "and iterations, shrink factors, and smoothing sigmas for each level.  " )
       + std::string( "Note that explicitly setting the dimensionality, metric, transform, output, " )
-      + std::string( "convergence, shrink-factors, and smoothing-sigmas parameters are mandatory." );
+      + std::string( "convergence, shrink-factors, and smoothing-sigmas parameters is mandatory." );
 
     parser->SetCommandDescription( commandDescription );
     antsRegistrationInitializeCommandLineOptions( parser );
