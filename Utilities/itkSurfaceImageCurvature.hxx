@@ -586,8 +586,9 @@ void  SurfaceImageCurvature<TSurface>
 //  compute dist of unit dif and tangents
 //  compute dif of normal with grad at point
 
-  this->m_Area = 1.0;
+  this->m_Area = 0;
   PointType Q = this->m_Origin;
+  RealType areaelt = 1000.0 / static_cast<RealType>(npts);
   for( j = 0; j < npts; j++ )
     {
     typename ImageType::PointType pt;
@@ -615,8 +616,7 @@ void  SurfaceImageCurvature<TSurface>
 // now the inner product of PN and the normal is f_uv ...
     f_uv = this->innerProduct( PN, this->m_Normal );
 // the point is therefore defined as:
-// surfacePoint = this->m_Tangent1 * u1 + this->m_Tangent2 * u2 +
-//                this->m_Normal * f_uv ;
+//    PointType surfacePoint = this->m_Tangent1 * u1 + this->m_Tangent2 * u2 + PN;
     xdists[j] = (PN[0]);
     ydists[j] = (PN[1]);
     zdists[j] = (PN[2]);
@@ -633,9 +633,16 @@ void  SurfaceImageCurvature<TSurface>
     D(j, 2) = u2; // (1   , 0)
     D(j, 1) = u1; // (0   , 1)
     D(j, 0) = 1.0;
+    RealType dfuv_u = 0;
+    RealType dfuv_v = 0;
+    if ( ( vnl_math_abs(u1) > 0 ) && ( vnl_math_abs(u2) < 1.e-6 ) )
+      dfuv_u = vnl_math_abs( f_uv - 1.0 ) / vnl_math_abs(u1) * 100.0;
+    if ( ( vnl_math_abs(u2) > 0 ) && ( vnl_math_abs(u1) < 1.e-6 ) )
+      dfuv_v = vnl_math_abs( f_uv - 1.0 ) / vnl_math_abs(u2) * 100.0;
+    // this->m_Area += sqrt( 1.0 + dfuv_u*dfuv_u + dfuv_v*dfuv_v );
     this->m_Area += vnl_math_abs( f_uv - 1.0 );
     }
-
+  this->m_Area *= areaelt;
   vnl_svd<double>    svd(D);
   vnl_vector<double> ax = svd.solve(xdists); // /totwt);
   vnl_vector<double> ay = svd.solve(ydists); // /totwt);
@@ -699,11 +706,13 @@ void  SurfaceImageCurvature<TSurface>
   PointType p;
   RealType paramdelt = this->m_MinSpacing*0.5;
   RealType eps=1.e-6;
+  for ( RealType zi = -1.0 * paramdelt; zi <= paramdelt+eps; zi=zi+paramdelt)
   for ( RealType ui = -1.0 * paramdelt; ui <= paramdelt+eps; ui=ui+paramdelt)
     {
     for ( RealType vi = -1.0 * paramdelt; vi <= paramdelt+eps; vi=vi+paramdelt)
       {
-      p = this->m_Origin + this->m_Tangent1 * ui + this->m_Tangent2 * vi;
+      p = this->m_Origin + this->m_Tangent1 * ui + this->m_Tangent2 * vi +
+        this->m_Normal * zi;
       this->m_PointList.insert( this->m_PointList.begin(), p );
       }
     }
