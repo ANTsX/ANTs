@@ -25,7 +25,11 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
     }
 
   if( str == "timevaryingvelocityfield" ||
-      str == "tvf" )
+      str == "tvf" ||
+      str == "exp" ||
+      str == "exponential" ||
+      str == "bsplineexponential"
+    )
     {
     writeVelocityField = true;
     }
@@ -84,20 +88,20 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
            str == "dmffd" ||
            str == "syn" ||
            str == "symmetricnormalization" ||
-           str == "bsplinesyn" )
+           str == "bsplinesyn" ||
+           str == "exp" ||
+           str == "exponential" ||
+           str == "bsplineexponential" )
     {
     if(minc)
       return "_NL.xfm";
     else
       return "Warp.nii.gz";
-    } 
+    }
   else if( str == "timevaryingvelocityfield" ||
            str == "tvf" ||
            str == "timevaryingbsplinevelocityfield" ||
-           str == "tvdmffd" ||
-           str == "exp" ||
-           str == "exponential" ||
-           str == "bsplineexponential" )
+           str == "tvdmffd"  )
     {
     if(minc)
       return "_Warp.mnc";

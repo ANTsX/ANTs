@@ -2,6 +2,7 @@
 #define itkantsReadWriteTransform_h
 
 #include "itkDisplacementFieldTransform.h"
+#include "itkGaussianExponentialDiffeomorphicTransform.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkTransformFileReader.h"
@@ -29,21 +30,22 @@ ReadTransform(const std::string & filename,
 
   bool hasTransformBeenRead = false;
 
-  typedef typename itk::DisplacementFieldTransform<T, VImageDimension> DisplacementFieldTransformType;
+  typedef typename itk::DisplacementFieldTransform<T, VImageDimension>      DisplacementFieldTransformType;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
   typedef itk::ImageFileReader<DisplacementFieldType>                       DisplacementFieldReaderType;
+  
   typename DisplacementFieldReaderType::Pointer fieldReader = DisplacementFieldReaderType::New();
   typedef typename itk::CompositeTransform<T, VImageDimension> CompositeTransformType;
 
   // There are known tranform type extentions that should not be considered as imaging files
   // That would be used as deformatino feilds
   // If file is an hdf5 file, assume it is a tranform instead of an image.
-  if( filename.find(".h5") == std::string::npos
+  if(    filename.find(".h5")   == std::string::npos
       && filename.find(".hdf5") == std::string::npos
       && filename.find(".hdf4") == std::string::npos
-      && filename.find(".mat") == std::string::npos
-      && filename.find(".txt") == std::string::npos
-      && filename.find(".xfm") == std::string::npos
+      && filename.find(".mat")  == std::string::npos
+      && filename.find(".txt")  == std::string::npos
+      && filename.find(".xfm")  == std::string::npos
       )
     {
     try
@@ -141,22 +143,35 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
   // if it's a displacement field transform or output file indicates it should be a transform
   try
     {
-    if( dispXfrm != ITK_NULLPTR 
-//       && filename.find(".h5") == std::string::npos
-//       && filename.find(".hdf5") == std::string::npos
-//       && filename.find(".hdf4") == std::string::npos
+    if(  dispXfrm != ITK_NULLPTR 
       && filename.find(".mat") == std::string::npos
       && filename.find(".txt") == std::string::npos
-      && filename.find(".xfm") == std::string::npos )
+      )
       {
       typename DisplacementFieldType::Pointer dispField = dispXfrm->GetModifiableDisplacementField();
-      typename DisplacementFieldWriter::Pointer writer = DisplacementFieldWriter::New();
-      writer->SetInput(dispField);
-      writer->SetFileName(filename.c_str() );
-      writer->Update();
+      if(    filename.find(".xfm" ) == std::string::npos
+          && filename.find(".h5"  ) == std::string::npos
+          && filename.find(".hdf5") == std::string::npos
+          && filename.find(".hdf4") == std::string::npos
+        )
+        {
+        typename DisplacementFieldWriter::Pointer writer  = DisplacementFieldWriter::New();
+        writer->SetInput(dispField);
+        writer->SetFileName(filename.c_str() );
+        writer->Update();
+        }
+       else // creating a DisplacementFieldTransformType object to make everybody happy
+        {
+        typename DisplacementFieldTransformType::Pointer tmp_xfrm=DisplacementFieldTransformType::New();
+        tmp_xfrm->SetDisplacementField(dispField);
+        typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+        transformWriter->SetInput(tmp_xfrm);
+        transformWriter->SetFileName(filename.c_str() );
+        transformWriter->Update();
+        }
       }
     else
-    // regular transform
+      // regular transform, hope that everything works as expected!
       {
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
       transformWriter->SetInput(xfrm);
@@ -185,12 +200,13 @@ WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimensio
   typedef itk::TransformFileWriterTemplate<T>                               TransformWriterType;
   
   typename DisplacementFieldType::Pointer inverseDispField = xfrm->GetModifiableInverseDisplacementField();
-
+  
   try
     {
-      if( filename.find(".mat") == std::string::npos
-       && filename.find(".txt") == std::string::npos
-       && filename.find(".xfm") == std::string::npos )
+      if(    filename.find(".xfm" ) == std::string::npos
+          && filename.find(".h5"  ) == std::string::npos
+          && filename.find(".hdf5") == std::string::npos
+          && filename.find(".hdf4") == std::string::npos )
       {
       typename DisplacementFieldWriter::Pointer writer = DisplacementFieldWriter::New();
       writer->SetInput(inverseDispField);
@@ -198,7 +214,7 @@ WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimensio
       writer->Update();
       }
     else
-    // regular transform, but need to create inverse
+      // regular transform, but need to create inverse of the right type
       {
       typename DisplacementFieldTransformType::Pointer inv_xfrm=DisplacementFieldTransformType::New();
       inv_xfrm->SetDisplacementField(inverseDispField);
