@@ -42,7 +42,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer useMincFormatOption = parser->GetOption( "minc" );
   const bool use_minc_format = parser->Convert<bool>( useMincFormatOption->GetFunction( 0 )->GetName() );
-  
+
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
     parser->GetOption( "verbose" );
@@ -58,18 +58,66 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
 
   OptionType::Pointer transformOption = parser->GetOption( "transform" );
+  if( !transformOption || transformOption->GetNumberOfFunctions() == 0 )
+    {
+    if( verbose )
+      {
+      std::cerr << "ERROR: the transform option ('-t') must be specified.  See help menu." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
 
   OptionType::Pointer metricOption = parser->GetOption( "metric" );
+  if( !metricOption || metricOption->GetNumberOfFunctions() == 0 )
+    {
+    if( verbose )
+      {
+      std::cerr << "ERROR: the metric option ('-m') must be specified.  See help menu." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
 
   OptionType::Pointer convergenceOption = parser->GetOption( "convergence" );
+  if( !convergenceOption || convergenceOption->GetNumberOfFunctions() == 0 )
+    {
+    if( verbose )
+      {
+      std::cerr << "ERROR: the convergence option ('-c') must be specified.  See help menu." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
 
   OptionType::Pointer shrinkFactorsOption = parser->GetOption( "shrink-factors" );
+  if( !shrinkFactorsOption || shrinkFactorsOption->GetNumberOfFunctions() == 0 )
+    {
+    if( verbose )
+      {
+      std::cerr << "ERROR: the shrink factors option ('-f') must be specified.  See help menu." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
 
   OptionType::Pointer smoothingSigmasOption = parser->GetOption( "smoothing-sigmas" );
+  if( !smoothingSigmasOption || smoothingSigmasOption->GetNumberOfFunctions() == 0 )
+    {
+    if( verbose )
+      {
+      std::cerr << "ERROR: the smoothing sigmas option ('-s') must be specified.  See help menu." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
 
   OptionType::Pointer restrictDeformationOption = parser->GetOption( "restrict-deformation" );
 
   OptionType::Pointer outputOption = parser->GetOption( "output" );
+  if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
+    {
+    if( verbose )
+      {
+      std::cerr << "ERROR: the output option ('-o') must be specified.  See help menu." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
 
   OptionType::Pointer maskOption = parser->GetOption( "masks" );
 
@@ -98,15 +146,6 @@ DoRegistration(typename ParserType::Pointer & parser)
   else
     {
     regHelper->SetInitializeTransformsPerStage( false );
-    }
-
-  if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
-    {
-    if( verbose )
-      {
-      std::cout << "Output option not specified." << std::endl;
-      }
-    return EXIT_FAILURE;
     }
 
   /*
