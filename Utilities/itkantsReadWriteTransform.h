@@ -132,6 +132,7 @@ int
 WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Pointer & xfrm,
                const std::string & filename)
 {
+  typedef typename itk::Transform<T, VImageDimension, VImageDimension>      GenericTransformType;
   typedef typename itk::DisplacementFieldTransform<T, VImageDimension>      DisplacementFieldTransformType;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
   typedef typename itk::ImageFileWriter<DisplacementFieldType>              DisplacementFieldWriter;
@@ -173,8 +174,38 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
     else
       // regular transform, hope that everything works as expected!
       {
+      typedef itk::CompositeTransform<T, VImageDimension>  CompositeTransformType;
+      typedef typename CompositeTransformType::Pointer     CompositeTransformPointer;
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-      transformWriter->SetInput(xfrm);
+        
+      CompositeTransformType *comp_xfm =
+        dynamic_cast<CompositeTransformType *>(xfrm.GetPointer() );        
+      if( comp_xfm != ITK_NULLPTR )
+        { //this is a composite transform, make sure it doesn't contain wiered stuff
+        CompositeTransformPointer tmp_comp_xfm=CompositeTransformType::New();
+      
+        size_t numTransforms = comp_xfm->GetNumberOfTransforms();
+        for( size_t i = 0; i < numTransforms; i++ )
+          {
+            GenericTransformType *_xfm=comp_xfm->GetNthTransform( i );
+            DisplacementFieldTransformType *_dispXfrm =
+              dynamic_cast<DisplacementFieldTransformType *>(_xfm );
+              
+            if ( _dispXfrm != ITK_NULLPTR )
+              { //assume that we have to make it DisplacementFieldTransform 
+                typename DisplacementFieldTransformType::Pointer _xfm_disp=DisplacementFieldTransformType::New();
+                _xfm_disp->SetDisplacementField(_dispXfrm->GetModifiableDisplacementField());
+                tmp_comp_xfm->AddTransform(_xfm_disp);
+              } else { //asume we just pass it on
+                tmp_comp_xfm->AddTransform(_xfm);
+              }
+          }
+        transformWriter->SetInput(tmp_comp_xfm);
+        }
+        else 
+        { //this is  a simple transform
+        transformWriter->SetInput(xfrm);
+        }
       transformWriter->SetFileName(filename.c_str() );
       transformWriter->Update();
       }
@@ -200,7 +231,6 @@ WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimensio
   typedef itk::TransformFileWriterTemplate<T>                               TransformWriterType;
   
   typename DisplacementFieldType::Pointer inverseDispField = xfrm->GetModifiableInverseDisplacementField();
-  
   try
     {
       if(    filename.find(".xfm" ) == std::string::npos
