@@ -5195,10 +5195,10 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( secondSO ) this->SparsifyOther( qproj );
     VectorType qproj2 = this->m_MatrixQ * qveck;
     if ( secondSO ) this->SparsifyOther( qproj2 );
-    RealType corr0 = this->RPearsonCorr( pproj , qproj  );
-    RealType corr1 = this->RPearsonCorr( pproj2 , qproj2  );
-    RealType corr2 = this->RPearsonCorr( pproj, qproj );
-    RealType corr3 = this->RPearsonCorr( pproj2, qproj2  );
+    RealType corr0 = this->PearsonCorr( pproj , qproj  );
+    RealType corr1 = this->PearsonCorr( pproj2 , qproj2  );
+    RealType corr2 = this->PearsonCorr( pproj, qproj );
+    RealType corr3 = this->PearsonCorr( pproj2, qproj2  );
     if( corr1 > corr0 )
       {
       this->m_VariatesP.set_column( k, pveck  );
@@ -5238,7 +5238,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( secondSO ) this->SparsifyOther( proj1 );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
     if ( secondSO ) this->SparsifyOther( proj2 );
-    this->m_CanonicalCorrelations[k] = this->RPearsonCorr( proj1, proj2  );
+    this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
     }
   // this->SortResults( n_vecs );
   return this->m_CanonicalCorrelations.mean();
