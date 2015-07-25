@@ -1980,6 +1980,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     evec = this->InitializeV( this->m_MatrixP, false );
     }
+  evec = evec / evec.two_norm();
   if( inner_product( prior, evec ) == 0 )
     {
     evec.update( prior, 0  );
