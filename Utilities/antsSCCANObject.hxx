@@ -1975,6 +1975,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       we use a conjugate gradient version of this optimization.
   */
   VectorType prior( priorin );
+  std::cout << " prior " << prior << std::endl;
   if( evec.two_norm() ==  0 )
     {
     evec = this->InitializeV( this->m_MatrixP, false );
@@ -2008,6 +2009,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       basevscale = pvec.two_norm() / nvec.two_norm() * this->m_GradStep;
       basepscale = this->m_GradStep * lambda;
+      std::cout << " basepscale " << basepscale << std::endl;
+      std::cout << " basevscale " << basevscale << std::endl;
       }
     VectorType g1 = nvec * basevscale;
     VectorType g2 = pvec * basepscale;
@@ -2026,7 +2029,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType zv = this->m_VariatesP.get_column( orth );
       evec = this->Orthogonalize( evec, zv );
-      if ( this->m_Covering == 1 ) this->ZeroProduct( evec,  zv );
       }
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
@@ -2048,7 +2050,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       bestevec = evec;
       }
     }
-  if ( ! this->m_Silent )  std::cout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth;
+  // if ( ! this->m_Silent )  std::cout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth;
   evec = bestevec;
   if( inner_product( prior, evec ) == 0 )
     {
