@@ -1839,7 +1839,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType sparsenessparams( n_vecs, this->m_FractionNonZeroP );
   double     lambda = this->GetPriorWeight(); // Make it a parameter
   if ( ! this->m_Silent )  std::cout << "lambda" << lambda  << " GradStep " << this->m_GradStep << std::endl;
-
   if( prior )
     {
     this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
@@ -1857,8 +1856,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	      }
       if( this->m_FractionNonZeroP <  1.e-10  )
 	      {
-        sparsenessparams( x ) = (RealType) fnz /
-          (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
+        sparsenessparams( x ) = (RealType) fnz * 0.5 /
+          (RealType) this->m_OriginalMatrixPriorROI.cols();
 	      }
       priorrow = priorrow/priorrow.two_norm();
       this->m_MatrixPriorROI.set_row( x , priorrow );
@@ -1975,7 +1974,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       we use a conjugate gradient version of this optimization.
   */
   VectorType prior( priorin );
-  std::cout << " prior " << prior << std::endl;
   if( evec.two_norm() ==  0 )
     {
     evec = this->InitializeV( this->m_MatrixP, false );
@@ -2010,8 +2008,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       basevscale = pvec.two_norm() / nvec.two_norm() * this->m_GradStep;
       basepscale = this->m_GradStep * lambda;
-      std::cout << " basepscale " << basepscale << std::endl;
-      std::cout << " basevscale " << basevscale << std::endl;
       }
     VectorType g1 = nvec * basevscale;
     VectorType g2 = pvec * basepscale;
