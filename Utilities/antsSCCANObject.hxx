@@ -1849,14 +1849,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       RealType fnz = 0;
       for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
 	      {
-      	if(vnl_math_abs( priorrow( y ) ) >1.e-10 )
+      	if( vnl_math_abs( priorrow( y ) ) > 1.e-10 )
           {
       	  fnz += 1;
       	  }
 	      }
       if( this->m_FractionNonZeroP <  1.e-10  )
 	      {
-        sparsenessparams( x ) = (RealType) fnz * 0.5 /
+        sparsenessparams( x ) = (RealType) fnz /
           (RealType) this->m_OriginalMatrixPriorROI.cols();
 	      }
       priorrow = priorrow/priorrow.two_norm();
