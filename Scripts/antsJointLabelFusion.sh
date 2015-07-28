@@ -524,7 +524,7 @@ if [[ $DOQSUB -eq 2 ]];
     $PEXEC -j ${CORES} "sh" ${OUTPUT_DIR}/job_*.sh
   fi
 
-jlfCall="${ANTSPATH}/antsJointFusion -d ${DIM} -t $TARGET_IMAGE "
+jlfCall="${ANTSPATH}/antsJointFusion -d ${DIM} -t $TARGET_IMAGE --verbose 1 "
 
 if [[ $DOQSUB -eq 0 ]];
   then
@@ -581,7 +581,7 @@ if [[ $DOQSUB -eq 0 ]];
         jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
       done
 
-    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
       then
         jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
       else
@@ -663,7 +663,7 @@ if [[ $DOQSUB -eq 1 ]];
         jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
       done
 
-    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
       then
         jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
       else
@@ -744,7 +744,7 @@ if [[ $DOQSUB -eq 4 ]];
         jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
       done
 
-    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
       then
         jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
       else
@@ -808,7 +808,7 @@ if [[ $DOQSUB -eq 2 ]];
         jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
       done
 
-    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
       then
         jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
       else
@@ -888,7 +888,7 @@ if [[ $DOQSUB -eq 3 ]];
         jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
       done
 
-    if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
       then
         jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
       else
