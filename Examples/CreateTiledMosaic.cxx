@@ -53,7 +53,6 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     std::cout << "Input image not specified." << std::endl;
     return EXIT_FAILURE;
     }
-  ImageType::SpacingType spacing = inputImage->GetSpacing();
   ImageType::SizeType size = inputImage->GetRequestedRegion().GetSize();
 
   // Read in optional mask image
@@ -228,26 +227,64 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     parser->GetOption( "direction" );
   if( directionOption && directionOption->GetNumberOfFunctions() )
     {
-    direction = parser->Convert<unsigned int>( directionOption->GetFunction( 0 )->GetName() );
-    if( direction > 2 )
+    std::string directionString = directionOption->GetFunction( 0 )->GetName();
+
+    int physicalCoordinateComponent = -1;
+
+    if( std::strcmp( directionString.c_str(), "0" ) == 0 )
       {
-      std::cerr << "The direction value must be 0, 1, or 2." << std::endl;
+      direction = 0;
+      }
+    else if( std::strcmp( directionString.c_str(), "1" ) == 0 )
+      {
+      direction = 1;
+      }
+    else if( std::strcmp( directionString.c_str(), "2" ) == 0 )
+      {
+      direction = 2;
+      }
+    else if( std::strcmp( directionString.c_str(), "x" ) == 0 )
+      {
+      physicalCoordinateComponent = 0;
+      }
+    else if( std::strcmp( directionString.c_str(), "y" ) == 0 )
+      {
+      physicalCoordinateComponent = 1;
+      }
+    else if( std::strcmp( directionString.c_str(), "z" ) == 0 )
+      {
+      physicalCoordinateComponent = 2;
+      }
+    else
+      {
+      std::cerr << "Unrecognized direction option.  See help menu" << std::endl;
       return EXIT_FAILURE;
       }
-    }
-  else
-    {
-    float maxSpacing = spacing[0];
-    unsigned int maxIndex = 0;
-    for( unsigned int d = 1; d < ImageDimension; d++ )
+
+    if( physicalCoordinateComponent >= 0 )
       {
-      if( spacing[d] > maxSpacing )
+      float maxComponentValue = 0.0;
+
+      ImageType::IndexType index;
+      index.Fill( 0 );
+      ImageType::PointType pointOrigin;
+      inputImage->TransformIndexToPhysicalPoint( index, pointOrigin );
+
+      for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        maxSpacing = spacing[d];
-        maxIndex = d;
+        ImageType::PointType point;
+        index.Fill( 0 );
+        index[d] = 1;
+        inputImage->TransformIndexToPhysicalPoint( index, point );
+
+        ImageType::PointType::VectorType directionalVector = point - pointOrigin;
+
+        if( vnl_math_abs( directionalVector[physicalCoordinateComponent] ) > maxComponentValue )
+          {
+          direction = d;
+          }
         }
       }
-    direction = maxIndex;
     }
 
   // Get padding/cropping options.
@@ -1061,13 +1098,15 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Specifies the direction of the slices.  If no direction is specified, " )
-      + std::string( "the direction with the coarsest spacing is chosen." );
+      std::string( "Specifies the direction of the slices.  This can be based on the how " )
+      + std::string( "the image is stored in memory or can be based on how the image is aligned " )
+      + std::string( "in physical space.  If no direction is specified, " )
+      + std::string( "the z-direction (axial?) is chosen." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "direction" );
     option->SetShortName( 'd' );
-    option->SetUsageOption( 0, "0/1/2" );
+    option->SetUsageOption( 0, "0/1/2/x/y/(z)" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
