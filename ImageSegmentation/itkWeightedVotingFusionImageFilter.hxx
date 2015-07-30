@@ -297,17 +297,42 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   std::vector<SizeValueType> minimumAtlasOffsetIndices( this->m_NumberOfAtlases );
 
+  bool useOnlyFirstAtlasImage = true;
+  if( numberOfTargetModalities == this->m_NumberOfAtlasModalities )
+    {
+    useOnlyFirstAtlasImage = false;
+    }
+
   // Iterate over the input region
   ConstNeighborhoodIteratorType ItN( this->m_PatchNeighborhoodRadius, this->m_TargetImage[0], region );
   for( ItN.GoToBegin(); !ItN.IsAtEnd(); ++ItN )
     {
-    if( this->m_MaskImage && this->m_MaskImage->GetPixel( ItN.GetIndex() ) != this->m_MaskLabel )
+    IndexType currentCenterIndex = ItN.GetIndex();
+
+    if( this->m_MaskImage && this->m_MaskImage->GetPixel( currentCenterIndex ) != this->m_MaskLabel )
       {
       progress.CompletedPixel();
       continue;
       }
 
-    IndexType currentCenterIndex = ItN.GetIndex();
+    // Check to see if there are any non-zero labels
+    if( this->m_NumberOfAtlasSegmentations > 0 )
+      {
+      bool nonBackgroundLabelExistAtThisVoxel = false;
+      for( SizeValueType i = 0; i < this->m_NumberOfAtlasSegmentations; i++ )
+        {
+        if( this->m_AtlasSegmentations[i]->GetPixel( currentCenterIndex ) > 0 )
+          {
+          nonBackgroundLabelExistAtThisVoxel = true;
+          break;
+          }
+        }
+      if( ! nonBackgroundLabelExistAtThisVoxel )
+        {
+        progress.CompletedPixel();
+        continue;
+        }
+      }
 
     InputImagePixelVectorType normalizedTargetPatch =
       this->VectorizeImageListPatch( this->m_TargetImage, currentCenterIndex, true );
@@ -331,19 +356,21 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           continue;
           }
 
-        InputImagePixelVectorType individualAtlasPatch;
-        if( numberOfTargetModalities == this->m_NumberOfAtlasModalities )
-          {
-          individualAtlasPatch =
-            this->VectorizeImageListPatch( this->m_AtlasImages[i], searchIndex, false );
-          }
-        else
-          {
-          individualAtlasPatch =
-            this->VectorizeImagePatch( this->m_AtlasImages[i][0], searchIndex, false );
-          }
+//         InputImagePixelVectorType individualAtlasPatch;
+//         if( numberOfTargetModalities == this->m_NumberOfAtlasModalities )
+//           {
+//           individualAtlasPatch =
+//             this->VectorizeImageListPatch( this->m_AtlasImages[i], searchIndex, false );
+//           }
+//         else
+//           {
+//           individualAtlasPatch =
+//             this->VectorizeImagePatch( this->m_AtlasImages[i][0], searchIndex, false );
+//           }
+//         RealType patchSimilarity = this->ComputePatchSimilarity( individualAtlasPatch, normalizedTargetPatch  );
 
-        RealType patchSimilarity = this->ComputePatchSimilarity( individualAtlasPatch, normalizedTargetPatch  );
+        RealType patchSimilarity = this->ComputeNeighborhoodPatchSimilarity(
+          this->m_AtlasImages[i], searchIndex, normalizedTargetPatch, useOnlyFirstAtlasImage );
 
         if( patchSimilarity < minimumPatchSimilarity )
           {
@@ -726,6 +753,108 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
+typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::RealType
+WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
+::ComputePatchSimilarity( const InputImagePixelVectorType &patchVectorX,
+  const InputImagePixelVectorType &normalizedPatchVectorY )
+{
+  RealType sumX = 0.0;
+  RealType sumY = 0.0;
+  RealType sumOfSquaresX = 0.0;
+  RealType sumOfSquaresY = 0.0;
+  RealType sumXY = 0.0;
+  for( SizeValueType i = 0; i < patchVectorX.size(); i++ )
+    {
+    RealType x = static_cast<RealType>( patchVectorX[i] );
+    RealType y = static_cast<RealType>( normalizedPatchVectorY[i] );
+    sumX += x;
+    sumY += y;
+    sumOfSquaresX += vnl_math_sqr( x );
+    sumOfSquaresY += vnl_math_sqr( y );
+    sumXY += ( x * y );
+    }
+  RealType N = static_cast<RealType>( patchVectorX.size() );
+
+  if( this->m_UsePearsonCorrelationCoefficient )
+    {
+    RealType meanX = sumX / N;
+    RealType meanY = sumY / N;
+    RealType pearsonCorrelation = ( sumXY - N * meanX * meanY ) /
+      ( std::sqrt( sumOfSquaresX - N * vnl_math_sqr( meanX ) ) *
+        std::sqrt( sumOfSquaresY - N * vnl_math_sqr( meanY ) ) );
+
+    return -pearsonCorrelation;
+    }
+  else
+    {
+    RealType varianceX = sumOfSquaresX - vnl_math_sqr( sumX ) / N;
+    varianceX = vnl_math_max( varianceX, 1.0e-6 );
+
+    RealType measure = vnl_math_sqr( sumXY ) / varianceX;
+
+    return ( sumXY > 0 ? -measure : measure );
+    }
+}
+
+template <class TInputImage, class TOutputImage>
+typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::RealType
+WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
+::ComputeNeighborhoodPatchSimilarity( const InputImageList &imageList, const IndexType index,
+  const InputImagePixelVectorType &normalizedPatchVectorY, const bool useOnlyFirstImage )
+{
+  unsigned int numberOfImagesToUse = imageList.size();
+  if( useOnlyFirstImage )
+    {
+    numberOfImagesToUse = 1;
+    }
+
+  RealType sumX = 0.0;
+  RealType sumY = 0.0;
+  RealType sumOfSquaresX = 0.0;
+  RealType sumOfSquaresY = 0.0;
+  RealType sumXY = 0.0;
+
+  SizeValueType count = 0;
+  for( SizeValueType i = 0; i < numberOfImagesToUse; i++ )
+    {
+    for( SizeValueType j = 0; j < this->m_PatchNeighborhoodSize; j++ )
+      {
+      IndexType neighborhoodIndex = index + this->m_PatchNeighborhoodOffsetList[j];
+
+      RealType x = static_cast<RealType>( imageList[i]->GetPixel( neighborhoodIndex ) );
+      RealType y = static_cast<RealType>( normalizedPatchVectorY[count++] );
+
+      sumX += x;
+      sumY += y;
+      sumOfSquaresX += vnl_math_sqr( x );
+      sumOfSquaresY += vnl_math_sqr( y );
+      sumXY += ( x * y );
+      }
+    }
+  RealType N = static_cast<RealType>( normalizedPatchVectorY.size() );
+
+  if( this->m_UsePearsonCorrelationCoefficient )
+    {
+    RealType meanX = sumX / N;
+    RealType meanY = sumY / N;
+    RealType pearsonCorrelation = ( sumXY - N * meanX * meanY ) /
+      ( std::sqrt( sumOfSquaresX - N * vnl_math_sqr( meanX ) ) *
+        std::sqrt( sumOfSquaresY - N * vnl_math_sqr( meanY ) ) );
+
+    return -pearsonCorrelation;
+    }
+  else
+    {
+    RealType varianceX = sumOfSquaresX - vnl_math_sqr( sumX ) / N;
+    varianceX = vnl_math_max( varianceX, 1.0e-6 );
+
+    RealType measure = vnl_math_sqr( sumXY ) / varianceX;
+
+    return ( sumXY > 0 ? -measure : measure );
+    }
+}
+
+template <class TInputImage, class TOutputImage>
 typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::VectorType
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::NonNegativeLeastSquares( const MatrixType A, const VectorType y, const RealType tolerance )
@@ -867,48 +996,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     }
 
   return x;
-}
-
-template <class TInputImage, class TOutputImage>
-typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::RealType
-WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
-::ComputePatchSimilarity( const InputImagePixelVectorType &patchVectorX,
-  const InputImagePixelVectorType &normalizedPatchVectorY )
-{
-  RealType sumX = 0.0;
-  RealType sumY = 0.0;
-  RealType sumOfSquaresX = 0.0;
-  RealType sumOfSquaresY = 0.0;
-  RealType sumXY = 0.0;
-  for( SizeValueType i = 0; i < patchVectorX.size(); i++ )
-    {
-    RealType x = static_cast<RealType>( patchVectorX[i] );
-    RealType y = static_cast<RealType>( normalizedPatchVectorY[i] );
-    sumX += x;
-    sumY += y;
-    sumOfSquaresX += vnl_math_sqr( x );
-    sumOfSquaresY += vnl_math_sqr( y );
-    sumXY += ( x * y );
-    }
-  RealType N = static_cast<RealType>( patchVectorX.size() );
-
-  if( this->m_UsePearsonCorrelationCoefficient )
-    {
-    RealType meanX = sumX / N;
-    RealType meanY = sumY / N;
-    RealType pearsonCorrelation = ( sumXY - N * meanX * meanY ) /
-      ( std::sqrt( sumOfSquaresX - N * vnl_math_sqr( meanX ) ) *
-        std::sqrt( sumOfSquaresY - N * vnl_math_sqr( meanY ) ) );
-
-    return -pearsonCorrelation;
-    }
-  else
-    {
-    RealType varianceX = sumOfSquaresX - vnl_math_sqr( sumX ) / N;
-    varianceX = vnl_math_max( varianceX, 1.0 );
-
-    return ( sumXY > 0 ? -vnl_math_sqr( sumXY ) / varianceX : vnl_math_sqr( sumXY ) / varianceX );
-    }
 }
 
 template <class TInputImage, class TOutputImage>

@@ -330,6 +330,8 @@ private:
 
   RealType ComputePatchSimilarity( const InputImagePixelVectorType &, const InputImagePixelVectorType & );
 
+  RealType ComputeNeighborhoodPatchSimilarity( const InputImageList &, const IndexType, const InputImagePixelVectorType &, const bool );
+
   InputImagePixelVectorType VectorizeImageListPatch( const InputImageList &, const IndexType, const bool );
 
   InputImagePixelVectorType VectorizeImagePatch( const InputImagePointer, const IndexType, const bool );
