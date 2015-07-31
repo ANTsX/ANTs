@@ -2,6 +2,7 @@
 #define itkantsReadWriteTransform_h
 
 #include "itkDisplacementFieldTransform.h"
+#include "itkGaussianExponentialDiffeomorphicTransform.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkTransformFileReader.h"
@@ -29,21 +30,22 @@ ReadTransform(const std::string & filename,
 
   bool hasTransformBeenRead = false;
 
-  typedef typename itk::DisplacementFieldTransform<T, VImageDimension> DisplacementFieldTransformType;
+  typedef typename itk::DisplacementFieldTransform<T, VImageDimension>      DisplacementFieldTransformType;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
   typedef itk::ImageFileReader<DisplacementFieldType>                       DisplacementFieldReaderType;
+  
   typename DisplacementFieldReaderType::Pointer fieldReader = DisplacementFieldReaderType::New();
   typedef typename itk::CompositeTransform<T, VImageDimension> CompositeTransformType;
 
   // There are known tranform type extentions that should not be considered as imaging files
   // That would be used as deformatino feilds
   // If file is an hdf5 file, assume it is a tranform instead of an image.
-  if( filename.find(".h5") == std::string::npos
+  if(    filename.find(".h5")   == std::string::npos
       && filename.find(".hdf5") == std::string::npos
       && filename.find(".hdf4") == std::string::npos
-      && filename.find(".mat") == std::string::npos
-      && filename.find(".txt") == std::string::npos
-      && filename.find(".xfm") == std::string::npos
+      && filename.find(".mat")  == std::string::npos
+      && filename.find(".txt")  == std::string::npos
+      && filename.find(".xfm")  == std::string::npos
       )
     {
     try
@@ -130,6 +132,7 @@ int
 WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Pointer & xfrm,
                const std::string & filename)
 {
+  typedef typename itk::Transform<T, VImageDimension, VImageDimension>      GenericTransformType;
   typedef typename itk::DisplacementFieldTransform<T, VImageDimension>      DisplacementFieldTransformType;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
   typedef typename itk::ImageFileWriter<DisplacementFieldType>              DisplacementFieldWriter;
@@ -138,22 +141,71 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
   DisplacementFieldTransformType *dispXfrm =
     dynamic_cast<DisplacementFieldTransformType *>(xfrm.GetPointer() );
 
-  // if it's a displacement field transform
+  // if it's a displacement field transform or output file indicates it should be a transform
   try
     {
-    if( dispXfrm != ITK_NULLPTR )
+    if(  dispXfrm != ITK_NULLPTR 
+      && filename.find(".mat") == std::string::npos
+      && filename.find(".txt") == std::string::npos
+      )
       {
       typename DisplacementFieldType::Pointer dispField = dispXfrm->GetModifiableDisplacementField();
-      typename DisplacementFieldWriter::Pointer writer = DisplacementFieldWriter::New();
-      writer->SetInput(dispField);
-      writer->SetFileName(filename.c_str() );
-      writer->Update();
+      if(    filename.find(".xfm" ) == std::string::npos
+          && filename.find(".h5"  ) == std::string::npos
+          && filename.find(".hdf5") == std::string::npos
+          && filename.find(".hdf4") == std::string::npos
+        )
+        {
+        typename DisplacementFieldWriter::Pointer writer  = DisplacementFieldWriter::New();
+        writer->SetInput(dispField);
+        writer->SetFileName(filename.c_str() );
+        writer->Update();
+        }
+       else // creating a DisplacementFieldTransformType object to make everybody happy
+        {
+        typename DisplacementFieldTransformType::Pointer tmp_xfrm=DisplacementFieldTransformType::New();
+        tmp_xfrm->SetDisplacementField(dispField);
+        typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+        transformWriter->SetInput(tmp_xfrm);
+        transformWriter->SetFileName(filename.c_str() );
+        transformWriter->Update();
+        }
       }
     else
-    // regular transform
+      // regular transform, hope that everything works as expected!
       {
+      typedef itk::CompositeTransform<T, VImageDimension>  CompositeTransformType;
+      typedef typename CompositeTransformType::Pointer     CompositeTransformPointer;
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-      transformWriter->SetInput(xfrm);
+        
+      CompositeTransformType *comp_xfm =
+        dynamic_cast<CompositeTransformType *>(xfrm.GetPointer() );        
+      if( comp_xfm != ITK_NULLPTR )
+        { //this is a composite transform, make sure it doesn't contain wiered stuff
+        CompositeTransformPointer tmp_comp_xfm=CompositeTransformType::New();
+      
+        size_t numTransforms = comp_xfm->GetNumberOfTransforms();
+        for( size_t i = 0; i < numTransforms; i++ )
+          {
+            GenericTransformType *_xfm=comp_xfm->GetNthTransform( i );
+            DisplacementFieldTransformType *_dispXfrm =
+              dynamic_cast<DisplacementFieldTransformType *>(_xfm );
+              
+            if ( _dispXfrm != ITK_NULLPTR )
+              { //assume that we have to make it DisplacementFieldTransform 
+                typename DisplacementFieldTransformType::Pointer _xfm_disp=DisplacementFieldTransformType::New();
+                _xfm_disp->SetDisplacementField(_dispXfrm->GetModifiableDisplacementField());
+                tmp_comp_xfm->AddTransform(_xfm_disp);
+              } else { //asume we just pass it on
+                tmp_comp_xfm->AddTransform(_xfm);
+              }
+          }
+        transformWriter->SetInput(tmp_comp_xfm);
+        }
+        else 
+        { //this is  a simple transform
+        transformWriter->SetInput(xfrm);
+        }
       transformWriter->SetFileName(filename.c_str() );
       transformWriter->Update();
       }
@@ -167,6 +219,52 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
     }
   return EXIT_SUCCESS;
 }
+
+template <class T, unsigned int VImageDimension>
+int
+WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimension>::Pointer & xfrm,
+               const std::string & filename)
+{
+  typedef typename itk::DisplacementFieldTransform<T, VImageDimension>      DisplacementFieldTransformType;
+  typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
+  typedef typename itk::ImageFileWriter<DisplacementFieldType>              DisplacementFieldWriter;
+  typedef itk::TransformFileWriterTemplate<T>                               TransformWriterType;
+  
+  typename DisplacementFieldType::Pointer inverseDispField = xfrm->GetModifiableInverseDisplacementField();
+  try
+    {
+      if(    filename.find(".xfm" ) == std::string::npos
+          && filename.find(".h5"  ) == std::string::npos
+          && filename.find(".hdf5") == std::string::npos
+          && filename.find(".hdf4") == std::string::npos )
+      {
+      typename DisplacementFieldWriter::Pointer writer = DisplacementFieldWriter::New();
+      writer->SetInput(inverseDispField);
+      writer->SetFileName(filename.c_str() );
+      writer->Update();
+      }
+    else
+      // regular transform, but need to create inverse of the right type
+      {
+      typename DisplacementFieldTransformType::Pointer inv_xfrm=DisplacementFieldTransformType::New();
+      inv_xfrm->SetDisplacementField(inverseDispField);
+      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+      transformWriter->SetInput(inv_xfrm);
+      transformWriter->SetFileName(filename.c_str() );
+      transformWriter->Update();
+      }
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "Can't write transform file " << filename << std::endl;
+    std::cerr << "Exception Object caught: " << std::endl;
+    std::cerr << err << std::endl;
+    return EXIT_FAILURE;
+    }
+  return EXIT_SUCCESS;
+}
+
+
 } // namespace ants
 } // namespace itk
 #endif // itkantsReadWriteTransform_h

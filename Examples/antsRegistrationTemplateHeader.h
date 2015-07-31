@@ -1326,67 +1326,66 @@ DoRegistration(typename ParserType::Pointer & parser)
         // return value.
         itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
 
-        typedef typename DisplacementFieldTransformType::DisplacementFieldType  DisplacementFieldType;
         typename DisplacementFieldTransformType::Pointer dispTransform =
           dynamic_cast<DisplacementFieldTransformType *>(curTransform.GetPointer() );
-        // write inverse transform file
         if( writeInverse && dispTransform.IsNotNull() )
           {
-          typename DisplacementFieldType::ConstPointer inverseDispField = dispTransform->GetInverseDisplacementField();
-          if( inverseDispField.IsNotNull() )
-            {
-            std::stringstream curInverseFileName;
-            curInverseFileName << outputPrefix << i << (use_minc_format?"_inverse.xfm":"InverseWarp.nii.gz");
-            typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
-            typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
-            inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
-            inverseWriter->SetFileName( curInverseFileName.str().c_str() );
-            try
-              {
-              inverseWriter->Update();
-              }
-            catch( itk::ExceptionObject & err )
-              {
-              if( verbose )
-                {
-                std::cerr << "Can't write transform file " << curInverseFileName.str().c_str() << std::endl;
-                std::cerr << "Exception Object caught: " << std::endl;
-                std::cerr << err << std::endl;
-                }
-              }
-            }
+          std::stringstream curInverseFileName;
+          curInverseFileName << outputPrefix << i << (use_minc_format?"_inverse":"Inverse") << transformTemplateName;
+          // write inverse transform file
+          itk::ants::WriteInverseTransform<TComputeType, VImageDimension>( dispTransform, curInverseFileName.str() );
           }
         if( writeVelocityField )
           {
           // write velocity field (if applicable)
           typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
-            VelocityFieldTransformType;
-
-          typedef itk::Image<itk::Vector<TComputeType, VImageDimension>, VImageDimension + 1> VelocityFieldType;
-          typename VelocityFieldTransformType::Pointer velocityFieldTransform =
-            dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
-          if( !velocityFieldTransform.IsNull() )
+            TimeVaryingVelocityFieldTransformType;
+            
+          typedef itk::GaussianExponentialDiffeomorphicTransform<TComputeType, VImageDimension>
+            GaussianDisplacementFieldTransformType;
+            
+          typename TimeVaryingVelocityFieldTransformType::Pointer tvVelocityFieldTransform =
+            dynamic_cast<TimeVaryingVelocityFieldTransformType *>(curTransform.GetPointer() );
+          typename GaussianDisplacementFieldTransformType::Pointer constVelocityFieldTransform = 
+            dynamic_cast<GaussianDisplacementFieldTransformType *>(curTransform.GetPointer() );
+            
+          std::stringstream curVelocityFieldFileName;
+          curVelocityFieldFileName << outputPrefix << i << (use_minc_format?"_VelocityField.mnc":"VelocityField.nii.gz");
+          try
             {
-            std::stringstream curVelocityFieldFileName;
-            curVelocityFieldFileName << outputPrefix << i << (use_minc_format?"VelocityField.mnc":"VelocityField.nii.gz");
+            
+            
+            
+            if( !tvVelocityFieldTransform.IsNull() )
+              {
 
-            typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
-            typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
-            velocityFieldWriter->SetInput( velocityFieldTransform->GetTimeVaryingVelocityField() );
-            velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
-            try
-              {
-              velocityFieldWriter->Update();
+              typedef itk::Image<itk::Vector<TComputeType, VImageDimension>, VImageDimension + 1> VelocityFieldType;
+              typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
+              typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
+            
+              velocityFieldWriter->SetInput( tvVelocityFieldTransform->GetTimeVaryingVelocityField() );
+              velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
+                velocityFieldWriter->Update();
               }
-            catch( itk::ExceptionObject & err )
+            else if( !constVelocityFieldTransform.IsNull() )
               {
-              if( verbose )
-                {
-                std::cerr << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
-                  << std::endl;
-                std::cerr << "Exception Object caught: " << std::endl;
-                std::cerr << err << std::endl;
-                }
+              typedef itk::Image<itk::Vector<TComputeType, VImageDimension>, VImageDimension> VelocityFieldType;
+              typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
+              typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
+            
+              velocityFieldWriter->SetInput( constVelocityFieldTransform->GetModifiableConstantVelocityField() );
+              velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
+                velocityFieldWriter->Update();
+              }
+            }
+          catch( itk::ExceptionObject & err )
+            {
+            if( verbose )
+              {
+              std::cerr << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
+                << std::endl;
+              std::cerr << "Exception Object caught: " << std::endl;
+              std::cerr << err << std::endl;
               }
             }
           }
