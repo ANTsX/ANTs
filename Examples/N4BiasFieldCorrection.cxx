@@ -331,6 +331,11 @@ int N4( itk::ants::CommandLineParser *parser )
     }
   shrinker->SetShrinkFactors( shrinkFactor );
   maskshrinker->SetShrinkFactors( shrinkFactor );
+  if( ImageDimension == 4 )
+    {
+    shrinker->SetShrinkFactor( 3, 1 );
+    maskshrinker->SetShrinkFactor( 3, 1 );
+    }
   shrinker->Update();
   maskshrinker->Update();
 
@@ -345,7 +350,7 @@ int N4( itk::ants::CommandLineParser *parser )
   if( weightImage )
     {
     weightshrinker->SetInput( weightImage );
-    weightshrinker->SetShrinkFactors( shrinkFactor );
+    weightshrinker->SetShrinkFactors( shrinker->GetShrinkFactors() );
     weightshrinker->Update();
 
     correcter->SetConfidenceImage( weightshrinker->GetOutput() );
@@ -651,7 +656,9 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string( "Running N4 on large images can be time consuming. " )
     + std::string( "To lessen computation time, the input image can be resampled. " )
     + std::string( "The shrink factor, specified as a single integer, describes " )
-    + std::string( "this resampling.  Shrink factors <= 4 are commonly used." );
+    + std::string( "this resampling.  Shrink factors <= 4 are commonly used." )
+    + std::string( "Note that the shrink factor is only applied to the first two or " )
+    + std::string( "three dimensions which we assume are spatial.  " );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "shrink-factor" );
