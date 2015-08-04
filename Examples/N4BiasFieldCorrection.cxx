@@ -131,7 +131,7 @@ int N4( itk::ants::CommandLineParser *parser )
     {
     if( verbose )
       {
-      std::cout << "Mask not read.  Creating Otsu mask." << std::endl;
+      std::cout << "Mask not read.  Creating Otsu mask." << std::endl << std::endl;
       }
     typedef itk::OtsuThresholdImageFilter<ImageType, MaskImageType>
       ThresholderType;
@@ -229,13 +229,13 @@ int N4( itk::ants::CommandLineParser *parser )
         //     requested domain size.
         float splineDistance = array[0];
 
+        typename ImageType::SizeType originalImageSize = inputImage->GetLargestPossibleRegion().GetSize();
+
         unsigned long lowerBound[ImageDimension];
         unsigned long upperBound[ImageDimension];
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
-          float domain = static_cast<RealType>( inputImage->
-                                                GetLargestPossibleRegion().GetSize()[d]
-                                                - 1 ) * inputImage->GetSpacing()[d];
+          float domain = static_cast<RealType>( originalImageSize[d] - 1 ) * inputImage->GetSpacing()[d];
           unsigned int numberOfSpans = static_cast<unsigned int>(
               vcl_ceil( domain / splineDistance ) );
           unsigned long extraPadding = static_cast<unsigned long>( ( numberOfSpans
@@ -281,6 +281,15 @@ int N4( itk::ants::CommandLineParser *parser )
 
           weightImage = weightPadder->GetOutput();
           weightImage->DisconnectPipeline();
+          }
+
+        if( verbose )
+          {
+          std::cout << "Specified spline distance: " << splineDistance << "mm" << std::endl;
+          std::cout << "  original image size:  " << originalImageSize << std::endl;
+          std::cout << "  padded image size:  " << inputImage->GetLargestPossibleRegion().GetSize() << std::endl;
+          std::cout << "  number of control points:  " << numberOfControlPoints << std::endl;
+          std::cout << std::endl;
           }
         }
       else if( array.size() == ImageDimension )
