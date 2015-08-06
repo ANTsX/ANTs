@@ -134,20 +134,28 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer noiseModelOption =
     parser->GetOption( "noise-model" );
-  std::string noiseModel( "rician" );
+  std::string noiseModel( "gaussian" );
   if( noiseModelOption && noiseModelOption->GetNumberOfFunctions() )
     {
     noiseModel = noiseModelOption->GetFunction( 0 )->GetName();
     }
   ConvertToLowerCase( noiseModel );
 
-  if( noiseModel == std::string( "rician" ) )
+  if( std::strcmp( noiseModel.c_str(), "rician" ) == 0 )
     {
     denoiser->SetUseRicianNoiseModel( true );
     }
-  else
+  else if( std::strcmp( noiseModel.c_str(), "gaussian" ) == 0 )
     {
     denoiser->SetUseRicianNoiseModel( false );
+    }
+  else
+    {
+    if( verbose )
+      {
+      std::cerr << "Unrecognized noise model:  " << noiseModel << ".  See help menu." << std::endl;
+      }
+    return EXIT_FAILURE;
     }
 
   /**
@@ -303,7 +311,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "noise-model" );
   option->SetShortName( 'n' );
-  option->SetUsageOption( 0, "(Rician)/Gaussian" );
+  option->SetUsageOption( 0, "Rician/(Gaussian)" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
