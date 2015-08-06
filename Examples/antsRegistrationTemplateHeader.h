@@ -763,31 +763,43 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
           }
 
-        std::vector<unsigned int> meshSizeForTheUpdateField =
-          parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
-        if( meshSizeForTheUpdateField.size() == 1 )
+        std::vector<unsigned int> meshSizeForTheUpdateField;
+
+        std::vector<float> meshSizeForTheUpdateFieldFloat =
+          parser->ConvertVector<float>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
+        if( meshSizeForTheUpdateFieldFloat.size() == 1 )
           {
           typename ImageType::Pointer fixedImage;
           ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
           fixedImage->DisconnectPipeline();
 
           meshSizeForTheUpdateField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
-              fixedImage, meshSizeForTheUpdateField[0], splineOrder );
+              fixedImage, meshSizeForTheUpdateFieldFloat[0], splineOrder );
+          }
+        else
+          {
+          meshSizeForTheUpdateField =
+            parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
           }
 
         std::vector<unsigned int> meshSizeForTheTotalField;
         if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
-          meshSizeForTheTotalField =
-            parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 2 ) );
-          if( meshSizeForTheTotalField.size() == 1 )
+          std::vector<float> meshSizeForTheTotalFieldFloat =
+            parser->ConvertVector<float>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
+          if( meshSizeForTheTotalFieldFloat.size() == 1 )
             {
             typename ImageType::Pointer fixedImage;
             ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
             fixedImage->DisconnectPipeline();
 
             meshSizeForTheTotalField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
-                fixedImage, meshSizeForTheTotalField[0], splineOrder );
+                fixedImage, meshSizeForTheTotalFieldFloat[0], splineOrder );
+            }
+          else
+            {
+            meshSizeForTheTotalField =
+              parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
             }
           }
         else
@@ -1340,29 +1352,29 @@ DoRegistration(typename ParserType::Pointer & parser)
           // write velocity field (if applicable)
           typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
             TimeVaryingVelocityFieldTransformType;
-            
+
           typedef itk::GaussianExponentialDiffeomorphicTransform<TComputeType, VImageDimension>
             GaussianDisplacementFieldTransformType;
-            
+
           typename TimeVaryingVelocityFieldTransformType::Pointer tvVelocityFieldTransform =
             dynamic_cast<TimeVaryingVelocityFieldTransformType *>(curTransform.GetPointer() );
-          typename GaussianDisplacementFieldTransformType::Pointer constVelocityFieldTransform = 
+          typename GaussianDisplacementFieldTransformType::Pointer constVelocityFieldTransform =
             dynamic_cast<GaussianDisplacementFieldTransformType *>(curTransform.GetPointer() );
-            
+
           std::stringstream curVelocityFieldFileName;
           curVelocityFieldFileName << outputPrefix << i << (use_minc_format?"_VelocityField.mnc":"VelocityField.nii.gz");
           try
             {
-            
-            
-            
+
+
+
             if( !tvVelocityFieldTransform.IsNull() )
               {
 
               typedef itk::Image<itk::Vector<TComputeType, VImageDimension>, VImageDimension + 1> VelocityFieldType;
               typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
               typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
-            
+
               velocityFieldWriter->SetInput( tvVelocityFieldTransform->GetTimeVaryingVelocityField() );
               velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
                 velocityFieldWriter->Update();
@@ -1372,7 +1384,7 @@ DoRegistration(typename ParserType::Pointer & parser)
               typedef itk::Image<itk::Vector<TComputeType, VImageDimension>, VImageDimension> VelocityFieldType;
               typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
               typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
-            
+
               velocityFieldWriter->SetInput( constVelocityFieldTransform->GetModifiableConstantVelocityField() );
               velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
                 velocityFieldWriter->Update();
