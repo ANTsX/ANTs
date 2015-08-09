@@ -31,6 +31,7 @@ namespace itk {
 template<typename TInputImage, typename TOutputImage>
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::WeightedVotingFusionImageFilter() :
+  m_IsWeightedAveragingComplete( false ),
   m_NumberOfAtlases( 0 ),
   m_NumberOfAtlasSegmentations( 0 ),
   m_NumberOfAtlasModalities( 0 ),
@@ -151,6 +152,41 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     region.Crop( input->GetLargestPossibleRegion() );
     input->SetRequestedRegion( region );
     }
+}
+
+template <class TInputImage, class TOutputImage>
+void
+WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
+::GenerateData()
+{
+  this->BeforeThreadedGenerateData();
+
+  /**
+   * Multithread processing for the weighted averaging
+   */
+  typename ImageSource<TOutputImage>::ThreadStruct str1;
+  str1.Filter = this;
+
+  this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
+  this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str1 );
+
+  this->GetMultiThreader()->SingleMethodExecute();
+
+  this->m_IsWeightedAveragingComplete = true;
+
+  /**
+   * Multithread processing for the image(s) reconstruction
+   */
+
+  typename ImageSource<TOutputImage>::ThreadStruct str2;
+  str2.Filter = this;
+
+  this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
+  this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str2 );
+
+  this->GetMultiThreader()->SingleMethodExecute();
+
+  this->AfterThreadedGenerateData();
 }
 
 template <class TInputImage, class TOutputImage>
@@ -281,7 +317,22 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
-::ThreadedGenerateData( const RegionType & region, ThreadIdType threadId )
+::ThreadedGenerateData( const RegionType &region, ThreadIdType threadId )
+{
+  if( !this->m_IsWeightedAveragingComplete )
+    {
+    this->ThreadedGenerateDataForWeightedAveraging( region, threadId );
+    }
+  else
+    {
+    this->ThreadedGenerateDataForReconstruction( region, threadId );
+    }
+}
+
+template <class TInputImage, class TOutputImage>
+void
+WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
+::ThreadedGenerateDataForWeightedAveraging( const RegionType & region, ThreadIdType threadId )
 {
   ProgressReporter progress( this, threadId, region.GetNumberOfPixels(), 100 );
 
@@ -355,19 +406,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           {
           continue;
           }
-
-//         InputImagePixelVectorType individualAtlasPatch;
-//         if( numberOfTargetModalities == this->m_NumberOfAtlasModalities )
-//           {
-//           individualAtlasPatch =
-//             this->VectorizeImageListPatch( this->m_AtlasImages[i], searchIndex, false );
-//           }
-//         else
-//           {
-//           individualAtlasPatch =
-//             this->VectorizeImagePatch( this->m_AtlasImages[i][0], searchIndex, false );
-//           }
-//         RealType patchSimilarity = this->ComputePatchSimilarity( individualAtlasPatch, normalizedTargetPatch  );
 
         RealType patchSimilarity = this->ComputeNeighborhoodPatchSimilarity(
           this->m_AtlasImages[i], searchIndex, normalizedTargetPatch, useOnlyFirstAtlasImage );
@@ -573,12 +611,13 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
-::AfterThreadedGenerateData()
+::ThreadedGenerateDataForReconstruction( const RegionType &region, ThreadIdType
+  itkNotUsed( threadId ) )
 {
   typename OutputImageType::Pointer output = this->GetOutput();
 
   // Perform voting at each voxel
-  ImageRegionIteratorWithIndex<OutputImageType> It( output, output->GetBufferedRegion() );
+  ImageRegionIteratorWithIndex<OutputImageType> It( output, region );
 
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
@@ -615,14 +654,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     It.Set( winningLabel );
     }
 
-  // Clear posterior maps if not kept
-  if( !this->m_RetainLabelPosteriorProbabilityImages )
-    {
-    this->m_LabelPosteriorProbabilityImages.clear();
-    }
-
   ImageRegionIteratorWithIndex<ProbabilityImageType> ItW( this->m_WeightSumImage,
-    this->m_WeightSumImage->GetBufferedRegion() );
+    region );
 
   for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
     {
@@ -656,7 +689,18 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
         }
       }
     }
+}
 
+template <class TInputImage, class TOutputImage>
+void
+WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
+::AfterThreadedGenerateData()
+{
+  // Clear posterior maps if not kept
+  if( !this->m_RetainLabelPosteriorProbabilityImages )
+    {
+    this->m_LabelPosteriorProbabilityImages.clear();
+    }
 
   // Normalize the joint intensity fusion images.
   for( SizeValueType i = 0; i < this->m_NumberOfAtlasModalities; i++ )
@@ -750,50 +794,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   mean = sum / count;
   standardDeviation = std::sqrt( ( sumOfSquares - count * vnl_math_sqr( mean ) ) / ( count - 1.0 ) );
-}
-
-template <class TInputImage, class TOutputImage>
-typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::RealType
-WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
-::ComputePatchSimilarity( const InputImagePixelVectorType &patchVectorX,
-  const InputImagePixelVectorType &normalizedPatchVectorY )
-{
-  RealType sumX = 0.0;
-  RealType sumY = 0.0;
-  RealType sumOfSquaresX = 0.0;
-  RealType sumOfSquaresY = 0.0;
-  RealType sumXY = 0.0;
-  for( SizeValueType i = 0; i < patchVectorX.size(); i++ )
-    {
-    RealType x = static_cast<RealType>( patchVectorX[i] );
-    RealType y = static_cast<RealType>( normalizedPatchVectorY[i] );
-    sumX += x;
-    sumY += y;
-    sumOfSquaresX += vnl_math_sqr( x );
-    sumOfSquaresY += vnl_math_sqr( y );
-    sumXY += ( x * y );
-    }
-  RealType N = static_cast<RealType>( patchVectorX.size() );
-
-  if( this->m_UsePearsonCorrelationCoefficient )
-    {
-    RealType meanX = sumX / N;
-    RealType meanY = sumY / N;
-    RealType pearsonCorrelation = ( sumXY - N * meanX * meanY ) /
-      ( std::sqrt( sumOfSquaresX - N * vnl_math_sqr( meanX ) ) *
-        std::sqrt( sumOfSquaresY - N * vnl_math_sqr( meanY ) ) );
-
-    return -pearsonCorrelation;
-    }
-  else
-    {
-    RealType varianceX = sumOfSquaresX - vnl_math_sqr( sumX ) / N;
-    varianceX = vnl_math_max( varianceX, 1.0e-6 );
-
-    RealType measure = vnl_math_sqr( sumXY ) / varianceX;
-
-    return ( sumXY > 0 ? -measure : measure );
-    }
 }
 
 template <class TInputImage, class TOutputImage>

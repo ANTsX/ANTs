@@ -326,9 +326,13 @@ protected:
 
   void AfterThreadedGenerateData() ITK_OVERRIDE;
 
+  void GenerateData() ITK_OVERRIDE;
+
 private:
 
-  RealType ComputePatchSimilarity( const InputImagePixelVectorType &, const InputImagePixelVectorType & );
+  void ThreadedGenerateDataForWeightedAveraging( const RegionType &, ThreadIdType );
+
+  void ThreadedGenerateDataForReconstruction( const RegionType &, ThreadIdType );
 
   RealType ComputeNeighborhoodPatchSimilarity( const InputImageList &, const IndexType, const InputImagePixelVectorType &, const bool );
 
@@ -341,6 +345,8 @@ private:
   VectorType NonNegativeLeastSquares( const MatrixType, const VectorType, const RealType );
 
   void UpdateInputs();
+
+  bool                                                 m_IsWeightedAveragingComplete;
 
   /** Input variables   */
   InputImageList                                       m_TargetImage;
