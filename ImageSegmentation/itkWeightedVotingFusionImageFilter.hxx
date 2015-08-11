@@ -811,7 +811,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   RealType sumX = 0.0;
   RealType sumOfSquaresX = 0.0;
-  RealType squaredDifferenceXY = 0.0;
+  RealType sumOfSquaredDifferencesXY = 0.0;
   RealType sumXY = 0.0;
 
   SizeValueType count = 0;
@@ -828,7 +828,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       sumOfSquaresX += vnl_math_sqr( x );
       sumXY += ( x * y );
 
-      squaredDifferenceXY += vnl_math_sqr( y - x );
+      sumOfSquaredDifferencesXY += vnl_math_sqr( y - x );
       }
     }
   RealType N = static_cast<RealType>( normalizedPatchVectorY.size() );
@@ -843,7 +843,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     }
   else if( this->m_SimilarityMetric == MEAN_SQUARES )
     {
-    return ( squaredDifferenceXY / N );
+    return ( sumOfSquaredDifferencesXY / N );
     }
   else
     {
