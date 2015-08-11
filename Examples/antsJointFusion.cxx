@@ -198,7 +198,6 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   bool retainAtlasVotingImages = false;
   bool retainLabelPosteriorImages = false;
   bool constrainSolutionToNonnegativeWeights = false;
-  bool usePearson = false;
 
   typename OptionType::Pointer retainLabelPosteriorOption = parser->GetOption( "retain-label-posterior-images" );
   if( retainLabelPosteriorOption && retainLabelPosteriorOption->GetNumberOfFunctions() > 0 )
@@ -218,16 +217,29 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     constrainSolutionToNonnegativeWeights = parser->Convert<bool>( constrainWeightsOption->GetFunction()->GetName() );
     }
 
-  typename OptionType::Pointer pearsonOption = parser->GetOption( "use-pearson" );
-  if( pearsonOption && pearsonOption->GetNumberOfFunctions() > 0 )
+  typename OptionType::Pointer metricOption = parser->GetOption( "patch-metric" );
+  if( metricOption && metricOption->GetNumberOfFunctions() > 0 )
     {
-    usePearson = parser->Convert<bool>( pearsonOption->GetFunction()->GetName() );
+    std::string metricString = metricOption->GetFunction()->GetName();
+    ConvertToLowerCase( metricString );
+    if( metricString.compare( "pc" ) == 0 )
+      {
+      fusionFilter->SetSimilarityMetric( FusionFilterType::PEARSON_CORRELATION );
+      }
+    else if( metricString.compare( "msq" ) == 0 )
+      {
+      fusionFilter->SetSimilarityMetric( FusionFilterType::MEAN_SQUARES );
+      }
+    else
+      {
+      std::cerr << "Unrecognized metric option. See help menu." << std::endl;
+      return EXIT_FAILURE;
+      }
     }
 
   fusionFilter->SetRetainAtlasVotingWeightImages( retainAtlasVotingImages );
   fusionFilter->SetRetainLabelPosteriorProbabilityImages( retainLabelPosteriorImages );
   fusionFilter->SetConstrainSolutionToNonnegativeWeights( constrainSolutionToNonnegativeWeights );
-  fusionFilter->SetUsePearsonCorrelationCoefficient( usePearson );
 
   // Get the target image
 
@@ -672,7 +684,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "retain-atlas-voting-images" );
-  option->SetShortName( 'm' );
+  option->SetShortName( 'f' );
   option->SetUsageOption( 0, "(0)/1" );
   option->SetDescription( description );
   parser->AddOption( option );
@@ -704,13 +716,14 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   {
   std::string description =
-    std::string( "Boolean to use the Pearson correlation coefficient as a similarity " )
-    + std::string( "measure.  Default = 0." );
+    std::string( "Metric to be used in determining the most similar neighborhood patch.  " )
+    + std::string( "Options include Pearson's correlation (PC) and mean squares (MSQ). " )
+    + std::string( "Default = PC (Pearson correlation)." );
 
   OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "use-pearson" );
-  option->SetShortName( 'q' );
-  option->SetUsageOption( 0, "(0)/1" );
+  option->SetLongName( "patch-metric" );
+  option->SetShortName( 'm' );
+  option->SetUsageOption( 0, "(PC)/MSQ" );
   option->SetDescription( description );
   parser->AddOption( option );
   }

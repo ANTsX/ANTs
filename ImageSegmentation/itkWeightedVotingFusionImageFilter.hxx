@@ -40,13 +40,14 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   m_Beta( 2.0 ),
   m_RetainLabelPosteriorProbabilityImages( false ),
   m_RetainAtlasVotingWeightImages( false ),
-  m_ConstrainSolutionToNonnegativeWeights( false ),
-  m_UsePearsonCorrelationCoefficient( false )
+  m_ConstrainSolutionToNonnegativeWeights( false )
 {
   this->m_MaskImage = ITK_NULLPTR;
   this->m_MaskLabel = NumericTraits<LabelType>::OneValue();
 
   this->m_CountImage = ITK_NULLPTR;
+
+  this->m_SimilarityMetric = PEARSON_CORRELATION;
 }
 
 template <class TInputImage, class TOutputImage>
@@ -809,9 +810,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     }
 
   RealType sumX = 0.0;
-  RealType sumY = 0.0;
   RealType sumOfSquaresX = 0.0;
-  RealType sumOfSquaresY = 0.0;
+  RealType squaredDifferenceXY = 0.0;
   RealType sumXY = 0.0;
 
   SizeValueType count = 0;
@@ -825,32 +825,29 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       RealType y = static_cast<RealType>( normalizedPatchVectorY[count++] );
 
       sumX += x;
-      sumY += y;
       sumOfSquaresX += vnl_math_sqr( x );
-      sumOfSquaresY += vnl_math_sqr( y );
       sumXY += ( x * y );
+
+      squaredDifferenceXY = vnl_math_sqr( y - x );
       }
     }
   RealType N = static_cast<RealType>( normalizedPatchVectorY.size() );
 
-  if( this->m_UsePearsonCorrelationCoefficient )
-    {
-    RealType meanX = sumX / N;
-    RealType meanY = sumY / N;
-    RealType pearsonCorrelation = ( sumXY - N * meanX * meanY ) /
-      ( std::sqrt( sumOfSquaresX - N * vnl_math_sqr( meanX ) ) *
-        std::sqrt( sumOfSquaresY - N * vnl_math_sqr( meanY ) ) );
-
-    return -pearsonCorrelation;
-    }
-  else
+  if( this->m_SimilarityMetric == PEARSON_CORRELATION )
     {
     RealType varianceX = sumOfSquaresX - vnl_math_sqr( sumX ) / N;
     varianceX = vnl_math_max( varianceX, 1.0e-6 );
 
     RealType measure = vnl_math_sqr( sumXY ) / varianceX;
-
     return ( sumXY > 0 ? -measure : measure );
+    }
+  else if( this->m_SimilarityMetric == MEAN_SQUARES )
+    {
+    return ( squaredDifferenceXY / N );
+    }
+  else
+    {
+    itkExceptionMacro( "Unrecognized similarity metric." );
     }
 }
 
@@ -1012,9 +1009,13 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   os << "Beta = " << this->m_Beta << std::endl;
   os << "Search neighborhood radius = " << this->m_SearchNeighborhoodRadius << std::endl;
   os << "Patch neighborhood radius = " << this->m_PatchNeighborhoodRadius << std::endl;
-  if( this->m_UsePearsonCorrelationCoefficient )
+  if( this->m_SimilarityMetric == PEARSON_CORRELATION )
     {
     os << "Using Pearson correlation to measure the patch similarity." << std::endl;
+    }
+  else if( this->m_SimilarityMetric == MEAN_SQUARES )
+    {
+    os << "Using mean squares to measure the patch similarity." << std::endl;
     }
 
   os << "Label set: ";

@@ -115,6 +115,14 @@ public:
   typedef typename ConstNeighborhoodIteratorType::OffsetType      NeighborhoodOffsetType;
 
   /**
+   * Neighborhood patch similarity metric enumerated type
+   */
+  enum SimilarityMetricType {
+    PEARSON_CORRELATION,
+    MEAN_SQUARES
+  };
+
+  /**
    * Set the multimodal target image
    */
   void SetTargetImage( InputImageList imageList )
@@ -243,11 +251,10 @@ public:
   itkBooleanMacro( ConstrainSolutionToNonnegativeWeights );
 
   /**
-   *
+   * Measurement of neighborhood similarity.
    */
-  itkSetMacro( UsePearsonCorrelationCoefficient, bool );
-  itkGetConstMacro( UsePearsonCorrelationCoefficient, bool );
-  itkBooleanMacro( UsePearsonCorrelationCoefficient );
+  itkSetMacro( SimilarityMetric, SimilarityMetricType );
+  itkGetConstMacro( SimilarityMetric, SimilarityMetricType );
 
   /**
    * Get the posterior probability image corresponding to a label.
@@ -376,7 +383,8 @@ private:
   bool                                                 m_RetainLabelPosteriorProbabilityImages;
   bool                                                 m_RetainAtlasVotingWeightImages;
   bool                                                 m_ConstrainSolutionToNonnegativeWeights;
-  bool                                                 m_UsePearsonCorrelationCoefficient;
+
+  SimilarityMetricType                                 m_SimilarityMetric;
 
   ProbabilityImagePointer                              m_WeightSumImage;
 
