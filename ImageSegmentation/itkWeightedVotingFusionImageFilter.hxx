@@ -828,7 +828,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       sumOfSquaresX += vnl_math_sqr( x );
       sumXY += ( x * y );
 
-      squaredDifferenceXY = vnl_math_sqr( y - x );
+      squaredDifferenceXY += vnl_math_sqr( y - x );
       }
     }
   RealType N = static_cast<RealType>( normalizedPatchVectorY.size() );
