@@ -658,7 +658,7 @@ if [[ $DOQSUB -eq 1 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    for (( i = 0; i < ${EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
       do
         jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
       done
