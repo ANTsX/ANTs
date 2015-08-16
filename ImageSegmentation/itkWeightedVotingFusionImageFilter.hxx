@@ -359,11 +359,12 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   ConstNeighborhoodIteratorType ItN( this->m_PatchNeighborhoodRadius, this->m_TargetImage[0], region );
   for( ItN.GoToBegin(); !ItN.IsAtEnd(); ++ItN )
     {
+    progress.CompletedPixel();
+
     IndexType currentCenterIndex = ItN.GetIndex();
 
     if( this->m_MaskImage && this->m_MaskImage->GetPixel( currentCenterIndex ) != this->m_MaskLabel )
       {
-      progress.CompletedPixel();
       continue;
       }
 
@@ -381,7 +382,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
         }
       if( ! nonBackgroundLabelExistAtThisVoxel )
         {
-        progress.CompletedPixel();
         continue;
         }
       }
@@ -605,7 +605,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           }
         }
       }
-    progress.CompletedPixel();
     }
 }
 

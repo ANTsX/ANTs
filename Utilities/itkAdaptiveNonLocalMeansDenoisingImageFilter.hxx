@@ -27,6 +27,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkMeanImageFilter.h"
 #include "itkNeighborhoodIterator.h"
+#include "itkProgressReporter.h"
 #include "itkStatisticsImageFilter.h"
 #include "itkVarianceImageFilter.h"
 
@@ -121,8 +122,10 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 template<typename TInputImage, typename TOutputImage>
 void
 AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
-::ThreadedGenerateData( const RegionType &region, ThreadIdType itkNotUsed( threadId ) )
+::ThreadedGenerateData( const RegionType &region, ThreadIdType threadId )
 {
+  ProgressReporter progress( this, threadId, region.GetNumberOfPixels(), 100 );
+
   const InputImageType *inputImage = this->GetInput();
 
   OutputImageType *outputImage = this->GetOutput();
@@ -151,6 +154,8 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
   while( !ItM.IsAtEnd() )
     {
+    progress.CompletedPixel();
+
     RealType meanCenterPixel = ItM.GetCenterPixel();
     RealType varianceCenterPixel = ItV.GetCenterPixel();
 
