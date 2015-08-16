@@ -128,11 +128,11 @@ public:
   itkGetConstMacro( VarianceThreshold, RealType );
 
   /**
-   * Neighborhood radius 1.
+   * Neighborhood size for computing local mean and variance images.
    * Default = 1x1x...
    */
-  itkSetMacro( NeighborhoodRadius1, NeighborhoodRadiusType );
-  itkGetConstMacro( NeighborhoodRadius1, NeighborhoodRadiusType );
+  itkSetMacro( NeighborhoodRadiusForLocalMeanAndVariance, NeighborhoodRadiusType );
+  itkGetConstMacro( NeighborhoodRadiusForLocalMeanAndVariance, NeighborhoodRadiusType );
 
   /**
    * Neighborhood radius 2.
@@ -187,7 +187,7 @@ private:
   RealImagePointer                  m_ThreadContributionCountImage;
   RealImagePointer                  m_IntensitySquaredDistanceImage;
 
-  NeighborhoodRadiusType            m_NeighborhoodRadius1;
+  NeighborhoodRadiusType            m_NeighborhoodRadiusForLocalMeanAndVariance;
   NeighborhoodRadiusType            m_NeighborhoodRadius2;
   NeighborhoodRadiusType            m_BlockNeighborhoodRadius;
 

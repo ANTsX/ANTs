@@ -54,7 +54,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   this->m_RicianBiasImage = ITK_NULLPTR;
 
   this->m_BlockNeighborhoodRadius.Fill( 1 );
-  this->m_NeighborhoodRadius1.Fill( 1 );
+  this->m_NeighborhoodRadiusForLocalMeanAndVariance.Fill( 1 );
   this->m_NeighborhoodRadius2.Fill( 3 );
 }
 
@@ -68,7 +68,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   typedef MeanImageFilter<InputImageType, RealImageType> MeanImageFilterType;
   typename MeanImageFilterType::Pointer meanImageFilter = MeanImageFilterType::New();
   meanImageFilter->SetInput( inputImage );
-  meanImageFilter->SetRadius( this->GetNeighborhoodRadius1() );
+  meanImageFilter->SetRadius( this->GetNeighborhoodRadiusForLocalMeanAndVariance() );
 
   this->m_MeanImage = meanImageFilter->GetOutput();
   this->m_MeanImage->Update();
@@ -77,7 +77,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   typedef VarianceImageFilter<InputImageType, RealImageType> VarianceImageFilterType;
   typename VarianceImageFilterType::Pointer varianceImageFilter = VarianceImageFilterType::New();
   varianceImageFilter->SetInput( inputImage );
-  varianceImageFilter->SetRadius( this->GetNeighborhoodRadius1() );
+  varianceImageFilter->SetRadius( this->GetNeighborhoodRadiusForLocalMeanAndVariance() );
 
   this->m_VarianceImage = varianceImageFilter->GetOutput();
   this->m_VarianceImage->Update();
@@ -498,7 +498,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   os << indent << "Smoothing factor = " << this->m_SmoothingFactor << std::endl;
   os << indent << "Smoothing variance = " << this->m_SmoothingVariance << std::endl;
 
-  os << indent << "Neighborhood radius 1 = " << this->m_NeighborhoodRadius1 << std::endl;
+  os << indent << "Neighborhood radius for local mean and variance = " << this->m_NeighborhoodRadiusForLocalMeanAndVariance << std::endl;
   os << indent << "Neighborhood radius 2 = " << this->m_NeighborhoodRadius2 << std::endl;
   os << indent << "Block Neighborhood radius = " << this->m_BlockNeighborhoodRadius << std::endl;
 }

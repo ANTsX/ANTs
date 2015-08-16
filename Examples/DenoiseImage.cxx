@@ -191,14 +191,14 @@ int Denoise( itk::ants::CommandLineParser *parser )
   denoiser->SetSmoothingVariance( 2.0 );
 
   typename DenoiserType::NeighborhoodRadiusType blockNeighborhoodRadius;
-  typename DenoiserType::NeighborhoodRadiusType neighborhoodRadius1;
+  typename DenoiserType::NeighborhoodRadiusType neighborhoodRadiusForLocalMeanAndVariance;
   typename DenoiserType::NeighborhoodRadiusType neighborhoodRadius2;
 
-  neighborhoodRadius1.Fill( 1 );
+  neighborhoodRadiusForLocalMeanAndVariance.Fill( 1 );
   neighborhoodRadius2.Fill( 3 );
   blockNeighborhoodRadius.Fill( 1 );
 
-  denoiser->SetNeighborhoodRadius1( neighborhoodRadius1 );
+  denoiser->SetNeighborhoodRadiusForLocalMeanAndVariance( neighborhoodRadiusForLocalMeanAndVariance );
   denoiser->SetNeighborhoodRadius2( neighborhoodRadius2 );
   denoiser->SetBlockNeighborhoodRadius( blockNeighborhoodRadius );
 
