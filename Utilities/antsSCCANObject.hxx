@@ -5459,7 +5459,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType vec = this->m_VariatesP.get_column( i );
       RealType spar = this->CountNonZero( vec );
-      this->m_SparsenessP( i ) = spar;
+      if ( fabs( this->m_FractionNonZeroP < 1.e-11 ) ) // learn from prior
+        this->m_SparsenessP( i ) = spar;
       this->SparsifyP( vec  );
       vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
       vec = vec / vec.two_norm();
@@ -5475,13 +5476,16 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType vec = this->m_VariatesQ.get_column( i );
       RealType spar = this->CountNonZero( vec );
-      this->m_SparsenessQ( i ) = spar;
+      if ( fabs( this->m_FractionNonZeroQ < 1.e-11 ) )
+        this->m_SparsenessQ( i ) = spar;
       this->SparsifyQ( vec  );
       vec = this->SpatiallySmoothVector( vec, this->m_MaskImageQ );
       vec = vec / vec.two_norm();
       this->m_VariatesQ.set_column( i , vec );
       }
     }
+  if ( ! this->m_Silent ) std::cout << " P-sparseness : " << this->m_SparsenessP  << std::endl;
+  if ( ! this->m_Silent ) std::cout << " Q-sparseness : " << this->m_SparsenessQ  << std::endl;
 
   unsigned int       maxloop = this->m_MaximumNumberOfIterations;
   unsigned int       innerloop = 1;
