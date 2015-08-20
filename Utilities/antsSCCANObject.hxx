@@ -5484,8 +5484,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_VariatesQ.set_column( i , vec );
       }
     }
-  if ( ! this->m_Silent ) std::cout << " P-sparseness : " << this->m_SparsenessP  << std::endl;
-  if ( ! this->m_Silent ) std::cout << " Q-sparseness : " << this->m_SparsenessQ  << std::endl;
+
+  // if ( ! this->m_Silent )
+  std::cout << " P-sparseness : " << this->m_SparsenessP  << std::endl;
+  std::cout << " Q-sparseness : " << this->m_SparsenessQ  << std::endl;
 
   unsigned int       maxloop = this->m_MaximumNumberOfIterations;
   unsigned int       innerloop = 1;
