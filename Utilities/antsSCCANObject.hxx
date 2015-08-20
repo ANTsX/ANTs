@@ -5459,7 +5459,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType vec = this->m_VariatesP.get_column( i );
       RealType spar = this->CountNonZero( vec );
-      if ( fabs( this->m_FractionNonZeroP < 1.e-11 ) ) // learn from prior
+      if ( fabs( this->m_FractionNonZeroP ) < 1.e-11 ) // learn from prior
         this->m_SparsenessP( i ) = spar;
       this->SparsifyP( vec  );
       vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
@@ -5476,7 +5476,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType vec = this->m_VariatesQ.get_column( i );
       RealType spar = this->CountNonZero( vec );
-      if ( fabs( this->m_FractionNonZeroQ < 1.e-11 ) )
+      if ( fabs( this->m_FractionNonZeroQ ) < 1.e-11  )
         this->m_SparsenessQ( i ) = spar;
       this->SparsifyQ( vec  );
       vec = this->SpatiallySmoothVector( vec, this->m_MaskImageQ );
