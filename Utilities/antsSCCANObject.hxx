@@ -5029,6 +5029,7 @@ template <class TInputImage, class TRealType>
 bool antsSCCANObject<TInputImage, TRealType>
 ::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov , unsigned int k )
 {
+  // srand (time(NULL));
   this->m_FractionNonZeroP = this->m_SparsenessP( k );
   this->m_FractionNonZeroQ = this->m_SparsenessQ( k );
   VectorType pprior;
@@ -5167,6 +5168,13 @@ bool antsSCCANObject<TInputImage, TRealType>
       this->IHTRegression(  this->m_MatrixP,  ptemp, pveck, 0, 1, mup, true, false );   pveck = ptemp;
       this->IHTRegression(  this->m_MatrixQ,  qtemp, qveck, 0, 1, muq, false, false );   qveck = qtemp;
       }
+
+    /* randomly drop-out some entries in pveck
+    for ( unsigned int i = 0; i < pveck.size(); i++ )
+      if ( ( rand() % 100 ) < 2 ) pveck[i] = 0;
+    for ( unsigned int i = 0; i < qveck.size(); i++ )
+      if ( ( rand() % 100 ) < 2 ) qveck[i] = 0; */
+
     // test 4 cases of updates
     pproj =  this->m_MatrixP * ptemp;
     if ( secondSO ) this->SparsifyOther( pproj );
@@ -5178,8 +5186,8 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( secondSO ) this->SparsifyOther( qproj2 );
     RealType corr0 = this->PearsonCorr( pproj , qproj  );
     RealType corr1 = this->PearsonCorr( pproj2 , qproj2  );
-    RealType corr2 = this->PearsonCorr( pproj, qproj );
-    RealType corr3 = this->PearsonCorr( pproj2, qproj2  );
+    RealType corr2 = this->PearsonCorr( pproj2, qproj );
+    RealType corr3 = this->PearsonCorr( pproj, qproj2  );
     if( corr1 > corr0 )
       {
       this->m_VariatesP.set_column( k, pveck  );
@@ -5189,6 +5197,7 @@ bool antsSCCANObject<TInputImage, TRealType>
         if ( ! this->m_Silent )  std::cout << " corr1 " << corr1 << " v " << corr2 << std::endl;
         }
       }
+//    if ( corr1 < corr0 ) this->m_GradStep *= 0.5;
     else if( ( corr2 > corr0 )  &&  ( corr2 > corr3 ) )
       {
       this->m_VariatesQ.set_column( k, qveck  );
