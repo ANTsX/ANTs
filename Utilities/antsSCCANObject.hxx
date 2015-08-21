@@ -5029,6 +5029,7 @@ template <class TInputImage, class TRealType>
 bool antsSCCANObject<TInputImage, TRealType>
 ::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov , unsigned int k )
 {
+  // srand (time(NULL));
   this->m_FractionNonZeroP = this->m_SparsenessP( k );
   this->m_FractionNonZeroQ = this->m_SparsenessQ( k );
   VectorType pprior;
@@ -5167,6 +5168,13 @@ bool antsSCCANObject<TInputImage, TRealType>
       this->IHTRegression(  this->m_MatrixP,  ptemp, pveck, 0, 1, mup, true, false );   pveck = ptemp;
       this->IHTRegression(  this->m_MatrixQ,  qtemp, qveck, 0, 1, muq, false, false );   qveck = qtemp;
       }
+
+    /* randomly drop-out some entries in pveck
+    for ( unsigned int i = 0; i < pveck.size(); i++ )
+      if ( ( rand() % 100 ) < 2 ) pveck[i] = 0;
+    for ( unsigned int i = 0; i < qveck.size(); i++ )
+      if ( ( rand() % 100 ) < 2 ) qveck[i] = 0; */
+
     // test 4 cases of updates
     pproj =  this->m_MatrixP * ptemp;
     if ( secondSO ) this->SparsifyOther( pproj );
@@ -5178,8 +5186,8 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( secondSO ) this->SparsifyOther( qproj2 );
     RealType corr0 = this->PearsonCorr( pproj , qproj  );
     RealType corr1 = this->PearsonCorr( pproj2 , qproj2  );
-    RealType corr2 = this->PearsonCorr( pproj, qproj );
-    RealType corr3 = this->PearsonCorr( pproj2, qproj2  );
+    RealType corr2 = this->PearsonCorr( pproj2, qproj );
+    RealType corr3 = this->PearsonCorr( pproj, qproj2  );
     if( corr1 > corr0 )
       {
       this->m_VariatesP.set_column( k, pveck  );
@@ -5189,6 +5197,7 @@ bool antsSCCANObject<TInputImage, TRealType>
         if ( ! this->m_Silent )  std::cout << " corr1 " << corr1 << " v " << corr2 << std::endl;
         }
       }
+//    if ( corr1 < corr0 ) this->m_GradStep *= 0.5;
     else if( ( corr2 > corr0 )  &&  ( corr2 > corr3 ) )
       {
       this->m_VariatesQ.set_column( k, qveck  );
@@ -5459,7 +5468,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType vec = this->m_VariatesP.get_column( i );
       RealType spar = this->CountNonZero( vec );
-      this->m_SparsenessP( i ) = spar;
+      if ( fabs( this->m_FractionNonZeroP ) < 1.e-11 ) // learn from prior
+        this->m_SparsenessP( i ) = spar;
       this->SparsifyP( vec  );
       vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
       vec = vec / vec.two_norm();
@@ -5475,12 +5485,19 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType vec = this->m_VariatesQ.get_column( i );
       RealType spar = this->CountNonZero( vec );
-      this->m_SparsenessQ( i ) = spar;
+      if ( fabs( this->m_FractionNonZeroQ ) < 1.e-11  )
+        this->m_SparsenessQ( i ) = spar;
       this->SparsifyQ( vec  );
       vec = this->SpatiallySmoothVector( vec, this->m_MaskImageQ );
       vec = vec / vec.two_norm();
       this->m_VariatesQ.set_column( i , vec );
       }
+    }
+
+  if ( ! this->m_Silent )
+    {
+    std::cout << " P-sparseness : " << this->m_SparsenessP  << std::endl;
+    std::cout << " Q-sparseness : " << this->m_SparsenessQ  << std::endl;
     }
 
   unsigned int       maxloop = this->m_MaximumNumberOfIterations;
