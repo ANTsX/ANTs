@@ -57,6 +57,8 @@
 
 #include "ANTSUseLandmarkImagesToGetBSplineDisplacementField.h"
 
+#include "antsLandmarkBasedTransformInitializer.h"
+
 #include "Atropos.h"
 
 #include "AverageAffineTransform.h"

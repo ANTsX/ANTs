@@ -78,6 +78,7 @@ set(MORE_ANTS_APPS
     ANTSUseLandmarkImagesToGetAffineTransform
     ANTSUseLandmarkImagesToGetBSplineDisplacementField
     ANTSUseDeformationFieldToGetAffineTransform
+    antsLandmarkBasedTransformInitializer
     LaplacianThickness
     SetOrigin
     SetSpacing
