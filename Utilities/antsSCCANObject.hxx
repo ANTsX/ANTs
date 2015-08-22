@@ -5030,6 +5030,8 @@ bool antsSCCANObject<TInputImage, TRealType>
 ::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov , unsigned int k )
 {
   // srand (time(NULL));
+  RealType gsteP = this->m_GradStepP;
+  RealType gsteQ = this->m_GradStepQ;
   this->m_FractionNonZeroP = this->m_SparsenessP( k );
   this->m_FractionNonZeroQ = this->m_SparsenessQ( k );
   VectorType pprior;
@@ -5108,8 +5110,8 @@ bool antsSCCANObject<TInputImage, TRealType>
       VectorType y = this->m_MatrixP * ptemp;
       this->LASSO_alg( this->m_MatrixQ, y, qveck, 1.e-3, 2 );
       }
-    pveck = ptemp + pveck * ( this->m_GradStep / sclp );
-    qveck = qtemp + qveck * ( this->m_GradStep / sclq );
+    pveck = ptemp + pveck * ( gsteP / sclp );
+    qveck = qtemp + qveck * ( gsteQ / sclq );
     if ( this->m_Covering != 2 ) // 0 - vox orth + resid, 1 - only vox orth , 2 - only resid
     for( unsigned int j = 0; j < k; j++ )
       {
@@ -5188,6 +5190,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     RealType corr1 = this->PearsonCorr( pproj2 , qproj2  );
     RealType corr2 = this->PearsonCorr( pproj2, qproj );
     RealType corr3 = this->PearsonCorr( pproj, qproj2  );
+    this->m_Debug = true;
     if( corr1 > corr0 )
       {
       this->m_VariatesP.set_column( k, pveck  );
@@ -5197,10 +5200,10 @@ bool antsSCCANObject<TInputImage, TRealType>
         if ( ! this->m_Silent )  std::cout << " corr1 " << corr1 << " v " << corr2 << std::endl;
         }
       }
-//    if ( corr1 < corr0 ) this->m_GradStep *= 0.5;
     else if( ( corr2 > corr0 )  &&  ( corr2 > corr3 ) )
       {
-      this->m_VariatesQ.set_column( k, qveck  );
+      this->m_VariatesP.set_column( k, pveck  );
+      this->m_GradStepQ *= 0.5;
       if( this->m_Debug )
         {
         if ( ! this->m_Silent )  std::cout << " corr2 " << corr2 << " v " << corr1 << std::endl;
@@ -5208,7 +5211,8 @@ bool antsSCCANObject<TInputImage, TRealType>
       }
     else if( corr3 > corr0 )
       {
-      this->m_VariatesP.set_column( k, pveck  );
+      this->m_VariatesQ.set_column( k, qveck  );
+      this->m_GradStepP *= 0.5;
       if( this->m_Debug )
         {
         if ( ! this->m_Silent )  std::cout << " corr3 " << corr3 << " v " << corr0 << std::endl;
@@ -5216,12 +5220,14 @@ bool antsSCCANObject<TInputImage, TRealType>
       }
     else if( allowchange )
       {
-      this->m_GradStep *= 0.5;
+      this->m_GradStepP *= 0.5;
+      this->m_GradStepQ *= 0.5;
       if( this->m_Debug )
         {
-        if ( ! this->m_Silent )  std::cout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
+        if ( ! this->m_Silent )  std::cout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << gsteP << " & " << gsteQ << std::endl;
         }
       }
+    this->m_Debug = false;
     if ( normbycov ) this->NormalizeWeightsByCovariance( k, 0, 0 );
     else this->NormalizeWeights( k );
     VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
@@ -5233,7 +5239,6 @@ bool antsSCCANObject<TInputImage, TRealType>
   // this->SortResults( n_vecs );
   return this->m_CanonicalCorrelations.mean();
 }
-
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
@@ -5505,7 +5510,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   unsigned int       loop = 0;
   RealType           energy = 0;
   RealType           lastenergy = 0;
-  VectorType gradsteps( n_vecs , basegradstep );
+  VectorType gradstepsp( n_vecs , basegradstep );
+  VectorType gradstepsq( n_vecs , basegradstep );
   if ( this->m_Covering == 0 || this->m_Covering == 2 )
     {
     innerloop = maxloop;
@@ -5515,7 +5521,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   {
   for ( unsigned int k = 0; k < n_vecs; k++ )
     {
-    basegradstep = gradsteps[ k ];
+    this->m_GradStepP = gradstepsp[ k ];
+    this->m_GradStepQ = gradstepsq[ k ];
     if ( k == 0 ) this->m_MatrixP =  this->NormalizeMatrix( this->m_OriginalMatrixP, false );
     if ( k == 0 ) this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
     loop=0;
@@ -5531,7 +5538,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       if ( ! this->m_Silent )  std::cout << " this->m_GradStep : " << this->m_GradStep << " energy : " << energy << " changedgrad : " << changedgrad << std::endl;
       }
-    gradsteps[ k ] = this->m_GradStep;
+    gradstepsp[ k ] = this->m_GradStepP;
+    gradstepsq[ k ] = this->m_GradStepQ;
     loop++;
     } // outer loop
     }
