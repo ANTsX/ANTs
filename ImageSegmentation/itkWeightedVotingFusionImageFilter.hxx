@@ -755,6 +755,10 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       InputImagePixelType pixel = image->GetPixel( neighborhoodIndex );
       patchVector[i] = pixel;
       }
+    else
+      {
+      patchVector[i] = std::numeric_limits<RealType>::quiet_NaN();
+      }
     }
 
   if( normalize )
@@ -787,9 +791,12 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   typename InputImagePixelVectorType::const_iterator it;
   for( it = patchVector.begin(); it != patchVector.end(); ++it )
     {
-    sum += *it;
-    sumOfSquares += vnl_math_sqr( *it );
-    count += 1.0;
+    if( !vnl_math_isnan( *it ) )
+      {
+      sum += *it;
+      sumOfSquares += vnl_math_sqr( *it );
+      count += 1.0;
+      }
     }
 
   mean = sum / count;
@@ -812,6 +819,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   RealType sumOfSquaresX = 0.0;
   RealType sumOfSquaredDifferencesXY = 0.0;
   RealType sumXY = 0.0;
+  RealType N = 0.0;
 
   SizeValueType count = 0;
   for( SizeValueType i = 0; i < numberOfImagesToUse; i++ )
@@ -820,17 +828,30 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       {
       IndexType neighborhoodIndex = index + this->m_PatchNeighborhoodOffsetList[j];
 
-      RealType x = static_cast<RealType>( imageList[i]->GetPixel( neighborhoodIndex ) );
-      RealType y = static_cast<RealType>( normalizedPatchVectorY[count++] );
+      bool isInBounds = imageList[i]->GetBufferedRegion().IsInside( neighborhoodIndex );
+      if( isInBounds && !vnl_math_isnan( normalizedPatchVectorY[count] ) )
+        {
+        RealType x = static_cast<RealType>( imageList[i]->GetPixel( neighborhoodIndex ) );
+        RealType y = static_cast<RealType>( normalizedPatchVectorY[count] );
 
-      sumX += x;
-      sumOfSquaresX += vnl_math_sqr( x );
-      sumXY += ( x * y );
+        sumX += x;
+        sumOfSquaresX += vnl_math_sqr( x );
+        sumXY += ( x * y );
 
-      sumOfSquaredDifferencesXY += vnl_math_sqr( y - x );
+        sumOfSquaredDifferencesXY += vnl_math_sqr( y - x );
+        N += 1.0;
+        }
+      ++count;
       }
     }
-  RealType N = static_cast<RealType>( normalizedPatchVectorY.size() );
+
+  // If we are on the boundary, a neighborhood patch might not overlap
+  // with the image.  If we have 2 voxels or less for a neighborhood patch
+  // we don't consider it to be a suitable match.
+  if( N < 3.0 )
+    {
+    return NumericTraits<RealType>::max();
+    }
 
   if( this->m_SimilarityMetric == PEARSON_CORRELATION )
     {

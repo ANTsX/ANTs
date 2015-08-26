@@ -244,7 +244,8 @@ public:
 
   /**
    * Boolean for constraining the weights to be positive and sum to 1.  We use
-   * the vnl function vnl_solve_qp_non_neg_sum_one to do this.
+   * an implementation of the algorithm based on the algorithm by Lawson, Charles L.;
+   * Hanson, Richard J. (1995). Solving Least Squares Problems. SIAM.
    */
   itkSetMacro( ConstrainSolutionToNonnegativeWeights, bool );
   itkGetConstMacro( ConstrainSolutionToNonnegativeWeights, bool );
