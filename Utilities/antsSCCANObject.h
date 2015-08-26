@@ -1307,6 +1307,8 @@ private:
   vnl_diag_matrix<TRealType> m_PreC; // preconditioning
   RealType                   m_GSBestSol;
   RealType                   m_GradStep;
+  RealType                   m_GradStepP;
+  RealType                   m_GradStepQ;
   RealType                   m_PriorWeight;
 };
 } // namespace ants
