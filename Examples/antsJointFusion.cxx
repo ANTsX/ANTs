@@ -7,9 +7,11 @@
 #include "itkTimeProbe.h"
 #include "itkWeightedVotingFusionImageFilter.h"
 
+#include "stdio.h"
+
+#include <algorithm>
 #include <sstream>
 #include <string>
-#include <algorithm>
 #include <vector>
 
 #include "ANTsVersion.h"
@@ -527,33 +529,10 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
           {
           std::cout << "  Writing label probability image (label " << *labelIt << ")" << std::endl;
           }
-        std::ostringstream convert;
-        convert << *labelIt;
-        std::string labelString = convert.str();
 
-        // Try to guess how the user is going to specify the file format.  May need to add more.
-        std::vector<std::string> possibleReplacements;
-        possibleReplacements.push_back( std::string( "%d" ) );
-        possibleReplacements.push_back( std::string( "%01d" ) );
-        possibleReplacements.push_back( std::string( "%02d" ) );
-        possibleReplacements.push_back( std::string( "%03d" ) );
-        possibleReplacements.push_back( std::string( "%04d" ) );
-
-        std::string filename = labelPosteriorName;
-
-        for( unsigned int n = 0; n < possibleReplacements[n].size(); n++ )
-          {
-          for( size_t pos = 0; ; pos += labelString.length() )
-            {
-            pos = filename.find( possibleReplacements[n], pos );
-            if( pos == std::string::npos ) break;
-
-            filename.erase( pos, possibleReplacements[n].length() );
-            filename.insert( pos, labelString );
-            }
-          }
-
-        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), filename.c_str() );
+        char buffer[256];
+        std::snprintf( buffer, sizeof( buffer ), labelPosteriorName.c_str(), *labelIt );
+        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), buffer );
         }
       }
     if( !atlasVotingName.empty() && fusionFilter->GetRetainAtlasVotingWeightImages() )
