@@ -29,7 +29,7 @@ namespace itk {
  * \class AdaptiveNonLocalMeansDenoisingImageFilter
  * \brief Implementation of a denoising image filter.
  *
- * \author Jose V. Manjon
+ * \author Jose V. Manjon with ITK porting by Nick Tustison
  *
  * Contributed by
  *
