@@ -573,7 +573,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
     // Read in color table
 
-    std::ifstream fileStr( lookupTableFile );
+    std::ifstream fileStr( lookupTableFile.c_str() );
     if( !fileStr.is_open() )
       {
       std::cerr << " Could not open file " << lookupTableFile << '\n';
