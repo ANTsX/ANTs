@@ -110,7 +110,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5 #numberOfIterations 2500
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -131,7 +131,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -152,7 +152,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -173,7 +173,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -193,7 +193,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -214,7 +214,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -234,7 +234,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1500
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -254,7 +254,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -274,7 +274,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -295,7 +295,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -315,7 +315,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 250
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
@@ -336,7 +336,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --metric Mattes[${test_image_VAR},${rotation_geom_test_image_VAR},1,200,Regular,0.10]
   --transform "Rigid[0.05]"
   --convergence 25x20x5
@@ -361,7 +361,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --metric Mattes[${test_image_VAR},${rotation_test_image_VAR},1,200,Regular,0.10]
   --transform "Rigid[0.05]"
   --convergence 25x20x5
@@ -391,7 +391,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --float 1
   --metric Mattes[${test_image_VAR},${rotation_test_image_VAR},1,200,Regular,0.10]
   --transform "Rigid[0.05]"
@@ -422,7 +422,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0
@@ -443,7 +443,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0
@@ -463,7 +463,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1200
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0
@@ -484,7 +484,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0
@@ -504,7 +504,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0
@@ -524,7 +524,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --float 1
   --convergence 25x20x5
   --shrink-factors 3x2x1
@@ -545,7 +545,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0
@@ -567,7 +567,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0
@@ -588,7 +588,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --float 1
   --convergence 25x20x5
   --shrink-factors 3x2x1
@@ -610,7 +610,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 777
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --metric Mattes[${test_image_VAR},${translation_rescale_test_image_VAR},1,200]
   --transform "Rigid[0.001]"
   --convergence 25x20x5
@@ -635,7 +635,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --metric Mattes[${test_image_VAR},${rotation_rescale_test_image_VAR},1,200]
   --transform "Rigid[0.01]"
   --convergence 25x20x5
@@ -660,7 +660,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --float 1
   --metric Mattes[${test_image_VAR},${rotation_rescale_test_image_VAR},1,200]
   --transform "Rigid[0.01]"
@@ -686,7 +686,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --metric Mattes[${test_image_VAR},${scale_test_image_VAR},1,200]
   --transform "SyN[0.25,3.0,0.0]"
   --convergence 100x70x20
@@ -707,7 +707,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --float 1
   --metric Mattes[${test_image_VAR},${scale_test_image_VAR},1,200]
   --transform "SyN[0.25,3.0,0.0]"
@@ -719,6 +719,56 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
+
+## Test initializing stages at each iteration, ensure that only 2 stages result.
+## This test is not very robust.  It ensures that the command line options
+## can be accepted without failure, but no real testing of results is done.
+## The output transform should have 2 levels (1 affine, 1 SyN)
+## The next test uses "compareTwoTransforms" to compare the output transform to the baseline.
+set(antsRegistrationTestName antsRegistrationTest_initialize_transforms_per_stage )
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
+  antsRegistrationTest
+  -v --dimensionality 3
+  --float 0
+  --initialize-transforms-per-stage
+  --write-composite-transform
+  --collapse-output-transforms 0
+  --metric Mattes[${test_image_VAR},${scale_test_image_VAR},1,200]
+  --transform "Rigid[0.01]"
+  --convergence 15
+  --shrink-factors 3
+  --smoothing-sigmas 2
+  --metric Mattes[${test_image_VAR},${scale_test_image_VAR},1,200]
+  --transform "Affine[0.001]"
+  --convergence 15
+  --shrink-factors 3
+  --smoothing-sigmas 2
+  --metric Mattes[${test_image_VAR},${scale_test_image_VAR},1,200]
+  --transform "SyN[0.25,3.0,0.0]"
+  --convergence 15
+  --shrink-factors 3
+  --smoothing-sigmas 2
+  --metric Mattes[${test_image_VAR},${scale_test_image_VAR},1,200]
+  --transform "SyN[0.25,3.0,0.0]"
+  --convergence 11
+  --shrink-factors 3
+  --smoothing-sigmas 2
+  --use-histogram-matching
+  --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName},${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
+)
+
+# Compare the output transform of the antsRegistrationTest_initialize_transforms_per_stage with the baseline file
+set(antsRegistrationTestName antsRegistrationTest_initializePerStage_ComparisonTesting)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
+  COMMAND ${LAUNCH_EXE} compareTwoTransformsTestDriver
+
+  compareTwoTransformsTest
+  ${CMAKE_CURRENT_BINARY_DIR}/antsRegistrationTest_initialize_transforms_per_stageComposite.h5
+  DATA{${TestDataMD5_DIR}/antsRegistrationTest_initialize_transforms_per_stageComposite.result.h5}
+  )
+set_property(TEST ${antsRegistrationTestName} APPEND PROPERTY
+  DEPENDS antsRegistrationTest_initialize_transforms_per_stage)
 
 ###############
 #TEST Development SHOULD BE CONTINUED FROM HERE
@@ -869,7 +919,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0
@@ -887,7 +937,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
-  --dimensionality 3
+  -v --dimensionality 3
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0

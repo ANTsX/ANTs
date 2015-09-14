@@ -3729,7 +3729,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       if( tempInitializerTransform.IsNull() )
         {
         this->Logger() << "WARNING: Initialization Failed" << std::endl;
-        return EXIT_FAILURE;
+        return false;
         }
       //Translation to Translation
       initialTransform->SetFixedParameters( tempInitializerTransform->GetFixedParameters() );
@@ -3738,7 +3738,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     else
       {
       this->Logger() << "WARNING: Initialization Failed" << std::endl;
-      return EXIT_FAILURE;
+      return false;
       }
     }
 /////
@@ -3754,7 +3754,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       if( tempInitializerTransform.IsNull() )
         {
         this->Logger() << "WARNING: Initialization Failed" << std::endl;
-        return EXIT_FAILURE;
+        return false;
         }
       //Translation to Rigid
       initialTransform->SetOffset( tempInitializerTransform->GetOffset() );
@@ -3766,7 +3766,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       if( tempInitializerTransform.IsNull() )
         {
         this->Logger() << "WARNING: Initialization Failed" << std::endl;
-        return EXIT_FAILURE;
+        return false;
         }
       //Rigid to Rigid
       initialTransform->SetFixedParameters( tempInitializerTransform->GetFixedParameters() );
@@ -3775,7 +3775,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     else
       {
       this->Logger() << "WARNING: Initialization Failed" << std::endl;
-      return EXIT_FAILURE;
+      return false;
       }
     }
 /////
@@ -3792,7 +3792,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       if( tempInitializerTransform.IsNull() )
         {
         this->Logger() << "WARNING: Initialization Failed" << std::endl;
-        return EXIT_FAILURE;
+        return false;
         }
       //Translation to Affine
       initialTransform->SetOffset( tempInitializerTransform->GetOffset() );
@@ -3804,7 +3804,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       if( tempInitializerTransform.IsNull() )
         {
         this->Logger() << "WARNING: Initialization Failed" << std::endl;
-        return EXIT_FAILURE;
+        return false;
         }
       //Rigid to Affine
       initialTransform->SetCenter( tempInitializerTransform->GetCenter() );
@@ -3818,7 +3818,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       if( tempInitializerTransform.IsNull() )
         {
         this->Logger() << "WARNING: Initialization Failed" << std::endl;
-        return EXIT_FAILURE;
+        return false;
         }
       //Affine to Affine
       initialTransform->SetFixedParameters( tempInitializerTransform->GetFixedParameters() );
@@ -3827,16 +3827,19 @@ RegistrationHelper<TComputeType, VImageDimension>
     else
       {
       this->Logger() << "WARNING: Initialization Failed" << std::endl;
-      return EXIT_FAILURE;
+      return false;
       }
     }
   else
     {
     this->Logger() << "WARNING: Initialization Failed" << std::endl;
-    return EXIT_FAILURE;
+    return false;
     }
 /////
-  return EXIT_SUCCESS;
+  return true; // This function only returns flase or true (NOT FAILURE or SUCCESS).
+               // If direct intialization fails, the program should NOT be stopped,
+               // because the initial transform will be kept in the composite transform,
+               // and the final results will be still correct.
 }
 
 template <class TComputeType, unsigned VImageDimension>
