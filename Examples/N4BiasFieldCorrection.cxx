@@ -696,7 +696,9 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     + std::string( "of the mesh elements. The latter option is typically preferred. " )
     + std::string( "For each subsequent level, the spline distance decreases in " )
     + std::string( "half, or equivalently, the number of mesh elements doubles " )
-    + std::string( "Cubic splines (order = 3) are typically used." );
+    + std::string( "Cubic splines (order = 3) are typically used.  The default setting " )
+    + std::string( "is to employ a single mesh element over the entire domain, i.e., " )
+    + std::string( "-b [1x1x1,3]." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "bspline-fitting" );
