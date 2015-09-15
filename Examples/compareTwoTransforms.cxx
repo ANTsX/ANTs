@@ -4,64 +4,12 @@
 #include "itkantsReadWriteTransform.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkBSplineTransform.h"
+#include <vcl_algorithm.h>
 
 #include "antsUtilities.h"
 
 namespace ants
 {
-
-class CompareFloat{
-    //  Float           Memory          Bias (unsigned)
-    //  -----           ------          ---------------
-    //   NaN            0xFFFFFFFF      0xFF800001
-    //   NaN            0xFF800001      0xFFFFFFFF
-    //  -Infinity       0xFF800000      0x00000000 ---
-    //  -3.40282e+038   0xFF7FFFFF      0x00000001    |
-    //  -1.40130e-045   0x80000001      0x7F7FFFFF    |
-    //  -0.0            0x80000000      0x7F800000    |--- Valid <= 0xFF000000.
-    //   0.0            0x00000000      0x7F800000    |    NaN > 0xFF000000
-    //   1.40130e-045   0x00000001      0x7F800001    |
-    //   3.40282e+038   0x7F7FFFFF      0xFEFFFFFF    |
-    //   Infinity       0x7F800000      0xFF000000 ---
-    //   NaN            0x7F800001      0xFF000001
-    //   NaN            0x7FFFFFFF      0xFF7FFFFF
-    //
-    //   Either value of NaN returns false.
-    //   -Infinity and +Infinity are not "close".
-    //   -0 and +0 are equal.
-
-public:
-  union{
-    float          m_f32;
-    unsigned int   m_u32;
-  };
-
-  static bool Is_Close( float A, float B, unsigned int unitsDelta = 4 )
-  {
-  unsigned int a = GetBiased( A );
-  unsigned int b = GetBiased( B );
-
-  if( (a > 0xFF000000) || (b > 0xFF000000) )
-    {
-    return false;
-    }
-  return( (static_cast<unsigned int>(std::abs( long(a - b) ))) < unitsDelta );
-  }
-
-protected:
-
-  static unsigned int GetBiased( float f )
-  {
-  unsigned int r = ((CompareFloat*)&f)->m_u32;
-
-  if( r & 0x80000000 )
-    {
-    return( ~r - 0x007FFFFF );
-    }
-  return( r + 0x7F800000 );
-  }
-
-};
 
 template <unsigned int VImageDimension>
 int compareTransforms( const typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer & firstTransform,
@@ -86,6 +34,7 @@ int compareTransforms( const typename itk::Transform<double, VImageDimension, VI
 
     if( Comp1->GetNumberOfTransforms() == Comp2->GetNumberOfTransforms() )
       {
+      const float coordinateTolerance = 1e-0;
       const unsigned int N = Comp1->GetNumberOfTransforms();
       for(unsigned int i = 0; i < N; ++i)
          {
@@ -93,9 +42,12 @@ int compareTransforms( const typename itk::Transform<double, VImageDimension, VI
            {
            if( strcmp( Comp1->GetNthTransform(i)->GetNameOfClass(), "DisplacementFieldTransform" ) )
              {
-             if( Comp1->GetNthTransform(i)->GetFixedParameters() != Comp2->GetNthTransform(i)->GetFixedParameters() ||
-                 Comp1->GetNthTransform(i)->GetParameters() != Comp2->GetNthTransform(i)->GetParameters() )
+             if( !Comp1->GetNthTransform(i)->GetFixedParameters().is_equal( Comp2->GetNthTransform(i)->GetFixedParameters(), coordinateTolerance ) ||
+                 !Comp1->GetNthTransform(i)->GetParameters().is_equal( Comp2->GetNthTransform(i)->GetParameters(), coordinateTolerance ) )
                {
+               std::cerr << i << ": " << std::endl;
+               std::cerr << Comp1->GetNthTransform(i)->GetParameters() << std::endl;
+               std::cerr << Comp2->GetNthTransform(i)->GetParameters() << std::endl;
                std::cerr << "The input composite transforms are not equal! The transform parameters are different!" << std::endl;
                return EXIT_FAILURE;
                }
@@ -121,8 +73,9 @@ int compareTransforms( const typename itk::Transform<double, VImageDimension, VI
                   typename DisplacementFieldType::PixelType v1 = dit1.Get();
                   typename DisplacementFieldType::PixelType v2 = dit2.Get();
                   for (unsigned int index=0; index<VImageDimension; ++index) {
-                    if( !CompareFloat::Is_Close( v1[index], v2[index]) ) // Compares two float numbers.
+                    if( !itk::Math::FloatAlmostEqual( v1[index], v2[index], 4, 20 ) ) // Compares two float numbers.
                       {
+                      std::cerr << v1[index] << " != " << v2[index] << std::endl;
                       std::cerr << "The input composite transforms are not equal! The diffeomorphic transform parameters are different!" << std::endl;
                       return EXIT_FAILURE;
                       }
@@ -172,8 +125,9 @@ int compareTransforms( const typename itk::Transform<double, VImageDimension, VI
         typename DisplacementFieldType::PixelType v1 = dit1.Get();
         typename DisplacementFieldType::PixelType v2 = dit2.Get();
         for (unsigned int index=0; index<VImageDimension; ++index) {
-          if( !CompareFloat::Is_Close( v1[index], v2[index]) ) // Compares two float numbers.
+          if( !itk::Math::FloatAlmostEqual( v1[index], v2[index], 4, 20 ) ) // Compares two float numbers.
             {
+            std::cerr << v1[index] << " != " << v2[index] << std::endl;
             std::cerr << "The input displacement field transforms are not equal! The diffeomorphic transform parameters are different!" << std::endl;
             return EXIT_FAILURE;
             }
