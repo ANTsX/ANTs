@@ -73,6 +73,12 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DITK_USE_FFTWD:BOOL=ON
       )
   endif()
+  if(${extProjName}_BUILD_MINC_SUPPORT)
+    set(${proj}_MINC_ARGS
+        -DModule_ITKIOMINC:BOOL=ON
+        -DModule_ITKMINC:BOOL=ON
+       )
+  endif()
 
   set(${proj}_WRAP_ARGS)
   #if(foo)
@@ -126,6 +132,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       ${${proj}_WRAP_ARGS}
       ${${proj}_FFTWF_ARGS}
       ${${proj}_FFTWD_ARGS}
+      ${${proj}_MINC_ARGS}
     )
 
     if( USE_VTK STREQUAL "ON" )
