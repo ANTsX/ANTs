@@ -4636,41 +4636,45 @@ int StackImage(int argc, char *argv[])
   //unsigned int nImages = argc - argct;
   //// std::cout << "Stacking " << nImages << " images" << std::endl;
 
+  // Reference image is the first image passed
+  // All other input images must match in all dimensions except the stack dimension
+  typename ImageType::Pointer refImage = ITK_NULLPTR;
+
+  // Re-used image pointer for all images to be stacked
   typename ImageType::Pointer image1 = ITK_NULLPTR;
 
-  typename ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( fn1.c_str() );
-  reader->Update();
+  ReadImage<ImageType>(refImage, fn1.c_str());  
 
-  typename ImageType::SpacingType refSpacing = reader->GetOutput()->GetSpacing();
-  typename ImageType::DirectionType refDirection = reader->GetOutput()->GetDirection();
-  typename ImageType::PointType refOrigin = reader->GetOutput()->GetOrigin();
-  typename ImageType::SizeType refSize;
+  typename ImageType::SpacingType refSpacing = refImage->GetSpacing();
+  typename ImageType::DirectionType refDirection = refImage->GetDirection();
+  typename ImageType::PointType refOrigin = refImage->GetOrigin();
+  typename ImageType::SizeType refSize = refImage->GetLargestPossibleRegion().GetSize();
 
-  itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::ReadMode);
-  imageIO->SetFileName(fn1.c_str() );
-  imageIO->ReadImageInformation();
+  unsigned int nDims = refImage->GetImageDimension();
 
-  unsigned int nDims = imageIO->GetNumberOfDimensions();
+  
   if ( nDims != ImageDimension )
   {
     // std::cout << "Image dimensions not consistent with passed parameters" << std::endl;
     return EXIT_FAILURE;
-  }
-  for (unsigned int i=0; i<nDims; i++)
-  {
-    refSize[i] = imageIO->GetDimensions(i);
   }
 
   unsigned int stackLength = refSize[nDims-1];
 
   for ( int i=(argct+1); i<argc; i++)
   {
-    imageIO->SetFileName( argv[i] );
-    imageIO->ReadImageInformation();
 
-    if ( imageIO->GetNumberOfDimensions() != nDims )
+    std::string fn2 = std::string(argv[i]);
+    
+    ReadImage<ImageType>(image1, fn2.c_str());
+
+    typename ImageType::SpacingType im1Spacing = image1->GetSpacing();
+    typename ImageType::DirectionType im1Direction = image1->GetDirection();
+    typename ImageType::PointType im1Origin = image1->GetOrigin();
+    typename ImageType::SizeType im1Size = image1->GetLargestPossibleRegion().GetSize();
+    
+
+    if ( image1->GetImageDimension() != nDims )
     {
       // std::cout << "Inconsistent image dimension in " << argv[i] << std::endl;
       return EXIT_FAILURE;
@@ -4679,7 +4683,7 @@ int StackImage(int argc, char *argv[])
     // Check input images
     for ( unsigned int d=0; d<nDims; d++)
     {
-      if ( imageIO->GetSpacing(d) != refSpacing[d] )
+      if ( im1Spacing[d] != refSpacing[d] )
       {
         // std::cout << "Inconsistent image spacing not allowed" << std::endl;
         return EXIT_FAILURE;
@@ -4687,22 +4691,26 @@ int StackImage(int argc, char *argv[])
 
       for ( unsigned int d2=0; d2<nDims; d2++)
       {
-        if ( imageIO->GetDirection(d)[d2] != refDirection(d,d2) )
+        if ( im1Direction(d,d2) != refDirection(d,d2) )
         {
           // std::cout << "Inconsistent image direction not allowed" << std::endl;
           return EXIT_FAILURE;
         }
       }
 
+      // Only check origin and size up to nDims - 1
+      // Thus we allow stacked images to have different origins and dimension along
+      // the stack dimension. For example, allow stacking of two time series with
+      // 100 volumes and 50 volumes respectively
       if ( d < (nDims-1) )
       {
-        if ( imageIO->GetOrigin(d) != refOrigin[d] )
+        if ( im1Origin[d] != refOrigin[d] )
         {
           // std::cout << "Inconsistent image origins not allowed" << std::endl;
           return EXIT_FAILURE;
         }
 
-        if ( imageIO->GetDimensions(d) != refSize[d] )
+        if ( im1Size[d] != refSize[d] )
         {
           // std::cout << "Size variation in stacking dimension only" << std::endl;
           return EXIT_FAILURE;
@@ -4712,13 +4720,13 @@ int StackImage(int argc, char *argv[])
 
     }
 
-    stackLength += imageIO->GetDimensions(nDims-1);
+    stackLength += im1Size[nDims-1];
   }
 
   typename ImageType::SizeType stackSize  = refSize;
   stackSize[nDims-1] = stackLength;
 
-  typename ImageType::RegionType region = reader->GetOutput()->GetLargestPossibleRegion();
+  typename ImageType::RegionType region = refImage->GetLargestPossibleRegion();
   region.SetSize( stackSize );
   typename ImageType::Pointer stackImage = ImageType::New();
   stackImage->SetRegions( region );
