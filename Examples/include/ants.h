@@ -23,6 +23,8 @@
 
 #include "antsJointFusion.h"
 
+#include "antsJointTensorFusion.h"
+
 #include "antsTransformInfo.h"
 
 #include "ANTSConformalMapping.h"

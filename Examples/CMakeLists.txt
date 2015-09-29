@@ -69,6 +69,7 @@ set(CORE_ANTS_APPS
 set(MORE_ANTS_APPS
     antsAI
     antsJointFusion
+    antsJointTensorFusion
     ImageMath
     iMath
     ANTS
