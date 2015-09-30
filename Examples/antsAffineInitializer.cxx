@@ -184,8 +184,6 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
   typedef typename itk::ImageMomentsCalculator<ImageType>                 ImageCalculatorType;
   typedef itk::AffineTransform<RealType, ImageDimension> AffineType;
-  typedef typename SimilarityTransformTraits<RealType,
-    ImageDimension>::TransformType AffineTypeS;
   typedef typename ImageCalculatorType::MatrixType                        MatrixType;
   if( argc < 2 )
     {

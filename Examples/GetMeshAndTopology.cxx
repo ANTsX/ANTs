@@ -311,8 +311,6 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
 {
   //  std::cout << " parname " << std::string(paramname) << std::endl;
   typedef TImage      ImageType;
-  typedef ImageType   itype;
-  typedef vtkPolyData MeshType;
 
   typedef BinaryImageToMeshFilter<ImageType> FilterType;
   typename  FilterType::Pointer fltMesh = FilterType::New();
@@ -454,7 +452,6 @@ template <class TImage>
 float GetImageTopology(typename TImage::Pointer image)
 {
   typedef TImage      ImageType;
-  typedef vtkPolyData MeshType;
 
   double aaParm = 0.024;
   typedef BinaryImageToMeshFilter<ImageType> FilterType;
@@ -536,13 +533,6 @@ private:
   typedef float PixelType;
   // Declare the types of the output images
   typedef itk::Image<PixelType, Dimension> ImageType;
-  typedef itk::Image<PixelType, 2>         Image2DType;
-
-  // Declare the type of the index,size and region to initialize images
-  typedef itk::Index<Dimension>               IndexType;
-  typedef itk::Size<Dimension>                SizeType;
-  typedef itk::ImageRegion<Dimension>         RegionType;
-  typedef itk::ImageRegionIterator<ImageType> IteratorType;
 
   // Declare the type of the Mesh
 

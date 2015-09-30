@@ -87,7 +87,6 @@ void ReadLabeledPointSetFromImage( typename ImageType::Pointer image, typename P
 template <unsigned int ImageDimension, class TransformType>
 int InitializeLinearTransform( int itkNotUsed( argc ), char *argv[] )
 {
-  typedef float                                 RealType;
   typedef unsigned int                          LabelType;
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
 

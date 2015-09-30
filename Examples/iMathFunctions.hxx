@@ -83,7 +83,6 @@ iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs )
 
   typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
   typename BlobFilterType::Pointer blobFilter = BlobFilterType::New();
-  typedef typename BlobFilterType::BlobPointer BlobPointer;
   blobFilter->SetStartT( minscale );
   blobFilter->SetEndT( maxscale );
   blobFilter->SetStepsPerOctave( stepsperoctave );
@@ -408,7 +407,6 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     // NOPE
     }
 
-  typedef typename ImageType::PixelType                 PixelType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>  Iterator;
 
   // compute the voxel volume
@@ -718,7 +716,6 @@ iMathNormalize( typename ImageType::Pointer image )
     }
 
   typedef typename ImageType::PixelType                 PixelType;
-  typedef typename ImageType::Pointer                   ImagePointerType;
 
   typedef itk::RescaleIntensityImageFilter<ImageType,ImageType> NormFilterType;
   typename NormFilterType::Pointer normFilter = NormFilterType::New();
@@ -734,9 +731,6 @@ template <class ImageType>
 typename ImageType::Pointer
 iMathPad( typename ImageType::Pointer image, int padding )
 {
-  typedef typename ImageType::PixelType                 PixelType;
-  typedef typename ImageType::Pointer                   ImagePointerType;
-
   typename ImageType::PointType origin = image->GetOrigin();
 
   typename ImageType::SizeType size = image->GetLargestPossibleRegion().GetSize();
@@ -779,9 +773,6 @@ iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,
     // NOPE
     }
 
-  typedef typename ImageType::PixelType                 PixelType;
-  typedef typename ImageType::Pointer                   ImagePointerType;
-
   typedef itk::GradientAnisotropicDiffusionImageFilter< ImageType, ImageType >
     FilterType;
   typedef typename FilterType::TimeStepType             TimeStepType;
@@ -823,9 +814,6 @@ iMathSharpen( typename ImageType::Pointer image )
     // NOPE
     }
 
-  typedef typename ImageType::PixelType                 PixelType;
-  typedef typename ImageType::Pointer                   ImagePointerType;
-
   typedef itk::LaplacianSharpeningImageFilter<ImageType, ImageType> FilterType;
   typename FilterType::Pointer sharpenFilter = FilterType::New();
   sharpenFilter->SetInput( image );
@@ -841,7 +829,6 @@ iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ, double
 {
 
   typedef typename ImageType::PixelType                     PixelType;
-  typedef typename ImageType::Pointer                       ImagePointerType;
   typedef unsigned int                                      LabelType;
   typedef itk::Image<LabelType, ImageType::ImageDimension>  MaskType;
 

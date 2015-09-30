@@ -404,9 +404,6 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
 
   typedef itk::TransformFileReader TranReaderType;
 
-  typedef itk::ImageFileReader<DisplacementFieldType>
-    FieldReaderType;
-
   int       cnt_affine = 0;
   const int kOptQueueSize = opt_queue.size();
   for( int i = 0; i < kOptQueueSize; i++ )

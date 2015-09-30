@@ -164,7 +164,6 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
 {
   typedef TReal                                          RealType;
   typedef TImage                                         ImageType;
-  typedef TGradientImage                                 GradientImageType;
 
   const unsigned int ImageDimension = ImageType::ImageDimension;
 
@@ -312,8 +311,6 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
   typedef float                                  RealType;
   typedef typename ImageType::IndexType          IndexType;
   typedef itk::NeighborhoodIterator<ImageType>   NeighborhoodIteratorType;
-  typedef TBlobFilter                            BlobFilterType;
-  typedef typename BlobFilterType::BlobPointer   BlobPointer;
 
   const unsigned int ImageDimension = ImageType::ImageDimension;
 
@@ -415,11 +412,9 @@ template <class TImage, class TTransform>
 typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::Pointer fixedImage,
   typename TImage::Pointer movingImage, unsigned int numberOfBlobsToExtract, unsigned int numberOfBlobsToMatch )
 {
-  typedef float                                     PixelType;
   typedef float                                     RealType;
   typedef TImage                                    ImageType;
   typedef TTransform                                TransformType;
-  typedef typename ImageType::IndexType             IndexType;
   typedef typename ImageType::PointType             PointType;
 
   /////////////////////////////////////////////////////////////////
