@@ -18,3 +18,5 @@ CMakeFiles/*
 *.pyc
 crash*
 .*.swp
+bin
+build
