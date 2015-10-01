@@ -4661,6 +4661,11 @@ int StackImage(int argc, char *argv[])
 
   unsigned int stackLength = refSize[nDims-1];
 
+  // Check headers align to within this tolerance. Set eps relatively large, aims to catch gross errors
+  // without getting hung up on floating point precision issues, which can be sizeable when dealing with
+  // nifti I/O 
+  float eps = 1E-4;
+
   for ( int i=(argct+1); i<argc; i++)
   {
 
@@ -4683,7 +4688,7 @@ int StackImage(int argc, char *argv[])
     // Check input images
     for ( unsigned int d=0; d<nDims; d++)
     {
-      if ( im1Spacing[d] != refSpacing[d] )
+      if ( fabs(im1Spacing[d] - refSpacing[d]) > eps )
       {
         // std::cout << "Inconsistent image spacing not allowed" << std::endl;
         return EXIT_FAILURE;
@@ -4691,7 +4696,7 @@ int StackImage(int argc, char *argv[])
 
       for ( unsigned int d2=0; d2<nDims; d2++)
       {
-        if ( im1Direction(d,d2) != refDirection(d,d2) )
+        if ( fabs(im1Direction(d,d2) - refDirection(d,d2)) > eps )
         {
           // std::cout << "Inconsistent image direction not allowed" << std::endl;
           return EXIT_FAILURE;
@@ -4704,7 +4709,7 @@ int StackImage(int argc, char *argv[])
       // 100 volumes and 50 volumes respectively
       if ( d < (nDims-1) )
       {
-        if ( im1Origin[d] != refOrigin[d] )
+        if ( fabs(im1Origin[d] - refOrigin[d]) > eps )
         {
           // std::cout << "Inconsistent image origins not allowed" << std::endl;
           return EXIT_FAILURE;
