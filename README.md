@@ -227,6 +227,8 @@ iterative closest point
 
 **MALF labeling example** [example](https://github.com/ntustison/MalfLabelingExample)
 
+**Lung and lobe estimation** [example](https://github.com/ntustison/LungAndLobeEstimationExample)
+
 **Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
 
 **ANTs** [google scholar page](http://scholar.google.com/citations?user=ox-mhOkAAAAJ&hl=en)
