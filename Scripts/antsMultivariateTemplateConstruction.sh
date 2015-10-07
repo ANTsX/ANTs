@@ -42,9 +42,10 @@ PEXEC=${ANTSPATH}/ANTSpexec.sh
 SGE=${ANTSPATH}/waitForSGEQJobs.pl
 PBS=${ANTSPATH}/waitForPBSQJobs.pl
 XGRID=${ANTSPATH}/waitForXGridJobs.pl
+SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 
 fle_error=0
-for FLE in $ANTS $WARP $N4 $PEXEC $SGE $XGRID $PBS
+for FLE in $ANTS $WARP $N4 $PEXEC $SGE $XGRID $PBS $SLURM
   do
     if [[ ! -x $FLE ]];
       then
@@ -90,7 +91,7 @@ should be invoked from that directory.
 Optional arguments:
 
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
+          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM
 
      -g:  Gradient step size (default 0.25) -- smaller in magnitude results in more cautious steps
 
@@ -410,7 +411,7 @@ while getopts "b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
       c) #use SGE cluster
    DOQSUB=$OPTARG
    if [[ ${#DOQSUB} -gt 2 ]]; then
-       echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
+       echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub, 5=SLURM) you passed  -c $DOQSUB "
        exit 1
    fi
    ;;
@@ -500,6 +501,15 @@ if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
     if [[  ${#qq} -lt 1 ]];
       then
         echo "do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ..."
+        exit
+      fi
+  fi
+if [[ $DOQSUB -eq 5 ]];
+  then
+    qq=`which sbatch`
+    if [[ ${#qq} -lt 1 ]];
+      then
+        echo "do you have sbatch?  if not, then choose another c option ... if so, then check where the sbatch alias points ..."
         exit
       fi
   fi
@@ -794,7 +804,15 @@ if [[ "$RIGID" -eq 1 ]];
         done
 
         qscript="${outdir}/job_${count}_qsub.sh"
-        echo "$SCRIPTPREPEND" > $qscript
+        rm -f $qscript
+
+        if [[ $DOQSUB -eq 5 ]];
+            then
+            # SLURM job scripts must start with a shebang
+            echo '#!/bin/sh' > $qscript
+            fi
+
+        echo "$SCRIPTPREPEND" >> $qscript
 
         IMGbase=`basename ${IMAGESETARRAY[$i]}`
         BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
@@ -802,7 +820,7 @@ if [[ "$RIGID" -eq 1 ]];
 
         exe="$ANTS $DIM $IMAGEMETRICSET -o $RIGID -i 0 --use-Histogram-Matching $LINEARTRANSFORMPARAMS $RIGIDTYPE"
 
-        echo "$exe" > $qscript
+        echo "$exe" >> $qscript
 
         exe2='';
         pexe2='';
@@ -842,6 +860,11 @@ if [[ "$RIGID" -eq 1 ]];
             id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
             #echo "xgrid $XGRIDOPTS -job submit /bin/bash $qscript"
             jobIDs="$jobIDs $id"
+        elif [[ $DOQSUB -eq 5 ]];
+            then
+            id=`sbatch --job-name=antsrigid --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=20:00:00 --mem=8192M $qscript | rev | cut -f1 -d\ | rev`
+            jobIDs="$jobIDs $id"
+            sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
             then
              # execute jobs in series
@@ -909,6 +932,22 @@ if [[ "$RIGID" -eq 1 ]];
             exit 1;
         fi
     fi
+    if [[ $DOQSUB -eq 5 ]];
+        then
+        # Run jobs on SLURM and wait to finish
+        echo
+        echo "--------------------------------------------------------------------------------------"
+        echo " Starting ANTS rigid registration on SLURM cluster. Submitted $count jobs "
+        echo "--------------------------------------------------------------------------------------"
+               # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
+        ${ANTSPATH}/waitForSlurmJobs.pl 1 60 $jobIDs
+        # Returns 1 if there are errors
+        if [[ ! $? -eq 0 ]];
+            then
+            echo "SLURM submission failed - jobs went into error state"
+            exit 1;
+        fi
+    fi
 
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
       do
@@ -957,6 +996,11 @@ if [[ "$RIGID" -eq 1 ]];
         elif [[ $DOQSUB -eq 3 ]];
           then
             rm -f ${outdir}/job_*_qsub.sh
+        elif [[ $DOQSUB -eq 5 ]];
+          then
+            mv ${outdir}/antsrigid* ${outdir}/rigid/
+            # Remove qsub scripts
+            rm -f ${outdir}/job_${count}_qsub.sh
         fi
       else
         rm -f  ${outdir}/rigid*.* ${outdir}/job*.txt
@@ -1188,6 +1232,14 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             echo -e "$exe" >> $qscript
             id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
             jobIDs="$jobIDs $id"
+        elif [[ $DOQSUB -eq 5 ]];
+            then
+            echo '#!/bin/sh' > $qscript
+            echo -e "$SCRIPTPREPEND" >> $qscript
+            echo -e "$exe" >> $qscript
+            id=`sbatch --job-name=antsdef${i} --export=ANTSPATH=$ANTSPATH --nodes=1 --cpus-per-task=1 --time=20:00:00 --mem=8192M $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
+            jobIDs="$jobIDs $id"
+            sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
             then
             echo -e $exe > $qscript
@@ -1254,6 +1306,21 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             exit 1;
         fi
     fi
+    if [[ $DOQSUB -eq 5 ]];
+        then
+        # Run jobs on SLURM and wait to finish
+        echo
+        echo "--------------------------------------------------------------------------------------"
+        echo " Starting ANTS registration on SLURM cluster. Submitted $count jobs "
+        echo "--------------------------------------------------------------------------------------"
+        # now wait for the stuff to finish - this will take a while so poll queue every 10 mins
+        ${ANTSPATH}/waitForSlurmJobs.pl 1 600 $jobIDs
+        if [[ ! $? -eq 0 ]];
+            then
+            echo "SLURM submission failed - jobs went into error state"
+            exit 1;
+        fi
+    fi
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
         do
         shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j}
@@ -1279,6 +1346,9 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         elif [[ $DOQSUB -eq 3 ]];
             then
             rm -f ${outdir}/job_*.sh
+        elif [[ $DOQSUB -eq 5 ]];
+            then
+            mv ${outdir}/antsdef* ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
         fi
       fi
     ((i++))
