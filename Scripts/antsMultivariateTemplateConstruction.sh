@@ -998,12 +998,14 @@ if [[ "$RIGID" -eq 1 ]];
             rm -f ${outdir}/job_*_qsub.sh
         elif [[ $DOQSUB -eq 5 ]];
           then
-            mv ${outdir}/antsrigid* ${outdir}/rigid/
+            mv ${outdir}/slurm-*.out ${outdir}/rigid/
+            mv ${outdir}/job*.txt ${outdir}/rigid/
+
             # Remove qsub scripts
             rm -f ${outdir}/job_${count}_qsub.sh
         fi
       else
-        rm -f  ${outdir}/rigid*.* ${outdir}/job*.txt
+        rm -f  ${outdir}/rigid*.* ${outdir}/job*.txt ${outdir}/slurm-*.out
       fi
 fi # endif RIGID
 
@@ -1348,7 +1350,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             rm -f ${outdir}/job_*.sh
         elif [[ $DOQSUB -eq 5 ]];
             then
-            mv ${outdir}/antsdef* ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
+            mv ${outdir}/slurm-*.out ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
+            mv ${outdir}/job*.txt ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
         fi
       fi
     ((i++))

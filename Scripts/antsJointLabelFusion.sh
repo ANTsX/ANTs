@@ -945,6 +945,9 @@ if [[ $DOQSUB -eq 5 ]];
         exit 1;
       fi
 
+    # Remove the SLURM output files (which are likely to be empty)
+    rm -f ${OUTPUT_DIR}/slurm-*.out
+
     EXISTING_WARPED_ATLAS_IMAGES=()
     EXISTING_WARPED_ATLAS_LABELS=()
     for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
