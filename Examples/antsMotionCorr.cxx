@@ -767,7 +767,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       typedef itk::ExtractImageFilter<MovingImageType, FixedImageType> ExtractFilterType;
       typename MovingImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
       extractRegion.SetSize(ImageDimension, 0);
-      bool maptoneighbor = false;
+      bool maptoneighbor = true;
       typename OptionType::Pointer fixedOption =
         parser->GetOption( "useFixedReferenceImage" );
       if( fixedOption && fixedOption->GetNumberOfFunctions() )
@@ -1624,7 +1624,10 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
     + std::string( "Demons:  Thirion's Demons (modified mean-squares). " )
     + std::string( "Note that the metricWeight is currently not used.  " )
     + std::string( "Rather, it is a temporary place holder until multivariate metrics " )
-    + std::string( "are available for a single stage." );
+    + std::string( "are available for a single stage. " )
+    + std::string( "The fixed image should be a single time point (eg the average of the time series). " )
+    + std::string( "By default, this image is not used, the fixed image for correction of each volume is the preceding volume " )
+    + std::string( "in the time series. See below for the option to use a fixed reference image for all volumes. ");
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "metric" );
@@ -1648,10 +1651,12 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
 
   {
   std::string description = std::string(
-      "use a fixed reference image instead of the neighor in the time series." );
+      "use a fixed reference image to correct all volumes, instead of correcting each image ")
+      + std::string( "to the prior volume in the time series." );
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "useFixedReferenceImage" );
   option->SetShortName( 'u' );
+  option->SetUsageOption( 0, "(0)/1" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
