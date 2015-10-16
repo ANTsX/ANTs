@@ -528,7 +528,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
         jobIDs="$jobIDs $id"
     elif [[ $DOQSUB -eq 5 ]];
       then
-        id=`sbatch --job-name=antsJlfReg --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=20:00:00 --mem=8192M $qscript | rev | cut -f1 -d\ | rev`
+        id=`sbatch --job-name=antsJlfReg${i} --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=20:00:00 --mem=8192M $qscript | rev | cut -f1 -d\ | rev`
         jobIDs="$jobIDs $id"
         sleep 0.5
     elif [[ $DOQSUB -eq 0 ]];
@@ -1022,6 +1022,7 @@ if [[ $KEEP_ALL_IMAGES -eq 0 ]];
     rm -f ${INVERSE_WARP_FIELDS[@]}
     rm -f $qscript
     rm -f $qscript2
+    rm -f ${OUTPUT_DIR}/slurm-*.out
   fi
 
 time_end=`date +%s`
