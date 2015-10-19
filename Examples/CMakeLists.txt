@@ -207,6 +207,7 @@ install(PROGRAMS ../Scripts/ANTSpexec.sh
      ../Scripts/waitForPBSQJobs.pl
      ../Scripts/waitForSGEQJobs.pl
      ../Scripts/waitForXGridJobs.pl
+     ../Scripts/waitForSlurmJobs.pl
                 DESTINATION bin
                 PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
                 CONFIGURATIONS  Release
