@@ -43,9 +43,10 @@ PEXEC=${ANTSPATH}ANTSpexec.sh
 SGE=${ANTSPATH}waitForSGEQJobs.pl
 PBS=${ANTSPATH}waitForPBSQJobs.pl
 XGRID=${ANTSPATH}waitForXGridJobs.pl
+SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 
 fle_error=0
-for FLE in $JLF $ANTS $WARP $PEXEC $SGE $XGRID $PBS
+for FLE in $JLF $ANTS $WARP $PEXEC $SGE $XGRID $PBS $SLURM
   do
   if [[ ! -x $FLE ]];
     then
@@ -93,7 +94,7 @@ Optional arguments:
      -k:  Keep files:     Keep warped atlas and label files (default = 0).
 
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub.
+          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM.
 
      -j: Number of cpu cores to use (default 2; -- requires "-c 2").
 
@@ -175,7 +176,7 @@ Optional arguments:
      -k:  Keep files:     Keep warped atlas and label files (default = 0).
 
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub.
+          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM.
 
      -j: Number of cpu cores to use (default 2; -- requires "-c 2").
 
@@ -199,6 +200,7 @@ will terminate prematurely if these files are not present or are not executable.
 - waitForPBSQJobs.pl  (only for use with Portable Batch System)
 - ANTSpexec.sh (only for use with localhost parallel execution)
 - waitForXGridJobs.pl (only for use with Apple XGrid)
+- waitForSlurmJobs.pl (only for use with SLURM)
 - antsRegistrationSyN.sh
 - antsRegistrationSyNQuick.sh ( quick parameters )
 
@@ -336,9 +338,9 @@ while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:z:" OPT
    ;;
       c) #use SGE cluster
    DOQSUB=$OPTARG
-   if [[ $DOQSUB -gt 4 ]];
+   if [[ $DOQSUB -gt 5 ]];
      then
-       echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
+       echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub, 5=SLURM ) you passed  -c $DOQSUB "
        exit 1
      fi
    ;;
@@ -401,6 +403,15 @@ if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
       then
         echo "do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ..."
         exit 1
+      fi
+  fi
+if [[ $DOQSUB -eq 5 ]];
+  then
+    qq=`which sbatch`
+    if [[ ${#qq} -lt 1 ]];
+      then
+        echo "do you have sbatch?  if not, then choose another c option ... if so, then check where the sbatch alias points ..."
+        exit
       fi
   fi
 
@@ -490,7 +501,15 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -t ${OUTPUT_PREFIX}${BASENAME}_${i}_1Warp.nii.gz \
                           -t ${OUTPUT_PREFIX}${BASENAME}_${i}_0GenericAffine.mat >> ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
 
-    echo "$registrationCall" > $qscript
+    rm -f $qscript
+
+    if [[ $DOQSUB -eq 5 ]];
+      then
+        # SLURM job scripts must start with a shebang
+        echo '#!/bin/sh' > $qscript
+      fi
+
+    echo "$registrationCall" >> $qscript
     echo "$labelXfrmCall" >> $qscript
 
     if [[ $DOQSUB -eq 1 ]];
@@ -507,6 +526,11 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
       then
         id=`xgrid $XGRID_OPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
         jobIDs="$jobIDs $id"
+    elif [[ $DOQSUB -eq 5 ]];
+      then
+        id=`sbatch --job-name=antsJlfReg${i} --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=20:00:00 --mem=8192M $qscript | rev | cut -f1 -d\ | rev`
+        jobIDs="$jobIDs $id"
+        sleep 0.5
     elif [[ $DOQSUB -eq 0 ]];
       then
         echo $qscript
@@ -905,6 +929,86 @@ if [[ $DOQSUB -eq 3 ]];
 
     sh $qscript2
   fi
+if [[ $DOQSUB -eq 5 ]];
+  then
+    # Run jobs on SLURM and wait to finish
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Starting JLF on SLURM cluster. "
+    echo "--------------------------------------------------------------------------------------"
+
+    ${ANTSPATH}/waitForSlurmJobs.pl 1 600 $jobIDs
+    # Returns 1 if there are errors
+    if [[ ! $? -eq 0 ]];
+      then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+      fi
+
+    # Remove the SLURM output files (which are likely to be empty)
+    rm -f ${OUTPUT_DIR}/slurm-*.out
+
+    EXISTING_WARPED_ATLAS_IMAGES=()
+    EXISTING_WARPED_ATLAS_LABELS=()
+    for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        echo ${WARPED_ATLAS_IMAGES[$i]}
+        if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
+          then
+            if [[ -f ${TARGET_MASK_IMAGE} ]];
+              then
+                TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+
+                OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
+                TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
+                DICE_OVERLAP=${TOKENS[3]}
+
+                if (( $(echo "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc -l) ));
+                  then
+                    EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                    EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  else
+                    echo Not including ${WARPED_ATLAS_IMAGES[$i]} \(Dice = ${DICE_OVERLAP}\)
+                  fi
+
+                rm -f $TMP_WARPED_ATLAS_LABEL_MASK
+              else
+                EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+              fi
+          fi
+      done
+
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 2 ]];
+      then
+        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        exit 1
+      fi
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
+      then
+        echo "Warning:  One or more registrations failed."
+      fi
+
+    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
+      done
+
+    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+      then
+        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+      else
+        jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+      fi
+
+    qscript2="${OUTPUT_PREFIX}JLF.sh"
+    echo "#!/bin/sh" > $qscript2
+    echo "$jlfCall" >> $qscript2
+
+    jobIDs=`sbatch --job-name=antsJlf --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=30:00:00 --mem=8192M $qscript2 | rev | cut -f1 -d\ | rev`
+    ${ANTSPATH}/waitForSlurmJobs.pl 1 600 $jobIDs
+  fi
 
 # clean up
 rm -f ${OUTPUT_DIR}/job_*.sh
@@ -918,6 +1022,7 @@ if [[ $KEEP_ALL_IMAGES -eq 0 ]];
     rm -f ${INVERSE_WARP_FIELDS[@]}
     rm -f $qscript
     rm -f $qscript2
+    rm -f ${OUTPUT_DIR}/slurm-*.out
   fi
 
 time_end=`date +%s`

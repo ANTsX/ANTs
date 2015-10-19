@@ -46,9 +46,10 @@ PEXEC=${ANTSPATH}/ANTSpexec.sh
 SGE=${ANTSPATH}/waitForSGEQJobs.pl
 PBS=${ANTSPATH}/waitForPBSQJobs.pl
 XGRID=${ANTSPATH}/waitForXGridJobs.pl
+SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 
 fle_error=0
-for FLE in $ANTSSCRIPTNAME $PEXEC $SGE $XGRID
+for FLE in $ANTSSCRIPTNAME $PEXEC $SGE $XGRID $SLURM
   do
   if [ ! -x $FLE  ] ;
       then
@@ -90,7 +91,7 @@ should be invoked from that directory.
 Optional arguments:
 
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost),  3 == Apple XGrid, 4 == PBS qsub
+          2 == use PEXEC (localhost),  3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM
 
      -q:  Set default queue for PBS jobs (default: nopreempt)
 
@@ -201,7 +202,7 @@ NB: All files to be added to the template should be in the same directory.
 Optional arguments:
 
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-	  2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS Grid
+	  2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS Grid, 5 == SLURM
 
      -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25). This does not affect the step size
           of individual registrations; it lets you update the template more cautiously after each iteration by reducing the template
@@ -285,6 +286,7 @@ will terminate prematurely if these files are not present or are not executable.
 - waitForSGEQJobs.pl (only for use with Sun Grid Engine)
 - ANTSpexec.sh (only for use with localhost parallel execution)
 - waitForXGridJobs.pl (only for use with Apple XGrid)
+- waitForSlurmJobs.pl (only for use with SLURM)
 
 --------------------------------------------------------------------------------------
 Get the latest ANTS version at:
@@ -622,6 +624,8 @@ control_c()
 
   if [ $DOQSUB -eq 1 ] ; then
      qdel $jobIDs
+  elif [ $DOQSUB -eq 5 ]; then
+     scancel $jobIDs
   fi
 
   exit $?
@@ -689,7 +693,7 @@ while getopts "c:q:d:g:i:j:h:m:n:o:p:s:r:t:x:z:" OPT
       c) #use SGE cluster
 	  DOQSUB=$OPTARG
 	  if [[ ${#DOQSUB} -gt 2 ]] ; then
-	      echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
+	      echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub, 5=SLURM) you passed  -c $DOQSUB "
 	      exit 1
 	  fi
 	  ;;
@@ -765,6 +769,13 @@ if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]] ; then
   qq=`which  qsub`
   if [  ${#qq} -lt 1 ] ; then
     echo do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ...
+    exit
+  fi
+fi
+if [[ $DOQSUB -eq 5 ]]; then
+  qq=`which sbatch`
+  if [[ ${#qq} -lt 1 ]]; then
+    echo "do you have sbatch?  if not, then choose another c option ... if so, then check where the sbatch alias points ..."
     exit
   fi
 fi
@@ -960,8 +971,14 @@ if [ "$RIGID" -eq 1 ] ;
       pexe=" $exe >> job_${count}_metriclog.txt "
 
       qscript="job_${count}_qsub.sh"
+      rm -f $qscript
 
-      echo "$SCRIPTPREPEND" > $qscript
+      if [[ $DOQSUB -eq 5 ]]; then
+         # SLURM job scripts must start with a shebang
+         echo '#!/bin/sh' > $qscript
+      fi
+
+      echo "$SCRIPTPREPEND" >> $qscript
 
       echo "$exe" >> $qscript
 
@@ -971,23 +988,27 @@ if [ "$RIGID" -eq 1 ] ;
 		id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
 		jobIDs="$jobIDs $id"
 		    sleep 0.5
-		  elif [ $DOQSUB -eq 4 ]; then
+      elif [ $DOQSUB -eq 4 ]; then
         echo "cp -R /jobtmp/pbstmp.\$PBS_JOBID/* ${currentdir}" >> $qscript;
 		id=`qsub -N antsrigid -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH $QSUBOPTS -q $DEFQUEUE -l nodes=1:ppn=1 -l walltime=4:00:00 $qscript | awk '{print $1}'`
 		jobIDs="$jobIDs $id"
-		    sleep 0.5
+        sleep 0.5
       elif  [ $DOQSUB -eq 2 ] ; then
-	  # Send pexe and exe2 to same job file so that they execute in series
-	  echo $pexe >> job${count}_r.sh
-	  echo $exe2 >> job${count}_r.sh
+        # Send pexe and exe2 to same job file so that they execute in series
+        echo $pexe >> job${count}_r.sh
+        echo $exe2 >> job${count}_r.sh
       elif  [ $DOQSUB -eq 3 ] ; then
-	id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
-	#echo "xgrid $XGRIDOPTS -job submit /bin/bash $qscript"
-		jobIDs="$jobIDs $id"
+        id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
+        #echo "xgrid $XGRIDOPTS -job submit /bin/bash $qscript"
+        jobIDs="$jobIDs $id"
+      elif [[ $DOQSUB -eq 5 ]]; then
+        id=`sbatch --job-name=antsrigid --export=ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=4:00:00 $qscript | rev | cut -f1 -d\ | rev`
+        jobIDs="$jobIDs $id"
+        sleep 0.5
       elif  [ $DOQSUB -eq 0 ] ; then
-	  # execute jobs in series
-	  $exe
-	  $exe2
+        # execute jobs in series
+        $exe
+        $exe2
       fi
 
       ((count++))
@@ -1057,6 +1078,23 @@ if [ "$RIGID" -eq 1 ] ;
 	fi
     fi
 
+    if [ $DOQSUB -eq 5 ];
+	then
+	# Run jobs on SLURM and wait to finish
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " Starting ANTS rigid registration on SLURM cluster. Submitted $count jobs "
+	echo "--------------------------------------------------------------------------------------"
+        # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
+	${ANTSPATH}/waitForSlurmJobs.pl 1 60 $jobIDs
+
+	# Returns 1 if there are errors
+	if [ ! $? -eq 0 ]; then
+	    echo "SLURM submission failed - jobs went into error state"
+	    exit 1;
+	fi
+    fi
+
 
     # Update template
     ${ANTSPATH}/AverageImages $DIM $TEMPLATE 1 $RIGID_IMAGESET
@@ -1086,6 +1124,13 @@ if [ "$RIGID" -eq 1 ] ;
 	elif [ $DOQSUB -eq 3 ];
 		then
 		rm -f job_*_qsub.sh
+    elif [[ $DOQSUB -eq 5 ]];
+        then
+        mv slurm-*.out rigid/
+        mv job*.txt rigid/
+
+        # Remove qsub scripts
+        rm -f ${outdir}/job_${count}_qsub.sh
     fi
 
 
@@ -1168,29 +1213,36 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 
     # 6 submit to SGE (DOQSUB=1), PBS (DOQSUB=4), PEXEC (DOQSUB=2), XGrid (DOQSUB=3) or else run locally (DOQSUB=0)
     if [ $DOQSUB -eq 1 ]; then
-	id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
-	     jobIDs="$jobIDs $id"
-	     sleep 0.5
+      id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
+      jobIDs="$jobIDs $id"
+      sleep 0.5
     elif [ $DOQSUB -eq 4 ]; then
       qscript="job_${count}_${i}.sh"
-	    echo "$SCRIPTPREPEND" > $qscript
-	     echo "$exe" >> $qscript
+      echo "$SCRIPTPREPEND" > $qscript
+      echo "$exe" >> $qscript
       echo "cp -R /jobtmp/pbstmp.\$PBS_JOBID/* ${currentdir}" >> $qscript;
-	     id=`qsub -N antsdef${i} -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH -q $DEFQUEUE -l nodes=1:ppn=1 -l walltime=4:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
-	     jobIDs="$jobIDs $id"
-	sleep 0.5
+      id=`qsub -N antsdef${i} -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH -q $DEFQUEUE -l nodes=1:ppn=1 -l walltime=4:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
+      jobIDs="$jobIDs $id"
+      sleep 0.5
     elif [ $DOQSUB -eq 2 ] ; then
-	echo $pexe
-	echo $pexe >> job${count}_${i}.sh
+      echo $pexe
+      echo $pexe >> job${count}_${i}.sh
     elif [ $DOQSUB -eq 3 ] ; then
       qscript="job_${count}_${i}.sh"
       #exe="${ANTSSCRIPTNAME} -d ${DIM} -r ./${TEMPLATE} -i ./${IMG} -o ./${OUTFN} -m ${MAXITERATIONS} -n ${N4CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
-	    echo "$SCRIPTPREPEND" > $qscript
-	     echo "$exe" >> $qscript
+      echo "$SCRIPTPREPEND" > $qscript
+      echo "$exe" >> $qscript
       id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
-	     jobIDs="$jobIDs $id"
+      jobIDs="$jobIDs $id"
+    elif [[ $DOQSUB -eq 5 ]]; then
+      echo '#!/bin/sh' > $qscript
+      echo -e "$SCRIPTPREPEND" >> $qscript
+      echo -e "$exe" >> $qscript
+      id=`sbatch --job-name=antsdef${i} --export=ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH --nodes=1 --cpus-per-task=1 --time=4:00:00 $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
+      jobIDs="$jobIDs $id"
+      sleep 0.5
     elif  [ $DOQSUB -eq 0 ] ; then
-		    bash $exe
+      bash $exe
     fi
 
     # counter updated, but not directly used in this loop
@@ -1263,6 +1315,24 @@ while [  $i -lt ${ITERATIONLIMIT} ]
     fi
   fi
 
+  if [[ $DOQSUB -eq 5 ]];
+    then
+    # Run jobs on SLURM and wait to finish
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Starting ANTS registration on SLURM cluster. Submitted $count jobs "
+    echo "--------------------------------------------------------------------------------------"
+
+    # now wait for the stuff to finish - this will take a while so poll queue every 10 mins
+    ${ANTSPATH}/waitForSlurmJobs.pl 1 600 $jobIDs
+
+    if [[ ! $? -eq 0 ]];
+        then
+        echo "SLURM submission failed - jobs went into error state"
+        exit 1;
+    fi
+  fi
+
   shapeupdatetotemplate ${DIM} ${TEMPLATE} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP}
 
   echo
@@ -1288,6 +1358,10 @@ while [  $i -lt ${ITERATIONLIMIT} ]
   elif [ $DOQSUB -eq 3 ];
       then
       rm -f job_*.sh
+  elif [[ $DOQSUB -eq 5 ]];
+      then
+      mv slurm-*.out ${TRANSFORMATIONTYPE}_iteration_${i}
+      mv job*.txt ${TRANSFORMATIONTYPE}_iteration_${i}
   fi
 
   ((i++))
