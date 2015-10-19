@@ -821,7 +821,6 @@ template <unsigned int ImageDimension>
 int SetTimeSpacingWarp(int argc, char *argv[])
 {
   typedef float                                              RealType;
-  typedef itk::Image<RealType, ImageDimension>               RealImageType;
   typedef itk::Vector<RealType, ImageDimension>              VectorType;
   typedef itk::Image<VectorType, ImageDimension>             ImageType;
 
@@ -4625,7 +4624,6 @@ int StackImage(int argc, char *argv[])
   typedef float                                          PixelType;
   typedef itk::Image<PixelType, ImageDimension>          ImageType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>   Iterator;
-  typedef itk::ImageFileReader<ImageType>                ReaderType;
 
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
@@ -4643,7 +4641,7 @@ int StackImage(int argc, char *argv[])
   // Re-used image pointer for all images to be stacked
   typename ImageType::Pointer image1 = ITK_NULLPTR;
 
-  ReadImage<ImageType>(refImage, fn1.c_str());  
+  ReadImage<ImageType>(refImage, fn1.c_str());
 
   typename ImageType::SpacingType refSpacing = refImage->GetSpacing();
   typename ImageType::DirectionType refDirection = refImage->GetDirection();
@@ -4652,7 +4650,7 @@ int StackImage(int argc, char *argv[])
 
   unsigned int nDims = refImage->GetImageDimension();
 
-  
+
   if ( nDims != ImageDimension )
   {
     // std::cout << "Image dimensions not consistent with passed parameters" << std::endl;
@@ -4663,21 +4661,21 @@ int StackImage(int argc, char *argv[])
 
   // Check headers align to within this tolerance. Set eps relatively large, aims to catch gross errors
   // without getting hung up on floating point precision issues, which can be sizeable when dealing with
-  // nifti I/O 
+  // nifti I/O
   float eps = 1E-4;
 
   for ( int i=(argct+1); i<argc; i++)
   {
 
     std::string fn2 = std::string(argv[i]);
-    
+
     ReadImage<ImageType>(image1, fn2.c_str());
 
     typename ImageType::SpacingType im1Spacing = image1->GetSpacing();
     typename ImageType::DirectionType im1Direction = image1->GetDirection();
     typename ImageType::PointType im1Origin = image1->GetOrigin();
     typename ImageType::SizeType im1Size = image1->GetLargestPossibleRegion().GetSize();
-    
+
 
     if ( image1->GetImageDimension() != nDims )
     {
@@ -4926,9 +4924,6 @@ int LabelSurfaceArea(int argc, char *argv[])
 {
   typedef float                                        PixelType;
   typedef itk::Image<PixelType, ImageDimension>        ImageType;
-  typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
-  typedef typename OutImageType::IndexType             OutIndexType;
-  typedef typename ImageType::IndexType                IndexType;
 
   typedef double                                            Scalar;
   int               argct = 2;
@@ -8644,7 +8639,6 @@ int CannyImage(      int argc, char *argv[])
 
   typename ImageType::Pointer image = ITK_NULLPTR;
   ReadImage<ImageType>(image, fn1.c_str() );
-  typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
   typedef itk::CannyEdgeDetectionImageFilter< ImageType, ImageType >
   FilterType;
   typename FilterType::Pointer filter = FilterType::New();
