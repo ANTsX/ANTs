@@ -1353,6 +1353,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             mv ${outdir}/slurm-*.out ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
             mv ${outdir}/job*.txt ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
         fi
+      else
+        rm -f ${outdir}/job*.txt ${outdir}/slurm-*.out
       fi
     ((i++))
 done
