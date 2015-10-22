@@ -47,6 +47,11 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   this->m_CountImage = ITK_NULLPTR;
 
+  this->m_SearchNeighborhoodRadiusImage = ITK_NULLPTR;
+  this->m_SearchNeighborhoodRadius.Fill( 3 );
+
+  this->m_PatchNeighborhoodRadius.Fill( 2 );
+
   this->m_SimilarityMetric = PEARSON_CORRELATION;
 }
 
@@ -101,11 +106,31 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 {
   Superclass::GenerateInputRequestedRegion();
 
-// Get the output requested region
+  // Get the output requested region
   RegionType outRegion = this->GetOutput()->GetRequestedRegion();
 
   // Pad this region by the search window and patch size
-  outRegion.PadByRadius( this->m_SearchNeighborhoodRadius );
+  if( this->m_SearchNeighborhoodRadiusImage.IsNull() )
+    {
+    outRegion.PadByRadius( this->m_SearchNeighborhoodRadius );
+    }
+  else
+    {
+    NeighborhoodRadiusType maxSearchNeighborhoodRadius;
+    maxSearchNeighborhoodRadius.Fill( 0 );
+
+    ImageRegionConstIterator<RadiusImageType> ItR( this->m_SearchNeighborhoodRadiusImage,
+      this->m_SearchNeighborhoodRadiusImage->GetRequestedRegion() );
+    for( ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR )
+      {
+      RadiusValueType localSearchRadius = ItR.Get();
+      if( localSearchRadius > maxSearchNeighborhoodRadius[0] )
+        {
+        maxSearchNeighborhoodRadius.Fill( localSearchRadius );
+        }
+      }
+    outRegion.PadByRadius( maxSearchNeighborhoodRadius );
+    }
   outRegion.PadByRadius( this->m_PatchNeighborhoodRadius );
 
   // Iterate over all the inputs to this filter
@@ -288,18 +313,53 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   this->m_CountImage->Allocate();
   this->m_CountImage->FillBuffer( 0 );
 
-  // Determine the offset lists
-
-  ConstNeighborhoodIterator<InputImageType> It( this->m_SearchNeighborhoodRadius,
-    this->GetInput(), this->GetInput()->GetRequestedRegion() );
+  // Determine the search offset list (or map if an search radius image is specified)
 
   this->m_SearchNeighborhoodOffsetList.clear();
+  this->m_SearchNeighborhoodOffsetSetsMap.clear();
 
-  this->m_SearchNeighborhoodSize = ( It.GetNeighborhood() ).Size();
-  for( unsigned int n = 0; n < this->m_SearchNeighborhoodSize; n++ )
+  if( this->m_SearchNeighborhoodRadiusImage.IsNull() )
     {
-    this->m_SearchNeighborhoodOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
+    ConstNeighborhoodIterator<InputImageType> It( this->m_SearchNeighborhoodRadius,
+      this->GetInput(), this->GetInput()->GetRequestedRegion() );
+
+    SizeValueType searchNeighborhoodSize = ( It.GetNeighborhood() ).Size();
+    for( unsigned int n = 0; n < searchNeighborhoodSize; n++ )
+      {
+      this->m_SearchNeighborhoodOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
+      }
     }
+  else
+    {
+    ImageRegionConstIterator<RadiusImageType> ItR( this->m_SearchNeighborhoodRadiusImage,
+      this->m_SearchNeighborhoodRadiusImage->GetRequestedRegion() );
+
+    for( ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR )
+      {
+      RadiusValueType localSearchRadius = ItR.Get();
+      if( localSearchRadius > 0 &&
+        this->m_SearchNeighborhoodOffsetSetsMap.find( localSearchRadius ) ==
+          this->m_SearchNeighborhoodOffsetSetsMap.end() )
+        {
+        NeighborhoodRadiusType localSearchNeighborhoodRadius;
+        localSearchNeighborhoodRadius.Fill( localSearchRadius );
+
+        std::vector<NeighborhoodOffsetType> localSearchNeighborhoodOffsetList;
+
+        ConstNeighborhoodIterator<InputImageType> It( localSearchNeighborhoodRadius,
+          this->GetInput(), this->GetInput()->GetRequestedRegion() );
+
+        RadiusValueType localSearchNeighborhoodSize = ( It.GetNeighborhood() ).Size();
+        for( unsigned int n = 0; n < localSearchNeighborhoodSize; n++ )
+          {
+          localSearchNeighborhoodOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
+          }
+        this->m_SearchNeighborhoodOffsetSetsMap[localSearchRadius] = localSearchNeighborhoodOffsetList;
+        }
+      }
+    }
+
+  // Determine the patch offset list
 
   ConstNeighborhoodIterator<InputImageType> It2( this->m_PatchNeighborhoodRadius,
     this->GetInput(), this->GetInput()->GetRequestedRegion() );
@@ -386,6 +446,24 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
         }
       }
 
+    // Determine the search neighborhood offset list for the current center voxel
+    std::vector<NeighborhoodOffsetType> searchNeighborhoodOffsetList;
+    if( this->m_SearchNeighborhoodRadiusImage.IsNull() )
+      {
+      searchNeighborhoodOffsetList = this->m_SearchNeighborhoodOffsetList;
+      }
+    else
+      {
+      RadiusValueType localSearchRadius =
+        this->m_SearchNeighborhoodRadiusImage->GetPixel( currentCenterIndex );
+      if( localSearchRadius <= 0 )
+        {
+        continue;
+        }
+      searchNeighborhoodOffsetList = this->m_SearchNeighborhoodOffsetSetsMap[localSearchRadius];
+      }
+    SizeValueType searchNeighborhoodSize = searchNeighborhoodOffsetList.size();
+
     InputImagePixelVectorType normalizedTargetPatch =
       this->VectorizeImageListPatch( this->m_TargetImage, currentCenterIndex, true );
 
@@ -399,9 +477,9 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       RealType minimumPatchSimilarity = NumericTraits<RealType>::max();
       SizeValueType minimumPatchOffsetIndex = 0;
 
-      for( SizeValueType j = 0; j < this->m_SearchNeighborhoodSize; j++ )
+      for( SizeValueType j = 0; j < searchNeighborhoodSize; j++ )
         {
-        IndexType searchIndex = currentCenterIndex + this->m_SearchNeighborhoodOffsetList[j];
+        IndexType searchIndex = currentCenterIndex + searchNeighborhoodOffsetList[j];
 
         if( !output->GetRequestedRegion().IsInside( searchIndex ) )
           {
@@ -422,7 +500,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       // difference with target patch
 
       IndexType minimumIndex = currentCenterIndex +
-        this->m_SearchNeighborhoodOffsetList[minimumPatchOffsetIndex];
+        searchNeighborhoodOffsetList[minimumPatchOffsetIndex];
       InputImagePixelVectorType normalizedMinimumAtlasPatch;
       if( numberOfTargetModalities == this->m_NumberOfAtlasModalities )
         {
@@ -577,7 +655,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           {
           // The segmentation at the corresponding patch location in atlas i
           IndexType minimumIndex = neighborhoodIndex +
-            this->m_SearchNeighborhoodOffsetList[minimumAtlasOffsetIndices[i]];
+            searchNeighborhoodOffsetList[minimumAtlasOffsetIndices[i]];
 
           if( !output->GetRequestedRegion().IsInside( minimumIndex ) )
             {

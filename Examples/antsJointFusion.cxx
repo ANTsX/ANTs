@@ -135,33 +135,47 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   fusionFilter->SetBeta( beta );
 
   // Get the search and patch radii
-
-  std::vector<unsigned int> searchRadius;
-  searchRadius.push_back( 3 );
   typename OptionType::Pointer searchRadiusOption = parser->GetOption( "search-radius" );
-  if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
+
+  // try reading the search radius as an image first.
+  try
     {
-    searchRadius = parser->ConvertVector<unsigned int>( searchRadiusOption->GetFunction( 0 )->GetName() );
+    std::string searchRadiusString = searchRadiusOption->GetFunction( 0 )->GetName();
+    typedef typename FusionFilterType::RadiusImageType  RadiusImageType;
+    typename RadiusImageType::Pointer searchRadiusImage;
+    ReadImage<RadiusImageType>( searchRadiusImage, searchRadiusString.c_str() );
+
+    fusionFilter->SetSearchNeighborhoodRadiusImage( searchRadiusImage );
     }
-  if( searchRadius.size() == 1 )
+  catch( ... )
     {
-    for( unsigned int d = 1; d < ImageDimension; d++ )
+    std::vector<unsigned int> searchRadius;
+    searchRadius.push_back( 3 );
+    if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
       {
-      searchRadius.push_back( searchRadius[0] );
+      searchRadius = parser->ConvertVector<unsigned int>( searchRadiusOption->GetFunction( 0 )->GetName() );
       }
-    }
-  if( searchRadius.size() != ImageDimension )
-    {
-    if( verbose )
+    if( searchRadius.size() == 1 )
       {
-      std::cerr << "Search radius specified incorrectly.  Please see usage options." << std::endl;
+      for( unsigned int d = 1; d < ImageDimension; d++ )
+        {
+        searchRadius.push_back( searchRadius[0] );
+        }
       }
-    return EXIT_FAILURE;
-    }
-  typename FusionFilterType::NeighborhoodRadiusType searchNeighborhoodRadius;
-  for( unsigned int d = 0; d < ImageDimension; d++ )
-    {
-    searchNeighborhoodRadius[d] = searchRadius[d];
+    if( searchRadius.size() != ImageDimension )
+      {
+      if( verbose )
+        {
+        std::cerr << "Search radius specified incorrectly.  Please see usage options." << std::endl;
+        }
+      return EXIT_FAILURE;
+      }
+    typename FusionFilterType::NeighborhoodRadiusType searchNeighborhoodRadius;
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      searchNeighborhoodRadius[d] = searchRadius[d];
+      }
+    fusionFilter->SetSearchNeighborhoodRadius( searchNeighborhoodRadius );
     }
 
   std::vector<unsigned int> patchRadius;
@@ -192,7 +206,6 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     patchNeighborhoodRadius[d] = patchRadius[d];
     }
 
-  fusionFilter->SetSearchNeighborhoodRadius( searchNeighborhoodRadius );
   fusionFilter->SetPatchNeighborhoodRadius( patchNeighborhoodRadius );
 
   // Retain atlas voting and label posterior images
@@ -709,13 +722,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   {
   std::string description =
-    std::string( "Search radius for similarity measures.  Default = 3x3x3" );
+    std::string( "Search radius for similarity measures.  Default = 3x3x3.  One " )
+    + std::string( "can also specify an image where the value at the voxel specifies " )
+    + std::string( "the isotropic search radius at that voxel." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "search-radius" );
   option->SetShortName( 's' );
   option->SetUsageOption( 0, "3" );
   option->SetUsageOption( 1, "3x3x3" );
+  option->SetUsageOption( 2, "searchRadiusMap.nii.gz" );
   option->SetDescription( description );
   parser->AddOption( option );
   }

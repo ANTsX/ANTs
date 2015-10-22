@@ -113,6 +113,9 @@ public:
   typedef ConstNeighborhoodIterator<InputImageType>               ConstNeighborhoodIteratorType;
   typedef typename ConstNeighborhoodIteratorType::RadiusType      NeighborhoodRadiusType;
   typedef typename ConstNeighborhoodIteratorType::OffsetType      NeighborhoodOffsetType;
+  typedef typename SizeType::SizeValueType                        RadiusValueType;
+  typedef Image<RadiusValueType, ImageDimension>                  RadiusImageType;
+  typedef typename RadiusImageType::Pointer                       RadiusImagePointer;
 
   /**
    * Neighborhood patch similarity metric enumerated type
@@ -197,6 +200,14 @@ public:
    */
   itkSetMacro( SearchNeighborhoodRadius, NeighborhoodRadiusType );
   itkGetConstMacro( SearchNeighborhoodRadius, NeighborhoodRadiusType );
+
+  /**
+   * Set/Get the local search neighborhood radius image.
+   */
+  void SetSearchNeighborhoodRadiusImage( RadiusImageType *image )
+    {
+    this->m_SearchNeighborhoodRadiusImage = image;
+    }
 
   /**
    * Set/Get the patch neighborhood for calculating the similarity measures.
@@ -373,9 +384,11 @@ private:
 
   NeighborhoodRadiusType                               m_SearchNeighborhoodRadius;
   NeighborhoodRadiusType                               m_PatchNeighborhoodRadius;
-  SizeValueType                                        m_SearchNeighborhoodSize;
   SizeValueType                                        m_PatchNeighborhoodSize;
   std::vector<NeighborhoodOffsetType>                  m_SearchNeighborhoodOffsetList;
+  std::map<RadiusValueType,
+    std::vector<NeighborhoodOffsetType> >              m_SearchNeighborhoodOffsetSetsMap;
+
   std::vector<NeighborhoodOffsetType>                  m_PatchNeighborhoodOffsetList;
 
   RealType                                             m_Alpha;
@@ -388,6 +401,8 @@ private:
   SimilarityMetricType                                 m_SimilarityMetric;
 
   ProbabilityImagePointer                              m_WeightSumImage;
+
+  RadiusImagePointer                                   m_SearchNeighborhoodRadiusImage;
 
   /** Output variables     */
   LabelPosteriorProbabilityMap                         m_LabelPosteriorProbabilityImages;
