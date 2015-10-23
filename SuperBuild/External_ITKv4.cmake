@@ -160,7 +160,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git)
-  set(${proj}_GIT_TAG d433df63e15da55086061ef78e8662a70b1160bc) ## Window convergence
+  set(${proj}_GIT_TAG 877a6ea10e9ed4672b632c313e2265fb0c887930) ##
   set(ITK_VERSION_ID ITK-4.9) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
