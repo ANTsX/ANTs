@@ -37,7 +37,7 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event)
+  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
     {
     itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>( caller );
     if (! po) return;
@@ -59,7 +59,7 @@ public:
       }
     }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event)
+  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
     {
     itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>(
       const_cast<itk::Object *>( object ) );

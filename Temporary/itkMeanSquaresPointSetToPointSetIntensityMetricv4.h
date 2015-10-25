@@ -138,7 +138,7 @@ public:
   /**
    * Prepare point sets for use.
    */
-  virtual void InitializePointSets() const;
+  virtual void InitializePointSets() const ITK_OVERRIDE;
 
   /**
    * Calculates the local metric value for a single point.

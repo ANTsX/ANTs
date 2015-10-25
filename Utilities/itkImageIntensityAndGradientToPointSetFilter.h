@@ -102,7 +102,7 @@ public:
     return static_cast<const MaskImageType*>( this->ProcessObject::GetInput( 1 ) );
     }
 
-  void Update();
+  void Update() ITK_OVERRIDE;
 
   /**
    * Set/Get sigma for the gradient recursive gaussian image filter
