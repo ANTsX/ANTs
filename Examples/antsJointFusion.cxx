@@ -114,7 +114,6 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   typename FusionFilterType::Pointer fusionFilter = FusionFilterType::New();
   typedef typename LabelImageType::PixelType                   LabelType;
 
-
   // Get the alpha and beta parameters
 
   RealType alpha = 0.1;
@@ -137,45 +136,48 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   // Get the search and patch radii
   typename OptionType::Pointer searchRadiusOption = parser->GetOption( "search-radius" );
 
-  // try reading the search radius as an image first.
-  try
+  if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
     {
-    std::string searchRadiusString = searchRadiusOption->GetFunction( 0 )->GetName();
-    typedef typename FusionFilterType::RadiusImageType  RadiusImageType;
-    typename RadiusImageType::Pointer searchRadiusImage;
-    ReadImage<RadiusImageType>( searchRadiusImage, searchRadiusString.c_str() );
+    // try reading the search radius as an image first.
+    try
+      {
+      std::string searchRadiusString = searchRadiusOption->GetFunction( 0 )->GetName();
+      typedef typename FusionFilterType::RadiusImageType  RadiusImageType;
+      typename RadiusImageType::Pointer searchRadiusImage;
+      ReadImage<RadiusImageType>( searchRadiusImage, searchRadiusString.c_str() );
 
-    fusionFilter->SetSearchNeighborhoodRadiusImage( searchRadiusImage );
-    }
-  catch( ... )
-    {
-    std::vector<unsigned int> searchRadius;
-    searchRadius.push_back( 3 );
-    if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
-      {
-      searchRadius = parser->ConvertVector<unsigned int>( searchRadiusOption->GetFunction( 0 )->GetName() );
+      fusionFilter->SetSearchNeighborhoodRadiusImage( searchRadiusImage );
       }
-    if( searchRadius.size() == 1 )
+    catch( ... )
       {
-      for( unsigned int d = 1; d < ImageDimension; d++ )
+      std::vector<unsigned int> searchRadius;
+      searchRadius.push_back( 3 );
+      if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
         {
-        searchRadius.push_back( searchRadius[0] );
+        searchRadius = parser->ConvertVector<unsigned int>( searchRadiusOption->GetFunction( 0 )->GetName() );
         }
-      }
-    if( searchRadius.size() != ImageDimension )
-      {
-      if( verbose )
+      if( searchRadius.size() == 1 )
         {
-        std::cerr << "Search radius specified incorrectly.  Please see usage options." << std::endl;
+        for( unsigned int d = 1; d < ImageDimension; d++ )
+          {
+          searchRadius.push_back( searchRadius[0] );
+          }
         }
-      return EXIT_FAILURE;
+      if( searchRadius.size() != ImageDimension )
+        {
+        if( verbose )
+          {
+          std::cerr << "Search radius specified incorrectly.  Please see usage options." << std::endl;
+          }
+        return EXIT_FAILURE;
+        }
+      typename FusionFilterType::NeighborhoodRadiusType searchNeighborhoodRadius;
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        searchNeighborhoodRadius[d] = searchRadius[d];
+        }
+      fusionFilter->SetSearchNeighborhoodRadius( searchNeighborhoodRadius );
       }
-    typename FusionFilterType::NeighborhoodRadiusType searchNeighborhoodRadius;
-    for( unsigned int d = 0; d < ImageDimension; d++ )
-      {
-      searchNeighborhoodRadius[d] = searchRadius[d];
-      }
-    fusionFilter->SetSearchNeighborhoodRadius( searchNeighborhoodRadius );
     }
 
   std::vector<unsigned int> patchRadius;
