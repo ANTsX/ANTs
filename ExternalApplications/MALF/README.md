@@ -40,9 +40,9 @@ make
 to complie and build the executable files. Our program uses ITK's I/O functions to handle image input
 and output. Hence, it requries prebuilt ITK. The following three executable files will be built,
 
-jointfusion : joint label fusion
-bl          : learning classifiers for correcting systematic errors
-sa          : apply the learned classifiers to correct systematic segmentation errors on testing images
+jointfusion                    : joint label fusion
+bl                             : learning classifiers for correcting systematic errors
+adaBoostSegmentationRefinement : apply the learned classifiers to correct systematic segmentation errors on testing images
 
 Type each command to see details on how to use them.
 
