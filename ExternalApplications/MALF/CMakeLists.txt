@@ -10,15 +10,15 @@ project(PICSL_MALF)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(jointfusion ./JointFusion/LabelFusion.cxx)
-add_executable(sa ./CorrectiveLearning/segAdapter.cxx)
+add_executable(adaBoostSegmentationRefinement ./CorrectiveLearning/segAdapter.cxx)
 add_executable(bl ./CorrectiveLearning/BiasLearn.cxx)
 
 target_link_libraries(jointfusion antsUtilities ${ITK_LIBRARIES} )
-target_link_libraries(sa ${ITK_LIBRARIES} )
+target_link_libraries(adaBoostSegmentationRefinement ${ITK_LIBRARIES} )
 target_link_libraries(bl ${ITK_LIBRARIES} )
 
 
-install(TARGETS jointfusion sa bl
+install(TARGETS jointfusion adaBoostSegmentationRefinement bl
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
