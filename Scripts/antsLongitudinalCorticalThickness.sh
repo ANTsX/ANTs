@@ -783,7 +783,7 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
 
         if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS} ]];
           then
-            logCmd ${ANTSPATH}/antsMalfLabeling.sh \
+            logCmd ${ANTSPATH}/antsJointLabelFusion.sh \
               -d ${DIMENSION} \
               -q ${RUN_FAST_MALF_COOKING} \
               -c ${DOQSUB} \
