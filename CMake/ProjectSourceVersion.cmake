@@ -32,10 +32,8 @@ include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFVAR _GIT_VERSION_HASH)
 
 # if there is not git directory we should be in a distributed package
-# which should contain this additional cmake file with the
-# _GIT_VERSION variables
+# we will use version provided in Version.cmake
 if(_GIT_VERSION_HASH STREQUAL "GITDIR-NOTFOUND")
-  include( "${CMAKE_CURRENT_SOURCE_DIR}/CMake/ProjectSourceVersionVars.cmake" )
   return()
 endif()
 
