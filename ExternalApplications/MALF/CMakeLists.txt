@@ -20,5 +20,5 @@ target_link_libraries(bl ${ITK_LIBRARIES} )
 
 install(TARGETS jointfusion adaBoostSegmentationRefinement bl
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIB_INSTALL_DIR})
