@@ -526,7 +526,7 @@ public:
     double nccm1 = 0;
     const double loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
     //    if ( loce > 1.5 ) std::cout << " loce " << loce << " ind " << oindex << std::endl;
-    for( int imd = 0; imd < ImageDimension; imd++ )
+    for( unsigned int imd = 0; imd < ImageDimension; imd++ )
       {
       update[imd] = loce * fixedGradient[imd] * spacing[imd] * (1);
       }
@@ -616,7 +616,7 @@ public:
 
     double nccm1 = 0;
     const double loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
-    for( int imd = 0; imd < ImageDimension; imd++ )
+    for( unsigned int imd = 0; imd < ImageDimension; imd++ )
       {
       update[imd] = loce * movingGradient[imd] * spacing[imd] * (1);
       }

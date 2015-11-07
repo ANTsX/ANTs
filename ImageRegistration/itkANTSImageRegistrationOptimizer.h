@@ -354,7 +354,7 @@ public:
 
     expandFactors[ImageDimension] = 1;
 //     m_Debug = false;
-    for( int idim = 0; idim < ImageDimension; idim++ )
+    for( unsigned int idim = 0; idim < ImageDimension; idim++ )
       {
       expandFactors[idim] = (float) this->m_CurrentDomainSize[idim]
         / (TReal) this->m_TimeVaryingVelocity->GetLargestPossibleRegion().GetSize()[idim];
@@ -383,7 +383,7 @@ public:
 //      this->m_Debug=true;
     float expandFactors[ImageDimension];
 
-    for( int idim = 0; idim < ImageDimension; idim++ )
+    for( unsigned int idim = 0; idim < ImageDimension; idim++ )
       {
       expandFactors[idim] = (TReal) this->m_CurrentDomainSize[idim]
         / (TReal)field->GetLargestPossibleRegion().GetSize()[idim];
@@ -1830,7 +1830,7 @@ public:
     typename ImageType::SpacingType spacing = field->GetSpacing();
 
     unsigned long npix = 1;
-    for( int j = 0; j < ImageDimension; j++ ) // only use in-plane spacing
+    for( unsigned int j = 0; j < ImageDimension; j++ ) // only use in-plane spacing
       {
       npix *= field->GetLargestPossibleRegion().GetSize()[j];
       }
@@ -1894,7 +1894,7 @@ public:
         DispIndexType  index = vfIter.GetIndex();
         DispVectorType update = eulerianInitCond->GetPixel(index);
         TReal          mag = 0;
-        for( int j = 0; j < ImageDimension; j++ )
+        for( unsigned int j = 0; j < ImageDimension; j++ )
           {
           update[j] *= (-1.0);
           mag += (update[j] / spacing[j]) * (update[j] / spacing[j]);
@@ -2036,7 +2036,7 @@ protected:
       DispVectorType update = vfIter.Get();
       TReal          mag = 0.0;
       TReal          stepl = 0.0;
-      for( int i = 0; i < ImageDimension; i++ )
+      for( unsigned int i = 0; i < ImageDimension; i++ )
         {
         rindex = index;
         lindex = index;
@@ -2051,7 +2051,7 @@ protected:
         DispVectorType rupdate = field->GetPixel(rindex);
         DispVectorType lupdate = field->GetPixel(lindex);
         DispVectorType dif = rupdate - lupdate;
-        for( int tt = 0; tt < ImageDimension; tt++ )
+        for( unsigned int tt = 0; tt < ImageDimension; tt++ )
           {
           stepl += update[tt] * update[tt] / (myspacing[tt] * myspacing[tt]);
           mag += dif[tt] * dif[tt] / (myspacing[tt] * myspacing[tt]);

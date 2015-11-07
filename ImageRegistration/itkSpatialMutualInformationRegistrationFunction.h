@@ -493,7 +493,7 @@ public:
       {
       loce = eps * (-1.0);
       }
-    for( int imd = 0; imd < ImageDimension; imd++ )
+    for( unsigned int imd = 0; imd < ImageDimension; imd++ )
       {
       update[imd] = loce * fixedGradient[imd] * spacing[imd] * (1);
       }
@@ -592,7 +592,7 @@ public:
       {
       loce = eps * (-1.0);
       }
-    for( int imd = 0; imd < ImageDimension; imd++ )
+    for( unsigned int imd = 0; imd < ImageDimension; imd++ )
       {
       update[imd] = loce * movingGradient[imd] * spacing[imd] * (1);
       }

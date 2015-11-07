@@ -332,7 +332,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 //    std::cout << " E " << std::endl;
 
   m_NormalizeMetric = 1.0;
-  for( int i = 0; i < ImageDimension; i++ )
+  for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     m_NormalizeMetric *= this->m_FixedImage->GetLargestPossibleRegion().GetSize()[i];
     }

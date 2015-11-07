@@ -679,7 +679,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     mpt.Fill(0);
     ImagePointType fpt;
     fpt.Fill(0);
-    for( int j = 0; j < ImageDimension; j++ )
+    for( unsigned int j = 0; j < ImageDimension; j++ )
       {
       fpt[j] = fixedpoint[j];
       }
@@ -725,7 +725,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
           double                pp = probabilities(dd) / probtotal;
           if( pp > 0 )
             {
-            for( int j = 0; j < ImageDimension; j++ )
+            for( unsigned int j = 0; j < ImageDimension; j++ )
               {
               mpt[j] += pp * npt[j];
               }
@@ -739,7 +739,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 
       float mag = 0.0;
       typename BSplinePointSetType::PointType bpoint;
-      for( int j = 0; j < ImageDimension; j++ )
+      for( unsigned int j = 0; j < ImageDimension; j++ )
         {
         distance[j] = mpt[j] - fixedpoint[j];
         mag += distance[j] / spacing[j] * distance[j] / spacing[j];

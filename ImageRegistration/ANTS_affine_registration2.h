@@ -540,7 +540,7 @@ void ComputeSingleAffineTransform2D3D(typename ImageType::Pointer & fixed_image,
     }
   if( noaffine )
     {
-    for( int i = TransformType::ParametersDimension - ImageDimension;  i < TransformType::ParametersDimension; i++ )
+    for( unsigned int i = TransformType::ParametersDimension - ImageDimension;  i < TransformType::ParametersDimension; i++ )
       {
       para_final[i] = 0;
       }

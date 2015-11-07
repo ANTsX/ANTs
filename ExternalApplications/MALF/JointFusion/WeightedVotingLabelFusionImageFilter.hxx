@@ -131,7 +131,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
       {
       typename NIter::OffsetType off = itTempPatch.GetOffset(i);
       (*manhattan)[i] = 0;
-      for(int d = 0; d < InputImageDimension; d++)
+      for(unsigned int d = 0; d < InputImageDimension; d++)
         (*manhattan)[i] += abs(off[d]);
       }
   }
@@ -303,7 +303,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 
       // Define the search region
       RegionType rSearch;
-      for(int j = 0; j < InputImageDimension; j++)
+      for(unsigned int j = 0; j < InputImageDimension; j++)
         {
         rr.SetIndex(j, rr.GetIndex(j) + m_SearchRadius[j]);
         rr.SetSize(j, rr.GetSize(j) - 2 * m_SearchRadius[j]);
