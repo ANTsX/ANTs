@@ -1214,7 +1214,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         # 6 submit to SGE (DOQSUB=1), PBS (DOQSUB=4), PEXEC (DOQSUB=2), XGrid (DOQSUB=3) or else run locally (DOQSUB=0)
         if [[ $DOQSUB -eq 1 ]];
             then
-            echo -e "$exe" > $qscript
+            echo -e "$SCRIPTPREPEND" > $qscript
+            echo -e "$exe" >> $qscript
             id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
