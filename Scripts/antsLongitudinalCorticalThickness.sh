@@ -5,7 +5,7 @@ VERSION="0.0"
 # Check dependencies
 
 PROGRAM_DEPENDENCIES=( 'antsRegistration' 'antsApplyTransforms' 'N4BiasFieldCorrection' 'Atropos' 'KellyKapowski' )
-SCRIPTS_DEPENDENCIES=( 'antsBrainExtraction.sh' 'antsAtroposN4.sh' 'antsMultivariateTemplateConstruction2.sh' 'antsMalfLabeling.sh' )
+SCRIPTS_DEPENDENCIES=( 'antsBrainExtraction.sh' 'antsAtroposN4.sh' 'antsMultivariateTemplateConstruction2.sh' 'antsJointLabelFusion.sh' )
 
 for D in ${PROGRAM_DEPENDENCIES[@]};
   do
@@ -38,7 +38,7 @@ are performed:
      b. The brain extraction SST prior is created by smoothing the brain extraction
         mask created during 2a.
      c. If labeled atlases are not provided, we smooth the posteriors from 2a to create
-        the SST segmentation priors, otherwise we use antsMalfLabeling to create a set of
+        the SST segmentation priors, otherwise we use antsJointFusion to create a set of
         posteriors (https://github.com/ntustison/antsCookTemplatePriorsExample).
   3. Using the SST + priors, we run each subject through the antsCorticalThickness
      pipeline.
@@ -769,11 +769,11 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
       else
 
         echo
-        echo "   ---> Cooking single-subject priors using antsMalfLabeling."
+        echo "   ---> Cooking single-subject priors using antsJointLabelFusion."
         echo
 
         SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}/T_template
-        SINGLE_SUBJECT_TEMPLATE_MALF_LABELS=${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX}MalfLabels.nii.gz
+        SINGLE_SUBJECT_TEMPLATE_MALF_LABELS=${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX}Labels.nii.gz
 
         ATLAS_AND_LABELS_STRING=''
         for (( j=0; j < ${#MALF_ATLASES[@]}; j++ ))
