@@ -313,6 +313,28 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
   std::cout << "Read direction data of size: " << directionArray.rows() << " x "
               << directionArray.cols() << std::endl;
 
+  // itkImageFileReader will set direction to identity if the image being read has more dimensions than the template
+  //
+  // Therefore check reference image is 3D, and fail if not
+  //
+ itk::ImageIOBase::Pointer imageIO =
+   itk::ImageIOFactory::CreateImageIO(physicalName.c_str(), itk::ImageIOFactory::ReadMode);
+ imageIO->SetFileName(physicalName.c_str() );
+ try
+   {
+     imageIO->ReadImageInformation();
+   }
+ catch( ... )
+   {
+     std::cout << "Can't read reference image " << physicalName << std::endl;
+     return EXIT_FAILURE;
+   }
+ if (imageIO->GetNumberOfDimensions() != ImageDimension) 
+   {
+     std::cout << "Reference image must be 3D " << std::endl;
+     return EXIT_FAILURE;
+   }
+
   ImageReaderType::Pointer imageReader = ImageReaderType::New();
   imageReader->SetFileName(physicalName.c_str());
   imageReader->Update();
@@ -494,7 +516,7 @@ void antsMotionCorrDiffusionDirectionInitializeCommandLineOptions( itk::ants::Co
     }
 
     {
-    std::string description =       std::string( "image in dwi space");
+    std::string description =       std::string( "3D image in dwi space");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "physical" );
     option->SetShortName( 'p' );
