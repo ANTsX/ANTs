@@ -162,7 +162,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
   std::vector<CompositeTransformType::Pointer> CompositeTransformVector;
 
-
+  typedef itk::Euler3DTransform<RealType>                   RigidTransformType;
   typedef itk::AffineTransform<RealType, ImageDimension>    AffineTransformType;
 
   typedef itk::ants::CommandLineParser ParserType;
@@ -249,12 +249,12 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
     for ( unsigned int i=2; i < schemeMatrix.rows(); i++ )
       {
-      for ( unsigned int j=0; j < 3; j++ )
-        {
-        directionArray(i-2,j) = schemeMatrix(i-2,j);
-        }
+        for ( unsigned int j=0; j < 3; j++ )
+          {
+            directionArray(i-2,j) = schemeMatrix(i-2,j);
+          }
       }
-
+    
     }
 
   bool transposeArray = true;
@@ -358,13 +358,33 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
     AffineTransformType::Pointer affineTransform = AffineTransformType::New();
     AffineTransformType::Pointer directionTransform = AffineTransformType::New();
     AffineTransformType::ParametersType params;
-    params.SetSize( nTransformParams );
-    for ( unsigned int t=0; t<nTransformParams; t++ )
-      {
-      params[t] = mocoDataArray->GetMatrix()(i,t+2);
-      }
-    affineTransform->SetParameters( params );
-    affineTransform->GetInverse( directionTransform );
+
+    if (nTransformParams == 6) { 
+      RigidTransformType::Pointer rigid = RigidTransformType::New();
+      RigidTransformType::ParametersType rParams;
+
+      rParams.SetSize( nTransformParams );
+      for ( unsigned int t=0; t<nTransformParams; t++ )
+        {
+          rParams[t] = mocoDataArray->GetMatrix()(i,t+2);
+        }
+      rigid->SetParameters( rParams );
+      affineTransform->SetMatrix( rigid->GetMatrix() );
+      affineTransform->SetTranslation( rigid->GetTranslation() );
+    }
+    else if (nTransformParams == 12) { 
+      params.SetSize( nTransformParams );
+      for ( unsigned int t=0; t<nTransformParams; t++ )
+        {
+          params[t] = mocoDataArray->GetMatrix()(i,t+2);
+        }
+      affineTransform->SetParameters( params );
+      affineTransform->GetInverse( directionTransform );
+    }
+    else {
+      // Not rigid (6 params) or affine (12), something is wrong
+      return EXIT_FAILURE;
+    }
 
     //std::cout << affineTransform->GetTranslation() << std::endl;
 
@@ -600,9 +620,8 @@ private:
   std::cout << std::endl << "Running " << argv[0] << "  for 3-dimensional images." << std::endl
             << std::endl;
 
-  ants_motion_directions( parser );
+  return ants_motion_directions( parser );
 
-  return 0;
 }
 
 } // namespace ants
