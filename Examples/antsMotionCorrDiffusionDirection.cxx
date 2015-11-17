@@ -313,7 +313,8 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
   std::cout << "Read direction data of size: " << directionArray.rows() << " x "
               << directionArray.cols() << std::endl;
 
-  // itkImageFileReader will set direction to identity if the image being read has more dimensions than the template
+  // itkImageFileReader will set direction to identity if the image being read has more dimensions than the class template
+  // eg if you pass a 4D image file name to a ReaderType whose dimension is 3
   //
   // Therefore check reference image is 3D, and fail if not
   //
