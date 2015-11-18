@@ -162,7 +162,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
   std::vector<CompositeTransformType::Pointer> CompositeTransformVector;
 
-
+  typedef itk::Euler3DTransform<RealType>                   RigidTransformType;
   typedef itk::AffineTransform<RealType, ImageDimension>    AffineTransformType;
 
   typedef itk::ants::CommandLineParser ParserType;
@@ -249,12 +249,12 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
     for ( unsigned int i=2; i < schemeMatrix.rows(); i++ )
       {
-      for ( unsigned int j=0; j < 3; j++ )
-        {
-        directionArray(i-2,j) = schemeMatrix(i-2,j);
-        }
+        for ( unsigned int j=0; j < 3; j++ )
+          {
+            directionArray(i-2,j) = schemeMatrix(i-2,j);
+          }
       }
-
+    
     }
 
   bool transposeArray = true;
@@ -313,6 +313,29 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
   std::cout << "Read direction data of size: " << directionArray.rows() << " x "
               << directionArray.cols() << std::endl;
 
+  // itkImageFileReader will set direction to identity if the image being read has more dimensions than the class template
+  // eg if you pass a 4D image file name to a ReaderType whose dimension is 3
+  //
+  // Therefore check reference image is 3D, and fail if not
+  //
+ itk::ImageIOBase::Pointer imageIO =
+   itk::ImageIOFactory::CreateImageIO(physicalName.c_str(), itk::ImageIOFactory::ReadMode);
+ imageIO->SetFileName(physicalName.c_str() );
+ try
+   {
+     imageIO->ReadImageInformation();
+   }
+ catch( ... )
+   {
+     std::cout << "Can't read reference image " << physicalName << std::endl;
+     return EXIT_FAILURE;
+   }
+ if (imageIO->GetNumberOfDimensions() != ImageDimension) 
+   {
+     std::cout << "Reference image must be 3D " << std::endl;
+     return EXIT_FAILURE;
+   }
+
   ImageReaderType::Pointer imageReader = ImageReaderType::New();
   imageReader->SetFileName(physicalName.c_str());
   imageReader->Update();
@@ -358,13 +381,33 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
     AffineTransformType::Pointer affineTransform = AffineTransformType::New();
     AffineTransformType::Pointer directionTransform = AffineTransformType::New();
     AffineTransformType::ParametersType params;
-    params.SetSize( nTransformParams );
-    for ( unsigned int t=0; t<nTransformParams; t++ )
-      {
-      params[t] = mocoDataArray->GetMatrix()(i,t+2);
-      }
-    affineTransform->SetParameters( params );
-    affineTransform->GetInverse( directionTransform );
+
+    if (nTransformParams == 6) { 
+      RigidTransformType::Pointer rigid = RigidTransformType::New();
+      RigidTransformType::ParametersType rParams;
+
+      rParams.SetSize( nTransformParams );
+      for ( unsigned int t=0; t<nTransformParams; t++ )
+        {
+          rParams[t] = mocoDataArray->GetMatrix()(i,t+2);
+        }
+      rigid->SetParameters( rParams );
+      affineTransform->SetMatrix( rigid->GetMatrix() );
+      affineTransform->SetTranslation( rigid->GetTranslation() );
+    }
+    else if (nTransformParams == 12) { 
+      params.SetSize( nTransformParams );
+      for ( unsigned int t=0; t<nTransformParams; t++ )
+        {
+          params[t] = mocoDataArray->GetMatrix()(i,t+2);
+        }
+      affineTransform->SetParameters( params );
+      affineTransform->GetInverse( directionTransform );
+    }
+    else {
+      // Not rigid (6 params) or affine (12), something is wrong
+      return EXIT_FAILURE;
+    }
 
     //std::cout << affineTransform->GetTranslation() << std::endl;
 
@@ -474,7 +517,7 @@ void antsMotionCorrDiffusionDirectionInitializeCommandLineOptions( itk::ants::Co
     }
 
     {
-    std::string description =       std::string( "image in dwi space");
+    std::string description =       std::string( "3D image in dwi space");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "physical" );
     option->SetShortName( 'p' );
@@ -600,9 +643,8 @@ private:
   std::cout << std::endl << "Running " << argv[0] << "  for 3-dimensional images." << std::endl
             << std::endl;
 
-  ants_motion_directions( parser );
+  return ants_motion_directions( parser );
 
-  return 0;
 }
 
 } // namespace ants
