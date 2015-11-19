@@ -125,7 +125,7 @@ Background & Theory
     papers and other relevant references in
     [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22Tustison+N%22+AND+%22Avants+B%22)
 
--   Visualization: e.g. [a gource of ANTs
+-   Visualization: e.g. [a source of ANTs
     development](http://vimeo.com/66781467)
 
 -   [DiReCT](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22DIRECT%22+AND+%22Avants%22+AND+DAS)
@@ -150,14 +150,6 @@ Background & Theory
 ANTs has won several unbiased & international competitions
 ----------------------------------------------------------
 
--   New *antsRegistration* [bash
-    example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
-
--   New *Eigenanatomy* for [multivariate neuroimage
-    analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
-    [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
-    [CCA](http://www.ncbi.nlm.nih.gov/pubmed/20083207)
-
 -   ANTs finished in 1st rank in [Klein 2009 intl. brain mapping
     competition](http://www.ncbi.nlm.nih.gov/pubmed/19195496)
 
@@ -178,6 +170,11 @@ ANTs has won several unbiased & international competitions
 
 Learning about ANTs
 ----------------------------------------------------------
+**antsRegistration** [bash example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
+
+**Eigenanatomy** for [multivariate neuroimage analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
+    [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
+    [CCA](http://www.ncbi.nlm.nih.gov/pubmed/20083207)
 
 **ANTs and ITK** [paper](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4009425/)
 
