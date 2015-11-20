@@ -125,7 +125,7 @@ Background & Theory
     papers and other relevant references in
     [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22Tustison+N%22+AND+%22Avants+B%22)
 
--   Visualization: e.g. [a source of ANTs
+-   Visualization: e.g. [a gource of ANTs
     development](http://vimeo.com/66781467)
 
 -   [DiReCT](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22DIRECT%22+AND+%22Avants%22+AND+DAS)
