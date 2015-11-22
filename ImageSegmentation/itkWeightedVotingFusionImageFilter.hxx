@@ -428,23 +428,27 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       continue;
       }
 
-    // Check to see if there are any non-zero labels
-    if( this->m_NumberOfAtlasSegmentations > 0 )
-      {
-      bool nonBackgroundLabelExistAtThisVoxel = false;
-      for( SizeValueType i = 0; i < this->m_NumberOfAtlasSegmentations; i++ )
-        {
-        if( this->m_AtlasSegmentations[i]->GetPixel( currentCenterIndex ) > 0 )
-          {
-          nonBackgroundLabelExistAtThisVoxel = true;
-          break;
-          }
-        }
-      if( ! nonBackgroundLabelExistAtThisVoxel )
-        {
-        continue;
-        }
-      }
+    // Do not do the following check from Paul's original code.  Since we're incorporating
+    // joint intensity fusion, we want to calculate at every voxel (except outside of a
+    // possible mask) even if there are no segmentation labels at that voxel.
+
+//     // Check to see if there are any non-zero labels
+//     if( this->m_NumberOfAtlasSegmentations > 0 )
+//       {
+//       bool nonBackgroundLabelExistAtThisVoxel = false;
+//       for( SizeValueType i = 0; i < this->m_NumberOfAtlasSegmentations; i++ )
+//         {
+//         if( this->m_AtlasSegmentations[i]->GetPixel( currentCenterIndex ) > 0 )
+//           {
+//           nonBackgroundLabelExistAtThisVoxel = true;
+//           break;
+//           }
+//         }
+//       if( ! nonBackgroundLabelExistAtThisVoxel )
+//         {
+//         continue;
+//         }
+//       }
 
     // Determine the search neighborhood offset list for the current center voxel
     std::vector<NeighborhoodOffsetType> searchNeighborhoodOffsetList;
