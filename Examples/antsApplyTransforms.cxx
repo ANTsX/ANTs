@@ -1033,11 +1033,11 @@ private:
         {
         if( useDoublePrecision )
           {
-          antsApplyTransforms<double, 2>( parser, imageType );
+          return antsApplyTransforms<double, 2>( parser, imageType );
           }
         else
           {
-          antsApplyTransforms<float, 2>( parser, imageType );
+          return antsApplyTransforms<float, 2>( parser, imageType );
           }
         }
       }
@@ -1046,11 +1046,11 @@ private:
       {
       if( useDoublePrecision )
         {
-        antsApplyTransforms<double, 3>( parser, imageType );
+        return antsApplyTransforms<double, 3>( parser, imageType );
         }
       else
         {
-        antsApplyTransforms<float, 3>( parser, imageType );
+        return antsApplyTransforms<float, 3>( parser, imageType );
         }
       }
       break;
@@ -1074,11 +1074,11 @@ private:
         {
         if( useDoublePrecision )
           {
-          antsApplyTransforms<double, 4>( parser, imageType );
+          return antsApplyTransforms<double, 4>( parser, imageType );
           }
         else
           {
-          antsApplyTransforms<float, 4>( parser, imageType );
+          return antsApplyTransforms<float, 4>( parser, imageType );
           }
         }
       }
