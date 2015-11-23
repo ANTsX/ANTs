@@ -982,17 +982,17 @@ private:
     {
     case 2:
       {
-      antsJointTensorFusion<2>( parser );
+      return antsJointTensorFusion<2>( parser );
       }
       break;
     case 3:
       {
-      antsJointTensorFusion<3>( parser );
+      return antsJointTensorFusion<3>( parser );
       }
       break;
     case 4:
       {
-      antsJointTensorFusion<4>( parser );
+      return antsJointTensorFusion<4>( parser );
       }
       break;
     default:

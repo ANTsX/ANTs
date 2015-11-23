@@ -1271,14 +1271,14 @@ private:
     {
     case 3:
       {
-      ants_slice_regularized_registration<3>( parser );
+      return ants_slice_regularized_registration<3>( parser );
       }
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 } // namespace ants

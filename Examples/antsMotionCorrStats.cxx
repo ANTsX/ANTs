@@ -553,9 +553,8 @@ private:
   std::cout << std::endl << "Running " << argv[0] << std::endl
             << std::endl;
 
-  ants_motion_stats( parser );
+  return ants_motion_stats( parser );
 
-  return 0;
 }
 
 } // namespace ants

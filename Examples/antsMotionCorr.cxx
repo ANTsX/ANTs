@@ -1884,19 +1884,19 @@ private:
     {
     case 2:
       {
-      ants_motion<2>( parser );
+      return ants_motion<2>( parser );
       }
       break;
     case 3:
       {
-      ants_motion<3>( parser );
+      return ants_motion<3>( parser );
       }
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 } // namespace ants

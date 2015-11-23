@@ -81,7 +81,7 @@ private:
     std::cout << *(reader->GetTransformList()->begin()) << std::endl;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 } // namespace ants

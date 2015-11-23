@@ -959,17 +959,17 @@ private:
     {
     case 2:
       {
-      antsJointFusion<2>( parser );
+      return antsJointFusion<2>( parser );
       }
       break;
     case 3:
       {
-      antsJointFusion<3>( parser );
+      return antsJointFusion<3>( parser );
       }
       break;
     case 4:
       {
-      antsJointFusion<4>( parser );
+      return antsJointFusion<4>( parser );
       }
       break;
     default:
