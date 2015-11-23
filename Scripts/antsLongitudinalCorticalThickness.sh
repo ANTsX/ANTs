@@ -786,6 +786,7 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
             logCmd ${ANTSPATH}/antsJointLabelFusion.sh \
               -d ${DIMENSION} \
               -q ${RUN_FAST_MALF_COOKING} \
+              -x ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK} \
               -c ${DOQSUB} \
               -j ${CORES} \
               -t ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} \
