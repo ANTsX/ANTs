@@ -1783,13 +1783,13 @@ private:
   switch( dimension )
     {
     case 2:
-      AtroposSegmentation<2>( parser );
+      return AtroposSegmentation<2>( parser );
       break;
     case 3:
-      AtroposSegmentation<3>( parser );
+      return AtroposSegmentation<3>( parser );
       break;
     case 4:
-      AtroposSegmentation<4>( parser );
+      return AtroposSegmentation<4>( parser );
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;

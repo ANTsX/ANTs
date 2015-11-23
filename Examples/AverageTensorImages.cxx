@@ -156,12 +156,12 @@ private:
       {
       case 2:
         {
-        AverageTensorImages<2>(argc, argv);
+        return AverageTensorImages<2>(argc, argv);
         }
         break;
       case 3:
         {
-        AverageTensorImages<3>(argc, argv);
+        return AverageTensorImages<3>(argc, argv);
         }
         break;
       default:
