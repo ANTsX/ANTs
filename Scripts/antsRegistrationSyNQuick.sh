@@ -263,7 +263,7 @@ TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
 CCRADIUS=32
 MASK=0
-USEHISTOGRAMMATCHING=0
+USEHISTOGRAMMATCHING=1
 # reading command line arguments
 while getopts "d:f:h:m:j:n:o:p:r:s:t:x:" OPT
   do
