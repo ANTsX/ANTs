@@ -365,6 +365,17 @@ private:
 
   void UpdateInputs();
 
+  typedef std::pair<unsigned int, RealType>           DistanceIndexType;
+  typedef std::vector<DistanceIndexType>              DistanceIndexVectorType;
+
+  struct DistanceIndexComparator
+    {
+    bool operator () ( const DistanceIndexType& left, const DistanceIndexType& right )
+      {
+      return left.second < right.second;
+      }
+    };
+
   bool                                                 m_IsWeightedAveragingComplete;
 
   /** Input variables   */

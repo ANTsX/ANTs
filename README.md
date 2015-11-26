@@ -150,14 +150,6 @@ Background & Theory
 ANTs has won several unbiased & international competitions
 ----------------------------------------------------------
 
--   New *antsRegistration* [bash
-    example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
-
--   New *Eigenanatomy* for [multivariate neuroimage
-    analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
-    [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
-    [CCA](http://www.ncbi.nlm.nih.gov/pubmed/20083207)
-
 -   ANTs finished in 1st rank in [Klein 2009 intl. brain mapping
     competition](http://www.ncbi.nlm.nih.gov/pubmed/19195496)
 
@@ -178,6 +170,11 @@ ANTs has won several unbiased & international competitions
 
 Learning about ANTs
 ----------------------------------------------------------
+**antsRegistration** [bash example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
+
+**Eigenanatomy** for [multivariate neuroimage analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
+    [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
+    [CCA](http://www.ncbi.nlm.nih.gov/pubmed/20083207)
 
 **ANTs and ITK** [paper](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4009425/)
 

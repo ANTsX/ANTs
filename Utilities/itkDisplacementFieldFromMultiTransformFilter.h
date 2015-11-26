@@ -119,7 +119,7 @@ protected:
       if( isinside )
         {
         PixelType value;
-        for( int ii = 0; ii < OutputImageType::ImageDimension; ii++ )
+        for( unsigned int ii = 0; ii < OutputImageType::ImageDimension; ii++ )
           {
           value[ii] = point2[ii] - point1[ii];
           }
@@ -130,7 +130,7 @@ protected:
         {
         PixelType                         value;
         const DisplacementScalarValueType kMaxDisp = itk::NumericTraits<DisplacementScalarValueType>::max();
-        for( int ii = 0; ii < OutputImageType::ImageDimension; ii++ )
+        for( unsigned int ii = 0; ii < OutputImageType::ImageDimension; ii++ )
           {
           value[ii] = kMaxDisp;
           }
