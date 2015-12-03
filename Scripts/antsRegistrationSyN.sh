@@ -82,7 +82,7 @@ Optional arguments:
         f: float
         d: double
 
-     -j:  use histogram matching (default = 1)
+     -j:  use histogram matching (default = 0)
         0: false
         1: true
 
@@ -142,8 +142,6 @@ Optional arguments:
         sr: rigid + deformable syn
         b: rigid + affine + deformable b-spline syn
         br: rigid + deformable b-spline syn
-
-     -j:  use histogram matching
 
      -r:  radius for cross correlation metric used during SyN stage (default = 4)
 
@@ -272,7 +270,7 @@ TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
 CCRADIUS=4
 MASK=0
-USEHISTOGRAMMATCHING=1
+USEHISTOGRAMMATCHING=0
 
 # reading command line arguments
 while getopts "d:f:h:m:j:n:o:p:r:s:t:x:" OPT
