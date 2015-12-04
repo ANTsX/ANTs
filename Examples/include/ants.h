@@ -191,6 +191,8 @@
 
 #include "SmoothImage.h"
 
+#include "SmoothDisplacementField.h"
+
 #include "StackSlices.h"
 
 #include "StudentsTestOnImages.h"
