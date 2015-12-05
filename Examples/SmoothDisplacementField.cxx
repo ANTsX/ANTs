@@ -149,10 +149,12 @@ int SmoothDisplacementField( int argc, char *argv[] )
 
     typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
     bspliner->SetDisplacementField( field );
+    bspliner->SetBSplineDomainFromImage( field );
     bspliner->SetNumberOfControlPoints( ncps );
     bspliner->SetSplineOrder( splineOrder );
     bspliner->SetNumberOfFittingLevels( numberOfLevels );
     bspliner->SetEnforceStationaryBoundary( true );
+
     if( argc > 7 )
       {
       typename BSplineFilterType::RealImageType::Pointer confidenceImage = ITK_NULLPTR;
@@ -160,6 +162,8 @@ int SmoothDisplacementField( int argc, char *argv[] )
       bspliner->SetConfidenceImage( confidenceImage );
       }
     bspliner->SetEstimateInverse( false );
+
+    bspliner->Print( std::cout, 3 );
 
     itk::TimeProbe timer;
     timer.Start();
