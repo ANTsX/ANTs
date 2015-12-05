@@ -163,8 +163,6 @@ int SmoothDisplacementField( int argc, char *argv[] )
       }
     bspliner->SetEstimateInverse( false );
 
-    bspliner->Print( std::cout, 3 );
-
     itk::TimeProbe timer;
     timer.Start();
     bspliner->Update();
