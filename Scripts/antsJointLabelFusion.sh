@@ -105,6 +105,17 @@ Optional arguments:
 
      -f: Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
 
+     -y:  transform type (default = 's')
+        t: translation
+        r: rigid
+        a: rigid + affine
+        s: rigid + affine + deformable syn
+        sr: rigid + deformable syn
+        so: deformable syn only
+        b: rigid + affine + deformable b-spline syn
+        br: rigid + deformable b-spline syn
+        bo: deformable b-spline syn only
+
      -x: Target mask image:  Used to check the quality of registrations, if available.
 
      -z: Dice threshold for target mask image and warped labels (default = 0.85).
@@ -187,6 +198,17 @@ Optional arguments:
 
      -f: Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
 
+     -y:  transform type (default = 's')
+        t: translation
+        r: rigid
+        a: rigid + affine
+        s: rigid + affine + deformable syn
+        sr: rigid + deformable syn
+        so: deformable syn only
+        b: rigid + affine + deformable b-spline syn
+        br: rigid + deformable b-spline syn
+        bo: deformable b-spline syn only
+
      -x: Target mask image
 
      -z: Dice threshold for target mask image and warped labels (default = 0.85).
@@ -248,6 +270,7 @@ function reportParameters {
  Target image:             $TARGET_IMAGE
  Atlas images:             ${ATLAS_IMAGES[@]}
  Atlas labels:             ${ATLAS_LABELS[@]}
+ Transformation:           ${TRANSFORM_TYPE}
 
  Keep all images:          $KEEP_ALL_IMAGES
  Processing type:          $DOQSUB
@@ -297,6 +320,7 @@ OUTPUT_POSTERIORS_FORMAT=''
 TARGET_IMAGE=''
 ATLAS_IMAGES=()
 ATLAS_LABELS=()
+TRANSFORM='s'
 
 KEEP_ALL_IMAGES=0
 DOQSUB=0
@@ -329,7 +353,7 @@ if [[ "$1" == "-h" ]];
 MAJORITYVOTE=0
 RUNQUICK=1
 # reading command line arguments
-while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:z:" OPT
+while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:y:z:" OPT
   do
   case $OPT in
       h) #help
@@ -385,6 +409,9 @@ while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:z:" OPT
    ;;
       x)
    TARGET_MASK_IMAGE=$OPTARG
+   ;;
+      y)
+   TRANSFORM_TYPE=$OPTARG
    ;;
       z)
    DICE_THRESHOLD=$OPTARG
@@ -487,6 +514,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -d ${DIM} \
                           -p ${PRECISIONFLAG} \
                           -j 1 \
+                          -t ${TRANSFORM_TYPE} \
                           -f ${TARGET_IMAGE} \
                           -m ${ATLAS_IMAGES[$i]} \
                           -o ${OUTPUT_PREFIX}${BASENAME}_${i}_ > ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
@@ -570,28 +598,8 @@ if [[ $DOQSUB -eq 0 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            if [[ -f ${TARGET_MASK_IMAGE} ]];
-              then
-                TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
-                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
-
-                OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
-                TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
-                DICE_OVERLAP=${TOKENS[3]}
-
-                if (( $(echo "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc -l) ));
-                  then
-                    EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-                    EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
-                  else
-                    echo Not including ${WARPED_ATLAS_IMAGES[$i]} \(Dice = ${DICE_OVERLAP}\)
-                  fi
-
-                rm -f $TMP_WARPED_ATLAS_LABEL_MASK
-              else
-                EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-                EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
-              fi
+            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
           fi
       done
 

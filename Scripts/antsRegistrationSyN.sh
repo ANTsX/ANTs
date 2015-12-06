@@ -69,8 +69,10 @@ Optional arguments:
         a: rigid + affine
         s: rigid + affine + deformable syn
         sr: rigid + deformable syn
+        so: deformable syn only
         b: rigid + affine + deformable b-spline syn
-        br: rigid +  deformable b-spline syn
+        br: rigid + deformable b-spline syn
+        bo: deformable b-spline syn only
 
      -r:  radius for cross correlation metric used during SyN stage (default = 4)
 
@@ -140,8 +142,10 @@ Optional arguments:
         a: rigid + affine
         s: rigid + affine + deformable syn
         sr: rigid + deformable syn
+        so: deformable syn only
         b: rigid + affine + deformable b-spline syn
         br: rigid + deformable b-spline syn
+        bo: deformable b-spline syn only
 
      -r:  radius for cross correlation metric used during SyN stage (default = 4)
 
@@ -447,13 +451,13 @@ SYNSTAGE="${SYNMETRICS} \
           --shrink-factors $SYNSHRINKFACTORS \
           --smoothing-sigmas $SYNSMOOTHINGSIGMAS"
 
-if [[ $TRANSFORMTYPE == 'b' ]] || [[ $TRANSFORMTYPE == 'br' ]];
+if [[ $TRANSFORMTYPE == 'b' ]] || [[ $TRANSFORMTYPE == 'br' ]] || [[ $TRANSFORMTYPE == 'bo' ]];
   then
     SYNSTAGE="--transform BSplineSyN[0.1,${SPLINEDISTANCE},0,3] \
              $SYNSTAGE"
   fi
 
-if [[ $TRANSFORMTYPE == 's' ]] || [[ $TRANSFORMTYPE == 'sr' ]] ;
+if [[ $TRANSFORMTYPE == 's' ]] || [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'so' ]];
   then
     SYNSTAGE="--transform SyN[0.1,3,0] \
              $SYNSTAGE"
@@ -472,6 +476,9 @@ case "$TRANSFORMTYPE" in
   ;;
 "br" | "sr")
   STAGES="$RIGIDSTAGE  $SYNSTAGE"
+  ;;
+"bo" | "so")
+  STAGES="$SYNSTAGE"
   ;;
 *)
   echo "Transform type '$TRANSFORMTYPE' is not an option.  See usage: '$0 -h 1'"
