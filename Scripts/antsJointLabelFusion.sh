@@ -529,6 +529,19 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -t ${OUTPUT_PREFIX}${BASENAME}_${i}_1Warp.nii.gz \
                           -t ${OUTPUT_PREFIX}${BASENAME}_${i}_0GenericAffine.mat >> ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
 
+    if [[ ! -f "${OUTPUT_PREFIX}${BASENAME}_${i}_0GenericAffine.mat" ]];
+      then
+        labelXfrmCall="${ANTSPATH}/antsApplyTransforms \
+                              -d ${DIM} \
+                              --float 1 \
+                              -i ${ATLAS_LABELS[$i]} \
+                              -r ${TARGET_IMAGE} \
+                              -o ${OUTPUT_PREFIX}${BASENAME}_${i}_WarpedLabels.nii.gz \
+                              -n NearestNeighbor \
+                              -t ${OUTPUT_PREFIX}${BASENAME}_${i}_0Warp.nii.gz >> ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
+      fi
+
+
     rm -f $qscript
 
     if [[ $DOQSUB -eq 5 ]];
