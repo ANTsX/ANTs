@@ -98,6 +98,8 @@ Optional arguments:
 
      -j: Number of cpu cores to use (default 2; -- requires "-c 2").
 
+     -r: qsub options
+
      -q: Use quick registration parameters:  Either 0 or 1 (default = 1).
 
      -p: Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
@@ -349,7 +351,7 @@ MAJORITYVOTE=0
 RUNQUICK=1
 TRANSFORM_TYPE="s"
 # reading command line arguments
-while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:y:" OPT
+while getopts "c:d:f:g:h:j:k:l:m:o:p:q:r:t:x:y:" OPT
   do
   case $OPT in
       h) #help
@@ -392,6 +394,9 @@ while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:y:" OPT
    ;;
       q)
    RUNQUICK=$OPTARG
+   ;;
+      r)
+   QSUB_OPTS=$OPTARG
    ;;
       l)
    ATLAS_LABELS[${#ATLAS_LABELS[@]}]=$OPTARG
@@ -562,7 +567,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
         jobIDs="$jobIDs $id"
     elif [[ $DOQSUB -eq 5 ]];
       then
-        id=`sbatch --job-name=antsJlfReg${i} --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=20:00:00 --mem=8192M $qscript | rev | cut -f1 -d\ | rev`
+        id=`sbatch --job-name=antsJlfReg${i} --export=ANTSPATH=$ANTSPATH $QSUB_OPTS --nodes=1 --cpus-per-task=1 --time=20:00:00 --mem=8192M $qscript | rev | cut -f1 -d\ | rev`
         jobIDs="$jobIDs $id"
         sleep 0.5
     elif [[ $DOQSUB -eq 0 ]];
@@ -924,7 +929,7 @@ if [[ $DOQSUB -eq 5 ]];
     echo "#!/bin/sh" > $qscript2
     echo "$jlfCall" >> $qscript2
 
-    jobIDs=`sbatch --job-name=antsJlf --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=30:00:00 --mem=8192M $qscript2 | rev | cut -f1 -d\ | rev`
+    jobIDs=`sbatch --job-name=antsJlf --export=ANTSPATH=$ANTSPATH $QSUB_OPTS --nodes=1 --cpus-per-task=1 --time=30:00:00 --mem=8192M $qscript2 | rev | cut -f1 -d\ | rev`
     ${ANTSPATH}/waitForSlurmJobs.pl 1 600 $jobIDs
   fi
 
