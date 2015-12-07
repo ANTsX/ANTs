@@ -427,8 +427,9 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
   tx=Translation
 fi
 
-RIGIDSTAGE="--initial-moving-transform [${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1] \
-            --transform ${tx}[0.1] \
+INITIALSTAGE="--initial-moving-transform [${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1]"
+
+RIGIDSTAGE="--transform ${tx}[0.1] \
             --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
@@ -477,19 +478,19 @@ if [[ $TRANSFORMTYPE == 's' ]] || [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMT
 STAGES=''
 case "$TRANSFORMTYPE" in
 "r" | "t")
-  STAGES="$RIGIDSTAGE"
+  STAGES="$INITIALSTAGE $RIGIDSTAGE"
   ;;
 "a")
-  STAGES="$RIGIDSTAGE $AFFINESTAGE"
+  STAGES="$INITIALSTAGE $RIGIDSTAGE $AFFINESTAGE"
   ;;
 "b" | "s")
-  STAGES="$RIGIDSTAGE $AFFINESTAGE $SYNSTAGE"
+  STAGES="$INITIALSTAGE $RIGIDSTAGE $AFFINESTAGE $SYNSTAGE"
   ;;
 "br" | "sr")
-  STAGES="$RIGIDSTAGE  $SYNSTAGE"
+  STAGES="$INITIALSTAGE $RIGIDSTAGE  $SYNSTAGE"
   ;;
 "bo" | "so")
-  STAGES="$SYNSTAGE"
+  STAGES="$INITIALSTAGE $SYNSTAGE"
   ;;
 *)
   echo "Transform type '$TRANSFORMTYPE' is not an option.  See usage: '$0 -h 1'"
