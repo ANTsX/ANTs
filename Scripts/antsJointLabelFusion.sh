@@ -352,6 +352,7 @@ if [[ "$1" == "-h" ]];
   fi
 MAJORITYVOTE=0
 RUNQUICK=1
+TRANSFORM_TYPE="s"
 # reading command line arguments
 while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:y:z:" OPT
   do
