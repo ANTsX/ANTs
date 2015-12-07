@@ -23,6 +23,9 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkProgressReporter.h"
 
+#include <algorithm>
+#include <numeric>
+
 #include <vnl/algo/vnl_svd.h>
 #include <vnl/vnl_inverse.h>
 
@@ -315,6 +318,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   // Determine the search offset list (or map if an search radius image is specified)
 
+  typename InputImageType::SpacingType spacing = this->m_TargetImage[0]->GetSpacing();
+
   this->m_SearchNeighborhoodOffsetList.clear();
   this->m_SearchNeighborhoodOffsetSetsMap.clear();
 
@@ -324,9 +329,26 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       this->GetInput(), this->GetInput()->GetRequestedRegion() );
 
     SizeValueType searchNeighborhoodSize = ( It.GetNeighborhood() ).Size();
+
+    DistanceIndexVectorType squaredDistances;
+    squaredDistances.resize( searchNeighborhoodSize );
+
     for( unsigned int n = 0; n < searchNeighborhoodSize; n++ )
       {
-      this->m_SearchNeighborhoodOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
+      NeighborhoodOffsetType offset = ( It.GetNeighborhood() ).GetOffset( n );
+
+      squaredDistances[n].first = n;
+      squaredDistances[n].second = 0.0;
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        squaredDistances[n].second += vnl_math_sqr( offset[d] * spacing[d] );
+        }
+      }
+    std::sort( squaredDistances.begin(), squaredDistances.end(), DistanceIndexComparator() );
+
+    for( unsigned int n = 0; n < searchNeighborhoodSize; n++ )
+      {
+      this->m_SearchNeighborhoodOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( squaredDistances[n].first ) );
       }
     }
   else
@@ -350,9 +372,26 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           this->GetInput(), this->GetInput()->GetRequestedRegion() );
 
         RadiusValueType localSearchNeighborhoodSize = ( It.GetNeighborhood() ).Size();
+
+        DistanceIndexVectorType squaredDistances;
+        squaredDistances.resize( localSearchNeighborhoodSize );
+
         for( unsigned int n = 0; n < localSearchNeighborhoodSize; n++ )
           {
-          localSearchNeighborhoodOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
+          NeighborhoodOffsetType offset = ( It.GetNeighborhood() ).GetOffset( n );
+
+          squaredDistances[n].first = n;
+          squaredDistances[n].second = 0.0;
+          for( unsigned int d = 0; d < ImageDimension; d++ )
+            {
+            squaredDistances[n].second += vnl_math_sqr( offset[d] * spacing[d] );
+            }
+          }
+        std::sort( squaredDistances.begin(), squaredDistances.end(), DistanceIndexComparator() );
+
+        for( unsigned int n = 0; n < localSearchNeighborhoodSize; n++ )
+          {
+          localSearchNeighborhoodOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( squaredDistances[n].first ) );
           }
         this->m_SearchNeighborhoodOffsetSetsMap[localSearchRadius] = localSearchNeighborhoodOffsetList;
         }
@@ -428,23 +467,27 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       continue;
       }
 
-    // Check to see if there are any non-zero labels
-    if( this->m_NumberOfAtlasSegmentations > 0 )
-      {
-      bool nonBackgroundLabelExistAtThisVoxel = false;
-      for( SizeValueType i = 0; i < this->m_NumberOfAtlasSegmentations; i++ )
-        {
-        if( this->m_AtlasSegmentations[i]->GetPixel( currentCenterIndex ) > 0 )
-          {
-          nonBackgroundLabelExistAtThisVoxel = true;
-          break;
-          }
-        }
-      if( ! nonBackgroundLabelExistAtThisVoxel )
-        {
-        continue;
-        }
-      }
+    // Do not do the following check from Paul's original code.  Since we're incorporating
+    // joint intensity fusion, we want to calculate at every voxel (except outside of a
+    // possible mask) even if there are no segmentation labels at that voxel.
+
+//     // Check to see if there are any non-zero labels
+//     if( this->m_NumberOfAtlasSegmentations > 0 )
+//       {
+//       bool nonBackgroundLabelExistAtThisVoxel = false;
+//       for( SizeValueType i = 0; i < this->m_NumberOfAtlasSegmentations; i++ )
+//         {
+//         if( this->m_AtlasSegmentations[i]->GetPixel( currentCenterIndex ) > 0 )
+//           {
+//           nonBackgroundLabelExistAtThisVoxel = true;
+//           break;
+//           }
+//         }
+//       if( ! nonBackgroundLabelExistAtThisVoxel )
+//         {
+//         continue;
+//         }
+//       }
 
     // Determine the search neighborhood offset list for the current center voxel
     std::vector<NeighborhoodOffsetType> searchNeighborhoodOffsetList;

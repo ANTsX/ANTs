@@ -51,5 +51,5 @@ mask<-antsImageRead( opt$mask, dim )
 mymean<-mean( img[ mask == 1] ) 
 outimg<-antsImageClone(img)
 outimg[ mask == 0 ]<-mymean
-ImageMath(img@dimension,outimg,"Laplacian",outimg)
+outimg = iMath( outimg, "Laplacian", 1, 1 )
 antsImageWrite( outimg , opt$output )

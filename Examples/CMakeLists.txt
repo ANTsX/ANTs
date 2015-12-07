@@ -96,6 +96,7 @@ set(MORE_ANTS_APPS
     AverageTensorImages
     ImageSetStatistics
     MultiplyImages
+    SmoothDisplacementField
     SmoothImage
     ClusterImageStatistics
     LabelOverlapMeasures
