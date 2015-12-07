@@ -118,8 +118,6 @@ Optional arguments:
 
      -x: Target mask image:  Used to check the quality of registrations, if available.
 
-     -z: Dice threshold for target mask image and warped labels (default = 0.85).
-
 Example:
 
 `basename $0` -d 3 -t target.nii.gz -o malf \
@@ -210,8 +208,6 @@ Optional arguments:
         bo: deformable b-spline syn only
 
      -x: Target mask image
-
-     -z: Dice threshold for target mask image and warped labels (default = 0.85).
 
 Requirements:
 
@@ -331,7 +327,6 @@ XGRID_OPTS=""
 SCRIPT_PREPEND=""
 QSUB_OPTS=""
 TARGET_MASK_IMAGE=""
-DICE_THRESHOLD=0.85
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -354,7 +349,7 @@ MAJORITYVOTE=0
 RUNQUICK=1
 TRANSFORM_TYPE="s"
 # reading command line arguments
-while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:y:z:" OPT
+while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:y:" OPT
   do
   case $OPT in
       h) #help
@@ -413,9 +408,6 @@ while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:y:z:" OPT
    ;;
       y)
    TRANSFORM_TYPE=$OPTARG
-   ;;
-      z)
-   DICE_THRESHOLD=$OPTARG
    ;;
       \?) # getopts issues an error message
       echo "$USAGE" >&2
@@ -530,7 +522,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -t ${OUTPUT_PREFIX}${BASENAME}_${i}_1Warp.nii.gz \
                           -t ${OUTPUT_PREFIX}${BASENAME}_${i}_0GenericAffine.mat >> ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
 
-    if [[ ! -f "${OUTPUT_PREFIX}${BASENAME}_${i}_0GenericAffine.mat" ]];
+    if [[ ${TRANSFORM_TYPE} == ‘so’ ]] || [[ ${TRANSFORM_TYPE} == ‘bo’ ]]
       then
         labelXfrmCall="${ANTSPATH}/antsApplyTransforms \
                               -d ${DIM} \
