@@ -380,6 +380,6 @@ private:
     {
     WriteImage<ImageType>(image, argv[2]);
     }
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

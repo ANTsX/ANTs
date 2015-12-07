@@ -99,17 +99,17 @@ private:
     {
     case 2:
       {
-      ExtractSliceFromImage<2>( argc, argv );
+      return ExtractSliceFromImage<2>( argc, argv );
       }
       break;
     case 3:
       {
-      ExtractSliceFromImage<3>( argc, argv );
+      return ExtractSliceFromImage<3>( argc, argv );
       }
       break;
     case 4:
       {
-      ExtractSliceFromImage<4>( argc, argv );
+      return ExtractSliceFromImage<4>( argc, argv );
       }
       break;
     default:

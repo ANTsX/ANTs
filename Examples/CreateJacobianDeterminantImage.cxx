@@ -166,12 +166,12 @@ private:
     {
     case 2:
       {
-      CreateJacobianDeterminantImage<2>( argc, argv );
+      return CreateJacobianDeterminantImage<2>( argc, argv );
       }
       break;
     case 3:
       {
-      CreateJacobianDeterminantImage<3>( argc, argv );
+      return CreateJacobianDeterminantImage<3>( argc, argv );
       }
       break;
     default:

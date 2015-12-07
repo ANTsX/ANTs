@@ -172,12 +172,12 @@ private:
     {
     case 2:
       {
-      ExtractRegionFromImageByMask<2>(argc, argv);
+      return ExtractRegionFromImageByMask<2>(argc, argv);
       }
       break;
     case 3:
       {
-      ExtractRegionFromImageByMask<3>(argc, argv);
+      return ExtractRegionFromImageByMask<3>(argc, argv);
       }
       break;
     default:

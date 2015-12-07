@@ -542,17 +542,17 @@ private:
     {
     case 2:
       {
-      Denoise<2>( parser );
+      return Denoise<2>( parser );
       }
       break;
     case 3:
       {
-      Denoise<3>( parser );
+      return Denoise<3>( parser );
       }
       break;
     case 4:
       {
-      Denoise<4>( parser );
+      return Denoise<4>( parser );
       }
       break;
     default:

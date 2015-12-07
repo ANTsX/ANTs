@@ -1181,12 +1181,12 @@ private:
     {
     case 2:
       {
-      CreateDTICohort<2>( parser );
+      return CreateDTICohort<2>( parser );
       }
       break;
     case 3:
       {
-      CreateDTICohort<3>( parser );
+      return CreateDTICohort<3>( parser );
       }
       break;
     default:
