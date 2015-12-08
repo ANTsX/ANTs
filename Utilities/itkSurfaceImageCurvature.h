@@ -152,7 +152,7 @@ public:
   itkGetMacro(UseLabel, bool);
 
   itkSetMacro(kSign, float);
-  void SetSigma( float x ) ITK_OVERRIDE { this->SetSigma( x ); }
+  itkSetMacro(Sigma, float);
 
   itkSetMacro(Threshold, float);
 
