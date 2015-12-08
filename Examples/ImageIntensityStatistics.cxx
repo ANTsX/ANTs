@@ -232,13 +232,13 @@ private:
   switch( atoi( argv[1] ) )
     {
     case 2:
-      ImageIntensityStatistics<2>( argc, argv );
+      return ImageIntensityStatistics<2>( argc, argv );
       break;
     case 3:
-      ImageIntensityStatistics<3>( argc, argv );
+      return ImageIntensityStatistics<3>( argc, argv );
       break;
     case 4:
-      ImageIntensityStatistics<4>( argc, argv );
+      return ImageIntensityStatistics<4>( argc, argv );
       break;
     default:
        std::cerr << "Unsupported dimension" << std::endl;

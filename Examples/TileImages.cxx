@@ -241,17 +241,17 @@ private:
       {
       case 2:
         {
-        TileImages<2>( argc, argv );
+        return TileImages<2>( argc, argv );
         }
         break;
       case 3:
         {
-        TileImages<3>( argc, argv );
+        return TileImages<3>( argc, argv );
         }
         break;
       case 4:
         {
-        TileImages<4>( argc, argv );
+        return TileImages<4>( argc, argv );
         }
         break;
       default:

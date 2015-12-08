@@ -174,17 +174,17 @@ private:
     {
     case 2:
       {
-      SmoothImage<2>(argc, argv);
+      return SmoothImage<2>(argc, argv);
       }
       break;
     case 3:
       {
-      SmoothImage<3>(argc, argv);
+      return SmoothImage<3>(argc, argv);
       }
       break;
     case 4:
       {
-      SmoothImage<4>(argc, argv);
+      return SmoothImage<4>(argc, argv);
       }
       break;
     default:

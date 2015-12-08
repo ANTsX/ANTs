@@ -146,12 +146,12 @@ private:
     {
     case 2:
       {
-      SetOrigin<2>(argc - 1, argv + 1);
+      return SetOrigin<2>(argc - 1, argv + 1);
       }
       break;
     case 3:
       {
-      SetOrigin<3>(argc - 1, argv + 1);
+      return SetOrigin<3>(argc - 1, argv + 1);
       }
       break;
     default:

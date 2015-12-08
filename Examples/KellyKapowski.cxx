@@ -753,17 +753,17 @@ private:
     {
     case 2:
       {
-      DiReCT<2>( parser );
+      return DiReCT<2>( parser );
       }
       break;
     case 3:
       {
-      DiReCT<3>( parser );
+      return DiReCT<3>( parser );
       }
       break;
     case 4:
       {
-      DiReCT<4>( parser );
+      return DiReCT<4>( parser );
       }
       break;
     default:

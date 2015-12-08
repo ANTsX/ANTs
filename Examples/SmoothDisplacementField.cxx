@@ -274,13 +274,13 @@ private:
   switch( atoi( argv[1] ) )
    {
    case 2:
-     SmoothDisplacementField<2>( argc, argv );
+     return SmoothDisplacementField<2>( argc, argv );
      break;
    case 3:
-     SmoothDisplacementField<3>( argc, argv );
+     return SmoothDisplacementField<3>( argc, argv );
      break;
    case 4:
-     SmoothDisplacementField<4>( argc, argv );
+     return SmoothDisplacementField<4>( argc, argv );
      break;
    default:
       std::cerr << "Unsupported dimension" << std::endl;

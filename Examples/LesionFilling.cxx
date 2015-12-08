@@ -273,12 +273,12 @@ namespace ants
         {
         case 2:
           {
-          LesionFilling<2>( argc, argv );
+          return LesionFilling<2>( argc, argv );
           }
           break;
         case 3:
           {
-          LesionFilling<3>( argc, argv );
+          return LesionFilling<3>( argc, argv );
           }
           break;
         default:

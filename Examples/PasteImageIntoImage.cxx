@@ -160,17 +160,17 @@ private:
     {
     case 2:
       {
-      PasteImageIntoImage<2>( argc, argv );
+      return PasteImageIntoImage<2>( argc, argv );
       }
       break;
     case 3:
       {
-      PasteImageIntoImage<3>( argc, argv );
+      return PasteImageIntoImage<3>( argc, argv );
       }
       break;
     case 4:
       {
-      PasteImageIntoImage<4>( argc, argv );
+      return PasteImageIntoImage<4>( argc, argv );
       }
       break;
     default:

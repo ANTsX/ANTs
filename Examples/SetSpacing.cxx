@@ -148,12 +148,12 @@ private:
     {
     case 2:
       {
-      SetSpacing<2>(argc - 1, argv + 1);
+      return SetSpacing<2>(argc - 1, argv + 1);
       }
       break;
     case 3:
       {
-      SetSpacing<3>(argc - 1, argv + 1);
+      return SetSpacing<3>(argc - 1, argv + 1);
       }
       break;
     default:

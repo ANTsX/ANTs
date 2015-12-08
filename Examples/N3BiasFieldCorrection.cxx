@@ -260,17 +260,17 @@ private:
     {
     case 2:
       {
-      N3BiasFieldCorrection<2>( argc, argv );
+      return N3BiasFieldCorrection<2>( argc, argv );
       }
       break;
     case 3:
       {
-      N3BiasFieldCorrection<3>( argc, argv );
+      return N3BiasFieldCorrection<3>( argc, argv );
       }
       break;
     case 4:
       {
-      N3BiasFieldCorrection<4>( argc, argv );
+      return N3BiasFieldCorrection<4>( argc, argv );
       }
       break;
     default:

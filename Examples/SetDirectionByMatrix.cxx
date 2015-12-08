@@ -163,17 +163,17 @@ private:
     {
     case 2:
       {
-      ResetDirection<2>(argc, argv);
+      return ResetDirection<2>(argc, argv);
       }
       break;
     case 3:
       {
-      ResetDirection<3>(argc, argv);
+      return ResetDirection<3>(argc, argv);
       }
       break;
     case 4:
       {
-      ResetDirection<4>(argc,argv);
+      return ResetDirection<4>(argc,argv);
       }
       break;
     default:

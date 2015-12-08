@@ -206,12 +206,12 @@ private:
     {
     case 2:
       {
-      PermuteFlipImageOrientationAxes<2>(argc - 1, argv + 1);
+      return PermuteFlipImageOrientationAxes<2>(argc - 1, argv + 1);
       }
       break;
     case 3:
       {
-      PermuteFlipImageOrientationAxes<3>(argc - 1, argv + 1);
+      return PermuteFlipImageOrientationAxes<3>(argc - 1, argv + 1);
       }
       break;
     default:

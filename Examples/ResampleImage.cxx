@@ -327,17 +327,17 @@ private:
     {
     case 2:
       {
-      ResampleImage<2>( argc, argv );
+      return ResampleImage<2>( argc, argv );
       }
       break;
     case 3:
       {
-      ResampleImage<3>( argc, argv );
+      return ResampleImage<3>( argc, argv );
       }
       break;
     case 4:
       {
-      ResampleImage<4>( argc, argv );
+      return ResampleImage<4>( argc, argv );
       }
       break;
     default:
