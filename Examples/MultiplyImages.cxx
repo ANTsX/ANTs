@@ -120,7 +120,7 @@ int MultiplyImages(int argc, char *argv[])
   writer->SetInput( varimage );
   writer->Write();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -190,6 +190,8 @@ private:
   imageIO->ReadImageInformation();
   unsigned int ncomponents = imageIO->GetNumberOfComponents();
 
+  int returnValue = EXIT_FAILURE;
+  
   // Get the image dimension
   switch( atoi(argv[1]) )
     {
@@ -199,17 +201,17 @@ private:
         {
         case 3:
           {
-          MultiplyImages<1, 3>(argc, argv);
+          returnValue = MultiplyImages<1, 3>(argc, argv);
           }
           break;
         case 2:
           {
-          MultiplyImages<1, 2>(argc, argv);
+          returnValue = MultiplyImages<1, 2>(argc, argv);
           }
           break;
         default:
           {
-          MultiplyImages<1, 1>(argc, argv);
+          returnValue = MultiplyImages<1, 1>(argc, argv);
           }
           break;
         }
@@ -221,17 +223,17 @@ private:
         {
         case 3:
           {
-          MultiplyImages<2, 3>(argc, argv);
+          returnValue = MultiplyImages<2, 3>(argc, argv);
           }
           break;
         case 2:
           {
-          MultiplyImages<2, 2>(argc, argv);
+          returnValue = MultiplyImages<2, 2>(argc, argv);
           }
           break;
         default:
           {
-          MultiplyImages<2, 1>(argc, argv);
+          returnValue = MultiplyImages<2, 1>(argc, argv);
           }
           break;
         }
@@ -243,22 +245,22 @@ private:
         {
         case 7:
           {
-          MultiplyImages<3, 7>(argc, argv);
+          returnValue = MultiplyImages<3, 7>(argc, argv);
           }
           break;
         case 6:
           {
-          MultiplyImages<3, 6>(argc, argv);
+          returnValue = MultiplyImages<3, 6>(argc, argv);
           }
           break;
         case 3:
           {
-          MultiplyImages<3, 3>(argc, argv);
+          returnValue = MultiplyImages<3, 3>(argc, argv);
           }
           break;
         default:
           {
-          MultiplyImages<3, 1>(argc, argv);
+          returnValue = MultiplyImages<3, 1>(argc, argv);
           }
           break;
         }
@@ -270,32 +272,32 @@ private:
         {
         case 7:
           {
-          MultiplyImages<4, 7>(argc, argv);
+          returnValue = MultiplyImages<4, 7>(argc, argv);
           }
           break;
         case 6:
           {
-          MultiplyImages<4, 6>(argc, argv);
+          returnValue = MultiplyImages<4, 6>(argc, argv);
           }
           break;
         case 4:
           {
-          MultiplyImages<4, 4>(argc, argv);
+          returnValue = MultiplyImages<4, 4>(argc, argv);
           }
           break;
         case 3:
           {
-          MultiplyImages<4, 3>(argc, argv);
+          returnValue = MultiplyImages<4, 3>(argc, argv);
           }
           break;
         case 2:
           {
-          MultiplyImages<4, 2>(argc, argv);
+          returnValue = MultiplyImages<4, 2>(argc, argv);
           }
           break;
         default:
           {
-          MultiplyImages<4, 1>(argc, argv);
+          returnValue = MultiplyImages<4, 1>(argc, argv);
           }
           break;
         }
@@ -306,6 +308,6 @@ private:
       return EXIT_FAILURE;
     }
 
-  return EXIT_SUCCESS;
+  return returnValue;
 }
 } // namespace ants

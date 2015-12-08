@@ -329,12 +329,12 @@ private:
         {
         case 2:
           {
-          AverageImages<2, 2>(argc, argv);
+          return AverageImages<2, 2>(argc, argv);
           }
           break;
         default:
           {
-          AverageImages1<2, 1>(argc, argv);
+          return AverageImages1<2, 1>(argc, argv);
           }
           break;
         }
@@ -346,27 +346,27 @@ private:
         {
         case 7:
           {
-          AverageImages<3, 7>(argc, argv);
+          return AverageImages<3, 7>(argc, argv);
           }
           break;
         case 6:
           {
-          AverageImages<3, 6>(argc, argv);
+          return AverageImages<3, 6>(argc, argv);
           }
           break;
         case 3:
           {
-          AverageImages<3, 3>(argc, argv);
+          return AverageImages<3, 3>(argc, argv);
           }
           break;
         case 2:
           {
-          AverageImages<3, 2>(argc, argv);
+          return AverageImages<3, 2>(argc, argv);
           }
           break;
         default:
           {
-          AverageImages1<3, 1>(argc, argv);
+          return AverageImages1<3, 1>(argc, argv);
           }
           break;
         }
@@ -378,27 +378,27 @@ private:
         {
         case 7:
           {
-          AverageImages<4, 7>(argc, argv);
+          return AverageImages<4, 7>(argc, argv);
           }
           break;
         case 6:
           {
-          AverageImages<4, 6>(argc, argv);
+          return AverageImages<4, 6>(argc, argv);
           }
           break;
         case 4:
           {
-          AverageImages<4, 4>(argc, argv);
+          return AverageImages<4, 4>(argc, argv);
           }
           break;
         case 3:
           {
-          AverageImages<4, 3>(argc, argv);
+          return AverageImages<4, 3>(argc, argv);
           }
           break;
         default:
           {
-          AverageImages1<4, 1>(argc, argv);
+          return AverageImages1<4, 1>(argc, argv);
           }
           break;
         }

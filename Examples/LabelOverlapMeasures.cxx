@@ -241,12 +241,12 @@ private:
     {
     case 2:
       {
-      LabelOverlapMeasures<2>( argc, argv );
+      return LabelOverlapMeasures<2>( argc, argv );
       }
       break;
     case 3:
       {
-      LabelOverlapMeasures<3>( argc, argv );
+      return LabelOverlapMeasures<3>( argc, argv );
       }
       break;
     default:

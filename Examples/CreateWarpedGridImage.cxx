@@ -195,12 +195,12 @@ private:
     {
     case 2:
       {
-      CreateWarpedGridImage<2>( argc, argv );
+      return CreateWarpedGridImage<2>( argc, argv );
       }
       break;
     case 3:
       {
-      CreateWarpedGridImage<3>( argc, argv );
+      return CreateWarpedGridImage<3>( argc, argv );
       }
       break;
     default:

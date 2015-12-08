@@ -494,17 +494,17 @@ private:
       {
       case 2:
         {
-        antsApplyTransformsToPoints<2,double>( parser );
+        return antsApplyTransformsToPoints<2,double>( parser );
         }
         break;
       case 3:
         {
-        antsApplyTransformsToPoints<3,double>( parser );
+        return antsApplyTransformsToPoints<3,double>( parser );
         }
         break;
       case 4:
         {
-        antsApplyTransformsToPoints<4,double>( parser );
+        return antsApplyTransformsToPoints<4,double>( parser );
         }
         break;
       default:
@@ -518,17 +518,17 @@ private:
       {
       case 2:
         {
-        antsApplyTransformsToPoints<2,float>( parser );
+        return antsApplyTransformsToPoints<2,float>( parser );
         }
         break;
       case 3:
         {
-        antsApplyTransformsToPoints<3,float>( parser );
+        return antsApplyTransformsToPoints<3,float>( parser );
         }
         break;
       case 4:
         {
-        antsApplyTransformsToPoints<4,float>( parser );
+        return antsApplyTransformsToPoints<4,float>( parser );
         }
         break;
       default:

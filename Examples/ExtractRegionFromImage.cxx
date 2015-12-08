@@ -168,17 +168,17 @@ private:
     {
     case 2:
       {
-      ExtractRegionFromImage<2>( argc, argv );
+      return ExtractRegionFromImage<2>( argc, argv );
       }
       break;
     case 3:
       {
-      ExtractRegionFromImage<3>( argc, argv );
+      return ExtractRegionFromImage<3>( argc, argv );
       }
       break;
     case 4:
       {
-      ExtractRegionFromImage<4>( argc, argv );
+      return ExtractRegionFromImage<4>( argc, argv );
       }
       break;
     default:

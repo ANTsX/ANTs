@@ -1292,7 +1292,7 @@ private:
 
     if( dimension == 3 )
       {
-      CreateMosaic( parser );
+      return CreateMosaic( parser );
       }
     else
       {

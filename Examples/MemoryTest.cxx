@@ -179,12 +179,12 @@ private:
     {
     case 2:
       {
-      MemoryTest<2>(argc, argv);
+      return MemoryTest<2>(argc, argv);
       }
       break;
     case 3:
       {
-      MemoryTest<3>(argc, argv);
+      return MemoryTest<3>(argc, argv);
       }
       break;
     default:

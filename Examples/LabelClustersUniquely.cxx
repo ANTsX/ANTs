@@ -106,7 +106,7 @@ int  LabelUniquely(int argc, char *argv[])
   castRegions->Update();
   WriteImage<ImageType>(   castRegions->GetOutput() , argv[2] );
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -171,12 +171,12 @@ private:
     {
     case 2:
       {
-      LabelUniquely<2>(argc, argv + 1);
+      return LabelUniquely<2>(argc, argv + 1);
       }
       break;
     case 3:
       {
-      LabelUniquely<3>(argc, argv + 1);
+      return LabelUniquely<3>(argc, argv + 1);
       }
       break;
     default:

@@ -340,11 +340,11 @@ private:
 
         if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
           {
-          antsAlignOriginImplementation<2>( parser, 0 );
+          return antsAlignOriginImplementation<2>( parser, 0 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
           {
-          antsAlignOriginImplementation<2>( parser, 1 );
+          return antsAlignOriginImplementation<2>( parser, 1 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
           {
@@ -358,7 +358,7 @@ private:
         }
       else
         {
-        antsAlignOriginImplementation<2>( parser, 0 );
+        return antsAlignOriginImplementation<2>( parser, 0 );
         }
       }
       break;
@@ -370,15 +370,15 @@ private:
 
         if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
           {
-          antsAlignOriginImplementation<3>( parser, 0 );
+          return antsAlignOriginImplementation<3>( parser, 0 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
           {
-          antsAlignOriginImplementation<3>( parser, 1 );
+          return antsAlignOriginImplementation<3>( parser, 1 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
           {
-          antsAlignOriginImplementation<3>( parser, 2 );
+          return antsAlignOriginImplementation<3>( parser, 2 );
           }
         else
           {
@@ -388,7 +388,7 @@ private:
         }
       else
         {
-        antsAlignOriginImplementation<3>( parser, 0 );
+        return antsAlignOriginImplementation<3>( parser, 0 );
         }
       }
       break;
@@ -400,11 +400,11 @@ private:
 
         if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
           {
-          antsAlignOriginImplementation<4>( parser, 0 );
+          return antsAlignOriginImplementation<4>( parser, 0 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
           {
-          antsAlignOriginImplementation<4>( parser, 1 );
+          return antsAlignOriginImplementation<4>( parser, 1 );
           }
         else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
           {
@@ -418,7 +418,7 @@ private:
         }
       else
         {
-        antsAlignOriginImplementation<3>( parser, 0 );
+        return antsAlignOriginImplementation<3>( parser, 0 );
         }
       }
       break;

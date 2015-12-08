@@ -274,17 +274,17 @@ private:
     {
     case 2:
       {
-      ThresholdImage<2>(argc, argv);
+      return ThresholdImage<2>(argc, argv);
       }
       break;
     case 3:
       {
-      ThresholdImage<3>(argc, argv);
+      return ThresholdImage<3>(argc, argv);
       }
       break;
     case 4:
       {
-      ThresholdImage<4>(argc, argv);
+      return ThresholdImage<4>(argc, argv);
       }
       break;
     default:
@@ -292,6 +292,6 @@ private:
       return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

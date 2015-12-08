@@ -590,15 +590,15 @@ private:
       {
       if( std::strcmp( transformType.c_str(), "affine" ) == 0 )
         {
-        InitializeLinearTransform<2, AffineTransform2DType>( argc, argv );
+        return InitializeLinearTransform<2, AffineTransform2DType>( argc, argv );
         }
       else if( std::strcmp( transformType.c_str(), "rigid" ) == 0 )
         {
-        InitializeLinearTransform<2, Rigid2DTransformType>( argc, argv );
+        return InitializeLinearTransform<2, Rigid2DTransformType>( argc, argv );
         }
       else if( std::strcmp( transformType.c_str(), "bspline" ) == 0 )
         {
-        InitializeBSplineTransform<2>( argc, argv );
+        return InitializeBSplineTransform<2>( argc, argv );
         }
       else
         {
@@ -610,15 +610,15 @@ private:
       {
       if( std::strcmp( transformType.c_str(), "affine" ) == 0 )
         {
-        InitializeLinearTransform<3, AffineTransform3DType>( argc, argv );
+        return InitializeLinearTransform<3, AffineTransform3DType>( argc, argv );
         }
       else if( std::strcmp( transformType.c_str(), "rigid" ) == 0 )
         {
-        InitializeLinearTransform<3, Rigid3DTransformType>( argc, argv );
+        return InitializeLinearTransform<3, Rigid3DTransformType>( argc, argv );
         }
       else if( std::strcmp( transformType.c_str(), "bspline" ) == 0 )
         {
-        InitializeBSplineTransform<3>( argc, argv );
+        return InitializeBSplineTransform<3>( argc, argv );
         }
       else
         {

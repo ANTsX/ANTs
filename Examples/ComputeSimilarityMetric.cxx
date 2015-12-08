@@ -204,7 +204,7 @@ int ComputeSimilarityMetric(int argc, char *argv[])
 */
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -257,7 +257,7 @@ private:
     std::cout << "Basic useage ex: " << std::endl;
     std::cout << argv[0] << " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  " << std::endl;
     std::cout << "  outimage and logfile are optional  " << std::endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   // Get the image dimension
@@ -278,6 +278,6 @@ private:
       return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

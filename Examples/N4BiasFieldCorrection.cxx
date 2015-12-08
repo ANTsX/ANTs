@@ -916,27 +916,29 @@ private:
     dimension = imageIO->GetNumberOfDimensions();
     }
 
+  int returnValue = EXIT_FAILURE;
+  
   switch( dimension )
     {
     case 2:
       {
-      N4<2>( parser );
+      returnValue = N4<2>( parser );
       }
       break;
     case 3:
       {
-      N4<3>( parser );
+      returnValue = N4<3>( parser );
       }
       break;
     case 4:
       {
-      N4<4>( parser );
+      returnValue = N4<4>( parser );
       }
       break;
     default:
       std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-  return EXIT_SUCCESS;
+  return returnValue;
 }
 } // namespace ants

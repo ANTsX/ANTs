@@ -307,17 +307,17 @@ private:
     {
     case 1:
       {
-      CreateZeroImage<1>( argc, argv );
+      return CreateZeroImage<1>( argc, argv );
       }
       break;
     case 2:
       {
-      CreateZeroImage<2>( argc, argv );
+      return CreateZeroImage<2>( argc, argv );
       }
       break;
     case 3:
       {
-      CreateZeroImage<3>( argc, argv );
+      return CreateZeroImage<3>( argc, argv );
       }
       break;
     default:

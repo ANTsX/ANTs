@@ -334,7 +334,7 @@ int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
 //   ostr.close();
 //   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 
@@ -393,7 +393,7 @@ private:
     std::cout << "  Note:  1. Points are assumed to be parametrically ordered for fitting to a curve. " << std::endl
               << "         2. The last column (pointDimension+1) is used for weights." << std::endl
               << "         3. To specify a warp field, add a 'w' to the dimension argument, e.g. 2w." << std::endl;
-    exit( 1 );
+    return EXIT_FAILURE;
     }
 
   std::string imageDimensionString( argv[1] );
@@ -404,14 +404,14 @@ private:
       switch( atoi( &imageDimensionString[0] ) )
        {
        case 2:
-         FitBSplineWarpFieldToPoints<2>( argc, argv );
+         return FitBSplineWarpFieldToPoints<2>( argc, argv );
          break;
        case 3:
-         FitBSplineWarpFieldToPoints<3>( argc, argv );
+         return FitBSplineWarpFieldToPoints<3>( argc, argv );
          break;
        default:
           std::cerr << "Unsupported dimension" << std::endl;
-          exit( EXIT_FAILURE );
+          return EXIT_FAILURE;
        }
       }
     else
@@ -425,20 +425,20 @@ private:
     switch( atoi( argv[1] ) )
      {
      case 1:
-       FitBSplineCurveToPoints<2>( argc, argv );
+       return FitBSplineCurveToPoints<2>( argc, argv );
        break;
      case 2:
-       FitBSplineCurveToPoints<2>( argc, argv );
+       return FitBSplineCurveToPoints<2>( argc, argv );
        break;
      case 3:
-       FitBSplineCurveToPoints<3>( argc, argv );
+       return FitBSplineCurveToPoints<3>( argc, argv );
        break;
      case 4:
-       FitBSplineCurveToPoints<4>( argc, argv );
+       return FitBSplineCurveToPoints<4>( argc, argv );
        break;
      default:
         std::cerr << "Unsupported dimension" << std::endl;
-        exit( EXIT_FAILURE );
+        return EXIT_FAILURE;
      }
    }
 

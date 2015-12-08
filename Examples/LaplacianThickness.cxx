@@ -1018,12 +1018,12 @@ private:
     {
     case 2:
       {
-      LaplacianThickness<2>(argc, argv);
+      return LaplacianThickness<2>(argc, argv);
       }
       break;
     case 3:
       {
-      LaplacianThickness<3>(argc, argv);
+      return LaplacianThickness<3>(argc, argv);
       }
       break;
     default:
