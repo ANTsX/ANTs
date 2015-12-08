@@ -96,16 +96,16 @@ Optional arguments:
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM.
 
-     -j: Number of cpu cores to use (default 2; -- requires "-c 2").
+     -j:  Number of cpu cores to use (default 2; -- requires "-c 2").
 
-     -r: qsub options
+     -r:  qsub options
 
-     -q: Use quick registration parameters:  Either 0 or 1 (default = 1).
+     -q:  Use quick registration parameters:  Either 0 or 1 (default = 1).
 
-     -p: Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
+     -p:  Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
                            Need to specify output directory.
 
-     -f: Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
+     -f:  Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
 
      -y:  transform type (default = 's')
         t: translation
@@ -118,7 +118,11 @@ Optional arguments:
         br: rigid + deformable b-spline syn
         bo: deformable b-spline syn only
 
-     -x: Target mask image:  Used to check the quality of registrations, if available.
+     -x:  Target mask image (default = 'otsu')
+        otsu: use otsu thresholding to define foreground/background
+        or: 'or' all the warped atlas images to defined foreground/background
+        <filename>: a user-specified mask
+        none: don't use a mask
 
 Example:
 
@@ -189,16 +193,16 @@ Optional arguments:
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM.
 
-     -j: Number of cpu cores to use (default 2; -- requires "-c 2").
+     -j:  Number of cpu cores to use (default 2; -- requires "-c 2").
 
-     -q: Use quick registration parameters:  Either 0 or 1 (default = 1).
+     -q:  Use quick registration parameters:  Either 0 or 1 (default = 1).
 
-     -p: Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
+     -p:  Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
                            Need to specify output directory.
 
-     -f: Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
+     -f:  Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
 
-     -y:  transform type (default = 's')
+     -y:  Transform type (default = 's')
         t: translation
         r: rigid
         a: rigid + affine
@@ -209,7 +213,11 @@ Optional arguments:
         br: rigid + deformable b-spline syn
         bo: deformable b-spline syn only
 
-     -x: Target mask image
+     -x:  Target mask image (default = 'otsu')
+        otsu: use otsu thresholding to define foreground/background
+        or: 'or' all the warped atlas images to defined foreground/background
+        <filename>: a user-specified mask
+        none: don't use a mask
 
 Requirements:
 
@@ -328,7 +336,7 @@ PRECISION=0
 XGRID_OPTS=""
 SCRIPT_PREPEND=""
 QSUB_OPTS=""
-TARGET_MASK_IMAGE=""
+TARGET_MASK_IMAGE="otsu"
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -576,11 +584,6 @@ if [[ $DOQSUB -eq 2 ]];
 
 jlfCall="${ANTSPATH}/antsJointFusion -d ${DIM} -t $TARGET_IMAGE --verbose 1 "
 
-if [[ -f ${TARGET_MASK_IMAGE} ]];
-  then
-    jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-  fi
-
 if [[ $DOQSUB -eq 0 ]];
   then
     # Run job locally
@@ -628,8 +631,34 @@ if [[ $DOQSUB -eq 0 ]];
         jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
       fi
 
+    maskCall=''
+    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+          do
+            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+          done
+        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ -f ${TARGET_MASK_IMAGE} ]];
+      then
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+      fi
+
     qscript2="${OUTPUT_PREFIX}JLF.sh"
-    echo "$jlfCall" > $qscript2
+
+    echo "$maskCall" > $qscript2
+    echo "$jlfCall" >> $qscript2
 
     echo $qscript2
     bash $qscript2
@@ -665,7 +694,7 @@ if [[ $DOQSUB -eq 1 ]];
 
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 2 ]];
       then
-        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        echo "Error:  At least 2 warped image/label pairs needs to exist for jointFusion."
         exit 1
       fi
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
@@ -690,8 +719,34 @@ if [[ $DOQSUB -eq 1 ]];
         jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
       fi
 
+    maskCall=''
+    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+          do
+            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+          done
+        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ -f ${TARGET_MASK_IMAGE} ]];
+      then
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+      fi
+
     qscript2="${OUTPUT_PREFIX}JLF.sh"
-    echo "$jlfCall" > $qscript2
+
+    echo "$maskCall" > $qscript2
+    echo "$jlfCall" >> $qscript2
 
     jobIDs=`qsub -cwd -S /bin/bash -N antsJlf -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript2 | awk '{print $3}'`
     ${ANTSPATH}/waitForSGEQJobs.pl 1 600 $jobIDs
@@ -726,7 +781,7 @@ if [[ $DOQSUB -eq 4 ]];
 
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 2 ]];
       then
-        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        echo "Error:  At least 2 warped image/label pairs needs to exist for jointFusion."
         exit 1
       fi
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
@@ -746,8 +801,34 @@ if [[ $DOQSUB -eq 4 ]];
         jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
       fi
 
+    maskCall=''
+    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+          do
+            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+          done
+        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ -f ${TARGET_MASK_IMAGE} ]];
+      then
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+      fi
+
     qscript2="${OUTPUT_PREFIX}JLF.sh"
-    echo "$jlfCall" > $qscript2
+
+    echo "$maskCall" > $qscript2
+    echo "$jlfCall" >> $qscript2
 
     jobIDs=`qsub -N antsJlf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=30:00:00 $qscript2 | awk '{print $1}'`
     ${ANTSPATH}/waitForPBSQJobs.pl 1 600 $jobIDs
@@ -769,7 +850,7 @@ if [[ $DOQSUB -eq 2 ]];
 
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 2 ]];
       then
-        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        echo "Error:  At least 2 warped image/label pairs needs to exist for jointFusion."
         exit 1
       fi
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
@@ -794,8 +875,34 @@ if [[ $DOQSUB -eq 2 ]];
         jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
       fi
 
+    maskCall=''
+    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+          do
+            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+          done
+        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ -f ${TARGET_MASK_IMAGE} ]];
+      then
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+      fi
+
     qscript2="${OUTPUT_PREFIX}JLF.sh"
-    echo "$jlfCall" > $qscript2
+
+    echo "$maskCall" > $qscript2
+    echo "$jlfCall" >> $qscript2
 
     sh $qscript2
   fi
@@ -829,7 +936,7 @@ if [[ $DOQSUB -eq 3 ]];
 
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 2 ]];
       then
-        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        echo "Error:  At least 2 warped image/label pairs needs to exist for jointFusion."
         exit 1
       fi
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
@@ -854,8 +961,34 @@ if [[ $DOQSUB -eq 3 ]];
         jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
       fi
 
+    maskCall=''
+    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+          do
+            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+          done
+        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ -f ${TARGET_MASK_IMAGE} ]];
+      then
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+      fi
+
     qscript2="${OUTPUT_PREFIX}JLF.sh"
-    echo "$jlfCall" > $qscript2
+
+    echo "$maskCall" > $qscript2
+    echo "$jlfCall" >> $qscript2
 
     sh $qscript2
   fi
@@ -892,7 +1025,7 @@ if [[ $DOQSUB -eq 5 ]];
 
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 2 ]];
       then
-        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        echo "Error:  At least 2 warped image/label pairs needs to exist for jointFusion."
         exit 1
       fi
     if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
@@ -912,8 +1045,34 @@ if [[ $DOQSUB -eq 5 ]];
         jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
       fi
 
+    maskCall=''
+    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+      then
+        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+          do
+            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+          done
+        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+    elif [[ -f ${TARGET_MASK_IMAGE} ]];
+      then
+        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+      fi
+
     qscript2="${OUTPUT_PREFIX}JLF.sh"
+
     echo "#!/bin/sh" > $qscript2
+    echo "$maskCall" > $qscript2
     echo "$jlfCall" >> $qscript2
 
     jobIDs=`sbatch --job-name=antsJlf --export=ANTSPATH=$ANTSPATH $QSUB_OPTS --nodes=1 --cpus-per-task=1 --time=30:00:00 --mem=8192M $qscript2 | rev | cut -f1 -d\ | rev`
