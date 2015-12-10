@@ -1234,11 +1234,12 @@ while [  $i -lt ${ITERATIONLIMIT} ]
       echo "$exe" >> $qscript
       id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
       jobIDs="$jobIDs $id"
+      qscript="job_${count}_${i}.sh"
     elif [[ $DOQSUB -eq 5 ]]; then
       echo '#!/bin/sh' > $qscript
       echo -e "$SCRIPTPREPEND" >> $qscript
       echo -e "$exe" >> $qscript
-      id=`sbatch --job-name=antsdef${i} --export=ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH --nodes=1 --cpus-per-task=1 --time=4:00:00 $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
+      id=`sbatch --mem-per-cpu=32768M --job-name=antsdef${i} --export=ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,LD_LIBRARY_PATH=$LD_LIBRARY_PATH,ANTSPATH=$ANTSPATH --nodes=1 --cpus-per-task=1 --time=4:00:00 $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
       jobIDs="$jobIDs $id"
       sleep 0.5
     elif  [ $DOQSUB -eq 0 ] ; then
