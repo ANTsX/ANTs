@@ -163,10 +163,10 @@ Optional arguments:
             TimeVaryingVelocityField = Time-varying velocity field
             TimeVaryingBSplineVelocityField = Time-varying B-spline velocity field
 
-     -u:  Walltime (default = 20:00:00):  Option for PBS qsub specifying requested time
+     -u:  Walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
           per pairwise registration.
 
-     -v:  Memory limit (default = 8gb):  Option for PBS qsub specifying requested memory
+     -v:  Memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
           per pairwise registration.
 
      -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
@@ -490,8 +490,8 @@ TEMPLATES=()
 CURRENTIMAGESET=()
 XGRIDOPTS=""
 SCRIPTPREPEND=""
-PBSWALLTIME="20:00:00"
-PBSMEMORY="8gb"
+WALLTIME="20:00:00"
+MEMORY="8gb"
 # System specific queue options, eg "-q name" to submit to a specific queue
 # It can be set to an empty string if you do not need any special cluster options
 QSUBOPTS="" # EDIT THIS
@@ -596,10 +596,10 @@ while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
    TRANSFORMATIONTYPE=$OPTARG
    ;;
       u)
-   PBSWALLTIME=$OPTARG
+   WALLTIME=$OPTARG
    ;;
       v)
-   PBSMEMORY=$OPTARG
+   MEMORY=$OPTARG
    ;;
       x) #initialization template
    XGRIDOPTS=$OPTARG
@@ -1048,7 +1048,7 @@ if [[ "$RIGID" -eq 1 ]];
             sleep 0.5
         elif [[ $DOQSUB -eq 4 ]];
           then
-            id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${PBSMEMORY} -l walltime=${PBSWALLTIME} $qscript | awk '{print $1}'`
+            id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${MEMORY} -l walltime=${WALLTIME} $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1063,7 +1063,7 @@ if [[ "$RIGID" -eq 1 ]];
             jobIDs="$jobIDs $id"
         elif [[ $DOQSUB -eq 5 ]];
             then
-            id=`sbatch --job-name=antsrigid --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=20:00:00 --mem=8192M $qscript | rev | cut -f1 -d\ | rev`
+            id=`sbatch --job-name=antsrigid --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $qscript | rev | cut -f1 -d\ | rev`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
@@ -1399,7 +1399,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
           then
             echo -e "$SCRIPTPREPEND" > $qscript
             echo -e "$exe" >> $qscript
-            id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l mem=${PBSMEMORY} -l walltime=${PBSWALLTIME} $QSUBOPTS $qscript | awk '{print $1}'`
+            id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l mem=${MEMORY} -l walltime=${WALLTIME} $QSUBOPTS $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1416,7 +1416,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             echo '#!/bin/sh' > $qscript
             echo -e "$SCRIPTPREPEND" >> $qscript
             echo -e "$exe" >> $qscript
-            id=`sbatch --job-name=antsdef${i} --export=ANTSPATH=$ANTSPATH --nodes=1 --cpus-per-task=1 --time=20:00:00 --mem=8192M $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
+            id=`sbatch --job-name=antsdef${i} --export=ANTSPATH=$ANTSPATH --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
