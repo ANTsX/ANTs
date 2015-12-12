@@ -107,6 +107,18 @@ Optional arguments:
 
      -f:  Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
 
+     -u:  Registration walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
+          per pairwise registration.
+
+     -v:  Registration memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
+          per pairwise registration.
+
+     -w:  JLF walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
+          for the joint label fusion call.
+
+     -z:  JLF Memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
+          for the joint label fusion call.
+
      -y:  transform type (default = 's')
         t: translation
         r: rigid
@@ -202,11 +214,17 @@ Optional arguments:
 
      -f:  Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
 
-     -u:  Walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
+     -u:  Registration walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
           per pairwise registration.
 
-     -v:  Memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
+     -v:  Registration memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
           per pairwise registration.
+
+     -w:  JLF walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
+          for the joint label fusion call.
+
+     -z:  JLF Memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
+          for the joint label fusion call.
 
      -y:  Transform type (default = 's')
         t: translation
@@ -344,8 +362,10 @@ SCRIPT_PREPEND=""
 QSUB_OPTS=""
 TARGET_MASK_IMAGE="otsu"
 
-WALLTIME="20:00:00"
-MEMORY="8gb"
+REGISTRATION_WALLTIME="20:00:00"
+REGISTRATION_MEMORY="8gb"
+JLF_WALLTIME="20:00:00"
+JLF_MEMORY="8gb"
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -368,7 +388,7 @@ MAJORITYVOTE=0
 RUNQUICK=1
 TRANSFORM_TYPE="s"
 # reading command line arguments
-while getopts "c:d:f:g:h:j:k:l:m:o:p:q:r:t:u:v:x:y:" OPT
+while getopts "c:d:f:g:h:j:k:l:m:o:p:q:r:t:u:v:w:x:y:z:" OPT
   do
   case $OPT in
       h) #help
@@ -426,10 +446,16 @@ while getopts "c:d:f:g:h:j:k:l:m:o:p:q:r:t:u:v:x:y:" OPT
    TARGET_IMAGE=$OPTARG
    ;;
       u)
-   WALLTIME=$OPTARG
+   REGISTRATION_WALLTIME=$OPTARG
    ;;
       v)
-   MEMORY=$OPTARG
+   REGISTRATION_MEMORY=$OPTARG
+   ;;
+      w)
+   JLF_WALLTIME=$OPTARG
+   ;;
+      z)
+   JLF_MEMORY=$OPTARG
    ;;
       x)
    TARGET_MASK_IMAGE=$OPTARG
@@ -568,7 +594,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
         sleep 0.5
     elif [[ $DOQSUB -eq 4 ]];
       then
-        id=`qsub -N antsJlfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${MEMORY} -l walltime=${WALLTIME} $qscript | awk '{print $1}'`
+        id=`qsub -N antsJlfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${REGISTRATION_MEMORY} -l walltime=${REGISTRATION_WALLTIME} $qscript | awk '{print $1}'`
         jobIDs="$jobIDs $id"
         sleep 0.5
     elif [[ $DOQSUB -eq 3 ]];
@@ -577,7 +603,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
         jobIDs="$jobIDs $id"
     elif [[ $DOQSUB -eq 5 ]];
       then
-        id=`sbatch --job-name=antsJlfReg${i} --export=ANTSPATH=$ANTSPATH $QSUB_OPTS --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $qscript | rev | cut -f1 -d\ | rev`
+        id=`sbatch --job-name=antsJlfReg${i} --export=ANTSPATH=$ANTSPATH $QSUB_OPTS --nodes=1 --cpus-per-task=1 --time=${REGISTRATION_WALLTIME} --mem=${REGISTRATION_MEMORY} $qscript | rev | cut -f1 -d\ | rev`
         jobIDs="$jobIDs $id"
         sleep 0.5
     elif [[ $DOQSUB -eq 0 ]];
@@ -845,7 +871,7 @@ if [[ $DOQSUB -eq 4 ]];
     echo "$maskCall" > $qscript2
     echo "$jlfCall" >> $qscript2
 
-    jobIDs=`qsub -N antsJlf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${MEMORY} -l walltime=${WALLTIME} $qscript2 | awk '{print $1}'`
+    jobIDs=`qsub -N antsJlf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${JLF_MEMORY} -l walltime=${JLF_WALLTIME} $qscript2 | awk '{print $1}'`
     ${ANTSPATH}/waitForPBSQJobs.pl 1 600 $jobIDs
   fi
 
@@ -1090,7 +1116,7 @@ if [[ $DOQSUB -eq 5 ]];
     echo "$maskCall" > $qscript2
     echo "$jlfCall" >> $qscript2
 
-    jobIDs=`sbatch --job-name=antsJlf --export=ANTSPATH=$ANTSPATH $QSUB_OPTS --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $qscript2 | rev | cut -f1 -d\ | rev`
+    jobIDs=`sbatch --job-name=antsJlf --export=ANTSPATH=$ANTSPATH $QSUB_OPTS --nodes=1 --cpus-per-task=1 --time=${JLF_WALLTIME} --mem=${JLF_MEMORY} $qscript2 | rev | cut -f1 -d\ | rev`
     ${ANTSPATH}/waitForSlurmJobs.pl 1 600 $jobIDs
   fi
 
