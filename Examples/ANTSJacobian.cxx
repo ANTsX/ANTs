@@ -122,7 +122,6 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
 {
   enum { ImageDimension = TImage::ImageDimension };
   typename TDisplacementField::PixelType vec = field->GetPixel(index);
-  return vec;
   /* buggy code from before */
   typename TDisplacementField::PixelType newvec;
   newvec.Fill(0);
