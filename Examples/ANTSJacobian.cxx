@@ -123,7 +123,7 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
   enum { ImageDimension = TImage::ImageDimension };
   typename TDisplacementField::PixelType vec = field->GetPixel(index);
   return vec;
-  /* buggy code from before
+  /* buggy code from before */
   typename TDisplacementField::PixelType newvec;
   newvec.Fill(0);
   for( unsigned int row = 0; row < ImageDimension; row++ )
@@ -134,7 +134,6 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
       }
     }
   return newvec;
-  */
 }
 
 template <class TImage, class TDisplacementField>
@@ -386,7 +385,6 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
       // totaljac+=det;
       } // oktosample if
     }
-  std::cout << " avg Mat " << avgMatrix / (float)ct << std::endl;
 
   if( norm && mask )
     {
@@ -502,21 +500,10 @@ int Jacobian(int argc, char *argv[])
   typedef itk::Image<PixelType, ImageDimension>                  ImageType;
 
   typedef itk::ImageFileReader<FieldType> ReaderType;
-  // std::cout << "read warp " << std::string(argv[1]) << std::endl;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
-  //  reader->SetUseAvantsNamingConvention( true );
   reader->Update();
   typename FieldType::Pointer gWarp = reader->GetOutput();
-  //
-  // std::cout << "read warp 2 " << std::endl;
-  // typename FieldType::Pointer gWarp = ReadWarpFromFile<ImageType,FieldType>(argv[1],"vec.nii");
-
-  // here hWarp is changed in place to be fWarp
-//  Jacobian<ImageType,FieldType>(gWarp,argv[2]);
-//  std::cout << " vecanidiff " << std::endl;
-//  gWarp = VectorAniDiff<FieldType>(gWarp , atoi(argv[3]) );
-//  std::cout << " vecanidiffdone " << std::endl;
   bool uselog = false;
   if( argc > 3 )
     {
@@ -590,9 +577,9 @@ private:
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
   // antscout->set_stream( out_stream );
-  std::cout << "Sorry! " << argv[0] << " is deprecated " << std::endl;
-  std::cout << "Please use CreateJacobianDeterminantImage " << std::endl;
-  return EXIT_SUCCESS;
+  std::cout << "WARNING! " << argv[0] << " may not be working correctly " << std::endl;
+  // std::cout << "Please use CreateJacobianDeterminantImage " << std::endl;
+  // return EXIT_SUCCESS;
 
   if( argc < 3 )
     {
