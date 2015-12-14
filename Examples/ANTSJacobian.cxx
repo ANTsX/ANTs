@@ -576,7 +576,7 @@ private:
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
   // antscout->set_stream( out_stream );
-  std::cout << "WARNING! " << argv[0] << " may not be working correctly " << std::endl;
+  std::cout << "WARNING! " << argv[0] << " may not be working correctly, see CreateJacobianDeterminantImage for an alternative method  " << std::endl;
   // std::cout << "Please use CreateJacobianDeterminantImage " << std::endl;
   // return EXIT_SUCCESS;
 
