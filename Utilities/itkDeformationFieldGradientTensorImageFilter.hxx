@@ -185,8 +185,20 @@ DeformationFieldGradientTensorImageFilter< TInputImage, TRealType, TOutputImage 
   unsigned i, j;
   RealMatrixType F;
 
+  RealVectorType physicalVectorCenter;
+  this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector( it.GetCenterPixel(), physicalVectorCenter );
+
   for ( i = 0; i < ImageDimension; ++i )
     {
+    RealVectorType physicalVectorNext1;
+    this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector( it.GetNext( i, 1 ), physicalVectorNext1 );
+    RealVectorType physicalVectorNext2;
+    this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector( it.GetNext( i, 2 ), physicalVectorNext2 );
+    RealVectorType physicalVectorPrevious1;
+    this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector( it.GetPrevious( i, 1 ), physicalVectorPrevious1 );
+    RealVectorType physicalVectorPrevious2;
+    this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector( it.GetPrevious( i, 2 ), physicalVectorPrevious2 );
+
     RealType weight = this->m_DerivativeWeights[i];
     for ( j = 0; j < VectorDimension; ++j )
       {
@@ -195,11 +207,11 @@ DeformationFieldGradientTensorImageFilter< TInputImage, TRealType, TOutputImage 
         switch( this->m_Order )
           {
           case 1: default:
-            F[i][j] = weight * 0.5 * ( it.GetNext( i, 1 )[j] - it.GetPrevious( i, 1 )[j] );
+            F[i][j] = weight * 0.5 * ( physicalVectorNext1[j] - physicalVectorPrevious1[j] );
             break;
           case 2:
-            F[i][j] = weight * ( -it.GetNext( i, 2 )[j] + 8.0*it.GetNext( i, 1 )[j]
-                       - 8.0*it.GetPrevious( i, 1 )[j] + it.GetPrevious(i, 2)[j] ) / 12.0;
+            F[i][j] = weight * ( -physicalVectorNext2[j] + 8.0 * physicalVectorNext1[j]
+                       - 8.0 * physicalVectorPrevious1[j] + physicalVectorPrevious2[j] ) / 12.0;
             break;
           }
         }
@@ -208,7 +220,7 @@ DeformationFieldGradientTensorImageFilter< TInputImage, TRealType, TOutputImage 
         switch( this->m_Order )
           {
           case 1: default:
-            F[i][j] = weight*( it.GetNext( i, 1 )[j] - it.GetCenterPixel()[j] );
+            F[i][j] = weight * ( physicalVectorNext1[j] - physicalVectorCenter[j] );
             break;
           }
         }

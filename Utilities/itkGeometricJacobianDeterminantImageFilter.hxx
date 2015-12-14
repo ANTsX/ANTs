@@ -281,21 +281,12 @@ GeometricJacobianDeterminantImageFilter< TInputImage, TRealType, TOutputImage >
         typename InterpolatorType::PointType pointC;
         pointC.CastFrom( imagePoint + this->m_DeltaTriangularPointC );
 
-        RealVectorType physicalVector;
-
-        this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(
-          this->m_Interpolator->Evaluate( pointA ), physicalVector );
-        PointType displacedPointA = pointA + physicalVector;
-
-        this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(
-          this->m_Interpolator->Evaluate( pointB ), physicalVector );
-        PointType displacedPointB = pointB + physicalVector;
-
-        this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(
-          this->m_Interpolator->Evaluate( pointC ), physicalVector );
-        PointType displacedPointC = pointC + physicalVector;
+        PointType displacedPointA = pointA + this->m_Interpolator->Evaluate( pointA );
+        PointType displacedPointB = pointB + this->m_Interpolator->Evaluate( pointB );
+        PointType displacedPointC = pointC + this->m_Interpolator->Evaluate( pointC );
 
         displacedVolume = this->CalculateTriangularArea( displacedPointA, displacedPointB, displacedPointC );
+
         }
       else if( ImageDimension == 3 )
         {
@@ -308,23 +299,10 @@ GeometricJacobianDeterminantImageFilter< TInputImage, TRealType, TOutputImage >
         typename InterpolatorType::PointType pointD;
         pointD.CastFrom( imagePoint + this->m_DeltaTetrahedralPointD );
 
-        RealVectorType physicalVector;
-
-        this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(
-          this->m_Interpolator->Evaluate( pointA ), physicalVector );
-        PointType displacedPointA = pointA + physicalVector;
-
-        this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(
-          this->m_Interpolator->Evaluate( pointB ), physicalVector );
-        PointType displacedPointB = pointB + physicalVector;
-
-        this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(
-          this->m_Interpolator->Evaluate( pointC ), physicalVector );
-        PointType displacedPointC = pointC + physicalVector;
-
-        this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(
-          this->m_Interpolator->Evaluate( pointD ), physicalVector );
-        PointType displacedPointD = pointD + physicalVector;
+        PointType displacedPointA = pointA + this->m_Interpolator->Evaluate( pointA );
+        PointType displacedPointB = pointB + this->m_Interpolator->Evaluate( pointB );
+        PointType displacedPointC = pointC + this->m_Interpolator->Evaluate( pointC );
+        PointType displacedPointD = pointD + this->m_Interpolator->Evaluate( pointD );
 
         displacedVolume = this->CalculateTetrahedralVolume( displacedPointA, displacedPointB, displacedPointC, displacedPointD );
         }
