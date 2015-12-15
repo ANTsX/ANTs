@@ -1113,7 +1113,7 @@ if [[ $DOQSUB -eq 5 ]];
     qscript2="${OUTPUT_PREFIX}JLF.sh"
 
     echo "#!/bin/sh" > $qscript2
-    echo "$maskCall" > $qscript2
+    echo "$maskCall" >> $qscript2
     echo "$jlfCall" >> $qscript2
 
     jobIDs=`sbatch --job-name=antsJlf --export=ANTSPATH=$ANTSPATH $QSUB_OPTS --nodes=1 --cpus-per-task=1 --time=${JLF_WALLTIME} --mem=${JLF_MEMORY} $qscript2 | rev | cut -f1 -d\ | rev`
