@@ -133,6 +133,7 @@ set(MORE_ANTS_APPS
     ANTSIntegrateVelocityField
     ConvertTransformFile
     compareTwoTransforms
+    SuperResolution
     TimeSCCAN
     TextureCooccurrenceFeatures
     TextureRunLengthFeatures

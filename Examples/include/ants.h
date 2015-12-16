@@ -197,6 +197,8 @@
 
 #include "StudentsTestOnImages.h"
 
+#include "SuperResolution.h"
+
 #include "SurfaceBasedSmoothing.h"
 
 #include "SurfaceCurvature.h"
