@@ -76,6 +76,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   if(${extProjName}_BUILD_MINC_SUPPORT)
     set(${proj}_MINC_ARGS
         -DModule_ITKIOMINC:BOOL=ON
+        -DModule_ITKIOTransformMINC:BOOL=ON
         -DModule_ITKMINC:BOOL=ON
        )
   endif()
