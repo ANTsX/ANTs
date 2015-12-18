@@ -2,7 +2,9 @@
 #include <algorithm>
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
+#include "itkContinuousIndex.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
+#include "itkImportImageFilter.h"
 #include "itkPointSet.h"
 #include "itkTimeProbe.h"
 #include "itkVector.h"
@@ -77,6 +79,31 @@ int SuperResolution( unsigned int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  typename ScalarImageType::DirectionType identity;
+  identity.SetIdentity();
+
+  const typename ScalarImageType::RegionType & bufferedRegion = domainImage->GetBufferedRegion();
+  const itk::SizeValueType numberOfPixels = bufferedRegion.GetNumberOfPixels();
+  const bool filterHandlesMemory = false;
+
+  typedef itk::ImportImageFilter<RealType, ImageDimension> ImporterType;
+  typename ImporterType::Pointer importer = ImporterType::New();
+  importer->SetImportPointer( domainImage->GetBufferPointer(), numberOfPixels, filterHandlesMemory );
+  importer->SetRegion( domainImage->GetBufferedRegion() );
+  importer->SetOrigin( domainImage->GetOrigin() );
+  importer->SetSpacing( domainImage->GetSpacing() );
+  importer->SetDirection( identity );
+  importer->Update();
+
+  typename ImageType::IndexType domainBeginIndex = domainImage->GetRequestedRegion().GetIndex();
+  typename ImageType::IndexType domainEndIndex;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    domainEndIndex[d] = domainBeginIndex[d] + domainImage->GetRequestedRegion().GetSize()[d] - 1;
+    }
+
+  const typename ImporterType::OutputImageType * parametricDomainImage = importer->GetOutput();
+
   unsigned int N = 0;
   for( unsigned int n = 6; n < argc; n++ )
     {
@@ -89,13 +116,29 @@ int SuperResolution( unsigned int argc, char *argv[] )
       typename ImageType::PointType imagePoint;
       inputImage->TransformIndexToPhysicalPoint( It.GetIndex(), imagePoint );
 
-      typename ImageType::IndexType index;
-      bool isInside = domainImage->TransformPhysicalPointToIndex( imagePoint, index );
+      itk::ContinuousIndex<RealType, ImageDimension> cidx;
+      bool isInside = domainImage->TransformPhysicalPointToContinuousIndex( imagePoint, cidx );
+
+      if( isInside )
+        {
+        for( unsigned int d = 0; d < ImageDimension; d++ )
+          {
+          if( cidx[d] <= domainBeginIndex[d] || cidx[d] >= domainEndIndex[d] )
+            {
+            isInside = false;
+            break;
+            }
+          }
+        }
 
       if( !isInside )
         {
         continue;
         }
+
+//       domainImage->SetPixel( index, 1 );
+
+      parametricDomainImage->TransformContinuousIndexToPhysicalPoint( cidx, imagePoint );
 
       ScalarType scalar;
       scalar[0] = It.Get();
@@ -108,12 +151,23 @@ int SuperResolution( unsigned int argc, char *argv[] )
       }
     }
 
+  std::cout << bsplinePoints->GetNumberOfPoints() << std::endl;
+
   itk::TimeProbe timer;
   timer.Start();
 
-  bspliner->SetOrigin( domainImage->GetOrigin() );
+  typename ScalarImageType::PointType parametricOrigin = domainImage->GetOrigin();
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    parametricOrigin[d] += (
+        domainImage->GetSpacing()[d] *
+        domainImage->GetLargestPossibleRegion().GetIndex()[d] );
+    }
+
+  bspliner->SetOrigin( parametricOrigin );
   bspliner->SetSpacing( domainImage->GetSpacing() );
   bspliner->SetSize( domainImage->GetRequestedRegion().GetSize() );
+  bspliner->SetDirection( domainImage->GetDirection() );
   bspliner->SetGenerateOutputImage( true );
   bspliner->SetNumberOfLevels( numberOfLevels );
   bspliner->SetSplineOrder( splineOrder );
