@@ -1,6 +1,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
+#include "itkAddImageFilter.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkContinuousIndex.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
@@ -17,7 +18,6 @@ namespace ants
 template <unsigned int ImageDimension>
 int SuperResolution( unsigned int argc, char *argv[] )
 {
-
   typedef float                                   RealType;
   typedef itk::Image<RealType, ImageDimension>    ImageType;
 
@@ -79,6 +79,56 @@ int SuperResolution( unsigned int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  // Find the average for the offset
+
+  typename ImageType::IndexType domainBeginIndex = domainImage->GetRequestedRegion().GetIndex();
+  typename ImageType::IndexType domainEndIndex;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    domainEndIndex[d] = domainBeginIndex[d] + domainImage->GetRequestedRegion().GetSize()[d] - 1;
+    }
+
+  RealType averageIntensity = 0.0;
+  unsigned int N = 0;
+  for( unsigned int n = 6; n < argc; n++ )
+    {
+    typename ImageType::Pointer inputImage = ITK_NULLPTR;
+    ReadImage<ImageType>( inputImage, argv[n] );
+
+    itk::ImageRegionConstIteratorWithIndex<ImageType> It( inputImage, inputImage->GetRequestedRegion() );
+    for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+      {
+      typename ImageType::PointType imagePoint;
+      inputImage->TransformIndexToPhysicalPoint( It.GetIndex(), imagePoint );
+
+      itk::ContinuousIndex<RealType, ImageDimension> cidx;
+      bool isInside = domainImage->TransformPhysicalPointToContinuousIndex( imagePoint, cidx );
+
+      if( isInside )
+        {
+        for( unsigned int d = 0; d < ImageDimension; d++ )
+          {
+          if( cidx[d] <= domainBeginIndex[d] || cidx[d] >= domainEndIndex[d] )
+            {
+            isInside = false;
+            break;
+            }
+          }
+        }
+
+      if( !isInside )
+        {
+        continue;
+        }
+
+      averageIntensity += It.Get();
+
+      N++;
+      }
+    }
+  averageIntensity /= static_cast<RealType>( N );
+
+
   typename ScalarImageType::DirectionType identity;
   identity.SetIdentity();
 
@@ -95,16 +145,9 @@ int SuperResolution( unsigned int argc, char *argv[] )
   importer->SetDirection( identity );
   importer->Update();
 
-  typename ImageType::IndexType domainBeginIndex = domainImage->GetRequestedRegion().GetIndex();
-  typename ImageType::IndexType domainEndIndex;
-  for( unsigned int d = 0; d < ImageDimension; d++ )
-    {
-    domainEndIndex[d] = domainBeginIndex[d] + domainImage->GetRequestedRegion().GetSize()[d] - 1;
-    }
-
   const typename ImporterType::OutputImageType * parametricDomainImage = importer->GetOutput();
 
-  unsigned int N = 0;
+  N = 0;
   for( unsigned int n = 6; n < argc; n++ )
     {
     typename ImageType::Pointer inputImage = ITK_NULLPTR;
@@ -141,7 +184,7 @@ int SuperResolution( unsigned int argc, char *argv[] )
       parametricDomainImage->TransformContinuousIndexToPhysicalPoint( cidx, imagePoint );
 
       ScalarType scalar;
-      scalar[0] = It.Get();
+      scalar[0] = It.Get() - averageIntensity;
 
       bsplinePoints->SetPointData( N, scalar );
       bsplinePoints->SetPoint( N, imagePoint );
@@ -184,7 +227,13 @@ int SuperResolution( unsigned int argc, char *argv[] )
   selector->SetIndex( 0 );
   selector->Update();
 
-  WriteImage<ImageType>( selector->GetOutput(), argv[2] );
+  typedef itk::AddImageFilter<ImageType> AdderType;
+  typename AdderType::Pointer adder = AdderType::New();
+  adder->SetInput( selector->GetOutput() );
+  adder->SetConstant2( averageIntensity );
+  adder->Update();
+
+  WriteImage<ImageType>( adder->GetOutput(), argv[2] );
 
   return EXIT_SUCCESS;
 }
