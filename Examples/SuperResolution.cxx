@@ -151,8 +151,6 @@ int SuperResolution( unsigned int argc, char *argv[] )
       }
     }
 
-  std::cout << bsplinePoints->GetNumberOfPoints() << std::endl;
-
   itk::TimeProbe timer;
   timer.Start();
 
