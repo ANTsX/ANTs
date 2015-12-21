@@ -9,7 +9,7 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkImageRegionIteratorWithIndex.h"
+#include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkExtractImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
 
@@ -25,14 +25,13 @@ int ExtractRegionFromImage( int argc, char *argv[] )
   typedef float PixelType;
 
   typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typedef itk::ImageFileReader<ImageType>       ReaderType;
-  typename ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( argv[2] );
-  reader->Update();
+
+  typename ImageType::Pointer inputImage = ImageType::New();
+  ReadImage<ImageType>( inputImage, argv[2] );
 
   typename ImageType::RegionType region;
-  typename ImageType::RegionType::SizeType size;
-  typename ImageType::RegionType::IndexType index;
+  typename ImageType::RegionType::SizeType regionSize;
+  typename ImageType::RegionType::IndexType regionIndex;
   if( argc == 6 )
     {
     std::vector<int> minIndex;
@@ -41,37 +40,20 @@ int ExtractRegionFromImage( int argc, char *argv[] )
     maxIndex = ConvertVector<int>( std::string( argv[5] ) );
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      index[i] = minIndex[i];
-      size[i] = maxIndex[i] - minIndex[i] + 1;
+      regionIndex[i] = minIndex[i];
+      regionSize[i] = maxIndex[i] - minIndex[i] + 1;
       }
-    region.SetSize( size );
-    region.SetIndex( index );
+    region.SetSize( regionSize );
+    region.SetIndex( regionIndex );
     }
   else if ( argc == 7 )
-      {
-      typename ImageType::Pointer labimg;
-      ReadImage<ImageType>( labimg, argv[5] );
-      typedef itk::Image<unsigned short, ImageDimension>      ShortImageType;
-      typedef itk::CastImageFilter<ImageType, ShortImageType> CasterType;
-      typename CasterType::Pointer caster = CasterType::New();
-      caster->SetInput( labimg );
-      caster->Update();
-
-      typedef itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>
-        StatsFilterType;
-      typename StatsFilterType::Pointer stats = StatsFilterType::New();
-      stats->SetLabelInput( caster->GetOutput() );
-      stats->SetInput( caster->GetOutput() );
-      stats->Update();
-
-      region = stats->GetRegion( atoi( argv[4] ) );
-      }
-  else
     {
+    typename ImageType::Pointer labimg;
+    ReadImage<ImageType>( labimg, argv[5] );
     typedef itk::Image<unsigned short, ImageDimension>      ShortImageType;
     typedef itk::CastImageFilter<ImageType, ShortImageType> CasterType;
     typename CasterType::Pointer caster = CasterType::New();
-    caster->SetInput( reader->GetOutput() );
+    caster->SetInput( labimg );
     caster->Update();
 
     typedef itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>
@@ -83,12 +65,78 @@ int ExtractRegionFromImage( int argc, char *argv[] )
 
     region = stats->GetRegion( atoi( argv[4] ) );
     }
+  else
+    {
+    typename ImageType::Pointer domainImage = ITK_NULLPTR;
+    ReadImage<ImageType>( domainImage, argv[4] );
 
-  std::cout << region << std::endl;
+    if( domainImage.IsNotNull() )
+      {
+      typename ImageType::IndexType maxIndex;
+      typename ImageType::IndexType minIndex;
+
+      minIndex.Fill( itk::NumericTraits<int>::max() );
+      maxIndex.Fill( itk::NumericTraits<int>::NonpositiveMin() );
+
+      itk::ImageRegionConstIteratorWithIndex<ImageType> It( inputImage,
+        inputImage->GetLargestPossibleRegion() );
+
+      for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+        {
+        typename ImageType::IndexType index = It.GetIndex();
+
+        typename ImageType::PointType point;
+        inputImage->TransformIndexToPhysicalPoint( index, point );
+
+        typename ImageType::IndexType trashIndex;
+        bool isInside = domainImage->TransformPhysicalPointToIndex( point, trashIndex );
+
+        if( isInside )
+          {
+          for( unsigned int d = 0; d < ImageDimension; d++ )
+            {
+            if( index[d] < minIndex[d] )
+              {
+              minIndex[d] = index[d];
+              }
+            if( index[d] > maxIndex[d] )
+              {
+              maxIndex[d] = index[d];
+              }
+            }
+          }
+        }
+
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        regionIndex[i] = minIndex[i];
+        regionSize[i] = maxIndex[i] - regionIndex[i] + 1;
+        }
+      region.SetSize( regionSize );
+      region.SetIndex( regionIndex );
+      }
+    else
+      {
+      typedef itk::Image<unsigned short, ImageDimension>      ShortImageType;
+      typedef itk::CastImageFilter<ImageType, ShortImageType> CasterType;
+      typename CasterType::Pointer caster = CasterType::New();
+      caster->SetInput( inputImage );
+      caster->Update();
+
+      typedef itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>
+        StatsFilterType;
+      typename StatsFilterType::Pointer stats = StatsFilterType::New();
+      stats->SetLabelInput( caster->GetOutput() );
+      stats->SetInput( caster->GetOutput() );
+      stats->Update();
+
+      region = stats->GetRegion( atoi( argv[4] ) );
+      }
+    }
 
   typedef itk::ExtractImageFilter<ImageType, ImageType> CropperType;
   typename CropperType::Pointer cropper = CropperType::New();
-  cropper->SetInput( reader->GetOutput() );
+  cropper->SetInput( inputImage );
   cropper->SetExtractionRegion( region );
   cropper->SetDirectionCollapseToSubmatrix();
   cropper->Update();
@@ -150,11 +198,13 @@ private:
 
   if( argc < 5 || argc > 7 )
     {
-    std::cout << "Usage 1: " << argv[0] << " ImageDimension "
+    std::cerr << "Usage 1: " << argv[0] << " ImageDimension "
              << "inputImage outputImage minIndex maxIndex " << std::endl;
-    std::cout << "Usage 2: " << argv[0] << " ImageDimension "
+    std::cerr << "Usage 2: " << argv[0] << " ImageDimension "
              << "inputImage outputImage label " << std::endl;
-    std::cout << "Usage 3: " << argv[0] << " ImageDimension "
+    std::cerr << "Usage 3: " << argv[0] << " ImageDimension "
+             << "inputImage outputImage domainImage " << std::endl;
+    std::cerr << "Usage 4: " << argv[0] << " ImageDimension "
              << "inputImage outputImage label labelImage 1 " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -182,7 +232,7 @@ private:
       }
       break;
     default:
-      std::cout << "Unsupported dimension" << std::endl;
+      std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;
