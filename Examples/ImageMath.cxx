@@ -14926,7 +14926,7 @@ private:
     std::cout << "      Usage        : PeronaMalik image #iterations conductance " << std::endl;
 
     std::cout << "\n  Convolve       : convolve input image with kernel image" << std::endl;
-    std::cout << "      Usage        : Convolve inputImage kernelImage normalize? " << std::endl;
+    std::cout << "      Usage        : Convolve inputImage kernelImage {normalize=1} " << std::endl;
 
     std::cout << "  Finite            : replace non-finite values with finite-value (default = 0)" << std::endl;
     std::cout << "      Usage        : Finite Image.exdt {replace-value=0}" << std::endl;
