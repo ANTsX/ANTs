@@ -12539,6 +12539,46 @@ int PMSmoothImage(int argc, char *argv[])
   return EXIT_SUCCESS;
 }
 
+template <unsigned int ImageDimension>
+int ConvolveImage( int argc, char *argv[] )
+{
+  typedef float                                  PixelType;
+  typedef itk::Image<PixelType, ImageDimension>  ImageType;
+
+  int argct = 2;
+  const std::string outputFileName = std::string( argv[argct] );
+  argct += 2;
+
+  std::string inputFileName = std::string( argv[argct] );   argct++;
+  std::string kernelFileName = std::string( argv[argct] );  argct++;
+
+  bool normalize = true;
+  if( argc > argct )
+    {
+    normalize = static_cast<bool>( atoi( argv[argct] ) );
+    }
+
+  typename ImageType::Pointer inputImage = ITK_NULLPTR;
+  typename ImageType::Pointer kernelImage = ITK_NULLPTR;
+
+  ReadImage<ImageType>( inputImage, inputFileName.c_str() );
+  ReadImage<ImageType>( kernelImage, kernelFileName.c_str() );
+
+  typedef itk::ConvolutionImageFilter<ImageType> FilterType;
+  typename FilterType::Pointer convoluter = FilterType::New();
+  convoluter->SetInput( inputImage );
+  convoluter->SetKernelImage( kernelImage );
+  convoluter->SetNormalize( normalize );
+  convoluter->Update();
+
+  typename ImageType::Pointer outputImage = convoluter->GetOutput();
+  outputImage->Update();
+  outputImage->DisconnectPipeline();
+
+  WriteImage<ImageType>( outputImage, outputFileName.c_str() );
+  return EXIT_SUCCESS;
+}
+
 
 template <unsigned int ImageDimension>
 int InPaint(int argc, char *argv[])
@@ -14015,6 +14055,11 @@ ImageMathHelperAll(int argc, char **argv)
     SmoothImage<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
+  if( operation == "Convolve")
+    {
+    ConvolveImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
   if( operation == "PeronaMalik")
     {
     PMSmoothImage<DIM>(argc, argv);
@@ -14879,6 +14924,9 @@ private:
 
     std::cout << "\n  PeronaMalik       : anisotropic diffusion w/varying conductance param (0.25 in example below)" << std::endl;
     std::cout << "      Usage        : PeronaMalik image #iterations conductance " << std::endl;
+
+    std::cout << "\n  Convolve       : convolve input image with kernel image" << std::endl;
+    std::cout << "      Usage        : Convolve inputImage kernelImage normalize? " << std::endl;
 
     std::cout << "  Finite            : replace non-finite values with finite-value (default = 0)" << std::endl;
     std::cout << "      Usage        : Finite Image.exdt {replace-value=0}" << std::endl;
