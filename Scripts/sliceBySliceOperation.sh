@@ -177,7 +177,7 @@ for (( i = 0; i < $NUMBER_OF_SLICES; i++ ))
       ${ANTSPATH}/ImageMath 2 $OUTPUT_SLICE RescaleImage $OUTPUT_SLICE ${PARAMETERS[0]} ${PARAMETERS[1]}
       ;;
     "TruncateImageIntensity")
-      echo ${ANTSPATH}/ImageMath 2 $OUTPUT_SLICE TruncateImageIntensity $OUTPUT_SLICE ${PARAMETERS[0]} ${PARAMETERS[1]} ${PARAMETERS[2]} ${PARAMETERS[3]}
+      ${ANTSPATH}/ImageMath 2 $OUTPUT_SLICE TruncateImageIntensity $OUTPUT_SLICE ${PARAMETERS[0]} ${PARAMETERS[1]} ${PARAMETERS[2]} ${PARAMETERS[3]}
       ;;
     *)
       echo "The operation '$OPERATION' is not an option.  See usage: '$0 -h 1'"
