@@ -197,8 +197,3 @@ if [[ $OPERATION != "ExtractAllSlices" ]];
     ${ANTSPATH}/PermuteFlipImageOrientationAxes 3 $OUTPUT_IMAGE $OUTPUT_IMAGE ${PERMUTATION_ORDER[$WHICH_DIRECTION]} 0 0 0 0
     ${ANTSPATH}/CopyImageHeaderInformation $INPUT_IMAGE $OUTPUT_IMAGE $OUTPUT_IMAGE 1 1 1
   fi
-
-
-
-
-
