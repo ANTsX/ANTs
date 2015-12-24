@@ -60,13 +60,14 @@ Operations:
 
      * ExtractAllSlices:
 
+     * Convolve (ImageMath):
+
      * DenoiseImage:
 
-     * SmoothImage:
+     * RescaleImage (ImageMath):
 
      * TruncateImageIntensity (ImageMath):
 
-     * RescaleImage (ImageMath):
 
 Example:
 
@@ -165,6 +166,9 @@ for (( i = 0; i < $NUMBER_OF_SLICES; i++ ))
     case "$OPERATION" in
     "ExtractAllSlices")
       mv ${OUTPUT_SLICE} ${OUTPUT_DIR}
+      ;;
+    "Convolve")
+      ${ANTSPATH}/ImageMath 2 $OUTPUT_SLICE Convolve $OUTPUT_SLICE ${PARAMETERS[0]} ${PARAMETERS[1]}
       ;;
     "DenoiseImage")
       ${ANTSPATH}/DenoiseImage -d 2 -i $OUTPUT_SLICE -o $OUTPUT_SLICE -v 0
