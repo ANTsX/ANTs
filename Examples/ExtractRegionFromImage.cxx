@@ -141,11 +141,7 @@ int ExtractRegionFromImage( int argc, char *argv[] )
   cropper->SetDirectionCollapseToSubmatrix();
   cropper->Update();
 
-  typedef itk::ImageFileWriter<ImageType> WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetInput( cropper->GetOutput() );
-  writer->SetFileName( argv[3] );
-  writer->Update();
+  WriteImage<ImageType>( cropper->GetOutput(), argv[3] );
 
   return EXIT_SUCCESS;
 }
