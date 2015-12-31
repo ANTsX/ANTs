@@ -21,15 +21,22 @@
 #include <iostream>
 #include <fstream>
 
+#include "itkArray.h"
 #include "itkExtractImageFilter.h"
 #include "itkImage.h"
 #include "ReadWriteData.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkKdTreeBasedKmeansEstimator.h"
+#include "itkLabelStatisticsImageFilter.h"
 #include "itkLinearInterpolateImageFunction.h"
+#include "itkListSample.h"
+#include "itkMinimumDecisionRule.h"
 #include "itkMultiplyImageFilter.h"
 #include "itkNeighborhoodIterator.h"
 #include "itkOtsuMultipleThresholdsImageFilter.h"
 #include "itkResampleImageFilter.h"
+#include "itkSampleClassifierFilter.h"
+#include "itkWeightedCentroidKdTreeGenerator.h"
 
 namespace ants
 {
@@ -169,6 +176,163 @@ typename TImage::Pointer OtsuThreshold(
   return inputThresholder->GetOutput();
 }
 
+template <class TImage>
+typename TImage::Pointer KmeansThreshold(
+  int NumberOfThresholds, typename TImage::Pointer input)
+{
+  std::cout << " Kmeans with " << NumberOfThresholds << " thresholds" << std::endl;
+
+  typedef TImage                                    ImageType;
+  typedef TImage                                    LabelImageType;
+  typedef float                                     RealType;
+  typedef int                                       LabelType;
+
+  typedef itk::Image<LabelType, TImage::ImageDimension>   MaskImageType;
+  typedef itk::Array<RealType>                            MeasurementVectorType;
+  typedef typename itk::Statistics::ListSample
+    <MeasurementVectorType>                               SampleType;
+
+  int maskLabel = 1;
+  unsigned int numberOfTissueClasses = NumberOfThresholds + 1;
+  typename LabelImageType::Pointer output = AllocImage<LabelImageType>( input, 0 );
+
+  typedef itk::LabelStatisticsImageFilter<ImageType, MaskImageType> StatsType;
+  typename StatsType::Pointer stats = StatsType::New();
+  stats->SetInput( input );
+
+  typename MaskImageType::Pointer maskImage = AllocImage<MaskImageType>( input, maskLabel );
+  stats->SetLabelInput( maskImage );
+  stats->UseHistogramsOff();
+  stats->Update();
+
+  RealType minValue = stats->GetMinimum( maskLabel );
+  RealType maxValue = stats->GetMaximum( maskLabel );
+
+  // The code below can be replaced by itkListSampleToImageFilter when we
+  // migrate over to the Statistics classes current in the Review/ directory.
+  //
+  typename SampleType::Pointer sample = SampleType::New();
+  sample->SetMeasurementVectorSize( 1 );
+
+  itk::ImageRegionConstIteratorWithIndex<ImageType> ItI( input,
+                                                    input->GetRequestedRegion() );
+  for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
+    {
+    if( !maskImage || maskImage->GetPixel( ItI.GetIndex() ) == maskLabel )
+      {
+      typename SampleType::MeasurementVectorType measurement;
+      measurement.SetSize( 1 );
+      measurement[0] = ItI.Get();
+      sample->PushBack( measurement );
+      }
+    }
+
+  typedef itk::Statistics::WeightedCentroidKdTreeGenerator<SampleType> TreeGeneratorType;
+  typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+  treeGenerator->SetSample( sample );
+  treeGenerator->SetBucketSize( 16 );
+  treeGenerator->Update();
+
+  typedef typename TreeGeneratorType::KdTreeType                TreeType;
+  typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
+  typename EstimatorType::Pointer estimator = EstimatorType::New();
+  estimator->SetKdTree( treeGenerator->GetOutput() );
+  estimator->SetMaximumIteration( 200 );
+  estimator->SetCentroidPositionChangesThreshold( 0.0 );
+
+  typename EstimatorType::ParametersType initialMeans( numberOfTissueClasses );
+
+  for( unsigned int n = 0; n < numberOfTissueClasses; n++ )
+    {
+    initialMeans[n] = minValue + ( maxValue - minValue )
+      * ( static_cast<RealType>( n ) + 0.5 )
+      / static_cast<RealType>( numberOfTissueClasses );
+    }
+  estimator->SetParameters( initialMeans );
+  estimator->StartOptimization();
+
+  //
+  // Classify the samples
+  //
+  typedef itk::Statistics::MinimumDecisionRule DecisionRuleType;
+  typename DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
+
+  typedef itk::Statistics::SampleClassifierFilter<SampleType> ClassifierType;
+  typename ClassifierType::Pointer classifier = ClassifierType::New();
+  classifier->SetDecisionRule( decisionRule );
+  classifier->SetInput( sample );
+  classifier->SetNumberOfClasses( numberOfTissueClasses );
+
+  typename ClassifierType::ClassLabelVectorObjectType::Pointer classLabels =
+    ClassifierType::ClassLabelVectorObjectType::New();
+  classifier->SetClassLabels( classLabels );
+  typename ClassifierType::ClassLabelVectorType & classLabelVector =
+    classLabels->Get();
+
+  //
+  // Order the cluster means so that the lowest mean of the input image
+  // corresponds to label '1', the second lowest to label '2', etc.
+  //
+  std::vector<RealType> estimatorParameters;
+  for( unsigned int n = 0; n < numberOfTissueClasses; n++ )
+    {
+    estimatorParameters.push_back( estimator->GetParameters()[n] );
+    }
+  std::sort( estimatorParameters.begin(), estimatorParameters.end() );
+
+  typedef itk::Statistics::DistanceToCentroidMembershipFunction
+    <MeasurementVectorType> MembershipFunctionType;
+  typename ClassifierType::MembershipFunctionVectorObjectType::Pointer
+  membershipFunctions = ClassifierType::MembershipFunctionVectorObjectType::New();
+  typename ClassifierType::MembershipFunctionVectorType & membershipFunctionsVector =
+    membershipFunctions->Get();
+
+  classifier->SetMembershipFunctions( membershipFunctions );
+  for( unsigned int n = 0; n < numberOfTissueClasses; n++ )
+    {
+    typename MembershipFunctionType::Pointer
+    membershipFunction = MembershipFunctionType::New();
+    membershipFunction->SetMeasurementVectorSize(
+      sample->GetMeasurementVectorSize() );
+    typename MembershipFunctionType::CentroidType centroid;
+    itk::NumericTraits<typename MembershipFunctionType::CentroidType>::SetLength(
+      centroid, sample->GetMeasurementVectorSize() );
+    centroid[0] = estimatorParameters[n];
+    membershipFunction->SetCentroid( centroid );
+    membershipFunctionsVector.push_back( membershipFunction.GetPointer() );
+
+    classLabelVector.push_back(
+      static_cast<typename ClassifierType::ClassLabelType>( n + 1 ) );
+    }
+  classifier->Update();
+
+  //
+  // Classify the voxels
+  //
+  typedef typename ClassifierType::MembershipSampleType ClassifierOutputType;
+  typedef typename ClassifierOutputType::ConstIterator  LabelIterator;
+
+  itk::ImageRegionIteratorWithIndex<LabelImageType> ItO( output,
+                                                         output->GetRequestedRegion() );
+  ItO.GoToBegin();
+  LabelIterator it = classifier->GetOutput()->Begin();
+  while( it != classifier->GetOutput()->End() )
+    {
+    if( !maskImage || maskImage->GetPixel( ItO.GetIndex() ) == maskLabel )
+      {
+      ItO.Set( it.GetClassLabel() );
+      ++it;
+      }
+    else
+      {
+      ItO.Set( itk::NumericTraits<LabelType>::ZeroValue() );
+      }
+    ++ItO;
+    }
+
+  return output;
+}
+
 template <unsigned int InImageDimension>
 int ThresholdImage( int argc, char * argv[] )
 {
@@ -183,6 +347,10 @@ int ThresholdImage( int argc, char * argv[] )
   if( strcmp(threshtype.c_str(), "Otsu") == 0 )
     {
     thresh = OtsuThreshold<FixedImageType>(atoi(argv[5]), fixed );
+    }
+  else if( strcmp(threshtype.c_str(), "Kmeans") == 0 )
+    {
+    thresh = KmeansThreshold<FixedImageType>(atoi(argv[5]), fixed );
     }
   else
     {
@@ -258,6 +426,7 @@ private:
     std::cout << "   ImageDimension ImageIn.ext outImage.ext  threshlo threshhi <insideValue> <outsideValue>"
              << std::endl;
     std::cout << "   ImageDimension ImageIn.ext outImage.ext  Otsu NumberofThresholds " << std::endl;
+    std::cout << "   ImageDimension ImageIn.ext outImage.ext  Kmeans NumberofThresholds " << std::endl;
 
     std::cout << " Inclusive thresholds " << std::endl;
     if( argc >= 2 &&
