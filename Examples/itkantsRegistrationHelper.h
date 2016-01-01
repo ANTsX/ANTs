@@ -869,7 +869,7 @@ private:
           {
           optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
           }
-        optimizer->SetWeights( optimizerWeights );
+        registrationMethod->SetOptimizerWeights( optimizerWeights );
         }
       }
 
