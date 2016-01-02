@@ -501,11 +501,13 @@ case "$PRECISIONTYPE" in
   ;;
 esac
 
-if [[ ${MASK} -eq 0 ]] ; then
+
+if [[ ${#MASK} -lt 3 ]] ; then
   MASK=""
 else
   MASK=" -x $MASK "
 fi
+
 
 COMMAND="${ANTS} --verbose 1 \
                  --dimensionality $DIM $PRECISION \
