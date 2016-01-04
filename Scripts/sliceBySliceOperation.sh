@@ -39,6 +39,7 @@ PROGRAMS[1]=PrintHeader
 PROGRAMS[2]=TileImages
 PROGRAMS[3]=DenoiseImage
 PROGRAMS[4]=ImageMath
+PROGRAMS[5]=N4BiasFieldCorrection
 
 for (( i = 0; i < ${#PROGRAMS[@]}; i++ ))
   do
@@ -63,6 +64,8 @@ Operations:
      * Convolve (ImageMath):
 
      * DenoiseImage:
+
+     * N4BiasFieldCorrection:
 
      * RescaleImage (ImageMath):
 
@@ -172,6 +175,9 @@ for (( i = 0; i < $NUMBER_OF_SLICES; i++ ))
       ;;
     "DenoiseImage")
       ${ANTSPATH}/DenoiseImage -d 2 -i $OUTPUT_SLICE -o $OUTPUT_SLICE -v 0
+      ;;
+    "N4BiasFieldCorrection")
+      ${ANTSPATH}/N4BiasFieldCorrection -d 2 -i $OUTPUT_SLICE -o $OUTPUT_SLICE -v 0 -s 2
       ;;
     "RescaleImage")
       ${ANTSPATH}/ImageMath 2 $OUTPUT_SLICE RescaleImage $OUTPUT_SLICE ${PARAMETERS[0]} ${PARAMETERS[1]}
