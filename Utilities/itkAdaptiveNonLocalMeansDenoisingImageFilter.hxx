@@ -42,7 +42,8 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   m_VarianceThreshold( 0.5 ),
   m_SmoothingFactor( 1.0 ),
   m_SmoothingVariance( 2.0 ),
-  m_MaximumInputPixelIntensity( NumericTraits<RealType>::NonpositiveMin() )
+  m_MaximumInputPixelIntensity( NumericTraits<RealType>::NonpositiveMin() ),
+  m_MinimumInputPixelIntensity( NumericTraits<RealType>::max() )
 {
   this->SetNumberOfRequiredInputs( 1 );
 
@@ -89,6 +90,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   statsFilter->Update();
 
   this->m_MaximumInputPixelIntensity = static_cast<RealType>( statsFilter->GetMaximum() );
+  this->m_MinimumInputPixelIntensity = static_cast<RealType>( statsFilter->GetMinimum() );
 
   this->m_ThreadContributionCountImage = RealImageType::New();
   this->m_ThreadContributionCountImage->CopyInformation( inputImage );
@@ -143,7 +145,6 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   unsigned int neighborhoodBlockSize = ( ItBM.GetNeighborhood() ).Size();
 
   Array<RealType> weightedAverageIntensities( neighborhoodBlockSize );
-
 
   ItM.GoToBegin();
   ItV.GoToBegin();
@@ -429,19 +430,21 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
       }
     }
 
-  ImageRegionIteratorWithIndex<OutputImageType> ItO( this->GetOutput(), this->GetOutput()->GetRequestedRegion() );
+  ImageRegionIteratorWithIndex<OutputImageType> ItO( this->GetOutput(),
+    this->GetOutput()->GetRequestedRegion() );
   ImageRegionConstIterator<RealImageType> ItL( this->m_ThreadContributionCountImage,
     this->m_ThreadContributionCountImage->GetRequestedRegion() );
 
   for( ItO.GoToBegin(), ItL.GoToBegin(); !ItO.IsAtEnd(); ++ItO, ++ItL )
     {
+    RealType estimate = ItO.Get();
+
     if( ItL.Get() == 0.0 )
       {
       continue;
       }
 
-    RealType estimate = ItO.Get();
-    estimate /= ItL.Get();
+//     estimate /= ItL.Get();
 
     if( this->m_UseRicianNoiseModel )
       {
@@ -454,6 +457,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
         }
       estimate = std::sqrt( estimate );
       }
+
     ItO.Set( estimate );
     }
 }

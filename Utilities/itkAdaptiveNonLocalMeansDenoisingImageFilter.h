@@ -67,6 +67,7 @@ public:
 
   /** Some convenient typedefs. */
   typedef TInputImage                                    InputImageType;
+  typedef typename InputImageType::PixelType             InputPixelType;
   typedef TOutputImage                                   OutputImageType;
   typedef typename InputImageType::RegionType            RegionType;
 
@@ -180,6 +181,7 @@ private:
   RealType                          m_SmoothingVariance;
 
   RealType                          m_MaximumInputPixelIntensity;
+  RealType                          m_MinimumInputPixelIntensity;
 
   RealImagePointer                  m_MeanImage;
   RealImagePointer                  m_RicianBiasImage;
