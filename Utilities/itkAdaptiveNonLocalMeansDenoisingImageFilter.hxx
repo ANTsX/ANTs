@@ -421,7 +421,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
       RealType bias = 2.0 * ItS.Get() / this->CalculateCorrectionFactor( snr );
 
-      if( vnl_math_isnan( bias ) )
+      if( vnl_math_isnan( bias ) || vnl_math_isinf( bias ) )
         {
         bias = 0.0;
         }
@@ -433,7 +433,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   ImageRegionConstIterator<RealImageType> ItL( this->m_ThreadContributionCountImage,
     this->m_ThreadContributionCountImage->GetRequestedRegion() );
 
-  for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
+  for( ItO.GoToBegin(), ItL.GoToBegin(); !ItO.IsAtEnd(); ++ItO, ++ItL )
     {
     if( ItL.Get() == 0.0 )
       {

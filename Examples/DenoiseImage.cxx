@@ -142,10 +142,10 @@ int Denoise( itk::ants::CommandLineParser *parser )
     shrinkFactor = parser->Convert<int>( shrinkFactorOption->GetFunction( 0 )->GetName() );
     }
 
-  if( shrinkFactor != 1 && verbose )
-    {
-    std::cout << "A shrink factor of > 1 doesn't seem to be working.  I'm turning off this option for now." << std::endl;
-    }
+//   if( shrinkFactor != 1 && verbose )
+//     {
+//     std::cout << "A shrink factor of > 1 doesn't seem to be working.  I'm turning off this option for now." << std::endl;
+//     }
 
   shrinker->SetShrinkFactors( shrinkFactor );
   shrinker->Update();
