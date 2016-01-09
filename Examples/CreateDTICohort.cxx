@@ -195,7 +195,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       lowerThresholdFunction = parser->Convert<RealType>( maskImageOption->GetFunction( 0 )->GetName() );
       }
     }
-  if( !maskImage->GetBufferPointer() )
+  if( maskImage.IsNull() )
     {
     std::cout << "Mask not read.  Creating mask by thresholding "
              << "the FA of the DTI atlas at >= " << lowerThresholdFunction
