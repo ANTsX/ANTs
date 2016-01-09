@@ -140,6 +140,7 @@ Optional arguments:
      -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
                                                 during brain extraction, brain segmentation, and (optional) normalization
                                                 to a template.  Otherwise use antsRegistrationSyN.sh (default = 0).
+     -x:                                        Number of iterations within Atropos (default 5).
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0.
                                                 Requires single thread computation for complete reproducibility.
 USAGE
@@ -339,6 +340,7 @@ ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
 ATROPOS_SEGMENTATION_CONVERGENCE="[5,0.0]"
 ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[1]"
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=3
+ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=5 # to be backward compatible but i like 25
 ATROPOS_SEGMENTATION_LABEL_PROPAGATION=()
 
 DIRECT=${ANTSPATH}/KellyKapowski
@@ -357,7 +359,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
@@ -407,6 +409,9 @@ else
        ;;
           n) #atropos segmentation iterations
        ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=$OPTARG
+       ;;
+          x) #atropos segmentation internal iterations
+       ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=$OPTARG
        ;;
           o) #output prefix
        OUTPUT_PREFIX=$OPTARG
@@ -469,6 +474,7 @@ if [[ $DEBUG_MODE -gt 0 ]];
 
     # I think this is the number of times we run the whole N4 / Atropos thing, at the cost of about 10 minutes a time
     ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=1
+    ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=5 # internal to atropos
 
     DIRECT_CONVERGENCE="[5,0.0,10]"
 
@@ -888,7 +894,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
-      -n 5 \
+      -n ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
       -c ${NUMBER_OF_PRIOR_IMAGES} \
       ${N4_INCLUDE_PRIORS_COMMAND_LINE} \
       -p ${SEGMENTATION_PRIOR_WARPED} \
@@ -913,7 +919,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \
       -m 2 \
-      -n 5 \
+      -n ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
       -c ${NUMBER_OF_PRIOR_IMAGES} \
       ${N4_INCLUDE_PRIORS_COMMAND_LINE} \
       -p ${SEGMENTATION_PRIOR_WARPED} \
