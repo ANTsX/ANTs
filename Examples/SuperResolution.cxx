@@ -4,9 +4,11 @@
 #include "itkAddImageFilter.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkContinuousIndex.h"
+#include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImportImageFilter.h"
 #include "itkPointSet.h"
+#include "itkRescaleIntensityImageFilter.h"
 #include "itkTimeProbe.h"
 #include "itkVector.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
@@ -43,25 +45,14 @@ int SuperResolution( unsigned int argc, char *argv[] )
   typename BSplineFilterType::ArrayType numberOfLevels;
   typename BSplineFilterType::ArrayType ncps;
 
-  std::vector<unsigned int> nlevels = ConvertVector<unsigned int>( std::string( argv[5] ) );
-  if ( nlevels.size() == 1 )
+  bool useGradientWeighting = true;
+  RealType gradientSigma = atof( argv[4] );
+  if( gradientSigma < 0.0 )
     {
-    numberOfLevels.Fill( nlevels[0] );
-    }
-  else if ( nlevels.size() == ImageDimension )
-    {
-    for ( unsigned int d = 0; d < ImageDimension; d++ )
-      {
-      numberOfLevels[d] = nlevels[d];
-      }
-    }
-  else
-    {
-    std::cerr << "Invalid nlevels format." << std::endl;
-    return EXIT_FAILURE;
+    useGradientWeighting = false;
     }
 
-  std::vector<unsigned int> meshSize = ConvertVector<unsigned int>( std::string( argv[4] ) );
+  std::vector<unsigned int> meshSize = ConvertVector<unsigned int>( std::string( argv[5] ) );
   if ( meshSize.size() == 1 )
     {
     ncps.Fill( meshSize[0] + splineOrder );
@@ -79,6 +70,24 @@ int SuperResolution( unsigned int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  std::vector<unsigned int> nlevels = ConvertVector<unsigned int>( std::string( argv[6] ) );
+  if ( nlevels.size() == 1 )
+    {
+    numberOfLevels.Fill( nlevels[0] );
+    }
+  else if ( nlevels.size() == ImageDimension )
+    {
+    for ( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      numberOfLevels[d] = nlevels[d];
+      }
+    }
+  else
+    {
+    std::cerr << "Invalid nlevels format." << std::endl;
+    return EXIT_FAILURE;
+    }
+
   // Find the average for the offset
 
   typename ImageType::IndexType domainBeginIndex = domainImage->GetRequestedRegion().GetIndex();
@@ -90,7 +99,7 @@ int SuperResolution( unsigned int argc, char *argv[] )
 
   RealType averageIntensity = 0.0;
   unsigned int N = 0;
-  for( unsigned int n = 6; n < argc; n++ )
+  for( unsigned int n = 7; n < argc; n++ )
     {
     typename ImageType::Pointer inputImage = ITK_NULLPTR;
     ReadImage<ImageType>( inputImage, argv[n] );
@@ -148,10 +157,29 @@ int SuperResolution( unsigned int argc, char *argv[] )
   const typename ImporterType::OutputImageType * parametricDomainImage = importer->GetOutput();
 
   N = 0;
-  for( unsigned int n = 6; n < argc; n++ )
+  for( unsigned int n = 7; n < argc; n++ )
     {
     typename ImageType::Pointer inputImage = ITK_NULLPTR;
     ReadImage<ImageType>( inputImage, argv[n] );
+
+    typename ImageType::Pointer gradientImage = ITK_NULLPTR;
+    if( useGradientWeighting )
+      {
+      typedef itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType, ImageType> GradientFilterType;
+      typename GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+      gradientFilter->SetSigma( gradientSigma );
+      gradientFilter->SetInput( inputImage );
+
+      typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+      typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+      rescaler->SetOutputMinimum( 0.0 );
+      rescaler->SetOutputMaximum( 1.0 );
+      rescaler->SetInput( gradientFilter->GetOutput() );
+
+      gradientImage = rescaler->GetOutput();
+      gradientImage->Update();
+      gradientImage->DisconnectPipeline();
+      }
 
     itk::ImageRegionConstIteratorWithIndex<ImageType> It( inputImage, inputImage->GetRequestedRegion() );
     for( It.GoToBegin(); !It.IsAtEnd(); ++It )
@@ -179,6 +207,16 @@ int SuperResolution( unsigned int argc, char *argv[] )
         continue;
         }
 
+      RealType weight = 1.0;
+      if( gradientImage.IsNotNull() )
+        {
+        weight = gradientImage->GetPixel( It.GetIndex() );
+        }
+      if( weight == 0.0 )
+        {
+        continue;
+        }
+
 //       domainImage->SetPixel( index, 1 );
 
       parametricDomainImage->TransformContinuousIndexToPhysicalPoint( cidx, imagePoint );
@@ -188,7 +226,7 @@ int SuperResolution( unsigned int argc, char *argv[] )
 
       bsplinePoints->SetPointData( N, scalar );
       bsplinePoints->SetPoint( N, imagePoint );
-      weights->InsertElement( N, 1 );
+      weights->InsertElement( N, weight );
 
       N++;
       }
@@ -284,9 +322,13 @@ private:
 
   // antscout->set_stream( out_stream );
 
-  if ( argc < 7 )
+  if ( argc < 8 )
     {
-    std::cerr << argv[0] << " imageDimension outputImage domainImage meshSize numberOfLevels inputImage1 ... inputImageN" << std::endl;
+    std::cerr << argv[0] << " imageDimension outputImage domainImage gradientSigma meshSize numberOfLevels inputImage1 ... inputImageN" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "    N.B. The \'gradientSigma\' parameter is used in calculating the gradient magnitude of the input images " << std::endl;
+    std::cerr << "       for weighting the voxel points during fitting.  If a negative \'gradient\' sigma is specified then no " << std::endl;
+    std::cerr << "       weighting is used." << std::endl;
 
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
