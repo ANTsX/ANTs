@@ -677,7 +677,7 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 # Brain extraction
 #
 ################################################################################
-if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 1  ]] ; then # BAStages bxt
+if [ ${ACT_STAGE} -eq 0 ] || [ ${ACT_STAGE} -eq 1  ] ; then # BAStages bxt
 if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
   then
 
@@ -750,7 +750,7 @@ SEGMENTATION_GENERIC_AFFINE=${SEGMENTATION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
 SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.nii.gz
 SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
 
-if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 2  ]] ; then # BAStages seg
+if [ ${ACT_STAGE} -eq 0 ] || [ ${ACT_STAGE} -eq 2  ] ; then # BAStages seg
 if [[ ! -f ${BRAIN_SEGMENTATION} ]];
   then
 
@@ -999,7 +999,7 @@ REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.${OUTPUT_SU
 HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
 EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.nii.gz
 
-if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 3  ]] ; then # BAStages temreg
+if [ ${ACT_STAGE} -eq 0 ] || [ ${ACT_STAGE} -eq 3  ] ; then # BAStages temreg
 
 if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
   then
@@ -1111,7 +1111,7 @@ CORTICAL_THICKNESS_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessSegmentation.${
 CORTICAL_THICKNESS_GM_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessGMSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_LABEL_THICKNESS_PRIOR=${OUTPUT_PREFIX}CorticalLabelThicknessPrior.${OUTPUT_SUFFIX}
 
-if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 4  ]] ; then # BAStages direct
+if [ ${ACT_STAGE} -eq 0 ] || [ ${ACT_STAGE} -eq 4  ] ; then # BAStages direct
 if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
   then
 
@@ -1238,7 +1238,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 fi # BAStages
 
 #### BA Edits Begin ####
-if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 5  ]] ; then # BAStages qc
+if [ ${ACT_STAGE} -eq 0 ] || [ ${ACT_STAGE} -eq 5  ] ; then # BAStages qc
 echo "--------------------------------------------------------------------------------------"
 echo "Compute summary measurements"
 echo "--------------------------------------------------------------------------------------"
