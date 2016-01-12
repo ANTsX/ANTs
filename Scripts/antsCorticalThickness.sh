@@ -680,7 +680,8 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 EXTRACTED_SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
 EXTRACTION_GENERIC_AFFINE=${OUTPUT_PREFIX}BrainExtractionPrior0GenericAffine.mat
 EXTRACTED_BRAIN_TEMPLATE=${OUTPUT_PREFIX}ExtractedTemplateBrain.${OUTPUT_SUFFIX}
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 1  ] || [[ ! -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then # BAStages bxt
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 1  ]] || [[ ! -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then # BAStages bxt
 if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
   then
 
@@ -739,6 +740,7 @@ if [[ -f ${BRAIN_TEMPLATE} ]] && [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
   fi
 echo ${OUTPUT_PREFIX}ACTStage1Complete.txt > ${OUTPUT_PREFIX}ACTStage1Complete.txt
 fi # BAStages
+fi # check completion
 
 ################################################################################
 #
@@ -751,7 +753,8 @@ SEGMENTATION_GENERIC_AFFINE=${SEGMENTATION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
 SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.nii.gz
 SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
 
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 2  ] || [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]; then # BAStages seg
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]; then
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 2  ]] ; then # BAStages seg
 if [[ ! -f ${BRAIN_SEGMENTATION} ]];
   then
 
@@ -978,6 +981,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
    fi
    echo ${OUTPUT_PREFIX}ACTStage2Complete.txt > ${OUTPUT_PREFIX}ACTStage2Complete.txt
 fi # BAStages ending here seems safe because no variable definitions above
+fi # check completion
 
 ################################################################################
 #
@@ -1001,7 +1005,8 @@ REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.${OUTPUT_SU
 HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
 EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.nii.gz
 
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 3  ] || [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]]; then # BAStages reg
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]]; then
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 3  ]] ; then # BAStages reg
 
 if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
   then
@@ -1095,6 +1100,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
   fi # if registration template & jacobian check
   echo ${OUTPUT_PREFIX}ACTStage3Complete.txt > ${OUTPUT_PREFIX}ACTStage3Complete.txt
 fi # BAStages
+fi # check completion
 
 
 
@@ -1114,7 +1120,8 @@ CORTICAL_THICKNESS_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessSegmentation.${
 CORTICAL_THICKNESS_GM_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessGMSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_LABEL_THICKNESS_PRIOR=${OUTPUT_PREFIX}CorticalLabelThicknessPrior.${OUTPUT_SUFFIX}
 
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 4  ] || [[ ! -s ${OUTPUT_PREFIX}ACTStage4Complete.txt ]]; then # BAStages thk
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage4Complete.txt ]]; then
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 4  ]] ; then # BAStages thk
 if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
   then
 
@@ -1240,9 +1247,11 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
   fi
   echo ${OUTPUT_PREFIX}ACTStage4Complete.txt > ${OUTPUT_PREFIX}ACTStage4Complete.txt
 fi # BAStages
+fi # check completion
 
 #### BA Edits Begin ####
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 5  ] || [[ ! -s ${OUTPUT_PREFIX}ACTStage5Complete.txt ]]; then # BAStages qc
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage5Complete.txt ]]; then
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 5  ]] ; then # BAStages qc
 echo "--------------------------------------------------------------------------------------"
 echo "Compute summary measurements"
 echo "--------------------------------------------------------------------------------------"
@@ -1382,6 +1391,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
   fi
   echo ${OUTPUT_PREFIX}ACTStage5Complete.txt > ${OUTPUT_PREFIX}ACTStage5Complete.txt
 fi # BAStages
+fi # check completion
 ################################################################################
 #
 # End of main routine
