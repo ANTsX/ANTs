@@ -681,7 +681,7 @@ EXTRACTED_SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFI
 EXTRACTION_GENERIC_AFFINE=${OUTPUT_PREFIX}BrainExtractionPrior0GenericAffine.mat
 EXTRACTED_BRAIN_TEMPLATE=${OUTPUT_PREFIX}ExtractedTemplateBrain.${OUTPUT_SUFFIX}
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 1  ]] || [[ ! -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then # BAStages bxt
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 1  ]] ; then # BAStages bxt
 if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
   then
 
