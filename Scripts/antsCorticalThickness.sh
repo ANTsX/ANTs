@@ -142,6 +142,7 @@ Optional arguments:
                                                 to a template.  Otherwise use antsRegistrationSyN.sh (default = 0).
      -x:                                        Number of iterations within Atropos (default 5).
      -y:                                        Which stage of ACT to run (default = 0, run all).  Tries to split in 2 hour chunks.
+                                                Will produce OutputNameACTStageNComplete.txt for each completed stage.
                                                 1: brain extraction
                                                 2: tissue segmentation
                                                 3: template registration
