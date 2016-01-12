@@ -141,6 +141,12 @@ Optional arguments:
                                                 during brain extraction, brain segmentation, and (optional) normalization
                                                 to a template.  Otherwise use antsRegistrationSyN.sh (default = 0).
      -x:                                        Number of iterations within Atropos (default 5).
+     -y:                                        Which stage of ACT to run (default = 0, run all).  Tries to split in 2 hour chunks.
+                                                1: brain extraction
+                                                2: tissue segmentation
+                                                3: template registration
+                                                4: DiReCT cortical thickness
+                                                5: qc, quality control and summary measurements
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0.
                                                 Requires single thread computation for complete reproducibility.
 USAGE
@@ -243,6 +249,8 @@ PARAMETERS
 # Echos a command to stdout, then runs it
 # Will immediately exit on error unless you set debug flag here
 DEBUG_MODE=0
+
+ACT_STAGE=0 # run all stages
 
 function logCmd() {
   cmd="$*"
@@ -359,7 +367,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:x:y:z:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
@@ -440,6 +448,9 @@ else
        ;;
           w) #atropos prior weight
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
+       ;;
+          y) #which stage
+       ACT_STAGE=$OPTARG
        ;;
           z) #debug mode
        DEBUG_MODE=$OPTARG
@@ -666,7 +677,7 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 # Brain extraction
 #
 ################################################################################
-
+if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 1  ]] ; then # BAStages bxt
 if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
   then
 
@@ -712,6 +723,7 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
       fi
 
   fi
+fi # BAStages end here because of variable definitions below
 
 EXTRACTED_SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
 if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
@@ -732,13 +744,13 @@ if [[ -f ${BRAIN_TEMPLATE} ]] && [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
 # Brain segmentation
 #
 ################################################################################
-
 SEGMENTATION_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1Warp.nii.gz
 SEGMENTATION_INVERSE_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1InverseWarp.nii.gz
 SEGMENTATION_GENERIC_AFFINE=${SEGMENTATION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
 SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.nii.gz
 SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
 
+if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 2  ]] ; then # BAStages seg
 if [[ ! -f ${BRAIN_SEGMENTATION} ]];
   then
 
@@ -963,7 +975,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     echo
 
    fi
-
+fi # BAStages ending here seems safe because no variable definitions above
 
 ################################################################################
 #
@@ -983,21 +995,22 @@ REGISTRATION_SUBJECT_OUTPUT_PREFIX=${OUTPUT_PREFIX}TemplateToSubject
 REGISTRATION_SUBJECT_GENERIC_AFFINE=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}1GenericAffine.mat
 REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.${OUTPUT_SUFFIX}
 
+# Use first N4 corrected segmentation image, which we assume to be T1
+HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
+EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.nii.gz
+
+if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 3  ]] ; then # BAStages temreg
+
 if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
   then
 
     TMP_FILES=()
-
-    # Use first N4 corrected segmentation image, which we assume to be T1
-    HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
 
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " Registration brain masked ${HEAD_N4_IMAGE} to ${REGISTRATION_TEMPLATE} "
     echo "--------------------------------------------------------------------------------------"
     echo
-
-    EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.nii.gz
 
     logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} m ${HEAD_N4_IMAGE} ${BRAIN_EXTRACTION_MASK}
 
@@ -1078,7 +1091,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
         done
       fi
   fi # if registration template & jacobian check
-
+fi # BAStages
 
 
 
@@ -1098,6 +1111,7 @@ CORTICAL_THICKNESS_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessSegmentation.${
 CORTICAL_THICKNESS_GM_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessGMSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_LABEL_THICKNESS_PRIOR=${OUTPUT_PREFIX}CorticalLabelThicknessPrior.${OUTPUT_SUFFIX}
 
+if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 4  ]] ; then # BAStages direct
 if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
   then
 
@@ -1221,9 +1235,10 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     echo
 
   fi
-
+fi # BAStages
 
 #### BA Edits Begin ####
+if [[ ! ${ACT_STAGE} -eq 0 || ${ACT_STAGE} -eq 5  ]] ; then # BAStages qc
 echo "--------------------------------------------------------------------------------------"
 echo "Compute summary measurements"
 echo "--------------------------------------------------------------------------------------"
@@ -1361,7 +1376,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
         done
       fi
   fi
-
+fi # BASTAGES
 ################################################################################
 #
 # End of main routine
