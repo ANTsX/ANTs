@@ -737,6 +737,7 @@ if [[ -f ${BRAIN_TEMPLATE} ]] && [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
     logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_PRIOR} ${EXTRACTED_BRAIN_TEMPLATE} 0.1 1.01 1 0
     logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_BRAIN_TEMPLATE} m ${BRAIN_TEMPLATE} ${EXTRACTED_BRAIN_TEMPLATE}
   fi
+echo ${OUTPUT_PREFIX}ACTStage1Complete.txt > ${OUTPUT_PREFIX}ACTStage1Complete.txt
 fi # BAStages
 
 ################################################################################
@@ -975,6 +976,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     echo
 
    fi
+   echo ${OUTPUT_PREFIX}ACTStage2Complete.txt > ${OUTPUT_PREFIX}ACTStage2Complete.txt
 fi # BAStages ending here seems safe because no variable definitions above
 
 ################################################################################
@@ -1091,6 +1093,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
         done
       fi
   fi # if registration template & jacobian check
+  echo ${OUTPUT_PREFIX}ACTStage3Complete.txt > ${OUTPUT_PREFIX}ACTStage3Complete.txt
 fi # BAStages
 
 
@@ -1235,6 +1238,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     echo
 
   fi
+  echo ${OUTPUT_PREFIX}ACTStage4Complete.txt > ${OUTPUT_PREFIX}ACTStage4Complete.txt
 fi # BAStages
 
 #### BA Edits Begin ####
@@ -1376,7 +1380,8 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
         done
       fi
   fi
-fi # BASTAGES
+  echo ${OUTPUT_PREFIX}ACTStage5Complete.txt > ${OUTPUT_PREFIX}ACTStage5Complete.txt
+fi # BAStages
 ################################################################################
 #
 # End of main routine
