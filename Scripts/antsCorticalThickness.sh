@@ -144,10 +144,11 @@ Optional arguments:
      -y:                                        Which stage of ACT to run (default = 0, run all).  Tries to split in 2 hour chunks.
                                                 Will produce OutputNameACTStageNComplete.txt for each completed stage.
                                                 1: brain extraction
-                                                2: tissue segmentation
-                                                3: template registration
-                                                4: DiReCT cortical thickness
-                                                5: qc, quality control and summary measurements
+                                                2: template registration
+                                                3: tissue segmentation
+                                                4: template registration (improved, optional)
+                                                5: DiReCT cortical thickness
+                                                6: qc, quality control and summary measurements
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0.
                                                 Requires single thread computation for complete reproducibility.
 USAGE
@@ -755,10 +756,7 @@ SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.nii.gz
 SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
 
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]; then
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 2  ]] ; then # BAStages seg
-if [[ ! -f ${BRAIN_SEGMENTATION} ]];
-  then
-
+  if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 2  ]] ; then # BAStages reg
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " Brain segmentation using the following steps:"
@@ -878,12 +876,16 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
 
             logCmd $exe_brain_segmentation_2
           done
+        echo ${OUTPUT_PREFIX}ACTStage2Complete.txt > ${OUTPUT_PREFIX}ACTStage2Complete.txt
       fi
+    fi # BAStages check reg
+  fi # BAStages check reg
 
-    # We do two stages of antsAtroposN4.  The first stage is to get a good N4
-    # bias corrected image(s).  This bias corrected image(s) is used as input to the
-    # second stage where we only do 2 iterations.
-
+# We do two stages of antsAtroposN4.  The first stage is to get a good N4
+# bias corrected image(s).  This bias corrected image(s) is used as input to the
+# second stage where we only do 2 iterations.
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]]; then
+  if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 3  ]] ; then # BAStages seg
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
     for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
@@ -979,10 +981,9 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     echo "--------------------------------------------------------------------------------------"
     echo
 
-   fi
-   echo ${OUTPUT_PREFIX}ACTStage2Complete.txt > ${OUTPUT_PREFIX}ACTStage2Complete.txt
-fi # BAStages ending here seems safe because no variable definitions above
-fi # check completion
+   echo ${OUTPUT_PREFIX}ACTStage3Complete.txt > ${OUTPUT_PREFIX}ACTStage3Complete.txt
+  fi
+fi # BAStages seg
 
 ################################################################################
 #
@@ -1006,8 +1007,8 @@ REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.${OUTPUT_SU
 HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
 EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.nii.gz
 
-if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]]; then
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 3  ]] ; then # BAStages reg
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage4Complete.txt ]]; then
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 4 ]] ; then # BAStages reg
 
 if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
   then
@@ -1098,12 +1099,11 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
             fi
         done
       fi
+  logCmd ${ANTSPATH}/CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
+  echo ${OUTPUT_PREFIX}ACTStage4Complete.txt > ${OUTPUT_PREFIX}ACTStage4Complete.txt
   fi # if registration template & jacobian check
-  echo ${OUTPUT_PREFIX}ACTStage3Complete.txt > ${OUTPUT_PREFIX}ACTStage3Complete.txt
 fi # BAStages
 fi # check completion
-
-
 
 ################################################################################
 #
@@ -1121,8 +1121,8 @@ CORTICAL_THICKNESS_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessSegmentation.${
 CORTICAL_THICKNESS_GM_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessGMSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_LABEL_THICKNESS_PRIOR=${OUTPUT_PREFIX}CorticalLabelThicknessPrior.${OUTPUT_SUFFIX}
 
-if [[ ! -s ${OUTPUT_PREFIX}ACTStage4Complete.txt ]]; then
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 4  ]] ; then # BAStages thk
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage5Complete.txt ]]; then
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 5  ]] ; then # BAStages thk
 if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
   then
 
@@ -1246,20 +1246,19 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     echo
 
   fi
-  echo ${OUTPUT_PREFIX}ACTStage4Complete.txt > ${OUTPUT_PREFIX}ACTStage4Complete.txt
+  echo ${OUTPUT_PREFIX}ACTStage5Complete.txt > ${OUTPUT_PREFIX}ACTStage5Complete.txt
 fi # BAStages
 fi # check completion
 
 #### BA Edits Begin ####
-if [[ ! -s ${OUTPUT_PREFIX}ACTStage5Complete.txt ]]; then
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 5  ]] ; then # BAStages qc
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage6Complete.txt ]]; then
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 6  ]] ; then # BAStages qc
 echo "--------------------------------------------------------------------------------------"
 echo "Compute summary measurements"
 echo "--------------------------------------------------------------------------------------"
 
 if [[ -f ${REGISTRATION_TEMPLATE_WARP} ]];
   then
-    logCmd ${ANTSPATH}/CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
     exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1"
     logCmd $exe_template_registration_3
 
@@ -1390,7 +1389,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
         done
       fi
   fi
-  echo ${OUTPUT_PREFIX}ACTStage5Complete.txt > ${OUTPUT_PREFIX}ACTStage5Complete.txt
+  echo ${OUTPUT_PREFIX}ACTStage6Complete.txt > ${OUTPUT_PREFIX}ACTStage6Complete.txt
 fi # BAStages
 fi # check completion
 ################################################################################
