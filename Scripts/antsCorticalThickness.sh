@@ -755,7 +755,8 @@ SEGMENTATION_GENERIC_AFFINE=${SEGMENTATION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
 SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.nii.gz
 SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
 
-if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]; then
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then
   if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 2  ]] ; then # BAStages reg
     echo
     echo "--------------------------------------------------------------------------------------"
@@ -891,7 +892,9 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]; then
 # We do two stages of antsAtroposN4.  The first stage is to get a good N4
 # bias corrected image(s).  This bias corrected image(s) is used as input to the
 # second stage where we only do 2 iterations.
-if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]]; then
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]] ; then
   if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 3  ]] ; then # BAStages seg
     time_start_brain_segmentation=`date +%s`
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
@@ -1015,7 +1018,10 @@ REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.${OUTPUT_SU
 HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
 EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.nii.gz
 
-if [[ ! -s ${OUTPUT_PREFIX}ACTStage4Complete.txt ]]; then
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage4Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]] ; then
 if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 4 ]] ; then # BAStages reg
 
 if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
@@ -1131,7 +1137,10 @@ CORTICAL_THICKNESS_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessSegmentation.${
 CORTICAL_THICKNESS_GM_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessGMSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_LABEL_THICKNESS_PRIOR=${OUTPUT_PREFIX}CorticalLabelThicknessPrior.${OUTPUT_SUFFIX}
 
-if [[ ! -s ${OUTPUT_PREFIX}ACTStage5Complete.txt ]]; then
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage5Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]] ; then
 if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 5  ]] ; then # BAStages thk
 if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
   then
@@ -1261,7 +1270,11 @@ fi # BAStages
 fi # check completion
 
 #### BA Edits Begin ####
-if [[ ! -s ${OUTPUT_PREFIX}ACTStage6Complete.txt ]]; then
+if [[ ! -s ${OUTPUT_PREFIX}ACTStage6Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage4Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]] ; then
 if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 6  ]] ; then # BAStages qc
 echo "--------------------------------------------------------------------------------------"
 echo "Compute summary measurements"
