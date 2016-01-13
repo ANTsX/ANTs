@@ -1406,14 +1406,16 @@ fi # check completion
 #
 ################################################################################
 
-logCmd checkOutputExists
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -ge 5  ]] ; then
+  logCmd checkOutputExists
+fi
 
 time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
 
 echo
 echo "--------------------------------------------------------------------------------------"
-echo " Done with ANTs processing pipeline"
+echo " Done with ANTs processing pipeline: stage $ACT_STAGE"
 echo " Script executed in $time_elapsed seconds"
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
 echo "--------------------------------------------------------------------------------------"
