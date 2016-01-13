@@ -876,8 +876,8 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]; then
 
             logCmd $exe_brain_segmentation_2
           done
-        echo ${OUTPUT_PREFIX}ACTStage2Complete.txt > ${OUTPUT_PREFIX}ACTStage2Complete.txt
       fi
+      echo ${OUTPUT_PREFIX}ACTStage2Complete.txt > ${OUTPUT_PREFIX}ACTStage2Complete.txt
     fi # BAStages check reg
   fi # BAStages check reg
 
@@ -1100,8 +1100,8 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
         done
       fi
   logCmd ${ANTSPATH}/CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
-  echo ${OUTPUT_PREFIX}ACTStage4Complete.txt > ${OUTPUT_PREFIX}ACTStage4Complete.txt
   fi # if registration template & jacobian check
+  echo ${OUTPUT_PREFIX}ACTStage4Complete.txt > ${OUTPUT_PREFIX}ACTStage4Complete.txt
 fi # BAStages
 fi # check completion
 
