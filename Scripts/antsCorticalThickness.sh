@@ -766,7 +766,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]; then
     echo "--------------------------------------------------------------------------------------"
     echo
 
-    time_start_brain_segmentation=`date +%s`
+    time_start_brain_registration=`date +%s`
 
     # Check to see if the warped priors exist.  If so, we don't need to warp
     # the template and priors to the individual subject.
@@ -878,6 +878,13 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]; then
           done
       fi
       echo ${OUTPUT_PREFIX}ACTStage2Complete.txt > ${OUTPUT_PREFIX}ACTStage2Complete.txt
+      time_end_brain_registration=`date +%s`
+      time_elapsed_brain_registration=$((time_end_brain_registration - time_start_brain_registration))
+      echo
+      echo "--------------------------------------------------------------------------------------"
+      echo " Done with brain registration:  $(( time_elapsed_brain_segmentation / 3600 ))h $(( time_elapsed_brain_registration %3600 / 60 ))m $(( time_elapsed_brain_registration % 60 ))s"
+      echo "--------------------------------------------------------------------------------------"
+      echo
     fi # BAStages check reg
   fi # BAStages check reg
 
@@ -886,6 +893,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]; then
 # second stage where we only do 2 iterations.
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]]; then
   if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 3  ]] ; then # BAStages seg
+    time_start_brain_segmentation=`date +%s`
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
     for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
