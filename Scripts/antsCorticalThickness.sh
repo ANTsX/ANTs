@@ -792,12 +792,21 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
         then
           echo "The segmentation template doesn't exist:"
           echo "   ${EXTRACTED_BRAIN_TEMPLATE}"
+          rm ${OUTPUT_PREFIX}ACTStage1Complete.txt
           exit 1
         fi
       if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
         then
           echo "The extracted brain doesn't exist:"
           echo "   ${EXTRACTED_SEGMENTATION_BRAIN}"
+          rm ${OUTPUT_PREFIX}ACTStage1Complete.txt
+          exit 1
+        fi
+      if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
+        then
+          echo "The brain extraction mask does not exist:"
+          echo "   ${BRAIN_EXTRACTION_MASK}"
+          rm ${OUTPUT_PREFIX}ACTStage1Complete.txt
           exit 1
         fi
 
