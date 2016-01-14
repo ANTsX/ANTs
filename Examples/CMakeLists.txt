@@ -59,10 +59,6 @@ set(CORE_ANTS_APPS
   LabelGeometryMeasures
   LabelClustersUniquely
   Atropos
-  AverageImages
-  StackSlices
-  AverageAffineTransform
-  AverageAffineTransformNoRigid
   antsApplyTransformsToPoints
 )
 
@@ -124,13 +120,18 @@ set(MORE_ANTS_APPS
     KellySlater
     CreateDTICohort
     antsAlignOrigin
-    simpleSynRegistration
-    CompositeTransformUtil
     antsMotionCorrDiffusionDirection
     antsSliceRegularizedRegistration
-    CreateDisplacementField
     ANTSIntegrateVectorField
     ANTSIntegrateVelocityField
+    antsTransformInfo
+    antsUtilitiesTesting
+    AverageAffineTransform
+    AverageAffineTransformNoRigid
+    AverageImages
+    simpleSynRegistration
+    CompositeTransformUtil
+    CreateDisplacementField
     ConvertTransformFile
     compareTwoTransforms
     SuperResolution
@@ -140,8 +141,7 @@ set(MORE_ANTS_APPS
     ImageIntensityStatistics
     GetConnectedComponentsFeatureImages
     DeNrrd
-    antsTransformInfo
-    antsUtilitiesTesting
+    StackSlices
   )
 
 foreach(ANTS_APP ${CORE_ANTS_APPS})
