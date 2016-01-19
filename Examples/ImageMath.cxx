@@ -907,7 +907,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
     {
     std::cout << " need more args -- see usage   " << std::endl
               <<
-      " ImageMath 3 outimage.nii.gz  TruncateImageIntensity inputImage  {lowerQuantile=0.025} {upperQuantile=0.975}  {numberOfBins=65}  {binary-maskImage} "
+      " ImageMath 3 outimage.nii.gz  TruncateImageIntensity inputImage  {lowerQuantile=0.025} {upperQuantile=0.975}  {numberOfBins=65}  {binary-maskImage} {copy-image-space-from-input-to-mask}"
               << std::endl;  throw std::exception();
     }
 
@@ -957,14 +957,23 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
       // std::cout << " can't read mask " << std::endl;
       mask = ITK_NULLPTR;
       }
-    ;
     }
-  // std::cout << " Mask " << std::endl;
+  argct++;
+  bool copyInputSpaceToMask = false;
+  if( argc > argct ) copyInputSpaceToMask = true;
+
+
   if( mask.IsNull() )
     {
     mask = AllocImage<ImageType>( image, itk::NumericTraits<PixelType>::OneValue());
     }
-
+  if ( copyInputSpaceToMask )
+    {
+    mask->CopyInformation( image );
+    mask->SetOrigin( image->GetOrigin() );
+    mask->SetSpacing( image->GetSpacing() );
+    mask->SetDirection( image->GetDirection() );
+    }
   // std::cout << " iterate " << std::endl;
 
   itk::ImageRegionIterator<RealImageType> ItI( image,

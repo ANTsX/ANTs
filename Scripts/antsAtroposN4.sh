@@ -452,7 +452,8 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
         SEGMENTATION_N4_IMAGES=( ${SEGMENTATION_N4_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}${j}N4.${OUTPUT_SUFFIX} )
         if [[ $j == 0 ]];
           then
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0.025 0.995 256 ${ATROPOS_SEGMENTATION_MASK}
+            # BA edit - forcing the image to copy physical space due to ITK bug images do not occupy same space
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0.025 0.995 256 ${ATROPOS_SEGMENTATION_MASK} 1
             if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
               then
                 logCmd ${ANTSPATH}/DenoiseImage -d ${DIMENSION} -i ${SEGMENTATION_N4_IMAGES[$j]} -o ${SEGMENTATION_N4_IMAGES[$j]} --verbose 1
