@@ -1,4 +1,0 @@
-Release 2.2.0 
-=============
- - Adds a mask option to antsRegistrationSyNQuick.sh 
- - A bug with template construction where it caused an infinite loop 
