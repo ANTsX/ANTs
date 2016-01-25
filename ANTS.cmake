@@ -120,6 +120,3 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ANTsVersionConfig.h.in"
                "${CMAKE_CURRENT_BINARY_DIR}/ANTsVersionConfig.h" @ONLY IMMEDIATE)
 
 add_subdirectory(Examples)
-if(BUILD_EXTERNAL_APPLICATIONS)
-  add_subdirectory(ExternalApplications)
-endif()
