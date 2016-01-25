@@ -322,11 +322,6 @@ protected:
   {
   }
 
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE
-  {
-    this->PrintSelf(os, indent);
-  };
-
   mutable double m_BestEnergy;
   mutable double m_LastLastEnergy;
   mutable double m_MaxAllowedStep;

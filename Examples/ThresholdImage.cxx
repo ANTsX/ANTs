@@ -180,13 +180,8 @@ typename TImage::Pointer OtsuThreshold(
   else
     {
     typedef TImage                                    ImageType;
-    typedef TImage                                    LabelImageType;
     typedef TMaskImage                                MaskImageType;
-    typedef int                                       LabelType;
-
-    typedef float                                     RealType;
     typedef float                                     PixelType;
-    typedef int                                       LabelType;
 
     unsigned int numberOfBins = 200;
     int maskLabel = 1;
