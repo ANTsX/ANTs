@@ -398,7 +398,6 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       tIter.Set(
         this->m_JointHistogramImages[whichHistogram]->GetPixel( index2 ) );
       }
-    ++tIter;
     }
   return;
 }

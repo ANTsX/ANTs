@@ -65,7 +65,9 @@ int AverageImages1(unsigned int argc, char *argv[])
   const float numberofimages = (float)argc - 4.;
 
   typename ImageType::SizeType size;
-  size.Fill(0);
+  size.Fill( 0 );
+  typename ImageType::SizeType maxSize;
+  maxSize.Fill( 0 );
   unsigned int bigimage = 0;
   for( unsigned int j = 4; j < argc; j++ )
     {
@@ -75,11 +77,17 @@ int AverageImages1(unsigned int argc, char *argv[])
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
+
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
       {
-      if( imageIO->GetDimensions(i) > size[i] )
+      size[i] = imageIO->GetDimensions( i );
+      }
+
+    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
+      {
+      if( size[i] > maxSize[i] )
         {
-        size[i] = imageIO->GetDimensions(i);
+        maxSize[i] = size[i];
         bigimage = j;
         }
       }
@@ -181,7 +189,10 @@ int AverageImages(unsigned int argc, char *argv[])
   typename ImageType::Pointer image2 = ITK_NULLPTR;
 
   typename ImageType::SizeType size;
-  size.Fill(0);
+  size.Fill( 0 );
+  typename ImageType::SizeType maxSize;
+  maxSize.Fill( 0 );
+
   unsigned int bigimage = 4;
   for( unsigned int j = 4; j < argc; j++ )
     {
@@ -192,11 +203,17 @@ int AverageImages(unsigned int argc, char *argv[])
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetFileName( fn.c_str() );
     imageIO->ReadImageInformation();
+
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
       {
-      if( imageIO->GetDimensions(i) > size[i] )
+      size[i] = imageIO->GetDimensions( i );
+      }
+
+    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
+      {
+      if( size[i] > maxSize[i] )
         {
-        size[i] = imageIO->GetDimensions(i);
+        maxSize[i] = size[i];
         bigimage = j;
         std::cout << " bigimage " << j << " size " << size << std::endl;
         }

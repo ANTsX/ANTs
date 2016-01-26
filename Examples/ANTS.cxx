@@ -255,13 +255,11 @@ private:
     std::cout << arguments << std::endl;
 
     unsigned int           my_argc = 0;
-    std::string::size_type delimPos = 0;
-    std::string::size_type tokenPos = 0;
     std::string::size_type pos = 0;
     while( true )
       {
-      delimPos = arguments.find_first_of( " ", pos );
-      tokenPos = arguments.find_first_not_of( " ", pos );
+      std::string::size_type delimPos = arguments.find_first_of( " ", pos );
+      std::string::size_type tokenPos = arguments.find_first_not_of( " ", pos );
       if( std::string::npos != delimPos &&
           std::string::npos != tokenPos && tokenPos < delimPos )
         {
@@ -281,38 +279,40 @@ private:
       pos = delimPos + 1;
       }
 
-    unsigned int arg_count = 0;
-    char * *     my_argv = new char *[my_argc];
-    delimPos = 0;
-    tokenPos = 0;
-    pos = 0;
-    while( true )
+    char * *     my_argv = NULL;
+    if( my_argc > 0 )
       {
-      delimPos = arguments.find_first_of( " ", pos );
-      tokenPos = arguments.find_first_not_of( " ", pos );
-      if( std::string::npos != delimPos &&
-          std::string::npos != tokenPos && tokenPos < delimPos )
+      unsigned int arg_count = 0;
+      my_argv = new char *[my_argc];
+      pos = 0;
+      while( true )
         {
-        std::string arg = arguments.substr( pos, delimPos - pos );
-        my_argv[arg_count] = new char[arg.size() + 1];
-        strcpy( my_argv[arg_count], arg.c_str() );
-        arg_count++;
-        }
-      else if( std::string::npos == delimPos )
-        {
-        if( std::string::npos != tokenPos )
+        std::string::size_type delimPos = arguments.find_first_of( " ", pos );
+        std::string::size_type tokenPos = arguments.find_first_not_of( " ", pos );
+        if( std::string::npos != delimPos &&
+            std::string::npos != tokenPos && tokenPos < delimPos )
           {
-          std::string arg = arguments.substr( pos );
+          std::string arg = arguments.substr( pos, delimPos - pos );
           my_argv[arg_count] = new char[arg.size() + 1];
           strcpy( my_argv[arg_count], arg.c_str() );
           arg_count++;
           }
-        else
+        else if( std::string::npos == delimPos )
           {
-          break;
+          if( std::string::npos != tokenPos )
+            {
+            std::string arg = arguments.substr( pos );
+            my_argv[arg_count] = new char[arg.size() + 1];
+            strcpy( my_argv[arg_count], arg.c_str() );
+            arg_count++;
+            }
+          else
+            {
+            break;
+            }
           }
+        pos = delimPos + 1;
         }
-      pos = delimPos + 1;
       }
 
     switch( dim )

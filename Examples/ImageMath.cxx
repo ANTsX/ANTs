@@ -1062,9 +1062,13 @@ int TileImages(unsigned int argc, char *argv[])
 
   typename ImageType::Pointer averageimage = ITK_NULLPTR;
   typename ImageType::Pointer image2 = ITK_NULLPTR;
+
   typename ImageType::SizeType size;
+  size.Fill( 0 );
+  typename ImageType::SizeType maxSize;
+  maxSize.Fill( 0 );
+
   double meanval = 1;
-  size.Fill(0);
   unsigned int bigimage = 0;
   for( unsigned int j = argct; j < argc; j++ )
     {
@@ -1075,11 +1079,17 @@ int TileImages(unsigned int argc, char *argv[])
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
+
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
       {
-      if( imageIO->GetDimensions(i) > size[i] )
+      size[i] = imageIO->GetDimensions( i );
+      }
+
+    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
+      {
+      if( size[i] > maxSize[i] )
         {
-        size[i] = imageIO->GetDimensions(i);
+        maxSize[i] = size[i];
         bigimage = j;
         // std::cout << " bigimage " << j << " size " << size << std::endl;
         }
