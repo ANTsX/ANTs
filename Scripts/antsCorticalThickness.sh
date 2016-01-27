@@ -1288,7 +1288,10 @@ if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 6  ]] ; then # BAStages qc
 echo "--------------------------------------------------------------------------------------"
 echo "Compute summary measurements"
 echo "--------------------------------------------------------------------------------------"
-
+if [[ ! -s ${OUTPUT_PREFIX}CorticalThickness.nii.gz ]] ; then
+  echo ${OUTPUT_PREFIX}CorticalThickness.nii.gz incomplete!
+  exit 1
+fi
 if [[ -f ${REGISTRATION_TEMPLATE_WARP} ]];
   then
     exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1"
