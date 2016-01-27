@@ -1280,7 +1280,7 @@ fi # check completion
 
 #### BA Edits Begin ####
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage6Complete.txt ]] && \
-   [[   -s ${OUTPUT_PREFIX}ACTStage4Complete.txt ]] && \
+   [[   -s ${OUTPUT_PREFIX}ACTStage5Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]] ; then
