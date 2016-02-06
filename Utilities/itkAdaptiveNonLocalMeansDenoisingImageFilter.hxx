@@ -31,11 +31,14 @@
 #include "itkStatisticsImageFilter.h"
 #include "itkVarianceImageFilter.h"
 
+#include <numeric>
+
 namespace itk {
 
 template <typename TInputImage, typename TOutputImage>
 AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 ::AdaptiveNonLocalMeansDenoisingImageFilter() :
+  m_RescaleToInputDynamicRange( true),
   m_UseRicianNoiseModel( true ),
   m_Epsilon( 0.00001 ),
   m_MeanThreshold( 0.95 ),
@@ -459,6 +462,57 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
       }
 
     ItO.Set( estimate );
+    }
+
+  // The output image used to have a dynamic range that was extreemly large
+  // and very much out of propotion with the original input image.
+  // The following code does a simple linear regression of the
+  // denoised output (x) to the original input (y)
+  // so that the intensity transfer function new_out = slope * x + intercept
+  // can be applied such that new_out is approximately the same dynamic range
+  // as the orginal input image.
+  if ( this->m_RescaleToInputDynamicRange ) // Correct to input image dynamic range
+    {
+    const RealType n = this->GetOutput()->GetRequestedRegion().GetNumberOfPixels();
+    ImageRegionIterator<RealImageType> ItOut( this->GetOutput(),
+      this->GetOutput()->GetRequestedRegion() );
+    RealType avgOut = 0.0;
+    for( ItOut.GoToBegin(); !ItOut.IsAtEnd(); ++ItOut )
+      {
+      avgOut += ItOut.Get();
+      }
+    avgOut /= n;
+
+    ImageRegionConstIterator<RealImageType> ItIn( this->GetInput(),
+      this->GetInput()->GetRequestedRegion() );
+    RealType avgIn = 0.0;
+    for( ItIn.GoToBegin(); !ItIn.IsAtEnd(); ++ItIn )
+      {
+      avgIn += ItIn.Get();
+      }
+    avgIn /= n;
+
+    RealType numerator = 0.0;
+    RealType denominator = 0.0;
+    for( ItIn.GoToBegin(), ItOut.GoToBegin(); !ItIn.IsAtEnd() && !ItOut.IsAtEnd(); ++ItIn,++ItOut )
+      {
+      const RealType out_sub_avg = ItOut.Get() - avgOut;
+      const RealType in_sub_avg  = ItIn.Get() -avgIn;
+      numerator += out_sub_avg*in_sub_avg;
+      denominator += out_sub_avg*out_sub_avg;
+      }
+    if( denominator < 1e-10 )
+      {
+      denominator = 1.0;
+      }
+    const RealType slope = numerator/denominator;
+    const RealType intercept = avgIn - slope*avgOut;
+    //std::cout << "Slope = " << slope << " Intercept= " << intercept << std::endl;
+    for(ItOut.GoToBegin(); !ItOut.IsAtEnd(); ++ItOut)
+      {
+      ItOut.Set( ItOut.Get()*slope + intercept);
+      }
+
     }
 }
 

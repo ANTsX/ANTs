@@ -88,6 +88,14 @@ public:
   void SetInput1( const InputImageType *image ) { this->SetInput( image ); }
 
   /**
+   * Rescale the output image to have a dynamic range similar to the input image.
+   * Default = true.
+   */
+  itkSetMacro( RescaleToInputDynamicRange, bool );
+  itkGetConstMacro( RescaleToInputDynamicRange, bool );
+  itkBooleanMacro( RescaleToInputDynamicRange );
+
+  /**
    * Employ Rician noise model.  Otherwise use a Gaussian noise model.
    * Default = true.
    */
@@ -168,6 +176,7 @@ private:
 
   RealType CalculateCorrectionFactor( RealType );
 
+  bool                              m_RescaleToInputDynamicRange;
   bool                              m_UseRicianNoiseModel;
 
   ModifiedBesselCalculatorType      m_ModifiedBesselCalculator;

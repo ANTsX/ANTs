@@ -128,6 +128,8 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
   typedef itk::AdaptiveNonLocalMeansDenoisingImageFilter<ImageType, ImageType> DenoiserType;
   typename DenoiserType::Pointer denoiser = DenoiserType::New();
+  //Perhaps make this a command line option?
+  denoiser->SetRescaleToInputDynamicRange( true );
 
   typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
   typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
