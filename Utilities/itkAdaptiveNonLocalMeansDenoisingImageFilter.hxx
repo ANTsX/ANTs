@@ -112,7 +112,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
   this->m_NeighborhoodOffsetList.clear();
 
-  unsigned int neighborhoodBlockSize = ( ItBI.GetNeighborhood() ).Size();
+  const unsigned int neighborhoodBlockSize = ( ItBI.GetNeighborhood() ).Size();
   for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
     {
     this->m_NeighborhoodOffsetList.push_back( ( ItBI.GetNeighborhood() ).GetOffset( n ) );
@@ -141,8 +141,8 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   NeighborhoodIterator<InputImageType> ItBO( this->m_BlockNeighborhoodRadius, outputImage, region );
   NeighborhoodIterator<RealImageType> ItBL( this->m_BlockNeighborhoodRadius, this->m_ThreadContributionCountImage, region );
 
-  unsigned int neighborhoodSize = ( ItM.GetNeighborhood() ).Size();
-  unsigned int neighborhoodBlockSize = ( ItBM.GetNeighborhood() ).Size();
+  const unsigned int neighborhoodSize = ( ItM.GetNeighborhood() ).Size();
+  const unsigned int neighborhoodBlockSize = ( ItBM.GetNeighborhood() ).Size();
 
   Array<RealType> weightedAverageIntensities( neighborhoodBlockSize );
 
@@ -186,11 +186,11 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
           continue;
           }
 
-        RealType meanRatio = meanCenterPixel / meanNeighborhoodPixel;
-        RealType meanRatioInverse = ( this->m_MaximumInputPixelIntensity - meanCenterPixel ) /
+        const RealType meanRatio = meanCenterPixel / meanNeighborhoodPixel;
+        const RealType meanRatioInverse = ( this->m_MaximumInputPixelIntensity - meanCenterPixel ) /
           ( this->m_MaximumInputPixelIntensity - meanNeighborhoodPixel );
 
-        RealType varianceRatio = varianceCenterPixel / varianceNeighborhoodPixel;
+        const RealType varianceRatio = varianceCenterPixel / varianceNeighborhoodPixel;
 
         if( ( ( meanRatio > this->m_MeanThreshold && meanRatio < 1.0 / this->m_MeanThreshold ) ||
             ( meanRatioInverse > this->m_MeanThreshold && meanRatioInverse < 1.0 / this->m_MeanThreshold ) ) &&
@@ -259,11 +259,11 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
           continue;
           }
 
-        RealType meanRatio = meanCenterPixel / meanNeighborhoodPixel;
-        RealType meanRatioInverse = ( this->m_MaximumInputPixelIntensity - meanCenterPixel ) /
+        const RealType meanRatio = meanCenterPixel / meanNeighborhoodPixel;
+        const RealType meanRatioInverse = ( this->m_MaximumInputPixelIntensity - meanCenterPixel ) /
           ( this->m_MaximumInputPixelIntensity - meanNeighborhoodPixel );
 
-        RealType varianceRatio = varianceCenterPixel / varianceNeighborhoodPixel;
+        const RealType varianceRatio = varianceCenterPixel / varianceNeighborhoodPixel;
 
         if( ( ( meanRatio > this->m_MeanThreshold && meanRatio < 1.0 / this->m_MeanThreshold ) ||
             ( meanRatioInverse > this->m_MeanThreshold && meanRatioInverse < 1.0 / this->m_MeanThreshold ) ) &&
@@ -418,7 +418,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
     for( ItB.GoToBegin(), ItS.GoToBegin(), ItM.GoToBegin(); !ItS.IsAtEnd(); ++ItS, ++ItB, ++ItM )
       {
-      RealType snr = ItM.Get() / std::sqrt( ItS.Get() );
+      const RealType snr = ItM.Get() / std::sqrt( ItS.Get() );
 
       RealType bias = 2.0 * ItS.Get() / this->CalculateCorrectionFactor( snr );
 
@@ -467,7 +467,7 @@ typename AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>::R
 AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 ::CalculateCorrectionFactor( RealType snr )
 {
-   RealType snrSquared = vnl_math_sqr( snr );
+   const RealType snrSquared = vnl_math_sqr( snr );
 
    RealType value = 2.0 + snrSquared - 0.125 * vnl_math::pi * std::exp( -0.5 * snrSquared ) *
      vnl_math_sqr( ( 2.0 + snrSquared ) * this->m_ModifiedBesselCalculator.ModifiedBesselI0( 0.25 * snrSquared ) +

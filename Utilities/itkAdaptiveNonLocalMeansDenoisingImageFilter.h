@@ -163,10 +163,8 @@ protected:
 
 private:
 
-  AdaptiveNonLocalMeansDenoisingImageFilter( const Self& ); //purposely not
-                                                             // implemented
-  void operator=( const Self& );                      //purposely not
-                                                      // implemented
+  AdaptiveNonLocalMeansDenoisingImageFilter( const Self& ) ITK_DELETE_FUNCTION;
+  void operator=( const Self& ) ITK_DELETE_FUNCTION;
 
   RealType CalculateCorrectionFactor( RealType );
 
