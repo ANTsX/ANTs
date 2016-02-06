@@ -88,12 +88,6 @@ int Denoise( itk::ants::CommandLineParser *parser )
 {
   typedef float RealType;
 
-  typedef itk::Image<RealType, ImageDimension> ImageType;
-  typename ImageType::Pointer inputImage = ITK_NULLPTR;
-
-  typedef itk::Image<RealType, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
-
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
     parser->GetOption( "verbose" );
@@ -107,6 +101,12 @@ int Denoise( itk::ants::CommandLineParser *parser )
     std::cout << std::endl << "Running for "
              << ImageDimension << "-dimensional images." << std::endl << std::endl;
     }
+
+  typedef itk::Image<RealType, ImageDimension> ImageType;
+  typename ImageType::Pointer inputImage = ITK_NULLPTR;
+
+  //typedef itk::Image<RealType, ImageDimension> MaskImageType;
+  //typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
@@ -128,6 +128,8 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
   typedef itk::AdaptiveNonLocalMeansDenoisingImageFilter<ImageType, ImageType> DenoiserType;
   typename DenoiserType::Pointer denoiser = DenoiserType::New();
+  //Perhaps make this a command line option?
+  denoiser->SetRescaleToInputDynamicRange( true );
 
   typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
   typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
@@ -253,18 +255,20 @@ int Denoise( itk::ants::CommandLineParser *parser )
     subtracter->SetInput1( denoiser->GetInput() );
     subtracter->SetInput2( denoiser->GetOutput() );
 
-    typedef itk::IdentityTransform<RealType, ImageDimension> TransformType;
-    typename TransformType::Pointer transform = TransformType::New();
-    transform->SetIdentity();
-
-    typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
-    typename LinearInterpolatorType::Pointer interpolator = LinearInterpolatorType::New();
-    interpolator->SetInputImage( subtracter->GetOutput() );
-
     typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
     typename ResamplerType::Pointer resampler = ResamplerType::New();
-    resampler->SetTransform( transform );
-    resampler->SetInterpolator( interpolator );
+    {
+      typedef itk::IdentityTransform<RealType, ImageDimension> TransformType;
+      typename TransformType::Pointer transform = TransformType::New();
+      transform->SetIdentity();
+      resampler->SetTransform( transform );
+    }
+    {
+      typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
+      typename LinearInterpolatorType::Pointer interpolator = LinearInterpolatorType::New();
+      interpolator->SetInputImage( subtracter->GetOutput() );
+      resampler->SetInterpolator( interpolator );
+    }
     resampler->SetOutputParametersFromImage( inputImage );
     resampler->UseReferenceImageOn();
     resampler->SetInput( subtracter->GetOutput() );

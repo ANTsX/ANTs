@@ -31,11 +31,14 @@
 #include "itkStatisticsImageFilter.h"
 #include "itkVarianceImageFilter.h"
 
+#include <numeric>
+
 namespace itk {
 
 template <typename TInputImage, typename TOutputImage>
 AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 ::AdaptiveNonLocalMeansDenoisingImageFilter() :
+  m_RescaleToInputDynamicRange( true),
   m_UseRicianNoiseModel( true ),
   m_Epsilon( 0.00001 ),
   m_MeanThreshold( 0.95 ),
@@ -112,7 +115,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
   this->m_NeighborhoodOffsetList.clear();
 
-  unsigned int neighborhoodBlockSize = ( ItBI.GetNeighborhood() ).Size();
+  const unsigned int neighborhoodBlockSize = ( ItBI.GetNeighborhood() ).Size();
   for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
     {
     this->m_NeighborhoodOffsetList.push_back( ( ItBI.GetNeighborhood() ).GetOffset( n ) );
@@ -141,8 +144,8 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   NeighborhoodIterator<InputImageType> ItBO( this->m_BlockNeighborhoodRadius, outputImage, region );
   NeighborhoodIterator<RealImageType> ItBL( this->m_BlockNeighborhoodRadius, this->m_ThreadContributionCountImage, region );
 
-  unsigned int neighborhoodSize = ( ItM.GetNeighborhood() ).Size();
-  unsigned int neighborhoodBlockSize = ( ItBM.GetNeighborhood() ).Size();
+  const unsigned int neighborhoodSize = ( ItM.GetNeighborhood() ).Size();
+  const unsigned int neighborhoodBlockSize = ( ItBM.GetNeighborhood() ).Size();
 
   Array<RealType> weightedAverageIntensities( neighborhoodBlockSize );
 
@@ -186,11 +189,11 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
           continue;
           }
 
-        RealType meanRatio = meanCenterPixel / meanNeighborhoodPixel;
-        RealType meanRatioInverse = ( this->m_MaximumInputPixelIntensity - meanCenterPixel ) /
+        const RealType meanRatio = meanCenterPixel / meanNeighborhoodPixel;
+        const RealType meanRatioInverse = ( this->m_MaximumInputPixelIntensity - meanCenterPixel ) /
           ( this->m_MaximumInputPixelIntensity - meanNeighborhoodPixel );
 
-        RealType varianceRatio = varianceCenterPixel / varianceNeighborhoodPixel;
+        const RealType varianceRatio = varianceCenterPixel / varianceNeighborhoodPixel;
 
         if( ( ( meanRatio > this->m_MeanThreshold && meanRatio < 1.0 / this->m_MeanThreshold ) ||
             ( meanRatioInverse > this->m_MeanThreshold && meanRatioInverse < 1.0 / this->m_MeanThreshold ) ) &&
@@ -259,11 +262,11 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
           continue;
           }
 
-        RealType meanRatio = meanCenterPixel / meanNeighborhoodPixel;
-        RealType meanRatioInverse = ( this->m_MaximumInputPixelIntensity - meanCenterPixel ) /
+        const RealType meanRatio = meanCenterPixel / meanNeighborhoodPixel;
+        const RealType meanRatioInverse = ( this->m_MaximumInputPixelIntensity - meanCenterPixel ) /
           ( this->m_MaximumInputPixelIntensity - meanNeighborhoodPixel );
 
-        RealType varianceRatio = varianceCenterPixel / varianceNeighborhoodPixel;
+        const RealType varianceRatio = varianceCenterPixel / varianceNeighborhoodPixel;
 
         if( ( ( meanRatio > this->m_MeanThreshold && meanRatio < 1.0 / this->m_MeanThreshold ) ||
             ( meanRatioInverse > this->m_MeanThreshold && meanRatioInverse < 1.0 / this->m_MeanThreshold ) ) &&
@@ -418,7 +421,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
     for( ItB.GoToBegin(), ItS.GoToBegin(), ItM.GoToBegin(); !ItS.IsAtEnd(); ++ItS, ++ItB, ++ItM )
       {
-      RealType snr = ItM.Get() / std::sqrt( ItS.Get() );
+      const RealType snr = ItM.Get() / std::sqrt( ItS.Get() );
 
       RealType bias = 2.0 * ItS.Get() / this->CalculateCorrectionFactor( snr );
 
@@ -460,6 +463,57 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
     ItO.Set( estimate );
     }
+
+  // The output image used to have a dynamic range that was extreemly large
+  // and very much out of propotion with the original input image.
+  // The following code does a simple linear regression of the
+  // denoised output (x) to the original input (y)
+  // so that the intensity transfer function new_out = slope * x + intercept
+  // can be applied such that new_out is approximately the same dynamic range
+  // as the orginal input image.
+  if ( this->m_RescaleToInputDynamicRange ) // Correct to input image dynamic range
+    {
+    const RealType n = this->GetOutput()->GetRequestedRegion().GetNumberOfPixels();
+    ImageRegionIterator<RealImageType> ItOut( this->GetOutput(),
+      this->GetOutput()->GetRequestedRegion() );
+    RealType avgOut = 0.0;
+    for( ItOut.GoToBegin(); !ItOut.IsAtEnd(); ++ItOut )
+      {
+      avgOut += ItOut.Get();
+      }
+    avgOut /= n;
+
+    ImageRegionConstIterator<RealImageType> ItIn( this->GetInput(),
+      this->GetInput()->GetRequestedRegion() );
+    RealType avgIn = 0.0;
+    for( ItIn.GoToBegin(); !ItIn.IsAtEnd(); ++ItIn )
+      {
+      avgIn += ItIn.Get();
+      }
+    avgIn /= n;
+
+    RealType numerator = 0.0;
+    RealType denominator = 0.0;
+    for( ItIn.GoToBegin(), ItOut.GoToBegin(); !ItIn.IsAtEnd() && !ItOut.IsAtEnd(); ++ItIn,++ItOut )
+      {
+      const RealType out_sub_avg = ItOut.Get() - avgOut;
+      const RealType in_sub_avg  = ItIn.Get() -avgIn;
+      numerator += out_sub_avg*in_sub_avg;
+      denominator += out_sub_avg*out_sub_avg;
+      }
+    if( denominator < 1e-10 )
+      {
+      denominator = 1.0;
+      }
+    const RealType slope = numerator/denominator;
+    const RealType intercept = avgIn - slope*avgOut;
+    //std::cout << "Slope = " << slope << " Intercept= " << intercept << std::endl;
+    for(ItOut.GoToBegin(); !ItOut.IsAtEnd(); ++ItOut)
+      {
+      ItOut.Set( ItOut.Get()*slope + intercept);
+      }
+
+    }
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -467,7 +521,7 @@ typename AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>::R
 AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 ::CalculateCorrectionFactor( RealType snr )
 {
-   RealType snrSquared = vnl_math_sqr( snr );
+   const RealType snrSquared = vnl_math_sqr( snr );
 
    RealType value = 2.0 + snrSquared - 0.125 * vnl_math::pi * std::exp( -0.5 * snrSquared ) *
      vnl_math_sqr( ( 2.0 + snrSquared ) * this->m_ModifiedBesselCalculator.ModifiedBesselI0( 0.25 * snrSquared ) +
