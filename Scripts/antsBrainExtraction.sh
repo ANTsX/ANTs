@@ -421,10 +421,19 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
             logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_LAPLACIAN} Laplacian ${N4_CORRECTED_IMAGES[0]} 1.5 1
             logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_TEMPLATE_LAPLACIAN} Laplacian ${EXTRACTION_TEMPLATE} 1.5 1
 
-            exe_initial_align="${ANTSPATH}/antsAffineInitializer ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} ${EXTRACTION_INITIAL_AFFINE_MOVING} ${EXTRACTION_INITIAL_AFFINE} 15 0.1 0 10"
+#             exe_initial_align="${ANTSPATH}/antsAffineInitializer ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} ${EXTRACTION_INITIAL_AFFINE_MOVING} ${EXTRACTION_INITIAL_AFFINE} 15 0.1 0 10"
+            exe_initial_align="${ANTSPATH}/antsAI -d ${DIMENSION} -v 1"
+            exe_initial_align="${exe_initial_align} -m MI[${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.25]"
+            exe_initial_align="${exe_initial_align} -t Affine[0.1]"
+            exe_initial_align="${exe_initial_align} -s [15,0.1]"
+            exe_initial_align="${exe_initial_align} -p 0"
+            exe_initial_align="${exe_initial_align} -c 10"
+            exe_initial_align="${exe_initial_align} -o ${EXTRACTION_INITIAL_AFFINE}"
+
             if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
               then
-                exe_initial_align="${exe_initial_align} ${EXTRACTION_REGISTRATION_MASK}"
+#                 exe_initial_align="${exe_initial_align} ${EXTRACTION_REGISTRATION_MASK}"
+                exe_initial_align="${exe_initial_align} -x ${EXTRACTION_REGISTRATION_MASK}"
               fi
 
             logCmd $exe_initial_align
