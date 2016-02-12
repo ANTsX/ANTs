@@ -130,9 +130,12 @@ Optional arguments:
                                                 subject template (default = 0.25)
      -w:  Atropos segmentation weight (Indiv.)  Atropos spatial prior *probability* weight for the segmentation for the individual
                                                 time points (default = 0.5)
-     -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
-                                                during brain extraction, brain segmentation, and (optional) normalization
-                                                to a template.  Otherwise use antsRegistrationSyN.sh (default = 0).
+     -q:  Use quick registration parameters     If 'yes' then we use antsRegistrationSyNQuick.sh as the basis for registration.
+                                                Otherwise use antsRegistrationSyN.sh.  The options are as follows:
+                                                '-q 0' = antsRegistrationSyN for everything (default)
+                                                '-q 1' = Fast antsCorticalThickness to SST
+                                                '-q 2' = Fast JLF cooking
+                                                '-q 3' = Fast everything
      -r:  rigid alignment to SST                This option dictates if the individual subjects are registered to the single
                                                 subject template before running through antsCorticalThickness.  This potentially
                                                 reduces bias caused by subject orientation and voxel spacing (default = 0).
