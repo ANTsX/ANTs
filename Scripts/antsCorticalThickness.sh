@@ -1055,7 +1055,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
       then
         TMP_FILES=( ${TMP_FILES[@]} "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.nii.gz" )
 
-        basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION}  -v 1 -f ${REGISTRATION_TEMPLATE}"
+        basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${REGISTRATION_TEMPLATE}"
         basecall="${basecall} -m ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -j 1"
         if [[ ${USE_FLOAT_PRECISION} -ne 0 ]];
           then
