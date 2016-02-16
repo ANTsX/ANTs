@@ -43,7 +43,6 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   m_Epsilon( 0.00001 ),
   m_MeanThreshold( 0.95 ),
   m_VarianceThreshold( 0.5 ),
-  m_SmoothingFactor( 1.0 ),
   m_SmoothingVariance( 2.0 ),
   m_MaximumInputPixelIntensity( NumericTraits<RealType>::NonpositiveMin() ),
   m_MinimumInputPixelIntensity( NumericTraits<RealType>::max() )
@@ -421,26 +420,25 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
     typedef DiscreteGaussianImageFilter<RealImageType, RealImageType> SmootherType;
     typename SmootherType::Pointer smoother = SmootherType::New();
     smoother->SetInput( this->m_RicianBiasImage );
+    smoother->SetVariance( this->m_SmoothingVariance );
     smoother->SetUseImageSpacingOn();
     smoother->Update();
 
     ImageRegionConstIterator<RealImageType> ItS( smoother->GetOutput(), smoother->GetOutput()->GetRequestedRegion() );
     ImageRegionConstIterator<RealImageType> ItM( this->m_MeanImage, this->m_MeanImage->GetRequestedRegion() );
-    ImageRegionConstIterator<RealImageType> ItV( this->m_VarianceImage, this->m_VarianceImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItB( this->m_RicianBiasImage, this->m_RicianBiasImage->GetRequestedRegion() );
 
     ItS.GoToBegin();
     ItM.GoToBegin();
-    ItV.GoToBegin();
     ItB.GoToBegin();
 
     while( !ItS.IsAtEnd() )
       {
-      if( ItV.Get() > 0.0 )
+      if( ItS.Get() > 0.0 )
         {
-        const RealType snr = ItM.Get() / std::sqrt( ItV.Get() );
+        const RealType snr = ItM.Get() / std::sqrt( ItS.Get() );
 
-        RealType bias = 2.0 * ItV.Get() / this->CalculateCorrectionFactor( snr );
+        RealType bias = 2.0 * ItS.Get() / this->CalculateCorrectionFactor( snr );
 
         if( vnl_math_isnan( bias ) || vnl_math_isinf( bias ) )
           {
@@ -451,7 +449,6 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
       ++ItS;
       ++ItM;
-      ++ItV;
       ++ItB;
       }
     }
@@ -525,7 +522,6 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   os << indent << "Epsilon = " << this->m_Epsilon << std::endl;
   os << indent << "Mean threshold = " << this->m_MeanThreshold << std::endl;
   os << indent << "Variance threshold = " << this->m_VarianceThreshold << std::endl;
-  os << indent << "Smoothing factor = " << this->m_SmoothingFactor << std::endl;
   os << indent << "Smoothing variance = " << this->m_SmoothingVariance << std::endl;
 
   os << indent << "Neighborhood radius for local mean and variance = " << this->m_NeighborhoodRadiusForLocalMeanAndVariance << std::endl;
