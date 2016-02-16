@@ -128,8 +128,6 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
   typedef itk::AdaptiveNonLocalMeansDenoisingImageFilter<ImageType, ImageType> DenoiserType;
   typename DenoiserType::Pointer denoiser = DenoiserType::New();
-  //Perhaps make this a command line option?
-  denoiser->SetRescaleToInputDynamicRange( true );
 
   typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
   typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
@@ -192,17 +190,17 @@ int Denoise( itk::ants::CommandLineParser *parser )
   denoiser->SetSmoothingFactor( 1.0 );
   denoiser->SetSmoothingVariance( 2.0 );
 
-  typename DenoiserType::NeighborhoodRadiusType blockNeighborhoodRadius;
+  typename DenoiserType::NeighborhoodRadiusType neighborhoodBlockRadius;
   typename DenoiserType::NeighborhoodRadiusType neighborhoodRadiusForLocalMeanAndVariance;
-  typename DenoiserType::NeighborhoodRadiusType neighborhoodRadius2;
+  typename DenoiserType::NeighborhoodRadiusType neighborhoodSearchRadius;
 
   neighborhoodRadiusForLocalMeanAndVariance.Fill( 1 );
-  neighborhoodRadius2.Fill( 3 );
-  blockNeighborhoodRadius.Fill( 1 );
+  neighborhoodSearchRadius.Fill( 3 );
+  neighborhoodBlockRadius.Fill( 1 );
 
   denoiser->SetNeighborhoodRadiusForLocalMeanAndVariance( neighborhoodRadiusForLocalMeanAndVariance );
-  denoiser->SetNeighborhoodRadius2( neighborhoodRadius2 );
-  denoiser->SetBlockNeighborhoodRadius( blockNeighborhoodRadius );
+  denoiser->SetNeighborhoodSearchRadius( neighborhoodSearchRadius );
+  denoiser->SetNeighborhoodBlockRadius( neighborhoodBlockRadius );
 
   itk::TimeProbe timer;
   timer.Start();

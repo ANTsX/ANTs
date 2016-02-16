@@ -88,14 +88,6 @@ public:
   void SetInput1( const InputImageType *image ) { this->SetInput( image ); }
 
   /**
-   * Rescale the output image to have a dynamic range similar to the input image.
-   * Default = true.
-   */
-  itkSetMacro( RescaleToInputDynamicRange, bool );
-  itkGetConstMacro( RescaleToInputDynamicRange, bool );
-  itkBooleanMacro( RescaleToInputDynamicRange );
-
-  /**
    * Employ Rician noise model.  Otherwise use a Gaussian noise model.
    * Default = true.
    */
@@ -144,18 +136,18 @@ public:
   itkGetConstMacro( NeighborhoodRadiusForLocalMeanAndVariance, NeighborhoodRadiusType );
 
   /**
-   * Neighborhood radius 2.
-   * Default = 1x1x...
+   * Neighborhood search radius.
+   * Default = 3x3x...
    */
-  itkSetMacro( NeighborhoodRadius2, NeighborhoodRadiusType );
-  itkGetConstMacro( NeighborhoodRadius2, NeighborhoodRadiusType );
+  itkSetMacro( NeighborhoodSearchRadius, NeighborhoodRadiusType );
+  itkGetConstMacro( NeighborhoodSearchRadius, NeighborhoodRadiusType );
 
   /**
-   * Block neighborhood radius.
+   * Neighborhood block radius.
    * Default = 1x1x...
    */
-  itkSetMacro( BlockNeighborhoodRadius, NeighborhoodRadiusType );
-  itkGetConstMacro( BlockNeighborhoodRadius, NeighborhoodRadiusType );
+  itkSetMacro( NeighborhoodBlockRadius, NeighborhoodRadiusType );
+  itkGetConstMacro( NeighborhoodBlockRadius, NeighborhoodRadiusType );
 
 protected:
   AdaptiveNonLocalMeansDenoisingImageFilter();
@@ -176,7 +168,6 @@ private:
 
   RealType CalculateCorrectionFactor( RealType );
 
-  bool                              m_RescaleToInputDynamicRange;
   bool                              m_UseRicianNoiseModel;
 
   ModifiedBesselCalculatorType      m_ModifiedBesselCalculator;
@@ -197,8 +188,8 @@ private:
   RealImagePointer                  m_IntensitySquaredDistanceImage;
 
   NeighborhoodRadiusType            m_NeighborhoodRadiusForLocalMeanAndVariance;
-  NeighborhoodRadiusType            m_NeighborhoodRadius2;
-  NeighborhoodRadiusType            m_BlockNeighborhoodRadius;
+  NeighborhoodRadiusType            m_NeighborhoodSearchRadius;
+  NeighborhoodRadiusType            m_NeighborhoodBlockRadius;
 
   std::vector<NeighborhoodOffsetType>  m_NeighborhoodOffsetList;
 };
