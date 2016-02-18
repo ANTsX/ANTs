@@ -517,11 +517,11 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathHistogramEqualization<ImageType>(input);
+      output = iMathHistogramEqualization<ImageType>(input,0,1);
       }
     catch( itk::ExceptionObject & excep )
       {
-      std::cout << "Sharpen: exception caught !" << std::endl;
+      std::cout << "HistogramEqualization: exception caught !" << std::endl;
       std::cout << excep << std::endl;
       }
 
