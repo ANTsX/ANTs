@@ -128,7 +128,7 @@ iMathGrad( typename ImageType::Pointer image, double sigma, bool normalize );
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathHistogramEqualization( typename ImageType::Pointer image, double, double );
+iMathHistogramEqualization( typename ImageType::Pointer image, double, double, unsigned int );
 
 template <class ImageType>
 typename ImageType::Pointer

@@ -546,7 +546,7 @@ iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, double beta  )
+iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, double beta, unsigned int r = 3 )
 {
 
   if ( image->GetNumberOfComponentsPerPixel() != 1 )
@@ -558,7 +558,7 @@ iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, dou
   typename AdaptiveHistogramEqualizationImageFilterType::Pointer adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
   adaptiveHistogramEqualizationImageFilter->SetInput( image );
   typename AdaptiveHistogramEqualizationImageFilterType::RadiusType radius;
-  radius.Fill( 100 );
+  radius.Fill( r );
   adaptiveHistogramEqualizationImageFilter->SetRadius(radius);
   adaptiveHistogramEqualizationImageFilter->SetAlpha(alpha);
   adaptiveHistogramEqualizationImageFilter->SetBeta(beta);
