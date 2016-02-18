@@ -508,6 +508,16 @@ iMathHelperAll(int argc, char **argv)
     typedef itk::Image<float,DIM> ImageType;
     typename ImageType::Pointer input = NULL;
     typename ImageType::Pointer output = NULL;
+    float alpha = 0;
+    float beta  = 1;
+    if ( argc >= 6 )
+      {
+      alpha = atof(argv[5]);
+      }
+    if ( argc >= 7 )
+      {
+      beta = atof(argv[6]);
+      }
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -517,7 +527,8 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathHistogramEqualization<ImageType>(input,0,1);
+      std::cout << " a " << alpha << " b " << beta << std::endl;
+      output = iMathHistogramEqualization<ImageType>(input, alpha, beta );
       }
     catch( itk::ExceptionObject & excep )
       {

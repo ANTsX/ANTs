@@ -558,7 +558,7 @@ iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, dou
   typename AdaptiveHistogramEqualizationImageFilterType::Pointer adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
   adaptiveHistogramEqualizationImageFilter->SetInput( image );
   typename AdaptiveHistogramEqualizationImageFilterType::RadiusType radius;
-  radius.Fill( 0 );
+  radius.Fill( 100 );
   adaptiveHistogramEqualizationImageFilter->SetRadius(radius);
   adaptiveHistogramEqualizationImageFilter->SetAlpha(alpha);
   adaptiveHistogramEqualizationImageFilter->SetBeta(beta);
