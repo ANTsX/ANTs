@@ -560,7 +560,7 @@ iMathHistogramEqualization( typename ImageType::Pointer image  )
   adaptiveHistogramEqualizationImageFilter->SetRadius( 1 );
   adaptiveHistogramEqualizationImageFilter->Update( );
 
-  return adaptiveHistogramEqualizationImageFilter->GetOutput());
+  return adaptiveHistogramEqualizationImageFilter->GetOutput();
 }
 
 template <class ImageType>
