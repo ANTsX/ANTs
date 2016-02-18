@@ -546,7 +546,7 @@ iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, double beta, unsigned int r = 3 )
+iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, double beta, unsigned int r )
 {
 
   if ( image->GetNumberOfComponentsPerPixel() != 1 )
