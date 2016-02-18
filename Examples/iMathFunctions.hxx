@@ -15,6 +15,7 @@
 #include "ReadWriteData.h"
 #include "antsUtilities.h"
 
+#include "itkAdaptiveHistogramEqualizationImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
@@ -541,6 +542,25 @@ iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )
     }
 
   return output;
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathHistogramEqualization( typename ImageType::Pointer image  )
+{
+
+  if ( image->GetNumberOfComponentsPerPixel() != 1 )
+    {
+    // NOPE
+    }
+
+  typedef  itk::AdaptiveHistogramEqualizationImageFilter< ImageType > AdaptiveHistogramEqualizationImageFilterType;
+  AdaptiveHistogramEqualizationImageFilterType::Pointer adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
+  adaptiveHistogramEqualizationImageFilter->SetInput( image );
+  adaptiveHistogramEqualizationImageFilter->SetRadius( 1 );
+  adaptiveHistogramEqualizationImageFilter->Update( );
+
+  return adaptiveHistogramEqualizationImageFilter->GetOutput());
 }
 
 template <class ImageType>

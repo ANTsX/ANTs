@@ -128,6 +128,10 @@ iMathGrad( typename ImageType::Pointer image, double sigma, bool normalize );
 
 template <class ImageType>
 typename ImageType::Pointer
+iMathHistogramEqualization( typename ImageType::Pointer image );
+
+template <class ImageType>
+typename ImageType::Pointer
 iMathLaplacian( typename ImageType::Pointer image, double sigma, bool normalize );
 #define iMathLaplacianSigma 0.5;
 #define iMathLaplacianNormalize false;
