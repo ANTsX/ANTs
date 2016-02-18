@@ -554,8 +554,8 @@ iMathHistogramEqualization( typename ImageType::Pointer image  )
     // NOPE
     }
 
-  typedef typename itk::AdaptiveHistogramEqualizationImageFilter< ImageType > AdaptiveHistogramEqualizationImageFilterType;
-  AdaptiveHistogramEqualizationImageFilterType::Pointer adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
+  typedef itk::AdaptiveHistogramEqualizationImageFilter< ImageType > AdaptiveHistogramEqualizationImageFilterType;
+  typename AdaptiveHistogramEqualizationImageFilterType::Pointer adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
   adaptiveHistogramEqualizationImageFilter->SetInput( image );
   adaptiveHistogramEqualizationImageFilter->SetRadius( 1 );
   adaptiveHistogramEqualizationImageFilter->Update( );
