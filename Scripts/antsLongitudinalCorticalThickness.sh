@@ -935,23 +935,30 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
 
     if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
       then
-        logCmd ${ANTSPATH}/antsApplyTransforms \
-          -d ${DIMENSION} \
-          -r ${REGISTRATION_TEMPLATE} \
-          -o [${OUTPUT_LOCAL_PREFIX}SubjectToGroupTemplateWarp.nii.gz,1] \
-          -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}SubjectToTemplate1Warp.nii.gz \
-          -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}SubjectToTemplate0GenericAffine.mat \
-          -t ${OUTPUT_LOCAL_PREFIX}SubjectToTemplate1Warp.nii.gz \
-          -t ${OUTPUT_LOCAL_PREFIX}SubjectToTemplate0GenericAffine.mat
 
-        logCmd ${ANTSPATH}/antsApplyTransforms \
-          -d ${DIMENSION} \
-          -r ${ANATOMICAL_REFERENCE_IMAGE} \
-          -o [${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz,1] \
-          -t ${OUTPUT_LOCAL_PREFIX}TemplateToSubject1GenericAffine.mat \
-          -t ${OUTPUT_LOCAL_PREFIX}TemplateToSubject0Warp.nii.gz \
-          -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}TemplateToSubject1GenericAffine.mat \
-          -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}TemplateToSubject0Warp.nii.gz
+        if [[ ! -f ${OUTPUT_LOCAL_PREFIX}SubjectToGroupTemplateWarp.nii.gz ]];
+          then
+            logCmd ${ANTSPATH}/antsApplyTransforms \
+              -d ${DIMENSION} \
+              -r ${REGISTRATION_TEMPLATE} \
+              -o [${OUTPUT_LOCAL_PREFIX}SubjectToGroupTemplateWarp.nii.gz,1] \
+              -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}SubjectToTemplate1Warp.nii.gz \
+              -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}SubjectToTemplate0GenericAffine.mat \
+              -t ${OUTPUT_LOCAL_PREFIX}SubjectToTemplate1Warp.nii.gz \
+              -t ${OUTPUT_LOCAL_PREFIX}SubjectToTemplate0GenericAffine.mat
+          fi
+
+        if [[ ! -f ${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz ]];
+          then
+            logCmd ${ANTSPATH}/antsApplyTransforms \
+              -d ${DIMENSION} \
+              -r ${ANATOMICAL_REFERENCE_IMAGE} \
+              -o [${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz,1] \
+              -t ${OUTPUT_LOCAL_PREFIX}TemplateToSubject1GenericAffine.mat \
+              -t ${OUTPUT_LOCAL_PREFIX}TemplateToSubject0Warp.nii.gz \
+              -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}TemplateToSubject1GenericAffine.mat \
+              -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}TemplateToSubject0Warp.nii.gz
+          fi
 
         if [[ -f ${CORTICAL_LABEL_IMAGE} ]];
           then
@@ -961,17 +968,20 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
             SUBJECT_TMP=${OUTPUT_LOCAL_PREFIX}Tmp.${OUTPUT_SUFFIX}
             SUBJECT_STATS=${OUTPUT_LOCAL_PREFIX}LabelThickness.csv
 
-            logCmd ${ANTSPATH}/antsApplyTransforms \
-              -d ${DIMENSION} \
-              -i ${CORTICAL_LABEL_IMAGE} \
-              -r ${ANATOMICAL_REFERENCE_IMAGE} \
-              -o ${SUBJECT_CORTICAL_LABELS} \
-              -n MultiLabel \
-              -t ${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz
+            if [[ ! -f ${SUBJECT_CORTICAL_LABELS} ]];
+              then
+                logCmd ${ANTSPATH}/antsApplyTransforms \
+                  -d ${DIMENSION} \
+                  -i ${CORTICAL_LABEL_IMAGE} \
+                  -r ${ANATOMICAL_REFERENCE_IMAGE} \
+                  -o ${SUBJECT_CORTICAL_LABELS} \
+                  -n MultiLabel \
+                  -t ${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz
 
-            logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${OUTPUT_LOCAL_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX} ${SUBJECT_TMP} 2 2 1 0
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SUBJECT_CORTICAL_LABELS} m ${SUBJECT_TMP} ${SUBJECT_CORTICAL_LABELS}
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SUBJECT_STATS} LabelStats ${SUBJECT_CORTICAL_LABELS} ${SUBJECT_CORTICAL_THICKNESS}
+                logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${OUTPUT_LOCAL_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX} ${SUBJECT_TMP} 2 2 1 0
+                logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SUBJECT_CORTICAL_LABELS} m ${SUBJECT_TMP} ${SUBJECT_CORTICAL_LABELS}
+                logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SUBJECT_STATS} LabelStats ${SUBJECT_CORTICAL_LABELS} ${SUBJECT_CORTICAL_THICKNESS}
+              fi
 
             logCmd rm -f $SUBJECT_TMP
           fi
