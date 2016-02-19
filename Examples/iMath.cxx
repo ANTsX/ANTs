@@ -528,7 +528,7 @@ iMathHelperAll(int argc, char **argv)
     try
       {
       std::cout << " a " << alpha << " b " << beta << std::endl;
-      output = iMathHistogramEqualization<ImageType>(input, alpha, beta );
+      output = iMathHistogramEqualization<ImageType>(input, alpha, beta, 1 );
       }
     catch( itk::ExceptionObject & excep )
       {
