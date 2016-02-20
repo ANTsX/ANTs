@@ -576,6 +576,16 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -t ${OUTPUT_PREFIX}${BASENAME}_${i}_1Warp.nii.gz \
                           -t ${OUTPUT_PREFIX}${BASENAME}_${i}_0GenericAffine.mat >> ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
 
+    copyImageHeaderCall="${ANTSPATH}/CopyImageHeaderInformation \
+                         ${TARGET_IMAGE} \
+                         ${OUTPUT_PREFIX}${BASENAME}_${i}_Warped.nii.gz \
+                         ${OUTPUT_PREFIX}${BASENAME}_${i}_Warped.nii.gz 1 1 1"
+
+    copyLabelsHeaderCall="${ANTSPATH}/CopyImageHeaderInformation \
+                          ${TARGET_IMAGE} \
+                          ${OUTPUT_PREFIX}${BASENAME}_${i}_WarpedLabels.nii.gz \
+                          ${OUTPUT_PREFIX}${BASENAME}_${i}_WarpedLabels.nii.gz 1 1 1"
+
     rm -f $qscript
 
     if [[ $DOQSUB -eq 5 ]];
@@ -586,6 +596,8 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
 
     echo "$registrationCall" >> $qscript
     echo "$labelXfrmCall" >> $qscript
+    echo "$copyImageHeaderCall" >> $qscript
+    echo "$copyLabelsHeaderCall" >> $qscript
 
     if [[ $DOQSUB -eq 1 ]];
       then
