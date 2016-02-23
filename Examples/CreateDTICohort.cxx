@@ -22,7 +22,6 @@
 
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_vector.h"
-#include "vcl_complex.h"
 
 #include <iomanip>
 
@@ -61,7 +60,7 @@ double CalculateFractionalAnisotropy( TensorType tensor )
     numerator += vnl_math_sqr( eigenvalues[d] - mean );
     denominator += vnl_math_sqr( eigenvalues[d] );
     }
-  fa = vcl_sqrt( ( 3.0 * numerator ) / ( 2.0 * denominator ) );
+  fa = std::sqrt( ( 3.0 * numerator ) / ( 2.0 * denominator ) );
 
   return fa;
 }
@@ -452,7 +451,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     decomposer->EvaluateSymmetricEigenDecomposition( MMt, Lambda, E );
 
     ISV = ( M.GetTranspose() * E.GetVnlMatrix() )
-      / vcl_sqrt( static_cast<float>( imageNames.size() ) );
+      / std::sqrt( static_cast<float>( imageNames.size() ) );
 
     applyISV = true;
     }
@@ -562,7 +561,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     if( n == 0 )
       {
       std::cout << "--- Calculating regional average FA and MD values (original and "
-               << "pathology) ---" << std::endl << std::endl;
+               << "pathology + intersubject variability) ---" << std::endl << std::endl;
       }
     else if( n <= numberOfControls )
       {
@@ -754,10 +753,10 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       {
       std::cout << "   " << std::left << std::setw( 7 ) << "Region"
                << std::left << std::setw( 15 ) << "FA (original)"
-               << std::left << std::setw( 15 ) << "FA (pathology)"
+               << std::left << std::setw( 15 ) << "FA (path+isv)"
                << std::left << std::setw( 15 ) << "FA (% change)"
                << std::left << std::setw( 15 ) << "MD (original)"
-               << std::left << std::setw( 15 ) << "MD (pathology)"
+               << std::left << std::setw( 15 ) << "MD (path+isv)"
                << std::left << std::setw( 15 ) << "MD (% change)"
                << std::endl;
       for( unsigned int l = 1; l < labels.size(); l++ )
@@ -843,7 +842,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
           vnl_vector<RealType> bkD = bk * D;
 
-          RealType signal = ItB.Get() * vcl_exp( -bvalue * inner_product( bkD, bk ) );
+          RealType signal = ItB.Get() * std::exp( -bvalue * inner_product( bkD, bk ) );
 
           // Add Rician noise
           RealType realNoise = 0.0;
@@ -858,9 +857,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           RealType realSignal = signal + realNoise;
           RealType imagSignal = imagNoise;
 
-          vcl_complex<RealType> noisySignal( realSignal, imagSignal );
+          std::complex<RealType> noisySignal( realSignal, imagSignal );
 
-          RealType finalSignal = vcl_sqrt( vcl_norm( noisySignal ) );
+          RealType finalSignal = std::sqrt( std::norm( noisySignal ) );
 
           if( signal <= ItB.Get() )
             {
