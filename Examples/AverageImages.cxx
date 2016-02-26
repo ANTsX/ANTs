@@ -307,7 +307,7 @@ private:
 
   // antscout->set_stream( out_stream );
 
-  if( argc < 3 )
+  if( argc < 5 )
     {
     std::cout << "\n" << std::endl;
     std::cout << "Usage: \n" << std::endl;
