@@ -179,6 +179,21 @@ int Denoise( itk::ants::CommandLineParser *parser )
     }
 
   /**
+   * handle the mask image
+   */
+  typedef typename DenoiserType::MaskImageType MaskImageType;
+  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+
+  typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
+    parser->GetOption( "mask-image" );
+  if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
+    {
+    std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
+    ReadImage<MaskImageType>( maskImage, inputFile.c_str() );
+    }
+  denoiser->SetMaskImage( maskImage );
+
+  /**
    * The parameters below are the default parameters taken from Jose's original
    *   code.  I don't have a good handle on them so I'm hiding them from the
    *   user for now.
@@ -339,6 +354,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   parser->AddOption( option );
   }
 
+  {
+  std::string description =
+    std::string( "If a mask image is specified, denoising is " )
+    + std::string( "only performed in the mask region.  " );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "mask-image" );
+  option->SetShortName( 'x' );
+  option->SetUsageOption( 0, "maskImageFilename" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
   {
   std::string description =

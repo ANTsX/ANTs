@@ -36,8 +36,8 @@
 
 namespace itk {
 
-template <typename TInputImage, typename TOutputImage>
-AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
+template <typename TInputImage, typename TOutputImage, typename TMaskImage>
+AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 ::AdaptiveNonLocalMeansDenoisingImageFilter() :
   m_UseRicianNoiseModel( true ),
   m_Epsilon( 0.00001 ),
@@ -45,7 +45,8 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   m_VarianceThreshold( 0.5 ),
   m_SmoothingVariance( 2.0 ),
   m_MaximumInputPixelIntensity( NumericTraits<RealType>::NonpositiveMin() ),
-  m_MinimumInputPixelIntensity( NumericTraits<RealType>::max() )
+  m_MinimumInputPixelIntensity( NumericTraits<RealType>::max() ),
+  m_MaskLabel( NumericTraits<LabelType>::OneValue() )
 {
   this->SetNumberOfRequiredInputs( 1 );
 
@@ -61,9 +62,9 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   this->m_NeighborhoodSearchRadius.Fill( 3 );
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
-AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
+AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 ::BeforeThreadedGenerateData()
 {
   const InputImageType *inputImage = this->GetInput();
@@ -123,14 +124,15 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
   this->AllocateOutputs();
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
-AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
+AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 ::ThreadedGenerateData( const RegionType &region, ThreadIdType threadId )
 {
   ProgressReporter progress( this, threadId, region.GetNumberOfPixels(), 100 );
 
   const InputImageType *inputImage = this->GetInput();
+  const MaskImageType *maskImage = this->GetMaskImage();
 
   OutputImageType *outputImage = this->GetOutput();
 
@@ -157,9 +159,8 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
   while( !ItM.IsAtEnd() )
     {
-    progress.CompletedPixel();
-
     typename InputImageType::PixelType inputCenterPixel = ItBI.GetCenterPixel();
+
     RealType meanCenterPixel = ItM.GetCenterPixel();
     RealType varianceCenterPixel = ItV.GetCenterPixel();
 
@@ -171,9 +172,9 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
     RealType meanNeighborhoodPixel = NumericTraits<RealType>::ZeroValue();
     RealType varianceNeighborhoodPixel = NumericTraits<RealType>::ZeroValue();
 
-    if( inputCenterPixel > 0 && meanCenterPixel > this->m_Epsilon && varianceCenterPixel > this->m_Epsilon )
+    if( inputCenterPixel > 0 && meanCenterPixel > this->m_Epsilon && varianceCenterPixel > this->m_Epsilon &&
+        ( !maskImage || maskImage->GetPixel( ItM.GetIndex() ) == this->m_MaskLabel ) )
       {
-
       // Calculate the minimum distance
 
       RealType minimumDistance = NumericTraits<RealType>::max();
@@ -407,14 +408,18 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
     ++ItBL;
     ++ItBM;
     ++ItBO;
+
+    progress.CompletedPixel();
     }
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
-AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
+AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 ::AfterThreadedGenerateData()
 {
+  const MaskImageType * maskImage = this->GetMaskImage();
+
   if( this->m_UseRicianNoiseModel )
     {
     typedef DiscreteGaussianImageFilter<RealImageType, RealImageType> SmootherType;
@@ -425,7 +430,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
     smoother->Update();
 
     ImageRegionConstIterator<RealImageType> ItS( smoother->GetOutput(), smoother->GetOutput()->GetRequestedRegion() );
-    ImageRegionConstIterator<RealImageType> ItM( this->m_MeanImage, this->m_MeanImage->GetRequestedRegion() );
+    ImageRegionConstIteratorWithIndex<RealImageType> ItM( this->m_MeanImage, this->m_MeanImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItB( this->m_RicianBiasImage, this->m_RicianBiasImage->GetRequestedRegion() );
 
     ItS.GoToBegin();
@@ -434,7 +439,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
 
     while( !ItS.IsAtEnd() )
       {
-      if( ItS.Get() > 0.0 )
+      if( ItS.Get() > 0.0 && ( !maskImage || maskImage->GetPixel( ItM.GetIndex() ) == this->m_MaskLabel ) )
         {
         const RealType snr = ItM.Get() / std::sqrt( ItS.Get() );
 
@@ -485,9 +490,9 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
     }
 }
 
-template<typename TInputImage, typename TOutputImage>
-typename AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>::RealType
-AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
+typename AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>::RealType
+AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 ::CalculateCorrectionFactor( RealType snr )
 {
    const RealType snrSquared = vnl_math_sqr( snr );
@@ -503,9 +508,9 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
    return value;
 }
 
-template<typename TInputImage, typename TOutputImage>
+template<typename TInputImage, typename TOutputImage, typename TMaskImage>
 void
-AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage>
+AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 ::PrintSelf( std::ostream &os, Indent indent ) const
 {
   Superclass::PrintSelf( os, indent );

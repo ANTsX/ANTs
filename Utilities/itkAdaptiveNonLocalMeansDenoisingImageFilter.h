@@ -44,7 +44,8 @@ namespace itk {
  */
 
 template<typename TInputImage,
-  class TOutputImage = TInputImage>
+  class TOutputImage = TInputImage,
+  typename TMaskImage = Image<unsigned char, TInputImage::ImageDimension> >
 class AdaptiveNonLocalMeansDenoisingImageFilter :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -71,12 +72,15 @@ public:
   typedef TOutputImage                                   OutputImageType;
   typedef typename InputImageType::RegionType            RegionType;
 
-  typedef float                             RealType;
-  typedef Image<RealType, ImageDimension>   RealImageType;
-  typedef typename RealImageType::Pointer   RealImagePointer;
-  typedef typename RealImageType::IndexType IndexType;
+  typedef TMaskImage                                     MaskImageType;
+  typedef typename MaskImageType::PixelType              LabelType;
 
-  typedef GaussianOperator<RealType>        ModifiedBesselCalculatorType;
+  typedef float                                          RealType;
+  typedef Image<RealType, ImageDimension>                RealImageType;
+  typedef typename RealImageType::Pointer                RealImagePointer;
+  typedef typename RealImageType::IndexType              IndexType;
+
+  typedef GaussianOperator<RealType>                     ModifiedBesselCalculatorType;
 
   typedef ConstNeighborhoodIterator<RealImageType>             ConstNeighborhoodIteratorType;
   typedef typename ConstNeighborhoodIteratorType::RadiusType   NeighborhoodRadiusType;
@@ -86,6 +90,27 @@ public:
    * The image expected for input for noise correction.
    */
   void SetInput1( const InputImageType *image ) { this->SetInput( image ); }
+
+  /**
+   * Set mask image function.  If a binary mask image is specified, only
+   * those input image voxels corresponding with mask image values equal
+   * to m_MaskLabel are used in estimating the bias field.
+   */
+  void SetMaskImage( const MaskImageType *mask )
+    {
+    this->SetNthInput( 1, const_cast<MaskImageType *>( mask ) );
+    }
+  void SetInput2( const MaskImageType *mask ) { this->SetMaskImage( mask ); }
+
+  /**
+   * Get mask image function.  If a binary mask image is specified, only
+   * those input image voxels corresponding with mask image values equal
+   * to m_MaskLabel are used in estimating the bias field.
+   */
+  const MaskImageType* GetMaskImage() const
+    {
+    return static_cast<const MaskImageType*>( this->ProcessObject::GetInput( 1 ) );
+    }
 
   /**
    * Employ Rician noise model.  Otherwise use a Gaussian noise model.
@@ -192,6 +217,8 @@ private:
   NeighborhoodRadiusType            m_NeighborhoodBlockRadius;
 
   std::vector<NeighborhoodOffsetType>  m_NeighborhoodOffsetList;
+
+  LabelType                         m_MaskLabel;
 };
 
 } // end namespace itk
