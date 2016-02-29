@@ -263,10 +263,10 @@ function summarizeimageset() {
 
   case $method in
     0) #mean
-      AverageImages $dim $output 0 ${images[*]}
+      ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}
       ;;
     1) #mean of normalized images
-      AverageImages $dim $output 1 ${images[*]}
+      ${ANTSPATH}/AverageImages $dim $output 1 ${images[*]}
       ;;
     2) #median
       local image
@@ -275,7 +275,7 @@ function summarizeimageset() {
           echo $image >> ${output}_list.txt
         done
 
-      ImageSetStatistics $dim ${output}_list.txt ${output} 0
+      ${ANTSPATH}/ImageSetStatistics $dim ${output}_list.txt ${output} 0
       rm ${output}_list.txt
       ;;
   esac
