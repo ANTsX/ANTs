@@ -1167,6 +1167,10 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     {
     os << "Using mean squares to measure the patch similarity." << std::endl;
     }
+  if( this->m_ConstrainSolutionToNonnegativeWeights )
+    {
+    os << "Constrain solution to positive weights using NNLS." << std::endl;
+    }
 
   os << "Label set: ";
   typename LabelSetType::const_iterator labelIt;
