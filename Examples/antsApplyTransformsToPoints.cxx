@@ -47,15 +47,16 @@ int antsApplyTransformsToPoints(
     }
 
   /**
-   * Input object option - for now, we're limiting this to images.
+   * Input object option
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption( "input" );
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
     {
-    std::string ext =
-      itksys::SystemTools::GetFilenameExtension(  ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
-    if( strcmp(ext.c_str(), ".csv") == 0 )
+    std::size_t lengthInputFileName = std::strlen( inputOption->GetFunction( 0 )->GetName().c_str() );
+    std::string ext = ( inputOption->GetFunction( 0 )->GetName() ).substr( lengthInputFileName - 4 );
+
+    if( strcmp( ext.c_str(), ".csv") == 0 )
       {
       typename ReaderType::Pointer reader = ReaderType::New();
       reader->SetFileName(  ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
@@ -86,7 +87,7 @@ int antsApplyTransformsToPoints(
       points_in = dfo->GetMatrix();
       points_out.set_size( points_in.rows(),  points_in.cols() );
       }
-    else if( strcmp(ext.c_str(), ".mha") == 0 || forANTsR )
+    else if( strcmp(ext.c_str(), ".mha" ) == 0 || forANTsR )
       {
       std::string fn1 = inputOption->GetFunction( 0 )->GetName();
       ReadImage<ImageType>( pointimage, fn1.c_str() );
@@ -98,12 +99,14 @@ int antsApplyTransformsToPoints(
       points_in.set_size( sz[0],  sz[1] );
       points_out.set_size( points_in.rows(),  points_in.cols() );
       for ( unsigned int d = 0; d < sz[0]; d++ )
+        {
         for ( unsigned int dd = 0; dd < sz[1]; dd++ )
           {
           ind[0] = d;
           ind[1] = dd;
           points_in( d, dd ) = pointimage->GetPixel( ind );
           }
+        }
       }
     else
       {
@@ -198,8 +201,8 @@ int antsApplyTransformsToPoints(
         {
         outputFileName = outputOption->GetFunction( 0 )->GetName();
         }
-      std::string exto =
-        itksys::SystemTools::GetFilenameExtension( outputFileName.c_str() );
+      std::size_t lengthOutputFileName = std::strlen( outputFileName.c_str() );
+      std::string exto = outputFileName.substr( lengthOutputFileName - 4 );
 
       if( strcmp(exto.c_str(), ".csv" ) == 0 )
         {
