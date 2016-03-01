@@ -1004,6 +1004,12 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   SizeValueType m = A.rows();
   SizeValueType n = A.cols();
 
+  // This fortran implementation sets a maximum iteration number of 3 times the
+  // number of rows:
+  //    http://www.netlib.org/lawson-hanson/all
+
+  const SizeValueType maximumNumberOfIterations = 3 * n;
+
   // Initialization
 
   VectorType P( n, 0 );
@@ -1025,7 +1031,10 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     }
 
   // Outer loop
-  while( R.sum() > 0 && wMaxValue > tolerance )
+
+  SizeValueType numberOfIterations = 0;
+  while( R.sum() > 0 && wMaxValue > tolerance &&
+    numberOfIterations++ < maximumNumberOfIterations )
     {
     P[maxIndex] = 1;
     R[maxIndex] = 0;
