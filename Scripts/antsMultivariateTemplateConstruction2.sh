@@ -1313,14 +1313,12 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 indir=`pwd`
               fi
             IMGbase=`basename ${IMAGESETARRAY[$l]}`
-            POO=${OUTPUTNAME}template${k}${IMGbase}
-            OUTFN=${POO%.*.*}
+            OUTFN=${OUTPUTNAME}template${k}${IMGbase%%.*}
             OUTFN=`basename ${OUTFN}`
             DEFORMED="${outdir}/${OUTFN}${l}WarpedToTemplate.nii.gz"
 
             IMGbase=`basename ${IMAGESETARRAY[$j]}`
-            POO=${OUTPUTNAME}${IMGbase}
-            OUTWARPFN=${POO%.*.*}
+            OUTWARPFN=${OUTPUTNAME}${IMGbase%%.*}
             OUTWARPFN=`basename ${OUTWARPFN}`
             OUTWARPFN="${OUTWARPFN}${j}"
 
@@ -1353,8 +1351,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         done
 
         IMGbase=`basename ${IMAGESETARRAY[$j]}`
-        POO=${OUTPUTNAME}${IMGbase}
-        OUTWARPFN=${POO%.*.*}
+        OUTWARPFN=${OUTPUTNAME}${IMGbase%%.*}
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
         stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[$j]},1]"
