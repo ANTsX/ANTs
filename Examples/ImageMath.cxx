@@ -1667,30 +1667,37 @@ int HistogramMatching(int argc, char * argv[])
   long        bins = 255;
   if( argc > argct )
     {
-    bins = atoi(argv[argct]);
+    bins = atoi( argv[argct] );
     }
   argct++;
   long points = 64;
   if( argc > argct )
     {
-    points = atoi(argv[argct]);
+    points = atoi( argv[argct] );
+    }
+  argct++;
+  bool useThresholdAtMeanIntensity = false;
+  if( argc > argct )
+    {
+    useThresholdAtMeanIntensity = static_cast<bool>( atoi( argv[argct] ) );
     }
   argct++;
 
   typename ImageType::Pointer source;
-  ReadImage<ImageType>(source, fn1.c_str() );
+  ReadImage<ImageType>( source, fn1.c_str() );
 
   typename ImageType::Pointer reference;
-  ReadImage<ImageType>(reference, fn2.c_str() );
+  ReadImage<ImageType>( reference, fn2.c_str() );
 
   typename MatchingFilterType::Pointer match = MatchingFilterType::New();
-  match->SetSourceImage(source);
-  match->SetReferenceImage(reference);
-  match->SetNumberOfHistogramLevels(bins);
-  match->SetNumberOfMatchPoints(points);
+  match->SetSourceImage( source );
+  match->SetReferenceImage( reference );
+  match->SetNumberOfHistogramLevels( bins );
+  match->SetThresholdAtMeanIntensity( useThresholdAtMeanIntensity );
+  match->SetNumberOfMatchPoints( points );
   match->Update();
 
-  WriteImage<ImageType>(match->GetOutput(), outname.c_str() );
+  WriteImage<ImageType>( match->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -14967,7 +14974,7 @@ private:
     std::cout << "\n  HistogramMatch    : " << std::endl;
     std::cout
       <<
-      "      Usage        : HistogramMatch SourceImage ReferenceImage {NumberBins-Default=255} {NumberPoints-Default=64}"
+      "      Usage        : HistogramMatch SourceImage ReferenceImage {NumberBins-Default=255} {NumberPoints-Default=64} {useThresholdAtMeanIntensity=false}"
       << std::endl;
 
     std::cout << "\n  RescaleImage    : " << std::endl;
