@@ -1080,29 +1080,27 @@ int TileImages(unsigned int argc, char *argv[])
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
 
-    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
+    for( unsigned int i = 0; i < ImageType::ImageDimension; i++ )
       {
-      size[i] = imageIO->GetDimensions( i );
-      }
+      itk::SizeValueType currentDimensionSize = imageIO->GetDimensions( i );
+      size[i] = currentDimensionSize;
 
-    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
-      {
-      if( size[i] > maxSize[i] )
+      if( currentDimensionSize > maxSize[i] )
         {
-        maxSize[i] = size[i];
+        maxSize[i] = currentDimensionSize;
         bigimage = j;
-        // std::cout << " bigimage " << j << " size " << size << std::endl;
         }
       }
     }
+  std::cout << " bigimage " << bigimage << " size " << maxSize << std::endl;
 
   ReadImage<ImageType>(image2, argv[bigimage]);
 
   // std::cout << " largest image " << size << std::endl;
 
 /** declare the tiled image */
-  unsigned int xsize = size[0];
-  unsigned int ysize = size[1];
+  unsigned int xsize = maxSize[0];
+  unsigned int ysize = maxSize[1];
   typename ImageType::SizeType tilesize;
   unsigned int ny = (unsigned int)( (float)numberofimages / (float)nx + 0.5);
   if( nx * ny < numberofimages )

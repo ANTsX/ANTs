@@ -64,8 +64,6 @@ int AverageImages1(unsigned int argc, char *argv[])
   const bool  normalizei = atoi(argv[3]);
   const float numberofimages = (float)argc - 4.;
 
-  typename ImageType::SizeType size;
-  size.Fill( 0 );
   typename ImageType::SizeType maxSize;
   maxSize.Fill( 0 );
   unsigned int bigimage = 0;
@@ -78,22 +76,18 @@ int AverageImages1(unsigned int argc, char *argv[])
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
 
-    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
+    for( unsigned int i = 0; i < ImageType::ImageDimension; i++ )
       {
-      size[i] = imageIO->GetDimensions( i );
-      }
+      itk::SizeValueType currentDimensionSize = imageIO->GetDimensions( i );
 
-    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
-      {
-      if( size[i] > maxSize[i] )
+      if( currentDimensionSize > maxSize[i] )
         {
-        maxSize[i] = size[i];
+        maxSize[i] = currentDimensionSize;
         bigimage = j;
         }
       }
-    std::cout << " fn " << fn << std::endl;
-    std::cout << " bigimage " << bigimage << " curr_image " << j << " size " << size << std::endl;
     }
+  std::cout << " bigimage " << bigimage << " maxSize " << maxSize << std::endl;
 
   typename ImageFileReader::Pointer reader = ImageFileReader::New();
   reader->SetFileName(argv[bigimage]);
