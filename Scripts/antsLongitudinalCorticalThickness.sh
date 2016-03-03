@@ -104,6 +104,7 @@ Optional arguments:
                                                   2 = use PEXEC (localhost)
                                                   3 = Apple XGrid
                                                   4 = PBS qsub
+                                                  5 = SLURM
      -t:  template for t1 registration          Anatomical *intensity* template (assumed to be skull-stripped).  A common
                                                 use case would be where this would be the same template as specified in the
                                                 -e option which is not skull stripped.
@@ -265,9 +266,9 @@ else
        ;;
           c)
        DOQSUB=$OPTARG
-       if [[ $DOQSUB -gt 4 ]];
+       if [[ $DOQSUB -gt 5 ]];
          then
-           echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
+           echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub, 5=SLURM ) you passed  -c $DOQSUB "
            exit 1
          fi
        ;;
