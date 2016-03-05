@@ -1005,7 +1005,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   SizeValueType n = A.cols();
 
   // This fortran implementation sets a maximum iteration number of 3 times the
-  // number of rows:
+  // number of columns:
   //    http://www.netlib.org/lawson-hanson/all
 
   const SizeValueType maximumNumberOfIterations = 3 * n;
