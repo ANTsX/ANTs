@@ -1313,14 +1313,12 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 indir=`pwd`
               fi
             IMGbase=`basename ${IMAGESETARRAY[$l]}`
-            POO=${OUTPUTNAME}template${k}${IMGbase}
-            OUTFN=${POO%.*.*}
+            OUTFN=${OUTPUTNAME}template${k}${IMGbase%%.*}
             OUTFN=`basename ${OUTFN}`
             DEFORMED="${outdir}/${OUTFN}${l}WarpedToTemplate.nii.gz"
 
             IMGbase=`basename ${IMAGESETARRAY[$j]}`
-            POO=${OUTPUTNAME}${IMGbase}
-            OUTWARPFN=${POO%.*.*}
+            OUTWARPFN=${OUTPUTNAME}${IMGbase%%.*}
             OUTWARPFN=`basename ${OUTWARPFN}`
             OUTWARPFN="${OUTWARPFN}${j}"
 
@@ -1353,8 +1351,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         done
 
         IMGbase=`basename ${IMAGESETARRAY[$j]}`
-        POO=${OUTPUTNAME}${IMGbase}
-        OUTWARPFN=${POO%.*.*}
+        OUTWARPFN=${OUTPUTNAME}${IMGbase%%.*}
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
         stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[$j]},1]"
@@ -1391,7 +1388,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         # 6 submit to SGE (DOQSUB=1), PBS (DOQSUB=4), PEXEC (DOQSUB=2), XGrid (DOQSUB=3), SLURM (DOQSUB=5) or else run locally (DOQSUB=0)
         if [[ $DOQSUB -eq 1 ]];
           then
-            echo -e "$exe" > $qscript
+			echo "$SCRIPTPREPEND" > $qscript
+            echo -e "$exe" >> $qscript
             id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
