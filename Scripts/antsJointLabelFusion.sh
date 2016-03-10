@@ -667,45 +667,47 @@ if [[ $DOQSUB -eq 0 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
-      do
-        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
-      done
-
-    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
-      then
-        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
-      else
-        jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
-      fi
+    maskCall=''
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
         jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
-      fi
+      else
 
-    maskCall=''
-    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
-        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
-
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
-
-        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
-        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+        for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
           do
-            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+            jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
           done
-        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ -f ${TARGET_MASK_IMAGE} ]];
-      then
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+          then
+            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+          else
+            jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+          fi
+
+        if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+            maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+            for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+              do
+                maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+              done
+            maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ -f ${TARGET_MASK_IMAGE} ]];
+          then
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+          fi
       fi
 
     qscript2="${OUTPUT_PREFIX}JLF.sh"
@@ -755,45 +757,47 @@ if [[ $DOQSUB -eq 1 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
-      do
-        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
-      done
-
-    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
-      then
-        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
-      else
-        jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
-      fi
+    maskCall=''
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
         jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
-      fi
+      else
 
-    maskCall=''
-    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
-        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
-
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
-
-        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
-        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+        for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
           do
-            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+            jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
           done
-        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ -f ${TARGET_MASK_IMAGE} ]];
-      then
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+          then
+            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+          else
+            jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+          fi
+
+        if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+            maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+            for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+              do
+                maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+              done
+            maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ -f ${TARGET_MASK_IMAGE} ]];
+          then
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+          fi
       fi
 
     qscript2="${OUTPUT_PREFIX}JLF.sh"
@@ -842,40 +846,47 @@ if [[ $DOQSUB -eq 4 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
-      do
-        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
-      done
-
-    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
-      then
-        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
-      else
-        jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
-      fi
-
     maskCall=''
-    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
-        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
 
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+    if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+        jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+      else
 
-        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
-        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+        for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
           do
-            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+            jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
           done
-        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ -f ${TARGET_MASK_IMAGE} ]];
-      then
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+          then
+            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+          else
+            jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+          fi
+
+        if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+            maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+            for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+              do
+                maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+              done
+            maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ -f ${TARGET_MASK_IMAGE} ]];
+          then
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+          fi
       fi
 
     qscript2="${OUTPUT_PREFIX}JLF.sh"
@@ -911,45 +922,47 @@ if [[ $DOQSUB -eq 2 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
-      do
-        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
-      done
-
-    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
-      then
-        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
-      else
-        jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
-      fi
+    maskCall=''
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
         jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
-      fi
+      else
 
-    maskCall=''
-    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
-        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
-
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
-
-        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
-        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+        for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
           do
-            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+            jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
           done
-        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ -f ${TARGET_MASK_IMAGE} ]];
-      then
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+          then
+            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+          else
+            jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+          fi
+
+        if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+            maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+            for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+              do
+                maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+              done
+            maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ -f ${TARGET_MASK_IMAGE} ]];
+          then
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+          fi
       fi
 
     qscript2="${OUTPUT_PREFIX}JLF.sh"
@@ -997,45 +1010,47 @@ if [[ $DOQSUB -eq 3 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
-      do
-        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
-      done
-
-    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
-      then
-        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
-      else
-        jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
-      fi
+    maskCall=''
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
         jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
-      fi
+      else
 
-    maskCall=''
-    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
-        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
-
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
-
-        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
-        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+        for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
           do
-            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+            jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
           done
-        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ -f ${TARGET_MASK_IMAGE} ]];
-      then
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+          then
+            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+          else
+            jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+          fi
+
+        if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+            maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+            for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+              do
+                maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+              done
+            maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ -f ${TARGET_MASK_IMAGE} ]];
+          then
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+          fi
       fi
 
     qscript2="${OUTPUT_PREFIX}JLF.sh"
@@ -1086,40 +1101,47 @@ if [[ $DOQSUB -eq 5 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
-      do
-        jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
-      done
-
-    if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
-      then
-        jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
-      else
-        jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
-      fi
-
     maskCall=''
-    if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
-      then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
-        maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
 
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+    if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+        jlfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+      else
 
-        maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
-        for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+        for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
           do
-            maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+            jlfCall="${jlfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[$i]} -l ${EXISTING_WARPED_ATLAS_LABELS[$i]}"
           done
-        maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
-    elif [[ -f ${TARGET_MASK_IMAGE} ]];
-      then
-        jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+          then
+            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+          else
+            jlfCall="${jlfCall} -r 1 -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+          fi
+
+        if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOtsu.nii.gz"
+            maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
+          then
+            TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
+
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${EXISTING_WARPED_ATLAS_IMAGES[0]} ${EXISTING_WARPED_ATLAS_IMAGES[1]};"
+            for (( i = 2; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
+              do
+                maskCall="${maskCall} ${ANTSPATH}/ImageMath ${DIM} ${TARGET_MASK_IMAGE} max ${TARGET_MASK_IMAGE} ${EXISTING_WARPED_ATLAS_IMAGES[$i]};"
+              done
+            maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
+
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ -f ${TARGET_MASK_IMAGE} ]];
+          then
+            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+          fi
       fi
 
     qscript2="${OUTPUT_PREFIX}JLF.sh"

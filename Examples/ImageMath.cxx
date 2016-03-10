@@ -5451,11 +5451,11 @@ int ImageMath(int argc, char *argv[])
     }
   if( strcmp(operation.c_str(), "total") == 0 )
     {
-    // std::cout << "total: " << result << " total-volume: " << result * volumeelement << std::endl;
+    std::cout << "total: " << result << " total-volume: " << result * volumeelement << std::endl;
     }
   else if( strcmp(operation.c_str(), "mean") == 0 )
     {
-    // std::cout << result / ct << std::endl;
+    std::cout << result / ct << std::endl;
     }
   else
     {
@@ -5637,7 +5637,7 @@ int VImageMath(int argc, char *argv[])
     }
   if( strcmp(operation.c_str(), "vtotal") == 0 )
     {
-    // std::cout << "total: " << result << " total-volume: " << result * volumeelement << std::endl;
+    std::cout << "total: " << result << " total-volume: " << result * volumeelement << std::endl;
     }
   else
     {
@@ -12053,7 +12053,7 @@ int ImageMetrics( int argc, char *argv[] )
     value = metric->GetValue();
     }
 
-  // std::cout << value << std::endl;
+  std::cout << value << std::endl;
 
   return 0;
 }
