@@ -753,37 +753,80 @@ iMathNormalize( typename ImageType::Pointer image )
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathPad( typename ImageType::Pointer image, int padding )
+iMathPad( typename ImageType::Pointer image1, int padvalue )
 {
-  typename ImageType::PointType origin = image->GetOrigin();
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  typename ImageType::PointType origin = image1->GetOrigin();
+  typename ImageType::SizeType size = image1->GetLargestPossibleRegion().GetSize();
+  typename ImageType::PointType origin2 = image1->GetOrigin();
+  typename ImageType::SizeType newsize = image1->GetLargestPossibleRegion().GetSize();
+  typename ImageType::RegionType newregion;
+  // determine new image size
+  for( unsigned int i = 0; i < ImageType::ImageDimension; i++ )
+      {
+      float dimsz = (float)size[i];
+      newsize[i] = (unsigned int)(dimsz + padvalue * 2);
+      }
+  newregion.SetSize(newsize);
+  newregion.SetIndex(image1->GetLargestPossibleRegion().GetIndex() );
+  typename ImageType::Pointer padimage =
+      AllocImage<ImageType>(newregion,
+                            image1->GetSpacing(),
+                            origin2,
+                            image1->GetDirection(), 0);
 
-  typename ImageType::SizeType size = image->GetLargestPossibleRegion().GetSize();
-  for (unsigned int i=0; i<ImageType::ImageDimension; i++)
-    {
-    size[i] += 2*padding;
-    origin[i] -= (padding * image->GetSpacing()[i]);
-    }
+  typename ImageType::IndexType index;
+  typename ImageType::IndexType index2;
+  if( padvalue > 0 )
+      {
+      index.Fill(0);
+      index2.Fill( (unsigned int)fabs( static_cast<float>( padvalue ) ) );
+      }
+  else
+      {
+      index2.Fill(0);
+      index.Fill( (unsigned int)fabs( static_cast<float>( padvalue ) ) );
+      }
 
-  typedef itk::IdentityTransform<double,ImageType::ImageDimension> TransformType;
-  typename TransformType::Pointer id = TransformType::New();
-  id->SetIdentity();
+  typename ImageType::PointType point1, pointpad;
+  image1->TransformIndexToPhysicalPoint(index, point1);
+  padimage->TransformIndexToPhysicalPoint(index2, pointpad);
 
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType> InterpType;
-  typename InterpType::Pointer interp = InterpType::New();
+  for( unsigned int i = 0; i < ImageType::ImageDimension; i++ )
+      {
+      origin2[i] += (point1[i] - pointpad[i]);
+      }
 
-  typedef itk::ResampleImageFilter<ImageType,ImageType> FilterType;
-  typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( image );
-  filter->SetOutputSpacing( image->GetSpacing() );
-  filter->SetOutputOrigin( origin );
-  filter->SetOutputDirection( image->GetDirection() );
-  filter->SetDefaultPixelValue( 0 );
-  filter->SetSize( size );
-  filter->SetTransform( id );
-  filter->SetInterpolator( interp );
-  filter->Update();
+  padimage->SetOrigin(origin2);
 
-  return filter->GetOutput();
+  Iterator iter( image1,  image1->GetLargestPossibleRegion() );
+  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+      {
+      typename ImageType::IndexType oindex = iter.GetIndex();
+      typename ImageType::IndexType padindex = iter.GetIndex();
+
+      bool isinside = true;
+      for( unsigned int i = 0; i < ImageType::ImageDimension; i++ )
+        {
+        float shifted = ( (float)oindex[i] + padvalue);
+        if( shifted < 0 || shifted > newsize[i] - 1 )
+          {
+          isinside = false;
+          }
+        //      if (shifted < 0) shifted=0;
+        // padindex[i]=
+        }
+      if( isinside )
+        {
+        for( unsigned int i = 0; i < ImageType::ImageDimension; i++ )
+          {
+          float shifted = ( (float)oindex[i] + padvalue);
+          padindex[i] = (unsigned int)shifted;
+          }
+        padimage->SetPixel(padindex, iter.Get() );
+        }
+      }
+return padimage;
 }
 
 
