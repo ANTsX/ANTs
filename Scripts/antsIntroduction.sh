@@ -431,7 +431,7 @@ NUMLEVELS=${#ITERATLEVEL[@]}
 if [ "${TRANSFORMATIONTYPE}" == "RI" ]
 then
 RIGID=1
-RIGIDTRANSF=" --do-rigid: true "
+RIGIDTRANSF=" --do-rigid true "
 
 elif [ "${TRANSFORMATIONTYPE}" == "RA" ]
 then
