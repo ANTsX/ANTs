@@ -384,7 +384,6 @@ private:
   LabelImageList                                       m_AtlasSegmentations;
   LabelExclusionMap                                    m_LabelExclusionImages;
   MaskImagePointer                                     m_MaskImage;
-  LabelType                                            m_MaskLabel;
 
   typename CountImageType::Pointer                     m_CountImage;
 

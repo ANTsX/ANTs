@@ -46,7 +46,6 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   m_ConstrainSolutionToNonnegativeWeights( false )
 {
   this->m_MaskImage = ITK_NULLPTR;
-  this->m_MaskLabel = NumericTraits<LabelType>::OneValue();
 
   this->m_CountImage = ITK_NULLPTR;
 
@@ -245,7 +244,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       this->m_AtlasSegmentations[i], this->m_AtlasSegmentations[i]->GetRequestedRegion() );
     for( It.GoToBegin(); !It.IsAtEnd(); ++It )
       {
-      if( !this->m_MaskImage || this->m_MaskImage->GetPixel( It.GetIndex() ) == this->m_MaskLabel )
+      if( !this->m_MaskImage ||
+          this->m_MaskImage->GetPixel( It.GetIndex() ) != NumericTraits<LabelType>::ZeroValue() )
         {
         this->m_LabelSet.insert( It.Get() );
         }
@@ -462,7 +462,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
     IndexType currentCenterIndex = ItN.GetIndex();
 
-    if( this->m_MaskImage && this->m_MaskImage->GetPixel( currentCenterIndex ) != this->m_MaskLabel )
+    if( this->m_MaskImage &&
+        this->m_MaskImage->GetPixel( currentCenterIndex ) == NumericTraits<LabelType>::ZeroValue() )
       {
       continue;
       }
@@ -659,7 +660,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           continue;
           }
 
-        if( this->m_MaskImage && this->m_MaskImage->GetPixel( neighborhoodIndex ) != this->m_MaskLabel )
+        if( this->m_MaskImage &&
+            this->m_MaskImage->GetPixel( neighborhoodIndex ) == NumericTraits<LabelType>::ZeroValue() )
           {
           continue;
           }
@@ -744,7 +746,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     {
     IndexType index = It.GetIndex();
 
-    if( this->m_MaskImage && this->m_MaskImage->GetPixel( It.GetIndex() ) != this->m_MaskLabel )
+    if( this->m_MaskImage &&
+        this->m_MaskImage->GetPixel( It.GetIndex() ) == NumericTraits<LabelType>::ZeroValue() )
       {
       continue;
       }

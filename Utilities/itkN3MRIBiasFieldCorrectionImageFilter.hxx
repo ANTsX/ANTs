@@ -43,8 +43,6 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
   this->m_BiasFieldImage = ITK_NULLPTR;
   this->m_MaskImage = ITK_NULLPTR;
   this->m_ConfidenceImage = ITK_NULLPTR;
-
-  this->m_MaskLabel = NumericTraits<typename TMaskImage::PixelType>::OneValue();
 }
 
 template <class TInputImage, class TBiasFieldImage, class TMaskImage,
@@ -73,7 +71,7 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
   for( ItI.GoToBegin(), ItB.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItB )
     {
     if( ( !this->m_MaskImage ||
-          this->m_MaskImage->GetPixel( ItI.GetIndex() ) == this->m_MaskLabel )
+          this->m_MaskImage->GetPixel( ItI.GetIndex() ) != NumericTraits<typename TMaskImage::PixelType>::ZeroValue() )
         && ( !this->m_ConfidenceImage ||
              this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > 0.0 ) )
       {
@@ -88,7 +86,7 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
   for( ItI.GoToBegin(), ItB.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItB )
     {
     if( ( !this->m_MaskImage ||
-          this->m_MaskImage->GetPixel( ItI.GetIndex() ) == this->m_MaskLabel )
+          this->m_MaskImage->GetPixel( ItI.GetIndex() ) != NumericTraits<typename TMaskImage::PixelType>::ZeroValue() )
         && ( !this->m_ConfidenceImage ||
              this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > 0.0 ) )
       {
@@ -120,7 +118,7 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
   for( ItI.GoToBegin(), ItB.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItB )
     {
     if( ( !this->m_MaskImage ||
-          this->m_MaskImage->GetPixel( ItI.GetIndex() ) == this->m_MaskLabel )
+          this->m_MaskImage->GetPixel( ItI.GetIndex() ) != NumericTraits<typename TMaskImage::PixelType>::ZeroValue() )
         && ( !this->m_ConfidenceImage ||
              this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > 0.0 ) )
       {
@@ -139,7 +137,7 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
   for( ItI.GoToBegin(), ItB.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItB )
     {
     if( ( !this->m_MaskImage ||
-          this->m_MaskImage->GetPixel( ItI.GetIndex() ) == this->m_MaskLabel )
+          this->m_MaskImage->GetPixel( ItI.GetIndex() ) != NumericTraits<typename TMaskImage::PixelType>::ZeroValue() )
         && ( !this->m_ConfidenceImage ||
              this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > 0.0 ) )
       {
@@ -174,8 +172,6 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::N3MRIBiasFieldCorrectionImageFilter()
 {
   this->SetNumberOfRequiredInputs( 1 );
-
-  this->m_MaskLabel = NumericTraits<MaskPixelType>::OneValue();
 
   this->m_NumberOfHistogramBins = 200;
   this->m_WeinerFilterNoise = 0.01;
@@ -218,7 +214,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
     if( ( !this->GetMaskImage() ||
-          this->GetMaskImage()->GetPixel( It.GetIndex() ) == this->m_MaskLabel )
+          this->GetMaskImage()->GetPixel( It.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() )
         && ( !this->GetConfidenceImage() ||
              this->GetConfidenceImage()->GetPixel( It.GetIndex() ) > 0.0 ) )
       {
@@ -333,7 +329,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   for( ItU.GoToBegin(); !ItU.IsAtEnd(); ++ItU )
     {
     if( ( !this->GetMaskImage() ||
-          this->GetMaskImage()->GetPixel( ItU.GetIndex() ) == this->m_MaskLabel )
+          this->GetMaskImage()->GetPixel( ItU.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() )
         && ( !this->GetConfidenceImage() ||
              this->GetConfidenceImage()->GetPixel( ItU.GetIndex() ) > 0.0 ) )
       {
@@ -359,7 +355,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   for( ItU.GoToBegin(); !ItU.IsAtEnd(); ++ItU )
     {
     if( ( !this->GetMaskImage() ||
-          this->GetMaskImage()->GetPixel( ItU.GetIndex() ) == this->m_MaskLabel )
+          this->GetMaskImage()->GetPixel( ItU.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() )
         && ( !this->GetConfidenceImage() ||
              this->GetConfidenceImage()->GetPixel( ItU.GetIndex() ) > 0.0 ) )
       {
@@ -515,7 +511,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   for( ItU.GoToBegin(), ItC.GoToBegin(); !ItU.IsAtEnd(); ++ItU, ++ItC )
     {
     if( ( !this->GetMaskImage() ||
-          this->GetMaskImage()->GetPixel( ItU.GetIndex() ) == this->m_MaskLabel )
+          this->GetMaskImage()->GetPixel( ItU.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() )
         && ( !this->GetConfidenceImage() ||
              this->GetConfidenceImage()->GetPixel( ItU.GetIndex() ) > 0.0 ) )
       {
@@ -571,7 +567,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
     if( ( !this->GetMaskImage() ||
-          this->GetMaskImage()->GetPixel( It.GetIndex() ) == this->m_MaskLabel )
+          this->GetMaskImage()->GetPixel( It.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() )
         && ( !this->GetConfidenceImage() ||
              this->GetConfidenceImage()->GetPixel( It.GetIndex() ) > 0.0 ) )
       {
@@ -660,7 +656,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
     if( !this->GetMaskImage() ||
-        this->GetMaskImage()->GetPixel( It.GetIndex() ) == this->m_MaskLabel )
+        this->GetMaskImage()->GetPixel( It.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() )
       {
       RealType pixel = It.Get();
       N += 1.0;
@@ -749,8 +745,6 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 {
   Superclass::PrintSelf( os, indent );
 
-  os << indent << "Mask label: "
-     << this->m_MaskLabel << std::endl;
   os << indent << "Number of histogram bins: "
      << this->m_NumberOfHistogramBins << std::endl;
   os << indent << "Weiner filter noise: "
