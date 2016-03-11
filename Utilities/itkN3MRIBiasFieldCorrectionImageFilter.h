@@ -109,9 +109,6 @@ public:
   itkSetObjectMacro( MaskImage, TMaskImage );
   itkSetObjectMacro( ConfidenceImage, TConfidenceImage );
 
-  itkSetMacro( MaskLabel, typename TMaskImage::PixelType );
-  itkGetConstMacro( MaskLabel, typename TMaskImage::PixelType );
-
   virtual MeasureType GetValue( const ParametersType & parameters ) const ITK_OVERRIDE;
 
   virtual void GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const ITK_OVERRIDE;
@@ -129,8 +126,6 @@ private:
   typename TBiasFieldImage::Pointer              m_BiasFieldImage;
   typename TMaskImage::Pointer                   m_MaskImage;
   typename TConfidenceImage::Pointer             m_ConfidenceImage;
-
-  typename TMaskImage::PixelType                 m_MaskLabel;
 };
 
 /**
@@ -217,9 +212,6 @@ public:
     this->SetConfidenceImage( image );
   }
 
-  itkSetMacro( MaskLabel, MaskPixelType );
-  itkGetConstMacro( MaskLabel, MaskPixelType );
-
   itkSetMacro( NumberOfHistogramBins, unsigned int );
   itkGetConstMacro( NumberOfHistogramBins, unsigned int );
 
@@ -287,8 +279,6 @@ private:
     typename RealImageType::Pointer );
   RealType CalculateOptimalBiasFieldScaling(
     typename RealImageType::Pointer );
-
-  MaskPixelType m_MaskLabel;
 
   /**
    * Parameters for deconvolution with Weiner filter
