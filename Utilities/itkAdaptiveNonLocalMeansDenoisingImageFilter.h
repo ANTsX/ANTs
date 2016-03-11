@@ -73,6 +73,7 @@ public:
   typedef typename InputImageType::RegionType            RegionType;
 
   typedef TMaskImage                                     MaskImageType;
+  typedef typename MaskImageType::PixelType              MaskPixelType;
   typedef typename MaskImageType::PixelType              LabelType;
 
   typedef float                                          RealType;
@@ -93,8 +94,7 @@ public:
 
   /**
    * Set mask image function.  If a binary mask image is specified, only
-   * those input image voxels corresponding with mask image values equal
-   * to m_MaskLabel are used in estimating the bias field.
+   * those input image voxels corresponding with the mask image.
    */
   void SetMaskImage( const MaskImageType *mask )
     {
@@ -104,8 +104,7 @@ public:
 
   /**
    * Get mask image function.  If a binary mask image is specified, only
-   * those input image voxels corresponding with mask image values equal
-   * to m_MaskLabel are used in estimating the bias field.
+   * those input image voxels corresponding with the mask image.
    */
   const MaskImageType* GetMaskImage() const
     {
@@ -217,8 +216,6 @@ private:
   NeighborhoodRadiusType            m_NeighborhoodBlockRadius;
 
   std::vector<NeighborhoodOffsetType>  m_NeighborhoodOffsetList;
-
-  LabelType                         m_MaskLabel;
 };
 
 } // end namespace itk

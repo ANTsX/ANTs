@@ -45,8 +45,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
   m_VarianceThreshold( 0.5 ),
   m_SmoothingVariance( 2.0 ),
   m_MaximumInputPixelIntensity( NumericTraits<RealType>::NonpositiveMin() ),
-  m_MinimumInputPixelIntensity( NumericTraits<RealType>::max() ),
-  m_MaskLabel( NumericTraits<LabelType>::OneValue() )
+  m_MinimumInputPixelIntensity( NumericTraits<RealType>::max() )
 {
   this->SetNumberOfRequiredInputs( 1 );
 
@@ -173,7 +172,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
     RealType varianceNeighborhoodPixel = NumericTraits<RealType>::ZeroValue();
 
     if( inputCenterPixel > 0 && meanCenterPixel > this->m_Epsilon && varianceCenterPixel > this->m_Epsilon &&
-        ( !maskImage || maskImage->GetPixel( ItM.GetIndex() ) == this->m_MaskLabel ) )
+        ( !maskImage || maskImage->GetPixel( ItM.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() ) )
       {
       // Calculate the minimum distance
 
@@ -331,7 +330,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
       if( itk::Math::AlmostEquals( maxWeight, NumericTraits<RealType>::ZeroValue() ) )
         {
-        maxWeight = 1.0;
+        maxWeight = NumericTraits<RealType>::OneValue();
         }
 
       for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
@@ -439,7 +438,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
     while( !ItS.IsAtEnd() )
       {
-      if( ItS.Get() > 0.0 && ( !maskImage || maskImage->GetPixel( ItM.GetIndex() ) == this->m_MaskLabel ) )
+      if( ItS.Get() > 0.0 && ( !maskImage || maskImage->GetPixel( ItM.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() ) )
         {
         const RealType snr = ItM.Get() / std::sqrt( ItS.Get() );
 
