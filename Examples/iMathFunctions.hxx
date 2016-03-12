@@ -756,7 +756,6 @@ typename ImageType::Pointer
 iMathPad( typename ImageType::Pointer image1, int padvalue )
 {
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
-  typename ImageType::PointType origin = image1->GetOrigin();
   typename ImageType::SizeType size = image1->GetLargestPossibleRegion().GetSize();
   typename ImageType::PointType origin2 = image1->GetOrigin();
   typename ImageType::SizeType newsize = image1->GetLargestPossibleRegion().GetSize();
