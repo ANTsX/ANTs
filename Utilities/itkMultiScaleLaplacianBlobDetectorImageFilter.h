@@ -73,7 +73,7 @@ public:
   /** The sigma of the laplacian where the extrema occoured */
   double GetScaleSpaceSigma( void ) const
   {
-    return this->GetSigma() / ( vcl_sqrt( TDimension / 2.0 ) );
+    return this->GetSigma() / ( std::sqrt( TDimension / 2.0 ) );
   }
 
   /** The location where the extrema occoured */

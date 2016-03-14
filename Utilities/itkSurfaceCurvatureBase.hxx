@@ -14,8 +14,10 @@
 #ifndef _SurfaceCurvatureBase_hxx
 #define _SurfaceCurvatureBase_hxx
 
-#include <vcl_cmath.h>
-#include <vcl_iostream.h>
+#include <vcl_compiler.h>
+#include <iostream>
+#include <cmath>
+#include <iostream>
 #include <vnl/vnl_real_polynomial.h>
 // #include <vnl/algo/vnl_rpoly_roots.h>
 #include <vnl/vnl_vector.h>
@@ -170,11 +172,11 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
     if( m_Debug )
       {
       vnl_vector<double> a = eig.get_eigenvector(0);
-      vcl_cout << "Eig residual = " << (D * a).magnitude() << vcl_endl;
+      std::cout << "Eig residual = " << (D * a).magnitude() << std::endl;
       a = eig.get_eigenvector(1);
-      vcl_cout << "Eig residual = " << (D * a).magnitude() << vcl_endl;
+      std::cout << "Eig residual = " << (D * a).magnitude() << std::endl;
       a = eig.get_eigenvector(2);
-      vcl_cout << "Eig residual = " << (D * a).magnitude() << vcl_endl;
+      std::cout << "Eig residual = " << (D * a).magnitude() << std::endl;
       }
     }
 }
@@ -465,8 +467,8 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
     }
 
 // NOTE: THIS IS THE ERROR ESTIMATE
-// vcl_cout << "SVD residual = " << (D * a).magnitude() << vcl_endl;
-// vcl_cout << " a " << a << vcl_endl;
+// std::cout << "SVD residual = " << (D * a).magnitude() << std::endl;
+// std::cout << " a " << a << std::endl;
 //  MatrixType C(2,2);
 //  C(0,0)=a(0);   C(1,0)=a(1);   C(0,1)=a(1);   C(1,1)=a(2);
 //  vnl_symmetric_eigensystem<double> eig(C);
@@ -555,8 +557,8 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
   vnl_vector<double> c = svd.solve(dists);
 
   // NOTE: THIS IS THE ERROR ESTIMATE
-  // vcl_cout << "SVD residual = " << (D * c).magnitude() << vcl_endl;
-  // vcl_cout << " C " << c << vcl_endl;
+  // std::cout << "SVD residual = " << (D * c).magnitude() << std::endl;
+  // std::cout << " C " << c << std::endl;
 
   MatrixType C(2, 2);
   C(0, 0) = c(0);   C(1, 0) = c(1);   C(0, 1) = c(1);   C(1, 1) = c(2);
@@ -717,7 +719,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::TestEstimateTangentPlane(Point
 
   std::cout << " input points " << std::endl;
 
-  vcl_cin >> pts;
+  std::cin >> pts;
 
   // Build cov matrix D
   int        npts = pts.rows();
@@ -757,21 +759,21 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::TestEstimateTangentPlane(Point
     {
     vnl_svd<double>    svd(D);
     vnl_vector<double> a = svd.nullvector();
-    vcl_cout << "SVD residual = " << (D * a).magnitude() << vcl_endl;
-    vcl_cout << "SVD normal " << a << vcl_endl;
+    std::cout << "SVD residual = " << (D * a).magnitude() << std::endl;
+    std::cout << "SVD normal " << a << std::endl;
     }
 
   // 2. Compute using eigensystem of D'*D
     {
     vnl_symmetric_eigensystem<double> eig(D.transpose() * D);
     vnl_vector<double>                a = eig.get_eigenvector(0);
-    vcl_cout << "Eig residual = " << (D * a).magnitude() << vcl_endl;
-    vcl_cout << " normal  " << eig.get_eigenvector(0) << vcl_endl;
-    vcl_cout << "Eigvec 1  " << eig.get_eigenvector(1) << vcl_endl;
-    vcl_cout << "Eigvec 2  " << eig.get_eigenvector(2) << vcl_endl;
-    vcl_cout << "Eigval normal  " << eig.get_eigenvalue(0) << vcl_endl;
-    vcl_cout << "Eigval 1  " << eig.get_eigenvalue(1) << vcl_endl;
-    vcl_cout << "Eigval 2  " << eig.get_eigenvalue(2) << vcl_endl;
+    std::cout << "Eig residual = " << (D * a).magnitude() << std::endl;
+    std::cout << " normal  " << eig.get_eigenvector(0) << std::endl;
+    std::cout << "Eigvec 1  " << eig.get_eigenvector(1) << std::endl;
+    std::cout << "Eigvec 2  " << eig.get_eigenvector(2) << std::endl;
+    std::cout << "Eigval normal  " << eig.get_eigenvalue(0) << std::endl;
+    std::cout << "Eigval 1  " << eig.get_eigenvalue(1) << std::endl;
+    std::cout << "Eigval 2  " << eig.get_eigenvalue(2) << std::endl;
     }
 }
 
@@ -783,7 +785,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::FindNeighborhood(unsigned int 
 
   std::cout << " input points " << std::endl;
 
-  vcl_cin >> pts;
+  std::cin >> pts;
 
   // Build cov matrix D
   unsigned int npts = pts.rows();
@@ -1141,7 +1143,7 @@ SurfaceCurvatureBase<TSurface, TDimension>
     // Evaluate results
     //vnl_real_polynomial p(f2);
     //for(unsigned int i = 0; i < p.degree(); i++)
-    //  vnl_test_assert("Root residual", vcl_abs(p.evaluate(roots[i])) < 1e-12);
+    //  vnl_test_assert("Root residual", std::abs(p.evaluate(roots[i])) < 1e-12);
 
     float minrel=9.e9;
     float mins=0.0;

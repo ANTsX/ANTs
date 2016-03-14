@@ -55,7 +55,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     {
     RealType L = static_cast<RealType>(
         this->GetInputListSample()->GetMeasurementVectorSize() );
-    unsigned int D = static_cast<unsigned int>( 0.5 * ( -1 + vcl_sqrt( 1.0
+    unsigned int D = static_cast<unsigned int>( 0.5 * ( -1 + std::sqrt( 1.0
                                                                        + 8.0 * L ) ) );
     this->m_MeanTensor.SetSize( D, D );
     this->m_MeanTensor.Fill( 0.0 );
@@ -160,7 +160,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     {
     if( W( i, i ) > 0.0 )
       {
-      W( i, i ) = vcl_log( W( i, i ) );
+      W( i, i ) = std::log( W( i, i ) );
       }
     else
       {
@@ -188,7 +188,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
   decomposer->EvaluateSymmetricEigenDecomposition( Tc, W, V );
   for( unsigned int i = 0; i < W.Rows(); i++ )
     {
-    W( i, i ) = vcl_exp( W( i, i ) );
+    W( i, i ) = std::exp( W( i, i ) );
     }
   W *= V.GetTranspose();
   TensorType expT = V * W;
@@ -206,7 +206,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 
   TensorType diff = logS - logT;
   TensorType diffSq = diff * diff;
-  RealType   distance = vcl_sqrt( vnl_trace( ( diffSq ).GetVnlMatrix() ) );
+  RealType   distance = std::sqrt( vnl_trace( ( diffSq ).GetVnlMatrix() ) );
 
 //  RealType distance = ( ( logS - logT ).GetVnlMatrix() ).frobenius_norm();
   return distance;
@@ -233,8 +233,8 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     }
   RealType distance = this->CalculateTensorDistance( T, this->m_MeanTensor );
   RealType preFactor = 1.0
-    / ( vcl_sqrt( 2.0 * vnl_math::pi * this->m_Dispersion ) );
-  RealType probability = preFactor * vcl_exp( -0.5
+    / ( std::sqrt( 2.0 * vnl_math::pi * this->m_Dispersion ) );
+  RealType probability = preFactor * std::exp( -0.5
                                               * vnl_math_sqr( distance ) / this->m_Dispersion );
 
   return probability;

@@ -82,10 +82,10 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 
   // we wish to add an additional laplacian before and after the user
   // defined range to check for maximums
-  const double k = vcl_pow( 2.0, 1.0 / m_StepsPerOctave );
-  const double initial_sigma = vcl_sqrt(m_StartT) * 1.0 / k;
+  const double k = std::pow( 2.0, 1.0 / m_StepsPerOctave );
+  const double initial_sigma = std::sqrt(m_StartT) * 1.0 / k;
 
-  const unsigned int numberOfScales = vcl_ceil( vcl_log( vcl_sqrt( m_EndT ) / initial_sigma ) / vcl_log( k ) ) + 1.0;
+  const unsigned int numberOfScales = std::ceil( std::log( std::sqrt( m_EndT ) / initial_sigma ) / std::log( k ) ) + 1.0;
 
   typedef itk::LaplacianRecursiveGaussianImageFilter<InputImageType, RealImageType> LaplacianFilterType;
   typename LaplacianFilterType::Pointer laplacianFilter[3];
@@ -104,8 +104,8 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     {
     // simga' = k^i * initial_sigma
     // t = sigma^2
-    const double sigma = initial_sigma * vcl_pow( k, double( numberOfScales - i - 1 ) );
-    //    const double t = vnl_math_sqr( initial_sigma * vcl_pow( k, double( numberOfScales - i - 1 ) ) );
+    const double sigma = initial_sigma * std::pow( k, double( numberOfScales - i - 1 ) );
+    //    const double t = vnl_math_sqr( initial_sigma * std::pow( k, double( numberOfScales - i - 1 ) ) );
 
     itkDebugMacro( << "i: " << i << " sigma: " << sigma << " k: " << k );
 
@@ -192,7 +192,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
   // Convert to SpatialObject blob
   for( typename BlobHeapType::const_iterator i = blobs.begin(); i != blobs.end(); ++i )
     {
-    const double sigma =  vcl_sqrt( InputImageType::ImageDimension / 2.0 ) * i->m_Sigma;
+    const double sigma =  std::sqrt( InputImageType::ImageDimension / 2.0 ) * i->m_Sigma;
 
     // transform the center index into offset vector
     typename BlobType::PointType centerPoint;

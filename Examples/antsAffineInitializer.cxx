@@ -273,7 +273,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   RealType bestscale =
     calculator2->GetTotalMass() / calculator1->GetTotalMass();
   RealType powlev = 1.0 / static_cast<RealType>(ImageDimension);
-  bestscale = vcl_pow( bestscale , powlev );
+  bestscale = std::pow( bestscale , powlev );
   bestscale=1;
   unsigned int eigind1 = 1;
   unsigned int eigind2 = 1;

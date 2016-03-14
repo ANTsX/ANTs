@@ -238,7 +238,7 @@ int N4( itk::ants::CommandLineParser *parser )
           {
           float domain = static_cast<RealType>( originalImageSize[d] - 1 ) * inputImage->GetSpacing()[d];
           unsigned int numberOfSpans = static_cast<unsigned int>(
-              vcl_ceil( domain / splineDistance ) );
+              std::ceil( domain / splineDistance ) );
           unsigned long extraPadding = static_cast<unsigned long>( ( numberOfSpans
                                                                      * splineDistance
                                                                      - domain ) / inputImage->GetSpacing()[d] + 0.5 );

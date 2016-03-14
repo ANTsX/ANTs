@@ -117,8 +117,8 @@ private:
     std::cerr << "The scale parameters were improperly specified.  See usage." << std::endl;
     return EXIT_FAILURE;
     }
-  double scaleLowerBoundLog = vcl_log( scaleParameters[0] );
-  double scaleUpperBoundLog = vcl_log( scaleParameters[1] );
+  double scaleLowerBoundLog = std::log( scaleParameters[0] );
+  double scaleUpperBoundLog = std::log( scaleParameters[1] );
   unsigned int scaleNumberOfSamples = static_cast<unsigned int>( scaleParameters[2] );
   double scaleDelta = ( scaleUpperBoundLog - scaleLowerBoundLog ) / static_cast<double>( scaleNumberOfSamples - 1 );
 
@@ -232,13 +232,13 @@ private:
     for( double angle = 0.0; angle < 2.0 * vnl_math::pi; angle += rotationDelta )
       {
       AffineTransformType::MatrixType rotationMatrix;
-      rotationMatrix( 0, 0 ) = rotationMatrix( 1, 1 ) = vcl_cos( angle );
-      rotationMatrix( 1, 0 ) = vcl_sin( angle );
+      rotationMatrix( 0, 0 ) = rotationMatrix( 1, 1 ) = std::cos( angle );
+      rotationMatrix( 1, 0 ) = std::sin( angle );
       rotationMatrix( 0, 1 ) = -rotationMatrix( 1, 0 );
 
       for( double scaleLog = scaleLowerBoundLog; scaleLog <= scaleUpperBoundLog; scaleLog += scaleDelta )
         {
-        double scale = vcl_exp( scaleLog );
+        double scale = std::exp( scaleLog );
 
         SimilarityTransformType::Pointer similarityTransform = SimilarityTransformType::New();
         similarityTransform->SetCenter( initialTransform->GetCenter() );

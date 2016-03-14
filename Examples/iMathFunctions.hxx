@@ -59,8 +59,8 @@ BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
   // sensitive parameters are set here - begin
   //RealType     gradsig = 1.0;      // sigma for gradient filter
   unsigned int stepsperoctave = 10; // number of steps between doubling of scale
-  RealType     minscale = vcl_pow( 1.0, 1.0 );
-  RealType     maxscale = vcl_pow( 2.0, 10.0 );
+  RealType     minscale = std::pow( 1.0, 1.0 );
+  RealType     maxscale = std::pow( 2.0, 10.0 );
   //RealType     uniqfeat_thresh = 0.01;
   //RealType     smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
   //bool         dosinkhorn = false;
@@ -79,8 +79,8 @@ iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs )
   typedef float RealType;
 
   unsigned int stepsperoctave = 10; // number of steps between doubling of scale
-  RealType     minscale = vcl_pow( 1.0, 1.0 );
-  RealType     maxscale = vcl_pow( 2.0, 10.0 );
+  RealType     minscale = std::pow( 1.0, 1.0 );
+  RealType     maxscale = std::pow( 2.0, 10.0 );
 
   typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
   typename BlobFilterType::Pointer blobFilter = BlobFilterType::New();
@@ -854,8 +854,8 @@ iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,
 
   // FIXME - cite reason for this step
   double dimPlusOne = ImageType::ImageDimension + 1;
-  TimeStepType mytimestep = spacingsize / vcl_pow( 2.0 , dimPlusOne );
-  TimeStepType reftimestep = 0.4 / vcl_pow( 2.0 , dimPlusOne );
+  TimeStepType mytimestep = spacingsize / std::pow( 2.0 , dimPlusOne );
+  TimeStepType reftimestep = 0.4 / std::pow( 2.0 , dimPlusOne );
   if ( mytimestep > reftimestep )
     {
     mytimestep = reftimestep;

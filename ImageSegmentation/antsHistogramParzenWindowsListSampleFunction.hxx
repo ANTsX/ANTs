@@ -111,7 +111,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 
     typename HistogramImageType::SizeType size;
     size[0] = static_cast<unsigned int>(
-        vcl_ceil( ( maxValues[d] + 3.0 * ( this->m_Sigma * spacing[0] )
+        std::ceil( ( maxValues[d] + 3.0 * ( this->m_Sigma * spacing[0] )
                     - ( minValues[d] - 3.0 * ( this->m_Sigma * spacing[0] ) ) ) / spacing[0] ) );
 
     this->m_HistogramImages[d]->SetOrigin( origin );
@@ -144,7 +144,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
       typename HistogramImageType::IndexType idx;
 
       idx[0] = static_cast<typename
-                           HistogramImageType::IndexType::IndexValueType>( vcl_floor( cidx[0] ) );
+                           HistogramImageType::IndexType::IndexValueType>( std::floor( cidx[0] ) );
       if( this->m_HistogramImages[d]->GetLargestPossibleRegion().IsInside( idx ) )
         {
         RealType oldWeight = this->m_HistogramImages[d]->GetPixel( idx );

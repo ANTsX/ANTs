@@ -143,8 +143,8 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
         1.0 - 0.5 * this->m_WinsorizingLevel,
         this->GetInput()->Size() - this->m_OutlierInstanceIdentifiers.size() );
 
-    lowerWinsorBound = mean - t * vcl_sqrt( variance );
-    upperWinsorBound = mean + t * vcl_sqrt( variance );
+    lowerWinsorBound = mean - t * std::sqrt( variance );
+    upperWinsorBound = mean + t * std::sqrt( variance );
     }
 
   It = this->GetInput()->Begin();
@@ -231,9 +231,9 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
   RealType t = tdistribution->EvaluateInverseCDF( 1.0 - sig, N - 2 );
 
   RealType nu = static_cast<RealType>( N - 1 );
-  RealType g = nu / vcl_sqrt( nu + 1.0 ) * vcl_sqrt( t * t / ( nu - 1 + t * t ) );
+  RealType g = nu / std::sqrt( nu + 1.0 ) * std::sqrt( t * t / ( nu - 1 + t * t ) );
 
-  return g < ( vnl_math_abs( x - mean ) / vcl_sqrt( variance ) );
+  return g < ( vnl_math_abs( x - mean ) / std::sqrt( variance ) );
 }
 
 template <class TScalarListSample>

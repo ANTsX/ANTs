@@ -13,8 +13,10 @@
 #ifndef _FEMDiscConformalMap_hxx
 #define _FEMDiscConformalMap_hxx
 
-#include <vcl_cmath.h>
-#include <vcl_iostream.h>
+#include <vcl_compiler.h>
+#include <iostream>
+#include <cmath>
+#include <iostream>
 #include <vnl/vnl_real_polynomial.h>
 #include <vnl/vnl_vector.h>
 #include <vnl/vnl_vector_fixed.h>

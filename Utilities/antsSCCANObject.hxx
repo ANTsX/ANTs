@@ -691,8 +691,8 @@ antsSCCANObject<TInputImage, TRealType>
     typename FilterType::Pointer filter = FilterType::New();
     filter->SetInput( image );
     filter->SetNumberOfIterations( vnl_math_abs( this->m_Smoother ) );
-    TRealType mytimestep = spacingsize / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
-    TRealType reftimestep = 0.5 / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
+    TRealType mytimestep = spacingsize / std::pow( 2.0 , static_cast<double>(ImageDimension+1) );
+    TRealType reftimestep = 0.5 / std::pow( 2.0 , static_cast<double>(ImageDimension+1) );
     if ( mytimestep > reftimestep ) mytimestep = reftimestep;
     filter->SetTimeStep( mytimestep );
     filter->SetConductanceParameter( 0.25 ); // might need to change this

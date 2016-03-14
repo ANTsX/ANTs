@@ -142,7 +142,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
         / static_cast<RealType>( histogram->GetTotalFrequency() );
       if ( p > 0 )
         {
-        entropy += ( -p * vcl_log( p ) / vcl_log( 2.0 ) );
+        entropy += ( -p * std::log( p ) / std::log( 2.0 ) );
         }
       }
 
@@ -159,7 +159,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
     RealType prefactor4 = vnl_math_sqr( N[index] ) / ( ( N[index] - 1.0 ) * ( N[index] - 2.0 ) * ( N[index] - 3.0 ) );
     RealType k4 = prefactor4 * ( ( N[index] + 1 ) * m4[index] - 3 * ( N[index] - 1 ) * vnl_math_sqr( m2 ) );
 
-    RealType skewness = k3 / vcl_sqrt( k2 * k2 * k2 );
+    RealType skewness = k3 / std::sqrt( k2 * k2 * k2 );
     RealType kurtosis = k4 / vnl_math_sqr( k2 );
 
     std::cout << std::setw( 8  ) << *it;

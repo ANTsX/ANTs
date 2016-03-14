@@ -11,7 +11,7 @@ template <class TScalarType>
 ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform() :
   Superclass(ParametersDimension)
 {
-  m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * vcl_sin(t/2), vcl_cos(t/2)
+  m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * std::sin(t/2), std::cos(t/2)
   m_S1 = NumericTraits<TScalarType>::OneValue();
   m_S2 = NumericTraits<TScalarType>::OneValue();
   m_S3 = NumericTraits<TScalarType>::OneValue();
@@ -26,7 +26,7 @@ ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform(unsigned int outputSpa
                                                           unsigned int parametersDimension) :
   Superclass(outputSpaceDimension, parametersDimension)
 {
-  m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * vcl_sin(t/2), vcl_cos(t/2)
+  m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * std::sin(t/2), std::cos(t/2)
   m_S1 = NumericTraits<TScalarType>::OneValue();
   m_S2 = NumericTraits<TScalarType>::OneValue();
   m_S3 = NumericTraits<TScalarType>::OneValue();
