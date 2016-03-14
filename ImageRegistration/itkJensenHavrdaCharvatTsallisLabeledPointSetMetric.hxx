@@ -350,7 +350,7 @@ JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
         {
         norm += ( labelDerivative(i, j) * labelDerivative(i, j) );
         }
-      avgNorm += vcl_sqrt( norm );
+      avgNorm += std::sqrt( norm );
       }
     avgNorm /= static_cast<RealType>( metric->GetNumberOfValues() );
     labelDerivative /= avgNorm;
@@ -517,7 +517,7 @@ JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
         {
         norm += ( labelDerivative(i, j) * labelDerivative(i, j) );
         }
-      avgNorm += vcl_sqrt( norm );
+      avgNorm += std::sqrt( norm );
       }
     avgNorm /= static_cast<RealType>( metric->GetNumberOfValues() );
     labelDerivative /= avgNorm;

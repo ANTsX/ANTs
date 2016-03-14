@@ -204,13 +204,13 @@ int SmoothDisplacementField( int argc, char *argv[] )
     rmse += ( fieldIt.Get() - smoothedFieldIt.Get() ).GetSquaredNorm();
     N += 1.0;
     }
-  rmse = vcl_sqrt( rmse / N );
+  rmse = std::sqrt( rmse / N );
 
   std::cout << "Elapsed time: " << elapsedTime << std::endl;
   std::cout << "RMSE = " << rmse << std::endl;
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
-    std::cout << "  rmse[" << d << "] = " << vcl_sqrt( rmse_comp[d] / N ) << std::endl;
+    std::cout << "  rmse[" << d << "] = " << std::sqrt( rmse_comp[d] / N ) << std::endl;
     }
 
   WriteImage<DisplacementFieldType>( smoothField, argv[3] );

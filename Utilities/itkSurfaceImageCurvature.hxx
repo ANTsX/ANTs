@@ -681,9 +681,9 @@ void  SurfaceImageCurvature<TSurface>
   // Compute estimated frame using eigensystem of D'*D
     {
     vnl_real_eigensystem eig(W);
-    vnl_diag_matrix<vcl_complex<double> > DD(eig.D.rows() ); //
-    this->m_Kappa1 = vcl_real(eig.D(1, 1) );
-    this->m_Kappa2 = vcl_real(eig.D(0, 0) );
+    vnl_diag_matrix<std::complex<double> > DD(eig.D.rows() ); //
+    this->m_Kappa1 = std::real(eig.D(1, 1) );
+    this->m_Kappa2 = std::real(eig.D(0, 0) );
     this->m_MeanKappa = (this->m_Kappa1 + this->m_Kappa2) * 0.5;
     this->m_GaussianKappa = (this->m_Kappa1 * this->m_Kappa2);
     }

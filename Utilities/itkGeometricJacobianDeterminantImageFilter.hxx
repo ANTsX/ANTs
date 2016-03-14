@@ -158,7 +158,7 @@ GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
 
   cidx[0] = 0.5;
   cidx[1] = 0.0;
-  cidx[2] = -0.5 / vcl_sqrt( 2.0 );
+  cidx[2] = -0.5 / std::sqrt( 2.0 );
 
   this->m_RealValuedInputImage->TransformContinuousIndexToPhysicalPoint( cidx, deltaPoint );
 
@@ -166,7 +166,7 @@ GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
 
   cidx[0] = -0.5;
   cidx[1] = 0.0;
-  cidx[2] = -0.5 / vcl_sqrt( 2.0 );
+  cidx[2] = -0.5 / std::sqrt( 2.0 );
 
   this->m_RealValuedInputImage->TransformContinuousIndexToPhysicalPoint( cidx, deltaPoint );
 
@@ -174,7 +174,7 @@ GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
 
   cidx[0] = 0.0;
   cidx[1] = 0.5;
-  cidx[2] = 0.5 / vcl_sqrt( 2.0 );
+  cidx[2] = 0.5 / std::sqrt( 2.0 );
 
   this->m_RealValuedInputImage->TransformContinuousIndexToPhysicalPoint( cidx, deltaPoint );
 
@@ -182,7 +182,7 @@ GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
 
   cidx[0] = 0.0;
   cidx[1] = -0.5;
-  cidx[2] = 0.5 / vcl_sqrt( 2.0 );
+  cidx[2] = 0.5 / std::sqrt( 2.0 );
 
   this->m_RealValuedInputImage->TransformContinuousIndexToPhysicalPoint( cidx, deltaPoint );
 
@@ -204,21 +204,21 @@ GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
   typename InputImageType::PointType deltaPoint;
 
   cidx[0] = 0.0;
-  cidx[1] = 0.25 * vcl_sqrt( 3.0 );
+  cidx[1] = 0.25 * std::sqrt( 3.0 );
 
   this->m_RealValuedInputImage->TransformContinuousIndexToPhysicalPoint( cidx, deltaPoint );
 
   this->m_DeltaTriangularPointA = deltaPoint - originPoint;
 
   cidx[0] = -0.5;
-  cidx[1] = -0.25 * vcl_sqrt( 3.0 );
+  cidx[1] = -0.25 * std::sqrt( 3.0 );
 
   this->m_RealValuedInputImage->TransformContinuousIndexToPhysicalPoint( cidx, deltaPoint );
 
   this->m_DeltaTriangularPointB = deltaPoint - originPoint;
 
   cidx[0] = 0.5;
-  cidx[1] = -0.25 * vcl_sqrt( 3.0 );
+  cidx[1] = -0.25 * std::sqrt( 3.0 );
 
   this->m_RealValuedInputImage->TransformContinuousIndexToPhysicalPoint( cidx, deltaPoint );
 

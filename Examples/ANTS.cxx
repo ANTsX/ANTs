@@ -232,7 +232,7 @@ private:
       }
 
     unsigned int numberOfLevels = static_cast<unsigned int>(
-        vcl_log( (double)maxSize / 32 ) / vcl_log( (double) 2 ) ) + 1;
+        std::log( (double)maxSize / 32 ) / std::log( (double) 2 ) ) + 1;
     std::string iterations( " -i " );
     for( int n = numberOfLevels; n > 0; n-- )
       {

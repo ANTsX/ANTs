@@ -4,7 +4,9 @@
 #include "itkantsReadWriteTransform.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkBSplineTransform.h"
-#include <vcl_algorithm.h>
+#include <vcl_compiler.h>
+#include <iostream>
+#include <algorithm>
 
 #include "antsUtilities.h"
 

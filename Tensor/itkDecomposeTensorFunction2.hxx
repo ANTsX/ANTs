@@ -62,7 +62,7 @@ DecomposeTensorFunction2<TInput, TRealType, TOutput>
       V[i][j] = static_cast<RealType>( (eig.Vreal).get( i, j ) );
       if( i == j )
         {
-        D[i][j] = static_cast<RealType>( vcl_real( eig.D(j) ) );
+        D[i][j] = static_cast<RealType>( std::real( eig.D(j) ) );
         }
       }
     }

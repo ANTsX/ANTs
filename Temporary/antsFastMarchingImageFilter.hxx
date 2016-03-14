@@ -644,7 +644,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
         throw err;
         }
 
-      solution = ( vcl_sqrt( discrim ) + bb ) / aa;
+      solution = ( std::sqrt( discrim ) + bb ) / aa;
       }
     else
       {

@@ -293,12 +293,12 @@ unsigned int GetNumberOfLabelVoxelsInUpperRightQuadrant( TransformType *affineTr
   typename RegionType::SizeType size;
   for( unsigned int d = 0; d < LabelImageType::ImageDimension; d++ )
     {
-    index[d] = vcl_floor( resampler->GetOutput()->GetLargestPossibleRegion().GetIndex()[d] + 0.5 * resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[d] );
-    size[d] = vcl_floor( 0.5 * resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[d] );
+    index[d] = std::floor( resampler->GetOutput()->GetLargestPossibleRegion().GetIndex()[d] + 0.5 * resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[d] );
+    size[d] = std::floor( 0.5 * resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[d] );
     }
 
-  index[1] = vcl_floor( resampler->GetOutput()->GetLargestPossibleRegion().GetIndex()[1] );
-  size[1] = vcl_floor( resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[1] );
+  index[1] = std::floor( resampler->GetOutput()->GetLargestPossibleRegion().GetIndex()[1] );
+  size[1] = std::floor( resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[1] );
 
   RegionType region;
   region.SetIndex( index );

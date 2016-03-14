@@ -88,7 +88,7 @@ public:
         curCount += i->second;
 
         const double p_x = double( i->second ) / count;
-        entropy += -p_x*vcl_log( p_x );
+        entropy += -p_x*std::log( p_x );
 
 //       // this is wrong!
 //       if ( curCount == count / 2 )
@@ -111,7 +111,7 @@ public:
 
 //     while (curCount < count/2 )
 //     {
-//     if ( vcl_fabs( fmedianIt->first - median ) < vcl_fabs( rmedianIt->first - median ) )
+//     if ( std::fabs( fmedianIt->first - median ) < std::fabs( rmedianIt->first - median ) )
 //       {
 //       curCount += fmedianIt->second;
 //       ++fmedianIt;
@@ -129,15 +129,15 @@ public:
 
         // unbiased estimate
       const double variance = ( sum2 - ( sum * sum * icount ) ) / ( count - 1 );
-      const double sigma = vcl_sqrt(variance);
+      const double sigma = std::sqrt(variance);
       double skewness = 0.0;
       double kurtosis = 0.0;
-    if(vcl_abs(variance * sigma) > itk::NumericTraits<double>::min())
+    if(std::abs(variance * sigma) > itk::NumericTraits<double>::min())
       {
 
       skewness = ( ( sum3 - 3.0 * mean * sum2 ) * icount + 2.0 * mean * mean*mean ) / ( variance * sigma );
       }
-    if(vcl_abs(variance) > itk::NumericTraits<double>::min())
+    if(std::abs(variance) > itk::NumericTraits<double>::min())
       {
         kurtosis = ( sum4 * icount  + mean *( -4.0 * sum3 * icount  +  mean * ( 6.0 *sum2 * icount  - 3.0 * mean * mean ))) /
         ( variance * variance ) - 3.0;

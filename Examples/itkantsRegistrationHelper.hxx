@@ -3469,7 +3469,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     {
     RealType domain = static_cast<RealType>(
       inputImage->GetLargestPossibleRegion().GetSize()[d] - 1 ) * inputImage->GetSpacing()[d];
-    meshSize.push_back( static_cast<unsigned int>( vcl_ceil( domain / knotSpacing ) ) );
+    meshSize.push_back( static_cast<unsigned int>( std::ceil( domain / knotSpacing ) ) );
 //     unsigned long extraPadding = static_cast<unsigned long>(
 //       ( numberOfSpans * splineDistance - domain ) / inputImage->GetSpacing()[d] + 0.5 );
 //     lowerBound[d] = static_cast<unsigned long>( 0.5 * extraPadding );

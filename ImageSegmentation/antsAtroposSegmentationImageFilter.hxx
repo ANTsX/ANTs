@@ -1587,11 +1587,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     RealType mrfPriorProbability = 1.0;
     if( mrfSmoothingFactor > 0.0 && ( It.GetNeighborhood() ).Size() > 1 )
       {
-      RealType numerator = vcl_exp( -mrfSmoothingFactor * mrfNeighborhoodWeights[k] );
+      RealType numerator = std::exp( -mrfSmoothingFactor * mrfNeighborhoodWeights[k] );
       RealType denominator = 0.0;
       for( unsigned int n = 0; n < this->m_NumberOfTissueClasses; n++ )
         {
-        denominator += vcl_exp( -mrfSmoothingFactor * mrfNeighborhoodWeights[n] );
+        denominator += std::exp( -mrfSmoothingFactor * mrfNeighborhoodWeights[n] );
         }
       if( denominator > 0.0 )
         {
@@ -1786,9 +1786,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         dev.off()
       */
       posteriorProbability =
-        vcl_pow( static_cast<RealType>( spatialPriorProbability ),
+        std::pow( static_cast<RealType>( spatialPriorProbability ),
                  static_cast<RealType>( this->m_PriorProbabilityWeight ) )
-        * vcl_pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
+        * std::pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
                    static_cast<RealType>( 1.0 - this->m_PriorProbabilityWeight ) );
       }
       break;
@@ -1810,18 +1810,18 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         mrfPriorProbability = 1.0;
         }
       posteriorProbability =
-        vcl_pow( static_cast<RealType>( spatialPriorProbability ),
+        std::pow( static_cast<RealType>( spatialPriorProbability ),
                  static_cast<RealType>( this->m_PriorProbabilityWeight ) )
-        * vcl_pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
+        * std::pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
                    static_cast<RealType>( 1.0 - this->m_PriorProbabilityWeight ) );
       }
       break;
     case Aristotle:
       {
       posteriorProbability =
-        vcl_pow( static_cast<RealType>( spatialPriorProbability * distancePriorProbability ),
+        std::pow( static_cast<RealType>( spatialPriorProbability * distancePriorProbability ),
                  static_cast<RealType>( this->m_PriorProbabilityWeight ) )
-        * vcl_pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
+        * std::pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
                    static_cast<RealType>( 1.0 - this->m_PriorProbabilityWeight ) );
       }
       break;
@@ -1840,7 +1840,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       */
       RealType totalNumberOfClasses = static_cast<RealType>( this->m_NumberOfTissueClasses + this->m_NumberOfPartialVolumeClasses );
       RealType offset = 1.0 / totalNumberOfClasses;
-      spatialPriorProbability = 1.0 / ( 1.0 + vcl_exp( -1.0 * ( spatialPriorProbability - offset ) * this->m_PriorProbabilityWeight ) );
+      spatialPriorProbability = 1.0 / ( 1.0 + std::exp( -1.0 * ( spatialPriorProbability - offset ) * this->m_PriorProbabilityWeight ) );
       posteriorProbability = static_cast<RealType>( spatialPriorProbability ) * static_cast<RealType>( likelihood * mrfPriorProbability );
       }
       break;
@@ -1849,12 +1849,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   if( this->m_InitialAnnealingTemperature != 1.0 )
     {
     RealType annealingTemperature = this->m_InitialAnnealingTemperature
-      * vcl_pow( this->m_AnnealingRate, static_cast<RealType>( this->m_ElapsedIterations ) );
+      * std::pow( this->m_AnnealingRate, static_cast<RealType>( this->m_ElapsedIterations ) );
 
     annealingTemperature = vnl_math_max( annealingTemperature,
                                          this->m_MinimumAnnealingTemperature );
 
-    posteriorProbability = vcl_pow( static_cast<RealType>( posteriorProbability ),
+    posteriorProbability = std::pow( static_cast<RealType>( posteriorProbability ),
                                     static_cast<RealType>( 1.0 / annealingTemperature ) );
     }
   if( vnl_math_isnan( posteriorProbability ) ||
@@ -1910,7 +1910,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           distance += vnl_math_sqr( offset[d] * this->m_ImageSpacing[d] );
           }
-        distance = vcl_sqrt( distance );
+        distance = std::sqrt( distance );
 
         RealType delta = 0.0;
         if( label == neighborLabel )
@@ -2109,12 +2109,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               Array<RealType> mrfNeighborhoodWeights;
               this->EvaluateMRFNeighborhoodWeights( ItO, mrfNeighborhoodWeights );
 
-              RealType numerator = vcl_exp( -mrfSmoothingFactor
+              RealType numerator = std::exp( -mrfSmoothingFactor
                                             * mrfNeighborhoodWeights[c] );
               RealType denominator = 0.0;
               for( unsigned int n = 0; n < totalNumberOfClasses; n++ )
                 {
-                denominator += vcl_exp( -mrfSmoothingFactor
+                denominator += std::exp( -mrfSmoothingFactor
                                         * mrfNeighborhoodWeights[n] );
                 }
               if( denominator > 0.0 )
@@ -2370,12 +2370,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             Array<RealType> mrfNeighborhoodWeights;
             this->EvaluateMRFNeighborhoodWeights( ItO, mrfNeighborhoodWeights );
 
-            RealType numerator = vcl_exp( -mrfSmoothingFactor
+            RealType numerator = std::exp( -mrfSmoothingFactor
                                           * mrfNeighborhoodWeights[whichClass - 1] );
             RealType denominator = 0.0;
             for( unsigned int n = 0; n < totalNumberOfClasses; n++ )
               {
-              denominator += vcl_exp( -mrfSmoothingFactor * mrfNeighborhoodWeights[n] );
+              denominator += std::exp( -mrfSmoothingFactor * mrfNeighborhoodWeights[n] );
               }
             if( denominator > 0.0 )
               {
@@ -2690,7 +2690,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           else if( ItD.Get() >= 0 )
             {
             ItD.Set( labelBoundaryProbability
-                     * vcl_exp( -labelLambda * ItD.Get() ) );
+                     * std::exp( -labelLambda * ItD.Get() ) );
             }
           else if( ItD.Get() < 0 )
             {
@@ -2920,7 +2920,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         else if( ItD.Get() >= 0 )
           {
           ItD.Set( labelBoundaryProbability
-                   * vcl_exp( -labelLambda * ItD.Get() ) );
+                   * std::exp( -labelLambda * ItD.Get() ) );
           }
         else if( ItD.Get() < 0 )
           {

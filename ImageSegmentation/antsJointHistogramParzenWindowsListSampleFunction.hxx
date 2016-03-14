@@ -99,8 +99,8 @@ JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 /** Nearest neighbor increment to JH */
   if( this->m_UseNNforJointHistIncrements )
     {
-    shapeIdx[0] = vcl_floor( shapeCidx[0] + 0.5);
-    shapeIdx[1] = vcl_floor( shapeCidx[1] + 0.5 );
+    shapeIdx[0] = std::floor( shapeCidx[0] + 0.5);
+    shapeIdx[1] = std::floor( shapeCidx[1] + 0.5 );
     if( this->m_JointHistogramImages[which_hist]->GetLargestPossibleRegion().IsInside( shapeIdx ) )
       {
       RealType oldWeight = this->m_JointHistogramImages[which_hist]->GetPixel( shapeIdx );
@@ -111,9 +111,9 @@ JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     {
 /** linear addition */
     shapeIdx[0] = static_cast<typename
-                              JointHistogramImageType::IndexType::IndexValueType>( vcl_floor( shapeCidx[0] ) );
+                              JointHistogramImageType::IndexType::IndexValueType>( std::floor( shapeCidx[0] ) );
     shapeIdx[1] = static_cast<typename
-                              JointHistogramImageType::IndexType::IndexValueType>( vcl_floor( shapeCidx[1] ) );
+                              JointHistogramImageType::IndexType::IndexValueType>( std::floor( shapeCidx[1] ) );
     RealType dist1 =
       sqrt( (shapeCidx[0]
              - shapeIdx[0])
@@ -140,9 +140,9 @@ JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     dist4 /= distsum;
 
     shapeIdx[0] = static_cast<typename
-                              JointHistogramImageType::IndexType::IndexValueType>( vcl_floor( shapeCidx[0] ) );
+                              JointHistogramImageType::IndexType::IndexValueType>( std::floor( shapeCidx[0] ) );
     shapeIdx[1] = static_cast<typename
-                              JointHistogramImageType::IndexType::IndexValueType>( vcl_floor( shapeCidx[1] ) );
+                              JointHistogramImageType::IndexType::IndexValueType>( std::floor( shapeCidx[1] ) );
     if( this->m_JointHistogramImages[which_hist]->GetLargestPossibleRegion().IsInside( shapeIdx ) )
       {
       RealType oldWeight = this->m_JointHistogramImages[which_hist]->GetPixel( shapeIdx );

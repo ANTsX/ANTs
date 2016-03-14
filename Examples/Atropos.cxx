@@ -67,7 +67,7 @@ public:
     typedef typename TFilter::RealType RealType;
 
     RealType annealingTemperature = filter->GetInitialAnnealingTemperature()
-      * vcl_pow( filter->GetAnnealingRate(), static_cast<RealType>(
+      * std::pow( filter->GetAnnealingRate(), static_cast<RealType>(
                    filter->GetElapsedIterations() ) );
 
     annealingTemperature = vnl_math_max( annealingTemperature,

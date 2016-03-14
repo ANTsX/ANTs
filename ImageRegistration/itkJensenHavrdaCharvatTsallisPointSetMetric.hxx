@@ -238,11 +238,11 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 
     if( this->m_Alpha == 1.0 )
       {
-      energyTerm1 += vcl_log( probabilityStar );
+      energyTerm1 += std::log( probabilityStar );
       }
     else
       {
-      energyTerm1 += vcl_pow( probabilityStar,
+      energyTerm1 += std::pow( probabilityStar,
                               static_cast<RealType>( this->m_Alpha - 1.0 ) );
       }
     ++It;
@@ -282,11 +282,11 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 
       if( this->m_Alpha == 1.0 )
         {
-        energyTerm2 += ( prefactor2 * vcl_log( probability ) );
+        energyTerm2 += ( prefactor2 * std::log( probability ) );
         }
       else
         {
-        energyTerm2 += ( prefactor2 * vcl_pow( probability,
+        energyTerm2 += ( prefactor2 * std::pow( probability,
                                                static_cast<RealType>( this->m_Alpha - 1.0 ) ) );
         }
       ++It;
@@ -403,7 +403,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
       continue;
       }
 
-    RealType probabilityStarFactor = vcl_pow( probabilityStar,
+    RealType probabilityStarFactor = std::pow( probabilityStar,
                                               static_cast<RealType>( 2.0 - this->m_Alpha ) );
 
     typename GaussianType::MeasurementVectorType sampleMeasurement;
@@ -476,7 +476,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
         continue;
         }
 
-      RealType probabilityFactor = vcl_pow( probability,
+      RealType probabilityFactor = std::pow( probability,
                                             static_cast<RealType>( 2.0 - this->m_Alpha ) );
       probabilityFactor *= ( samples[1]->GetNumberOfPoints()
                              / totalNumberOfSamples );
@@ -643,15 +643,15 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 
     if( this->m_Alpha == 1.0 )
       {
-      energyTerm1 += ( prefactor[0] * vcl_log( probabilityStar ) );
+      energyTerm1 += ( prefactor[0] * std::log( probabilityStar ) );
       }
     else
       {
-      energyTerm1 += ( prefactor[0] * vcl_pow( probabilityStar,
+      energyTerm1 += ( prefactor[0] * std::pow( probabilityStar,
                                                static_cast<RealType>( this->m_Alpha - 1.0 ) ) );
       }
 
-    RealType probabilityStarFactor = vcl_pow( probabilityStar,
+    RealType probabilityStarFactor = std::pow( probabilityStar,
                                               static_cast<RealType>( 2.0 - this->m_Alpha ) );
 
     typename GaussianType::MeasurementVectorType sampleMeasurement;
@@ -740,15 +740,15 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 
       if( this->m_Alpha == 1.0 )
         {
-        energyTerm2 += ( prefactor2[0] * vcl_log( probability ) );
+        energyTerm2 += ( prefactor2[0] * std::log( probability ) );
         }
       else
         {
-        energyTerm2 += ( prefactor2[0] * vcl_pow( probability,
+        energyTerm2 += ( prefactor2[0] * std::pow( probability,
                                                   static_cast<RealType>( this->m_Alpha - 1.0 ) ) );
         }
 
-      RealType probabilityFactor = vcl_pow( probability,
+      RealType probabilityFactor = std::pow( probability,
                                             static_cast<RealType>( 2.0 - this->m_Alpha ) );
       probabilityFactor *= ( samples[1]->GetNumberOfPoints()
                              / totalNumberOfSamples );
