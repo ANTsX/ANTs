@@ -12,7 +12,7 @@ add_library(antsUtilities STATIC antsUtilities.cxx
             )
 target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
 install(TARGETS antsUtilities
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION ${BIN_INSTALL_DIR}
     LIBRARY DESTINATION ${LIB_INSTALL_DIR}
     ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
   )
@@ -30,7 +30,7 @@ macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME} )
 
   install(TARGETS l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION ${BIN_INSTALL_DIR}
     LIBRARY DESTINATION ${LIB_INSTALL_DIR}
     ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
   )
@@ -210,7 +210,7 @@ install(PROGRAMS ../Scripts/ANTSpexec.sh
      ../Scripts/waitForSGEQJobs.pl
      ../Scripts/waitForXGridJobs.pl
      ../Scripts/waitForSlurmJobs.pl
-                DESTINATION bin
+                DESTINATION ${SCRIPTS_INSTALL_DIR}
                 PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
                 CONFIGURATIONS  Release
         )
