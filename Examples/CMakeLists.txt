@@ -149,9 +149,15 @@ foreach(ANTS_APP ${CORE_ANTS_APPS})
 endforeach()
 
 if (BUILD_ALL_ANTS_APPS)
-foreach(ANTS_APP ${MORE_ANTS_APPS})
-  STANDARD_ANTS_BUILD(${ANTS_APP} "")
-endforeach()
+  foreach(ANTS_APP ${MORE_ANTS_APPS})
+    STANDARD_ANTS_BUILD(${ANTS_APP} "")
+  endforeach()
+else(BUILD_ALL_ANTS_APPS)
+  foreach(ANTS_APP ${MORE_ANTS_APPS})
+    if(ANTS_BUILD_${ANTS_APP})
+      STANDARD_ANTS_BUILD(${ANTS_APP} "")
+    endif()
+  endforeach()
 endif(BUILD_ALL_ANTS_APPS)
 
 
