@@ -8405,60 +8405,103 @@ int NormalizeImage(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string fn1 = std::string(argv[argct]);   argct++;
   float       option = 0;
+
+  bool useMaskImage = false;
+  typename ImageType::Pointer maskImage = ITK_NULLPTR;
   if( argc > argct )
     {
-    option = atof(argv[argct]);
-    }
 
-  typename ImageType::Pointer image = ITK_NULLPTR;
-  ReadImage<ImageType>(image, fn1.c_str() );
-
-  float         max = 0;
-  float         min = 1.e9;
-  float         mean = 0.0;
-  unsigned long ct = 0;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  Iterator iter( image,  image->GetLargestPossibleRegion() );
-  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
-    float pix = iter.Get();
-    //      if (option == 0) if (pix < 0) pix=0;
-    mean += pix;
-    ct++;
-    if( pix > max )
+    std::string maskFileName = std::string( argv[argct] );
+    ReadImage<ImageType>( maskImage, maskFileName.c_str() );
+    if( maskImage.IsNotNull() )
       {
-      max = pix;
-      }
-    if( pix < min )
-      {
-      min = pix;
-      }
-    }
-  mean /= (float)ct;
-  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
-    float pix = iter.Get();
-    if( option == 0 )
-      {
-      pix = (pix - min) / (max - min);
-      iter.Set(pix);
+      useMaskImage = true;
       }
     else
       {
-      iter.Set(pix / mean);
+      option = atof( argv[argct] );
       }
     }
+  typename ImageType::Pointer image = ITK_NULLPTR;
+  ReadImage<ImageType>(image, fn1.c_str() );
 
-  if( outname.length() > 3 )
+  if( useMaskImage )
     {
-    WriteImage<ImageType>( image, outname.c_str() );
+    itk::ImageRegionIterator<ImageType> It( maskImage,
+      maskImage->GetLargestPossibleRegion() );
+    itk::ImageRegionIterator<ImageType> It2( image,
+      image->GetLargestPossibleRegion() );
+
+    float roiMean = 0.0;
+    float count = 0.0;
+    for( It.GoToBegin(), It2.GoToBegin(); !It.IsAtEnd(); ++It, ++It2 )
+      {
+      if( It.Get() != 0 )
+        {
+        roiMean += It2.Get();
+        count += 1.0;
+        }
+      }
+    roiMean /= count;
+
+    for( It2.GoToBegin(); !It2.IsAtEnd(); ++It2 )
+      {
+      It2.Set( It2.Get() / roiMean );
+      }
+
+    if( outname.length() > 3 )
+      {
+      WriteImage<ImageType>( image, outname.c_str() );
+      }
+    }
+  else
+    {
+    float         max = 0;
+    float         min = 1.e9;
+    float         mean = 0.0;
+    unsigned long ct = 0;
+    typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+    Iterator iter( image,  image->GetLargestPossibleRegion() );
+    for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+      {
+      float pix = iter.Get();
+      //      if (option == 0) if (pix < 0) pix=0;
+      mean += pix;
+      ct++;
+      if( pix > max )
+        {
+        max = pix;
+        }
+      if( pix < min )
+        {
+        min = pix;
+        }
+      }
+    mean /= (float)ct;
+    for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+      {
+      float pix = iter.Get();
+      if( option == 0 )
+        {
+        pix = (pix - min) / (max - min);
+        iter.Set(pix);
+        }
+      else
+        {
+        iter.Set(pix / mean);
+        }
+      }
+
+    if( outname.length() > 3 )
+      {
+      WriteImage<ImageType>( image, outname.c_str() );
+      }
     }
 
   return 0;
@@ -15044,7 +15087,7 @@ private:
       << std::endl;
     std::cout << "      Usage        : MTR M0Image M1Image [MaskImage];" << std::endl;
 
-    std::cout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value" << std::endl;
+    std::cout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value.  If opt is a mask image, then we normalize by mean intensity in the mask ROI." << std::endl;
     std::cout << "      Usage        : Normalize Image.ext opt" << std::endl;
 
     std::cout << "\n  PadImage       : If Pad-Number is negative, de-Padding occurs" << std::endl;
