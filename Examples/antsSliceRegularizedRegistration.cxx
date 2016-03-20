@@ -68,6 +68,7 @@
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
+#include "include/itkLabelImageGenericInterpolateImageFunction.h"
 #include <sstream>
 
 namespace ants

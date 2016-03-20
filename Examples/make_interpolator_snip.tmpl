@@ -109,6 +109,12 @@ typename InterpolatorType::Pointer interpolator = ITK_NULLPTR;
     typename WelchInterpolatorType::Pointer welchInterpolator = WelchInterpolatorType::New();
     interpolator = welchInterpolator;
     }
+  else if( !std::strcmp( whichInterpolator.c_str(), "genericlabel" ) )
+    {
+	typedef itk::LabelImageGenericInterpolateImageFunction<ImageType,itk::LinearInterpolateImageFunction,RealType> GLInterpolatorType;
+	typename GLInterpolatorType::Pointer GenericLabelInterpolator = GLInterpolatorType::New();
+	interpolator = GenericLabelInterpolator;
+    }
   else if( !std::strcmp( whichInterpolator.c_str(), "multilabel" ) )
     {
     const unsigned int NVectorComponents = 1;
