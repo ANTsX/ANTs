@@ -25,7 +25,7 @@
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
-#include "include/itkLabelImageGenericInterpolateImageFunction.h"
+#include "itkLabelImageGenericInterpolateImageFunction.h"
 
 namespace ants
 {
@@ -751,7 +751,7 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
   option->SetUsageOption( 6, "WelchWindowedSinc" );
   option->SetUsageOption( 7, "HammingWindowedSinc" );
   option->SetUsageOption( 8, "LanczosWindowedSinc" );
-  option->SetUsageOption( 9, "GenericLabel" );
+  option->SetUsageOption( 9, "GenericLabel[<interpolator=Linear>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }

@@ -18,7 +18,7 @@
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
-#include "include/itkLabelImageGenericInterpolateImageFunction.h"
+#include "itkLabelImageGenericInterpolateImageFunction.h"
 #include "include/antsRegistration.h"
 #include "ReadWriteData.h"
 
