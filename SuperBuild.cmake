@@ -215,12 +215,6 @@ if(APPLE)
     -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
 endif()
 
-set(${LOCAL_PROJECT_NAME}_CLI_RUNTIME_DESTINATION  bin)
-set(${LOCAL_PROJECT_NAME}_CLI_LIBRARY_DESTINATION  lib)
-set(${LOCAL_PROJECT_NAME}_CLI_ARCHIVE_DESTINATION  lib)
-set(${LOCAL_PROJECT_NAME}_CLI_INSTALL_RUNTIME_DESTINATION  bin)
-set(${LOCAL_PROJECT_NAME}_CLI_INSTALL_LIBRARY_DESTINATION  lib)
-set(${LOCAL_PROJECT_NAME}_CLI_INSTALL_ARCHIVE_DESTINATION  lib)
 #-----------------------------------------------------------------------------
 # Add external project CMake args
 #-----------------------------------------------------------------------------
