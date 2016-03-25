@@ -46,7 +46,7 @@ template<typename TInputImage, template<class, typename> class TInterpolator , t
 typename LabelImageGenericInterpolateImageFunction<TInputImage, TInterpolator, TCoordRep>
 ::OutputType
 LabelImageGenericInterpolateImageFunction<TInputImage, TInterpolator, TCoordRep>
-::EvaluateAtContinuousIndex( const ContinuousIndexType & cindex, OutputType * grad ) const
+::EvaluateAtContinuousIndex( const ContinuousIndexType & cindex, OutputType * itkNotUsed( grad ) ) const
 {
 	/** Interpolate the binary mask corresponding to each label and return the label
 	 * with the highest value */
