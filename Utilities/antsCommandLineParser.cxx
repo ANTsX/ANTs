@@ -19,7 +19,7 @@ namespace itk
 namespace ants
 {
 
-  std::string ConvertToHumanReadable(const std::string input)
+  std::string ConvertToHumanReadable(const std::string & input)
     {
     typedef std::map<std::string,std::string> TypeMapType;
     TypeMapType cnvtMap;

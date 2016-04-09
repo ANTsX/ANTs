@@ -267,7 +267,7 @@ LabeledPointSetFileWriter<TInputMesh>
     while( It != ItEnd )
       {
       outputFile << It.Value() << " ";
-      It++;
+      ++It;
       }
 
     outputFile << std::endl;
@@ -295,7 +295,7 @@ LabeledPointSetFileWriter<TInputMesh>
       {
       totalSize += ( It.Value() ).Size();
       totalSize++;
-      It++;
+      ++It;
       }
 
     outputFile << "LINES "

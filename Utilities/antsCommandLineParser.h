@@ -36,7 +36,7 @@ namespace ants
    * A untilty function to convert internal typeid(???).name() to
    * the human readable equivalent format.
    */
-  extern std::string ConvertToHumanReadable(const std::string input);
+  extern std::string ConvertToHumanReadable(const std::string & input);
 
 /** \class CommandLineParser
     \brief Simple command line parser.

@@ -87,7 +87,7 @@ public:
     return &this->m_LabelSet;
   }
 
-  unsigned int GetNumberOfLabels()
+  unsigned int GetNumberOfLabels() const
   {
     return this->m_LabelSet.size();
   }
