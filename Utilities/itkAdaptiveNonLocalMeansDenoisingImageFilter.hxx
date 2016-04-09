@@ -333,74 +333,44 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
         {
         maxWeight = NumericTraits<RealType>::OneValue();
         }
-
-      for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
-        {
-        if( ! ItBM.IndexInBounds( n ) )
-          {
-          continue;
-          }
-        if( this->m_UseRicianNoiseModel )
-          {
-          weightedAverageIntensities[n] += maxWeight * vnl_math_sqr( ItBI.GetPixel( n ) );
-          }
-        else
-          {
-          weightedAverageIntensities[n] += maxWeight * ItBI.GetPixel( n );
-          }
-        }
-      sumOfWeights += maxWeight;
-
-      if( sumOfWeights > 0.0 )
-        {
-        for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
-          {
-          if( ! ItBO.IndexInBounds( n ) )
-            {
-            continue;
-            }
-          typename OutputImageType::PixelType estimate = ItBO.GetPixel( n );
-          estimate += ( weightedAverageIntensities[n] / sumOfWeights );
-
-          ItBO.SetPixel( n, estimate );
-          ItBL.SetPixel( n, ItBL.GetPixel( n ) + 1.0 );
-          }
-        }
       }
     else
       {
-      maxWeight = 1.0;
+      maxWeight = NumericTraits<RealType>::OneValue();
+      }
 
-      for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
-        {
-        if( ! ItBM.IndexInBounds( n ) )
-          {
-          continue;
-          }
-        if( this->m_UseRicianNoiseModel )
-          {
-          weightedAverageIntensities[n] += maxWeight * vnl_math_sqr( ItBI.GetPixel( n ) );
-          }
-        else
-          {
-          weightedAverageIntensities[n] += maxWeight * ItBI.GetPixel( n );
-          }
-        }
-      sumOfWeights += maxWeight;
+    for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
+    {
+      if( ! ItBM.IndexInBounds( n ) )
+      {
+        continue;
+      }
+      if( this->m_UseRicianNoiseModel )
+      {
+        weightedAverageIntensities[n] += maxWeight * vnl_math_sqr( ItBI.GetPixel( n ) );
+      }
+      else
+      {
+        weightedAverageIntensities[n] += maxWeight * ItBI.GetPixel( n );
+      }
+    }
+    sumOfWeights += maxWeight;
 
+    if( sumOfWeights > 0.0 )
+    {
       for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
-        {
+      {
         if( ! ItBO.IndexInBounds( n ) )
-          {
+        {
           continue;
-          }
+        }
         typename OutputImageType::PixelType estimate = ItBO.GetPixel( n );
         estimate += ( weightedAverageIntensities[n] / sumOfWeights );
 
         ItBO.SetPixel( n, estimate );
         ItBL.SetPixel( n, ItBL.GetPixel( n ) + 1.0 );
-        }
       }
+    }
 
     ++ItM;
     ++ItV;
