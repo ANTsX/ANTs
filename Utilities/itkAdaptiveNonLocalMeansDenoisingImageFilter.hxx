@@ -18,6 +18,11 @@
 #ifndef itkAdaptiveNonLocalMeansDenoisingImageFilter_hxx
 #define itkAdaptiveNonLocalMeansDenoisingImageFilter_hxx
 
+//HACK:
+#include "antsUtilities.h"
+
+#include "ReadWriteData.h"
+
 #include "itkAdaptiveNonLocalMeansDenoisingImageFilter.h"
 
 #include "itkArray.h"
@@ -402,7 +407,10 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
     ImageRegionConstIterator<RealImageType> ItS( smoother->GetOutput(), smoother->GetOutput()->GetRequestedRegion() );
     ImageRegionConstIteratorWithIndex<RealImageType> ItM( this->m_MeanImage, this->m_MeanImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItB( this->m_RicianBiasImage, this->m_RicianBiasImage->GetRequestedRegion() );
-
+      //HACK
+    if(smoother.IsNotNull()) WriteImage<RealImageType>(smoother->GetOutput(),"smoother.nii.gz");
+    if(this->m_MeanImage.IsNotNull()) WriteImage<RealImageType>(this->m_MeanImage,"meanImage.nii.gz");
+    if(this->m_RicianBiasImage.IsNotNull()) WriteImage<RealImageType>(this->m_RicianBiasImage,"pre_RicianBias.nii.gz");
     ItS.GoToBegin();
     ItM.GoToBegin();
     ItB.GoToBegin();
@@ -426,7 +434,14 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
       ++ItM;
       ++ItB;
       }
+      if( this->m_RicianBiasImage.IsNotNull() ) WriteImage<RealImageType>(this->m_RicianBiasImage,"post_RicianBias.nii.gz");
     }
+  if(this->m_VarianceImage.IsNotNull()) WriteImage<RealImageType>(this->m_VarianceImage,"varianceImage.nii.gz");
+  if(this->m_ThreadContributionCountImage.IsNotNull()) WriteImage<RealImageType>(this->m_ThreadContributionCountImage,
+                                                                    "threadContributionCountImage.nii.gz");
+  if(this->m_IntensitySquaredDistanceImage.IsNotNull()) WriteImage<RealImageType>(this->m_IntensitySquaredDistanceImage,
+                                                                     "intensitySquaredDistanceImage");
+  if(this->GetOutput() ) WriteImage<RealImageType>(this->GetOutput(),"preOutput.nii.gz");
 
   ImageRegionIteratorWithIndex<OutputImageType> ItO( this->GetOutput(),
     this->GetOutput()->GetRequestedRegion() );
@@ -458,6 +473,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
     ItO.Set( estimate );
     }
+  WriteImage<RealImageType>(this->GetOutput(),"postOutput.nii.gz");
 }
 
 template<typename TInputImage, typename TOutputImage, typename TMaskImage>
