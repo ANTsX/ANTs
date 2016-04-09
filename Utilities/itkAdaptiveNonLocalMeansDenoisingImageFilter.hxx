@@ -127,6 +127,8 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
     }
 
   this->AllocateOutputs();
+  //Output buffer needs to be zero initialized
+  this->GetOutput()->FillBuffer( 0.0 );
 }
 
 template<typename TInputImage, typename TOutputImage, typename TMaskImage>
