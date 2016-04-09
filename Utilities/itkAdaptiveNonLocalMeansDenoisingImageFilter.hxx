@@ -43,6 +43,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
   m_Epsilon( 0.00001 ),
   m_MeanThreshold( 0.95 ),
   m_VarianceThreshold( 0.5 ),
+  m_SmoothingFactor( 1.0 ),
   m_SmoothingVariance( 2.0 ),
   m_MaximumInputPixelIntensity( NumericTraits<RealType>::NonpositiveMin() ),
   m_MinimumInputPixelIntensity( NumericTraits<RealType>::max() )
