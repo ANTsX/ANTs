@@ -520,6 +520,7 @@ bool WriteImage(const itk::SmartPointer<TImageType> image, const char *file)
       std::exception();
       }
     writer->SetInput(image);
+    writer->SetUseCompression( true );
     writer->Update();
     }
   return true;
@@ -556,6 +557,7 @@ void WriteTensorImage(itk::SmartPointer<TImageType> image, const char *file, boo
   else
     {
     writer->SetInput(writeImage);
+    writer->SetUseCompression( true );
     writer->Update();
     }
 }
