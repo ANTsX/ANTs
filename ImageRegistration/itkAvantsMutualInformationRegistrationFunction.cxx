@@ -495,9 +495,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   const double eps = 1.e-16;
   if( jointPDFValue > eps &&  (fixedImagePDFValue) > 0 )
     {
-    const double pRatio = vcl_log(jointPDFValue) - vcl_log(fixedImagePDFValue);
+    const double pRatio = std::log(jointPDFValue) - std::log(fixedImagePDFValue);
     const double term1 = dJPDF * pRatio;
-    const double term2 = vcl_log( (double)2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
+    const double term2 = std::log( (double)2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
     value =  (term2 - term1);
     }  // end if-block to check non-zero bin contribution
   else
@@ -535,9 +535,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   const double eps = 1.e-16;
   if( jointPDFValue > eps &&  (movingImagePDFValue) > 0 )
     {
-    const double pRatio = vcl_log(jointPDFValue) - vcl_log(movingImagePDFValue);
+    const double pRatio = std::log(jointPDFValue) - std::log(movingImagePDFValue);
     const double term1 = dJPDF * pRatio;
-    const double term2 = vcl_log( (double)2) * dMmPDF * jointPDFValue / movingImagePDFValue;
+    const double term2 = std::log( (double)2) * dMmPDF * jointPDFValue / movingImagePDFValue;
     value =  (term2 - term1);
     } // end if-block to check non-zero bin contribution
   else

@@ -139,22 +139,32 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
     {
     // try reading the search radius as an image first.
-    try
+    std::string searchRadiusString = searchRadiusOption->GetFunction( 0 )->GetName();
+    if( itksys::SystemTools::FileExists( searchRadiusString.c_str() ) )
       {
-      std::string searchRadiusString = searchRadiusOption->GetFunction( 0 )->GetName();
       typedef typename FusionFilterType::RadiusImageType  RadiusImageType;
       typename RadiusImageType::Pointer searchRadiusImage;
-      ReadImage<RadiusImageType>( searchRadiusImage, searchRadiusString.c_str() );
-
-      fusionFilter->SetSearchNeighborhoodRadiusImage( searchRadiusImage );
+      bool fileReadSuccessfully = ReadImage<RadiusImageType>( searchRadiusImage, searchRadiusString.c_str() );
+      if( fileReadSuccessfully )
+        {
+        fusionFilter->SetSearchNeighborhoodRadiusImage( searchRadiusImage );
+        }
+      else
+        {
+        if( verbose )
+          {
+          std::cerr << "Search radius image exists but was not read successfully.." << std::endl;
+          }
+        return EXIT_FAILURE;
+        }
       }
-    catch( ... )
+    else
       {
       std::vector<unsigned int> searchRadius;
       searchRadius.push_back( 3 );
       if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
         {
-        searchRadius = parser->ConvertVector<unsigned int>( searchRadiusOption->GetFunction( 0 )->GetName() );
+        searchRadius = parser->ConvertVector<unsigned int>( searchRadiusString );
         }
       if( searchRadius.size() == 1 )
         {

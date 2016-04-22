@@ -145,9 +145,9 @@ LabelPerimeterEstimationCalculator< TInputImage >
   typedef typename std::map< unsigned long, double > ContributionMapType;
   ContributionMapType contributions;
   const unsigned int  numberOfNeighbors      =
-    static_cast< unsigned int >( vcl_pow( 2.0, static_cast< double >( ImageDimension ) ) );
+    static_cast< unsigned int >( std::pow( 2.0, static_cast< double >( ImageDimension ) ) );
   const unsigned int numberOfConfigurations =
-    static_cast< unsigned int >( vcl_pow( 2.0, static_cast< double >( numberOfNeighbors ) ) );
+    static_cast< unsigned int >( std::pow( 2.0, static_cast< double >( numberOfNeighbors ) ) );
   // create an image to store the neighbors
   typedef typename itk::Image< bool, ImageDimension > ImageType;
   typename ImageType::Pointer neighborsImage = ImageType::New();
@@ -176,7 +176,7 @@ LabelPerimeterEstimationCalculator< TInputImage >
         for ( unsigned int k = 0; k < ImageDimension; k++ )
           {
           IndexType idx = currentIdx;
-          idx[k] = vcl_abs(idx[k] - 1);
+          idx[k] = std::abs(idx[k] - 1);
           if ( !neighborsImage->GetPixel(idx) )
             {
             contributions[i] += physicalSize / this->GetImage()->GetSpacing()[k] / 2.0;

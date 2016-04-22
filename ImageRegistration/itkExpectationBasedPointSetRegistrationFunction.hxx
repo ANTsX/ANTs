@@ -522,7 +522,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     {
     m_Metric = m_SumOfSquaredDifference
       / static_cast<double>( m_NumberOfPixelsProcessed );
-    m_RMSChange = vcl_sqrt( m_SumOfSquaredChange
+    m_RMSChange = std::sqrt( m_SumOfSquaredChange
                             / static_cast<double>( m_NumberOfPixelsProcessed ) );
     }
 
@@ -829,7 +829,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
           distance += vnl_math_sqr( ItM.Value()[d] + vector[d]
             - ItF.Value()[d] );
           }
-        this->m_Energy += ItW.Value() * vcl_sqrt( distance );
+        this->m_Energy += ItW.Value() * std::sqrt( distance );
 
         ++ItF;
         ++ItFD;

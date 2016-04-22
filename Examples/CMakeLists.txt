@@ -12,9 +12,12 @@ add_library(antsUtilities STATIC antsUtilities.cxx
             )
 target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
 install(TARGETS antsUtilities
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+    COMPONENT RUNTIME_antsUtilities
     LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+    COMPONENT RUNTIME_antsUtilities
     ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+    COMPONENT DEVELOPMENT_antsUtilities
   )
 
 macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
@@ -30,9 +33,12 @@ macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME} )
 
   install(TARGETS l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+    COMPONENT RUNTIME_${ANTS_FUNCTION_NAME}
     LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+    COMPONENT RUNTIME_${ANTS_FUNCTION_NAME}
     ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+    COMPONENT DEVELOPMENT_${ANTS_FUNCTION_NAME}
   )
 
 endmacro()
@@ -149,9 +155,15 @@ foreach(ANTS_APP ${CORE_ANTS_APPS})
 endforeach()
 
 if (BUILD_ALL_ANTS_APPS)
-foreach(ANTS_APP ${MORE_ANTS_APPS})
-  STANDARD_ANTS_BUILD(${ANTS_APP} "")
-endforeach()
+  foreach(ANTS_APP ${MORE_ANTS_APPS})
+    STANDARD_ANTS_BUILD(${ANTS_APP} "")
+  endforeach()
+else(BUILD_ALL_ANTS_APPS)
+  foreach(ANTS_APP ${MORE_ANTS_APPS})
+    if(ANTS_BUILD_${ANTS_APP})
+      STANDARD_ANTS_BUILD(${ANTS_APP} "")
+    endif()
+  endforeach()
 endif(BUILD_ALL_ANTS_APPS)
 
 
@@ -210,9 +222,10 @@ install(PROGRAMS ../Scripts/ANTSpexec.sh
      ../Scripts/waitForSGEQJobs.pl
      ../Scripts/waitForXGridJobs.pl
      ../Scripts/waitForSlurmJobs.pl
-                DESTINATION bin
+                DESTINATION ${SCRIPTS_INSTALL_DIR}
                 PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
                 CONFIGURATIONS  Release
+                COMPONENT SCRIPTS
         )
 
 if( COPY_SCRIPT_FILES_TO_BIN_DIR )

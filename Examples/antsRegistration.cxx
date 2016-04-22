@@ -218,6 +218,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
   option->SetUsageOption( 6, "WelchWindowedSinc" );
   option->SetUsageOption( 7, "HammingWindowedSinc" );
   option->SetUsageOption( 8, "LanczosWindowedSinc" );
+  option->SetUsageOption( 9, "GenericLabel[<interpolator=Linear>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }

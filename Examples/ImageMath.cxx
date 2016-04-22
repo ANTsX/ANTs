@@ -4967,7 +4967,7 @@ int LabelSurfaceArea(int argc, char *argv[])
   voxspc = voxspc / static_cast<Scalar>( ImageDimension );
   Scalar voxspc2 = voxspc * voxspc;
   Scalar dm1 = static_cast<Scalar>( ImageDimension - 1 );
-  Scalar refarea = vcl_pow( static_cast<Scalar>( rad[1] ) , dm1 );
+  Scalar refarea = std::pow( static_cast<Scalar>( rad[1] ) , dm1 );
   iteratorType GHood(rad, input, input->GetLargestPossibleRegion() );
   GHood.GoToBegin();
   while( !GHood.IsAtEnd() )
@@ -5161,7 +5161,7 @@ int FitSphere(int argc, char *argv[])
         }
       cmdist=sqrt(cmdist);
       //          // std::cout << " GMT " << gmtotal << " WMT " << wmtotal << " dist " << cmdist << std::endl;
-  float gmrad=vcl_pow( 3.*gvol/(4.*pi) , 1./3.);
+  float gmrad=std::pow( 3.*gvol/(4.*pi) , 1./3.);
   float gwrat=0,gvrat=0;
   if (warea > 0) gwrat=garea/warea;
   if (wvol > 0) gvrat=gvol/wvol;
@@ -5403,7 +5403,7 @@ int ImageMath(int argc, char *argv[])
       }
     else if( strcmp(operation.c_str(), "^") == 0 )
       {
-      result = vcl_pow(pix1, pix2);
+      result = std::pow(pix1, pix2);
       }
     else if( strcmp(operation.c_str(), "exp") == 0 )
       {
@@ -8405,60 +8405,103 @@ int NormalizeImage(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string fn1 = std::string(argv[argct]);   argct++;
   float       option = 0;
+
+  bool useMaskImage = false;
+  typename ImageType::Pointer maskImage = ITK_NULLPTR;
   if( argc > argct )
     {
-    option = atof(argv[argct]);
-    }
 
-  typename ImageType::Pointer image = ITK_NULLPTR;
-  ReadImage<ImageType>(image, fn1.c_str() );
-
-  float         max = 0;
-  float         min = 1.e9;
-  float         mean = 0.0;
-  unsigned long ct = 0;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  Iterator iter( image,  image->GetLargestPossibleRegion() );
-  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
-    float pix = iter.Get();
-    //      if (option == 0) if (pix < 0) pix=0;
-    mean += pix;
-    ct++;
-    if( pix > max )
+    std::string maskFileName = std::string( argv[argct] );
+    ReadImage<ImageType>( maskImage, maskFileName.c_str() );
+    if( maskImage.IsNotNull() )
       {
-      max = pix;
-      }
-    if( pix < min )
-      {
-      min = pix;
-      }
-    }
-  mean /= (float)ct;
-  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
-    float pix = iter.Get();
-    if( option == 0 )
-      {
-      pix = (pix - min) / (max - min);
-      iter.Set(pix);
+      useMaskImage = true;
       }
     else
       {
-      iter.Set(pix / mean);
+      option = atof( argv[argct] );
       }
     }
+  typename ImageType::Pointer image = ITK_NULLPTR;
+  ReadImage<ImageType>(image, fn1.c_str() );
 
-  if( outname.length() > 3 )
+  if( useMaskImage )
     {
-    WriteImage<ImageType>( image, outname.c_str() );
+    itk::ImageRegionIterator<ImageType> It( maskImage,
+      maskImage->GetLargestPossibleRegion() );
+    itk::ImageRegionIterator<ImageType> It2( image,
+      image->GetLargestPossibleRegion() );
+
+    float roiMean = 0.0;
+    float count = 0.0;
+    for( It.GoToBegin(), It2.GoToBegin(); !It.IsAtEnd(); ++It, ++It2 )
+      {
+      if( It.Get() != 0 )
+        {
+        roiMean += It2.Get();
+        count += 1.0;
+        }
+      }
+    roiMean /= count;
+
+    for( It2.GoToBegin(); !It2.IsAtEnd(); ++It2 )
+      {
+      It2.Set( It2.Get() / roiMean );
+      }
+
+    if( outname.length() > 3 )
+      {
+      WriteImage<ImageType>( image, outname.c_str() );
+      }
+    }
+  else
+    {
+    float         max = 0;
+    float         min = 1.e9;
+    float         mean = 0.0;
+    unsigned long ct = 0;
+    typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+    Iterator iter( image,  image->GetLargestPossibleRegion() );
+    for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+      {
+      float pix = iter.Get();
+      //      if (option == 0) if (pix < 0) pix=0;
+      mean += pix;
+      ct++;
+      if( pix > max )
+        {
+        max = pix;
+        }
+      if( pix < min )
+        {
+        min = pix;
+        }
+      }
+    mean /= (float)ct;
+    for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+      {
+      float pix = iter.Get();
+      if( option == 0 )
+        {
+        pix = (pix - min) / (max - min);
+        iter.Set(pix);
+        }
+      else
+        {
+        iter.Set(pix / mean);
+        }
+      }
+
+    if( outname.length() > 3 )
+      {
+      WriteImage<ImageType>( image, outname.c_str() );
+      }
     }
 
   return 0;
@@ -10287,7 +10330,7 @@ int LabelThickness(      int argc, char *argv[])
     {
     volumeelement *= spacing[i];
     }
-  volumeelement = vcl_pow( static_cast<double>(  volumeelement ), static_cast<double>( 0.3333 ) );
+  volumeelement = std::pow( static_cast<double>(  volumeelement ), static_cast<double>( 0.3333 ) );
 
   vnl_vector<double> surface(maxlab + 1, 0);
   vnl_vector<double> volume(maxlab + 1, 0);
@@ -11885,8 +11928,8 @@ int CorrelationVoting( int argc, char *argv[] )
         targetVar /= (k - 1);
         imageVar /= (k - 1);
         float pearson =
-          ( product - k * targetMean * imageMean ) / ( (k - 1) * vcl_sqrt(targetVar) * vcl_sqrt(imageVar) );
-        weights.SetElement( i, vcl_fabs(pearson) );
+          ( product - k * targetMean * imageMean ) / ( (k - 1) * std::sqrt(targetVar) * std::sqrt(imageVar) );
+        weights.SetElement( i, std::fabs(pearson) );
         } // i >= nImages
       for( int i = 0; i < nImages; i++ )
         {
@@ -12130,7 +12173,7 @@ int PearsonCorrelation( int argc, char *argv[] )
   var1 /= (k - 1);
   var2 /= (k - 1);
 
-  float pearson = ( product - k * mean1 * mean2 ) / ( (k - 1) * vcl_sqrt(var1) * vcl_sqrt(var2) );
+  float pearson = ( product - k * mean1 * mean2 ) / ( (k - 1) * std::sqrt(var1) * std::sqrt(var2) );
   std::cout << pearson << std::endl;
 
   return 0;
@@ -12552,8 +12595,8 @@ int PMSmoothImage(int argc, char *argv[])
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image1 );
   filter->SetNumberOfIterations( sigma );
-  PixelType mytimestep = spacingsize / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
-  PixelType reftimestep = 0.4 / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
+  PixelType mytimestep = spacingsize / std::pow( 2.0 , static_cast<double>(ImageDimension+1) );
+  PixelType reftimestep = 0.4 / std::pow( 2.0 , static_cast<double>(ImageDimension+1) );
   if ( mytimestep > reftimestep ) mytimestep = reftimestep;
   filter->SetTimeStep( mytimestep );
   filter->SetConductanceParameter( conductance ); // might need to change this
@@ -12657,7 +12700,7 @@ int InPaint(int argc, char *argv[])
   locPoint.Fill( 0 );
   while(!imageIterator.IsAtEnd())
     {
-    if ( ct == static_cast<unsigned int>( vcl_floor( (PixelType) kernelsize / 2.0 ) ) )
+    if ( ct == static_cast<unsigned int>( std::floor( (PixelType) kernelsize / 2.0 ) ) )
       {
       kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), centerPoint );
       }
@@ -12683,7 +12726,7 @@ int InPaint(int argc, char *argv[])
       imageIterator.Set( 1.0 / val );
       totalval += imageIterator.Get( );
       }
-    if ( ct2 == static_cast<unsigned int>( vcl_floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 1.e-8 );
+    if ( ct2 == static_cast<unsigned int>( std::floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 1.e-8 );
     ++ct2;
     ++imageIterator;
     }
@@ -12771,7 +12814,7 @@ int InPaint2(int argc, char *argv[])
   typename ImageType::PointType locPoint;
   while(!imageIterator.IsAtEnd())
     {
-    if ( ct == static_cast<unsigned int>( vcl_floor( (PixelType) kernelsize / 2.0 ) ) )
+    if ( ct == static_cast<unsigned int>( std::floor( (PixelType) kernelsize / 2.0 ) ) )
       {
       kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), centerPoint );
       }
@@ -12797,7 +12840,7 @@ int InPaint2(int argc, char *argv[])
       imageIterator.Set( 1.0 / val );
       totalval += imageIterator.Get( );
       }
-    if ( ct2 == static_cast<unsigned int>( vcl_floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 1.e-8 );
+    if ( ct2 == static_cast<unsigned int>( std::floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 1.e-8 );
     ++ct2;
     ++imageIterator;
     }
@@ -13185,8 +13228,8 @@ int BlobDetector( int argc, char *argv[] )
   // sensitive parameters are set here - begin
   RealType     gradsig = 1.0;      // sigma for gradient filter
   unsigned int stepsperoctave = 10; // number of steps between doubling of scale
-  RealType     minscale = vcl_pow( 1.0, 1.0 );
-  RealType     maxscale = vcl_pow( 2.0, 10.0 );
+  RealType     minscale = std::pow( 1.0, 1.0 );
+  RealType     maxscale = std::pow( 2.0, 10.0 );
   RealType     uniqfeat_thresh = 0.01;
   RealType     smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
   bool         dosinkhorn = false;
@@ -15044,7 +15087,7 @@ private:
       << std::endl;
     std::cout << "      Usage        : MTR M0Image M1Image [MaskImage];" << std::endl;
 
-    std::cout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value" << std::endl;
+    std::cout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value.  If opt is a mask image, then we normalize by mean intensity in the mask ROI." << std::endl;
     std::cout << "      Usage        : Normalize Image.ext opt" << std::endl;
 
     std::cout << "\n  PadImage       : If Pad-Number is negative, de-Padding occurs" << std::endl;

@@ -881,7 +881,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     {
     RealType domain = static_cast<RealType>(
       inputField->GetLargestPossibleRegion().GetSize()[d] - 1 ) * inputField->GetSpacing()[d];
-    ncps[d] = static_cast<unsigned int>( vcl_ceil( domain / isotropicMeshSpacing ) );
+    ncps[d] = static_cast<unsigned int>( std::ceil( domain / isotropicMeshSpacing ) );
     }
 
   typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();

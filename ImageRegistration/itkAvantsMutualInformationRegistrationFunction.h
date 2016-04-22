@@ -13,7 +13,9 @@
 =========================================================================*/
 #ifndef __itkAvantsMutualInformationRegistrationFunction_h
 #define __itkAvantsMutualInformationRegistrationFunction_h
-#include "vcl_cmath.h"
+#include <vcl_compiler.h>
+#include <iostream>
+#include "cmath"
 #include "itkImageFileWriter.h"
 #include "itkImageToImageMetric.h"
 #include "itkAvantsPDEDeformableRegistrationFunction.h"
@@ -475,7 +477,7 @@ public:
           if( pxy / denom > 0 )
             {
             // true mi
-            mi = pxy * vcl_log(pxy / denom);
+            mi = pxy * std::log(pxy / denom);
             // test mi
             // mi = 1.0 + log(pxy/denom);
             ct++;
@@ -487,8 +489,8 @@ public:
       //      std::cout << " II " << ii << " JJ " << ii << " pxy " << pxy << " px " << px << std::endl;
       }
     // GS: temp edit to make sure if this is decreasing (should be )
-    // this->m_Energy = -1.0*mival/vcl_log((double)2.0);
-    this->m_Energy = -1.0 * mival / vcl_log( (double)2.0);
+    // this->m_Energy = -1.0*mival/std::log((double)2.0);
+    this->m_Energy = -1.0 * mival / std::log( (double)2.0);
     return this->m_Energy;
   }
 

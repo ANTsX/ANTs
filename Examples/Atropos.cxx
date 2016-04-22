@@ -67,7 +67,7 @@ public:
     typedef typename TFilter::RealType RealType;
 
     RealType annealingTemperature = filter->GetInitialAnnealingTemperature()
-      * vcl_pow( filter->GetAnnealingRate(), static_cast<RealType>(
+      * std::pow( filter->GetAnnealingRate(), static_cast<RealType>(
                    filter->GetElapsedIterations() ) );
 
     annealingTemperature = vnl_math_max( annealingTemperature,
@@ -416,7 +416,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
                                                            segmenter->GetPriorLabelImage()->GetLargestPossibleRegion() );
         for( ItM.GoToBegin(), ItP.GoToBegin(); !ItM.IsAtEnd(); ++ItM, ++ItP )
           {
-          if( ItM.Get() == segmenter->GetMaskLabel() && ItP.Get() == 0 )
+          if( ItM.Get() != itk::NumericTraits<LabelType>::ZeroValue() && ItP.Get() == 0 )
             {
             if( verbose )
               {
@@ -441,7 +441,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
                                                                     segmenter->GetMaskImage()->GetLargestPossibleRegion() );
         for( ItM.GoToBegin(); !ItM.IsAtEnd(); ++ItM )
           {
-          if( ItM.Get() == segmenter->GetMaskLabel() )
+          if( ItM.Get() != itk::NumericTraits<LabelType>::ZeroValue() )
             {
             RealType sumPriorProbability = 0.0;
             for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )

@@ -35,13 +35,14 @@ namespace itk
 //
 template <class TOutputMesh>
 LabeledPointSetFileReader<TOutputMesh>
-::LabeledPointSetFileReader()
+::LabeledPointSetFileReader():
+  m_ExtractBoundaryPoints( false ),
+  m_FileName(),
+  m_RandomPercentage(1.0),
+  m_LabelSet(),
+  m_MultiComponentScalars(ITK_NULLPTR),
+  m_Lines(ITK_NULLPTR)
 {
-  this->m_RandomPercentage = 1.0;
-  this->m_ExtractBoundaryPoints = false;
-
-  this->m_MultiComponentScalars = ITK_NULLPTR;
-  this->m_Lines = ITK_NULLPTR;
   //
   // Create the output
   //
@@ -278,9 +279,8 @@ LabeledPointSetFileReader<TOutputMesh>
     {
     itkDebugMacro( "Data is binary" );
 
-    float   p;
     float * ptData = new float[numberOfPoints * 3];
-    inputFile.read( reinterpret_cast<char *>( ptData ), 3 * numberOfPoints * sizeof(p) );
+    inputFile.read( reinterpret_cast<char *>( ptData ), 3 * numberOfPoints * sizeof(float) );
     ByteSwapper<float>::SwapRangeFromSystemToBigEndian(ptData, numberOfPoints * 3);
     for( long i = 0; i < numberOfPoints; i++ )
       {

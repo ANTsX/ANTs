@@ -43,7 +43,7 @@ JensenTsallisBSplineRegistrationFunction<TFixedImage,
   this->m_MovingKernelSigma = 0.0;
   this->m_MovingEvaluationKNeighborhood = 50;
 
-  unsigned int covarianceKNeighborhood = static_cast<unsigned int>( vcl_pow( 3.0,
+  unsigned int covarianceKNeighborhood = static_cast<unsigned int>( std::pow( 3.0,
                                                                              static_cast<RealType>( ImageDimension ) ) )
     - 1;
 
@@ -235,7 +235,7 @@ JensenTsallisBSplineRegistrationFunction<TFixedImage,
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
     numberOfMovingControlPoints[d] = this->m_SplineOrder
-      + static_cast<unsigned int>( vcl_floor( 0.5 + static_cast<RealType>(
+      + static_cast<unsigned int>( std::floor( 0.5 + static_cast<RealType>(
                                                 this->GetMovingImage()->GetLargestPossibleRegion().GetSize()[d] )
                                               / static_cast<RealType>( this->m_MeshResolution[d] ) ) );
     }
@@ -381,7 +381,7 @@ JensenTsallisBSplineRegistrationFunction<TFixedImage,
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
     numberOfFixedControlPoints[d] = this->m_SplineOrder
-      + static_cast<unsigned int>( vcl_floor( 0.5 + static_cast<RealType>(
+      + static_cast<unsigned int>( std::floor( 0.5 + static_cast<RealType>(
                                                 this->GetFixedImage()->GetLargestPossibleRegion().GetSize()[d] )
                                               / static_cast<RealType>( this->m_MeshResolution[d] ) ) );
     }

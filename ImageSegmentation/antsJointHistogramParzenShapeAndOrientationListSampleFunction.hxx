@@ -111,8 +111,8 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   /** Nearest neighbor increment to JH */
   if( this->m_UseNearestNeighborIncrements )
     {
-    shapeIdx[0] = static_cast<typename JointHistogramImageIndexType::IndexValueType>( vcl_floor( shapeCidx[0] + 0.5 ) );
-    shapeIdx[1] = static_cast<typename JointHistogramImageIndexType::IndexValueType>( vcl_floor( shapeCidx[1] + 0.5 ) );
+    shapeIdx[0] = static_cast<typename JointHistogramImageIndexType::IndexValueType>( std::floor( shapeCidx[0] + 0.5 ) );
+    shapeIdx[1] = static_cast<typename JointHistogramImageIndexType::IndexValueType>( std::floor( shapeCidx[1] + 0.5 ) );
     if( this->m_JointHistogramImages[0]->
         GetLargestPossibleRegion().IsInside( shapeIdx ) )
       {
@@ -123,18 +123,18 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   else
     {
     /** linear addition */
-    shapeIdx[0] = static_cast<IndexValueType>( vcl_floor( shapeCidx[0] ) );
-    shapeIdx[1] = static_cast<IndexValueType>( vcl_floor( shapeCidx[1] ) );
-    RealType distance1 = vcl_sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
+    shapeIdx[0] = static_cast<IndexValueType>( std::floor( shapeCidx[0] ) );
+    shapeIdx[1] = static_cast<IndexValueType>( std::floor( shapeCidx[1] ) );
+    RealType distance1 = std::sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
                                    + vnl_math_sqr( shapeCidx[1] - shapeIdx[1] ) );
     shapeIdx[0]++;
-    RealType distance2 = vcl_sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
+    RealType distance2 = std::sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
                                    + vnl_math_sqr( shapeCidx[1] - shapeIdx[1] ) );
     shapeIdx[1]++;
-    RealType distance3 = vcl_sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
+    RealType distance3 = std::sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
                                    + vnl_math_sqr( shapeCidx[1] - shapeIdx[1] ) );
     shapeIdx[0]--;
-    RealType distance4 = vcl_sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
+    RealType distance4 = std::sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
                                    + vnl_math_sqr( shapeCidx[1] - shapeIdx[1] ) );
     RealType sumDistance = distance1 + distance2 + distance3 + distance4;
     distance1 /= sumDistance;
@@ -143,8 +143,8 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     distance4 /= sumDistance;
 
     unsigned int whichHistogram = 0;
-    shapeIdx[0] = static_cast<IndexValueType>( vcl_floor( shapeCidx[0] ) );
-    shapeIdx[1] = static_cast<IndexValueType>( vcl_floor( shapeCidx[1] ) );
+    shapeIdx[0] = static_cast<IndexValueType>( std::floor( shapeCidx[0] ) );
+    shapeIdx[1] = static_cast<IndexValueType>( std::floor( shapeCidx[1] ) );
     if( this->m_JointHistogramImages[whichHistogram]->
         GetLargestPossibleRegion().IsInside( shapeIdx ) )
       {
@@ -226,7 +226,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     z *= -1;
     }
 
-  tp[0] = vcl_acos( z );
+  tp[0] = std::acos( z );
 
   // phi goes from 0.0 (+x axis) and goes to -pi/2 and pi/2.
   // theta goes from 0.0 (+z axis) and wraps at PI
@@ -264,11 +264,11 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       }
     else if( x > 0.0 && y > 0.0 )
       {     // first quadrant
-      tp[1] = vcl_atan( y / x );
+      tp[1] = std::atan( y / x );
       }
     else if( x < 0.0 && y > 0.0 )
       {     // second quadrant
-      tp[1] = vnl_math::pi + vcl_atan( y / x );
+      tp[1] = vnl_math::pi + std::atan( y / x );
       }
     else if( x < 0.0 && y < 0.0 )
       {     // third quadrant
@@ -300,9 +300,9 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   if( this->m_UseNearestNeighborIncrements )
     {
     orientIdx[0] =
-      static_cast<typename JointHistogramImageIndexType::IndexValueType>( vcl_floor( orientCidx[0] + 0.5 ) );
+      static_cast<typename JointHistogramImageIndexType::IndexValueType>( std::floor( orientCidx[0] + 0.5 ) );
     orientIdx[1] =
-      static_cast<typename JointHistogramImageIndexType::IndexValueType>( vcl_floor( orientCidx[1] + 0.5 ) );
+      static_cast<typename JointHistogramImageIndexType::IndexValueType>( std::floor( orientCidx[1] + 0.5 ) );
     if( this->m_JointHistogramImages[whichHistogram]->
         GetLargestPossibleRegion().IsInside( orientIdx ) )
       {
@@ -314,18 +314,18 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     }
   else
     {
-    orientIdx[0] = static_cast<IndexValueType>( vcl_floor( orientCidx[0] ) );
-    orientIdx[1] = static_cast<IndexValueType>( vcl_floor( orientCidx[1] ) );
-    RealType distance1 = vcl_sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
+    orientIdx[0] = static_cast<IndexValueType>( std::floor( orientCidx[0] ) );
+    orientIdx[1] = static_cast<IndexValueType>( std::floor( orientCidx[1] ) );
+    RealType distance1 = std::sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
                                    + vnl_math_sqr( orientCidx[1] - orientIdx[1] ) );
     orientIdx[0]++;
-    RealType distance2 = vcl_sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
+    RealType distance2 = std::sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
                                    + vnl_math_sqr( orientCidx[1] - orientIdx[1] ) );
     orientIdx[1]++;
-    RealType distance3 = vcl_sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
+    RealType distance3 = std::sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
                                    + vnl_math_sqr( orientCidx[1] - orientIdx[1] ) );
     orientIdx[0]--;
-    RealType distance4 = vcl_sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
+    RealType distance4 = std::sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
                                    + vnl_math_sqr( orientCidx[1] - orientIdx[1] ) );
     RealType sumDistance = distance1 + distance2 + distance3 + distance4;
     distance1 /= sumDistance;
@@ -333,8 +333,8 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     distance3 /= sumDistance;
     distance4 /= sumDistance;
 
-    orientIdx[0] = static_cast<IndexValueType>( vcl_floor( orientCidx[0] ) );
-    orientIdx[1] = static_cast<IndexValueType>( vcl_floor( orientCidx[1] ) );
+    orientIdx[0] = static_cast<IndexValueType>( std::floor( orientCidx[0] ) );
+    orientIdx[1] = static_cast<IndexValueType>( std::floor( orientCidx[1] ) );
     if( this->m_JointHistogramImages[whichHistogram]->
         GetLargestPossibleRegion().IsInside( orientIdx ) )
       {
@@ -457,7 +457,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 
   RealType L = static_cast<RealType>(
       this->GetInputListSample()->GetMeasurementVectorSize() );
-  unsigned int D = static_cast<unsigned int>( 0.5 * ( -1 + vcl_sqrt( 1.0
+  unsigned int D = static_cast<unsigned int>( 0.5 * ( -1 + std::sqrt( 1.0
                                                                      + 8.0 * L ) ) );
 
   It = this->GetInputListSample()->Begin();

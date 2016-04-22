@@ -792,21 +792,21 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
         then
           echo "The segmentation template doesn't exist:"
           echo "   ${EXTRACTED_BRAIN_TEMPLATE}"
-          rm ${OUTPUT_PREFIX}ACTStage1Complete.txt
+          rm -f ${OUTPUT_PREFIX}ACTStage1Complete.txt
           exit 1
         fi
       if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
         then
           echo "The extracted brain doesn't exist:"
           echo "   ${EXTRACTED_SEGMENTATION_BRAIN}"
-          rm ${OUTPUT_PREFIX}ACTStage1Complete.txt
+          rm -f ${OUTPUT_PREFIX}ACTStage1Complete.txt
           exit 1
         fi
       if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
         then
           echo "The brain extraction mask does not exist:"
           echo "   ${BRAIN_EXTRACTION_MASK}"
-          rm ${OUTPUT_PREFIX}ACTStage1Complete.txt
+          rm -f ${OUTPUT_PREFIX}ACTStage1Complete.txt
           exit 1
         fi
 
@@ -817,7 +817,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
             basecall=''
             if [[ ${RUN_QUICK} -ne 0 ]];
               then
-                TMP_FILES=( ${TMP_FILES[@]} "${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped.nii.gz" )
+                TMP_FILES=( ${TMP_FILES[@]} "${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped.nii.gz" "${SEGMENTATION_WARP_OUTPUT_PREFIX}InverseWarped.nii.gz" )
 
                 basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${EXTRACTED_SEGMENTATION_BRAIN}"
                 basecall="${basecall} -m ${EXTRACTED_BRAIN_TEMPLATE} -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -j 1"
@@ -984,7 +984,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
           do
             if [[ -e $f ]];
           then
-            logCmd rm $f
+            logCmd rm -f $f
           else
             echo "WARNING: expected temp file doesn't exist: $f"
           fi
@@ -1053,7 +1053,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
     basecall=''
     if [[ ${RUN_QUICK} -ne 0 ]];
       then
-        TMP_FILES=( ${TMP_FILES[@]} "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.nii.gz" )
+        TMP_FILES=( ${TMP_FILES[@]} "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.nii.gz" "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}InverseWarped.nii.gz" )
 
         basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${REGISTRATION_TEMPLATE}"
         basecall="${basecall} -m ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -j 1"
@@ -1115,12 +1115,12 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
         for f in ${TMP_FILES[@]}
           do
             if [[ -e $f ]];
-             then
-              logCmd rm $f
-            else
-              echo "WARNING: expected temp file doesn't exist: $f"
-            fi
-        done
+              then
+                logCmd rm -f $f
+              else
+                echo "WARNING: expected temp file doesn't exist: $f"
+              fi
+          done
       fi
   logCmd ${ANTSPATH}/CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
   fi # if registration template & jacobian check
@@ -1250,7 +1250,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
           do
             if [[ -e $f ]];
               then
-                logCmd rm $f
+                logCmd rm -f $f
               else
                 echo "WARNING: expected temp file doesn't exist: $f"
               fi
@@ -1326,7 +1326,7 @@ if [[ -f ${ANTSPATH}/GetMeshAndTopology ]] && [[ ${DIMENSION} -eq 3 ]] ; then
   ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz MD ${OUTPUT_PREFIX}temp.nii.gz 2
   ${ANTSPATH}/SmoothImage 3 ${CORTICAL_THICKNESS_IMAGE} 1 ${OUTPUT_PREFIX}temp2.nii.gz
   #          ${ANTSPATH}/GetMeshAndTopology ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
-  rm ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz
+  rm -f ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz
 fi
 echo "--------------------------------------------------------------------------------------"
 #### BA Edits End ####
@@ -1417,7 +1417,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
           do
             if [[ -e $f ]];
              then
-              logCmd rm $f
+              logCmd rm -f $f
             else
               echo "WARNING: expected temp file doesn't exist: $f"
             fi

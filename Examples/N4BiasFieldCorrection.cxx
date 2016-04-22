@@ -1,19 +1,20 @@
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
-
-#include "itkBSplineControlPointImageFilter.h"
 #include "antsCommandLineParser.h"
+
+#include "ReadWriteData.h"
+
+#include "itkBinaryThresholdImageFilter.h"
+#include "itkBSplineControlPointImageFilter.h"
 #include "itkConstantPadImageFilter.h"
 #include "itkExpImageFilter.h"
 #include "itkExtractImageFilter.h"
-#include "ReadWriteData.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkN4BiasFieldCorrectionImageFilter.h"
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkShrinkImageFilter.h"
-
 #include "itkTimeProbe.h"
 
 #include <string>
@@ -237,7 +238,7 @@ int N4( itk::ants::CommandLineParser *parser )
           {
           float domain = static_cast<RealType>( originalImageSize[d] - 1 ) * inputImage->GetSpacing()[d];
           unsigned int numberOfSpans = static_cast<unsigned int>(
-              vcl_ceil( domain / splineDistance ) );
+              std::ceil( domain / splineDistance ) );
           unsigned long extraPadding = static_cast<unsigned long>( ( numberOfSpans
                                                                      * splineDistance
                                                                      - domain ) / inputImage->GetSpacing()[d] + 0.5 );
@@ -467,7 +468,7 @@ int N4( itk::ants::CommandLineParser *parser )
                                                inputImage->GetLargestPossibleRegion() );
       for( ItD.GoToBegin(), ItI.GoToBegin(); !ItD.IsAtEnd(); ++ItD, ++ItI )
         {
-        if( maskImage->GetPixel( ItD.GetIndex() ) != correcter->GetMaskLabel() )
+        if( maskImage->GetPixel( ItD.GetIndex() ) == itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() )
           {
           ItD.Set( ItI.Get() );
           }
@@ -487,27 +488,31 @@ int N4( itk::ants::CommandLineParser *parser )
     if( doRescale )
       {
       typedef itk::Image<unsigned short, ImageDimension> ShortImageType;
-      typedef itk::CastImageFilter<MaskImageType, ShortImageType> CasterType;
-      typename CasterType::Pointer caster = CasterType::New();
-      caster->SetInput( maskImage );
-      caster->Update();
+
+      typedef itk::BinaryThresholdImageFilter<MaskImageType, ShortImageType> ThresholderType;
+      typename ThresholderType::Pointer thresholder = ThresholderType::New();
+      thresholder->SetInsideValue( itk::NumericTraits<typename ShortImageType::PixelType>::ZeroValue() );
+      thresholder->SetOutsideValue( itk::NumericTraits<typename ShortImageType::PixelType>::OneValue() );
+      thresholder->SetLowerThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
+      thresholder->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
+      thresholder->SetInput( maskImage );
 
       typedef itk::LabelStatisticsImageFilter<ImageType, ShortImageType> StatsType;
       typename StatsType::Pointer stats = StatsType::New();
       stats->SetInput( inputImage );
-      stats->SetLabelInput( caster->GetOutput() );
+      stats->SetLabelInput( thresholder->GetOutput() );
       stats->UseHistogramsOff();
       stats->Update();
 
       typedef typename StatsType::LabelPixelType StatsLabelType;
-      StatsLabelType maskLabel = static_cast<StatsLabelType>( correcter->GetMaskLabel() );
+      StatsLabelType maskLabel = itk::NumericTraits<StatsLabelType>::OneValue();
 
       RealType minOriginal = stats->GetMinimum( maskLabel );
       RealType maxOriginal = stats->GetMaximum( maskLabel );
 
       typename StatsType::Pointer stats2 = StatsType::New();
       stats2->SetInput( divider->GetOutput() );
-      stats2->SetLabelInput( caster->GetOutput() );
+      stats2->SetLabelInput( thresholder->GetOutput() );
       stats2->UseHistogramsOff();
       stats2->Update();
 
@@ -917,7 +922,7 @@ private:
     }
 
   int returnValue = EXIT_FAILURE;
-  
+
   switch( dimension )
     {
     case 2:

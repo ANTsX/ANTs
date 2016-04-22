@@ -82,11 +82,11 @@ TTensorType LogExpTensor( TTensorType inTensor, bool doLog )
       {
       if( doLog )
         {
-        eSystem.D[i] = vcl_log(vcl_fabs(eSystem.D[i]) );
+        eSystem.D[i] = std::log(std::fabs(eSystem.D[i]) );
         }
       else
         {
-        eSystem.D[i] = vcl_exp(eSystem.D[i]);
+        eSystem.D[i] = std::exp(eSystem.D[i]);
         }
       }
 

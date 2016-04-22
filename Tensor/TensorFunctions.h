@@ -625,9 +625,9 @@ itk::RGBPixel<unsigned char>   GetTensorRGB( TTensorType dtv )
   EigenAnalysis<TensorType, EigenMatrixType>(dtv, evals, evecs);
   float fa = GetTensorFA<TensorType>(dtv);
 
-  rgb[0] = (unsigned char)(vcl_fabs(evecs(0, 2) ) * fa * 255);
-  rgb[1] = (unsigned char)(vcl_fabs(evecs(1, 2) ) * fa * 255);
-  rgb[2] = (unsigned char)(vcl_fabs(evecs(2, 2) ) * fa * 255);
+  rgb[0] = (unsigned char)(std::fabs(evecs(0, 2) ) * fa * 255);
+  rgb[1] = (unsigned char)(std::fabs(evecs(1, 2) ) * fa * 255);
+  rgb[2] = (unsigned char)(std::fabs(evecs(2, 2) ) * fa * 255);
 
   return rgb;
 }
@@ -690,7 +690,7 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
     trace += dtv[3];
     trace += dtv[5];
     float anisotropy = 3.0 * isp - trace * trace;
-    fa = ( vcl_sqrt(anisotropy / ( 2.0 * isp ) ) );
+    fa = ( std::sqrt(anisotropy / ( 2.0 * isp ) ) );
     }
 
   // rgb[0]=eig.V(2,0)*fa*255;//+eig.V(1,0)*e2;

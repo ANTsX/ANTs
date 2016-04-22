@@ -68,6 +68,7 @@
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
+#include "itkLabelImageGenericInterpolateImageFunction.h"
 #include <sstream>
 
 namespace ants
@@ -765,7 +766,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     A(z,0) = zz;
     for ( unsigned int lcol = 1; lcol < A.cols(); lcol++ )
       {
-      A( z, lcol ) = vcl_pow( zz, static_cast<RealType>(lcol+1) );
+      A( z, lcol ) = std::pow( zz, static_cast<RealType>(lcol+1) );
       }
     }
   for ( unsigned int lcol = 0; lcol < A.cols(); lcol++ )
@@ -810,7 +811,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   for ( unsigned int i = 0; i < transformList.size(); i++)
     {
     typename TranslationTransformType::ParametersType p = transformList[i]->GetParameters();
-    err += vcl_sqrt( vcl_pow( p[0] - solnx[i] , 2.0 ) + vcl_pow( p[1] - solny[i] , 2.0 ) );
+    err += std::sqrt( std::pow( p[0] - solnx[i] , 2.0 ) + std::pow( p[1] - solny[i] , 2.0 ) );
     p[ 0 ] = solnx[i] * eulerparam + p[0] * (1.0 - eulerparam);
     p[ 1 ] = solny[i] * eulerparam + p[1] * (1.0 - eulerparam);
     param_values(i,0) = p[0];
@@ -1079,6 +1080,7 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     option->SetUsageOption( 6, "WelchWindowedSinc" );
     option->SetUsageOption( 7, "HammingWindowedSinc" );
     option->SetUsageOption( 8, "LanczosWindowedSinc" );
+    option->SetUsageOption( 9, "GenericLabel[<interpolator=Linear>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

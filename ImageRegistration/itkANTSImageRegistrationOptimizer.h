@@ -250,12 +250,12 @@ public:
           for( unsigned int d = 0; d < ImageDimension; d++ )
             {
             meshSize[d] *= static_cast<unsigned int>(
-                vcl_pow( 2.0, static_cast<int>( this->m_CurrentLevel ) ) );
+                std::pow( 2.0, static_cast<int>( this->m_CurrentLevel ) ) );
             }
           }
         else
           {
-          TReal spanLength = vcl_sqrt( this->m_GradSmoothingparam
+          TReal spanLength = std::sqrt( this->m_GradSmoothingparam
                                        / bsplineKernelVariance );
           for( unsigned int d = 0; d < ImageDimension; d++ )
             {
@@ -275,12 +275,12 @@ public:
           for( unsigned int d = 0; d < ImageDimension; d++ )
             {
             meshSize[d] *= static_cast<unsigned int>(
-                vcl_pow( 2.0, static_cast<int>( this->m_CurrentLevel ) ) );
+                std::pow( 2.0, static_cast<int>( this->m_CurrentLevel ) ) );
             }
           }
         else
           {
-          TReal spanLength = vcl_sqrt( this->m_TotalSmoothingparam
+          TReal spanLength = std::sqrt( this->m_TotalSmoothingparam
                                        / bsplineKernelVariance );
           for( unsigned int d = 0; d < ImageDimension; d++ )
             {
@@ -1284,7 +1284,7 @@ public:
 
       if( this->m_SubsamplingFactors.Size() == 0 )
         {
-        this->m_ScaleFactor = vcl_pow( 2.0, (int)static_cast<RealType>( this->m_NumberOfLevels - currentLevel - 1 ) );
+        this->m_ScaleFactor = std::pow( 2.0, (int)static_cast<RealType>( this->m_NumberOfLevels - currentLevel - 1 ) );
         }
       else
         {

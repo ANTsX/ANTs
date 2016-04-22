@@ -913,8 +913,10 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
           -m ${ANATOMICAL_IMAGES[$i]} \
           -f ${SINGLE_SUBJECT_TEMPLATE} \
           -t r
+        logCmd rm -f ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS}/${BASENAME_ID}RigidToSSTInverseWarped.nii.gz
 
         ANATOMICAL_REFERENCE_IMAGE=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS}/${BASENAME_ID}RigidToSSTWarped.nii.gz
+
 
         let k=$i+$NUMBER_OF_MODALITIES
         for (( j=$i; j < $k; j++ ))

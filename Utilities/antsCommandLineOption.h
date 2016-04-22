@@ -67,8 +67,9 @@ public:
 
   typedef std::deque<std::string> ParameterStackType;
 
-  itkSetMacro( Name, std::string );
-  itkGetConstMacro( Name, std::string );
+  itkSetStringMacro( Name );
+  itkGetStringMacro( Name );
+  itkGetMacro( Name, std::string );
 
   itkSetMacro( ArgOrder, unsigned int );
   itkGetConstMacro( ArgOrder, unsigned int );
@@ -176,11 +177,11 @@ public:
   itkSetMacro( ShortName, char );
   itkGetConstMacro( ShortName, char );
 
-  itkSetMacro( LongName, std::string );
+  itkSetStringMacro( LongName );
   itkGetConstMacro( LongName, std::string );
 
-  itkSetMacro( Description, std::string );
-  itkGetConstMacro( Description, std::string );
+  itkSetStringMacro( Description );
+  itkGetMacro( Description, std::string );
 
   void AddFunction( std::string, char, char, unsigned int order = 0 );
 

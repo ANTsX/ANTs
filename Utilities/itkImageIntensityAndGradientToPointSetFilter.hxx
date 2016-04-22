@@ -28,14 +28,13 @@ namespace itk
 //
 template <typename TInputImage, typename TMaskImage, typename TOutputMesh>
 ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
-::ImageIntensityAndGradientToPointSetFilter()
+::ImageIntensityAndGradientToPointSetFilter():
+  m_Sigma(1.5),
+  m_NeighborhoodRadius(),
+  m_UseCentralDifferenceFunction(true)
 {
+  this->m_NeighborhoodRadius.Fill( 1 ),
   this->ProcessObject::SetNumberOfRequiredInputs( 2 );
-
-  this->m_NeighborhoodRadius.Fill( 1 );
-  this->m_Sigma = 1.5;
-
-  this->m_UseCentralDifferenceFunction = true;
 
   //
   // Create the output
