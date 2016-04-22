@@ -1104,7 +1104,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
     {
     if( verbose )
       {
-      std::cout << "Using the Mattes MI metric (number of bins = " << numberOfBins << ")" << std::endl;
+      std::cout << "Using the joint histogram MI metric (number of bins = " << numberOfBins << ")" << std::endl;
       }
     typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType,
                                                                      RealType> MutualInformationMetricType;
