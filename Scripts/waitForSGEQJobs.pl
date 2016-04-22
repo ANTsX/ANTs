@@ -2,7 +2,9 @@
 
 use strict;
 
-# Usage: waitForSGEQJobs.pl <verbose [1 or 0]> <delay in seconds in range 10-600> [job IDs]
+$SIG{INT}=\&myCleanup;
+
+# Usage: waitForSGEQJobs.pl <verbose [2 or 1 or 0]> <delay in seconds in range 10-3600> [job IDs]
 #
 #
 # Takes as args a string of qsub job IDs and periodically monitors them. Once they all finish, it returns 0
@@ -93,7 +95,7 @@ while ($jobsIncomplete) {
 	      else {
 		  $jobsIncomplete = $jobsIncomplete + 1;
 	      }
-	      if ($verbose) {
+	      if ($verbose > 1) {
 		  print "    Job $job is in state $tokens[$statePos]\n";
 	      }
 	  }
@@ -105,7 +107,7 @@ while ($jobsIncomplete) {
 
 
     if ($jobsIncomplete) {
-	if ($verbose) {
+	if ($verbose > 0) {
 	    my $timestamp = `date`;
 	    chomp $timestamp;
 	    print "  ($timestamp) Still waiting for $jobsIncomplete jobs\n\n";
@@ -139,4 +141,16 @@ sub trim {
     $string =~ s/\s+$//;
 
     return $string;
+}
+
+
+sub myCleanup {
+
+    print "   ***   CTRL-C pressed, deleting remaining jobs   ***\n\n";
+ 
+    my $cmd= "qdel " . join(" ", @jobIDs);
+
+    `$cmd`;
+
+    exit(1);
 }
