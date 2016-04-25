@@ -218,27 +218,17 @@ REPORTMAPPINGPARAMETERS
 }
 
 cleanup()
-# example cleanup function
 {
-
-  cd ${currentdir}/
-
   echo "\n*** Performing cleanup, please wait ***\n"
-
-# 1st attempt to kill all remaining processes
-# put all related processes in array
-runningANTSpids=( `ps -C antsRegistration | awk '{ printf "%s\n", $1 ; }'` )
-
-# debug only
-  #echo list 1: ${runningANTSpids[@]}
-
-# kill these processes, skip the first since it is text and not a PID
-for (( i = 1; i < ${#runningANTSpids[@]}; i++ ))
+  
+    runningANTSpids=$( ps --ppid $$ -o pid= )
+  
+  for thePID in $runningANTSpids
   do
-    echo "killing:  ${runningANTSpids[${i}]}"
-    kill ${runningANTSpids[${i}]}
-done
-
+      echo "killing:  ${thePID}"
+      kill ${thePID}
+  done
+  
   return $?
 }
 
