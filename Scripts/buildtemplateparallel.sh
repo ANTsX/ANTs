@@ -591,28 +591,19 @@ function jobfnamepadding {
 
 }
 
+
 cleanup()
-# example cleanup function
 {
-
-  cd ${currentdir}/
-
-  echo -en "\n*** Performing cleanup, please wait ***\n"
-
-# 1st attempt to kill all remaining processes
-# put all related processes in array
-  runningANTSpids=( `ps -C ANTS -C N4BiasFieldCorrection -C ImageMath| awk '{ printf "%s\n", $1 ; }'` )
-
-# debug only
-  #echo list 1: ${runningANTSpids[@]}
-
-# kill these processes, skip the first since it is text and not a PID
-  for ((i = 1; i < ${#runningANTSpids[@]} ; i++))
+  echo "\n*** Performing cleanup, please wait ***\n"
+  
+  runningANTSpids=$( ps --ppid $$ -o pid= )
+  
+  for thePID in $runningANTSpids
   do
-  echo "killing:  ${runningANTSpids[${i}]}"
-  kill ${runningANTSpids[${i}]}
+      echo "killing:  ${thePID}"
+      kill ${thePID}
   done
-
+  
   return $?
 }
 
