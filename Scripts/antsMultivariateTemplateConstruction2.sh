@@ -429,15 +429,15 @@ for (( g = $WHICHMODALITY; g < ${#IMAGESETARRAY[@]}; g+=$NUMBEROFMODALITIES ))
 cleanup()
 {
   echo "\n*** Performing cleanup, please wait ***\n"
-  
+
     runningANTSpids=$( ps --ppid $$ -o pid= )
-  
+
   for thePID in $runningANTSpids
   do
       echo "killing:  ${thePID}"
       kill ${thePID}
   done
-  
+
   return $?
 }
 
@@ -1355,19 +1355,18 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         exebase=$exe
         pexebase=$pexe
 
-        if [[ $DOLINEAR -ne 0 ]];
+        if [[ $DOLINEAR -eq 0 ]];
           then
-            exe="$exe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3}\n"
-            pexe="$pexe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
-          else
             exe="$exe ${basecall} ${stageId} ${stage3}\n"
             pexe="$pexe ${basecall} ${stageId} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
+          elif [[ $NOWARP -eq 1 ]];
+            then
+              exe="$exebase ${basecall} ${stage0} ${stage1} ${stage2}\n";
+              pexe="$pexebase ${basecall} ${stage0} ${stage1} ${stage2} >> ${outdir}/job_${count}_metriclog.txt\n"
+          else
+            exe="$exe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3}\n"
+            pexe="$pexe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
           fi
-        if [[ $NOWARP -eq 0 ]];
-          then
-           exe="$exebase ${basecall} ${stage0} ${stage1} ${stage2} ${stage3}\n";
-           pexe="$pexebase ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
-        fi
 
         exe="$exe $warpexe"
         pexe="$pexe $warppexe"
