@@ -140,6 +140,10 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   for( SizeValueType i = 0; i < this->m_TargetImage.size(); i++ )
     {
     InputImageType *input = this->m_TargetImage[i];
+    if( i == 0 )
+      {
+      this->m_TargetImageRequestedRegion = input->GetRequestedRegion();
+      }
     RegionType region = outRegion;
     region.Crop( input->GetLargestPossibleRegion() );
     input->SetRequestedRegion( region );
@@ -606,7 +610,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           mxValue = std::pow( mxValue, this->m_Beta );
           }
 
-        if( vnl_math_isnan( mxValue ) || vnl_math_isinf( mxValue ) )
+        if( !std::isfinite( mxValue ) )
           {
           mxValue = 0.0;
           }
@@ -670,7 +674,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           estimatedNeighborhoodIntensities[i * this->m_PatchNeighborhoodSize + j] +
           this->m_JointIntensityFusionImage[i]->GetPixel( neighborhoodIndex ) );
 
-        if( vnl_math_isnan( estimatedValue ) || vnl_math_isinf( estimatedValue ) )
+        if( !std::isfinite( estimatedValue ) )
           {
           estimatedValue = 0.0;
           }
@@ -830,9 +834,9 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   for( SizeValueType i = 0; i < this->m_NumberOfAtlasModalities; i++ )
     {
     ImageRegionIterator<InputImageType> ItJ( this->m_JointIntensityFusionImage[i],
-      this->m_JointIntensityFusionImage[i]->GetBufferedRegion() );
+      this->m_JointIntensityFusionImage[i]->GetRequestedRegion() );
     ImageRegionIterator<CountImageType> ItC( this->m_CountImage,
-      this->m_CountImage->GetBufferedRegion() );
+      this->m_CountImage->GetRequestedRegion() );
 
     for( ItJ.GoToBegin(), ItC.GoToBegin(); !ItJ.IsAtEnd(); ++ItJ, ++ItC )
       {
@@ -873,7 +877,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     {
     IndexType neighborhoodIndex = index + this->m_PatchNeighborhoodOffsetList[i];
 
-    bool isInBounds = image->GetBufferedRegion().IsInside( neighborhoodIndex );
+    bool isInBounds = this->m_TargetImageRequestedRegion.IsInside( neighborhoodIndex );
     if( isInBounds )
       {
       InputImagePixelType pixel = image->GetPixel( neighborhoodIndex );
@@ -891,7 +895,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     RealType standardDeviation = 0.0;
     this->GetMeanAndStandardDeviationOfVectorizedImagePatch( patchVector, mean, standardDeviation );
 
-    standardDeviation = vnl_math_max( standardDeviation, 1.0 );
+    standardDeviation = std::max( standardDeviation, 1.0 );
 
     typename InputImagePixelVectorType::iterator it;
     for( it = patchVector.begin(); it != patchVector.end(); ++it )
@@ -915,7 +919,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   typename InputImagePixelVectorType::const_iterator it;
   for( it = patchVector.begin(); it != patchVector.end(); ++it )
     {
-    if( !vnl_math_isnan( *it ) )
+    if( std::isfinite( *it ) )
       {
       sum += *it;
       sumOfSquares += vnl_math_sqr( *it );
@@ -952,8 +956,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       {
       IndexType neighborhoodIndex = index + this->m_PatchNeighborhoodOffsetList[j];
 
-      bool isInBounds = imageList[i]->GetBufferedRegion().IsInside( neighborhoodIndex );
-      if( isInBounds && !vnl_math_isnan( normalizedPatchVectorY[count] ) )
+      bool isInBounds = this->m_TargetImageRequestedRegion.IsInside( neighborhoodIndex );
+      if( isInBounds && std::isfinite( normalizedPatchVectorY[count] ) )
         {
         RealType x = static_cast<RealType>( imageList[i]->GetPixel( neighborhoodIndex ) );
         RealType y = static_cast<RealType>( normalizedPatchVectorY[count] );
@@ -980,7 +984,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   if( this->m_SimilarityMetric == PEARSON_CORRELATION )
     {
     RealType varianceX = sumOfSquaresX - vnl_math_sqr( sumX ) / N;
-    varianceX = vnl_math_max( varianceX, 1.0e-6 );
+    varianceX = std::max( varianceX, 1.0e-6 );
 
     RealType measure = vnl_math_sqr( sumXY ) / varianceX;
     return ( sumXY > 0 ? -measure : measure );

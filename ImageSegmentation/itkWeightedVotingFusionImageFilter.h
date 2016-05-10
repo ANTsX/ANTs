@@ -385,6 +385,8 @@ private:
   LabelExclusionMap                                    m_LabelExclusionImages;
   MaskImagePointer                                     m_MaskImage;
 
+  RegionType                                           m_TargetImageRequestedRegion;
+
   typename CountImageType::Pointer                     m_CountImage;
 
   LabelSetType                                         m_LabelSet;
