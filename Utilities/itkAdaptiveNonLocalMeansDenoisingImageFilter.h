@@ -170,8 +170,8 @@ public:
    * Neighborhood block radius.
    * Default = 1x1x...
    */
-  itkSetMacro( NeighborhoodBlockRadius, NeighborhoodRadiusType );
-  itkGetConstMacro( NeighborhoodBlockRadius, NeighborhoodRadiusType );
+  itkSetMacro( NeighborhoodPatchRadius, NeighborhoodRadiusType );
+  itkGetConstMacro( NeighborhoodPatchRadius, NeighborhoodRadiusType );
 
 protected:
   AdaptiveNonLocalMeansDenoisingImageFilter();
@@ -213,7 +213,7 @@ private:
 
   NeighborhoodRadiusType            m_NeighborhoodRadiusForLocalMeanAndVariance;
   NeighborhoodRadiusType            m_NeighborhoodSearchRadius;
-  NeighborhoodRadiusType            m_NeighborhoodBlockRadius;
+  NeighborhoodRadiusType            m_NeighborhoodPatchRadius;
 
   std::vector<NeighborhoodOffsetType>  m_NeighborhoodOffsetList;
 };

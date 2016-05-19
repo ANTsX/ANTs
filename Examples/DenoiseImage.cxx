@@ -88,6 +88,8 @@ int Denoise( itk::ants::CommandLineParser *parser )
 {
   typedef float RealType;
 
+  typedef typename itk::ants::CommandLineParser::OptionType   OptionType;
+
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
     parser->GetOption( "verbose" );
@@ -108,8 +110,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
   //typedef itk::Image<RealType, ImageDimension> MaskImageType;
   //typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
 
-  typename itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
-    parser->GetOption( "input-image" );
+  typename OptionType::Pointer inputImageOption = parser->GetOption( "input-image" );
   if( inputImageOption && inputImageOption->GetNumberOfFunctions() )
     {
     std::string inputFile = inputImageOption->GetFunction( 0 )->GetName();
@@ -134,8 +135,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
   shrinker->SetInput( inputImage );
   shrinker->SetShrinkFactors( 1 );
 
-  typename itk::ants::CommandLineParser::OptionType::Pointer shrinkFactorOption =
-    parser->GetOption( "shrink-factor" );
+  typename OptionType::Pointer shrinkFactorOption = parser->GetOption( "shrink-factor" );
   int shrinkFactor = 1;
   if( shrinkFactorOption && shrinkFactorOption->GetNumberOfFunctions() )
     {
@@ -152,8 +152,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
   denoiser->SetInput( shrinker->GetOutput() );
 
-  typename itk::ants::CommandLineParser::OptionType::Pointer noiseModelOption =
-    parser->GetOption( "noise-model" );
+  typename OptionType::Pointer noiseModelOption = parser->GetOption( "noise-model" );
   std::string noiseModel( "gaussian" );
   if( noiseModelOption && noiseModelOption->GetNumberOfFunctions() )
     {
@@ -184,8 +183,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
   typedef typename DenoiserType::MaskImageType MaskImageType;
   typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
 
-  typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
-    parser->GetOption( "mask-image" );
+  typename OptionType::Pointer maskImageOption = parser->GetOption( "mask-image" );
   if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
     {
     std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
@@ -193,29 +191,90 @@ int Denoise( itk::ants::CommandLineParser *parser )
     }
   denoiser->SetMaskImage( maskImage );
 
+  typename DenoiserType::NeighborhoodRadiusType neighborhoodPatchRadius;
+  typename DenoiserType::NeighborhoodRadiusType neighborhoodSearchRadius;
+
+  neighborhoodPatchRadius.Fill( 1 );
+  neighborhoodSearchRadius.Fill( 3 );
+
+  // Get the search and patch radii
+  typename OptionType::Pointer searchRadiusOption = parser->GetOption( "search-radius" );
+  if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
+    {
+    std::string searchRadiusString = searchRadiusOption->GetFunction( 0 )->GetName();
+
+    std::vector<unsigned int> searchRadius;
+    searchRadius.push_back( 3 );
+    if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
+      {
+      searchRadius = parser->ConvertVector<unsigned int>( searchRadiusString );
+      }
+    if( searchRadius.size() == 1 )
+      {
+      for( unsigned int d = 1; d < ImageDimension; d++ )
+        {
+        searchRadius.push_back( searchRadius[0] );
+        }
+      }
+    if( searchRadius.size() != ImageDimension )
+      {
+      if( verbose )
+        {
+        std::cerr << "Search radius specified incorrectly.  Please see usage options." << std::endl;
+        }
+      return EXIT_FAILURE;
+      }
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      neighborhoodSearchRadius[d] = searchRadius[d];
+      }
+    }
+  denoiser->SetNeighborhoodSearchRadius( neighborhoodSearchRadius );
+
+  typename OptionType::Pointer patchRadiusOption = parser->GetOption( "patch-radius" );
+  if( patchRadiusOption && patchRadiusOption->GetNumberOfFunctions() )
+    {
+    std::vector<unsigned int> patchRadius;
+    patchRadius.push_back( 1 );
+    patchRadius = parser->ConvertVector<unsigned int>( patchRadiusOption->GetFunction( 0 )->GetName() );
+
+    if( patchRadius.size() == 1 )
+      {
+      for( unsigned int d = 1; d < ImageDimension; d++ )
+        {
+        patchRadius.push_back( patchRadius[0] );
+        }
+      }
+    if( patchRadius.size() != ImageDimension )
+      {
+      if( verbose )
+        {
+        std::cerr << "Patch radius specified incorrectly.  Please see usage options." << std::endl;
+        }
+      return EXIT_FAILURE;
+      }
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      neighborhoodPatchRadius[d] = patchRadius[d];
+      }
+    }
+  denoiser->SetNeighborhoodPatchRadius( neighborhoodPatchRadius );
+
   /**
    * The parameters below are the default parameters taken from Jose's original
    *   code.  I don't have a good handle on them so I'm hiding them from the
    *   user for now.
    */
+  typename DenoiserType::NeighborhoodRadiusType neighborhoodRadiusForLocalMeanAndVariance;
+  neighborhoodRadiusForLocalMeanAndVariance.Fill( 1 );
+
+  denoiser->SetNeighborhoodRadiusForLocalMeanAndVariance( neighborhoodRadiusForLocalMeanAndVariance );
 
   denoiser->SetEpsilon( 0.00001 );
   denoiser->SetMeanThreshold( 0.95 );
   denoiser->SetVarianceThreshold( 0.5 );
   denoiser->SetSmoothingFactor( 1.0 );
   denoiser->SetSmoothingVariance( 2.0 );
-
-  typename DenoiserType::NeighborhoodRadiusType neighborhoodBlockRadius;
-  typename DenoiserType::NeighborhoodRadiusType neighborhoodRadiusForLocalMeanAndVariance;
-  typename DenoiserType::NeighborhoodRadiusType neighborhoodSearchRadius;
-
-  neighborhoodRadiusForLocalMeanAndVariance.Fill( 1 );
-  neighborhoodSearchRadius.Fill( 3 );
-  neighborhoodBlockRadius.Fill( 1 );
-
-  denoiser->SetNeighborhoodRadiusForLocalMeanAndVariance( neighborhoodRadiusForLocalMeanAndVariance );
-  denoiser->SetNeighborhoodSearchRadius( neighborhoodSearchRadius );
-  denoiser->SetNeighborhoodBlockRadius( neighborhoodBlockRadius );
 
   itk::TimeProbe timer;
   timer.Start();
@@ -381,6 +440,33 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetDescription( description );
   parser->AddOption( option );
   }
+
+  {
+  std::string description =
+    std::string( "Patch radius.  Default = 1x1x1" );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "patch-radius" );
+  option->SetShortName( 'p' );
+  option->SetUsageOption( 0, "1" );
+  option->SetUsageOption( 1, "1x1x1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "Search radius.  Default = 3x3x3." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "search-radius" );
+  option->SetShortName( 'r' );
+  option->SetUsageOption( 0, "3" );
+  option->SetUsageOption( 1, "3x3x3" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
 
   {
   std::string description =

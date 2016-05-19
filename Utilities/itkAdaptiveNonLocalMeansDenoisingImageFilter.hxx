@@ -57,7 +57,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
   this->m_RicianBiasImage = ITK_NULLPTR;
 
-  this->m_NeighborhoodBlockRadius.Fill( 1 );
+  this->m_NeighborhoodPatchRadius.Fill( 1 );
   this->m_NeighborhoodRadiusForLocalMeanAndVariance.Fill( 1 );
   this->m_NeighborhoodSearchRadius.Fill( 3 );
 }
@@ -110,13 +110,13 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
     //this->m_RicianBiasImage->FillBuffer( 0.0 );
     }
 
-  ConstNeighborhoodIterator<InputImageType> ItBI( this->m_NeighborhoodBlockRadius,
+  ConstNeighborhoodIterator<InputImageType> ItBI( this->m_NeighborhoodPatchRadius,
     this->GetInput(), this->GetInput()->GetRequestedRegion() );
 
   this->m_NeighborhoodOffsetList.clear();
 
-  const unsigned int neighborhoodBlockSize = ( ItBI.GetNeighborhood() ).Size();
-  for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
+  const unsigned int neighborhoodPatchSize = ( ItBI.GetNeighborhood() ).Size();
+  for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
     {
     this->m_NeighborhoodOffsetList.push_back( ( ItBI.GetNeighborhood() ).GetOffset( n ) );
     }
@@ -141,16 +141,16 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
   ConstNeighborhoodIterator<RealImageType> ItV( this->m_NeighborhoodSearchRadius, this->m_VarianceImage, region );
   ConstNeighborhoodIterator<RealImageType> ItM( this->m_NeighborhoodSearchRadius, this->m_MeanImage, region );
 
-  ConstNeighborhoodIterator<InputImageType> ItBI( this->m_NeighborhoodBlockRadius, inputImage, region );
-  ConstNeighborhoodIterator<RealImageType> ItBM( this->m_NeighborhoodBlockRadius, this->m_MeanImage, region );
+  ConstNeighborhoodIterator<InputImageType> ItBI( this->m_NeighborhoodPatchRadius, inputImage, region );
+  ConstNeighborhoodIterator<RealImageType> ItBM( this->m_NeighborhoodPatchRadius, this->m_MeanImage, region );
 
-  NeighborhoodIterator<InputImageType> ItBO( this->m_NeighborhoodBlockRadius, outputImage, region );
-  NeighborhoodIterator<RealImageType> ItBL( this->m_NeighborhoodBlockRadius, this->m_ThreadContributionCountImage, region );
+  NeighborhoodIterator<InputImageType> ItBO( this->m_NeighborhoodPatchRadius, outputImage, region );
+  NeighborhoodIterator<RealImageType> ItBL( this->m_NeighborhoodPatchRadius, this->m_ThreadContributionCountImage, region );
 
   const unsigned int neighborhoodSearchSize = ( ItM.GetNeighborhood() ).Size();
-  const unsigned int neighborhoodBlockSize = ( ItBM.GetNeighborhood() ).Size();
+  const unsigned int neighborhoodPatchSize = ( ItBM.GetNeighborhood() ).Size();
 
-  Array<RealType> weightedAverageIntensities( neighborhoodBlockSize );
+  Array<RealType> weightedAverageIntensities( neighborhoodPatchSize );
 
   ItM.GoToBegin();
   ItV.GoToBegin();
@@ -210,16 +210,16 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
           RealType averageDistance = 0.0;
           RealType count = 0.0;
 
-          for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
+          for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
             {
-            IndexType neighborhoodBlockIndex = neighborhoodIndex + this->m_NeighborhoodOffsetList[n];
+            IndexType neighborhoodPatchIndex = neighborhoodIndex + this->m_NeighborhoodOffsetList[n];
 
-            if( ! inputImage->GetRequestedRegion().IsInside( neighborhoodBlockIndex ) )
+            if( ! inputImage->GetRequestedRegion().IsInside( neighborhoodPatchIndex ) )
               {
               continue;
               }
             averageDistance += vnl_math_sqr( ( ItBI.GetPixel( n ) - ItBM.GetPixel( n ) ) -
-              ( inputImage->GetPixel( neighborhoodBlockIndex ) - this->m_MeanImage->GetPixel( neighborhoodBlockIndex ) ) );
+              ( inputImage->GetPixel( neighborhoodPatchIndex ) - this->m_MeanImage->GetPixel( neighborhoodPatchIndex ) ) );
 
             count += 1.0;
             }
@@ -237,7 +237,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
       if( this->m_UseRicianNoiseModel )
         {
-        for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
+        for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
           {
           if( ! ItBM.IndexInBounds( n ) )
             {
@@ -255,7 +255,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
           }
         }
 
-      // Block filtering
+      // Patch filtering
 
       for( unsigned int m = 0; m < neighborhoodSearchSize; m++ )
         {
@@ -286,14 +286,14 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
           RealType averageDistance = 0.0;
           RealType count = 0.0;
-          for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
+          for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
             {
-            IndexType neighborhoodBlockIndex = neighborhoodIndex + this->m_NeighborhoodOffsetList[n];
-            if( ! inputImage->GetRequestedRegion().IsInside( neighborhoodBlockIndex ) )
+            IndexType neighborhoodPatchIndex = neighborhoodIndex + this->m_NeighborhoodOffsetList[n];
+            if( ! inputImage->GetRequestedRegion().IsInside( neighborhoodPatchIndex ) )
               {
               continue;
               }
-            averageDistance += vnl_math_sqr( inputImage->GetPixel( neighborhoodBlockIndex ) - ItBI.GetPixel( n ) );
+            averageDistance += vnl_math_sqr( inputImage->GetPixel( neighborhoodPatchIndex ) - ItBI.GetPixel( n ) );
             count += 1.0;
             }
           averageDistance /= count;
@@ -310,20 +310,20 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
           if( weight > 0.0 )
             {
-            for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
+            for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
               {
-              IndexType neighborhoodBlockIndex = neighborhoodIndex + this->m_NeighborhoodOffsetList[n];
-              if( ! inputImage->GetRequestedRegion().IsInside( neighborhoodBlockIndex ) )
+              IndexType neighborhoodPatchIndex = neighborhoodIndex + this->m_NeighborhoodOffsetList[n];
+              if( ! inputImage->GetRequestedRegion().IsInside( neighborhoodPatchIndex ) )
                 {
                 continue;
                 }
               if( this->m_UseRicianNoiseModel )
                 {
-                weightedAverageIntensities[n] += weight * vnl_math_sqr( inputImage->GetPixel( neighborhoodBlockIndex ) );
+                weightedAverageIntensities[n] += weight * vnl_math_sqr( inputImage->GetPixel( neighborhoodPatchIndex ) );
                 }
               else
                 {
-                weightedAverageIntensities[n] += weight * inputImage->GetPixel( neighborhoodBlockIndex );
+                weightedAverageIntensities[n] += weight * inputImage->GetPixel( neighborhoodPatchIndex );
                 }
               }
             sumOfWeights += weight;
@@ -341,7 +341,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
       maxWeight = NumericTraits<RealType>::OneValue();
       }
 
-    for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
+    for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
       {
       if( ! ItBM.IndexInBounds( n ) )
         {
@@ -360,7 +360,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
     if( sumOfWeights > 0.0 )
       {
-      for( unsigned int n = 0; n < neighborhoodBlockSize; n++ )
+      for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
         {
         if( ! ItBO.IndexInBounds( n ) )
           {
@@ -502,7 +502,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
   os << indent << "Neighborhood radius for local mean and variance = " << this->m_NeighborhoodRadiusForLocalMeanAndVariance << std::endl;
   os << indent << "Neighborhood search radius  = " << this->m_NeighborhoodSearchRadius << std::endl;
-  os << indent << "Neighborhood block radius = " << this->m_NeighborhoodBlockRadius << std::endl;
+  os << indent << "Neighborhood block radius = " << this->m_NeighborhoodPatchRadius << std::endl;
 }
 
 } // end namespace itk
