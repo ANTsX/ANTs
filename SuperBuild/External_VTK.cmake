@@ -160,7 +160,7 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
       ${VTK_MAC_ARGS}
     )
   ### --- End Project specific additions
-  set(${proj}_REPOSITORY https://github.com/Kitware/VTK.git)
+  set(${proj}_REPOSITORY ${git_protocol}://github.com/Kitware/VTK.git)
   set(${proj}_GIT_TAG acc5f269186e3571fb2a10af4448076ecac75e8e )
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
