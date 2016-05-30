@@ -13,7 +13,7 @@ NUMPARAMS=$#
 if [ $NUMPARAMS -lt 3  ]
 then
 echo " USAGE ::  "
-echo "  sh   ants.sh  ImageDimension  fixed.ext  moving.ext  OPTIONAL-OUTPREFIX   PURELY-RIGID  "
+echo "  sh   antsaffine.sh  ImageDimension  fixed.ext  moving.ext  OPTIONAL-OUTPREFIX   PURELY-RIGID  "
 echo " be sure to set ANTSPATH environment variable "
 echo " affine only registration "
 exit
