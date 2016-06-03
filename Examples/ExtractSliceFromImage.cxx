@@ -29,8 +29,16 @@ int ExtractSliceFromImage( int itkNotUsed( argc ), char *argv[] )
   typename ExtracterType::Pointer extracter = ExtracterType::New();
   extracter->SetInput( inputImage );
   extracter->SetExtractionRegion( region );
-  extracter->SetDirectionCollapseToIdentity();
+  if (ImageDimension < 4)
+    {
+    extracter->SetDirectionCollapseToIdentity();
+    }
+  else 
+    {
+    extracter->SetDirectionCollapseToSubmatrix();
+    }
   extracter->Update();
+
 
   WriteImage<SliceType>( extracter->GetOutput(), argv[3] );
 
