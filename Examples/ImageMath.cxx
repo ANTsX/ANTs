@@ -10192,7 +10192,6 @@ int LabelStats(      int argc, char *argv[])
       PixelType label = It.Get();
       if(  label == currentlabel  )
         {
-        totalvolume += volumeelement;
         totalct += 1;
         if( valimage )
           {
@@ -10208,6 +10207,9 @@ int LabelStats(      int argc, char *argv[])
           }
         }
       }
+
+    totalvolume = volumeelement * totalct;
+
     for( unsigned int i = 0; i < spacing.Size(); i++ )
       {
       myCenterOfMass[i] /= (float)totalct;
