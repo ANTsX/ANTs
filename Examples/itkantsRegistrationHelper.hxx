@@ -16,7 +16,7 @@ namespace ants
 template <class TComputeType, unsigned VImageDimension>
 typename itk::ImageBase<VImageDimension>::Pointer
 RegistrationHelper<TComputeType, VImageDimension>::GetShrinkImageOutputInformation(const itk::ImageBase<VImageDimension> * inputImageInformation,
-                                const RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType &shrinkFactorsPerDimensionForCurrentLevel) const
+                                const typename RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType &shrinkFactorsPerDimensionForCurrentLevel) const
 {
   typedef itk::Image<unsigned char, VImageDimension> DummyImageType;
 
