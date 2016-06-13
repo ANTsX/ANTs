@@ -796,7 +796,7 @@ protected:
 private:
 
   typename itk::ImageBase<VImageDimension>::Pointer GetShrinkImageOutputInformation(const itk::ImageBase<VImageDimension> * inputImageInformation,
-                                const RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType &shrinkFactorsPerDimensionForCurrentLevel) const;
+                               const typename RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType &shrinkFactorsPerDimensionForCurrentLevel) const;
 
   int ValidateParameters();
 

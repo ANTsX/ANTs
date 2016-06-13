@@ -232,8 +232,8 @@ int N4( itk::ants::CommandLineParser *parser )
 
         typename ImageType::SizeType originalImageSize = inputImage->GetLargestPossibleRegion().GetSize();
 
-        unsigned long lowerBound[ImageDimension];
-        unsigned long upperBound[ImageDimension];
+        itk::Size<ImageDimension> lowerBound;
+        itk::Size<ImageDimension> upperBound;
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
           float domain = static_cast<RealType>( originalImageSize[d] - 1 ) * inputImage->GetSpacing()[d];
