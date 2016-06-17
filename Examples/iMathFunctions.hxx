@@ -74,6 +74,36 @@ BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
   // sensitive parameters are set here - end
 }
 */
+unsigned int morph_shape_flag( const char * shape )
+{
+  std::string shapeStr( shape );
+  std::transform(shapeStr.begin(), shapeStr.end(), shapeStr.begin(), ::tolower);
+
+  unsigned int flag = 1;
+
+  if ( !shapeStr.compare("ball") )
+  {
+    flag = 1;
+  }
+  else if ( !shapeStr.compare("box") )
+  {
+    flag = 2;
+  }
+  if ( !shapeStr.compare("cross") )
+  {
+    flag = 3;
+  }
+  if ( !shapeStr.compare("annulus") )
+  {
+    flag = 4;
+  }
+  if ( !shapeStr.compare("polygon") )
+  {
+    flag = 5;
+  }
+
+  return flag;
+}
 
 template <class ImageType>
 typename ImageType::Pointer
