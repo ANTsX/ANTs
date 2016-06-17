@@ -302,7 +302,7 @@ private:
   std::vector<unsigned int> m_NumberOfIterations;
 };
 
-template <unsigned int ImageDimension>
+template <unsigned int ImageDimension, class TXType>
 int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
 {
   // We infer the number of stages by the number of transformations
@@ -408,11 +408,10 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
 
   itk::TimeProbe totalTimer;
   totalTimer.Start();
-  typedef itk::TranslationTransform<RealType, ImageDimension-1> TranslationTransformType;
-  typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, TranslationTransformType>
+  typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, TXType>
                                                            TranslationRegistrationType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
-  typedef typename TranslationTransformType::Pointer       SingleTransformItemType;
+  typedef typename TXType::Pointer       SingleTransformItemType;
   std::vector<SingleTransformItemType>                     transformList;
   std::vector<SingleTransformItemType>                     transformUList;
   std::vector<typename FixedImageType::Pointer>            fixedSliceList;
@@ -436,7 +435,8 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     typename FixedIOImageType::Pointer fixedImage;
     ReadImage<FixedIOImageType>( fixedImage, fixedImageFileName.c_str() );
     unsigned int timedims = fixedImage->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
-    param_values.set_size(timedims, 2 );
+    unsigned int nparams = TXType::New()->GetNumberOfParameters();
+    param_values.set_size(timedims, nparams );
     param_values.fill(0);
 
     typename MovingIOImageType::Pointer movingImage;
@@ -458,7 +458,6 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     unsigned int numberOfLevels = iterations.size();
 
     // Get shrink factors
-
     std::vector<unsigned int> factors =
       parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetFunction( currentStage )->GetName()  );
     typename TranslationRegistrationType::ShrinkFactorsArrayType shrinkFactorsPerLevel;
@@ -554,14 +553,13 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         mask_time_slice = extractFilterX->GetOutput();
         }
 
-
       // set up initial transform parameters
-      typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
+      typename TXType::Pointer translationTransform = TXType::New();
       translationTransform->SetIdentity();
       transformList.push_back( translationTransform );
 
       // set up update transform parameters
-      typename TranslationTransformType::Pointer translationTransformU = TranslationTransformType::New();
+      typename TXType::Pointer translationTransformU = TXType::New();
       translationTransformU->SetIdentity();
       transformUList.push_back( translationTransformU );
       }
@@ -592,7 +590,6 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         preprocessMovingImage = movingSliceList[timedim];
         skipThisTimePoint = true;
         }
-
 
       std::string whichMetric = metricOption->GetFunction( currentStage )->GetName();
       ConvertToLowerCase( whichMetric );
@@ -738,7 +735,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
-	}
+	      }
       else
         {
         std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
@@ -750,9 +747,9 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
 
   for ( unsigned int i = 0; i < transformList.size(); i++)
     {
-    typename TranslationTransformType::ParametersType pu = transformUList[i]->GetParameters();
-    param_values( i, 0 )=pu[ 0 ];
-    param_values( i, 1 )=pu[ 1 ];
+    typename TXType::ParametersType pu = transformUList[i]->GetParameters();
+    for ( unsigned int kk = 0; kk < pu.Size(); kk++ )
+      param_values( i, kk ) = pu[ kk ];
     }
 
   // project updated solution back to polynomial space
@@ -801,6 +798,25 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     }
   vVector solny = A * polyy + intercepty;
 
+  // FIXME add regularization for rigid parameter
+  vVector polyr;
+  RealType interceptr = 0;
+  vVector solnr;
+  if ( nparams == 3 )
+    {
+    unsigned int paramCol = 2;
+    ob = param_values.get_column( paramCol );
+    bsd = ( ob - ob.mean() ).rms();
+    b = ( ob - ob.mean() ) / bsd;
+    polyr = svd.solve( ob );
+    interceptr = param_values.get_column( paramCol ).mean();
+    for( unsigned int Acol = 0; Acol < A.cols(); Acol++ )
+      {
+      interceptr -= A.get_column( Acol ).mean() * polyr( Acol );
+      }
+    solnr = A * polyr + interceptr;
+    }
+
   // now look at delta and do projection
   if ( solnx.size() != transformList.size() )
     {
@@ -810,12 +826,17 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   RealType eulerparam = 1;
   for ( unsigned int i = 0; i < transformList.size(); i++)
     {
-    typename TranslationTransformType::ParametersType p = transformList[i]->GetParameters();
+    typename TXType::ParametersType p = transformList[i]->GetParameters();
     err += std::sqrt( std::pow( p[0] - solnx[i] , 2.0 ) + std::pow( p[1] - solny[i] , 2.0 ) );
+    // FIXME err for euler tx
     p[ 0 ] = solnx[i] * eulerparam + p[0] * (1.0 - eulerparam);
     p[ 1 ] = solny[i] * eulerparam + p[1] * (1.0 - eulerparam);
     param_values(i,0) = p[0];
     param_values(i,1) = p[1];
+    if ( nparams == 3 ) {
+      p[ 2 ] = solnr[i] * eulerparam + p[2] * (1.0 - eulerparam);
+      param_values(i,2) = p[2];
+      }
     transformList[i]->SetParameters( p );
     }
   if ( verbose )
@@ -823,14 +844,16 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     std::cout << "Loop" << loop << " polyerr: " << err / timedims <<  " image-metric " << metricval << std::endl;
     std::cout << " polyx " << polyx << " iceptx " << interceptx  << std::endl;
     std::cout << " polyy " << polyy << " icepty " << intercepty  << std::endl;
+    if ( nparams == 3 ) std::cout << " polyr " << polyr << " iceptr " << interceptr  << std::endl;
     }
   } else {  // polydegree == 0
     transformList = transformUList;
     for ( unsigned int i = 0; i < transformList.size(); i++)
       {
-      typename TranslationTransformType::ParametersType p = transformList[i]->GetParameters();
+      typename TXType::ParametersType p = transformList[i]->GetParameters();
       param_values(i,0) = p[0];
       param_values(i,1) = p[1];
+      if ( nparams == 3 ) param_values(i,2) = p[2];
       }
     }
   }// done with optimization, now move on to writing data ...
@@ -843,6 +866,10 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     ColumnHeaders.push_back( colname );
     colname = std::string("Ty");
     ColumnHeaders.push_back( colname );
+    if ( nparams == 3 ) {
+      colname = std::string("Tr");
+      ColumnHeaders.push_back( colname );
+      }
     typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     std::string         fnmp;
@@ -938,8 +965,8 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
           movingSliceList[ timedimX ]->GetSpacing() );
         converter->SetOutputDirection(
           movingSliceList[ timedimX ]->GetDirection() );
-        typename TranslationTransformType::Pointer invtx =
-         TranslationTransformType::New();
+        typename TXType::Pointer invtx =
+         TXType::New();
         invtx->SetIdentity();
         transformList[ timedimX ]->GetInverse( invtx );
         converter->SetTransform( invtx );
@@ -1267,13 +1294,17 @@ private:
     return EXIT_SUCCESS;
     }
 
+  typedef double                                    RealType;
+  typedef itk::TranslationTransform<RealType, 2> TranslationTransformType;
+  // typedef itk::Euler2DTransform<RealType> EulerTransformType;
+
   // Get dimensionality
   unsigned int dimension = 3;
   switch( dimension )
     {
     case 3:
       {
-      return ants_slice_regularized_registration<3>( parser );
+      return ants_slice_regularized_registration<3,TranslationTransformType>( parser );
       }
       break;
     default:
