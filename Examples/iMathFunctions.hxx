@@ -26,6 +26,7 @@
 #include "itkCastImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkDanielssonDistanceMapImageFilter.h"
+#include "itkFlatStructuringElement.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
 #include "itkGrayscaleDilateImageFilter.h"
@@ -42,6 +43,8 @@
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
+
+#include "itkImageFileWriter.h"
 
 
 namespace ants
@@ -618,27 +621,64 @@ iMathMaurerDistance(typename ImageType::Pointer image,
   return filter->GetOutput();
 }
 
+
+//
+// shape (1=ball, 2=box, 3=cross, 4=annulus, 5=polygon)
+
+template <unsigned int ImageDimension>
+typename itk::FlatStructuringElement<ImageDimension>
+iMathGetFlatStructuringElement( unsigned int shape, unsigned long radius,
+                                bool radiusIsParametric, unsigned int lines,
+                                unsigned int thickness, bool includeCenter )
+{
+  typedef typename itk::FlatStructuringElement<ImageDimension> ElementType;
+  ElementType element;
+
+  typename ElementType::RadiusType elRadius;
+  elRadius.Fill( radius );
+
+  switch( shape )
+    {
+    case 1:
+      element = ElementType::Ball(elRadius,radiusIsParametric);
+      break;
+    case 2:
+      element = ElementType::Box(elRadius);
+      break;
+    case 3:
+      element = ElementType::Cross(elRadius);
+      break;
+    case 4:
+      element = ElementType::Annulus(elRadius,thickness,includeCenter,radiusIsParametric);
+      break;
+    case 5:
+      element = ElementType::Polygon(elRadius, lines);
+      break;
+    default:
+      break;
+    }
+
+  return element;
+}
+
 template <class ImageType>
 typename ImageType::Pointer
 iMathMC(typename ImageType::Pointer image, unsigned long radius,
-        typename ImageType::PixelType closeValue)
+        typename ImageType::PixelType closeValue, unsigned int shape,
+        bool radiusIsParametric, unsigned int lines,
+        unsigned int thickness, bool includeCenter )
 {
-
   const unsigned int ImageDimension = ImageType::ImageDimension;
-  typedef typename ImageType::PixelType                         PixelType;
 
-  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
-    StructuringElementType;
+  typedef typename itk::FlatStructuringElement<ImageType::ImageDimension> ElementType;
+  ElementType element = iMathGetFlatStructuringElement<ImageDimension>(shape,radius,radiusIsParametric,
+                                                                       lines,thickness,includeCenter);
 
-  typedef itk::BinaryMorphologicalClosingImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
-
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius(radius);
-  structuringElement.CreateStructuringElement();
+  typedef itk::BinaryMorphologicalClosingImageFilter< ImageType, ImageType, ElementType >  FilterType;
 
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image );
-  filter->SetKernel( structuringElement );
+  filter->SetKernel( element );
   filter->SetForegroundValue( closeValue );
   //filter->SetBackgroundValue(0);
   filter->Update();
@@ -650,24 +690,22 @@ iMathMC(typename ImageType::Pointer image, unsigned long radius,
 template <class ImageType>
 typename ImageType::Pointer
 iMathMD(typename ImageType::Pointer image, unsigned long radius,
-        typename ImageType::PixelType dilateValue)
+        typename ImageType::PixelType dilateValue, unsigned int shape,
+        bool radiusIsParametric, unsigned int lines,
+        unsigned int thickness, bool includeCenter )
 {
 
   const unsigned int ImageDimension = ImageType::ImageDimension;
-  typedef typename ImageType::PixelType                         PixelType;
 
-  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
-    StructuringElementType;
+  typedef typename itk::FlatStructuringElement<ImageType::ImageDimension> ElementType;
+  ElementType element = iMathGetFlatStructuringElement<ImageDimension>(shape,radius,radiusIsParametric,
+                                                                       lines,thickness,includeCenter);
 
-  typedef itk::BinaryDilateImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
-
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius(radius);
-  structuringElement.CreateStructuringElement();
+  typedef itk::BinaryDilateImageFilter< ImageType, ImageType, ElementType >  FilterType;
 
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image );
-  filter->SetKernel( structuringElement );
+  filter->SetKernel( element );
   filter->SetDilateValue( dilateValue );
   filter->SetBackgroundValue(0);
   filter->Update();
@@ -678,24 +716,22 @@ iMathMD(typename ImageType::Pointer image, unsigned long radius,
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathME( typename ImageType::Pointer image, unsigned long radius,
-         typename ImageType::PixelType erodeValue )
+iMathME(typename ImageType::Pointer image, unsigned long radius,
+        typename ImageType::PixelType erodeValue, unsigned int shape,
+        bool radiusIsParametric, unsigned int lines,
+        unsigned int thickness, bool includeCenter )
 {
   const unsigned int ImageDimension = ImageType::ImageDimension;
-  typedef typename ImageType::PixelType                         PixelType;
 
-  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
-    StructuringElementType;
+  typedef typename itk::FlatStructuringElement<ImageType::ImageDimension> ElementType;
+  ElementType element = iMathGetFlatStructuringElement<ImageDimension>(shape,radius,radiusIsParametric,
+                                                                       lines,thickness,includeCenter);
 
-  typedef itk::BinaryErodeImageFilter< ImageType, ImageType, StructuringElementType >   FilterType;
-
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius(radius);
-  structuringElement.CreateStructuringElement();
+  typedef itk::BinaryErodeImageFilter< ImageType, ImageType, ElementType >   FilterType;
 
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image );
-  filter->SetKernel( structuringElement );
+  filter->SetKernel( element );
   filter->SetErodeValue( erodeValue );
   filter->SetBackgroundValue(0);
   filter->Update();
@@ -705,24 +741,22 @@ iMathME( typename ImageType::Pointer image, unsigned long radius,
 
 template <class ImageType>
 typename ImageType::Pointer
-iMathMO( typename ImageType::Pointer image, unsigned long radius,
-         typename ImageType::PixelType openValue )
+iMathMO(typename ImageType::Pointer image, unsigned long radius,
+        typename ImageType::PixelType openValue, unsigned int shape,
+        bool radiusIsParametric, unsigned int lines,
+        unsigned int thickness, bool includeCenter )
 {
   const unsigned int ImageDimension = ImageType::ImageDimension;
-  typedef typename ImageType::PixelType                         PixelType;
 
-  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
-    StructuringElementType;
+  typedef typename itk::FlatStructuringElement<ImageType::ImageDimension> ElementType;
+  ElementType element = iMathGetFlatStructuringElement<ImageDimension>(shape,radius,radiusIsParametric,
+                                                                       lines,thickness,includeCenter);
 
-  typedef itk::BinaryMorphologicalOpeningImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
-
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius(radius);
-  structuringElement.CreateStructuringElement();
+  typedef itk::BinaryMorphologicalOpeningImageFilter< ImageType, ImageType, ElementType >  FilterType;
 
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image );
-  filter->SetKernel( structuringElement );
+  filter->SetKernel( element );
   filter->SetForegroundValue( openValue );
   filter->SetBackgroundValue( 0 );
   filter->Update();

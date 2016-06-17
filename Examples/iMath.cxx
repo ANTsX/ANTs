@@ -31,6 +31,37 @@ void WIP(int argc, char **argv)
   exit(1);
 }
 
+unsigned int morph_shape_flag( const char * shape )
+{
+  std::string shapeStr( shape );
+  std::transform(shapeStr.begin(), shapeStr.end(), shapeStr.begin(), ::tolower);
+
+  unsigned int flag = 1;
+
+  if ( !shapeStr.compare("ball") )
+  {
+    flag = 1;
+  }
+  else if ( !shapeStr.compare("box") )
+  {
+    flag = 2;
+  }
+  if ( !shapeStr.compare("cross") )
+  {
+    flag = 3;
+  }
+  if ( !shapeStr.compare("annulus") )
+  {
+    flag = 4;
+  }
+  if ( !shapeStr.compare("polygon") )
+  {
+    flag = 5;
+  }
+
+  return flag;
+}
+
 template <class T>
 bool from_string(T& t,
                  const std::string& s,
@@ -583,6 +614,11 @@ iMathHelperAll(int argc, char **argv)
 
     unsigned long radius = iMathMCRadius;
     PixelType value = iMathMCValue;
+    unsigned int shape = iMathGetFlatStructuringElementShape;
+    bool parametric = iMathGetFlatStructuringElementRadiusIsParametric;
+    unsigned int lines = iMathGetFlatStructuringElementLines;
+    unsigned int thickness = iMathGetFlatStructuringElementThickness;
+    bool includeCenter = iMathGetFlatStructuringElementIncludeCenter;
 
     if ( argc >= 6 )
       {
@@ -591,6 +627,30 @@ iMathHelperAll(int argc, char **argv)
     if ( argc >= 7 )
       {
       value = (PixelType)( atof( argv[6]) );
+      }
+    if ( argc >= 8 )
+      {
+      shape = morph_shape_flag( argv[7] );
+      //shape = atoi(argv[7]);
+      }
+    if ( argc >= 9 )
+      {
+      if (shape==5)
+        {
+        lines = atoi(argv[8]);
+        }
+      else
+        {
+        parametric = ( atoi(argv[8])==1 );
+        }
+      }
+    if ( argc >= 10 ) //shape = 4 (annulus) only
+      {
+      thickness = atoi(argv[9]);
+      }
+    if ( argc >= 11 )
+      {
+      includeCenter = ( atoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -605,7 +665,8 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathMC<ImageType>(input, radius, value);
+      output = iMathMC<ImageType>(input, radius, value, shape, parametric,
+                                  lines, thickness, includeCenter);
       }
     catch( itk::ExceptionObject & excep )
       {
@@ -622,6 +683,11 @@ iMathHelperAll(int argc, char **argv)
 
     unsigned long radius = iMathMDRadius;
     PixelType value = iMathMDValue;
+    unsigned int shape = iMathGetFlatStructuringElementShape;
+    bool parametric = iMathGetFlatStructuringElementRadiusIsParametric;
+    unsigned int lines = iMathGetFlatStructuringElementLines;
+    unsigned int thickness = iMathGetFlatStructuringElementThickness;
+    bool includeCenter = iMathGetFlatStructuringElementIncludeCenter;
 
     if ( argc >= 6 )
       {
@@ -630,6 +696,29 @@ iMathHelperAll(int argc, char **argv)
     if ( argc >= 7 )
       {
       value = (PixelType)( atof( argv[6]) );
+      }
+    if ( argc >= 8 )
+      {
+      shape = morph_shape_flag( argv[7] );
+      }
+    if ( argc >= 9 )
+      {
+      if (shape==5)
+        {
+        lines = atoi(argv[8]);
+        }
+      else
+        {
+        parametric = ( atoi(argv[8])==1 );
+        }
+      }
+    if ( argc >= 10 ) //shape = 4 (annulus) only
+      {
+      thickness = atoi(argv[9]);
+      }
+    if ( argc >= 11 )
+      {
+      includeCenter = ( atoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -644,7 +733,8 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathMD<ImageType>(input, radius, value);
+      output = iMathMD<ImageType>(input, radius, value, shape, parametric,
+                                  lines, thickness, includeCenter);
       }
     catch( itk::ExceptionObject & excep )
       {
@@ -660,6 +750,11 @@ iMathHelperAll(int argc, char **argv)
     {
     unsigned long radius = iMathMERadius;
     PixelType value = iMathMEValue;
+    unsigned int shape = iMathGetFlatStructuringElementShape;
+    bool parametric = iMathGetFlatStructuringElementRadiusIsParametric;
+    unsigned int lines = iMathGetFlatStructuringElementLines;
+    unsigned int thickness = iMathGetFlatStructuringElementThickness;
+    bool includeCenter = iMathGetFlatStructuringElementIncludeCenter;
 
     if ( argc >= 6 )
       {
@@ -668,6 +763,29 @@ iMathHelperAll(int argc, char **argv)
     if ( argc >= 7 )
       {
       value = (PixelType)( atof( argv[6]) );
+      }
+    if ( argc >= 8 )
+      {
+      shape = morph_shape_flag( argv[7] );
+      }
+    if ( argc >= 9 )
+      {
+      if (shape==5)
+        {
+        lines = atoi(argv[8]);
+        }
+      else
+        {
+        parametric = ( atoi(argv[8])==1 );
+        }
+      }
+    if ( argc >= 10 ) //shape = 4 (annulus) only
+      {
+      thickness = atoi(argv[9]);
+      }
+    if ( argc >= 11 )
+      {
+      includeCenter = ( atoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -682,7 +800,8 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathME<ImageType>(input, radius, value);
+      output = iMathME<ImageType>(input, radius, value, shape, parametric,
+                                  lines, thickness, includeCenter);
       }
     catch( itk::ExceptionObject & excep )
       {
@@ -698,6 +817,11 @@ iMathHelperAll(int argc, char **argv)
     {
     unsigned long radius = iMathMORadius;
     PixelType value = iMathMOValue;
+    unsigned int shape = iMathGetFlatStructuringElementShape;
+    bool parametric = iMathGetFlatStructuringElementRadiusIsParametric;
+    unsigned int lines = iMathGetFlatStructuringElementLines;
+    unsigned int thickness = iMathGetFlatStructuringElementThickness;
+    bool includeCenter = iMathGetFlatStructuringElementIncludeCenter;
 
     if ( argc >= 6 )
       {
@@ -706,6 +830,29 @@ iMathHelperAll(int argc, char **argv)
     if ( argc >= 7 )
       {
       value = (PixelType)( atof( argv[6]) );
+      }
+    if ( argc >= 8 )
+      {
+      shape = morph_shape_flag( argv[7] );
+      }
+    if ( argc >= 9 )
+      {
+      if (shape==5)
+        {
+        lines = atoi(argv[8]);
+        }
+      else
+        {
+        parametric = ( atoi(argv[8])==1 );
+        }
+      }
+    if ( argc >= 10 ) //shape = 4 (annulus) only
+      {
+      thickness = atoi(argv[9]);
+      }
+    if ( argc >= 11 )
+      {
+      includeCenter = ( atoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -720,7 +867,8 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathMO<ImageType>(input, radius, value);
+      output = iMathMO<ImageType>(input, radius, value, shape, parametric,
+                                  lines, thickness, includeCenter);
       }
     catch( itk::ExceptionObject & excep )
       {
@@ -1053,11 +1201,29 @@ private:
     std::cout << " ImageDimension: 4 (for operations on 4D file, e.g. time-series data)." << std::endl;
     std::cout << " Operator: See list of valid operators below." << std::endl;
 
-
+    std::cout << std::endl;
     std::cout << "Mask and Label set operations" << std::endl;
     std::cout << "-----------------------------" << std::endl;
     std::cout << "  GetLargestComponent    : Get the single largest labeled object in an image" << std::endl;
     std::cout << "    Usage                : GetLargestComponent InputImage.ext {MinObjectSize=50}" << std::endl;
+
+    std::cout << std::endl;
+    std::cout << "Morphological operations" << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+    std::cout << "Possible operations are:" << std::endl;
+    std::cout << "  MC = Closing" << std::endl;
+    std::cout << "  MD = Dilation" << std::endl;
+    std::cout << "  ME = Erosion" << std::endl;
+    std::cout << "  MO = Opening" << std::endl;
+    std::cout << "Possible values for the shape parameter and associated settings are:" << std::endl;
+    std::cout << "  ball {RadiusIsParmetric=0}" << std::endl;
+    std::cout << "  box" << std::endl;
+    std::cout << "  cross" << std::endl;
+    std::cout << "  annulus {RadiusIsParametric=0} {Thickness=1} {IncludeCenter=0}" << std::endl;
+    std::cout << "  polygon {Lines=3}" << std::endl;
+    std::cout << "Description of Parameters" << std::endl;
+    std::cout << "  RadiusIsParametric: The 'ball' and 'annulus' structuring elements have an optional flag called 'radiusIsParametric' (off by default). Setting this flag to true will use the parametric definition of the object and will generate structuring elements with more accurate areas, which can be especially important when morphological operations are intended to remove or retain objects of particular sizes. When the mode is turned off (default), the radius is the same, but the object diameter is set to (radius*2)+1, which is the size of the neighborhood region. Thus, the original ball and annulus structuring elements have a systematic bias in the radius of +0.5 voxels in each dimension relative to the parametric definition of the radius. Thus, we recommend turning this mode on for more accurate structuring elements, but this mode is turned off by default for backward compatibility." << std::endl;
+    std::cout << std::endl << "  Usage : Operation InputImage.ext {Radius=1} {ObjectValue=1} {Shape=1} {RadiusIsParametric=0 or Lines=3} {Thickness=1} {IncludeCenter=0}" << std::endl;
 
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )

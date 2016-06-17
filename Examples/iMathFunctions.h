@@ -15,6 +15,7 @@
 #define __iMathFunctions_h
 
 #include "antsUtilities.h"
+#include "itkFlatStructuringElement.h"
 
 namespace ants
 {
@@ -53,11 +54,28 @@ iMathGetLargestComponent(typename ImageType::Pointer image,
                          unsigned long minSize );
 #define iMathGetLargestComponentMinSize 50;
 
+template <unsigned int ImageDimension>
+typename itk::FlatStructuringElement<ImageDimension>
+iMathGetFlatStructuringElement( unsigned int shape,
+                                unsigned long radius,
+                                bool radiusIsParametric,
+                                unsigned int lines,
+                                unsigned int thickness,
+                                bool includeCenter );
+#define iMathGetFlatStructuringElementShape 1;
+#define iMathGetFlatStructuringElementRadius 1;
+#define iMathGetFlatStructuringElementLines 3;
+#define iMathGetFlatStructuringElementThickness 1;
+#define iMathGetFlatStructuringElementIncludeCenter false;
+#define iMathGetFlatStructuringElementRadiusIsParametric false;
+
 // Morphological Closing
 template <class ImageType>
 typename ImageType::Pointer
 iMathMC(typename ImageType::Pointer image, unsigned long radius,
-        typename ImageType::PixelType closeValue );
+        typename ImageType::PixelType closeValue, unsigned int shape,
+        bool radiusIsParametric, unsigned lines, unsigned int thickness,
+        bool includeCenter );
 #define iMathMCRadius 1;
 #define iMathMCValue 1;
 
@@ -65,7 +83,9 @@ iMathMC(typename ImageType::Pointer image, unsigned long radius,
 template <class ImageType>
 typename ImageType::Pointer
 iMathMD(typename ImageType::Pointer image, unsigned long radius,
-        typename ImageType::PixelType dilateValue );
+        typename ImageType::PixelType dilateValue, unsigned int shape,
+        bool radiusIsParametric, unsigned lines, unsigned int thickness,
+        bool includeCenter );
 #define iMathMDRadius 1;
 #define iMathMDValue 1;
 
@@ -73,7 +93,9 @@ iMathMD(typename ImageType::Pointer image, unsigned long radius,
 template <class ImageType>
 typename ImageType::Pointer
 iMathME(typename ImageType::Pointer image, unsigned long radius,
-        typename ImageType::Pointer erodeValue );
+        typename ImageType::PixelType erodeValue, unsigned int shape,
+        bool radiusIsParametric, unsigned lines, unsigned int thickness,
+        bool includeCenter );
 #define iMathMERadius 1;
 #define iMathMEValue 1;
 
@@ -81,7 +103,9 @@ iMathME(typename ImageType::Pointer image, unsigned long radius,
 template <class ImageType>
 typename ImageType::Pointer
 iMathMO(typename ImageType::Pointer image, unsigned long radius,
-        typename ImageType::PixelType openValue );
+        typename ImageType::PixelType openValue, unsigned int shape,
+        bool radiusIsParametric, unsigned lines, unsigned int thickness,
+        bool includeCenter );
 #define iMathMORadius 1;
 #define iMathMOValue 1;
 
