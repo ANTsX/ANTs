@@ -40,6 +40,7 @@
 #include "itkIdentityTransform.h"
 #include "itkEuler2DTransform.h"
 #include "itkEuler3DTransform.h"
+#include "itkSimilarity2DTransform.h"
 #include "itkTransform.h"
 #include "itkExtractImageFilter.h"
 #include "itkBSplineTransformParametersAdaptor.h"
@@ -697,7 +698,9 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
       std::string whichTransform = transformOption->GetFunction( currentStage )->GetName();
       ConvertToLowerCase( whichTransform );
       typename TranslationRegistrationType::Pointer translationRegistration = TranslationRegistrationType::New();
-      if( std::strcmp( whichTransform.c_str(), "translation" ) == 0 )
+      if ( ( std::strcmp( whichTransform.c_str(), "translation" ) == 0 ) |
+           ( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 ) |
+           ( std::strcmp( whichTransform.c_str(), "similarity" ) == 0 ) )
         {
         transformList[timedim]->GetNumberOfParameters();
         metric->SetFixedImage( preprocessFixedImage );
@@ -798,7 +801,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     }
   vVector solny = A * polyy + intercepty;
 
-  // FIXME add regularization for rigid parameter
+  // FIXME add regularization for rigid parameter - regularize differently?
   vVector polyr;
   RealType interceptr = 0;
   vVector solnr;
@@ -1122,6 +1125,8 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     option->SetLongName( "transform" );
     option->SetShortName( 't' );
     option->SetUsageOption( 0, "Translation[gradientStep]" );
+    option->SetUsageOption( 1, "Rigid[gradientStep]" );
+    option->SetUsageOption( 2, "Similarity[gradientStep]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -1294,23 +1299,68 @@ private:
     return EXIT_SUCCESS;
     }
 
-  typedef double                                    RealType;
-  typedef itk::TranslationTransform<RealType, 2> TranslationTransformType;
-  // typedef itk::Euler2DTransform<RealType> EulerTransformType;
-
   // Get dimensionality
   unsigned int dimension = 3;
-  switch( dimension )
+  typedef double                                    RealType;
+  typedef itk::TranslationTransform<RealType, 2> TranslationTransformType;
+  typedef itk::Euler2DTransform<RealType> EulerTransformType;
+  typedef itk::Similarity2DTransform<RealType> SimilarityTransformType;
+
+  itk::ants::CommandLineParser::OptionType::Pointer transformOption =
+    parser->GetOption( "transform" );
+  if( ! (transformOption && transformOption->GetNumberOfFunctions() ) )
     {
-    case 3:
-      {
-      return ants_slice_regularized_registration<3,TranslationTransformType>( parser );
-      }
-      break;
-    default:
-      std::cerr << "Unsupported dimension" << std::endl;
-      return EXIT_FAILURE;
+    std::cerr << "No transformations are specified." << std::endl;
+    return EXIT_FAILURE;
     }
+  std::string whichTransform = transformOption->GetFunction( 0 )->GetName();
+  ConvertToLowerCase( whichTransform );
+  if( std::strcmp( whichTransform.c_str(), "translation" ) == 0 )
+    {
+    switch( dimension )
+      {
+      case 3:
+        {
+        return ants_slice_regularized_registration<3,TranslationTransformType>( parser );
+        }
+        break;
+      default:
+        std::cerr << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
+      }
+    return EXIT_SUCCESS;
+    }
+  else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
+    {
+    switch( dimension )
+      {
+      case 3:
+        {
+        return ants_slice_regularized_registration<3,EulerTransformType>( parser );
+        }
+        break;
+      default:
+        std::cerr << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
+      }
+    return EXIT_SUCCESS;
+    }
+  else if( std::strcmp( whichTransform.c_str(), "similarity" ) == 0 )
+    {
+    switch( dimension )
+      {
+      case 3:
+        {
+        return ants_slice_regularized_registration<3,SimilarityTransformType>( parser );
+        }
+        break;
+      default:
+        std::cerr << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
+      }
+    return EXIT_SUCCESS;
+    }
+
   return EXIT_SUCCESS;
 }
 
