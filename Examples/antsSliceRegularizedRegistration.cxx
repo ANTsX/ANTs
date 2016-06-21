@@ -303,6 +303,44 @@ private:
   std::vector<unsigned int> m_NumberOfIterations;
 };
 
+
+void ants_slice_poly_regularize(
+  vnl_matrix<double> A,
+  unsigned int timedims,
+  vnl_vector<double>& solnx,
+  double& interceptx,
+  vnl_matrix<double> param_values,
+  unsigned int whichCol )
+{
+  typedef double RealType;
+  typedef vnl_vector<RealType>                      vVector;
+  for ( unsigned int z = 0; z < timedims; z++ )
+    {
+    RealType zz = static_cast<RealType>( z + 1 );
+    A(z,0) = zz;
+    for ( unsigned int lcol = 1; lcol < A.cols(); lcol++ )
+      {
+      A( z, lcol ) = std::pow( zz, static_cast<RealType>(lcol+1) );
+      }
+    }
+  for ( unsigned int lcol = 0; lcol < A.cols(); lcol++ )
+    {
+    vVector acol = A.get_column( lcol );
+    RealType acolsd = ( acol - acol.mean() ).rms();
+    A.set_column( lcol, ( acol - acol.mean() ) / acolsd );
+    }
+  vnl_svd<double>    svd( A );
+  vVector ob = param_values.get_column( whichCol );
+  vVector polyx = svd.solve( ob );
+  interceptx = param_values.get_column( whichCol ).mean();
+  for( unsigned int Acol = 0; Acol < A.cols(); Acol++ )
+    {
+    interceptx -= A.get_column( Acol ).mean() * polyx( Acol );
+    }
+  solnx = A * polyx + interceptx;
+  }
+
+
 template <unsigned int ImageDimension, class TXType>
 int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
 {
@@ -503,13 +541,21 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     verbose = true;
     }
 
-  unsigned int polydegree = 3;
+
+  std::vector<unsigned int> polydegree;
   itk::ants::CommandLineParser::OptionType::Pointer polyOption = parser->GetOption( "polydegree" );
   if( polyOption && polyOption->GetNumberOfFunctions() )
     {
-    polydegree = parser->Convert<unsigned int>( polyOption->GetFunction( 0 )->GetName() );
+    polydegree = parser->ConvertVector<unsigned int>( polyOption->GetFunction( 0 )->GetName() );
     }
-  if ( polydegree > (timedims-2) ) polydegree = timedims-2;
+  if ( ( polydegree.size() != nparams )  )
+    {
+    polydegree.resize( nparams, polydegree[ 0 ] );
+    }
+  for ( unsigned int pind = 0; pind < polydegree.size(); pind++ )
+    {
+    if ( polydegree[pind] > (timedims-2) ) polydegree[pind] = timedims-2;
+    }
 
     // the fixed image slice is a reference image in 2D while the moving is a 2D slice image
     // loop over every time point and register image_i_moving to image_i_fixed
@@ -755,109 +801,85 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
       param_values( i, kk ) = pu[ kk ];
     }
 
-  // project updated solution back to polynomial space
-  if ( polydegree > 0 )
+// project updated solution back to polynomial space
+vVector solnx;
+RealType interceptx = 0;
+if ( polydegree[ 0 ] > 0 )
   {
   // set up polynomial system of equations
-  vMatrix A( timedims, polydegree, 0.0 );
-  for ( unsigned int z = 0; z < timedims; z++ )
-    {
-    RealType zz = static_cast<RealType>( z + 1 );
-    A(z,0) = zz;
-    for ( unsigned int lcol = 1; lcol < A.cols(); lcol++ )
-      {
-      A( z, lcol ) = std::pow( zz, static_cast<RealType>(lcol+1) );
-      }
-    }
-  for ( unsigned int lcol = 0; lcol < A.cols(); lcol++ )
-    {
-    vVector acol = A.get_column( lcol );
-    RealType acolsd = ( acol - acol.mean() ).rms();
-    A.set_column( lcol, ( acol - acol.mean() ) / acolsd );
-    }
-  vnl_svd<double>    svd( A );
+  vMatrix A( timedims, polydegree[ 0 ], 0.0 );
+  ants_slice_poly_regularize( A, timedims, solnx, interceptx, param_values, 0 );
+  }
 
-  // first x-dimension
-  vVector ob = param_values.get_column( 0 );
-  RealType bsd = ( ob - ob.mean() ).rms();
-  vVector b = ( ob - ob.mean() ) / bsd;
-  vVector polyx = svd.solve( ob );
-  RealType interceptx = param_values.get_column( 0 ).mean();
-  for( unsigned int Acol = 0; Acol < A.cols(); Acol++ )
-    {
-    interceptx -= A.get_column( Acol ).mean() * polyx( Acol );
-    }
-  vVector solnx = A * polyx + interceptx;
+// now y-dimension
+vVector solny;
+RealType intercepty = 0;
+if ( polydegree[ 1 ] > 0 )
+  {
+  vMatrix A( timedims, polydegree[ 1 ], 0.0 );
+  ants_slice_poly_regularize( A, timedims, solny, intercepty, param_values, 1 );
+  }
 
-  // now y-dimension
-  ob = param_values.get_column( 1 );
-  bsd = ( ob - ob.mean() ).rms();
-  b = ( ob - ob.mean() ) / bsd;
-  vVector polyy = svd.solve( ob );
-  RealType intercepty = param_values.get_column( 1 ).mean();
-  for( unsigned int Acol = 0; Acol < A.cols(); Acol++ )
-    {
-    intercepty -= A.get_column( Acol ).mean() * polyy( Acol );
-    }
-  vVector solny = A * polyy + intercepty;
+// now rotation
+vVector solnr;
+RealType interceptr = 0;
+if ( nparams >= 3 )
+if ( polydegree[ 2 ] > 0 )
+  {
+  vMatrix A( timedims, polydegree[ 2 ], 0.0 );
+  ants_slice_poly_regularize( A, timedims, solnr, interceptr, param_values, 2 );
+  }
 
-  // FIXME add regularization for rigid parameter - regularize differently?
-  vVector polyr;
-  RealType interceptr = 0;
-  vVector solnr;
-  if ( nparams == 3 )
-    {
-    unsigned int paramCol = 2;
-    ob = param_values.get_column( paramCol );
-    bsd = ( ob - ob.mean() ).rms();
-    b = ( ob - ob.mean() ) / bsd;
-    polyr = svd.solve( ob );
-    interceptr = param_values.get_column( paramCol ).mean();
-    for( unsigned int Acol = 0; Acol < A.cols(); Acol++ )
-      {
-      interceptr -= A.get_column( Acol ).mean() * polyr( Acol );
-      }
-    solnr = A * polyr + interceptr;
-    }
+// now scaling-dimension
+vVector solns;
+RealType intercepts = 0;
+if ( nparams >= 4 )
+if ( polydegree[ 3 ] > 0 )
+  {
+  vMatrix A( timedims, polydegree[ 3 ], 0.0 );
+  ants_slice_poly_regularize( A, timedims, solns, intercepts, param_values, 3 );
+  }
 
-  // now look at delta and do projection
-  if ( solnx.size() != transformList.size() )
-    {
-    std::cerr << "solnx.size() != transformList.size()" << std::endl;
+// now look at delta and do projection
+if ( ( solnx.size() != transformList.size() ) && ( polydegree[ 0 ] > 0 ) )
+  std::cerr << "solnx.size() != transformList.size()" << std::endl;
+if ( ( solny.size() != transformList.size() ) && ( polydegree[ 1 ] > 0 ) )
+  std::cerr << "solny.size() != transformList.size()" << std::endl;
+
+RealType err = 0;
+for ( unsigned int i = 0; i < transformList.size(); i++)
+  {
+  /** FIXME - this should be vectorized: DRY */
+  typename TXType::ParametersType pOld = transformList[i]->GetParameters();
+  typename TXType::ParametersType p = transformList[i]->GetParameters();
+  if ( polydegree[ 0 ] > 0 ) p[ 0 ] = solnx[ i ];
+  if ( polydegree[ 1 ] > 0 ) p[ 1 ] = solny[ i ];
+  param_values( i, 0 ) = p[ 0 ];
+  param_values( i, 1 ) = p[ 1 ];
+  if ( nparams >= 3 ) {
+    if ( polydegree[ 2 ] > 0 ) p[ 2 ] = solnr[i];
+    param_values( i, 2 ) = p[ 2 ];
     }
-  RealType err = 0;
-  RealType eulerparam = 1;
+  if ( nparams >= 4 ) {
+    if ( polydegree[ 3 ] > 0 ) p[ 3 ] = solns[i];
+    param_values(i,3) = p[3];
+    }
+  transformList[i]->SetParameters( p );
+  err += ( p - pOld ).rms();
+  }
+  err = err / static_cast< double >( transformList.size() );
+  if ( verbose )
+    {
+    std::cout << "Loop" << loop << " polyerr: " << err <<  " image-metric " << metricval << std::endl;
+    }
+  transformList = transformUList;
   for ( unsigned int i = 0; i < transformList.size(); i++)
     {
     typename TXType::ParametersType p = transformList[i]->GetParameters();
-    err += std::sqrt( std::pow( p[0] - solnx[i] , 2.0 ) + std::pow( p[1] - solny[i] , 2.0 ) );
-    // FIXME err for euler tx
-    p[ 0 ] = solnx[i] * eulerparam + p[0] * (1.0 - eulerparam);
-    p[ 1 ] = solny[i] * eulerparam + p[1] * (1.0 - eulerparam);
-    param_values(i,0) = p[0];
-    param_values(i,1) = p[1];
-    if ( nparams == 3 ) {
-      p[ 2 ] = solnr[i] * eulerparam + p[2] * (1.0 - eulerparam);
-      param_values(i,2) = p[2];
-      }
-    transformList[i]->SetParameters( p );
-    }
-  if ( verbose )
-    {
-    std::cout << "Loop" << loop << " polyerr: " << err / timedims <<  " image-metric " << metricval << std::endl;
-    std::cout << " polyx " << polyx << " iceptx " << interceptx  << std::endl;
-    std::cout << " polyy " << polyy << " icepty " << intercepty  << std::endl;
-    if ( nparams == 3 ) std::cout << " polyr " << polyr << " iceptr " << interceptr  << std::endl;
-    }
-  } else {  // polydegree == 0
-    transformList = transformUList;
-    for ( unsigned int i = 0; i < transformList.size(); i++)
-      {
-      typename TXType::ParametersType p = transformList[i]->GetParameters();
-      param_values(i,0) = p[0];
-      param_values(i,1) = p[1];
-      if ( nparams == 3 ) param_values(i,2) = p[2];
-      }
+    if ( polydegree[0] == 0 ) param_values(i,0) = p[0];
+    if ( polydegree[1] == 0 ) param_values(i,1) = p[1];
+    if ( nparams >= 3 ) if ( polydegree[2] == 0 ) param_values(i,2) = p[2];
+    if ( nparams >= 4 ) if ( polydegree[3] == 0 ) param_values(i,3) = p[3];
     }
   }// done with optimization, now move on to writing data ...
 
@@ -869,8 +891,12 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     ColumnHeaders.push_back( colname );
     colname = std::string("Ty");
     ColumnHeaders.push_back( colname );
-    if ( nparams == 3 ) {
+    if ( nparams >= 3 ) {
       colname = std::string("Tr");
+      ColumnHeaders.push_back( colname );
+      }
+    if ( nparams >= 4 ) {
+      colname = std::string("Ts");
       ColumnHeaders.push_back( colname );
       }
     typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
@@ -1199,7 +1225,12 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     }
 
     {
-    std::string description = std::string( "degree of polynomial - up to zDimension-2. Controls the polynomial degree. 0 means no regularization.");
+    std::string description =
+    std::string( "degree of polynomial - up to zDimension-2. ") +
+    std::string( "Controls the polynomial degree. 0 means no regularization. This may be a vector ") +
+    std::string( "denoted by 2x2x1 for a 3-parameter transform ( e.g. rigid ).  This would ") +
+    std::string( "regularize the translation by 2nd degree polynomial and the rotation by a ") +
+    std::string( "linear function.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "polydegree" );
     option->SetShortName( 'p' );
