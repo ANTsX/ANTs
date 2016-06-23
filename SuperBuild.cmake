@@ -20,7 +20,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/Common.cmake)
 option(${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
 set(git_protocol "git")
 if(NOT ${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL)
-  set(git_protocol "http")
+  set(git_protocol "https")
 endif()
 
 find_package(Git REQUIRED)
