@@ -9910,8 +9910,8 @@ int ReplicateDisplacement( int argc, char *argv[] )
   argct += 2;
   std::string vecname1 = std::string(argv[argct]);   argct++;
   unsigned int timedims = atoi(argv[argct]);  argct++;
-  unsigned int tr = atof(argv[argct]);  argct++;
-  unsigned int torigin = atof(argv[argct]);  argct++;
+  RealType tr = atof(argv[argct]);  argct++;
+  RealType torigin = atof(argv[argct]);  argct++;
   /**
    * Read in vector field
    */
