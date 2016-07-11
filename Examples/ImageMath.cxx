@@ -12133,10 +12133,10 @@ int PearsonCorrelation( int argc, char *argv[] )
     mask = AllocImage<ImageType>(img1, 1);
     }
 
-  float mean1 = 0.0;
-  float var1 = 0.0;
-  float mean2 = 0.0;
-  float var2 = 0.0;
+  float xmean = 0.0;
+  float ymean = 0.0;
+  float xsquared = 0.0;
+  float ysquared = 0.0;
   float product = 0.0;
   float k = 0;
 
@@ -12147,35 +12147,25 @@ int PearsonCorrelation( int argc, char *argv[] )
       {
       k++;
       typename ImageType::IndexType idx = it.GetIndex();
-      if( k == 1 )
-        {
-        mean1 = img1->GetPixel( idx );
-        mean2 = img2->GetPixel( idx );
-        var1 = 0.0;
-        var2 = 0.0;
-        }
-      else
-        {
-        float oldMean = mean1;
-        float value = img1->GetPixel( idx );
-        mean1 = mean1 + (value - mean1) / k;
-        var1 = var1 + (value - oldMean) * ( value - mean1 );
 
-        oldMean = mean2;
-        value = img2->GetPixel( idx );
-        mean2 = mean2 + ( value - mean2 ) / k;
-        var2 = var2 + ( value - oldMean) * ( value - mean2 );
+      float value = img1->GetPixel( idx );
+      xmean += value;
+      xsquared += (value * value);
 
-        product += img1->GetPixel( idx ) *  img2->GetPixel( idx );
-        }
+      value = img2->GetPixel( idx );
+      ymean += value;
+      ysquared += (value * value);
+
+      product += img1->GetPixel( idx ) *  img2->GetPixel( idx );
       }
     ++it;
     }
 
-  var1 /= (k - 1);
-  var2 /= (k - 1);
+  xmean /= k;
+  ymean /= k;
 
-  float pearson = ( product - k * mean1 * mean2 ) / ( (k - 1) * std::sqrt(var1) * std::sqrt(var2) );
+  float pearson = ( product - k * xmean * ymean ) /
+                  ( std::sqrt(xsquared - (k * xmean * xmean)) * std::sqrt(ysquared - (k * ymean * ymean)) );
   std::cout << pearson << std::endl;
 
   return 0;
