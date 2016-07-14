@@ -1,3 +1,5 @@
+![ants chimp](http://i.imgur.com/4tPvy05.png)
+
 ============================
 Advanced Normalization Tools
 ============================
@@ -308,9 +310,6 @@ References
 [12] http://www.ncbi.nlm.nih.gov/pubmed/23813017
 
 [13] http://www.ncbi.nlm.nih.gov/pubmed/24830834
-
-
-![ants chimp](http://i.imgur.com/4tPvy05.png)
 
 
 ANTs was supported by: R01-EB006266-01 and by K01-ES025432-01
