@@ -309,7 +309,7 @@ References
 
 [13] http://www.ncbi.nlm.nih.gov/pubmed/24830834
 
-![logo](http://imgur.com/4tPvy05)
+<blockquote class="imgur-embed-pub" lang="en" data-id="4tPvy05"><a href="//imgur.com/4tPvy05">View post on imgur.com</a></blockquote><script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
 
 
 ANTs was supported by: R01-EB006266-01 and by K01-ES025432-01
