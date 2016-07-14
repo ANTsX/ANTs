@@ -309,6 +309,7 @@ References
 
 [13] http://www.ncbi.nlm.nih.gov/pubmed/24830834
 
+![logo](http://imgur.com/4tPvy05)
 
 
 ANTs was supported by: R01-EB006266-01 and by K01-ES025432-01
