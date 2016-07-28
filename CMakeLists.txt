@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 2.8.9)
 cmake_policy(VERSION 2.8.9)
 
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+endif()
+
 set(LIBRARY_SOVERSION_INFO 2)
 set(LIBRARY_VERSION_INFO 2.1.0)
 
