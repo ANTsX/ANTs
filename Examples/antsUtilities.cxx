@@ -29,7 +29,7 @@ TRAN_FILE_TYPE CheckFileType(const char * const str)
       pos = filepre.rfind( "." );
       extension = std::string( filepre, pos, filepre.length() - 1 );
       }
-    if( extension == ".txt" || extension == ".mat" || extension == ".hdf5" || extension == ".hdf" )
+    if( extension == ".txt" || extension == ".mat" || extension == ".hdf5" || extension == ".hdf" || extension == ".xfm")
       {
       return AFFINE_FILE;
       }
