@@ -1,5 +1,4 @@
-![ants chimp](http://i.imgur.com/4tPvy05.png)
-
+![ants template](http://i.imgur.com/mLZ71Ai.png)
 ============================
 Advanced Normalization Tools
 ============================
@@ -313,3 +312,5 @@ References
 
 
 ANTs was supported by: R01-EB006266-01 and by K01-ES025432-01
+
+![ants chimp](http://i.imgur.com/4tPvy05.png)
