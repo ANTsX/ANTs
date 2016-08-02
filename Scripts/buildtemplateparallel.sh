@@ -1226,7 +1226,8 @@ while [  $i -lt ${ITERATIONLIMIT} ]
       id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
       jobIDs="$jobIDs $id"
       qscript="job_${count}_${i}.sh"
-    elif [[ $DOQSUB -eq 5 ]]; then
+    elif [[ $DOQSUB -eq 5 ]] ; then
+      qscript="job_${count}_${i}.sh"
       echo '#!/bin/sh' > $qscript
       echo -e "$SCRIPTPREPEND" >> $qscript
       echo -e "$exe" >> $qscript
