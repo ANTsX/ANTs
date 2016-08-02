@@ -1,4 +1,6 @@
 ![ants template](http://i.imgur.com/mLZ71Ai.png)
+![ants render](http://i.imgur.com/LxUXE1i.png)
+![ants goat](http://i.imgur.com/SEKf1mo.jpg)
 ============================
 Advanced Normalization Tools
 ============================
