@@ -53,7 +53,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 
   // Read in input image
 
-  ImageType::Pointer inputImage = NULL;
+  ImageType::Pointer inputImage = ITK_NULLPTR;
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
@@ -79,7 +79,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
         }
       }
 
-    ImageType::Pointer readImage = NULL;
+    ImageType::Pointer readImage = ITK_NULLPTR;
     ReadImage<ImageType>( readImage, inputFile.c_str() );
 
     typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
@@ -104,6 +104,18 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
     {
     std::cerr << "Input image not specified." << std::endl;
     return EXIT_FAILURE;
+    }
+
+  // Read in input image
+
+  MaskImageType::Pointer maskImage = ITK_NULLPTR;
+
+  itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
+    parser->GetOption( "mask-image" );
+  if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
+    {
+    std::string maskFile = maskImageOption->GetFunction( 0 )->GetName();
+    ReadImage<MaskImageType>( maskImage, maskFile.c_str() );
     }
 
   // Read in the functional overlays and alpha values
@@ -161,7 +173,6 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
         {
         functionalMaskImages.push_back( ITK_NULLPTR );
         }
-
       }
     }
 
@@ -179,6 +190,11 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
     ImageType::IndexType index = It.GetIndex();
     ImageType::PixelType pixel = It.Get();
 
+    if( maskImage.IsNotNull() && maskImage->GetPixel( index ) == 0 )
+      {
+      pixel = 0.0;
+      }
+
     // The rgb values are in the range 0,255 but we manipulate alpha values in the range
     // [0,1] since that is what is specified on the command line and simply renormalize
     // to the range [0,255] when setting the voxel.
@@ -186,6 +202,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
     RealType currentRed   = pixel / 255.0;
     RealType currentGreen = pixel / 255.0;
     RealType currentBlue  = pixel / 255.0;
+
     RealType currentAlpha = pixel / 255.0;
 
     for( int i = functionalRgbImages.size() - 1; i >= 0; i-- )
@@ -379,6 +396,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'i' );
     option->SetUsageOption( 0, "imageFilename" );
     option->SetUsageOption( 1, "[imageFilename,<lowerClipPercentagexupperClipPercentage=0.0x1.0>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Mask for determining volumetric rendering of main input image." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "mask-image" );
+    option->SetShortName( 'x' );
+    option->SetUsageOption( 0, "maskFilename" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
