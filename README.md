@@ -1,9 +1,10 @@
 ![ants registration artillery](http://i.imgur.com/FCLrXV1.jpg)
+<!--
 ![ants multivar](http://i.imgur.com/YqWtunL.png)
 ![ants template](http://i.imgur.com/mLZ71Ai.png)
 ![ants render](http://i.imgur.com/LxUXE1i.png)
 ![ants faces](http://i.imgur.com/wBOFGwg.png)
-![ants goat](http://i.imgur.com/SEKf1mo.jpg)
+![ants goat](http://i.imgur.com/SEKf1mo.jpg) -->
 ============================
 Advanced Normalization Tools
 ============================
