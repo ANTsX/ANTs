@@ -119,10 +119,15 @@ CommandLineParser
       {
       name = argument.substr( 1, 2 );
       }
+    if( atof( name.c_str() ) )
+      {
+      continue;
+      }
     if ( name.size() > 0 )
-      allFlagsAreValid &= this->ValidateFlag(name);
-    if( ( !( name.empty() ) )     &&
-        ( !atof( name.c_str() ) ) &&
+      {
+      allFlagsAreValid &= this->ValidateFlag( name );
+      }
+    if( ( !( name.empty() ) ) &&
         ( name.size() > 0 )
       )
       {
@@ -367,7 +372,7 @@ ValidateFlag(const std::string & currentFlag)
       }
     }
 
-  if ( ( ! validFlagFound ) && ( currentFlag.size() > 0 ))
+  if ( ( ! validFlagFound ) && ( currentFlag.size() > 0 ) && ( !atof( currentFlag.c_str() ) ) )
     {
     std::cout << "ERROR:  Invalid flag provided " << currentFlag << std::endl;
     }
