@@ -7,16 +7,30 @@ os:
 
 language: cpp
 
+cache: ccache
+
 compiler:
   - clang
+  - gcc
+
+addons:
+  apt:
+    sources:
+      - george-edison55-precise-backports
+    packages:
+      - cmake
+      - cmake-data
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then wget --no-check-certificate https://cmake.org/files/v3.4/cmake-3.4.0-rc1-Linux-x86_64.sh; sh cmake-3.4.0-rc1-Linux-x86_64.sh --skip-license --prefix=${HOME}; export PATH=$HOME/bin/:$PATH; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ];  then echo "need cmake 3.2"; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew install ccache; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
   - mkdir antsbin
   - cd antsbin
+
 script:
   - cmake -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON ./.. && make -j 2 && cd ANTS-build/ && make test
+
 notifications:
   email:
     recipients:
