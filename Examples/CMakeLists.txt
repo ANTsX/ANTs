@@ -176,11 +176,11 @@ find_package(VTK COMPONENTS
    vtkIOXML
    vtkIOLegacy
    vtkIOPLY
-   vtkRenderingOpenGL
    vtkFiltersModeling
    vtkImagingStencil
    vtkImagingGeneral
    vtkRenderingAnnotation
+   vtkRenderingVolumeOpenGL
    )
 include(${VTK_USE_FILE})
 include_directories(${VTK_INCLUDE_DIRS})
@@ -188,6 +188,7 @@ include_directories(${VTK_INCLUDE_DIRS})
 set(VTK_ANTS_APPS
 #    ConvertVectorFieldToVTK
     antsSurf
+    antsVol
     GetMeshAndTopology
     CheckTopology
     WarpVTKPolyDataMultiTransform

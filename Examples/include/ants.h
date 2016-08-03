@@ -53,6 +53,8 @@
 
 #include "antsUtilitiesTesting.h"
 
+#include "antsVol.h"
+
 #include "ANTSUseDeformationFieldToGetAffineTransform.h"
 
 #include "ANTSUseLandmarkImagesToGetAffineTransform.h"
