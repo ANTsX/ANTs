@@ -168,7 +168,7 @@ endif(BUILD_ALL_ANTS_APPS)
 
 
 if(USE_VTK)
-find_package(VTK 6.2 REQUIRED NO_MODULE)
+find_package(VTK REQUIRED NO_MODULE)
 find_package(VTK COMPONENTS
    vtkCommonCore
    vtkCommonDataModel
@@ -181,6 +181,7 @@ find_package(VTK COMPONENTS
    vtkImagingGeneral
    vtkRenderingAnnotation
    vtkRenderingVolumeOpenGL
+#   vtkRenderingVolumeOpenGL2 # VTK7
    )
 include(${VTK_USE_FILE})
 include_directories(${VTK_INCLUDE_DIRS})
