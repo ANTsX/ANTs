@@ -9,8 +9,8 @@
 
 [![Build Status](https://travis-ci.org/stnava/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
 
-ANTs (see [FAQ page]()) computes high-dimensional mappings to capture the statistics of brain
-structure and function.
+ANTs computes high-dimensional mappings to capture the statistics of brain
+structure and function.  See the [FAQ page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd). 
 
 ![ants template](http://i.imgur.com/mLZ71Ai.png)
 
