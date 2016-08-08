@@ -19,13 +19,17 @@ image sets.
 
 ![ants render](http://i.imgur.com/hMW6fjB.png)
 
-ANTs integrates imaging and related information across modalities, space and time.
+ANTs integrates imaging modalities and related information in space and time.
 
 ![ants render](http://i.imgur.com/oIMrnpY.png)
 
 ANTs works across species or organ systems with minimal customization.
 
-![ants primate](http://i.imgur.com/8dELRIo.png)
+![ants primate](http://i.imgur.com/Dfrifgg.png)
+
+ANTs and related tools have won several international and unbiased competitions.
+
+![ants competes](http://i.imgur.com/HE0j7IC.png)
 
 [ANTsR](http://stnava.github.io/ANTsR/) is the underlying statistical workhorse.
 
