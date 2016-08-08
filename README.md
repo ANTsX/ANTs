@@ -1,8 +1,6 @@
-![ants registration artillery](http://i.imgur.com/FCLrXV1.jpg)
 <!--
+![ants registration artillery](http://i.imgur.com/FCLrXV1.jpg)
 ![ants multivar](http://i.imgur.com/YqWtunL.png)
-![ants template](http://i.imgur.com/mLZ71Ai.png)
-![ants render](http://i.imgur.com/LxUXE1i.png)
 ![ants faces](http://i.imgur.com/wBOFGwg.png)
 ![ants goat](http://i.imgur.com/SEKf1mo.jpg) -->
 ============================
@@ -10,6 +8,26 @@
 ============================
 
 [![Build Status](https://travis-ci.org/stnava/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
+
+ANTs computes high-dimensional mappings to capture the statistics of brain
+structure and function.
+
+![ants template](http://i.imgur.com/mLZ71Ai.png)
+
+ANTs allows one to organize, visualize and statistically explore large biomedical
+image sets.
+
+![ants render](http://i.imgur.com/hMW6fjB.png)
+
+ANTs integrates imaging and related information across modalities, space and time.
+
+![ants render](http://i.imgur.com/oIMrnpY.png)
+
+ANTs works across species or organ systems with minimal customization.
+
+![ants primate](http://i.imgur.com/8dELRIo.png)
+
+[ANTsR](http://stnava.github.io/ANTsR/) is the underlying statistical workhorse.
 
 Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2) ... also read our [guide to evaluation strategies and addressing new problems with ANTs or other software](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3766821/).  *New* [ANTs handout](https://github.com/stnava/ANTsTutorial/raw/master/handout/antsHandout.pdf), part of forthcoming [ANTs tutorial]() material.
 
