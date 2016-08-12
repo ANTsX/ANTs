@@ -10,7 +10,7 @@
 [![Build Status](https://travis-ci.org/stnava/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
 
 ANTs computes high-dimensional mappings to capture the statistics of brain
-structure and function.  See the [FAQ page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd). 
+structure and function.  See the [FAQ page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd).
 
 ![ants template](http://i.imgur.com/mLZ71Ai.png)
 
@@ -38,8 +38,6 @@ Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *n
 [ANTsTalk - subject to change at any moment](http://stnava.github.io/ANTsTalk/)
 
 [ANTsRegistrationTalk - subject to change at any moment](http://stnava.github.io/ANTsRegistrationTalk/)
-
- Email: [antsr.me at gmail dot com](mailto:antsr.me@gmail.com)
 
  Install ANTs via pre-built:
 [Packages @ github](https://github.com/stnava/ANTs/releases) older
