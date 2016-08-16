@@ -543,7 +543,7 @@ COMMAND="${ANTS} --verbose 1 \
                  --interpolation Linear \
                  --use-histogram-matching ${USEHISTOGRAMMATCHING} \
                  --winsorize-image-intensities [0.005,0.995] \
-                 $STAGES $MASK"
+                 $STAGES"
 
 echo " antsRegistration call:"
 echo "--------------------------------------------------------------------------------------"
