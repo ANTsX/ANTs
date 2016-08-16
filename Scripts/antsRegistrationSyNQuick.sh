@@ -78,7 +78,7 @@ Optional arguments:
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
-     -x:  mask for the fixed image space
+     -x:  mask for the fixed image space, applied only in the last stage
 
      -p:  precision type (default = 'd')
         f: float
@@ -367,9 +367,13 @@ reportMappingParameters
 ##############################
 
 if [[ ${#MASK} -lt 3 ]] ; then
+  nullMask=""
   MASK=""
+  haveMask=0
 else
-  MASK=" -x $MASK "
+  nullMask=" -x [NULL,NULL] "
+  MASK=" -x [$MASK, NULL] "
+  haveMask=1
 fi
 
 
@@ -485,18 +489,33 @@ STAGES=''
 case "$TRANSFORMTYPE" in
 "r" | "t")
   STAGES="$INITIALSTAGE $RIGIDSTAGE"
+  if [[ $haveMask -eq 1 ]] ; then
+    $STAGES=" $INITIALSTAGE $RIGIDSTAGE $MASK "
+  fi
   ;;
 "a")
   STAGES="$INITIALSTAGE $RIGIDSTAGE $AFFINESTAGE"
+  if [[ $haveMask -eq 1 ]] ; then
+    STAGES="$INITIALSTAGE $RIGIDSTAGE $nullMask $AFFINESTAGE $MASK "
+  fi
   ;;
 "b" | "s")
   STAGES="$INITIALSTAGE $RIGIDSTAGE $AFFINESTAGE $SYNSTAGE"
+  if [[ $haveMask -eq 1 ]] ; then
+    STAGES="$INITIALSTAGE $RIGIDSTAGE $nullMask $AFFINESTAGE $nullMask $SYNSTAGE $MASK "
+  fi
   ;;
 "br" | "sr")
   STAGES="$INITIALSTAGE $RIGIDSTAGE  $SYNSTAGE"
+  if [[ $haveMask -eq 1 ]] ; then
+    STAGES="$INITIALSTAGE $RIGIDSTAGE $nullMask $SYNSTAGE $MASK "
+  fi
   ;;
 "bo" | "so")
   STAGES="$INITIALSTAGE $SYNSTAGE"
+  if [[ $haveMask -eq 1 ]] ; then
+    $STAGES=" $INITIALSTAGE $SYNSTAGE $MASK "
+  fi
   ;;
 *)
   echo "Transform type '$TRANSFORMTYPE' is not an option.  See usage: '$0 -h 1'"
