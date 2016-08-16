@@ -220,15 +220,15 @@ REPORTMAPPINGPARAMETERS
 cleanup()
 {
   echo "\n*** Performing cleanup, please wait ***\n"
-  
+
   runningANTSpids=$( ps --ppid $$ -o pid= )
-  
+
   for thePID in $runningANTSpids
   do
       echo "killing:  ${thePID}"
       kill ${thePID}
   done
-  
+
   return $?
 }
 
@@ -357,6 +357,21 @@ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 ##############################
 
 reportMappingParameters
+
+
+
+##############################
+#
+# mask stuff
+#
+##############################
+
+if [[ ${#MASK} -lt 3 ]] ; then
+  MASK=""
+else
+  MASK=" -x $MASK "
+fi
+
 
 ##############################
 #
@@ -503,22 +518,13 @@ case "$PRECISIONTYPE" in
   ;;
 esac
 
-
-if [[ ${#MASK} -lt 3 ]] ; then
-  MASK=""
-else
-  MASK=" -x $MASK "
-fi
-
-
 COMMAND="${ANTS} --verbose 1 \
                  --dimensionality $DIM $PRECISION \
                  --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \
                  --interpolation Linear \
                  --use-histogram-matching ${USEHISTOGRAMMATCHING} \
                  --winsorize-image-intensities [0.005,0.995] \
-                 ${MASK} \
-                 $STAGES"
+                 $STAGES $MASK"
 
 echo " antsRegistration call:"
 echo "--------------------------------------------------------------------------------------"
