@@ -232,7 +232,6 @@ cleanup()
   return $?
 }
 
-
 control_c()
 # run if user hits control-c
 {
@@ -241,7 +240,6 @@ control_c()
   exit $?
   echo -en "\n*** Script cancelled by user ***\n"
 }
-
 
 # Provide output for Help
 if [[ "$1" == "-h" || $# -eq 0 ]];
@@ -358,24 +356,22 @@ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 
 reportMappingParameters
 
-
-
 ##############################
 #
-# mask stuff
+# Mask stuff
 #
 ##############################
 
-if [[ ${#MASK} -lt 3 ]] ; then
-  nullMask=""
-  MASK=""
-  haveMask=0
-else
-  nullMask=" -x [NULL,NULL] "
-  MASK=" -x [$MASK, NULL] "
-  haveMask=1
-fi
-
+if [[ ${#MASK} -lt 3 ]];
+  then
+    NULLMASK=""
+    MASK=""
+    HAVEMASK=0
+  else
+    NULLMASK=" -x [NULL,NULL] "
+    MASK=" -x [$MASK, NULL] "
+    HAVEMASK=1
+  fi
 
 ##############################
 #
@@ -489,31 +485,31 @@ STAGES=''
 case "$TRANSFORMTYPE" in
 "r" | "t")
   STAGES="$INITIALSTAGE $RIGIDSTAGE"
-  if [[ $haveMask -eq 1 ]] ; then
+  if [[ $HAVEMASK -eq 1 ]] ; then
     $STAGES=" $INITIALSTAGE $RIGIDSTAGE $MASK "
   fi
   ;;
 "a")
   STAGES="$INITIALSTAGE $RIGIDSTAGE $AFFINESTAGE"
-  if [[ $haveMask -eq 1 ]] ; then
-    STAGES="$INITIALSTAGE $RIGIDSTAGE $nullMask $AFFINESTAGE $MASK "
+  if [[ $HAVEMASK -eq 1 ]] ; then
+    STAGES="$INITIALSTAGE $RIGIDSTAGE $NULLMASK $AFFINESTAGE $MASK "
   fi
   ;;
 "b" | "s")
   STAGES="$INITIALSTAGE $RIGIDSTAGE $AFFINESTAGE $SYNSTAGE"
-  if [[ $haveMask -eq 1 ]] ; then
-    STAGES="$INITIALSTAGE $RIGIDSTAGE $nullMask $AFFINESTAGE $nullMask $SYNSTAGE $MASK "
+  if [[ $HAVEMASK -eq 1 ]] ; then
+    STAGES="$INITIALSTAGE $RIGIDSTAGE $NULLMASK $AFFINESTAGE $NULLMASK $SYNSTAGE $MASK "
   fi
   ;;
 "br" | "sr")
   STAGES="$INITIALSTAGE $RIGIDSTAGE  $SYNSTAGE"
-  if [[ $haveMask -eq 1 ]] ; then
-    STAGES="$INITIALSTAGE $RIGIDSTAGE $nullMask $SYNSTAGE $MASK "
+  if [[ $HAVEMASK -eq 1 ]] ; then
+    STAGES="$INITIALSTAGE $RIGIDSTAGE $NULLMASK $SYNSTAGE $MASK "
   fi
   ;;
 "bo" | "so")
   STAGES="$INITIALSTAGE $SYNSTAGE"
-  if [[ $haveMask -eq 1 ]] ; then
+  if [[ $HAVEMASK -eq 1 ]] ; then
     $STAGES=" $INITIALSTAGE $SYNSTAGE $MASK "
   fi
   ;;
