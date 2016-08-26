@@ -119,6 +119,7 @@ Optional arguments:
                                                 to the number of priors.
      -f:  extraction registration mask          Mask (defined in the template space) used during registration
                                                 for brain extraction.
+     -g:  denoise anatomical images             Denoise anatomical images (default = 0).
      -j:  number of cpu cores                   Number of cpu cores to use locally for pexec option (default 2; requires "-c 2")
      -k:  number of modalities                  Number of modalities used to construct the template (default 1):  For example,
                                                 if one wanted to use multiple modalities consisting of T1, T2, and FA
@@ -126,7 +127,7 @@ Optional arguments:
      -n:  use SST cortical thickness prior      If set to '1', the cortical thickness map from the single-subject template is used
                                                 as a prior constraint for each of the individual calls to antsCorticalThickness.sh
                                                 (default = 0).
-     -g:  use floating-point precision          Use floating point precision in registrations (default = 0)
+     -u:  use floating-point precision          Use floating point precision in registrations (default = 0)
      -v:  Atropos segmentation weight (SST)     Atropos spatial prior *probability* weight for the segmentation for the single
                                                 subject template (default = 0.25)
      -w:  Atropos segmentation weight (Indiv.)  Atropos spatial prior *probability* weight for the segmentation for the individual
@@ -163,6 +164,7 @@ echoParameters() {
       run quick               = ${RUN_QUICK}
       debug mode              = ${DEBUG_MODE}
       float precision         = ${USE_FLOAT_PRECISION}
+      denoise                 = ${DENOISE}
       use random seeding      = ${USE_RANDOM_SEEDING}
       number of modalities    = ${NUMBER_OF_MODALITIES}
       number of cores         = ${CORES}
@@ -231,6 +233,7 @@ SEGMENTATION_PRIOR=""
 USE_SST_CORTICAL_THICKNESS_PRIOR=0
 REGISTRATION_TEMPLATE=""
 DO_REGISTRATION_TO_TEMPLATE=0
+DENOISE=0
 
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT_SST=0.25
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT=0.5
@@ -255,7 +258,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:v:w:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:z:" OPT
     do
       case $OPT in
           a)
@@ -286,8 +289,8 @@ else
           f) #brain extraction registration mask
        EXTRACTION_REGISTRATION_MASK=$OPTARG
        ;;
-          g) #use floating point precision
-       USE_FLOAT_PRECISION=$OPTARG
+          g) #denoise
+       DENOISE=$OPTARG
        ;;
           h) #help
        Usage >&2
@@ -323,6 +326,9 @@ else
        ;;
           q) # run quick
        RUN_QUICK=$OPTARG
+       ;;
+          u) #use floating point precision
+       USE_FLOAT_PRECISION=$OPTARG
        ;;
           v) #atropos prior weight for single subject template
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT_SST=$OPTARG
@@ -500,6 +506,7 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
       -f ${EXTRACTION_REGISTRATION_MASK} \
       -m ${EXTRACTION_PRIOR} \
       -k 0 \
+      -g ${DENOISE} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT} \
       -z ${DEBUG_MODE} \
       -p ${SEGMENTATION_PRIOR} \
@@ -725,6 +732,7 @@ if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS} ]];
           -a ${SINGLE_SUBJECT_TEMPLATE} \
           -e ${BRAIN_TEMPLATE} \
           -f ${EXTRACTION_REGISTRATION_MASK} \
+          -g ${DENOISE} \
           -m ${EXTRACTION_PRIOR} \
           -k 0 \
           -z ${DEBUG_MODE} \
@@ -739,6 +747,7 @@ if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS} ]];
           -a ${SINGLE_SUBJECT_TEMPLATE} \
           -e ${BRAIN_TEMPLATE} \
           -f ${EXTRACTION_REGISTRATION_MASK} \
+          -g ${DENOISE} \
           -m ${EXTRACTION_PRIOR} \
           -k 0 \
           -z ${DEBUG_MODE} \
@@ -957,6 +966,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
       -e ${SINGLE_SUBJECT_TEMPLATE} \
       -m ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR} \
       -f ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_REGISTRATION_MASK} \
+      -g ${DENOISE} \
       -k 0 \
       -z ${DEBUG_MODE} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT} \
