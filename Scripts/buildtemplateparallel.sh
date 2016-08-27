@@ -97,6 +97,7 @@ Optional arguments:
 
      -g:  Gradient step size (default 0.25) for template update. Does not affect the step size of individual registrations. The
           default of 0.25 should not be increased, smaller numbers result in more cautious template update steps.
+          0.25 is an upper (aggressive) limit for this parameter.
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
@@ -595,15 +596,15 @@ function jobfnamepadding {
 cleanup()
 {
   echo "\n*** Performing cleanup, please wait ***\n"
-  
+
   runningANTSpids=$( ps --ppid $$ -o pid= )
-  
+
   for thePID in $runningANTSpids
   do
       echo "killing:  ${thePID}"
       kill ${thePID}
   done
-  
+
   return $?
 }
 

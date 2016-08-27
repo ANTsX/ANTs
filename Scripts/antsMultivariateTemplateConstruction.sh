@@ -93,7 +93,9 @@ Optional arguments:
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM
 
-     -g:  Gradient step size (default 0.25) -- smaller in magnitude results in more cautious steps
+     -g:  Gradient step size (default 0.25) -- smaller in magnitude results in
+          more cautious steps. Use smaller steps to refine template details.
+          0.25 is an upper (aggressive) limit for this parameter.
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
@@ -309,15 +311,15 @@ done
 cleanup()
 {
   echo "\n*** Performing cleanup, please wait ***\n"
-  
+
   runningANTSpids=$( ps --ppid $$ -o pid= )
-  
+
   for thePID in $runningANTSpids
   do
       echo "killing:  ${thePID}"
       kill ${thePID}
   done
-  
+
   return $?
 }
 

@@ -110,8 +110,9 @@ Optional arguments:
      -e   use single precision ( default 1 )
 
      -g:  Gradient step size (default 0.25): smaller in magnitude results in more
-          cautious steps.
-
+          cautious steps.  Use smaller steps to refine template details.
+          0.25 is an upper (aggressive) limit for this parameter.
+          
      -i:  Iteration limit (default 4): iterations of the template construction
           (Iteration limit)*NumImages registrations.
 
