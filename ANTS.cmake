@@ -54,8 +54,25 @@ option(BUILD_ALL_ANTS_APPS "Use All ANTs Apps" ON)
 option(USE_VTK "Use VTK Libraries" OFF)
 if(USE_VTK)
   find_package(VTK)
+  find_package(VTK COMPONENTS
+   vtkCommonCore
+   vtkCommonDataModel
+   vtkIOGeometry
+   vtkIOXML
+   vtkIOLegacy
+   vtkIOPLY
+   vtkFiltersModeling
+   vtkImagingStencil
+   vtkImagingGeneral
+   vtkRenderingAnnotation
+   vtkRenderingVolumeOpenGL
+ #   vtkRenderingVolumeOpenGL2 # VTK7
+   )
+
   if(VTK_FOUND)
     include(${VTK_USE_FILE})
+    include_directories(${VTK_INCLUDE_DIRS})
+    set(INIT_VTK_LIBRARIES ${VTK_LIBRARIES})
   else(VTK_FOUND)
      message("Cannot build some programs without VTK.  Please set VTK_DIR if you need these programs.")
   endif(VTK_FOUND)

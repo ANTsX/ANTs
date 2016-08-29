@@ -195,7 +195,8 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
 #    -P ${VTKPatchScript}
 #    )
 
-  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-install/lib/vtk-6.2)
+set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
+
 else()
   if(${USE_SYSTEM_${extProjName}})
     find_package(${extProjName} ${${extProjName}_REQUIRED_VERSION} REQUIRED)
