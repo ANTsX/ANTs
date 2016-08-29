@@ -168,26 +168,8 @@ endif(BUILD_ALL_ANTS_APPS)
 
 
 if(USE_VTK)
-find_package(VTK REQUIRED NO_MODULE)
-find_package(VTK COMPONENTS
-   vtkCommonCore
-   vtkCommonDataModel
-   vtkIOGeometry
-   vtkIOXML
-   vtkIOLegacy
-   vtkIOPLY
-   vtkFiltersModeling
-   vtkImagingStencil
-   vtkImagingGeneral
-   vtkRenderingAnnotation
-   vtkRenderingVolumeOpenGL
-#   vtkRenderingVolumeOpenGL2 # VTK7
-   )
-include(${VTK_USE_FILE})
-include_directories(${VTK_INCLUDE_DIRS})
-
 set(VTK_ANTS_APPS
-#    ConvertVectorFieldToVTK
+    # ConvertVectorFieldToVTK
     antsSurf
     antsVol
     GetMeshAndTopology
