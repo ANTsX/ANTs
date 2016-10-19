@@ -504,7 +504,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       if( count % ImageDimension == 0 )
         {
         directions.push_back( direction );
-        if( dwiOption->GetFunction( 0 )->GetNumberOfParameters() < 2 )
+        if( dwiOption->GetFunction( 0 )->GetNumberOfParameters() < 3 )
           {
           str >> x;
           bvalues.push_back( x );
@@ -516,7 +516,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         }
       }
 
-    if( dwiOption->GetFunction( 0 )->GetNumberOfParameters() < 2 )
+    if( dwiOption->GetFunction( 0 )->GetNumberOfParameters() < 3 )
       {
       if( bvalues.size() != directions.size() )
         {
