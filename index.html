@@ -1,33 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-
     <title>ANTs by stnava</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-dark.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
   </head>
-
   <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/stnava/ANTs">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/stnava/ANTs/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/stnava/ANTs/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
 
-    <header>
-      <div class="container">
-        <h1>ANTs</h1>
-        <h2>Advanced Normalization Tools</h2>
+    <div class="wrapper">
 
-        <section id="downloads">
-          <a href="https://github.com/stnava/ANTs/zipball/master" class="btn">Download as .zip</a>
-          <a href="https://github.com/stnava/ANTs/tarball/master" class="btn">Download as .tar.gz</a>
-          <a href="https://github.com/stnava/ANTs" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-        </section>
-      </div>
-    </header>
+      <section>
+        <div id="title">
+          <h1>ANTs</h1>
+          <p>Advanced Normalization Tools</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/stnava">stnava</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
 
-    <div class="container">
-      <section id="main_content">
         
 
 <h1></h1>
@@ -39,7 +49,7 @@
 <p><a href="https://travis-ci.org/stnava/ANTs"><img src="https://travis-ci.org/stnava/ANTs.svg?branch=master" alt="Build Status"></a></p>
 
 <p>ANTs computes high-dimensional mappings to capture the statistics of brain
-structure and function.  See the <a href="https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd">FAQ page</a>. </p>
+structure and function.  See the <a href="https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd">FAQ page</a>.</p>
 
 <p><img src="http://i.imgur.com/mLZ71Ai.png" alt="ants template"></p>
 
@@ -67,8 +77,6 @@ image sets.</p>
 <p><a href="http://stnava.github.io/ANTsTalk/">ANTsTalk - subject to change at any moment</a></p>
 
 <p><a href="http://stnava.github.io/ANTsRegistrationTalk/">ANTsRegistrationTalk - subject to change at any moment</a></p>
-
-<p>Email: <a href="mailto:antsr.me@gmail.com">antsr.me at gmail dot com</a></p>
 
 <p>Install ANTs via pre-built:
 <a href="https://github.com/stnava/ANTs/releases">Packages @ github</a> older
@@ -289,7 +297,7 @@ iterative closest point</p>
 
 <p><strong>Cortical thickness</strong> <a href="https://github.com/ntustison/antsCorticalThicknessExample">example</a></p>
 
-<p><strong>MALF labeling example</strong> <a href="https://github.com/ntustison/MalfLabelingExample">example</a></p>
+<p><strong>Multi-atlas joint label/intensity fusion examples</strong> <a href="https://github.com/ntustison/MalfLabelingExample">example 1</a> <a href="https://github.com/qureai/Multi-Atlas-Segmentation">example 2</a> (thanks to <a href="https://github.com/chsasank" class="user-mention">@chsasank</a>)</p>
 
 <p><strong>Lung and lobe estimation</strong> <a href="https://github.com/ntustison/LungAndLobeEstimationExample">example</a></p>
 
@@ -379,8 +387,9 @@ the field and published in several accompanying articles
 
 <p><img src="http://i.imgur.com/4tPvy05.png" alt="ants chimp"></p>
       </section>
-    </div>
 
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
               <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
