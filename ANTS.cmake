@@ -65,9 +65,13 @@ if(USE_VTK)
    vtkImagingStencil
    vtkImagingGeneral
    vtkRenderingAnnotation
-   vtkRenderingVolumeOpenGL
- #   vtkRenderingVolumeOpenGL2 # VTK7
    )
+
+  if(VTK_VERSION_MAJOR GREATER 6)
+    find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL2)
+  else(VTK_VERSION_MAJOR GREATER 6)
+     find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL)
+  endif(VTK_VERSION_MAJOR GREATER 6)
 
   if(VTK_FOUND)
     include(${VTK_USE_FILE})
