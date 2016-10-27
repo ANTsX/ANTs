@@ -155,6 +155,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       ${${proj}_WRAP_ARGS}
       ${${proj}_FFTWF_ARGS}
       ${${proj}_FFTWD_ARGS}
+      ${${proj}_MINC_ARGS}
       )
     endif()
 
