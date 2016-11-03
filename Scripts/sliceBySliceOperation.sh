@@ -135,12 +135,18 @@ PARAMETERS[4]=$9
 PARAMETERS[5]=$10
 PARAMETERS[6]=$11
 
-SIZE_STRING=$( PrintHeader $INPUT_IMAGE 2 )
+SIZE_STRING=$( ${ANTSPATH}/PrintHeader $INPUT_IMAGE 2 )
 SIZE=( ${SIZE_STRING//x/ } )
 
 if [[ ${#SIZE[@]} -ne 3 ]];
   then
     echo "Error:  The input image, $INPUT_IMAGE, is not 3-D."
+    exit
+  fi
+
+if [[ ${WHICH_DIRECTION} -gt 2 || ${WHICH_DIRECTION} -lt 0 ]];
+  then
+    echo "Error: Direction must be an integer in [0,2]"
     exit
   fi
 
