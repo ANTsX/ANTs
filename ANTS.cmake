@@ -54,7 +54,9 @@ option(BUILD_ALL_ANTS_APPS "Use All ANTs Apps" ON)
 option(USE_VTK "Use VTK Libraries" OFF)
 if(USE_VTK)
   find_package(VTK)
-  find_package(VTK COMPONENTS
+
+  if(VTK_VERSION_MAJOR GREATER 6)
+    find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL2
    vtkCommonCore
    vtkCommonDataModel
    vtkIOGeometry
@@ -66,11 +68,18 @@ if(USE_VTK)
    vtkImagingGeneral
    vtkRenderingAnnotation
    )
-
-  if(VTK_VERSION_MAJOR GREATER 6)
-    find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL2)
   else(VTK_VERSION_MAJOR GREATER 6)
-     find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL)
+     find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL
+     vtkCommonCore
+     vtkCommonDataModel
+     vtkIOGeometry
+     vtkIOXML
+     vtkIOLegacy
+     vtkIOPLY
+     vtkFiltersModeling
+     vtkImagingStencil
+     vtkImagingGeneral
+     vtkRenderingAnnotation)
   endif(VTK_VERSION_MAJOR GREATER 6)
 
   if(VTK_FOUND)
