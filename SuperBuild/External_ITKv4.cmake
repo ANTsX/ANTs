@@ -165,7 +165,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   set(${proj}_GIT_TAG f60bbd3aadc4b9fbf2cff1cf7227cef1e92b979a) ##
   set(ITK_VERSION_ID ITK-4.10) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
-  set(${proj}_GIT_TAG 2714cc1805f50504f5b9a60d0f62ffec8e73989) ##
+  set(${proj}_GIT_TAG 5aad8ac86968a12be74a31ef6493811c0ea13d05) ##
   set(ITK_VERSION_ID ITK-4.11) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
