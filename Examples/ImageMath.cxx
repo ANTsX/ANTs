@@ -10038,8 +10038,8 @@ int ReplicateImage( int argc, char *argv[] )
   argct += 2;
   std::string vecname1 = std::string(argv[argct]);   argct++;
   unsigned int timedims = atoi(argv[argct]);  argct++;
-  unsigned int tr = atof(argv[argct]);  argct++;
-  unsigned int torigin = atof(argv[argct]);  argct++;
+  float tr = atof(argv[argct]);  argct++;
+  float torigin = atof(argv[argct]);  argct++;
   typedef itk::ImageFileReader<ImageType> ReaderType;
   typename ReaderType::Pointer reader1 = ReaderType::New();
   reader1->SetFileName( vecname1.c_str() );
