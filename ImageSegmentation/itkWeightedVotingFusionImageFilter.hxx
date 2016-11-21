@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <numeric>
 
+#include <vnl/algo/vnl_cholesky.h>
 #include <vnl/algo/vnl_svd.h>
 #include <vnl/vnl_inverse.h>
 
@@ -634,7 +635,17 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       }
     else
       {
-      W = vnl_svd<RealType>( MxBar ).solve( ones );
+      vnl_cholesky cholesky( MxBar, vnl_cholesky::estimate_condition );
+      if( cholesky.rcond() > vnl_math::sqrteps )
+        {
+        // well-conditioned matrix
+       W = cholesky.solve( ones );
+        }
+      else
+        {
+        // ill-conditioned matrix
+        W = vnl_svd<RealType>( MxBar ).solve( ones );
+        }
 
       for( SizeValueType i = 0; i < W.size(); i++ )
         {
