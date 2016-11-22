@@ -26,6 +26,8 @@
 #include "itkCastImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkDanielssonDistanceMapImageFilter.h"
+#include "itkFastMarchingImageFilterBase.h"
+#include "itkFastMarchingThresholdStoppingCriterion.h"
 #include "itkFlatStructuringElement.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
@@ -35,6 +37,7 @@
 #include "itkGrayscaleMorphologicalOpeningImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkIntensityWindowingImageFilter.h"
+#include "itkLabelContourImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkLaplacianSharpeningImageFilter.h"
@@ -933,6 +936,169 @@ iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,
 
   filter->Update();
   return filter->GetOutput();
+}
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathPropagateLabelsThroughMask( typename ImageType::Pointer speedimage,
+                                 typename ImageType::Pointer labimage,
+                                 double stoppingValue,
+                                 unsigned int propagationMethod )
+{
+
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>      Iterator;
+
+  typedef itk::FastMarchingThresholdStoppingCriterion< ImageType, ImageType >
+        CriterionType;
+
+  typedef typename CriterionType::Pointer                         CriterionPointer;
+  typedef itk::FastMarchingImageFilterBase<ImageType, ImageType>  FastMarchingFilterType;
+  typedef typename FastMarchingFilterType::LabelImageType         LabelImageType;
+  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType>   ThresholderType;
+  typedef itk::LabelContourImageFilter<ImageType, ImageType>      ContourFilterType;
+  typedef typename FastMarchingFilterType::NodePairContainerType  NodeContainer;
+  typedef typename FastMarchingFilterType::NodePairType           NodePairType;
+  typedef itk::CastImageFilter<ImageType,ImageType>               CastFilterType;
+
+  typename ImageType::Pointer fastimage = ImageType::New();
+  fastimage->SetRegions( speedimage->GetLargestPossibleRegion() );
+  fastimage->SetSpacing( speedimage->GetSpacing() );
+  fastimage->SetOrigin( speedimage->GetOrigin() );
+  fastimage->SetDirection( speedimage->GetDirection() );
+  fastimage->Allocate();
+  fastimage->FillBuffer(1.e9);
+
+  /*
+  typename ImageType::Pointer outlabimage = ImageType::New();
+  outlabimage->SetRegions( speedimage->GetLargestPossibleRegion() );
+  outlabimage->SetSpacing( speedimage->GetSpacing() );
+  outlabimage->SetOrigin( speedimage->GetOrigin() );
+  outlabimage->SetDirection( speedimage->GetDirection() );
+  outlabimage->Allocate();
+  outlabimage->FillBuffer(0);
+  */
+  
+  typename CastFilterType::Pointer caster = CastFilterType::New();
+  caster->SetInput( labimage );
+  caster->Update();
+  typename ImageType::Pointer outlabimage = caster->GetOutput();
+
+
+
+  // FIXME - why is thresh set to 0.5?
+  double maxlabel = 0;
+  double thresh = 0.5;
+  Iterator vfIter2( labimage,  labimage->GetLargestPossibleRegion() );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    bool   isinside = true;
+    double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
+    double labval = labimage->GetPixel(vfIter2.GetIndex() );
+    if( speedval < thresh )
+      {
+      isinside = false;
+      }
+    if( isinside )
+      {
+      if( labval > maxlabel )
+        {
+        maxlabel = labval;
+        }
+      }
+    }
+
+  CriterionPointer criterion = CriterionType::New();
+  criterion->SetThreshold( stoppingValue );
+
+  typename FastMarchingFilterType::Pointer  fastMarching;
+  for( unsigned int lab = 1; lab <= (unsigned int)maxlabel; lab++ )
+    {
+
+    // Create binary mask for each label
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( labimage );
+    thresholder->SetLowerThreshold( lab );
+    thresholder->SetUpperThreshold( lab );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+
+    // Get pixels on border of the label mask
+    typename ContourFilterType::Pointer contour = ContourFilterType::New();
+    contour->SetInput( thresholder->GetOutput() );
+    contour->FullyConnectedOff();
+    contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::ZeroValue() );
+    contour->Update();
+    typename ImageType::Pointer contourimage = contour->GetOutput();
+
+
+    fastMarching = FastMarchingFilterType::New();
+    fastMarching->SetInput( speedimage );
+    fastMarching->SetStoppingCriterion( criterion );
+
+    if( propagationMethod == 1 )  // Strict
+      {
+      // std::cout << " strict " << std::endl;
+      fastMarching->SetTopologyCheck( FastMarchingFilterType::Strict );
+      }
+    if( propagationMethod == 2 )  // No handles
+      {
+      // std::cout << " no handles " << std::endl;
+      fastMarching->SetTopologyCheck( FastMarchingFilterType::NoHandles );
+      }
+
+    typename NodeContainer::Pointer seeds = NodeContainer::New();
+    seeds->Initialize();
+
+    typename NodeContainer::Pointer alivePoints = NodeContainer::New();
+    alivePoints->Initialize();
+
+    for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+      {
+      double labval = labimage->GetPixel( vfIter2.GetIndex() );
+      double contourval = contourimage->GetPixel( vfIter2.GetIndex() );
+      if( ( (unsigned int) contourval == 1 ) && ( (unsigned int) labval == lab ) )
+        {
+	      seeds->push_back( NodePairType(  vfIter2.GetIndex(), 0.0 ) );
+        }
+      if( ( (unsigned int) contourval == 0 ) && ( (unsigned int) labval == lab ) )
+        {
+	      alivePoints->push_back( NodePairType(  vfIter2.GetIndex(), 0.0 ) );
+        }
+      }
+    fastMarching->SetTrialPoints(  seeds  );
+    fastMarching->SetAlivePoints( alivePoints );
+    fastMarching->Update();
+
+    for( vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+      {
+      bool   isinside = true;
+      double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
+      double labval = labimage->GetPixel(vfIter2.GetIndex() );
+      if( speedval < thresh )
+        {
+        isinside = false;
+        }
+
+
+      if( isinside && labval == 0 )
+        {
+        double fmarrivaltime = fastMarching->GetOutput()->GetPixel( vfIter2.GetIndex() );
+        double mmm = fastimage->GetPixel(vfIter2.GetIndex() );
+        if( fmarrivaltime < mmm )
+          {
+          fastimage->SetPixel(vfIter2.GetIndex(),  fmarrivaltime );
+          outlabimage->SetPixel(vfIter2.GetIndex(), lab );
+          }
+        }
+      else if( !isinside )
+        {
+        outlabimage->SetPixel(vfIter2.GetIndex(), 0 );
+        }
+      }
+    }
+
+  return outlabimage;
+
 }
 
 template <class ImageType>

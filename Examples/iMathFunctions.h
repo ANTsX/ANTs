@@ -180,6 +180,15 @@ iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,
 
 template <class ImageType>
 typename ImageType::Pointer
+iMathPropagateLabelsThroughMask( typename ImageType::Pointer mask,
+                                 typename ImageType::Pointer lables,
+                                 double stoppingValue,
+                                 unsigned int propagationMethod );
+#define iMathPropagateLabelsThroughMaskStoppingValue 100.0;
+#define iMathPropagateLabelsThroughMaskMethod 0;
+
+template <class ImageType>
+typename ImageType::Pointer
 iMathSharpen( typename ImageType::Pointer image );
 
 template <class ImageType>
