@@ -1001,6 +1001,47 @@ iMathHelperAll(int argc, char **argv)
 
     return EXIT_SUCCESS;
     }
+  else if (operation == "PropagateLabelsThroughMask" )
+    {
+    typedef itk::Image<float,DIM>  ImageType;
+
+    if ( argc < 6 ) {
+      std::cerr << "PropogateLabelsThroughMask needs a mask and an image of labels" << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    typename ImageType::Pointer mask = NULL;
+    typename ImageType::Pointer labels = NULL;
+
+    ReadImage<ImageType>( mask, inName.c_str() );
+    ReadImage<ImageType>( labels, argv[5] );
+
+    double stoppingValue = iMathPropagateLabelsThroughMaskStoppingValue;
+    unsigned int propagationMethod = iMathPropagateLabelsThroughMaskMethod;
+
+    if ( argc > 6 )
+      {
+      stoppingValue = (double) atof(argv[6]);
+      }
+    if ( argc > 7)
+      {
+      propagationMethod = atoi(argv[7]);
+      }
+
+    if ( propagationMethod > 2 )
+      {
+      std::cerr << "Propogation method must be one of: 0,1,2" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    typename ImageType::Pointer output
+      = iMathPropagateLabelsThroughMask<ImageType>(mask,labels,stoppingValue,propagationMethod);
+
+    WriteImage<ImageType>( output, outName.c_str() );
+
+    return EXIT_SUCCESS;
+
+    }
   else if( operation == "TruncateIntensity" )
     {
     typedef itk::Image<float,DIM>         ImageType;
