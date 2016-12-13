@@ -639,7 +639,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       if( cholesky.rcond() > vnl_math::sqrteps )
         {
         // well-conditioned matrix
-       W = cholesky.solve( ones );
+        W = cholesky.solve( ones );
         }
       else
         {
