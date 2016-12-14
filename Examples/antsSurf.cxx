@@ -209,6 +209,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
   RealType defaultColorRed = 255.0;
   RealType defaultColorGreen = 255.0;
   RealType defaultColorBlue = 255.0;
+  RealType defaultAlpha = 1.0;
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "surface-image" );
@@ -235,12 +236,21 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
           defaultColorRed = defaultColors[0];
           defaultColorGreen = defaultColors[0];
           defaultColorBlue = defaultColors[0];
+          defaultAlpha = 1.0;
           }
         else if( defaultColors.size() == 3 )
           {
           defaultColorRed = defaultColors[0];
           defaultColorGreen = defaultColors[1];
           defaultColorBlue = defaultColors[2];
+          defaultAlpha = 1.0;
+          }
+        else if( defaultColors.size() == 4 )
+          {
+          defaultColorRed = defaultColors[0];
+          defaultColorGreen = defaultColors[1];
+          defaultColorBlue = defaultColors[2];
+          defaultAlpha = defaultColors[3];
           }
         else
           {
@@ -415,7 +425,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
   // Do the painting
   vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-  colors->SetNumberOfComponents( 3 );   // R, G, B, and alpha components
+  colors->SetNumberOfComponents( 4 );   // R, G, B, and alpha components
   colors->SetName( "Colors" );
 
   for( int n = 0; n < numberOfPoints; n++ )
@@ -431,7 +441,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
     RealType currentRed   = defaultColorRed / 255.0;
     RealType currentGreen = defaultColorGreen / 255.0;
     RealType currentBlue  = defaultColorBlue / 255.0;
-    RealType currentAlpha = 1.0;
+    RealType currentAlpha = defaultAlpha;
 
     for( int i = functionalAlphaValues.size() - 1; i >= 0; i-- )
       {
@@ -462,10 +472,11 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
         }
       }
 
-    unsigned char currentColor[3];
+    unsigned char currentColor[4];
     currentColor[0] = static_cast<unsigned char>( currentRed   * 255.0 );
     currentColor[1] = static_cast<unsigned char>( currentGreen * 255.0 );
     currentColor[2] = static_cast<unsigned char>( currentBlue  * 255.0 );
+    currentColor[3] = static_cast<unsigned char>( defaultAlpha );
 
     colors->InsertNextTupleValue( currentColor );
     }
@@ -845,13 +856,15 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "Main input binary image for 3-D rendering.  One can also " )
-      + std::string( "set a default color value in the range [0,255]." );
+      + std::string( "set a default color value in the range [0,255].  The " )
+      + std::string( "fourth default color element is the alpha value in " )
+      + std::string( "the range [0,1]." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "surface-image" );
     option->SetShortName( 's' );
     option->SetUsageOption( 0, "surfaceImageFilename" );
-    option->SetUsageOption( 1, "[surfaceImageFilename,<defaultColor=255x255x255>]" );
+    option->SetUsageOption( 1, "[surfaceImageFilename,<defaultColor=255x255x255x1>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
