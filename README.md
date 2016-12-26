@@ -103,7 +103,7 @@ Image Segmentation
 
 Atropos Multivar-EM Segmentation
 [(link)](http://www.ncbi.nlm.nih.gov/pubmed/21373993), Multi-atlas
-methods [(link)](http://www.ncbi.nlm.nih.gov/pubmed/21237273N4), Bias
+methods [(link)](https://scholar.google.com/scholar?q=joint+label+fusion+yushkevich&btnG=&hl=en&as_sdt=0%2C31) and [JLF](http://journal.frontiersin.org/article/10.3389/fninf.2013.00027/full), Bias
 Correction [(link)](http://www.ncbi.nlm.nih.gov/pubmed/20378467), DiReCT
 cortical thickness
 [(link)](http://www.ncbi.nlm.nih.gov/pubmed/19150502), DiReCT in
