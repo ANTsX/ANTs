@@ -141,7 +141,8 @@ Optional arguments:
      -r:  rigid alignment to SST                This option dictates if the individual subjects are registered to the single
                                                 subject template before running through antsCorticalThickness.  This potentially
                                                 reduces bias caused by subject orientation and voxel spacing (default = 0).
-     -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0.
+     -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0
+                                                in the antsCorticalThickness.sh script (i.e., no random seeding).
                                                 Requires single thread computation for complete reproducibility.
 USAGE
     exit 1
