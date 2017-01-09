@@ -98,16 +98,14 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
   this->m_ThreadContributionCountImage = RealImageType::New();
   this->m_ThreadContributionCountImage->CopyInformation( inputImage );
   this->m_ThreadContributionCountImage->SetRegions( inputImage->GetRequestedRegion() );
-  this->m_ThreadContributionCountImage->Allocate(0.0);
-  //this->m_ThreadContributionCountImage->FillBuffer( 0.0 );
+  this->m_ThreadContributionCountImage->Allocate(true); // initializes buffer with 0
 
   if( this->m_UseRicianNoiseModel )
     {
     this->m_RicianBiasImage = RealImageType::New();
     this->m_RicianBiasImage->CopyInformation( inputImage );
     this->m_RicianBiasImage->SetRegions( inputImage->GetRequestedRegion() );
-    this->m_RicianBiasImage->Allocate(0.0);
-    //this->m_RicianBiasImage->FillBuffer( 0.0 );
+    this->m_RicianBiasImage->Allocate(true); // initializes buffer with 0
     }
 
   ConstNeighborhoodIterator<InputImageType> ItBI( this->m_NeighborhoodPatchRadius,

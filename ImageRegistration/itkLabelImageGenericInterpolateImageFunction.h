@@ -64,12 +64,12 @@ public:
    * Evaluate at the given index
    */
   virtual OutputType EvaluateAtContinuousIndex(
-    const ContinuousIndexType & cindex ) const
+    const ContinuousIndexType & cindex ) const ITK_OVERRIDE
     {
     return this->EvaluateAtContinuousIndex( cindex, NULL );
     }
 
-	virtual void SetInputImage( const TInputImage *image );
+  virtual void SetInputImage( const TInputImage *image ) ITK_OVERRIDE;
 
 protected:
   LabelImageGenericInterpolateImageFunction();
