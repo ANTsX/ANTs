@@ -231,8 +231,6 @@ private:
 
   RealImagePointer                                     m_WeightSumImage;
 
-  RealType                                             m_MaxWeightValue;
-
   RegionType                                           m_TargetImageRequestedRegion;
 
   typename InputImageType::Pointer                     m_InterpolatedLowResolutionInputImage;

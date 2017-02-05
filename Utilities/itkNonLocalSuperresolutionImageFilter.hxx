@@ -47,7 +47,6 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 {
   this->SetNumberOfRequiredInputs( 2 );
 
-  this->m_MaxWeightValue = 0.0;
   this->m_WeightSumImage = ITK_NULLPTR;
 
   this->m_InterpolatedLowResolutionInputImage = ITK_NULLPTR;
@@ -232,10 +231,10 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
         continue;
         }
 
-      RealType intensityDifferenceSquared = vnl_math_sqr(
-        It.GetCenterPixel() - highResolutionInputImage->GetPixel( searchIndex ) );
+      RealType intensityDifference =
+        It.GetCenterPixel() - highResolutionInputImage->GetPixel( searchIndex );
 
-      if( intensityDifferenceSquared > 3.0 * std::sqrt( this->m_IntensityDifferenceSigma ) )
+      if( std::fabs( intensityDifference ) > 3.0 * this->m_IntensityDifferenceSigma )
         {
         continue;
         }
@@ -243,18 +242,8 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
       RealType patchSimilarity = this->ComputeNeighborhoodPatchSimilarity(
         highResolutionInputImageList, searchIndex, highResolutionPatch, true );
 
-      RealType weight = std::exp( -( intensityDifferenceSquared / vnl_math_sqr( this->m_IntensityDifferenceSigma ) )
-        + vnl_math_sqr( patchSimilarity / this->m_PatchSimilaritySigma ) );
-
-      if( weight > 10.0 )
-        {
-        continue;
-        }
-
-      if( weight > this->m_MaxWeightValue )
-        {
-        this->m_MaxWeightValue = weight;
-        }
+      RealType weight = std::exp( -( vnl_math_sqr( intensityDifference / this->m_IntensityDifferenceSigma )
+        + vnl_math_sqr( patchSimilarity / this->m_PatchSimilaritySigma ) ) );
 
       outputImage->SetPixel( currentCenterIndex, outputImage->GetPixel( currentCenterIndex )
         + weight * this->m_InterpolatedLowResolutionInputImage->GetPixel( searchIndex ) );
@@ -270,8 +259,6 @@ void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 ::AfterThreadedGenerateData()
 {
-  std::cout << "Max weight = " << this->m_MaxWeightValue << std::endl;
-
   OutputImageType * outputImage = this->GetOutput();
 
   typedef DivideImageFilter<OutputImageType, RealImageType, OutputImageType> DividerType;
@@ -281,18 +268,6 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
   divider->Update();
 
   this->SetNthOutput( 0, divider->GetOutput() );
-
-  typedef ImageFileWriter<OutputImageType> WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( "outputImage.nii.gz" );
-  writer->SetInput( this->GetOutput() );
-  writer->Update();
-
-  typedef ImageFileWriter<RealImageType> WriterType2;
-  typename WriterType2::Pointer writer2 = WriterType2::New();
-  writer2->SetFileName( "weightSumImage.nii.gz" );
-  writer2->SetInput( this->m_WeightSumImage );
-  writer2->Update();
 
   this->PerformMeanCorrection();
 }
@@ -518,7 +493,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
     }
 
   os << indent << "Intensity difference sigma = " << this->m_IntensityDifferenceSigma << std::endl;
-  os << indent << "Neighborhood patch sigma = " << this->m_PatchSimilaritySigma << std::endl;
+  os << indent << "Patch similarity sigma = " << this->m_PatchSimilaritySigma << std::endl;
 
   os << indent << "Neighborhood search radius = " << this->m_NeighborhoodSearchRadius << std::endl;
   os << indent << "Neighborhood block radius = " << this->m_NeighborhoodPatchRadius << std::endl;

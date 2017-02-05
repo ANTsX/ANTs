@@ -223,7 +223,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
 
   RealType patchSimilaritySigma = 1.0;
 
-  typename OptionType::Pointer patchSimilaritySigmaOption = parser->GetOption( "intensity-difference-sigma" );
+  typename OptionType::Pointer patchSimilaritySigmaOption = parser->GetOption( "patch-similarity-sigma" );
   if( patchSimilaritySigmaOption && patchSimilaritySigmaOption->GetNumberOfFunctions() )
     {
     patchSimilaritySigma = parser->Convert<RealType>( patchSimilaritySigmaOption->GetFunction( 0 )->GetName() );
