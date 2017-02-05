@@ -9,4 +9,4 @@ extern int DenoiseImage( std::vector<std::string>, // equivalent to argv of comm
                            );
 } // namespace ants
 
-#endif // N4BIASFIELDCORRECTION_H
+#endif // DENOISEIMAGE_H

@@ -946,7 +946,7 @@ template <class TInputImage, class TOutputImage>
 typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::RealType
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::ComputeNeighborhoodPatchSimilarity( const InputImageList &imageList, const IndexType index,
-  const InputImagePixelVectorType &normalizedPatchVectorY, const bool useOnlyFirstImage )
+  const InputImagePixelVectorType &patchVectorY, const bool useOnlyFirstImage )
 {
   unsigned int numberOfImagesToUse = imageList.size();
   if( useOnlyFirstImage )
@@ -968,10 +968,10 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       IndexType neighborhoodIndex = index + this->m_PatchNeighborhoodOffsetList[j];
 
       bool isInBounds = this->m_TargetImageRequestedRegion.IsInside( neighborhoodIndex );
-      if( isInBounds && std::isfinite( normalizedPatchVectorY[count] ) )
+      if( isInBounds && std::isfinite( patchVectorY[count] ) )
         {
         RealType x = static_cast<RealType>( imageList[i]->GetPixel( neighborhoodIndex ) );
-        RealType y = static_cast<RealType>( normalizedPatchVectorY[count] );
+        RealType y = static_cast<RealType>( patchVectorY[count] );
 
         sumX += x;
         sumOfSquaresX += vnl_math_sqr( x );

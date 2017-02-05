@@ -165,6 +165,8 @@
 
 #include "N4BiasFieldCorrection.h"
 
+#include "NonLocalSuperResolution.h"
+
 #include "PasteImageIntoImage.h"
 
 #include "PermuteFlipImageOrientationAxes.h"

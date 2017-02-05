@@ -120,6 +120,7 @@ set(MORE_ANTS_APPS
     CreateTiledMosaic
     CreateImage
     DenoiseImage
+    NonLocalSuperResolution
     WarpTensorImageMultiTransform
     ReorientTensorImage
     RebaseTensorImage
