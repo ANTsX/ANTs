@@ -22,10 +22,13 @@
 
 #include "itkArray.h"
 #include "itkDivideImageFilter.h"
+#include "itkImageDuplicator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkIterationReporter.h"
 #include "itkLinearInterpolateImageFunction.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkMath.h"
 #include "itkNeighborhoodIterator.h"
 #include "itkResampleImageFilter.h"
@@ -43,7 +46,8 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 ::NonLocalSuperresolutionImageFilter() :
   m_Epsilon( 0.01 ),
   m_PatchSimilaritySigma( 1.0 ),
-  m_IntensityDifferenceSigma( 1.0 )
+  m_IntensityDifferenceSigma( 1.0 ),
+  m_CurrentIteration( 0 )
 {
   this->SetNumberOfRequiredInputs( 2 );
 
@@ -51,9 +55,9 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 
   this->m_InterpolatedLowResolutionInputImage = ITK_NULLPTR;
 
-  // Interpolator --- default to linear.
-  typedef LinearInterpolateImageFunction<InputImageType, RealType> LinearInterpolatorType;
-  this->m_Interpolator = LinearInterpolatorType::New();
+  // Interpolator --- default to NN.
+  typedef NearestNeighborInterpolateImageFunction<InputImageType, RealType> NearestNeighborInterpolatorType;
+  this->m_Interpolator = NearestNeighborInterpolatorType::New();
 
   this->m_SimilarityMetric = MEAN_SQUARES;
 
@@ -132,63 +136,110 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
   inputPtr->SetRequestedRegionToLargestPossibleRegion();
 }
 
+template <class TInputImage, class TOutputImage>
+void
+NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
+::GenerateData()
+{
+
+  if( this->m_ScaleLevels.size() == 0 )
+    {
+    itkExceptionMacro( "There are no scale levels." );
+    }
+
+  IterationReporter reporter( this, 0, 1 );
+
+  this->m_CurrentIteration = 0;
+  while( this->m_CurrentIteration < this->m_ScaleLevels.size() )
+    {
+    reporter.CompletedStep();
+
+    this->BeforeThreadedGenerateData();
+
+    typename ImageSource<TOutputImage>::ThreadStruct str1;
+    str1.Filter = this;
+
+    this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
+    this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str1 );
+
+    this->GetMultiThreader()->SingleMethodExecute();
+
+    this->AfterThreadedGenerateData();
+
+    this->m_CurrentIteration++;
+    }
+}
+
 template<typename TInputImage, typename TOutputImage>
 void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
 {
-  this->m_Interpolator->SetInputImage( this->GetLowResolutionInputImage() );
-
-  typedef IdentityTransform<RealType, ImageDimension> IdentityTransformType;
-  typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
-  identityTransform->SetIdentity();
-
-  typedef ResampleImageFilter<InputImageType, InputImageType, RealType> ResamplerType;
-  typename ResamplerType::Pointer resampler = ResamplerType::New();
-  resampler->SetInterpolator( this->m_Interpolator );
-  resampler->SetInput( this->GetLowResolutionInputImage() );
-  resampler->SetTransform( identityTransform );
-  resampler->SetOutputParametersFromImage( this->GetHighResolutionReferenceImage() );
-
-  this->m_InterpolatedLowResolutionInputImage = resampler->GetOutput();
-  this->m_InterpolatedLowResolutionInputImage->Update();
-  this->m_InterpolatedLowResolutionInputImage->DisconnectPipeline();
-
-  // Initialize the weight sum image
-  this->m_WeightSumImage = RealImageType::New();
-  this->m_WeightSumImage->CopyInformation( this->GetHighResolutionReferenceImage() );
-  this->m_WeightSumImage->SetRegions( this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
-  this->m_WeightSumImage->SetLargestPossibleRegion( this->GetHighResolutionReferenceImage()->GetLargestPossibleRegion() );
-  this->m_WeightSumImage->Allocate();
-  this->m_WeightSumImage->FillBuffer( 0.0 );
-
-  // Determine the search and patch offset lists
-
-  ConstNeighborhoodIterator<InputImageType> It( this->m_NeighborhoodSearchRadius,
-    this->GetHighResolutionReferenceImage(), this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
-
-  this->m_NeighborhoodSearchOffsetList.clear();
-
-  this->m_NeighborhoodSearchSize = ( It.GetNeighborhood() ).Size();
-  for( unsigned int n = 0; n < this->m_NeighborhoodSearchSize; n++ )
+  if( this->m_CurrentIteration == 0 )
     {
-    this->m_NeighborhoodSearchOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
+    this->m_Interpolator->SetInputImage( this->GetLowResolutionInputImage() );
+
+    typedef IdentityTransform<RealType, ImageDimension> IdentityTransformType;
+    typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
+    identityTransform->SetIdentity();
+
+    typedef ResampleImageFilter<InputImageType, InputImageType, RealType> ResamplerType;
+    typename ResamplerType::Pointer resampler = ResamplerType::New();
+    resampler->SetInterpolator( this->m_Interpolator );
+    resampler->SetInput( this->GetLowResolutionInputImage() );
+    resampler->SetTransform( identityTransform );
+    resampler->SetOutputParametersFromImage( this->GetHighResolutionReferenceImage() );
+    resampler->Update();
+
+    this->m_InterpolatedLowResolutionInputImage = resampler->GetOutput();
+
+    // Initialize the weight sum image
+    this->m_WeightSumImage = RealImageType::New();
+    this->m_WeightSumImage->CopyInformation( this->GetHighResolutionReferenceImage() );
+    this->m_WeightSumImage->SetRegions( this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
+    this->m_WeightSumImage->SetLargestPossibleRegion( this->GetHighResolutionReferenceImage()->GetLargestPossibleRegion() );
+    this->m_WeightSumImage->Allocate();
+    this->m_WeightSumImage->FillBuffer( 0.0 );
+
+    // Determine the search and patch offset lists
+
+    ConstNeighborhoodIterator<InputImageType> It( this->m_NeighborhoodSearchRadius,
+      this->GetHighResolutionReferenceImage(), this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
+
+    this->m_NeighborhoodSearchOffsetList.clear();
+
+    this->m_NeighborhoodSearchSize = ( It.GetNeighborhood() ).Size();
+    for( unsigned int n = 0; n < this->m_NeighborhoodSearchSize; n++ )
+      {
+      this->m_NeighborhoodSearchOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
+      }
+
+    ConstNeighborhoodIterator<InputImageType> It2( this->m_NeighborhoodPatchRadius,
+      this->GetHighResolutionReferenceImage(), this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
+
+    this->m_NeighborhoodPatchOffsetList.clear();
+
+    this->m_NeighborhoodPatchSize = ( It2.GetNeighborhood() ).Size();
+    for( unsigned int n = 0; n < this->m_NeighborhoodPatchSize; n++ )
+      {
+      this->m_NeighborhoodPatchOffsetList.push_back( ( It2.GetNeighborhood() ).GetOffset( n ) );
+      }
+
+    this->m_TargetImageRequestedRegion = this->GetHighResolutionReferenceImage()->GetBufferedRegion();
+
+    this->AllocateOutputs();
     }
-
-  ConstNeighborhoodIterator<InputImageType> It2( this->m_NeighborhoodPatchRadius,
-    this->GetHighResolutionReferenceImage(), this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
-
-  this->m_NeighborhoodPatchOffsetList.clear();
-
-  this->m_NeighborhoodPatchSize = ( It2.GetNeighborhood() ).Size();
-  for( unsigned int n = 0; n < this->m_NeighborhoodPatchSize; n++ )
+  else
     {
-    this->m_NeighborhoodPatchOffsetList.push_back( ( It2.GetNeighborhood() ).GetOffset( n ) );
+    typedef CastImageFilter<OutputImageType, InputImageType> CasterType;
+    typename CasterType::Pointer caster = CasterType::New();
+    caster->SetInput( this->GetOutput() );
+    caster->Update();
+
+    this->m_InterpolatedLowResolutionInputImage = caster->GetOutput();
+
+    this->m_WeightSumImage->FillBuffer( 0.0 );
     }
-
-  this->m_TargetImageRequestedRegion = this->GetHighResolutionReferenceImage()->GetBufferedRegion();
-
-  this->AllocateOutputs();
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -243,7 +294,8 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
         highResolutionInputImageList, searchIndex, highResolutionPatch, true );
 
       RealType weight = std::exp( -( vnl_math_sqr( intensityDifference / this->m_IntensityDifferenceSigma )
-        + vnl_math_sqr( patchSimilarity / this->m_PatchSimilaritySigma ) ) );
+        + vnl_math_sqr( patchSimilarity /
+          ( this->m_PatchSimilaritySigma * this->m_ScaleLevels[this->m_CurrentIteration] ) ) ) );
 
       outputImage->SetPixel( currentCenterIndex, outputImage->GetPixel( currentCenterIndex )
         + weight * this->m_InterpolatedLowResolutionInputImage->GetPixel( searchIndex ) );

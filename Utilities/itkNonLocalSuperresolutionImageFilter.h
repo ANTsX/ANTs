@@ -80,6 +80,8 @@ public:
   typedef typename RealImageType::Pointer                RealImagePointer;
   typedef typename RealImageType::IndexType              IndexType;
 
+  typedef std::vector<RealType>                          ScaleLevelsArrayType;
+
   typedef ConstNeighborhoodIterator<InputImageType>            ConstNeighborhoodIteratorType;
   typedef typename ConstNeighborhoodIteratorType::RadiusType   NeighborhoodRadiusType;
   typedef typename ConstNeighborhoodIteratorType::OffsetType   NeighborhoodOffsetType;
@@ -174,16 +176,30 @@ public:
   itkGetConstMacro( NeighborhoodPatchRadius, NeighborhoodRadiusType );
 
   /**
-   * Measurement of neighborhood similarity.
+   * Enumerated type for neighborhood similarity.  Default = MEAN_SQUARES
    */
   itkSetMacro( SimilarityMetric, SimilarityMetricType );
   itkGetConstMacro( SimilarityMetric, SimilarityMetricType );
+
+  /**
+   * Scale levels for .
+   */
+  itkSetMacro( ScaleLevels, ScaleLevelsArrayType );
+  itkGetConstMacro( ScaleLevels, ScaleLevelsArrayType );
+
+  /**
+   * Get the number of elapsed iterations.  This is a helper function for
+   * reporting observations.
+   */
+  itkGetConstMacro( CurrentIteration, SizeValueType );
 
 protected:
   NonLocalSuperresolutionImageFilter();
   ~NonLocalSuperresolutionImageFilter() {}
 
   void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
+
+  void GenerateData() ITK_OVERRIDE;
 
   void ThreadedGenerateData( const RegionType &, ThreadIdType ) ITK_OVERRIDE;
 
@@ -248,6 +264,8 @@ private:
   RealType                                             m_PatchSimilaritySigma;
   RealType                                             m_IntensityDifferenceSigma;
 
+  ScaleLevelsArrayType                                 m_ScaleLevels;
+  SizeValueType                                        m_CurrentIteration;
 };
 
 } // end namespace itk

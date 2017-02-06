@@ -33,6 +33,18 @@ public:
 
   void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
     {
+    const TFilter * filter = dynamic_cast<const TFilter *>( caller );
+
+    if( typeid( event ) == typeid( itk::IterationEvent ) )
+      {
+      if( filter->GetCurrentIteration() > 0 )
+        {
+        std::cout << std::endl;
+        }
+      std::cout << "Level " << filter->GetCurrentIteration() << ": " << std::flush;
+      this->m_CurrentProgress = 0;
+      }
+
     itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>( caller );
     if (! po) return;
 //    std::cout << po->GetProgress() << std::endl;
@@ -55,6 +67,18 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
     {
+    const TFilter * filter = dynamic_cast<const TFilter *>( object );
+
+    if( typeid( event ) == typeid( itk::IterationEvent ) )
+      {
+      if( filter->GetCurrentIteration() > 0 )
+        {
+        std::cout << std::endl;
+        }
+      std::cout << "Level " << filter->GetCurrentIteration() << ": " << std::flush;
+      this->m_CurrentProgress = 0;
+      }
+
     itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>(
       const_cast<itk::Object *>( object ) );
     if (! po) return;
@@ -230,6 +254,22 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     }
   superresoluter->SetPatchSimilaritySigma( patchSimilaritySigma );
 
+
+  std::vector<RealType> scaleLevels;
+  scaleLevels.push_back( 32.0 );
+  scaleLevels.push_back( 16.0 );
+  scaleLevels.push_back(  8.0 );
+  scaleLevels.push_back(  4.0 );
+  scaleLevels.push_back(  2.0 );
+  scaleLevels.push_back(  1.0 );
+
+  typename OptionType::Pointer scaleLevelsOption = parser->GetOption( "scale-levels" );
+  if( scaleLevelsOption && scaleLevelsOption->GetNumberOfFunctions() )
+    {
+    scaleLevels = parser->ConvertVector<RealType>( scaleLevelsOption->GetFunction( 0 )->GetName() );
+    }
+  superresoluter->SetScaleLevels( scaleLevels );
+
   itk::TimeProbe timer;
   timer.Start();
 
@@ -238,6 +278,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     typedef CommandProgressUpdate<SuperresoluterType> CommandType;
     typename CommandType::Pointer observer = CommandType::New();
     superresoluter->AddObserver( itk::ProgressEvent(), observer );
+    superresoluter->AddObserver( itk::IterationEvent(), observer );
     }
 
   try
@@ -353,7 +394,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "intensity-difference-sigma" );
-  option->SetShortName( 's' );
+  option->SetShortName( 'g' );
   option->SetUsageOption( 0, "1.0" );
   option->SetDescription( description );
   parser->AddOption( option );
@@ -371,6 +412,17 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   parser->AddOption( option );
   }
 
+  {
+  std::string description =
+    std::string( "Scale levels.  Default = 32x16x8x2x1" );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "scale-levels" );
+  option->SetShortName( 's' );
+  option->SetUsageOption( 0, "32x16x8x2x1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
   {
   std::string description =
