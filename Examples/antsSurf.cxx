@@ -476,7 +476,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
     currentColor[0] = static_cast<unsigned char>( currentRed   * 255.0 );
     currentColor[1] = static_cast<unsigned char>( currentGreen * 255.0 );
     currentColor[2] = static_cast<unsigned char>( currentBlue  * 255.0 );
-    currentColor[3] = static_cast<unsigned char>( defaultAlpha );
+    currentColor[3] = static_cast<unsigned char>( currentAlpha * 255.0 );
 
     colors->InsertNextTupleValue( currentColor );
     }
