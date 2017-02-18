@@ -21,6 +21,8 @@
 #include "itkNonLocalSuperresolutionImageFilter.h"
 
 #include "itkArray.h"
+#include "itkBoxMeanImageFilter.h"
+#include "itkBSplineInterpolateImageFunction.h"
 #include "itkDivideImageFilter.h"
 #include "itkImageDuplicator.h"
 #include "itkImageRegionConstIterator.h"
@@ -55,9 +57,9 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 
   this->m_InterpolatedLowResolutionInputImage = ITK_NULLPTR;
 
-  // Interpolator --- default to NN.
-  typedef NearestNeighborInterpolateImageFunction<InputImageType, RealType> NearestNeighborInterpolatorType;
-  this->m_Interpolator = NearestNeighborInterpolatorType::New();
+  // Interpolator --- default to linear
+  typedef LinearInterpolateImageFunction<InputImageType, RealType> LinearInterpolatorType;
+  this->m_Interpolator = LinearInterpolatorType::New();
 
   this->m_SimilarityMetric = MEAN_SQUARES;
 
@@ -199,7 +201,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
     this->m_WeightSumImage->SetRegions( this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
     this->m_WeightSumImage->SetLargestPossibleRegion( this->GetHighResolutionReferenceImage()->GetLargestPossibleRegion() );
     this->m_WeightSumImage->Allocate();
-    this->m_WeightSumImage->FillBuffer( 0.0 );
+    this->m_WeightSumImage->FillBuffer( 1.0 );
 
     // Determine the search and patch offset lists
 
@@ -238,8 +240,9 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 
     this->m_InterpolatedLowResolutionInputImage = caster->GetOutput();
 
-    this->m_WeightSumImage->FillBuffer( 0.0 );
+    this->m_WeightSumImage->FillBuffer( 1.0 );
     }
+
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -271,11 +274,16 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
     IndexType currentCenterIndex = It.GetIndex();
 
     InputImagePixelVectorType highResolutionPatch =
-      this->VectorizeImageListPatch( highResolutionInputImageList, currentCenterIndex, false );
+      this->VectorizeImageListPatch( highResolutionInputImageList, currentCenterIndex, true );
 
     for( SizeValueType i = 0; i < searchNeighborhoodSize; i++ )
       {
       IndexType searchIndex = currentCenterIndex + searchNeighborhoodOffsetList[i];
+
+      if( searchIndex == currentCenterIndex )
+        {
+        continue;
+        }
 
       if( !outputImage->GetBufferedRegion().IsInside( searchIndex ) )
         {
@@ -285,7 +293,8 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
       RealType intensityDifference =
         It.GetCenterPixel() - highResolutionInputImage->GetPixel( searchIndex );
 
-      if( std::fabs( intensityDifference ) > 3.0 * this->m_IntensityDifferenceSigma )
+      if( std::fabs( intensityDifference ) > 3.0 * this->m_IntensityDifferenceSigma *
+        vnl_math_sqr( this->m_ScaleLevels[this->m_CurrentIteration] ) )
         {
         continue;
         }
@@ -293,9 +302,13 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
       RealType patchSimilarity = this->ComputeNeighborhoodPatchSimilarity(
         highResolutionInputImageList, searchIndex, highResolutionPatch, true );
 
-      RealType weight = std::exp( -( vnl_math_sqr( intensityDifference / this->m_IntensityDifferenceSigma )
-        + vnl_math_sqr( patchSimilarity /
-          ( this->m_PatchSimilaritySigma * this->m_ScaleLevels[this->m_CurrentIteration] ) ) ) );
+      RealType intensityWeight = vnl_math_sqr( intensityDifference /
+        ( this->m_IntensityDifferenceSigma * this->m_ScaleLevels[this->m_CurrentIteration] ) );
+
+      RealType patchWeight = vnl_math_sqr( patchSimilarity /
+        ( this->m_PatchSimilaritySigma * this->m_ScaleLevels[this->m_CurrentIteration] ) );
+
+      RealType weight = std::exp( -( intensityWeight + patchWeight ) );
 
       outputImage->SetPixel( currentCenterIndex, outputImage->GetPixel( currentCenterIndex )
         + weight * this->m_InterpolatedLowResolutionInputImage->GetPixel( searchIndex ) );
@@ -331,52 +344,74 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 {
   OutputImageType *outputImage = this->GetOutput();
 
-  typedef CastImageFilter<OutputImageType, InputImageType> CasterType;
-  typename CasterType::Pointer caster = CasterType::New();
-  caster->SetInput( outputImage );
-  caster->Update();
+  typedef BoxMeanImageFilter<TOutputImage, TInputImage> BoxMeanFilterType;
+  typename BoxMeanFilterType::Pointer boxMeanFilter = BoxMeanFilterType::New();
+  boxMeanFilter->SetInput( outputImage );
 
-  this->m_Interpolator->SetInputImage( caster->GetOutput() );
+  typename InputImageType::SpacingType lowResolutionSpacing =
+    this->GetLowResolutionInputImage()->GetSpacing();
+  typename InputImageType::SpacingType highResolutionSpacing =
+    this->GetHighResolutionReferenceImage()->GetSpacing();
+
+  typename BoxMeanFilterType::RadiusType boxRadius;
+  for( SizeValueType d = 0; d < ImageDimension; d++ )
+    {
+    boxRadius[d] = static_cast<SizeValueType>(
+      std::ceil( highResolutionSpacing[d] / lowResolutionSpacing[d] ) ) - 1;
+    }
+  boxMeanFilter->SetRadius( boxRadius );
+  boxMeanFilter->Update();
+
+  typedef NearestNeighborInterpolateImageFunction<InputImageType, RealType> NearestNeighborInterpolatorType;
+  typename NearestNeighborInterpolatorType::Pointer nearestNeighborInterpolator =
+    NearestNeighborInterpolatorType::New();
+
+  nearestNeighborInterpolator->SetInputImage( boxMeanFilter->GetOutput() );
 
   typedef IdentityTransform<RealType, ImageDimension> IdentityTransformType;
   typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
   identityTransform->SetIdentity();
 
   typedef ResampleImageFilter<InputImageType, InputImageType, RealType> ResamplerType;
-
   typename ResamplerType::Pointer resampler = ResamplerType::New();
-  resampler->SetInterpolator( this->m_Interpolator );
-  resampler->SetInput( caster->GetOutput() );
+  resampler->SetInterpolator( nearestNeighborInterpolator );
+  resampler->SetInput( boxMeanFilter->GetOutput() );
   resampler->SetTransform( identityTransform );
   resampler->SetOutputParametersFromImage( this->GetLowResolutionInputImage() );
 
   typedef SubtractImageFilter<InputImageType> SubtracterType;
-
   typename SubtracterType::Pointer subtracter = SubtracterType::New();
   subtracter->SetInput1( resampler->GetOutput() );
   subtracter->SetInput2( this->GetLowResolutionInputImage() );
   subtracter->Update();
 
-  this->m_Interpolator->SetInputImage( subtracter->GetOutput() );
+  nearestNeighborInterpolator->SetInputImage( subtracter->GetOutput() );
 
-  typename ResamplerType::Pointer resampler2 = ResamplerType::New();
-  resampler2->SetInterpolator( this->m_Interpolator );
+  typedef ResampleImageFilter<InputImageType, OutputImageType, RealType> ResamplerType2;
+  typename ResamplerType2::Pointer resampler2 = ResamplerType2::New();
+  resampler2->SetInterpolator( nearestNeighborInterpolator );
   resampler2->SetInput( subtracter->GetOutput() );
   resampler2->SetTransform( identityTransform );
   resampler2->SetOutputParametersFromImage( this->GetHighResolutionReferenceImage() );
 
-  typename SubtracterType::Pointer subtracter2 = SubtracterType::New();
-  subtracter2->SetInput1( caster->GetOutput() );
+  typedef SubtractImageFilter<OutputImageType> SubtracterType2;
+  typename SubtracterType2::Pointer subtracter2 = SubtracterType2::New();
+  subtracter2->SetInput1( outputImage );
   subtracter2->SetInput2( resampler2->GetOutput() );
+  subtracter2->Update();
 
-  typedef CastImageFilter<InputImageType, OutputImageType> CasterType2;
-  typename CasterType2::Pointer caster2 = CasterType2::New();
-  caster2->SetInput( subtracter2->GetOutput() );
+  ImageRegionIteratorWithIndex<OutputImageType> It( subtracter2->GetOutput(),
+    subtracter2->GetOutput()->GetRequestedRegion() );
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+    {
+    if( It.Get() < NumericTraits<OutputPixelType>::ZeroValue() )
+      {
+      It.Set( static_cast<OutputPixelType>(
+        this->m_InterpolatedLowResolutionInputImage->GetPixel( It.GetIndex() ) ) );
+      }
+    }
 
-  outputImage = caster2->GetOutput();
-  outputImage->Update();
-
-  this->SetNthOutput( 0, outputImage );
+  this->SetNthOutput( 0, subtracter2->GetOutput() );
 }
 
 template <class TInputImage, class TOutputImage>

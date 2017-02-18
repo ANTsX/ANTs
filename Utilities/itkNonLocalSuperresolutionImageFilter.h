@@ -69,9 +69,10 @@ public:
   typedef typename InputImageType::Pointer               InputImagePointer;
   typedef std::vector<InputImagePointer>                 InputImageList;
   typedef std::vector<InputImageList>                    InputImageSetList;
+  typedef typename InputImageType::RegionType            RegionType;
 
   typedef TOutputImage                                   OutputImageType;
-  typedef typename InputImageType::RegionType            RegionType;
+  typedef typename OutputImageType::PixelType            OutputPixelType;
 
   typedef std::vector<InputPixelType>                    InputImagePixelVectorType;
 
