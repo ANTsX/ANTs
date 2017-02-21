@@ -251,11 +251,14 @@ iterative closest point
 
 **Multi-atlas joint label/intensity fusion examples** [example 1](https://github.com/ntustison/MalfLabelingExample) [example 2](https://github.com/qureai/Multi-Atlas-Segmentation) (thanks to @chsasank)
 
+**Patch-based super resolution** [example](https://github.com/ntustison/NonLocalSuperResolution)
+
 **Lung and lobe estimation** [example](https://github.com/ntustison/LungAndLobeEstimationExample)
 
 **Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
 
 **ANTs** [google scholar page](http://scholar.google.com/citations?user=ox-mhOkAAAAJ&hl=en)
+
 
 Presentations: e.g. [a Prezi about
 ANTs](http://prezi.com/mwrmcm-h9-w4/ants/?kw=view-mwrmcm-h9-w4&rc=ref-40024395)
