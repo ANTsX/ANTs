@@ -5,6 +5,16 @@
 #include "ReadWriteData.h"
 
 #include "itkNonLocalSuperresolutionImageFilter.h"
+
+#include "itkBSplineInterpolateImageFunction.h"
+#include "itkLinearInterpolateImageFunction.h"
+#include "itkGaussianInterpolateImageFunction.h"
+#include "itkInterpolateImageFunction.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkWindowedSincInterpolateImageFunction.h"
+#include "itkLabelImageGaussianInterpolateImageFunction.h"
+#include "itkLabelImageGenericInterpolateImageFunction.h"
+
 #include "itkTimeProbe.h"
 
 #include "ANTsVersion.h"
@@ -270,6 +280,35 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     }
   superresoluter->SetScaleLevels( scaleLevels );
 
+  // Get the interpolator and possible parameters
+  std::string whichInterpolator( "linear" );
+  typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
+  if( interpolationOption && interpolationOption->GetNumberOfFunctions() )
+    {
+    whichInterpolator = interpolationOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( whichInterpolator );
+    }
+  if( !std::strcmp( whichInterpolator.c_str(), "multilabel" ) || !std::strcmp( whichInterpolator.c_str(), "genericlabel" ) )
+    {
+    if( verbose )
+      {
+      std::cerr << "A label-based interpolator is not appropriate for this application." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
+
+  const size_t VImageDimension = ImageDimension;
+  typename ImageType::SpacingType
+    cache_spacing_for_smoothing_sigmas(itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
+  if( !std::strcmp( whichInterpolator.c_str(), "gaussian" ) )
+    {
+    cache_spacing_for_smoothing_sigmas = referenceImage->GetSpacing();
+    }
+
+#include "make_interpolator_snip.tmpl"
+
+  superresoluter->SetInterpolator( interpolator );
+
   itk::TimeProbe timer;
   timer.Start();
 
@@ -420,6 +459,26 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetLongName( "scale-levels" );
   option->SetShortName( 's' );
   option->SetUsageOption( 0, "32x16x8x2x1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "Several interpolation options are available in ITK. " )
+    + std::string( "These have all been made available." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "interpolation" );
+  option->SetShortName( 'n' );
+  option->SetUsageOption( 0, "Linear" );
+  option->SetUsageOption( 1, "NearestNeighbor" );
+  option->SetUsageOption( 2, "Gaussian[<sigma=imageSpacing>,<alpha=1.0>]" );
+  option->SetUsageOption( 3, "BSpline[<order=3>]" );
+  option->SetUsageOption( 4, "CosineWindowedSinc" );
+  option->SetUsageOption( 5, "WelchWindowedSinc" );
+  option->SetUsageOption( 6, "HammingWindowedSinc" );
+  option->SetUsageOption( 7, "LanczosWindowedSinc" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
