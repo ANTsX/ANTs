@@ -1313,10 +1313,10 @@ if [[ -f ${REGISTRATION_TEMPLATE_WARP} ]];
   fi
 
 ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK}`
-bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
-gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
-wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
-thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_IMAGE} | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 3 | cut -d ' ' -f 2 `
+gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_GM}  | cut -d ':' -f 3 | cut -d ' ' -f 2 `
+wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_WM}  | cut -d ':' -f 3 | cut -d ' ' -f 2 `
+thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_IMAGE} | cut -d ':' -f 3 | cut -d ' ' -f 2 `
 echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}brainvols.csv
 echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}brainvols.csv
 if [[ -f ${ANTSPATH}/GetMeshAndTopology ]] && [[ ${DIMENSION} -eq 3 ]] ; then
