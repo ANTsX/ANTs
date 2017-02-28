@@ -195,70 +195,88 @@ ANTs has won several unbiased & international competitions
 
 -   Won the best paper award at the [STACOM 2014 challenge](http://www.cardiacatlas.org/web/stacom2014/home)
 
-Learning about ANTs
+Learning about ANTs (examples, etc.)
 ----------------------------------------------------------
-**antsRegistration** [bash example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
 
-**Eigenanatomy** for [multivariate neuroimage analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
-    [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
-    [CCA](http://www.ncbi.nlm.nih.gov/pubmed/20083207)
+### General 
 
-**ANTs and ITK** [paper](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4009425/)
+* **antsRegistration** [bash example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
 
-**Pre-built ANTs templates with spatial priors** [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436)
+* **antsRegistration with mask** [example](https://github.com/ntustison/antsRegistrationWithMaskExample)
 
-**The ANTs Cortical Thickness Pipeline** [example](https://github.com/ntustison/KapowskiChronicles/blob/master/paper2.pdf?raw=true)
+* **ANTs and ITK** [paper](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4009425/)
 
-**"Cooking" tissue priors for templates**
+* **Large deformation** [example](http://stnava.github.io/C/)
+
+* **Automobile** [example](http://stnava.github.io/cars/)
+
+* **Asymmetry** [example](http://stnava.github.io/asymmetry/)
+
+* **Point-set** [mapping](http://stnava.github.io/chicken/) which includes the PSE metric and affine and deformable registration with (labeled) pointsets or iterative closest point
+
+* **Feature matching** [example](http://stnava.github.io/featureMatching/) ... not up to date ...
+
+* **Global optimization** [example](http://stnava.github.io/butterfly/)
+
+* **Patch-based super resolution** [example](https://github.com/ntustison/NonLocalSuperResolutionExample)
+
+* **Visualization** [example](https://github.com/ntustison/antsVisualizationExamples)
+
+* **Morphing** [example](http://stnava.github.io/Morpheus/)
+
+* **Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
+
+* **ANTs** [google scholar page](http://scholar.google.com/citations?user=ox-mhOkAAAAJ&hl=en)
+
+### Neuro
+
+* **Basic Brain Mapping** [example](http://stnava.github.io/BasicBrainMapping/)
+
+* **Template construction** [example](http://ntustison.github.io/TemplateBuildingExample/)
+
+* **Pre-built ANTs templates with spatial priors** [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436)
+
+* **Brain extraction** [example](https://github.com/ntustison/antsBrainExtractionExample)
+
+* **N4 bias correction <-> segmentation** [example](https://github.com/ntustison/antsAtroposN4Example)
+
+* **Cortical thickness** [example](https://github.com/ntustison/antsCorticalThicknessExample)
+
+* **"Cooking" tissue priors for templates**
   [example](https://github.com/ntustison/antsCookTemplatePriorsExample)
   (after you build your template)
 
-**Basic Brain Mapping** [example](http://stnava.github.io/BasicBrainMapping/)
+* **Multi-atlas joint label/intensity fusion examples** [example 1](https://github.com/ntustison/MalfLabelingExample) [example 2](https://github.com/qureai/Multi-Atlas-Segmentation) (thanks to @chsasank)
 
-**Large deformation** [example](http://stnava.github.io/C/)
+* **The ANTs Cortical Thickness Pipeline** [example](https://github.com/ntustison/KapowskiChronicles/blob/master/paper2.pdf?raw=true)
 
-**Template construction** [example](http://ntustison.github.io/TemplateBuildingExample/)
+* **Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
 
-**Automobile** [example](http://stnava.github.io/cars/)
+* **Eigenanatomy** for [multivariate neuroimage analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
+    [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
+    [CCA](http://www.ncbi.nlm.nih.gov/pubmed/20083207)
 
-**Asymmetry** [example](http://stnava.github.io/asymmetry/)
+* **fMRI or Motion Correction** [example](http://stnava.github.io/fMRIANTs/)
 
-**Point-set** [mapping](http://stnava.github.io/chicken/) which includes the
-PSE metric and affine and deformable registration with (labeled) pointsets or
-iterative closest point
+* **fMRI reproducibility** [example](http://stnava.github.io/RfMRI/)
 
-**Feature matching** [example](http://stnava.github.io/featureMatching/) ... not up to date ...
+* **fMRI prediction** [example](http://stnava.github.io/Haxby2001/) ... WIP ...
 
-**Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
+### Lung 
 
-**Global optimization** [example](http://stnava.github.io/butterfly/)
+* **CT lung registration** [example](https://github.com/ntustison/antsCtLungRegistrationExample)
 
-**Morphing** [example](http://stnava.github.io/Morpheus/)
+* **Lung mask registration** [example](https://github.com/ntustison/ProtonCtLungMaskRegistration)
 
-**fMRI or Motion Correction** [example](http://stnava.github.io/fMRIANTs/)
+* **Lung and lobe estimation** [example](https://github.com/ntustison/LungAndLobeEstimationExample)
 
-**fMRI reproducibility** [example](http://stnava.github.io/RfMRI/)
+* **Lung ventilation-based segmentation** [example](https://github.com/ntustison/LungVentilationSegmentationExample)
 
-**fMRI prediction** [example](http://stnava.github.io/Haxby2001/) ... WIP ...
+### Cardiac
 
-**Cardiac** [example](http://stnava.github.io/LabelMyHeart)
+* **Cardiac** [example](http://stnava.github.io/LabelMyHeart)
 
-**Brain extraction** [example](https://github.com/ntustison/antsBrainExtractionExample)
-
-**N4 bias correction <-> segmentation** [example](https://github.com/ntustison/antsAtroposN4Example)
-
-**Cortical thickness** [example](https://github.com/ntustison/antsCorticalThicknessExample)
-
-**Multi-atlas joint label/intensity fusion examples** [example 1](https://github.com/ntustison/MalfLabelingExample) [example 2](https://github.com/qureai/Multi-Atlas-Segmentation) (thanks to @chsasank)
-
-**Patch-based super resolution** [example](https://github.com/ntustison/NonLocalSuperResolution)
-
-**Lung and lobe estimation** [example](https://github.com/ntustison/LungAndLobeEstimationExample)
-
-**Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
-
-**ANTs** [google scholar page](http://scholar.google.com/citations?user=ox-mhOkAAAAJ&hl=en)
-
+### Misc.
 
 Presentations: e.g. [a Prezi about
 ANTs](http://prezi.com/mwrmcm-h9-w4/ants/?kw=view-mwrmcm-h9-w4&rc=ref-40024395)
