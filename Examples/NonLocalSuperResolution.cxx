@@ -587,8 +587,11 @@ private:
   parser->SetCommand( argv[0] );
 
   std::string commandDescription =
-    std::string( "Non-local super resolution described in  " )
-    + std::string( "JV Manjon, P Coupe, A Buades, DL Collins, and Montserrat Robles. " )
+    std::string( "Non-local super resolution described in the following papers:  " )
+    + std::string( "1) JV Manjon, P Coupe, A Buades, V Fonov, DL Collins, and Montserrat Robles. " )
+    + std::string( "Non-local MRI Upsampling." )
+    + std::string( "Medical Image Analysis, 14:784-792, 2010 and" )
+    + std::string( "2) JV Manjon, P Coupe, A Buades, DL Collins, and Montserrat Robles. " )
     + std::string( "MRI Superresolution Using Self-Similarity and Image Priors." )
     + std::string( "International Journal of Biomedical Imaging, 2010." );
 

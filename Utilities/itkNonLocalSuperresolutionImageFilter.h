@@ -35,6 +35,11 @@ namespace itk {
  *
  * \par REFERENCE
  *
+ * José V. Manjón, Pierrick Coupe, Antonio Buades, Vladimir Fonov, Louis Collins and
+ * Montserrat Robles.
+ * "Non-local MRI Upsampling",
+ * Medical Image Analysis, 14:784-792, 2010.
+ *
  * José V. Manjón, Pierrick Coupe, Antonio Buades, Louis Collins and Montserrat Robles.
  * "MRI Superresolution Using Self-Similarity and Image Priors",
  * International Journal of Biomedical Imaging, 2010.

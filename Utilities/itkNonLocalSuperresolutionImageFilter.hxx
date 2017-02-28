@@ -579,6 +579,9 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
     os << "Using mean squares to measure the patch similarity." << std::endl;
     }
 
+  os << "Interpolator: " << std::endl;
+  this->m_Interpolator->Print( os, indent );
+
   os << indent << "Intensity difference sigma = " << this->m_IntensityDifferenceSigma << std::endl;
   os << indent << "Patch similarity sigma = " << this->m_PatchSimilaritySigma << std::endl;
 
