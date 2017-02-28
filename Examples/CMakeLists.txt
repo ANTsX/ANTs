@@ -196,7 +196,7 @@ install(PROGRAMS ../Scripts/ANTSpexec.sh
      ../Scripts/antsIntroduction.sh
      ../Scripts/antsLaplacianBoundaryCondition.R
      ../Scripts/antsLongitudinalCorticalThickness.sh
-     ../Scripts/antsMalfLabeling.sh
+     ../Scripts/antsJointLabelFusion.sh
      ../Scripts/antsMultivariateTemplateConstruction.sh
      ../Scripts/antsMultivariateTemplateConstruction2.sh
      ../Scripts/antsNetworkAnalysis.R
