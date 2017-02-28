@@ -640,7 +640,8 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
             std::cerr << "Caught an ITK exception: " << std::endl;
             std::cerr << err << " " << __FILE__ << " " << __LINE__ << std::endl;
             }
-          throw &err;
+          return EXIT_FAILURE;
+          // throw &err;
           }
         catch( ... )
           {
@@ -648,7 +649,8 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
             {
             std::cerr << "Error while writing in image: " << outputFileName << std::endl;
             }
-          throw;
+          return EXIT_FAILURE;
+          // throw;
           }
         }
       }
