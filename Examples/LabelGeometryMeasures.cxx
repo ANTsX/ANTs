@@ -9,10 +9,15 @@
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkImage.h"
 #include "itkLabelGeometryImageFilter.h"
-#include "itkLabelPerimeterEstimationCalculator.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkResampleImageFilter.h"
 #include "itkTransformFileWriter.h"
+
+#include "itkLabelPerimeterEstimationCalculator.h"
+#include "itkLabelMap.h"
+#include "itkLabelImageToLabelMapFilter.h"
+#include "itkShapeLabelMapFilter.h"
+#include "itkShapeLabelObject.h"
 
 #include <iostream>
 #include <vector>
@@ -72,11 +77,28 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 //   filter->CalculateOrientedLabelRegionsOn();
   filter->Update();
 
-  typedef itk::LabelPerimeterEstimationCalculator<LabelImageType> AreaFilterType;
-  typename AreaFilterType::Pointer areafilter = AreaFilterType::New();
-  areafilter->SetImage( labelImage );
-  areafilter->SetFullyConnected( false );
-  areafilter->Compute();
+
+  typedef itk::ShapeLabelObject<LabelType, ImageDimension> LabelObjectType;
+  typedef itk::LabelMap< LabelObjectType > LabelMapType;
+
+  // convert the image in a collection of objects
+  typedef itk::LabelImageToLabelMapFilter<LabelImageType, LabelMapType> ConverterType;
+  typename ConverterType::Pointer converter = ConverterType::New();
+  converter->SetInput( labelImage );
+
+  typedef itk::ShapeLabelMapFilter< LabelMapType > ValuatorType;
+  typename ValuatorType::Pointer valuator = ValuatorType::New();
+  valuator->SetInput( converter->GetOutput() );
+
+  valuator->Update();
+
+  typename LabelMapType::Pointer labelMap = valuator->GetOutput();
+
+//   typedef itk::LabelPerimeterEstimationCalculator<LabelImageType> AreaFilterType;
+//   typename AreaFilterType::Pointer areafilter = AreaFilterType::New();
+//   areafilter->SetImage( labelImage );
+//   areafilter->SetFullyConnected( false );
+//   areafilter->Compute();
 
   typename FilterType::LabelsType allLabels = filter->GetLabels();
   std::sort( allLabels.begin(), allLabels.end() );
@@ -144,7 +166,10 @@ int LabelGeometryMeasures( int argc, char * argv[] )
       {
       unsigned int columnIndex = 0;
       measures( rowIndex, columnIndex++ ) = filter->GetVolume( *allLabelsIt );
-      measures( rowIndex, columnIndex++ ) = areafilter->GetPerimeter( *allLabelsIt );
+
+      const LabelObjectType * labelObject = labelMap->GetLabelObject( *allLabelsIt );
+
+      measures( rowIndex, columnIndex++ ) = labelObject->GetPerimeter();
       measures( rowIndex, columnIndex++ ) = filter->GetEccentricity( *allLabelsIt );
       measures( rowIndex, columnIndex++ ) = filter->GetElongation( *allLabelsIt );
       measures( rowIndex, columnIndex++ ) = filter->GetOrientation( *allLabelsIt );
@@ -234,7 +259,10 @@ int LabelGeometryMeasures( int argc, char * argv[] )
         }
       std::cout << std::setw( 7 ) << *allLabelsIt;
       std::cout << std::setw( 10 ) << filter->GetVolume( *allLabelsIt );
-      std::cout << std::setw( 15 ) << areafilter->GetPerimeter( *allLabelsIt );
+
+      const LabelObjectType * labelObject = labelMap->GetLabelObject( *allLabelsIt );
+
+      std::cout << std::setw( 15 ) << labelObject->GetPerimeter();
       std::cout << std::setw( 15 ) << filter->GetEccentricity( *allLabelsIt );
       std::cout << std::setw( 15 ) << filter->GetElongation( *allLabelsIt );
       std::cout << std::setw( 15 ) << filter->GetOrientation( *allLabelsIt );
@@ -270,190 +298,6 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 
   return EXIT_SUCCESS;
 }
-
-template <class TransformType, class LabelImageType>
-unsigned int GetNumberOfLabelVoxelsInUpperRightQuadrant( TransformType *affineTransform, LabelImageType *labelImage )
-{
-  typedef itk::ResampleImageFilter<LabelImageType, LabelImageType> ResampleFilterType;
-  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
-  resampler->SetTransform( affineTransform->GetInverseTransform() );
-  resampler->SetSize( labelImage->GetLargestPossibleRegion().GetSize() );
-  resampler->SetOutputSpacing( labelImage->GetSpacing() );
-  resampler->SetOutputOrigin( labelImage->GetOrigin() );
-
-  typedef itk::NearestNeighborInterpolateImageFunction<LabelImageType, double> InterpolatorType;
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-  resampler->SetInterpolator( interpolator );
-  resampler->SetInput( labelImage );
-  resampler->Update();
-
-  typedef typename LabelImageType::RegionType RegionType;
-
-  typename RegionType::IndexType index;
-  typename RegionType::SizeType size;
-  for( unsigned int d = 0; d < LabelImageType::ImageDimension; d++ )
-    {
-    index[d] = std::floor( resampler->GetOutput()->GetLargestPossibleRegion().GetIndex()[d] + 0.5 * resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[d] );
-    size[d] = std::floor( 0.5 * resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[d] );
-    }
-
-  index[1] = std::floor( resampler->GetOutput()->GetLargestPossibleRegion().GetIndex()[1] );
-  size[1] = std::floor( resampler->GetOutput()->GetLargestPossibleRegion().GetSize()[1] );
-
-  RegionType region;
-  region.SetIndex( index );
-  region.SetSize( size );
-
-  unsigned int numberOfVoxels = 0;
-
-  itk::ImageRegionIterator<LabelImageType> It( resampler->GetOutput(), region );
-  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-    {
-    if( It.Get() == 1 )
-      {
-      numberOfVoxels++;
-      }
-    }
-
-  return numberOfVoxels;
-}
-
-int GetReorientationRigidTransform( int argc, char * argv[] )
-{
-  const unsigned int ImageDimension = 2;
-
-  if( argc < 4 )
-    {
-    std::cerr << "Not enough arguments.  See help." << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  typedef unsigned int                          LabelType;
-  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
-
-  LabelImageType::Pointer labelImage = LabelImageType::New();
-  ReadImage<LabelImageType>( labelImage, argv[2] );
-
-  typedef itk::LabelGeometryImageFilter<LabelImageType> FilterType;
-  FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( labelImage );
-
-//   filter->CalculatePixelIndicesOff();
-//   filter->CalculateOrientedBoundingBoxOff();
-//   filter->CalculateOrientedLabelRegionsOff();
-//   // These generate optional outputs.
-  filter->CalculatePixelIndicesOn();
-  filter->CalculateOrientedBoundingBoxOn();;
-  filter->CalculateOrientedLabelRegionsOn();
-  filter->Update();
-
-  typedef itk::AffineTransform<double, ImageDimension> TransformType;
-  TransformType::Pointer transform = TransformType::New();
-  TransformType::MatrixType reorientationMatrix( filter->GetRotationMatrix( 2 ) );
-  TransformType::CenterType center;
-
-  for( unsigned int i = 0; i < ImageDimension; i++ )
-    {
-    center[i] = filter->GetCentroid( 2 )[i] *
-      filter->GetInput()->GetSpacing()[i];
-    }
-
-  TransformType::OutputVectorType translation;
-  translation.Fill( 0 );
-  transform->SetCenter( center );
-  transform->SetTranslation( translation );
-  transform->SetMatrix( reorientationMatrix );
-  bool doReflections = true;
-  float scale = 1.0;
-  if( argc > 4 )
-    {
-    doReflections = static_cast<bool>( atoi( argv[4] ) );
-    }
-  if( argc > 5 )
-    {
-    scale = atof( argv[5] );
-    }
-  if( doReflections )
-    {
-    // check which has a higher concentraion
-
-    TransformType::MatrixType flipXMatrix;
-    flipXMatrix.SetIdentity();
-    flipXMatrix( 0, 0 ) = -1.0 * scale;
-
-    TransformType::MatrixType flipYMatrix;
-    flipYMatrix.SetIdentity();
-    flipYMatrix( 1, 1 ) = -1.0 * scale;
-
-    TransformType::MatrixType testRotationMatrix;
-    std::vector<int> numberOfVoxelsInUpperRightQuadrant( 2 );
-
-    // check current rotation matrix
-    testRotationMatrix = reorientationMatrix;
-    transform->SetMatrix( testRotationMatrix );
-
-    numberOfVoxelsInUpperRightQuadrant[0] =
-      GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
-
-    // check flip x
-    testRotationMatrix = flipXMatrix * reorientationMatrix;
-    transform->SetMatrix( testRotationMatrix );
-    numberOfVoxelsInUpperRightQuadrant[1] =
-      GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
-
-      // check flip y
-//     testRotationMatrix = flipYMatrix * reorientationMatrix;
-//     transform->SetMatrix( testRotationMatrix );
-//     numberOfVoxelsInUpperRightQuadrant[2] =
-//       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
-
-    // check flip x and flip y
-//     testRotationMatrix = flipXMatrix * flipYMatrix * reorientationMatrix;
-//     transform->SetMatrix( testRotationMatrix );
-//     numberOfVoxelsInUpperRightQuadrant[3] =
-//       GetNumberOfLabelVoxelsInUpperRightQuadrant<TransformType, LabelImageType>( transform, labelImage );
-
-    std::vector<int>::iterator result = std::max_element( numberOfVoxelsInUpperRightQuadrant.begin(), numberOfVoxelsInUpperRightQuadrant.end() );
-    unsigned int index = std::distance( numberOfVoxelsInUpperRightQuadrant.begin(), result );
-
-    switch( index )
-      {
-      case 0:  default:
-        {
-        testRotationMatrix = reorientationMatrix * scale;
-        transform->SetMatrix( testRotationMatrix );
-        break;
-        }
-      case 1:
-        {
-        testRotationMatrix = flipXMatrix * reorientationMatrix * scale;
-        transform->SetMatrix( testRotationMatrix );
-        break;
-        }
-//       case 2:
-//         {
-//         testRotationMatrix = flipYMatrix * reorientationMatrix * scale;
-//         transform->SetMatrix( testRotationMatrix );
-//         break;
-//         }
-//       case 3:
-//         {
-//         testRotationMatrix = flipXMatrix * flipYMatrix * reorientationMatrix * scale;
-//         transform->SetMatrix( testRotationMatrix );
-//         break;
-//         }
-      }
-    }
-  typedef itk::TransformFileWriter TransformWriterType;
-  TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-  transformWriter->SetInput( transform );
-  transformWriter->SetFileName( argv[3] );
-  transformWriter->Update();
-  return EXIT_SUCCESS;
-}
-
-
-
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
@@ -513,30 +357,22 @@ private:
       }
     return EXIT_FAILURE;
     }
-  std::string xstring=std::string("X");
-  std::string xstringtest(argv[1]);
-  if( xstring.compare(xstringtest) == 0 )
+
+  switch( atoi( argv[1] ) )
     {
-    GetReorientationRigidTransform( argc, argv );
-    }
-  else
-    {
-    switch( atoi( argv[1] ) )
+    case 2:
       {
-      case 2:
-        {
-        LabelGeometryMeasures<2>( argc, argv );
-        }
-        break;
-      case 3:
-        {
-        LabelGeometryMeasures<3>( argc, argv );
-        }
-        break;
-      default:
-        std::cout << "Unsupported dimension" << std::endl;
-        return EXIT_FAILURE;
+      LabelGeometryMeasures<2>( argc, argv );
       }
+      break;
+    case 3:
+      {
+      LabelGeometryMeasures<3>( argc, argv );
+      }
+      break;
+    default:
+      std::cout << "Unsupported dimension" << std::endl;
+      return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;
 }
