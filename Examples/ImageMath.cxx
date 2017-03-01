@@ -226,7 +226,7 @@ int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
     {
     transformReader1->Update();
     }
-  catch( itk::ExceptionObject & excp )
+  catch( itk::ExceptionObject & /* excp */ )
     {
     std::cout << "no transformation1 that can be read" << fn1 << std::endl;
     return 0;
@@ -237,7 +237,7 @@ int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
     {
     transformReader2->Update();
     }
-  catch( itk::ExceptionObject & excp )
+  catch( itk::ExceptionObject & /* excp */ )
     {
     std::cout << "no transformation2 that can be read" << fn2 << std::endl;
     return 0;
@@ -436,7 +436,7 @@ int GetLargestComponent(int argc, char *argv[])
     {
     relabel->Update();
     }
-  catch( itk::ExceptionObject & excep )
+  catch( itk::ExceptionObject & /* excep */ )
     {
     // std::cout << "Relabel: exception caught !" << std::endl;
     // std::cout << excep << std::endl;
@@ -551,7 +551,7 @@ int ClusterThresholdVariate(int argc, char *argv[])
     {
     relabel->Update();
     }
-  catch( itk::ExceptionObject & excep )
+  catch( itk::ExceptionObject & /* excep */ )
     {
     // std::cout << "Relabel: exception caught !" << std::endl;
     // std::cout << excep << std::endl;
@@ -2715,7 +2715,7 @@ int SliceTimingCorrection(int argc, char *argv[])
       {
       filter->Update();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& /* exp */)
       {
       // std::cout << "Exception caught!" << std::endl;
       // std::cout << exp << std::endl;
@@ -3529,7 +3529,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& /* exp */ )
       {
       // std::cout << "Exception caught!" << std::endl;
       // std::cout << exp << std::endl;
@@ -4235,7 +4235,7 @@ int CompCorrAuto(int argc, char *argv[])
     {
     writer->Write();
     }
-  catch( itk::ExceptionObject& exp )
+  catch( itk::ExceptionObject& /* exp */ )
     {
     // std::cout << "Exception caught!" << std::endl;
     // std::cout << exp << std::endl;
@@ -4571,7 +4571,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
     {
     writer->Write();
     }
-  catch( itk::ExceptionObject& exp )
+  catch( itk::ExceptionObject& /* exp */ )
     {
     // std::cout << "Exception caught!" << std::endl;
     // std::cout << exp << std::endl;
@@ -8301,7 +8301,7 @@ int FillHoles(int argc, char *argv[])
     {
     relabel->Update();
     }
-  catch( itk::ExceptionObject & excep )
+  catch( itk::ExceptionObject & /* excep */ )
     {
     // std::cout << "Relabel: exception caught !" << std::endl;
     // std::cout << excep << std::endl;
@@ -9535,7 +9535,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
       {
       OutputCSV->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& /* exp */)
       {
       // std::cout << "Exception caught!" << std::endl;
       // std::cout << exp << std::endl;
@@ -9577,7 +9577,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
       OutputCSV->Write();
       // std::cout << "Output written to " << outname.c_str() << ".csv." << std::endl;
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& /* exp */)
       {
       // std::cout << "Exception caught!" << std::endl;
       // std::cout << exp << std::endl;
@@ -11034,7 +11034,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& /* exp */)
       {
       // std::cout << "Exception caught!" << std::endl;
       // std::cout << exp << std::endl;
@@ -11169,7 +11169,7 @@ int RandomlySampleImageSetToCSV(unsigned int argc, char *argv[])
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& /* exp */)
       {
       // std::cout << "Exception caught!" << std::endl;
       // std::cout << exp << std::endl;
@@ -11348,7 +11348,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
         {
         writer->Write();
         }
-      catch( itk::ExceptionObject& exp )
+      catch( itk::ExceptionObject& /* exp */)
         {
         // std::cout << "Exception caught!" << std::endl;
         // std::cout << exp << std::endl;
@@ -11373,7 +11373,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& /* exp */)
       {
       // std::cout << "Exception caught!" << std::endl;
       // std::cout << exp << std::endl;
