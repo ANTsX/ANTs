@@ -18,7 +18,7 @@
 #ifndef itkNonLocalSuperresolutionImageFilter_h
 #define itkNonLocalSuperresolutionImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "itkNonLocalPatchBasedImageFilter.h"
 
 #include "itkConstNeighborhoodIterator.h"
 
@@ -27,7 +27,6 @@ namespace itk {
 /**
  * \class NonLocalSuperresolutionImageFilter
  * \brief Implementation of a non-local upsampling (i.e., superresolution) image filter.
-
  *
  * \author Jose V. Manjon with ITK porting by Nick Tustison
  *
@@ -49,17 +48,17 @@ namespace itk {
 
 template<typename TInputImage, class TOutputImage = TInputImage>
 class NonLocalSuperresolutionImageFilter :
-  public ImageToImageFilter<TInputImage, TOutputImage>
+  public NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef NonLocalSuperresolutionImageFilter            Self;
-  typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
-  typedef SmartPointer<Self>                            Pointer;
-  typedef SmartPointer<const Self>                      ConstPointer;
+  typedef NonLocalSuperresolutionImageFilter                         Self;
+  typedef NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>   Superclass;
+  typedef SmartPointer<Self>                                         Pointer;
+  typedef SmartPointer<const Self>                                   ConstPointer;
 
   /** Runtime information support. */
-  itkTypeMacro( NonLocalSuperresolutionImageFilter, ImageToImageFilter );
+  itkTypeMacro( NonLocalSuperresolutionImageFilter, NonLocalPatchBasedImageFilter );
 
   /** Standard New method. */
   itkNewMacro( Self );
@@ -72,33 +71,24 @@ public:
   typedef TInputImage                                    InputImageType;
   typedef typename InputImageType::PixelType             InputPixelType;
   typedef typename InputImageType::Pointer               InputImagePointer;
-  typedef std::vector<InputImagePointer>                 InputImageList;
-  typedef std::vector<InputImageList>                    InputImageSetList;
-  typedef typename InputImageType::RegionType            RegionType;
+  typedef typename Superclass::InputImageList            InputImageList;
+  typedef typename Superclass::InputImageSetList         InputImageSetList;
+  typedef typename Superclass::RegionType                RegionType;
+  typedef typename Superclass::IndexType                 IndexType;
 
   typedef TOutputImage                                   OutputImageType;
   typedef typename OutputImageType::PixelType            OutputPixelType;
 
-  typedef std::vector<InputPixelType>                    InputImagePixelVectorType;
+  typedef typename Superclass::InputImagePixelVectorType InputImagePixelVectorType;
 
-  typedef float                                          RealType;
-  typedef Image<RealType, ImageDimension>                RealImageType;
-  typedef typename RealImageType::Pointer                RealImagePointer;
-  typedef typename RealImageType::IndexType              IndexType;
+  typedef typename Superclass::RealType                  RealType;
+  typedef typename Superclass::RealImageType             RealImageType;
+  typedef typename Superclass::RealImagePointer          RealImagePointer;
+
+  typedef typename Superclass::ConstNeighborhoodIteratorType  ConstNeighborhoodIteratorType;
+  typedef typename Superclass::NeighborhoodOffsetListType     NeighborhoodOffsetListType;
 
   typedef std::vector<RealType>                          ScaleLevelsArrayType;
-
-  typedef ConstNeighborhoodIterator<InputImageType>            ConstNeighborhoodIteratorType;
-  typedef typename ConstNeighborhoodIteratorType::RadiusType   NeighborhoodRadiusType;
-  typedef typename ConstNeighborhoodIteratorType::OffsetType   NeighborhoodOffsetType;
-
-  /**
-   * Neighborhood patch similarity metric enumerated type
-   */
-  enum SimilarityMetricType {
-    PEARSON_CORRELATION,
-    MEAN_SQUARES
-  };
 
   /**
    * Set the low resolution input image to be refined.
@@ -168,26 +158,6 @@ public:
   itkGetConstMacro( PatchSimilaritySigma, RealType );
 
   /**
-   * Neighborhood search radius.
-   * Default = 3x3x...
-   */
-  itkSetMacro( NeighborhoodSearchRadius, NeighborhoodRadiusType );
-  itkGetConstMacro( NeighborhoodSearchRadius, NeighborhoodRadiusType );
-
-  /**
-   * Neighborhood block radius.
-   * Default = 1x1x...
-   */
-  itkSetMacro( NeighborhoodPatchRadius, NeighborhoodRadiusType );
-  itkGetConstMacro( NeighborhoodPatchRadius, NeighborhoodRadiusType );
-
-  /**
-   * Enumerated type for neighborhood similarity.  Default = MEAN_SQUARES
-   */
-  itkSetMacro( SimilarityMetric, SimilarityMetricType );
-  itkGetConstMacro( SimilarityMetric, SimilarityMetricType );
-
-  /**
    * Scale levels for .
    */
   itkSetMacro( ScaleLevels, ScaleLevelsArrayType );
@@ -228,28 +198,7 @@ private:
 
   void PerformMeanCorrection();
 
-  RealType ComputeNeighborhoodPatchSimilarity( const InputImageList &, const IndexType, const InputImagePixelVectorType &, const bool );
-
-  InputImagePixelVectorType VectorizeImageListPatch( const InputImageList &, const IndexType, const bool );
-
-  InputImagePixelVectorType VectorizeImagePatch( const InputImagePointer, const IndexType, const bool );
-
-  void GetMeanAndStandardDeviationOfVectorizedImagePatch( const InputImagePixelVectorType &, RealType &, RealType & );
-
-  typedef std::pair<unsigned int, RealType>           DistanceIndexType;
-  typedef std::vector<DistanceIndexType>              DistanceIndexVectorType;
-
-  struct DistanceIndexComparator
-    {
-    bool operator () ( const DistanceIndexType& left, const DistanceIndexType& right )
-      {
-      return left.second < right.second;
-      }
-    };
-
   RealType                                             m_Epsilon;
-
-  SimilarityMetricType                                 m_SimilarityMetric;
 
   RealImagePointer                                     m_WeightSumImage;
 
@@ -258,14 +207,6 @@ private:
   typename InputImageType::Pointer                     m_InterpolatedLowResolutionInputImage;
 
   typename InterpolatorType::Pointer                   m_Interpolator;
-
-  SizeValueType                                        m_NeighborhoodSearchSize;
-  NeighborhoodRadiusType                               m_NeighborhoodSearchRadius;
-  std::vector<NeighborhoodOffsetType>                  m_NeighborhoodSearchOffsetList;
-
-  NeighborhoodRadiusType                               m_NeighborhoodPatchRadius;
-  SizeValueType                                        m_NeighborhoodPatchSize;
-  std::vector<NeighborhoodOffsetType>                  m_NeighborhoodPatchOffsetList;
 
   RealType                                             m_PatchSimilaritySigma;
   RealType                                             m_IntensityDifferenceSigma;

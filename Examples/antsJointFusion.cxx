@@ -147,7 +147,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       bool fileReadSuccessfully = ReadImage<RadiusImageType>( searchRadiusImage, searchRadiusString.c_str() );
       if( fileReadSuccessfully )
         {
-        fusionFilter->SetSearchNeighborhoodRadiusImage( searchRadiusImage );
+        fusionFilter->SetNeighborhoodSearchRadiusImage( searchRadiusImage );
         }
       else
         {
@@ -186,7 +186,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
         {
         searchNeighborhoodRadius[d] = searchRadius[d];
         }
-      fusionFilter->SetSearchNeighborhoodRadius( searchNeighborhoodRadius );
+      fusionFilter->SetNeighborhoodSearchRadius( searchNeighborhoodRadius );
       }
     }
 
@@ -218,7 +218,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     patchNeighborhoodRadius[d] = patchRadius[d];
     }
 
-  fusionFilter->SetPatchNeighborhoodRadius( patchNeighborhoodRadius );
+  fusionFilter->SetNeighborhoodPatchRadius( patchNeighborhoodRadius );
 
   // Check if the user wants to retain atlas voting and/or label posterior images
 
