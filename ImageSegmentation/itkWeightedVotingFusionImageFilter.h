@@ -243,6 +243,11 @@ public:
   itkBooleanMacro( ConstrainSolutionToNonnegativeWeights );
 
   /**
+   * Get the current state for progress reporting.
+   */
+  itkGetConstMacro( IsWeightedAveragingComplete, bool );
+
+  /**
    * Get the posterior probability image corresponding to a label.
    */
   const ProbabilityImagePointer GetLabelPosteriorProbabilityImage( LabelType label )

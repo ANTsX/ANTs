@@ -730,9 +730,10 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
-::ThreadedGenerateDataForReconstruction( const RegionType &region, ThreadIdType
-  itkNotUsed( threadId ) )
+::ThreadedGenerateDataForReconstruction( const RegionType &region, ThreadIdType threadId )
 {
+  ProgressReporter progress( this, threadId, 2 * region.GetNumberOfPixels(), 100 );
+
   typename OutputImageType::Pointer output = this->GetOutput();
 
   // Perform voting at each voxel
@@ -740,6 +741,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
+    progress.CompletedPixel();
+
     IndexType index = It.GetIndex();
 
     if( this->m_MaskImage &&
@@ -779,6 +782,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
     {
+    progress.CompletedPixel();
+
     typename ProbabilityImageType::PixelType weightSum = ItW.Get();
 
     IndexType index = ItW.GetIndex();
