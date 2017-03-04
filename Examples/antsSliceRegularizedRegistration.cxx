@@ -865,6 +865,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
     param_values(i,3) = p[3];
     }
   transformList[i]->SetParameters( p );
+  transformUList[i]->SetParameters( p );
   err += ( p - pOld ).rms();
   }
   err = err / static_cast< double >( transformList.size() );
@@ -872,7 +873,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
     {
     std::cout << "Loop" << loop << " polyerr: " << err <<  " image-metric " << metricval << std::endl;
     }
-  transformList = transformUList;
+//  transformList = transformUList;
   for ( unsigned int i = 0; i < transformList.size(); i++)
     {
     typename TXType::ParametersType p = transformList[i]->GetParameters();
@@ -881,7 +882,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
     if ( nparams >= 3 ) if ( polydegree[2] == 0 ) param_values(i,2) = p[2];
     if ( nparams >= 4 ) if ( polydegree[3] == 0 ) param_values(i,3) = p[3];
     }
-  }// done with optimization, now move on to writing data ...
+  }// done with optimization, now move on to writing data ... closes for ( unsigned int loop = 0; loop < maxloop; loop++ )
 
   // write polynomial predicted data
     {

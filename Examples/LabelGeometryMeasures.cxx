@@ -60,6 +60,7 @@ int LabelGeometryMeasures( int argc, char * argv[] )
     {
     outputCSVFormat = true;
     }
+
   typedef itk::LabelGeometryImageFilter<LabelImageType, RealImageType> FilterType;
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( labelImage );
@@ -74,8 +75,8 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 //   filter->CalculatePixelIndicesOn();
 //   filter->CalculateOrientedBoundingBoxOn();;
 //   filter->CalculateOrientedLabelRegionsOn();
-
   filter->Update();
+
 
   typedef itk::ShapeLabelObject<LabelType, ImageDimension> LabelObjectType;
   typedef itk::LabelMap< LabelObjectType > LabelMapType;
@@ -154,26 +155,16 @@ int LabelGeometryMeasures( int argc, char * argv[] )
     std::ostringstream convert;// stream used for the conversion
     for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
       {
-      if( *allLabelsIt == 0 )
-        {
-        continue;
-        }
       convert << *allLabelsIt;   // insert the textual representation of 'Number' in the characters in the stream
       rowHeaders.push_back( convert.str() ); // set 'Result' to the contents of the stream
       }
 
-    vnl_matrix<double> measures( allLabels.size() - 1, columnHeaders.size() - 1 );
+    vnl_matrix<double> measures( allLabels.size(), columnHeaders.size() - 1 );
 
     unsigned int rowIndex = 0;
     for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
       {
-      if( *allLabelsIt == 0 )
-        {
-        continue;
-        }
-
       unsigned int columnIndex = 0;
-//      measures( rowIndex, columnIndex ) = static_cast< double >( *allLabelsIt );
       measures( rowIndex, columnIndex++ ) = filter->GetVolume( *allLabelsIt );
 
       const LabelObjectType * labelObject = labelMap->GetLabelObject( *allLabelsIt );
