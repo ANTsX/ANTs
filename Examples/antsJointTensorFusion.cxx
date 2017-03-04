@@ -202,8 +202,8 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
     patchNeighborhoodRadius[d] = patchRadius[d];
     }
 
-  fusionFilter->SetSearchNeighborhoodRadius( searchNeighborhoodRadius );
-  fusionFilter->SetPatchNeighborhoodRadius( patchNeighborhoodRadius );
+  fusionFilter->SetNeighborhoodSearchRadius( searchNeighborhoodRadius );
+  fusionFilter->SetNeighborhoodPatchRadius( patchNeighborhoodRadius );
 
   // Retain atlas voting and label posterior images
 

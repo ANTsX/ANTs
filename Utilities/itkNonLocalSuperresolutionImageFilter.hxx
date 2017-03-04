@@ -61,10 +61,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
   typedef LinearInterpolateImageFunction<InputImageType, RealType> LinearInterpolatorType;
   this->m_Interpolator = LinearInterpolatorType::New();
 
-  this->m_SimilarityMetric = MEAN_SQUARES;
-
-  this->m_NeighborhoodPatchRadius.Fill( 1 );
-  this->m_NeighborhoodSearchRadius.Fill( 3 );
+  this->SetSimilarityMetric( Superclass::MEAN_SQUARES );
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -143,7 +140,6 @@ void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
 {
-
   if( this->m_ScaleLevels.size() == 0 )
     {
     itkExceptionMacro( "There are no scale levels." );
@@ -179,6 +175,8 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 {
   if( this->m_CurrentIteration == 0 )
     {
+    Superclass::BeforeThreadedGenerateData();
+
     this->m_Interpolator->SetInputImage( this->GetLowResolutionInputImage() );
 
     typedef IdentityTransform<RealType, ImageDimension> IdentityTransformType;
@@ -203,31 +201,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
     this->m_WeightSumImage->Allocate();
     this->m_WeightSumImage->FillBuffer( 1.0 );
 
-    // Determine the search and patch offset lists
-
-    ConstNeighborhoodIterator<InputImageType> It( this->m_NeighborhoodSearchRadius,
-      this->GetHighResolutionReferenceImage(), this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
-
-    this->m_NeighborhoodSearchOffsetList.clear();
-
-    this->m_NeighborhoodSearchSize = ( It.GetNeighborhood() ).Size();
-    for( unsigned int n = 0; n < this->m_NeighborhoodSearchSize; n++ )
-      {
-      this->m_NeighborhoodSearchOffsetList.push_back( ( It.GetNeighborhood() ).GetOffset( n ) );
-      }
-
-    ConstNeighborhoodIterator<InputImageType> It2( this->m_NeighborhoodPatchRadius,
-      this->GetHighResolutionReferenceImage(), this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
-
-    this->m_NeighborhoodPatchOffsetList.clear();
-
-    this->m_NeighborhoodPatchSize = ( It2.GetNeighborhood() ).Size();
-    for( unsigned int n = 0; n < this->m_NeighborhoodPatchSize; n++ )
-      {
-      this->m_NeighborhoodPatchOffsetList.push_back( ( It2.GetNeighborhood() ).GetOffset( n ) );
-      }
-
-    this->m_TargetImageRequestedRegion = this->GetHighResolutionReferenceImage()->GetBufferedRegion();
+    Superclass::SetTargetImageRegion( this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
 
     this->AllocateOutputs();
     }
@@ -242,7 +216,6 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 
     this->m_WeightSumImage->FillBuffer( 1.0 );
     }
-
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -256,8 +229,8 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 
   OutputImageType *outputImage = this->GetOutput();
 
-  std::vector<NeighborhoodOffsetType> searchNeighborhoodOffsetList
-    = this->m_NeighborhoodSearchOffsetList;
+  NeighborhoodOffsetListType searchNeighborhoodOffsetList
+    = this->GetNeighborhoodSearchOffsetList();
   SizeValueType searchNeighborhoodSize = searchNeighborhoodOffsetList.size();
 
   // This is used for future extensions to include multiple high reference images
@@ -265,7 +238,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
   InputImageList highResolutionInputImageList;
   highResolutionInputImageList.push_back( const_cast<InputImageType *>( highResolutionInputImage ) );
 
-  ConstNeighborhoodIteratorType It( this->m_NeighborhoodPatchRadius, highResolutionInputImage, region );
+  ConstNeighborhoodIteratorType It( this->GetNeighborhoodPatchRadius(), highResolutionInputImage, region );
 
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
@@ -414,155 +387,6 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
   this->SetNthOutput( 0, subtracter2->GetOutput() );
 }
 
-template <class TInputImage, class TOutputImage>
-typename NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>::InputImagePixelVectorType
-NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
-::VectorizeImageListPatch( const InputImageList &imageList, const IndexType index, const bool normalize )
-{
-  InputImagePixelVectorType patchVector( this->m_NeighborhoodPatchSize * imageList.size() );
-  for( unsigned int i = 0; i < imageList.size(); i++ )
-    {
-    InputImagePixelVectorType patchVectorPerModality = this->VectorizeImagePatch( imageList[i], index, normalize );
-    for( unsigned int j = 0; j < this->m_NeighborhoodPatchSize; j++ )
-      {
-      patchVector[i * this->m_NeighborhoodPatchSize + j] = patchVectorPerModality[j];
-      }
-    }
-  return patchVector;
-}
-
-template <class TInputImage, class TOutputImage>
-typename NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>::InputImagePixelVectorType
-NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
-::VectorizeImagePatch( const InputImagePointer image, const IndexType index, const bool normalize )
-{
-  InputImagePixelVectorType patchVector( this->m_NeighborhoodPatchSize );
-  for( SizeValueType i = 0; i < this->m_NeighborhoodPatchSize; i++ )
-    {
-    IndexType neighborhoodIndex = index + this->m_NeighborhoodPatchOffsetList[i];
-
-    bool isInBounds = this->m_TargetImageRequestedRegion.IsInside( neighborhoodIndex );
-    if( isInBounds )
-      {
-      InputPixelType pixel = image->GetPixel( neighborhoodIndex );
-      patchVector[i] = pixel;
-      }
-    else
-      {
-      patchVector[i] = std::numeric_limits<RealType>::quiet_NaN();
-      }
-    }
-
-  if( normalize )
-    {
-    RealType mean = 0.0;
-    RealType standardDeviation = 0.0;
-    this->GetMeanAndStandardDeviationOfVectorizedImagePatch( patchVector, mean, standardDeviation );
-
-    standardDeviation = std::max( standardDeviation, NumericTraits<RealType>::OneValue() );
-
-    typename InputImagePixelVectorType::iterator it;
-    for( it = patchVector.begin(); it != patchVector.end(); ++it )
-      {
-      *it = ( *it - mean ) / standardDeviation;
-      }
-    }
-  return patchVector;
-}
-
-template <class TInputImage, class TOutputImage>
-void
-NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
-::GetMeanAndStandardDeviationOfVectorizedImagePatch(
-  const InputImagePixelVectorType &patchVector, RealType &mean, RealType &standardDeviation )
-{
-  RealType sum = 0.0;
-  RealType sumOfSquares = 0.0;
-  RealType count = 0.0;
-
-  typename InputImagePixelVectorType::const_iterator it;
-  for( it = patchVector.begin(); it != patchVector.end(); ++it )
-    {
-    if( std::isfinite( *it ) )
-      {
-      sum += *it;
-      sumOfSquares += vnl_math_sqr( *it );
-      count += 1.0;
-      }
-    }
-
-  mean = sum / count;
-  standardDeviation = std::sqrt( ( sumOfSquares - count * vnl_math_sqr( mean ) ) / ( count - 1.0 ) );
-}
-
-template <class TInputImage, class TOutputImage>
-typename NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>::RealType
-NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
-::ComputeNeighborhoodPatchSimilarity( const InputImageList &imageList, const IndexType index,
-  const InputImagePixelVectorType &patchVectorY, const bool useOnlyFirstImage )
-{
-  unsigned int numberOfImagesToUse = imageList.size();
-  if( useOnlyFirstImage )
-    {
-    numberOfImagesToUse = 1;
-    }
-
-  RealType sumX = 0.0;
-  RealType sumOfSquaresX = 0.0;
-  RealType sumOfSquaredDifferencesXY = 0.0;
-  RealType sumXY = 0.0;
-  RealType N = 0.0;
-
-  SizeValueType count = 0;
-  for( SizeValueType i = 0; i < numberOfImagesToUse; i++ )
-    {
-    for( SizeValueType j = 0; j < this->m_NeighborhoodPatchSize; j++ )
-      {
-      IndexType neighborhoodIndex = index + this->m_NeighborhoodPatchOffsetList[j];
-
-      bool isInBounds = this->m_TargetImageRequestedRegion.IsInside( neighborhoodIndex );
-      if( isInBounds && std::isfinite( patchVectorY[count] ) )
-        {
-        RealType x = static_cast<RealType>( imageList[i]->GetPixel( neighborhoodIndex ) );
-        RealType y = static_cast<RealType>( patchVectorY[count] );
-
-        sumX += x;
-        sumOfSquaresX += vnl_math_sqr( x );
-        sumXY += ( x * y );
-
-        sumOfSquaredDifferencesXY += vnl_math_sqr( y - x );
-        N += 1.0;
-        }
-      ++count;
-      }
-    }
-
-  // If we are on the boundary, a neighborhood patch might not overlap
-  // with the image.  If we have 2 voxels or less for a neighborhood patch
-  // we don't consider it to be a suitable match.
-  if( N < 3.0 )
-    {
-    return NumericTraits<RealType>::max();
-    }
-
-  if( this->m_SimilarityMetric == PEARSON_CORRELATION )
-    {
-    RealType varianceX = sumOfSquaresX - vnl_math_sqr( sumX ) / N;
-    varianceX = std::max( varianceX, static_cast<RealType>( 1.0e-6 ) );
-
-    RealType measure = vnl_math_sqr( sumXY ) / varianceX;
-    return ( sumXY > 0 ? -measure : measure );
-    }
-  else if( this->m_SimilarityMetric == MEAN_SQUARES )
-    {
-    return ( sumOfSquaredDifferencesXY / N );
-    }
-  else
-    {
-    itkExceptionMacro( "Unrecognized similarity metric." );
-    }
-}
-
 template<typename TInputImage, typename TOutputImage>
 void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
@@ -570,23 +394,11 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 {
   Superclass::PrintSelf( os, indent );
 
-  if( this->m_SimilarityMetric == PEARSON_CORRELATION )
-    {
-    os << "Using Pearson correlation to measure the patch similarity." << std::endl;
-    }
-  else if( this->m_SimilarityMetric == MEAN_SQUARES )
-    {
-    os << "Using mean squares to measure the patch similarity." << std::endl;
-    }
-
   os << "Interpolator: " << std::endl;
   this->m_Interpolator->Print( os, indent );
 
   os << indent << "Intensity difference sigma = " << this->m_IntensityDifferenceSigma << std::endl;
   os << indent << "Patch similarity sigma = " << this->m_PatchSimilaritySigma << std::endl;
-
-  os << indent << "Neighborhood search radius = " << this->m_NeighborhoodSearchRadius << std::endl;
-  os << indent << "Neighborhood block radius = " << this->m_NeighborhoodPatchRadius << std::endl;
 }
 
 } // end namespace itk

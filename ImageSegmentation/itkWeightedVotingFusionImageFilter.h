@@ -18,7 +18,7 @@
 #ifndef __itkWeightedVotingFusionImageFilter_h
 #define __itkWeightedVotingFusionImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "itkNonLocalPatchBasedImageFilter.h"
 
 #include "itkConstNeighborhoodIterator.h"
 
@@ -52,17 +52,17 @@ namespace itk
 
 template <class TInputImage, class TOutputImage>
 class WeightedVotingFusionImageFilter
-: public ImageToImageFilter<TInputImage, TOutputImage>
+: public NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef WeightedVotingFusionImageFilter                 Self;
-  typedef ImageToImageFilter<TInputImage, TOutputImage>   Superclass;
-  typedef SmartPointer<Self>                              Pointer;
-  typedef SmartPointer<const Self>                        ConstPointer;
+  typedef WeightedVotingFusionImageFilter                            Self;
+  typedef NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>   Superclass;
+  typedef SmartPointer<Self>                                         Pointer;
+  typedef SmartPointer<const Self>                                   ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( WeightedVotingFusionImageFilter, ImageToImageFilter );
+  itkTypeMacro( WeightedVotingFusionImageFilter, NonLocalPatchBasedImageFilter );
 
   itkNewMacro( Self );
 
@@ -75,10 +75,11 @@ public:
   typedef typename InputImageType::Pointer           InputImagePointer;
   typedef typename InputImageType::ConstPointer      InputImageConstPointer;
   typedef typename InputImageType::PixelType         InputImagePixelType;
-  typedef std::vector<InputImagePointer>             InputImageList;
-  typedef std::vector<InputImageList>                InputImageSetList;
 
-  typedef std::vector<InputImagePixelType>           InputImagePixelVectorType;
+  typedef typename Superclass::InputImageList        InputImageList;
+  typedef typename Superclass::InputImageSetList     InputImageSetList;
+
+  typedef typename Superclass::InputImagePixelVectorType    InputImagePixelVectorType;
 
   typedef TOutputImage                               OutputImageType;
   typedef typename OutputImageType::PixelType        LabelType;
@@ -96,7 +97,6 @@ public:
   typedef typename InputImageType::SizeType          SizeType;
   typedef typename InputImageType::IndexType         IndexType;
 
-
   typedef Image<float, ImageDimension>               ProbabilityImageType;
   typedef typename ProbabilityImageType::Pointer     ProbabilityImagePointer;
 
@@ -110,20 +110,14 @@ public:
   typedef std::map<LabelType, LabelImagePointer>        LabelExclusionMap;
   typedef std::vector<ProbabilityImagePointer>          VotingWeightImageList;
 
-  typedef ConstNeighborhoodIterator<InputImageType>               ConstNeighborhoodIteratorType;
-  typedef typename ConstNeighborhoodIteratorType::RadiusType      NeighborhoodRadiusType;
-  typedef typename ConstNeighborhoodIteratorType::OffsetType      NeighborhoodOffsetType;
+  typedef typename Superclass::ConstNeighborhoodIteratorType      ConstNeighborhoodIteratorType;
+  typedef typename Superclass::NeighborhoodRadiusType             NeighborhoodRadiusType;
+  typedef typename Superclass::NeighborhoodOffsetType             NeighborhoodOffsetType;
+  typedef typename Superclass::NeighborhoodOffsetListType         NeighborhoodOffsetListType;
+
   typedef typename SizeType::SizeValueType                        RadiusValueType;
   typedef Image<RadiusValueType, ImageDimension>                  RadiusImageType;
   typedef typename RadiusImageType::Pointer                       RadiusImagePointer;
-
-  /**
-   * Neighborhood patch similarity metric enumerated type
-   */
-  enum SimilarityMetricType {
-    PEARSON_CORRELATION,
-    MEAN_SQUARES
-  };
 
   /**
    * Set the multimodal target image
@@ -195,26 +189,12 @@ public:
   itkGetConstMacro( LabelSet, LabelSetType );
 
   /**
-   * Set/Get the local search neighborhood for minimizing potential registration error.
-   * Default = 3x3x3.
-   */
-  itkSetMacro( SearchNeighborhoodRadius, NeighborhoodRadiusType );
-  itkGetConstMacro( SearchNeighborhoodRadius, NeighborhoodRadiusType );
-
-  /**
    * Set/Get the local search neighborhood radius image.
    */
-  void SetSearchNeighborhoodRadiusImage( RadiusImageType *image )
+  void SetNeighborhoodSearchRadiusImage( RadiusImageType *image )
     {
-    this->m_SearchNeighborhoodRadiusImage = image;
+    this->m_NeighborhoodSearchRadiusImage = image;
     }
-
-  /**
-   * Set/Get the patch neighborhood for calculating the similarity measures.
-   * Default = 2x2x2.
-   */
-  itkSetMacro( PatchNeighborhoodRadius, NeighborhoodRadiusType );
-  itkGetConstMacro( PatchNeighborhoodRadius, NeighborhoodRadiusType );
 
   /**
    * Set/Get the Alpha parameter---the regularization weight added to the matrix Mx for
@@ -263,10 +243,9 @@ public:
   itkBooleanMacro( ConstrainSolutionToNonnegativeWeights );
 
   /**
-   * Measurement of neighborhood similarity.
+   * Get the current state for progress reporting.
    */
-  itkSetMacro( SimilarityMetric, SimilarityMetricType );
-  itkGetConstMacro( SimilarityMetric, SimilarityMetricType );
+  itkGetConstMacro( IsWeightedAveragingComplete, bool );
 
   /**
    * Get the posterior probability image corresponding to a label.
@@ -353,14 +332,6 @@ private:
 
   void ThreadedGenerateDataForReconstruction( const RegionType &, ThreadIdType );
 
-  RealType ComputeNeighborhoodPatchSimilarity( const InputImageList &, const IndexType, const InputImagePixelVectorType &, const bool );
-
-  InputImagePixelVectorType VectorizeImageListPatch( const InputImageList &, const IndexType, const bool );
-
-  InputImagePixelVectorType VectorizeImagePatch( const InputImagePointer, const IndexType, const bool );
-
-  void GetMeanAndStandardDeviationOfVectorizedImagePatch( const InputImagePixelVectorType &, RealType &, RealType & );
-
   VectorType NonNegativeLeastSquares( const MatrixType, const VectorType, const RealType );
 
   void UpdateInputs();
@@ -385,8 +356,6 @@ private:
   LabelExclusionMap                                    m_LabelExclusionImages;
   MaskImagePointer                                     m_MaskImage;
 
-  RegionType                                           m_TargetImageRequestedRegion;
-
   typename CountImageType::Pointer                     m_CountImage;
 
   LabelSetType                                         m_LabelSet;
@@ -394,14 +363,8 @@ private:
   SizeValueType                                        m_NumberOfAtlasSegmentations;
   SizeValueType                                        m_NumberOfAtlasModalities;
 
-  NeighborhoodRadiusType                               m_SearchNeighborhoodRadius;
-  NeighborhoodRadiusType                               m_PatchNeighborhoodRadius;
-  SizeValueType                                        m_PatchNeighborhoodSize;
-  std::vector<NeighborhoodOffsetType>                  m_SearchNeighborhoodOffsetList;
   std::map<RadiusValueType,
-    std::vector<NeighborhoodOffsetType> >              m_SearchNeighborhoodOffsetSetsMap;
-
-  std::vector<NeighborhoodOffsetType>                  m_PatchNeighborhoodOffsetList;
+              NeighborhoodOffsetListType>              m_NeighborhoodSearchOffsetSetsMap;
 
   RealType                                             m_Alpha;
   RealType                                             m_Beta;
@@ -410,11 +373,9 @@ private:
   bool                                                 m_RetainAtlasVotingWeightImages;
   bool                                                 m_ConstrainSolutionToNonnegativeWeights;
 
-  SimilarityMetricType                                 m_SimilarityMetric;
-
   ProbabilityImagePointer                              m_WeightSumImage;
 
-  RadiusImagePointer                                   m_SearchNeighborhoodRadiusImage;
+  RadiusImagePointer                                   m_NeighborhoodSearchRadiusImage;
 
   /** Output variables     */
   LabelPosteriorProbabilityMap                         m_LabelPosteriorProbabilityImages;

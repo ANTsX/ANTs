@@ -29,16 +29,30 @@ public:
   itkNewMacro( CommandProgressUpdate );
 protected:
 
-  CommandProgressUpdate() : m_CurrentProgress( 0 ) {};
+  CommandProgressUpdate() : m_CurrentProgress( 0 ), m_StartNewLine( true ) {};
 
   typedef TFilter FilterType;
 
   unsigned int m_CurrentProgress;
+  bool         m_StartNewLine;
 
 public:
 
   void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
     {
+    const TFilter * filter = dynamic_cast<const TFilter *>( caller );
+
+    if( this->m_CurrentProgress == 0 && ! filter->GetIsWeightedAveragingComplete() )
+      {
+      std::cout << "Weighted averaging: " << std::flush;
+      }
+    else if( this->m_StartNewLine && filter->GetIsWeightedAveragingComplete() )
+      {
+      std::cout << std::endl << "Reconstruction: " << std::flush;
+      this->m_StartNewLine = false;
+      this->m_CurrentProgress = 0;
+      }
+
     itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>( caller );
     if (! po) return;
 //    std::cout << po->GetProgress() << std::endl;
@@ -61,12 +75,26 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
     {
+    const TFilter * filter = dynamic_cast<const TFilter *>( object );
+
+    if( this->m_CurrentProgress == 0 && ! filter->GetIsWeightedAveragingComplete() )
+      {
+      std::cout << "Weighted averaging: " << std::flush;
+      }
+    else if( this->m_StartNewLine && filter->GetIsWeightedAveragingComplete() )
+      {
+      std::cout << std::endl << "Reconstruction: " << std::flush;
+      this->m_StartNewLine = false;
+      this->m_CurrentProgress = 0;
+      }
+
     itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>(
       const_cast<itk::Object *>( object ) );
     if (! po) return;
 
     if( typeid( event ) == typeid ( itk::ProgressEvent )  )
       {
+
       if( this->m_CurrentProgress < 99 )
         {
         this->m_CurrentProgress++;
@@ -147,7 +175,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       bool fileReadSuccessfully = ReadImage<RadiusImageType>( searchRadiusImage, searchRadiusString.c_str() );
       if( fileReadSuccessfully )
         {
-        fusionFilter->SetSearchNeighborhoodRadiusImage( searchRadiusImage );
+        fusionFilter->SetNeighborhoodSearchRadiusImage( searchRadiusImage );
         }
       else
         {
@@ -186,7 +214,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
         {
         searchNeighborhoodRadius[d] = searchRadius[d];
         }
-      fusionFilter->SetSearchNeighborhoodRadius( searchNeighborhoodRadius );
+      fusionFilter->SetNeighborhoodSearchRadius( searchNeighborhoodRadius );
       }
     }
 
@@ -218,7 +246,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     patchNeighborhoodRadius[d] = patchRadius[d];
     }
 
-  fusionFilter->SetPatchNeighborhoodRadius( patchNeighborhoodRadius );
+  fusionFilter->SetNeighborhoodPatchRadius( patchNeighborhoodRadius );
 
   // Check if the user wants to retain atlas voting and/or label posterior images
 
