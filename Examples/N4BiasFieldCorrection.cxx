@@ -13,7 +13,6 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkN4BiasFieldCorrectionImageFilter.h"
-#include "itkOtsuThresholdImageFilter.h"
 #include "itkShrinkImageFilter.h"
 #include "itkTimeProbe.h"
 
@@ -132,19 +131,13 @@ int N4( itk::ants::CommandLineParser *parser )
     {
     if( verbose )
       {
-      std::cout << "Mask not read.  Creating Otsu mask." << std::endl << std::endl;
+      std::cout << "Mask not read.  Using the entire image as the mask." << std::endl << std::endl;
       }
-    typedef itk::OtsuThresholdImageFilter<ImageType, MaskImageType>
-      ThresholderType;
-    typename ThresholderType::Pointer otsu = ThresholderType::New();
-    otsu->SetInput( inputImage );
-    otsu->SetNumberOfHistogramBins( 200 );
-    otsu->SetInsideValue( 0 );
-    otsu->SetOutsideValue( 1 );
-
-    maskImage = otsu->GetOutput();
-    maskImage->Update();
-    maskImage->DisconnectPipeline();
+    maskImage = MaskImageType::New();
+    maskImage->CopyInformation( inputImage );
+    maskImage->SetRegions( inputImage->GetRequestedRegion() );
+    maskImage->Allocate( false );
+    maskImage->FillBuffer( itk::NumericTraits<typename MaskImageType::PixelType>::OneValue() );
     }
 
   typename ImageType::Pointer weightImage = ITK_NULLPTR;
@@ -610,7 +603,12 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     + std::string( "execution of the algorithm although the mask region defines " )
     + std::string( "where bias correction is performed in the final output. " )
     + std::string( "Otherwise bias correction occurs over the entire image domain. " )
-    + std::string( "See also the option description for the weight image." );
+    + std::string( "See also the option description for the weight image. " )
+    + std::string( "If a mask image is *not* specified then the entire image region " )
+    + std::string( "will be used as the mask region.  Note that this is different than " )
+    + std::string( "the N3 implementation which uses the results of Otsu thresholding " )
+    + std::string( "to define a mask.  However, this leads to unknown anatomical regions being " )
+    + std::string( "included and excluded during the bias correction." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "mask-image" );
