@@ -988,7 +988,11 @@ protected:
   {
     if( x_k1.size() != refvec.size() )
       {
-      if ( ! this->m_Silent )  std::cout << " sizes dont match " << std::endl; std::exception();
+      if ( ! this->m_Silent )
+        {
+        std::cout << " sizes dont match " << std::endl;
+        }
+      std::exception();
       }
     for( unsigned int i = 0; i < x_k1.size(); i++ )
       {
