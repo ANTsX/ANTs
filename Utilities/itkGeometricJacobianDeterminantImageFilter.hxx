@@ -303,11 +303,9 @@ GeometricJacobianDeterminantImageFilter< TInputImage, TRealType, TOutputImage >
         PointType displacedPointB = pointB + this->m_Interpolator->Evaluate( pointB );
         PointType displacedPointC = pointC + this->m_Interpolator->Evaluate( pointC );
         PointType displacedPointD = pointD + this->m_Interpolator->Evaluate( pointD );
-
         displacedVolume = this->CalculateTetrahedralVolume( displacedPointA, displacedPointB, displacedPointC, displacedPointD );
         }
-
-      RealType volumeDifferential = displacedVolume / this->m_UndisplacedVolume;
+      RealType volumeDifferential = displacedVolume / ( this->m_UndisplacedVolume );
       it.Set( volumeDifferential );
       ++bit;
       ++it;
@@ -322,14 +320,11 @@ GeometricJacobianDeterminantImageFilter< TInputImage, TRealType, TOutputImage >:
 GeometricJacobianDeterminantImageFilter< TInputImage, TRealType, TOutputImage >
 ::CalculateTetrahedralVolume( PointType a, PointType b, PointType c, PointType d )
 {
-  vnl_vector_ref<double> ad = ( a - d ).GetVnlVector();
-  vnl_vector_ref<double> bd = ( b - d ).GetVnlVector();
-  vnl_vector_ref<double> cd = ( c - d ).GetVnlVector();
-
+  vnl_vector<double> ad = ( a - d ).GetVnlVector();
+  vnl_vector<double> bd = ( b - d ).GetVnlVector();
+  vnl_vector<double> cd = ( c - d ).GetVnlVector();
   vnl_vector<double> bdxcd = vnl_cross_3d( bd, cd );
-
   RealType volume = vnl_math_abs( ad[0] * bdxcd[0] +  ad[1] * bdxcd[1] + ad[2] * bdxcd[2] ) / 6.0;
-
   return volume;
 }
 
