@@ -140,8 +140,6 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     {
     std::string inputFile = inputImageOption->GetFunction( 0 )->GetName();
     ReadImage<ImageType>( inputImage, inputFile.c_str() );
-    inputImage->Update();
-    inputImage->DisconnectPipeline();
     }
   else
     {
@@ -159,8 +157,6 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     {
     std::string inputFile = referenceImageOption->GetFunction( 0 )->GetName();
     ReadImage<ImageType>( referenceImage, inputFile.c_str() );
-    referenceImage->Update();
-    referenceImage->DisconnectPipeline();
     }
   else
     {

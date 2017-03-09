@@ -160,7 +160,11 @@ public:
   /**
    * Scale levels for .
    */
-  itkSetMacro( ScaleLevels, ScaleLevelsArrayType );
+  virtual void SetScaleLevels( const ScaleLevelsArrayType list )
+    {
+    this->m_ScaleLevels = list;
+    this->Modified();
+    }
   itkGetConstMacro( ScaleLevels, ScaleLevelsArrayType );
 
   /**

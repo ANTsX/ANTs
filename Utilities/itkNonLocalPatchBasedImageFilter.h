@@ -102,7 +102,11 @@ public:
   /**
    * Get/set neighborhood search offset list.
    */
-  itkSetMacro( NeighborhoodSearchOffsetList, NeighborhoodOffsetListType );
+  virtual void SetNeighborhoodSearchOffsetList( const NeighborhoodOffsetListType list )
+    {
+    this->m_NeighborhoodSearchOffsetList = list;
+    this->Modified();
+    }
   itkGetConstMacro( NeighborhoodSearchOffsetList, NeighborhoodOffsetListType );
 
   /**
@@ -121,7 +125,11 @@ public:
   /**
    * Get/set neighborhood patch offset list.
    */
-  itkSetMacro( NeighborhoodPatchOffsetList, NeighborhoodOffsetListType );
+  virtual void SetNeighborhoodPatchOffsetList( const NeighborhoodOffsetListType list )
+    {
+    this->m_NeighborhoodPatchOffsetList = list;
+    this->Modified();
+    }
   itkGetConstMacro( NeighborhoodPatchOffsetList, NeighborhoodOffsetListType );
 
   /**
