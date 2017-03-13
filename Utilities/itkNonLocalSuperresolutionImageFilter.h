@@ -152,6 +152,18 @@ public:
   itkGetConstMacro( IntensityDifferenceSigma, RealType );
 
   /**
+   * Get the current convergence measurement.  This is a helper function for
+   * reporting observations.
+   */
+  itkGetConstMacro( CurrentEpsilon, RealType );
+
+  /**
+   * Set/Get the convergence threshold.  Default = 0.1.
+   */
+  itkSetMacro( EpsilonThreshold, RealType );
+  itkGetConstMacro( EpsilonThreshold, RealType );
+
+  /**
    * Set/get perform initial mean correction.  "True" if doing single modality with
    * interpolated image as the high resolution reference image.  "False" otherwise.
    */
@@ -210,7 +222,8 @@ private:
 
   InputImagePointer PerformMeanCorrection( InputImageType * );
 
-  RealType                                             m_Epsilon;
+  RealType                                             m_EpsilonThreshold;
+  RealType                                             m_CurrentEpsilon;
 
   RealImagePointer                                     m_WeightSumImage;
 

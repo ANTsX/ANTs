@@ -20,6 +20,7 @@
 
 #include "itkNonLocalSuperresolutionImageFilter.h"
 
+#include "itkAbsoluteValueDifferenceImageFilter.h"
 #include "itkArray.h"
 #include "itkBoxMeanImageFilter.h"
 #include "itkBSplineInterpolateImageFunction.h"
@@ -35,6 +36,7 @@
 #include "itkMath.h"
 #include "itkNeighborhoodIterator.h"
 #include "itkResampleImageFilter.h"
+#include "itkStatisticsImageFilter.h"
 #include "itkSubtractImageFilter.h"
 
 #include "itkProgressReporter.h"
@@ -47,7 +49,7 @@ namespace itk {
 template <typename TInputImage, typename TOutputImage>
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 ::NonLocalSuperresolutionImageFilter() :
-  m_Epsilon( 0.01 ),
+  m_EpsilonThreshold( 0.1 ),
   m_PatchSimilaritySigma( 1.0 ),
   m_IntensityDifferenceSigma( 1.0 ),
   m_PerformInitialMeanCorrection( false ),
@@ -149,8 +151,11 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 
   IterationReporter reporter( this, 0, 1 );
 
+  bool isConverged = false;
   this->m_CurrentIteration = 0;
-  while( this->m_CurrentIteration < this->m_ScaleLevels.size() )
+  this->m_CurrentEpsilon = NumericTraits<RealType>::max();
+
+  while( this->m_CurrentIteration < this->m_ScaleLevels.size() && isConverged == false )
     {
     reporter.CompletedStep();
 
@@ -165,6 +170,40 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
     this->GetMultiThreader()->SingleMethodExecute();
 
     this->AfterThreadedGenerateData();
+
+    OutputImageType * outputImage = this->GetOutput();
+
+    typedef DivideImageFilter<OutputImageType, RealImageType, InputImageType> DividerType;
+    typename DividerType::Pointer divider = DividerType::New();
+    divider->SetInput1( outputImage );
+    divider->SetInput2( this->m_WeightSumImage );
+    divider->Update();
+
+    InputImagePointer meanCorrectedImage = this->PerformMeanCorrection( divider->GetOutput() );
+
+    typedef AbsoluteValueDifferenceImageFilter<InputImageType,InputImageType,InputImageType> AbsoluterType;
+    typename AbsoluterType::Pointer absoluter = AbsoluterType::New();
+    absoluter->SetInput1( outputImage );
+    absoluter->SetInput2( meanCorrectedImage );
+
+    typedef StatisticsImageFilter<InputImageType> StatsFilterType;
+    typename StatsFilterType::Pointer stats = StatsFilterType::New();
+    stats->SetInput( absoluter->GetOutput() );
+    stats->Update();
+
+    this->m_CurrentEpsilon = stats->GetMean();
+
+    if( this->m_CurrentEpsilon < this->m_EpsilonThreshold )
+      {
+      isConverged = true;
+      }
+
+    typedef CastImageFilter<InputImageType, OutputImageType> CasterType;
+    typename CasterType::Pointer caster = CasterType::New();
+    caster->SetInput( meanCorrectedImage );
+    caster->Update();
+
+    this->SetNthOutput( 0, caster->GetOutput() );
 
     this->m_CurrentIteration++;
     }
@@ -307,22 +346,6 @@ void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 ::AfterThreadedGenerateData()
 {
-  OutputImageType * outputImage = this->GetOutput();
-
-  typedef DivideImageFilter<OutputImageType, RealImageType, InputImageType> DividerType;
-  typename DividerType::Pointer divider = DividerType::New();
-  divider->SetInput1( outputImage );
-  divider->SetInput2( this->m_WeightSumImage );
-  divider->Update();
-
-  InputImagePointer meanCorrectedImage = this->PerformMeanCorrection( divider->GetOutput() );
-
-  typedef CastImageFilter<InputImageType, OutputImageType> CasterType;
-  typename CasterType::Pointer caster = CasterType::New();
-  caster->SetInput( meanCorrectedImage );
-  caster->Update();
-
-  this->SetNthOutput( 0, caster->GetOutput() );
 }
 
 template<typename TInputImage, typename TOutputImage>
