@@ -132,6 +132,7 @@ Optional arguments:
                                                 subject template (default = 0.25)
      -w:  Atropos segmentation weight (Indiv.)  Atropos spatial prior *probability* weight for the segmentation for the individual
                                                 time points (default = 0.5)
+     -x:                                        Number of iterations within Atropos (default 5).
      -q:  Use quick registration parameters     If 'yes' then we use antsRegistrationSyNQuick.sh as the basis for registration.
                                                 Otherwise use antsRegistrationSyN.sh.  The options are as follows:
                                                 '-q 0' = antsRegistrationSyN for everything (default)
@@ -238,6 +239,7 @@ DENOISE=0
 
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT_SST=0.25
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT=0.5
+ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=5
 
 DOQSUB=0
 CORES=2
@@ -259,7 +261,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:w:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:x:w:z:" OPT
     do
       case $OPT in
           a)
@@ -311,6 +313,9 @@ else
        ;;
           n) # use
        USE_SST_CORTICAL_THICKNESS_PRIOR=$OPTARG
+       ;;
+          x) #atropos segmentation internal iterations
+       ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=$OPTARG
        ;;
           o) #output prefix
        OUTPUT_PREFIX=$OPTARG
@@ -500,7 +505,7 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
     # But if you are running a longitudinal script without longitudinal data, that may not be the only problem
 
     logCmd ${ANTSPATH}/antsCorticalThickness.sh \
-      -d ${DIMENSION} \
+      -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
       -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
       ${SUBJECT_ANATOMICAL_IMAGES} \
       -e ${BRAIN_TEMPLATE} \
@@ -728,7 +733,7 @@ if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS} ]];
     if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 0 ]];
       then
         logCmd ${ANTSPATH}/antsCorticalThickness.sh \
-          -d ${DIMENSION} \
+          -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
           -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
           -a ${SINGLE_SUBJECT_TEMPLATE} \
           -e ${BRAIN_TEMPLATE} \
@@ -742,7 +747,7 @@ if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS} ]];
           -o ${SINGLE_SUBJECT_ANTSCT_PREFIX}
       else
         logCmd ${ANTSPATH}/antsCorticalThickness.sh \
-          -d ${DIMENSION} \
+          -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS}  \
           -t ${REGISTRATION_TEMPLATE} \
           -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
           -a ${SINGLE_SUBJECT_TEMPLATE} \
@@ -961,7 +966,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
     OUTPUT_LOCAL_PREFIX=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS}/${BASENAME_ID}
 
     logCmd ${ANTSPATH}/antsCorticalThickness.sh \
-      -d ${DIMENSION} \
+      -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS}  \
       -q ${RUN_ANTSCT_TO_SST_QUICK} \
       ${SUBJECT_ANATOMICAL_IMAGES} \
       -e ${SINGLE_SUBJECT_TEMPLATE} \
