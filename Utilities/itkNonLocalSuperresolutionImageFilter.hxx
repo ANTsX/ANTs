@@ -23,6 +23,7 @@
 #include "itkArray.h"
 #include "itkBoxMeanImageFilter.h"
 #include "itkBSplineInterpolateImageFunction.h"
+#include "itkCastImageFilter.h"
 #include "itkDivideImageFilter.h"
 #include "itkImageDuplicator.h"
 #include "itkImageRegionConstIterator.h"
@@ -49,6 +50,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
   m_Epsilon( 0.01 ),
   m_PatchSimilaritySigma( 1.0 ),
   m_IntensityDifferenceSigma( 1.0 ),
+  m_PerformInitialMeanCorrection( false ),
   m_CurrentIteration( 0 )
 {
   this->SetNumberOfRequiredInputs( 2 );
@@ -203,6 +205,13 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 
     Superclass::SetTargetImageRegion( this->GetHighResolutionReferenceImage()->GetBufferedRegion() );
 
+    if( this->m_PerformInitialMeanCorrection )
+      {
+      InputImageType * referenceImage = const_cast<InputImageType *>( this->GetHighResolutionReferenceImage() );
+      InputImagePointer meanCorrectedImage = this->PerformMeanCorrection( referenceImage );
+      this->SetHighResolutionReferenceImage( meanCorrectedImage );
+      }
+
     this->AllocateOutputs();
     }
   else
@@ -216,6 +225,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 
     this->m_WeightSumImage->FillBuffer( 1.0 );
     }
+
 }
 
 template<typename TInputImage, typename TOutputImage>
@@ -299,27 +309,31 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 {
   OutputImageType * outputImage = this->GetOutput();
 
-  typedef DivideImageFilter<OutputImageType, RealImageType, OutputImageType> DividerType;
+  typedef DivideImageFilter<OutputImageType, RealImageType, InputImageType> DividerType;
   typename DividerType::Pointer divider = DividerType::New();
   divider->SetInput1( outputImage );
   divider->SetInput2( this->m_WeightSumImage );
   divider->Update();
 
-  this->SetNthOutput( 0, divider->GetOutput() );
+  InputImagePointer meanCorrectedImage = this->PerformMeanCorrection( divider->GetOutput() );
 
-  this->PerformMeanCorrection();
+  typedef CastImageFilter<InputImageType, OutputImageType> CasterType;
+  typename CasterType::Pointer caster = CasterType::New();
+  caster->SetInput( meanCorrectedImage );
+  caster->Update();
+
+  this->SetNthOutput( 0, caster->GetOutput() );
 }
 
 template<typename TInputImage, typename TOutputImage>
-void
+typename
+NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>::InputImagePointer
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
-::PerformMeanCorrection()
+::PerformMeanCorrection( InputImageType * image )
 {
-  OutputImageType *outputImage = this->GetOutput();
-
-  typedef BoxMeanImageFilter<TOutputImage, TInputImage> BoxMeanFilterType;
+  typedef BoxMeanImageFilter<TInputImage, TInputImage> BoxMeanFilterType;
   typename BoxMeanFilterType::Pointer boxMeanFilter = BoxMeanFilterType::New();
-  boxMeanFilter->SetInput( outputImage );
+  boxMeanFilter->SetInput( image );
 
   typename InputImageType::SpacingType lowResolutionSpacing =
     this->GetLowResolutionInputImage()->GetSpacing();
@@ -360,31 +374,33 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 
   nearestNeighborInterpolator->SetInputImage( subtracter->GetOutput() );
 
-  typedef ResampleImageFilter<InputImageType, OutputImageType, RealType> ResamplerType2;
+  typedef ResampleImageFilter<InputImageType, InputImageType, RealType> ResamplerType2;
   typename ResamplerType2::Pointer resampler2 = ResamplerType2::New();
   resampler2->SetInterpolator( nearestNeighborInterpolator );
   resampler2->SetInput( subtracter->GetOutput() );
   resampler2->SetTransform( identityTransform );
   resampler2->SetOutputParametersFromImage( this->GetHighResolutionReferenceImage() );
 
-  typedef SubtractImageFilter<OutputImageType> SubtracterType2;
+  typedef SubtractImageFilter<InputImageType> SubtracterType2;
   typename SubtracterType2::Pointer subtracter2 = SubtracterType2::New();
-  subtracter2->SetInput1( outputImage );
+  subtracter2->SetInput1( image );
   subtracter2->SetInput2( resampler2->GetOutput() );
   subtracter2->Update();
 
-  ImageRegionIteratorWithIndex<OutputImageType> It( subtracter2->GetOutput(),
+  ImageRegionIteratorWithIndex<InputImageType> It( subtracter2->GetOutput(),
     subtracter2->GetOutput()->GetRequestedRegion() );
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
     if( It.Get() < NumericTraits<OutputPixelType>::ZeroValue() )
       {
-      It.Set( static_cast<OutputPixelType>(
-        this->m_InterpolatedLowResolutionInputImage->GetPixel( It.GetIndex() ) ) );
+      It.Set( this->m_InterpolatedLowResolutionInputImage->GetPixel( It.GetIndex() ) );
       }
     }
 
-  this->SetNthOutput( 0, subtracter2->GetOutput() );
+  InputImagePointer meanCorrectedImage = subtracter2->GetOutput();
+  meanCorrectedImage->DisconnectPipeline();
+
+  return meanCorrectedImage;
 }
 
 template<typename TInputImage, typename TOutputImage>

@@ -152,6 +152,14 @@ public:
   itkGetConstMacro( IntensityDifferenceSigma, RealType );
 
   /**
+   * Set/get perform initial mean correction.  "True" if doing single modality with
+   * interpolated image as the high resolution reference image.  "False" otherwise.
+   */
+  itkSetMacro( PerformInitialMeanCorrection, bool );
+  itkGetConstMacro( PerformInitialMeanCorrection, bool );
+  itkBooleanMacro( PerformInitialMeanCorrection );
+
+  /**
    * Get the interpolator.
    */
   itkSetMacro( PatchSimilaritySigma, RealType );
@@ -200,7 +208,7 @@ private:
   NonLocalSuperresolutionImageFilter( const Self& ) ITK_DELETE_FUNCTION;
   void operator=( const Self& ) ITK_DELETE_FUNCTION;
 
-  void PerformMeanCorrection();
+  InputImagePointer PerformMeanCorrection( InputImageType * );
 
   RealType                                             m_Epsilon;
 
@@ -214,6 +222,8 @@ private:
 
   RealType                                             m_PatchSimilaritySigma;
   RealType                                             m_IntensityDifferenceSigma;
+
+  bool                                                 m_PerformInitialMeanCorrection;
 
   ScaleLevelsArrayType                                 m_ScaleLevels;
   SizeValueType                                        m_CurrentIteration;
