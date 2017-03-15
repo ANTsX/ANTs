@@ -220,6 +220,8 @@ Learning about ANTs (examples, etc.)
 
 * **Patch-based super resolution** [example](https://github.com/ntustison/NonLocalSuperResolutionExample)
 
+* **Image denoising** [example](https://github.com/ntustison/DenoiseImageExample)
+
 * **Visualization** [example](https://github.com/ntustison/antsVisualizationExamples)
 
 * **Morphing** [example](http://stnava.github.io/Morpheus/)
