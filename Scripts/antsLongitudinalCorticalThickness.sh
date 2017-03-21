@@ -142,6 +142,7 @@ Optional arguments:
      -r:  rigid alignment to SST                This option dictates if the individual subjects are registered to the single
                                                 subject template before running through antsCorticalThickness.  This potentially
                                                 reduces bias caused by subject orientation and voxel spacing (default = 0).
+     -y:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = 0).
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0
                                                 in the antsCorticalThickness.sh script (i.e., no random seeding).
                                                 Requires single thread computation for complete reproducibility.
@@ -256,12 +257,13 @@ MALF_LABEL_STRINGS_FOR_PRIORS=()
 ################################################################################
 
 USE_FLOAT_PRECISION=0
+KEEP_TMP_IMAGES=0
 
 if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:x:w:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:u:v:x:w:y:z:" OPT
     do
       case $OPT in
           a)
@@ -341,6 +343,9 @@ else
        ;;
           w) #atropos prior weight for each individual time point
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT=$OPTARG
+       ;;
+          y) # for ants cortical thickness
+       KEEP_TMP_IMAGES=$OPTARG
        ;;
           z) #debug mode
        DEBUG_MODE=$OPTARG
@@ -511,7 +516,7 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
       -e ${BRAIN_TEMPLATE} \
       -f ${EXTRACTION_REGISTRATION_MASK} \
       -m ${EXTRACTION_PRIOR} \
-      -k 0 \
+      -k ${KEEP_TMP_IMAGES} \
       -g ${DENOISE} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT} \
       -z ${DEBUG_MODE} \
@@ -740,7 +745,7 @@ if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS} ]];
           -f ${EXTRACTION_REGISTRATION_MASK} \
           -g ${DENOISE} \
           -m ${EXTRACTION_PRIOR} \
-          -k 0 \
+          -k ${KEEP_TMP_IMAGES} \
           -z ${DEBUG_MODE} \
           -p ${SEGMENTATION_PRIOR} \
           -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_SST} \
@@ -755,7 +760,7 @@ if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS} ]];
           -f ${EXTRACTION_REGISTRATION_MASK} \
           -g ${DENOISE} \
           -m ${EXTRACTION_PRIOR} \
-          -k 0 \
+          -k ${KEEP_TMP_IMAGES} \
           -z ${DEBUG_MODE} \
           -p ${SEGMENTATION_PRIOR} \
           -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_SST} \
@@ -973,7 +978,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
       -m ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR} \
       -f ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_REGISTRATION_MASK} \
       -g ${DENOISE} \
-      -k 0 \
+      -k ${KEEP_TMP_IMAGES} \
       -z ${DEBUG_MODE} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT} \
       -p ${SINGLE_SUBJECT_TEMPLATE_PRIOR} \
