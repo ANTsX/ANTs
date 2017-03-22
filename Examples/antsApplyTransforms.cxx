@@ -109,6 +109,31 @@ unsigned int numTensorElements<0>()
   return 0;
 }
 
+template <unsigned int NDim>
+std::vector<unsigned int> tensorDiagonalArrayIndices()
+{
+  std::vector<unsigned int> diagElements;
+  for( unsigned int d = 0; d < NDim; d++ )
+    { // I think this is correct for upper-triangular ordering but only tested on 3D tensors
+    diagElements.push_back(d * NDim - d * (d - 1) / 2); 
+    }
+  return diagElements;
+}
+
+template <unsigned int NDim> 
+bool isDiagonalElement(std::vector<unsigned int> diagElements, unsigned int ind)
+{
+  for( unsigned int i = 0; i < NDim; i++ ) 
+    {
+    if ( diagElements[i] == ind ) 
+      {
+      return true;
+      }
+    }
+
+  return false;
+}
+
 template <class T, unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
@@ -132,6 +157,8 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typedef itk::Image<TensorPixelType, Dimension>              TensorImageType;
 
   const unsigned int NumberOfTensorElements = numTensorElements<Dimension>();
+
+  std::vector<unsigned int> tensorDiagIndices = tensorDiagonalArrayIndices<Dimension>();
 
   typename TimeSeriesImageType::Pointer timeSeriesImage = ITK_NULLPTR;
   typename TensorImageType::Pointer tensorImage = ITK_NULLPTR;
@@ -379,7 +406,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     }
   if( verbose )
     {
-    std::cout << "Default pixel value: " << defaultValue << std::endl;
+    if( inputImageType == 2 ) 
+      std::cout << "Default pixel mean diffusivity: " << defaultValue << std::endl;
+    else
+      std::cout << "Default pixel value: " << defaultValue << std::endl;
     }
   for( unsigned int n = 0; n < inputImages.size(); n++ )
     {
@@ -388,8 +418,25 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     resampleFilter->SetInput( inputImages[n] );
     resampleFilter->SetOutputParametersFromImage( referenceImage );
     resampleFilter->SetTransform( compositeTransform );
-    resampleFilter->SetDefaultPixelValue( defaultValue );
-
+    if ( inputImageType == 2 )
+      {
+      // Set background pixel values in tensor images to produce an isotropic tensor
+      if ( defaultValue > 0 && isDiagonalElement<Dimension>(tensorDiagIndices, n) ) 
+	{
+	// defaultValue == MD of isotropic tensor. Resampling is done in log space
+	resampleFilter->SetDefaultPixelValue( log( defaultValue ) );
+	}
+      else
+	{
+	resampleFilter->SetDefaultPixelValue( 0 );
+	}
+      }
+    else
+      {
+      // for non-tensor images, set the same background value for each component
+      resampleFilter->SetDefaultPixelValue( defaultValue );
+      }
+    
     interpolator->SetInputImage( inputImages[n] );
     resampleFilter->SetInterpolator( interpolator );
     if( n == 0 )
@@ -790,7 +837,8 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
   std::string description =
     std::string( "Default voxel value to be used with input images only. " )
     + std::string( "Specifies the voxel value when the input point maps outside " )
-    + std::string( "the output domain" );
+    + std::string( "the output domain. With tensor input images, specifies the " )
+    + std::string( "default voxel eigenvalues. " );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "default-value" );
