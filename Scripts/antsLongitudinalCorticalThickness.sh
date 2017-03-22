@@ -508,9 +508,12 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
 
     # Won't be quick unless -q 3 was specified
     # But if you are running a longitudinal script without longitudinal data, that may not be the only problem
-
+    if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
+        then
     logCmd ${ANTSPATH}/antsCorticalThickness.sh \
-      -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
+      -d ${DIMENSION}
+      -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
+      -t ${REGISTRATION_TEMPLATE} \
       -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
       ${SUBJECT_ANATOMICAL_IMAGES} \
       -e ${BRAIN_TEMPLATE} \
@@ -522,6 +525,25 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
       -z ${DEBUG_MODE} \
       -p ${SEGMENTATION_PRIOR} \
       -o ${OUTPUT_PREFIX}
+    fi
+
+    if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 0 ]];
+        then
+    logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+      -d ${DIMENSION}
+      -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
+      -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
+      ${SUBJECT_ANATOMICAL_IMAGES} \
+      -e ${BRAIN_TEMPLATE} \
+      -f ${EXTRACTION_REGISTRATION_MASK} \
+      -m ${EXTRACTION_PRIOR} \
+      -k ${KEEP_TMP_IMAGES} \
+      -g ${DENOISE} \
+      -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT} \
+      -z ${DEBUG_MODE} \
+      -p ${SEGMENTATION_PRIOR} \
+      -o ${OUTPUT_PREFIX}
+    fi
 
     exit 0
   fi
