@@ -21,7 +21,7 @@ optlist <- list(
               help='Full width half max for smoothing'),
   make_option(c('-m', '--method'), default='regression',
               help=paste(' method for perfusion calculation. \n\t\tOne of:',
-                '"SimpleSubtraction", "SurroundSubtraction", "SincSubtraction",',
+                '"regression", "subtraction", "bayesian",',
                 '"RobustRegression", "BayesianRegression", "LocalBayesianRegression."')),
   make_option(c('-d', '--denoising'), default='CompCorMotion',
                 help=paste('denoising method.',
@@ -111,7 +111,7 @@ avg <- n3BiasFieldCorrection(avg, 2)
 mask <- getMask(avg, mean(avg), Inf, 2)
 avg[mask==0] <- 0
 
-moco <- antsMotionCalculation(pcasl, fixed=avg, mask=mask,  moreaccurate=4)
+moco <- antsrMotionCalculation(pcasl, fixed=avg, mask=mask)
 tag.first <- config$tagFirst
 ts <- timeseries2matrix(moco$moco_img, moco$moco_mask)
 if (!tag.first) {
@@ -238,7 +238,7 @@ if (nchar(opt$antsCorticalThicknessPrefix) > 0){
                   'does not exist.'))
   })
   reg.t12asl <- antsRegistration(fixed=avg, moving=braint1,
-    typeofTransform="SyNBold", outprefix=as.character(opt$outputpre))
+    typeofTransform="SyNBold" )
   seg.asl <- antsApplyTransforms(avg, seg, reg.t12asl$fwdtransforms, "MultiLabel")
   antsImageWrite(seg.asl, paste(opt$outputpre,
                       "SegmentationWarpedToASL.nii.gz", sep=''))
