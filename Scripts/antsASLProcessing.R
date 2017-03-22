@@ -29,7 +29,7 @@ optlist <- list(
                 '\n\t\t"Cross-Validation", "OutlierRejection".',
                 'Multiple options can be specified',
                 '(e.g., "CompCorMotion" is legal).  Default is %default.')),
-  make_option(c('-g', '--debug'), default=FALSE, action='store_true',
+  make_option(c('-g', '--debug'), default=0,
                help=paste('Save debugging information, including motion',
                   'correction and nuisance variables')),
   make_option(c('-b', '--bloodT1'), default=0.67,
@@ -40,13 +40,13 @@ optlist <- list(
               help=' number of bootstrap samples (defaults to %default)'),
   make_option(c('-e', '--bootstrapPercent'), default=0.70,
               help='percent to sample per bootstrap run (defaults to %default)'),
-  make_option(c('-k', '--keepTmp'), default=F, action='store_true',
+  make_option(c('-k', '--keepTmp'), default=0,
               help=paste('keep tmp files, including warps',
                          '(defaults to %default--takes lots of space to save)')),
-  make_option(c('-f', '--bootstrapReplace'), default=F, action='store_true',
+  make_option(c('-f', '--bootstrapReplace'), default=0,
               help=paste('bootstrap with replacement?  takes arguments',
-                         '"false" or "true"; defaults to false.')),
-  make_option(c('-v', '--verbose'), default=F, action='store_true',
+                         '0 or 1; defaults to 0.')),
+  make_option(c('-v', '--verbose'), default=0,
               help='verbose output.'))
 
 usage <- OptionParser(option_list=optlist, usage='Usage: %prog <s> [otlcxmdgbrnekfv]')
