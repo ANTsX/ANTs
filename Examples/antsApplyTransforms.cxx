@@ -115,17 +115,17 @@ std::vector<unsigned int> tensorDiagonalArrayIndices()
   std::vector<unsigned int> diagElements;
   for( unsigned int d = 0; d < NDim; d++ )
     { // I think this is correct for upper-triangular ordering but only tested on 3D tensors
-    diagElements.push_back(d * NDim - d * (d - 1) / 2); 
+    diagElements.push_back(d * NDim - d * (d - 1) / 2);
     }
   return diagElements;
 }
 
-template <unsigned int NDim> 
+template <unsigned int NDim>
 bool isDiagonalElement(std::vector<unsigned int> diagElements, unsigned int ind)
 {
-  for( unsigned int i = 0; i < NDim; i++ ) 
+  for( unsigned int i = 0; i < NDim; i++ )
     {
-    if ( diagElements[i] == ind ) 
+    if ( diagElements[i] == ind )
       {
       return true;
       }
@@ -406,7 +406,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     }
   if( verbose )
     {
-    if( inputImageType == 2 ) 
+    if( inputImageType == 2 )
       std::cout << "Default pixel mean diffusivity: " << defaultValue << std::endl;
     else
       std::cout << "Default pixel value: " << defaultValue << std::endl;
@@ -421,22 +421,22 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     if ( inputImageType == 2 )
       {
       // Set background pixel values in tensor images to produce an isotropic tensor
-      if ( defaultValue > 0 && isDiagonalElement<Dimension>(tensorDiagIndices, n) ) 
-	{
-	// defaultValue == MD of isotropic tensor. Resampling is done in log space
-	resampleFilter->SetDefaultPixelValue( log( defaultValue ) );
-	}
-      else
-	{
-	resampleFilter->SetDefaultPixelValue( 0 );
-	}
+      if ( defaultValue > 0 && isDiagonalElement<Dimension>(tensorDiagIndices, n) )
+        {
+        // defaultValue == MD of isotropic tensor. Resampling is done in log space
+        resampleFilter->SetDefaultPixelValue( log( defaultValue ) );
+        }
+             else
+        {
+        resampleFilter->SetDefaultPixelValue( 0 );
+        }
       }
     else
       {
       // for non-tensor images, set the same background value for each component
       resampleFilter->SetDefaultPixelValue( defaultValue );
       }
-    
+
     interpolator->SetInputImage( inputImages[n] );
     resampleFilter->SetInterpolator( interpolator );
     if( n == 0 )
