@@ -9,7 +9,7 @@ outname <- args[2]
 
 pasl <- antsImageRead( aslImg, 4 )
 
-pcasl.processing <- aslPerfusion(pasl, moreaccurate=FALSE, interpolation="linear" )
+pcasl.processing <- aslPerfusion(pasl, moreaccurate=FALSE)
 pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0 )
 cbf <- quantifyCBF( pcasl.processing$perfusion, pcasl.processing$mask, pcasl.parameters )
 meancbf <- cbf$kmeancbf
