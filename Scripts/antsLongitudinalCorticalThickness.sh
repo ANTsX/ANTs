@@ -112,7 +112,7 @@ Optional arguments:
                                                 aren't used then we simply smooth the single-subject template posteriors after
                                                 passing through antsCorticalThickness.sh. Example:
 
- 						  -a atlas1.nii.gz -a atlas2.nii.gz ... -a atlasN.nii.gz
+ 						                                         -a atlas1.nii.gz -a atlas2.nii.gz ... -a atlasN.nii.gz
 
      -l:                                        Labels associated with each atlas, in the same order as they are specified
 						with the -a option. The number of labels in each image is assumed to be equal
@@ -142,7 +142,9 @@ Optional arguments:
      -r:  rigid alignment to SST                This option dictates if the individual subjects are registered to the single
                                                 subject template before running through antsCorticalThickness.  This potentially
                                                 reduces bias caused by subject orientation and voxel spacing (default = 0).
-     -y:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = 0).
+     -b:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = 0).
+     -y:  averge rigid transform component      Update the template with the full affine transform (default 0). If 1, the rigid
+                                                component of the affine transform will be used to update the template.
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0
                                                 in the antsCorticalThickness.sh script (i.e., no random seeding).
                                                 Requires single thread computation for complete reproducibility.
@@ -173,6 +175,7 @@ echoParameters() {
       number of cores         = ${CORES}
       control type            = ${DOQSUB}
       rigid alignment to SST  = ${RIGID_ALIGNMENT_TO_SST}
+      average rigid component = ${AFFINE_UPDATE_FULL}
 
 PARAMETERS
 }
@@ -242,6 +245,8 @@ ATROPOS_SEGMENTATION_PRIOR_WEIGHT_SST=0.25
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT=0.5
 ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=5
 
+AFFINE_UPDATE_FULL=0
+
 DOQSUB=0
 CORES=2
 RIGID_ALIGNMENT_TO_SST=0
@@ -269,8 +274,8 @@ else
           a)
        MALF_ATLASES[${#MALF_ATLASES[@]}]=$OPTARG
        ;;
-          b) # posterior formulation
-       ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION=$OPTARG
+          b)
+       KEEP_TMP_IMAGES=$OPTARG
        ;;
           c)
        DOQSUB=$OPTARG
@@ -344,8 +349,8 @@ else
           w) #atropos prior weight for each individual time point
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT=$OPTARG
        ;;
-          y) # for ants cortical thickness
-       KEEP_TMP_IMAGES=$OPTARG
+          y) # 1 update with full affine, 0 for no rigid (default = 0)
+       AFFINE_UPDATE_FULL=$OPTARG
        ;;
           z) #debug mode
        DEBUG_MODE=$OPTARG
@@ -642,7 +647,7 @@ if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
           -r 1 \
           -s CC \
           -t GR \
-          -y 0 \
+          -y ${AFFINE_UPDATE_FULL} \
           ${TEMPLATE_Z_IMAGES} \
           ${ANATOMICAL_IMAGES[@]}
     else
@@ -666,7 +671,7 @@ if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
          -l 1 \
          -m CC[4] \
          -t SyN \
-         -y 0 \
+         -y ${AFFINE_UPDATE_FULL} \
          ${TEMPLATE_Z_IMAGES} \
          ${ANATOMICAL_IMAGES[@]}
     fi
