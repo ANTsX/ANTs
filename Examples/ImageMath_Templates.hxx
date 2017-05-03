@@ -8615,36 +8615,6 @@ int LaplacianImage(      int argc, char *argv[])
   return 0;
 }
 
-
-template <unsigned int ImageDimension>
-int CropBinaryImage(      int argc, char *argv[])
-{
-  if( argc < 6 )
-    {
-    std::cerr << "Not enough args.  See help." << std::endl;
-    return EXIT_FAILURE;
-    }
-  typedef float  PixelType;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
-  int               argct = 2;
-  const std::string outname = std::string(argv[argct]);
-  argct += 2;
-  std::string fn1 = std::string(argv[argct]);   argct++;
-  typename ImageType::Pointer image = ITK_NULLPTR;
-  typename ImageType::Pointer image2 = ITK_NULLPTR;
-  ReadImage<ImageType>(image, fn1.c_str() );
-/*
-  typedef itk::LabelGeometryImageFilter<ImageType, ImageType> GeometryFilterType;
-  typename GeometryFilterType::Pointer geometryFilter = GeometryFilterType::New();
-  geometryFilter->SetInput( image );
-  geometryFilter->CalculatePixelIndicesOff();
-  geometryFilter->CalculateOrientedBoundingBoxOff();
-  geometryFilter->CalculateOrientedLabelRegionsOff();
-  geometryFilter->Update();
-*/
-  return 0;
-}
-
 template <unsigned int ImageDimension>
 int CannyImage(      int argc, char *argv[])
 {
@@ -14127,11 +14097,6 @@ ImageMathHelperAll(int argc, char **argv)
   if( operation == "Canny" )
     {
       CannyImage<DIM>(argc, argv);
-      return EXIT_SUCCESS;
-    }
-  if( operation == "CropBinaryImage" )
-    {
-      CropBinaryImage<DIM>(argc, argv);
       return EXIT_SUCCESS;
     }
   if( operation == "LabelSurfaceArea" )

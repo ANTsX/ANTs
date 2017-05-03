@@ -612,9 +612,6 @@ private:
     << std::endl;
     std::cout << "      Usage        : Canny Image.ext sigma lowerThresh upperThresh" << std::endl;
 
-    std::cout
-    << "\n  CropBinaryImage        : returns cropped image"    << std::endl;
-
     std::cout << "\n  Lipschitz        : Computes the Lipschitz norm of a vector field " << std::endl;
     std::cout << "      Usage        : Lipschitz VectorFieldName" << std::endl;
 
