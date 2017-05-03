@@ -236,6 +236,8 @@ Learning about ANTs (examples, etc.)
 
 * **Template construction** [example](http://ntustison.github.io/TemplateBuildingExample/)
 
+* **Single subject template construction** [example](https://github.com/ntustison/SingleSubjectTemplateExample)
+
 * **Pre-built ANTs templates with spatial priors** [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436)
 
 * **Brain extraction** [example](https://github.com/ntustison/antsBrainExtractionExample)
@@ -253,6 +255,8 @@ Learning about ANTs (examples, etc.)
 * **The ANTs Cortical Thickness Pipeline** [example](https://github.com/ntustison/KapowskiChronicles/blob/master/paper2.pdf?raw=true)
 
 * **Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
+
+* **Brain tumor segmentation** [example](https://github.com/ntustison/BRATS2013/SimpleExample/)
 
 * **Eigenanatomy** for [multivariate neuroimage analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
     [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
