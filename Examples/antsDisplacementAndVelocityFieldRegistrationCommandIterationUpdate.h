@@ -394,6 +394,7 @@ public:
     inverseComposer->SetDisplacementField( const_cast<DisplacementFieldTransformType *>( filter->
                                                                                          GetFixedToMiddleTransform() )
                                            ->GetInverseDisplacementField() );
+
     inverseComposer->SetWarpingField(
       const_cast<DisplacementFieldTransformType *>( filter->GetMovingToMiddleTransform() )->GetDisplacementField() );
     inverseComposer->Update();
@@ -419,7 +420,10 @@ public:
     typedef typename TFilter::InitialTransformType InitialTransformType;
 
     typename CompositeTransformType::Pointer outputCompositTransform = CompositeTransformType::New();
-    outputCompositTransform->AddTransform( const_cast<InitialTransformType *>( filter->GetMovingInitialTransform() ) );
+    if( filter->GetMovingInitialTransform() )
+      {
+      outputCompositTransform->AddTransform( const_cast<InitialTransformType *>( filter->GetMovingInitialTransform() ) );
+      }
     outputCompositTransform->AddTransform( outputTransformReadyToUse );
     outputCompositTransform->FlattenTransformQueue();
     outputCompositTransform->SetOnlyMostRecentTransformToOptimizeOn();
