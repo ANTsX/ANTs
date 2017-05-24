@@ -163,7 +163,7 @@ script by Nick Tustison
 
 HELP
     exit 1
-
+}
 
 function reportMappingParameters {
     cat <<REPORTMAPPINGPARAMETERS
