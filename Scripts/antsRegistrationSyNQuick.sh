@@ -53,15 +53,17 @@ Compulsory arguments:
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
 
-     -f:  Fixed image or source image or reference image
+     -f:  Fixed image(s) or source image(s) or reference image(s)
 
-     -m:  Moving image or target image
+     -m:  Moving image(s) or target image(s)
 
      -o:  OutputPrefix: A prefix that is prepended to all output files.
 
 Optional arguments:
 
      -n:  Number of threads (default = 1)
+
+     -i:  initial transform(s) --- order specified on the command line matters
 
      -t:  transform type (default = 's')
         t: translation
@@ -126,15 +128,17 @@ Compulsory arguments:
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
 
-     -f:  Fixed image or source image or reference image
+     -f:  Fixed image(s) or source image(s) or reference image(s)
 
-     -m:  Moving image or target image
+     -m:  Moving image(s) or target image(s)
 
      -o:  OutputPrefix: A prefix that is prepended to all output files.
 
 Optional arguments:
 
      -n:  Number of threads (default = 1)
+
+     -i:  initial transform(s) --- order specified on the command line matters
 
      -t:  transform type (default = 's')
         t: translation
@@ -207,6 +211,7 @@ function reportMappingParameters {
  Output name prefix:       $OUTPUTNAME
  Fixed images:             ${FIXEDIMAGES[@]}
  Moving images:            ${MOVINGIMAGES[@]}
+ Initial transforms:       ${INITIALTRANSFORMS[@]}
  Number of threads:        $NUMBEROFTHREADS
  Spline distance:          $SPLINEDISTANCE
  Transform type:           $TRANSFORMTYPE
@@ -256,6 +261,7 @@ if [[ "$1" == "-h" || $# -eq 0 ]];
 DIM=3
 FIXEDIMAGES=()
 MOVINGIMAGES=()
+INITIALTRANSFORMS=()
 OUTPUTNAME=output
 NUMBEROFTHREADS=1
 SPLINEDISTANCE=26
@@ -266,7 +272,7 @@ MASK=0
 USEHISTOGRAMMATCHING=0
 
 # reading command line arguments
-while getopts "d:f:h:m:j:n:o:p:r:s:t:x:" OPT
+while getopts "d:f:h:i:m:j:n:o:p:r:s:t:x:" OPT
   do
   case $OPT in
       h) #help
@@ -287,6 +293,9 @@ while getopts "d:f:h:m:j:n:o:p:r:s:t:x:" OPT
    ;;
       m)  # moving image
    MOVINGIMAGES[${#MOVINGIMAGES[@]}]=$OPTARG
+   ;;
+      i)  # initial transform
+   INITIALTRANSFORMS[${#INITIALTRANSFORMS[@]}]=$OPTARG
    ;;
       n)  # number of threads
    NUMBEROFTHREADS=$OPTARG
@@ -434,6 +443,14 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
 fi
 
 INITIALSTAGE="--initial-moving-transform [${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1]"
+
+if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
+  then
+    for(( i=0; i<${#INITIALTRANSFORMS[@]}; i++ ))
+      do
+        INITIALSTAGE="$INITIALSTAGE --initial-moving-transform ${INITIALTRANSFORMS[$i]}"
+      done
+  fi
 
 RIGIDSTAGE="--transform ${tx}[0.1] \
             --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
