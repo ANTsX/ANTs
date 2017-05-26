@@ -454,6 +454,7 @@ INITIALSTAGE="--initial-moving-transform [${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1
 
 if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
   then
+    INITIALSTAGE=""
     for(( i=0; i<${#INITIALTRANSFORMS[@]}; i++ ))
       do
         INITIALSTAGE="$INITIALSTAGE --initial-moving-transform ${INITIALTRANSFORMS[$i]}"
