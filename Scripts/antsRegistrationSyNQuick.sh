@@ -90,6 +90,8 @@ Optional arguments:
         0: false
         1: true
 
+     -z:  collapse output transforms (default = 1)
+
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
           pair correspondence is given by the order specified on the command line.
@@ -164,6 +166,8 @@ Optional arguments:
      -j:  use histogram matching (default = 0)
         0: false
         1: true
+
+     -z:  collapse output transforms (default = 1)
 
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
@@ -270,9 +274,10 @@ PRECISIONTYPE='d'
 NUMBEROFBINS=32
 MASK=0
 USEHISTOGRAMMATCHING=0
+COLLAPSEOUTPUTTRANSFORMS=1
 
 # reading command line arguments
-while getopts "d:f:h:i:m:j:n:o:p:r:s:t:x:" OPT
+while getopts "d:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
   do
   case $OPT in
       h) #help
@@ -314,6 +319,9 @@ while getopts "d:f:h:i:m:j:n:o:p:r:s:t:x:" OPT
    ;;
       t)  # transform type
    TRANSFORMTYPE=$OPTARG
+   ;;
+      z)  # collapse output transforms
+   COLLAPSEOUTPUTTRANSFORMS=$OPTARG
    ;;
      \?) # getopts issues an error message
    echo "$USAGE" >&2
@@ -552,6 +560,7 @@ esac
 
 COMMAND="${ANTS} --verbose 1 \
                  --dimensionality $DIM $PRECISION \
+                 --collapse-output-transforms $COLLAPSEOUTPUTTRANSFORMS \
                  --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \
                  --interpolation Linear \
                  --use-histogram-matching ${USEHISTOGRAMMATCHING} \
