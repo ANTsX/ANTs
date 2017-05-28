@@ -231,7 +231,7 @@ int SmoothDisplacementField( std::vector<std::string> args, std::ostream* /*out_
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin(), "SmoothImage" );
+  args.insert( args.begin(), "SmoothDisplacementField" );
 
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
