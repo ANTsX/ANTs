@@ -49,6 +49,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_MinClusterSizeQ = 1;
   this->m_KeptClusterSize = 0;
   this->m_Debug = false;
+  this->m_MaxBasedThresholding = false;
   this->m_Silent = true;
   this->m_CorrelationForSignificanceTest = 0;
   this->m_SpecializationForHBM2011 = false;
