@@ -66,21 +66,24 @@ Optional arguments:
      -i:  initial transform(s) --- order specified on the command line matters
 
      -t:  transform type (default = 's')
-        t: translation
-        r: rigid
-        a: rigid + affine
-        s: rigid + affine + deformable syn
-        sr: rigid + deformable syn
-        so: deformable syn only
-        b: rigid + affine + deformable b-spline syn
-        br: rigid + deformable b-spline syn
-        bo: deformable b-spline syn only
+        t: translation (1 stage)
+        r: rigid (1 stage)
+        a: rigid + affine (2 stages)
+        s: rigid + affine + deformable syn (3 stages)
+        sr: rigid + deformable syn (2 stages)
+        so: deformable syn only (1 stage)
+        b: rigid + affine + deformable b-spline syn (3 stages)
+        br: rigid + deformable b-spline syn (2 stages)
+        bo: deformable b-spline syn only (1 stage)
 
      -r:  histogram bins for mutual information in SyN stage (default = 32)
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
-     -x:  mask for the fixed image space, applied only in the last stage
+     -x:  mask(s) for the fixed image space.  Should specify either a single image to be used for
+          all stages or one should specify a mask image for each "stage" (cf -t option).  If
+          no mask is to be used for a particular stage, the keyword 'NULL' should be used
+          in place of a file name.
 
      -p:  precision type (default = 'd')
         f: float
@@ -143,21 +146,24 @@ Optional arguments:
      -i:  initial transform(s) --- order specified on the command line matters
 
      -t:  transform type (default = 's')
-        t: translation
-        r: rigid
-        a: rigid + affine
-        s: rigid + affine + deformable syn
-        sr: rigid + deformable syn
-        so: deformable syn only
-        b: rigid + affine + deformable b-spline syn
-        br: rigid + deformable b-spline syn
-        bo: deformable b-spline syn only
+        t: translation (1 stage)
+        r: rigid (1 stage)
+        a: rigid + affine (2 stages)
+        s: rigid + affine + deformable syn (3 stages)
+        sr: rigid + deformable syn (2 stages)
+        so: deformable syn only (1 stage)
+        b: rigid + affine + deformable b-spline syn (3 stages)
+        br: rigid + deformable b-spline syn (2 stages)
+        bo: deformable b-spline syn only (1 stage)
 
      -r:  histogram bins for mutual information in SyN stage (default = 32)
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
-     -x:  mask for the fixed image space
+     -x:  mask(s) for the fixed image space.  Should specify either a single image to be used for
+          all stages or one should specify a mask image for each "stage" (cf -t option).  If
+          no mask is to be used for a particular stage, the keyword 'NULL' should be used
+          in place of a file name.
 
      -p:  precision type (default = 'd')
         f: float
@@ -215,6 +221,7 @@ function reportMappingParameters {
  Output name prefix:       $OUTPUTNAME
  Fixed images:             ${FIXEDIMAGES[@]}
  Moving images:            ${MOVINGIMAGES[@]}
+ Mask images:              ${MASKIMAGES[@]}
  Initial transforms:       ${INITIALTRANSFORMS[@]}
  Number of threads:        $NUMBEROFTHREADS
  Spline distance:          $SPLINEDISTANCE
@@ -272,7 +279,7 @@ SPLINEDISTANCE=26
 TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
 NUMBEROFBINS=32
-MASK=0
+MASKIMAGES=()
 USEHISTOGRAMMATCHING=0
 COLLAPSEOUTPUTTRANSFORMS=1
 
@@ -288,7 +295,7 @@ while getopts "d:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
    DIM=$OPTARG
    ;;
       x)  # inclusive mask
-   MASK=$OPTARG
+   MASKIMAGES[${#MASKIMAGES[@]}]=$OPTARG
    ;;
       f)  # fixed image
    FIXEDIMAGES[${#FIXEDIMAGES[@]}]=$OPTARG
@@ -355,6 +362,23 @@ for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
       fi
   done
 
+##############################
+#
+# Mask stuff
+#
+##############################
+
+NUMBEROFMASKIMAGES=${#MASKIMAGES[@]}
+
+MASKCALL=""
+if [[ ${#MASKIMAGES[@]} -gt 0 ]];
+  then
+    for (( i = 0; i < ${#MASKIMAGES[@]}; i++ ))
+      do
+        MASKCALL="${MASKCALL} -x [${MASKIMAGES[$i]}, NULL]"
+      done
+  fi
+
 ###############################
 #
 # Set number of threads
@@ -372,23 +396,6 @@ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 ##############################
 
 reportMappingParameters
-
-##############################
-#
-# Mask stuff
-#
-##############################
-
-if [[ ${#MASK} -lt 3 ]];
-  then
-    NULLMASK=""
-    MASK=""
-    HAVEMASK=0
-  else
-    NULLMASK=" -x [NULL,NULL] "
-    MASK=" -x [$MASK, NULL] "
-    HAVEMASK=1
-  fi
 
 ##############################
 #
@@ -445,11 +452,6 @@ if [[ $ISLARGEIMAGE -eq 1 ]];
     SYNSMOOTHINGSIGMAS="5x3x2x1x0vox"
   fi
 
-tx=Rigid
-if [[ $TRANSFORMTYPE == 't' ]] ; then
-  tx=Translation
-fi
-
 INITIALSTAGE="--initial-moving-transform [${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1]"
 
 if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
@@ -460,6 +462,11 @@ if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
         INITIALSTAGE="$INITIALSTAGE --initial-moving-transform ${INITIALTRANSFORMS[$i]}"
       done
   fi
+
+tx=Rigid
+if [[ $TRANSFORMTYPE == 't' ]] ; then
+  tx=Translation
+fi
 
 RIGIDSTAGE="--transform ${tx}[0.1] \
             --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
@@ -507,43 +514,40 @@ if [[ $TRANSFORMTYPE == 's' ]] || [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMT
              $SYNSTAGE"
   fi
 
+NUMBEROFREGISTRATIONSTAGES=0
 STAGES=''
 case "$TRANSFORMTYPE" in
 "r" | "t")
   STAGES="$INITIALSTAGE $RIGIDSTAGE"
-  if [[ $HAVEMASK -eq 1 ]] ; then
-    $STAGES=" $INITIALSTAGE $RIGIDSTAGE $MASK "
-  fi
+  NUMBEROFREGISTRATIONSTAGES=1
   ;;
 "a")
   STAGES="$INITIALSTAGE $RIGIDSTAGE $AFFINESTAGE"
-  if [[ $HAVEMASK -eq 1 ]] ; then
-    STAGES="$INITIALSTAGE $RIGIDSTAGE $NULLMASK $AFFINESTAGE $MASK "
-  fi
+  NUMBEROFREGISTRATIONSTAGES=2
   ;;
 "b" | "s")
   STAGES="$INITIALSTAGE $RIGIDSTAGE $AFFINESTAGE $SYNSTAGE"
-  if [[ $HAVEMASK -eq 1 ]] ; then
-    STAGES="$INITIALSTAGE $RIGIDSTAGE $NULLMASK $AFFINESTAGE $NULLMASK $SYNSTAGE $MASK "
-  fi
+  NUMBEROFREGISTRATIONSTAGES=3
   ;;
 "br" | "sr")
   STAGES="$INITIALSTAGE $RIGIDSTAGE  $SYNSTAGE"
-  if [[ $HAVEMASK -eq 1 ]] ; then
-    STAGES="$INITIALSTAGE $RIGIDSTAGE $NULLMASK $SYNSTAGE $MASK "
-  fi
+  NUMBEROFREGISTRATIONSTAGES=2
   ;;
 "bo" | "so")
   STAGES="$INITIALSTAGE $SYNSTAGE"
-  if [[ $HAVEMASK -eq 1 ]] ; then
-    $STAGES=" $INITIALSTAGE $SYNSTAGE $MASK "
-  fi
+  NUMBEROFREGISTRATIONSTAGES=1
   ;;
 *)
   echo "Transform type '$TRANSFORMTYPE' is not an option.  See usage: '$0 -h 1'"
   exit
   ;;
 esac
+
+if [[ $NUMBEROFMASKIMAGES -ne 0 && $NUMBEROFMASKIMAGES -ne 1 && $NUMBEROFMASKIMAGES -ne $NUMBEROFREGISTRATIONSTAGES ]];
+  then
+    echo "The specified number of mask images is not correct.  Please see help menu."
+    exit
+  fi
 
 PRECISION=''
 case "$PRECISIONTYPE" in
@@ -566,6 +570,7 @@ COMMAND="${ANTS} --verbose 1 \
                  --interpolation Linear \
                  --use-histogram-matching ${USEHISTOGRAMMATCHING} \
                  --winsorize-image-intensities [0.005,0.995] \
+                 $MASKCALL \
                  $STAGES"
 
 echo " antsRegistration call:"
