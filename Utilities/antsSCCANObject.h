@@ -849,7 +849,7 @@ protected:
       return;
       }
     bool negate = false;
-    if( x_k1.mean() <= 0 )
+    if ( vnl_math_abs( x_k1.min_value() ) > x_k1.max_value() )
       {
       negate = true;
       }
@@ -859,6 +859,7 @@ protected:
       }
     RealType initmax = x_k1.max_value();
     x_k1 = x_k1 / initmax;
+    /** remove this optimization and just use fnp * high value as threshold
     std::vector<RealType> x_k1sort( x_k1.size() , 0 );
     for ( unsigned long j = 0; j < x_k1.size(); ++j ) x_k1sort[j] = ( x_k1(j) );
     sort(x_k1sort.begin(), x_k1sort.end() , std::less<RealType>() );
@@ -880,9 +881,7 @@ protected:
     RealType     lastfnm = 1;
     while( ( ( eng > (fnp*0.1) )  &&
              ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
-             ( its < 20 ) ) ||
-	     its < 3
-	 )
+             ( its < 20 ) ) || its < 3  )
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
@@ -900,12 +899,16 @@ protected:
         }
       if( fnm < fnp )
         {
-	high = mid; // 0.5 * ( high + mid  );
+	      high = mid; // 0.5 * ( high + mid  );
         }
       eng = vnl_math_abs( fnp - fnm );
       its++;
       }
     this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
+    */
+    for ( unsigned long j = 0; j < x_k1.size(); ++j )
+      if ( vnl_math_abs( x_k1[ j ] ) < (1.0-fnp) )  x_k1[ j ] = 0;
+    this->SoftClustThreshold( x_k1, 0, keeppos,  clust, mask  );
     x_k1 = this->SpatiallySmoothVector( x_k1, mask );
     if( negate )
       {
