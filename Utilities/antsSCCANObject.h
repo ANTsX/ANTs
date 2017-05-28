@@ -272,6 +272,8 @@ public:
   itkSetMacro( Covering, unsigned int );
   itkSetMacro( GetSmall, bool );
   itkSetMacro( UseL1, bool );
+  itkSetMacro( MaxBasedThresholding, bool );
+  itkGetMacro( MaxBasedThresholding, bool );
   itkSetMacro( GradStep, RealType );
   itkSetMacro( FractionNonZeroR, RealType );
   itkSetMacro( KeepPositiveR, bool );
@@ -832,7 +834,8 @@ protected:
   }
 
 
-  void Sparsify( VectorType& x_k1, RealType fnp, bool keeppos, unsigned int clust, ImagePointer mask  )
+  void Sparsify( VectorType& x_k1, RealType fnp, bool keeppos,
+    unsigned int clust, ImagePointer mask  )
   {
 
     if( x_k1.size() <= 1 )
@@ -859,56 +862,61 @@ protected:
       }
     RealType initmax = x_k1.max_value();
     x_k1 = x_k1 / initmax;
-    /** remove this optimization and just use fnp * high value as threshold
-    std::vector<RealType> x_k1sort( x_k1.size() , 0 );
-    for ( unsigned long j = 0; j < x_k1.size(); ++j ) x_k1sort[j] = ( x_k1(j) );
-    sort(x_k1sort.begin(), x_k1sort.end() , std::less<RealType>() );
-    //    std::cout << "Sorted " << x_k1sort[1] << " " << x_k1sort[x_k1.size()-1] << std::endl;
-    RealType     low  = 0;
-    RealType maxj = static_cast<RealType>(  x_k1.size() );
-    unsigned long maxjind = static_cast<unsigned long>( (1-fnp*0.5) * maxj + 0.5 );
-    unsigned long minjind = static_cast<unsigned long>( (  fnp*0.5) * maxj + 0.5 );
-    if ( maxjind > ( maxj - 1 ) ) maxjind = ( maxj - 1 );
-    RealType  maxval = x_k1sort[ maxjind ];
-    RealType  minval = x_k1sort[ minjind ];
-    RealType    high = maxval;
-    if ( vnl_math_abs( minval ) > high ) high = vnl_math_abs( minval );
-    //    if ( high * 0.2  > 0 ) low = high * 0.2; // hack to speed convergence
-    RealType     eng = fnp;
-    RealType     mid = low + 0.5 * ( high - low );
-    unsigned int its = 0;
-    RealType     fnm = 0;
-    RealType     lastfnm = 1;
-    while( ( ( eng > (fnp*0.1) )  &&
-             ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
-             ( its < 20 ) ) || its < 3  )
+    if ( ! this->m_MaxBasedThresholding )
       {
-      mid = low + 0.5 * ( high - low );
-      VectorType searcherm( x_k1 );
-      //      if ( its > 10 & fnm > 0.99 ) std::cout << " A " << searcherm << std::endl;
-      this->SoftClustThreshold( searcherm, mid, keeppos,  clust, mask );
-      //      if ( its > 10 & fnm > 0.99 ) std::cout << " B " << searcherm << std::endl;
-      searcherm = this->SpatiallySmoothVector( searcherm, mask );
-      //      if ( its > 10 & fnm > 0.99 ) std::cout << " C " << searcherm << std::endl;
-      //      if ( its > 10 & fnm > 0.99 ) exit(1);
-      lastfnm = fnm;
-      fnm = this->CountNonZero( searcherm );
-      if( fnm > fnp )
+      // remove this optimization and just use fnp * high value as threshold
+      std::vector<RealType> x_k1sort( x_k1.size() , 0 );
+      for ( unsigned long j = 0; j < x_k1.size(); ++j ) x_k1sort[j] = ( x_k1(j) );
+      sort(x_k1sort.begin(), x_k1sort.end() , std::less<RealType>() );
+      //    std::cout << "Sorted " << x_k1sort[1] << " " << x_k1sort[x_k1.size()-1] << std::endl;
+      RealType     low  = 0;
+      RealType maxj = static_cast<RealType>(  x_k1.size() );
+      unsigned long maxjind = static_cast<unsigned long>( (1-fnp*0.5) * maxj + 0.5 );
+      unsigned long minjind = static_cast<unsigned long>( (  fnp*0.5) * maxj + 0.5 );
+      if ( maxjind > ( maxj - 1 ) ) maxjind = ( maxj - 1 );
+      RealType  maxval = x_k1sort[ maxjind ];
+      RealType  minval = x_k1sort[ minjind ];
+      RealType    high = maxval;
+      if ( vnl_math_abs( minval ) > high ) high = vnl_math_abs( minval );
+      //    if ( high * 0.2  > 0 ) low = high * 0.2; // hack to speed convergence
+      RealType     eng = fnp;
+      RealType     mid = low + 0.5 * ( high - low );
+      unsigned int its = 0;
+      RealType     fnm = 0;
+      RealType     lastfnm = 1;
+      while( ( ( eng > (fnp*0.1) )  &&
+               ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
+               ( its < 20 ) ) || its < 3  )
         {
-        low = mid; // 0.5 * ( low + mid  ); // relax this b/c it may not be a strictly quadratic space
+        mid = low + 0.5 * ( high - low );
+        VectorType searcherm( x_k1 );
+        //      if ( its > 10 & fnm > 0.99 ) std::cout << " A " << searcherm << std::endl;
+        this->SoftClustThreshold( searcherm, mid, keeppos,  clust, mask );
+        //      if ( its > 10 & fnm > 0.99 ) std::cout << " B " << searcherm << std::endl;
+        searcherm = this->SpatiallySmoothVector( searcherm, mask );
+        //      if ( its > 10 & fnm > 0.99 ) std::cout << " C " << searcherm << std::endl;
+        //      if ( its > 10 & fnm > 0.99 ) exit(1);
+        lastfnm = fnm;
+        fnm = this->CountNonZero( searcherm );
+        if( fnm > fnp )
+          {
+          low = mid; // 0.5 * ( low + mid  ); // relax this b/c it may not be a strictly quadratic space
+          }
+        if( fnm < fnp )
+          {
+  	      high = mid; // 0.5 * ( high + mid  );
+          }
+        eng = vnl_math_abs( fnp - fnm );
+        its++;
         }
-      if( fnm < fnp )
-        {
-	      high = mid; // 0.5 * ( high + mid  );
-        }
-      eng = vnl_math_abs( fnp - fnm );
-      its++;
+      this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
       }
-    this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
-    */
-    for ( unsigned long j = 0; j < x_k1.size(); ++j )
-      if ( vnl_math_abs( x_k1[ j ] ) < (1.0-fnp) )  x_k1[ j ] = 0;
-    this->SoftClustThreshold( x_k1, 0, keeppos,  clust, mask  );
+    else
+      {
+      for ( unsigned long j = 0; j < x_k1.size(); ++j )
+        if ( vnl_math_abs( x_k1[ j ] ) < (1.0-fnp) )  x_k1[ j ] = 0;
+      this->SoftClustThreshold( x_k1, 0, keeppos,  clust, mask  );
+      }
     x_k1 = this->SpatiallySmoothVector( x_k1, mask );
     if( negate )
       {
@@ -1224,6 +1232,7 @@ private:
 
   bool       m_Debug;
   bool       m_Silent;
+  bool       m_MaxBasedThresholding;
   MatrixType m_OriginalMatrixP;
   MatrixType m_OriginalMatrixQ;
   MatrixType m_OriginalMatrixR;
