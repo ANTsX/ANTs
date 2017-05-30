@@ -268,6 +268,8 @@ Learning about ANTs (examples, etc.)
 
 * **fMRI prediction** [example](http://stnava.github.io/Haxby2001/) ... WIP ...
 
+* **Partial EPI slab to T1 image registration** [example](https://github.com/ntustison/PartialSlabEpiT1ImageRegistration)
+
 ### Lung 
 
 * **CT lung registration** [example](https://github.com/ntustison/antsCtLungRegistrationExample)
