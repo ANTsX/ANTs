@@ -52,6 +52,7 @@ endmacro()
 set(CORE_ANTS_APPS
   antsAffineInitializer
   antsJointFusion
+  DenoiseImage
   SurfaceBasedSmoothing
   CreateJacobianDeterminantImage
   ThresholdImage
@@ -120,7 +121,6 @@ set(MORE_ANTS_APPS
     TileImages
     CreateTiledMosaic
     CreateImage
-    DenoiseImage
     NonLocalSuperResolution
     WarpTensorImageMultiTransform
     ReorientTensorImage
