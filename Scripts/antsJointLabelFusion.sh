@@ -130,9 +130,12 @@ Optional arguments:
         br: rigid + deformable b-spline syn
         bo: deformable b-spline syn only
 
-     -x:  Target mask image (default = 'otsu')
+     -x:  Target mask image (default = 'majorityvoting')
         otsu: use otsu thresholding to define foreground/background
         or: 'or' all the warped atlas images to defined foreground/background
+        majorityvoting: perform a voxelwise label voting.  If >= 80% of the warped atlases agree at that
+                        voxel, we keep that voted label at that voxel and *do not* perform JLF.  Note that
+                        the 80% threshold is hard-coded but can be easily changed in the script.
         <filename>: a user-specified mask
         none: don't use a mask
 
@@ -237,9 +240,12 @@ Optional arguments:
         br: rigid + deformable b-spline syn
         bo: deformable b-spline syn only
 
-     -x:  Target mask image (default = 'otsu')
+     -x:  Target mask image (default = 'majorityvoting')
         otsu: use otsu thresholding to define foreground/background
         or: 'or' all the warped atlas images to defined foreground/background
+        majorityvoting: perform a voxelwise label voting.  If >= 80% of the warped atlases agree at that
+                        voxel, we keep that voted label at that voxel and *do not* perform JLF.  Note that
+                        the 80% threshold is hard-coded but can be easily changed in the script.
         <filename>: a user-specified mask
         none: don't use a mask
 
@@ -357,7 +363,7 @@ PRECISION=0
 XGRID_OPTS=""
 SCRIPT_PREPEND=""
 QSUB_OPTS=""
-TARGET_MASK_IMAGE="otsu"
+TARGET_MASK_IMAGE="majorityvoting"
 
 REGISTRATION_WALLTIME="20:00:00"
 REGISTRATION_MEMORY="8gb"
@@ -689,6 +695,7 @@ if [[ $DOQSUB -eq 0 ]];
             maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
 
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+
         elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
           then
             TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
@@ -700,7 +707,12 @@ if [[ $DOQSUB -eq 0 ]];
               done
             maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+          then
+            MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
+
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
           then
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
@@ -711,6 +723,12 @@ if [[ $DOQSUB -eq 0 ]];
 
     echo "$maskCall" > $qscript2
     echo "$jlfCall" >> $qscript2
+
+    if [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+      then
+        combineCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}Labels.nii.gz max ${OUTPUT_PREFIX}Labels.nii.gz ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+        echo "$combineCall" >> $qscript2
+      fi
 
     echo $qscript2
     bash $qscript2
@@ -779,6 +797,7 @@ if [[ $DOQSUB -eq 1 ]];
             maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
 
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+
         elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
           then
             TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
@@ -801,6 +820,12 @@ if [[ $DOQSUB -eq 1 ]];
 
     echo "$maskCall" > $qscript2
     echo "$jlfCall" >> $qscript2
+
+    if [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+      then
+        combineCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}Labels.nii.gz max ${OUTPUT_PREFIX}Labels.nii.gz ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+        echo "$combineCall" >> $qscript2
+      fi
 
     jobIDs=`qsub -cwd -S /bin/bash -N antsJlf -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript2 | awk '{print $3}'`
     ${ANTSPATH}/waitForSGEQJobs.pl 1 600 $jobIDs
@@ -868,6 +893,7 @@ if [[ $DOQSUB -eq 4 ]];
             maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
 
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+
         elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
           then
             TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
@@ -879,7 +905,12 @@ if [[ $DOQSUB -eq 4 ]];
               done
             maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+          then
+            MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
+
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
           then
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
@@ -890,6 +921,12 @@ if [[ $DOQSUB -eq 4 ]];
 
     echo "$maskCall" > $qscript2
     echo "$jlfCall" >> $qscript2
+
+    if [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+      then
+        combineCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}Labels.nii.gz max ${OUTPUT_PREFIX}Labels.nii.gz ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+        echo "$combineCall" >> $qscript2
+      fi
 
     jobIDs=`qsub -N antsJlf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${JLF_MEMORY} -l walltime=${JLF_WALLTIME} $qscript2 | awk '{print $1}'`
     ${ANTSPATH}/waitForPBSQJobs.pl 1 600 $jobIDs
@@ -944,6 +981,7 @@ if [[ $DOQSUB -eq 2 ]];
             maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
 
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+
         elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
           then
             TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
@@ -955,7 +993,12 @@ if [[ $DOQSUB -eq 2 ]];
               done
             maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+          then
+            MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
+
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
           then
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
@@ -966,6 +1009,12 @@ if [[ $DOQSUB -eq 2 ]];
 
     echo "$maskCall" > $qscript2
     echo "$jlfCall" >> $qscript2
+
+    if [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+      then
+        combineCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}Labels.nii.gz max ${OUTPUT_PREFIX}Labels.nii.gz ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+        echo "$combineCall" >> $qscript2
+      fi
 
     sh $qscript2
   fi
@@ -1032,6 +1081,7 @@ if [[ $DOQSUB -eq 3 ]];
             maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
 
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+
         elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
           then
             TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
@@ -1043,7 +1093,12 @@ if [[ $DOQSUB -eq 3 ]];
               done
             maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+          then
+            MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
+
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
           then
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
@@ -1054,6 +1109,12 @@ if [[ $DOQSUB -eq 3 ]];
 
     echo "$maskCall" > $qscript2
     echo "$jlfCall" >> $qscript2
+
+    if [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+      then
+        combineCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}Labels.nii.gz max ${OUTPUT_PREFIX}Labels.nii.gz ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+        echo "$combineCall" >> $qscript2
+      fi
 
     sh $qscript2
   fi
@@ -1123,6 +1184,7 @@ if [[ $DOQSUB -eq 5 ]];
             maskCall="${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_IMAGE} ${TARGET_MASK_IMAGE} Otsu 1;"
 
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+
         elif [[ ${TARGET_MASK_IMAGE} == 'or' ]];
           then
             TARGET_MASK_IMAGE="${OUTPUT_PREFIX}TargetMaskImageOr.nii.gz"
@@ -1134,7 +1196,12 @@ if [[ $DOQSUB -eq 5 ]];
               done
             maskCall="${maskCall} ${ANTSPATH}/ThresholdImage ${DIM} ${TARGET_MASK_IMAGE} ${TARGET_MASK_IMAGE} 0 0 0 1"
 
-            jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
+        elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+          then
+            MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
+
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
           then
             jlfCall="${jlfCall} -x ${TARGET_MASK_IMAGE}"
@@ -1146,6 +1213,12 @@ if [[ $DOQSUB -eq 5 ]];
     echo "#!/bin/sh" > $qscript2
     echo "$maskCall" >> $qscript2
     echo "$jlfCall" >> $qscript2
+
+    if [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
+      then
+        combineCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}Labels.nii.gz max ${OUTPUT_PREFIX}Labels.nii.gz ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
+        echo "$combineCall" >> $qscript2
+      fi
 
     jobIDs=`sbatch --job-name=antsJlf --export=ANTSPATH=$ANTSPATH $QSUB_OPTS --nodes=1 --cpus-per-task=1 --time=${JLF_WALLTIME} --mem=${JLF_MEMORY} $qscript2 | rev | cut -f1 -d\ | rev`
     ${ANTSPATH}/waitForSlurmJobs.pl 1 600 $jobIDs
