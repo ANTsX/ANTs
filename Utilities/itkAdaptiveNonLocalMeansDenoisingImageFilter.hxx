@@ -124,15 +124,21 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
   const MaskImageType *maskImage = this->GetMaskImage();
 
   OutputImageType *outputImage = this->GetOutput();
+  RegionType targetImageRegion = this->GetTargetImageRegion();
 
-  ConstNeighborhoodIterator<RealImageType> ItV( this->GetNeighborhoodSearchRadius(), this->m_VarianceImage, region );
-  ConstNeighborhoodIterator<RealImageType> ItM( this->GetNeighborhoodSearchRadius(), this->m_MeanImage, region );
+  NeighborhoodOffsetListType neighborhoodPatchOffsetList = this->GetNeighborhoodPatchOffsetList();
 
-  ConstNeighborhoodIterator<InputImageType> ItBI( this->GetNeighborhoodPatchRadius(), inputImage, region );
-  ConstNeighborhoodIterator<RealImageType> ItBM( this->GetNeighborhoodPatchRadius(), this->m_MeanImage, region );
+  NeighborhoodRadiusType neighborhoodSearchRadius = this->GetNeighborhoodSearchRadius();
+  NeighborhoodRadiusType neighborhoodPatchRadius = this->GetNeighborhoodPatchRadius();
 
-  NeighborhoodIterator<InputImageType> ItBO( this->GetNeighborhoodPatchRadius(), outputImage, region );
-  NeighborhoodIterator<RealImageType> ItBL( this->GetNeighborhoodPatchRadius(), this->m_ThreadContributionCountImage, region );
+  ConstNeighborhoodIterator<RealImageType> ItV( neighborhoodSearchRadius, this->m_VarianceImage, region );
+  ConstNeighborhoodIterator<RealImageType> ItM( neighborhoodSearchRadius, this->m_MeanImage, region );
+
+  ConstNeighborhoodIterator<InputImageType> ItBI( neighborhoodPatchRadius, inputImage, region );
+  ConstNeighborhoodIterator<RealImageType> ItBM( neighborhoodPatchRadius, this->m_MeanImage, region );
+
+  NeighborhoodIterator<InputImageType> ItBO( neighborhoodPatchRadius, outputImage, region );
+  NeighborhoodIterator<RealImageType> ItBL( neighborhoodPatchRadius, this->m_ThreadContributionCountImage, region );
 
   const unsigned int neighborhoodSearchSize = this->GetNeighborhoodSearchSize();
   const unsigned int neighborhoodPatchSize = this->GetNeighborhoodPatchSize();
@@ -200,9 +206,9 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
           for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
             {
-            IndexType neighborhoodPatchIndex = neighborhoodIndex + this->GetNeighborhoodPatchOffsetList()[n];
+            IndexType neighborhoodPatchIndex = neighborhoodIndex + neighborhoodPatchOffsetList[n];
 
-            if( ! this->GetTargetImageRegion().IsInside( neighborhoodPatchIndex ) )
+            if( ! targetImageRegion.IsInside( neighborhoodPatchIndex ) )
               {
               continue;
               }
@@ -276,8 +282,8 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
           RealType count = 0.0;
           for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
             {
-            IndexType neighborhoodPatchIndex = neighborhoodIndex + this->GetNeighborhoodPatchOffsetList()[n];
-            if( ! this->GetTargetImageRegion().IsInside( neighborhoodPatchIndex ) )
+            IndexType neighborhoodPatchIndex = neighborhoodIndex + neighborhoodPatchOffsetList[n];
+            if( ! targetImageRegion.IsInside( neighborhoodPatchIndex ) )
               {
               continue;
               }
@@ -300,8 +306,8 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
             {
             for( unsigned int n = 0; n < neighborhoodPatchSize; n++ )
               {
-              IndexType neighborhoodPatchIndex = neighborhoodIndex + this->GetNeighborhoodPatchOffsetList()[n];
-              if( ! this->GetTargetImageRegion().IsInside( neighborhoodPatchIndex ) )
+              IndexType neighborhoodPatchIndex = neighborhoodIndex + neighborhoodPatchOffsetList[n];
+              if( ! targetImageRegion.IsInside( neighborhoodPatchIndex ) )
                 {
                 continue;
                 }

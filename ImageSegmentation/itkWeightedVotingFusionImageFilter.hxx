@@ -440,6 +440,8 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     useOnlyFirstAtlasImage = false;
     }
 
+  std::vector<NeighborhoodOffsetType> searchNeighborhoodOffsetList = this->GetNeighborhoodSearchOffsetList();
+
   // Iterate over the input region
   ConstNeighborhoodIteratorType ItN( this->GetNeighborhoodPatchRadius(), this->m_TargetImage[0], region );
   for( ItN.GoToBegin(); !ItN.IsAtEnd(); ++ItN )
@@ -477,12 +479,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 //       }
 
     // Determine the search neighborhood offset list for the current center voxel
-    std::vector<NeighborhoodOffsetType> searchNeighborhoodOffsetList;
-    if( this->m_NeighborhoodSearchRadiusImage.IsNull() )
-      {
-      searchNeighborhoodOffsetList = this->GetNeighborhoodSearchOffsetList();
-      }
-    else
+    if( this->m_NeighborhoodSearchRadiusImage.IsNotNull() )
       {
       RadiusValueType localSearchRadius =
         this->m_NeighborhoodSearchRadiusImage->GetPixel( currentCenterIndex );

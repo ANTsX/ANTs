@@ -84,6 +84,7 @@ public:
   typedef typename Superclass::ConstNeighborhoodIteratorType   ConstNeighborhoodIteratorType;
   typedef typename Superclass::NeighborhoodRadiusType          NeighborhoodRadiusType;
   typedef typename Superclass::NeighborhoodOffsetType          NeighborhoodOffsetType;
+  typedef typename Superclass::NeighborhoodOffsetListType      NeighborhoodOffsetListType;
 
   typedef GaussianOperator<RealType>                     ModifiedBesselCalculatorType;
 
