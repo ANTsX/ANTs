@@ -11450,17 +11450,57 @@ int MajorityVoting( int argc, char *argv[] )
 
   std::string outputName = std::string( argv[2] );
 
-  // Read input segmentations
-  const unsigned long                               nImages = argc - 4;
-  typename std::vector<typename ImageType::Pointer> images(argc - 4);
-  for( int i = 4; i < argc; i++ )
+  // Check for usage 1, e.g.,
+  //     ImageMath 3 outputLabels.nii.gz MajorityVoting labelImage1.nii.gz ... labelImageN.nii.gz
+  //  vs.
+  // usage 2 (hidden from casual user), e.g.,
+  //     ImageMath 3 outputLabels.nii.gz MajorityVoting 0.9 labelImage1.nii.gz ... labelImageN.nii.gz
+
+  typename ImageType::Pointer image4 = ITK_NULLPTR;
+  bool doUsage1 = ReadImage<ImageType>( image4, argv[4] );
+
+  unsigned long numberOfImages = 0;
+  unsigned int startIndex = 0;
+  float percentage = 0.0;
+
+  if( doUsage1 )
     {
-    ReadImage<ImageType>( images[i - 4], argv[i] );
+    numberOfImages = argc - 4;
+    startIndex = 4;
     }
+  else
+    {
+    numberOfImages = argc - 5;
+    startIndex = 5;
+    percentage = atof( argv[4] );
+    }
+
+  if( numberOfImages <= 1 )
+    {
+    // std::cout << " Not enough inputs " << std::endl;
+    return 1;
+    }
+
+  typename std::vector<typename ImageType::Pointer> images;
+  images.resize( numberOfImages );
+
+  for( int i = startIndex; i < argc; i++ )
+    {
+    if( i == 4 )
+      {
+      images[0] = image4;
+      }
+    else
+      {
+      ReadImage<ImageType>( images[i - startIndex], argv[i] );
+      }
+    }
+
+  typename ImageType::Pointer output = ITK_NULLPTR;
 
   // Find maximum label
   int maxLabel = 0;
-  for( unsigned int i = 0; i < nImages; i++ )
+  for( unsigned int i = 0; i < numberOfImages; i++ )
     {
     typename CalculatorType::Pointer calc = CalculatorType::New();
     calc->SetImage( images[i] );
@@ -11472,35 +11512,81 @@ int MajorityVoting( int argc, char *argv[] )
     }
   unsigned long nLabels = maxLabel + 1; // account for label=0
 
-  typename ImageType::Pointer output =
-    AllocImage<ImageType>(images[0], 0);
+  output = AllocImage<ImageType>( images[0], 0 );
 
-  IteratorType              it( output, output->GetLargestPossibleRegion() );
+  typename ImageType::Pointer outputMask = ITK_NULLPTR;
+  outputMask = AllocImage<ImageType>( images[0], 0 );
+
+  IteratorType it( output, output->GetLargestPossibleRegion() );
+  IteratorType itM( outputMask, outputMask->GetLargestPossibleRegion() );
+
   itk::Array<unsigned long> votes;
   votes.SetSize( nLabels );
 
   while( !it.IsAtEnd() )
     {
-    votes.Fill(0);
+    votes.Fill( 0 );
     unsigned long maxVotes = 0;
     unsigned long votedLabel = 0;
-    for( unsigned long i = 0; i < nImages; i++ )
+    for( unsigned long i = 0; i < numberOfImages; i++ )
       {
       unsigned long label = images[i]->GetPixel( it.GetIndex() );
-      votes.SetElement(label, votes.GetElement(label) + 1 );
+      votes.SetElement( label, votes.GetElement( label ) + 1 );
 
-      if( votes.GetElement(label) > maxVotes )
+      if( votes.GetElement( label ) > maxVotes )
         {
-        maxVotes = votes.GetElement(label);
+        maxVotes = votes.GetElement( label );
         votedLabel = label;
         }
       }
 
-    it.Set( votedLabel );
+    if( doUsage1 )
+      {
+      it.Set( votedLabel );
+      }
+    else
+      {
+      if( static_cast<float>( maxVotes ) / static_cast<float>( numberOfImages ) >= percentage )
+        {
+        it.Set( votedLabel );
+        }
+      else
+        {
+        itM.Set( 1 );
+        }
+      }
+
     ++it;
+    ++itM;
     }
 
   WriteImage<ImageType>( output, outputName.c_str() );
+
+  if( ! doUsage1 )
+    {
+    std::vector<std::string> fileExtensions;
+    fileExtensions.push_back( ".nii" );
+    fileExtensions.push_back( ".mha" );
+    fileExtensions.push_back( ".nrrd" );
+
+    std::string outputMaskName;
+    for( unsigned int i = 0; i < fileExtensions.size(); i++ )
+      {
+      if( outputName.find_last_of( fileExtensions[i] ) != std::string::npos )
+        {
+        outputMaskName = outputName.insert(
+          outputName.find_last_of( fileExtensions[i] ) - ( fileExtensions[i] ).length(), "_Mask" );
+        break;
+        }
+      }
+    if( outputMaskName.empty() )
+      {
+      // std::cout << " Unrecognized output file extension. " << std::endl;
+      return 1;
+      }
+    WriteImage<ImageType>( outputMask, outputMaskName.c_str() );
+    }
+
   return 0;
 }
 
