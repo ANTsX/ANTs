@@ -1,398 +1,612 @@
-/*=========================================================================
-
-  Program:   Advanced Normalization Tools
-
-  Copyright (c) ConsortiumOfANTS. All rights reserved.
-  See accompanying COPYING.txt or
- https://github.com/stnava/ANTs/blob/master/ANTSCopyright.txt for
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
-
+#include "antsCommandLineParser.h"
 #include "antsUtilities.h"
-#include "antsAllocImage.h"
-#include <algorithm>
-
 #include "ReadWriteData.h"
-#include "itkDiscreteGaussianImageFilter.h"
-#include "itkAvantsMutualInformationRegistrationFunction.h"
-#include "itkSpatialMutualInformationRegistrationFunction.h"
-#include "itkProbabilisticRegistrationFunction.h"
-#include "itkCrossCorrelationRegistrationFunction.h"
+
+#include "itkantsRegistrationHelper.h"
+
+#include "itkMersenneTwisterRandomVariateGenerator.h"
 
 namespace ants
 {
+
 template <unsigned int ImageDimension>
-int MeasureImageSimilarity(unsigned int argc, char *argv[])
+int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
 {
-  typedef float                                                  PixelType;
-  typedef itk::Vector<float, ImageDimension>                     VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                 FieldType;
-  typedef itk::Image<PixelType, ImageDimension>                  ImageType;
-  typedef itk::ImageFileWriter<ImageType>                        writertype;
-  typedef typename ImageType::IndexType                          IndexType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>           Iterator;
+  typedef double                                            TComputeType;
 
-// get command line params
-  unsigned int argct = 2;
-  unsigned int whichmetric = atoi(argv[argct]); argct++;
-  std::string  fn1 = std::string(argv[argct]); argct++;
-  std::string  fn2 = std::string(argv[argct]); argct++;
-  std::string  logfilename = "";
-  if( argc > argct )
+  typedef typename ants::RegistrationHelper<TComputeType, ImageDimension> RegistrationHelperType;
+  typedef typename RegistrationHelperType::ImageType                      ImageType;
+
+  typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>  ImageMetricType;
+  typedef itk::ImageMaskSpatialObject<ImageDimension>                               ImageMaskSpatialObjectType;
+  typedef typename ImageMaskSpatialObjectType::ImageType                            MaskImageType;
+
+  bool verbose = false;
+  typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
+    parser->GetOption( "verbose" );
+  if( verboseOption && verboseOption->GetNumberOfFunctions() )
     {
-    logfilename = std::string(argv[argct]);
+    verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
     }
-  argct++;
-  std::string imgfilename = "";
-  if( argc > argct )
+
+  typename ImageMaskSpatialObjectType::Pointer fixedImageMask = ITK_NULLPTR;
+  typename ImageMaskSpatialObjectType::Pointer movingImageMask = ITK_NULLPTR;
+
+  typename ImageType::Pointer fixedImage = ITK_NULLPTR;
+  typename ImageType::Pointer movingImage = ITK_NULLPTR;
+
+  typename itk::ants::CommandLineParser::OptionType::Pointer maskOption =
+    parser->GetOption( "masks" );
+  if( maskOption && maskOption->GetNumberOfFunctions() )
     {
-    imgfilename = std::string(argv[argct]);
-    }
-  argct++;
-  double targetvalue = 0;
-  if( argc > argct )
-    {
-    targetvalue = atof(argv[argct]);
-    }
-  argct++;
-  double epsilontolerance = 1.e20;
-  if( argc > argct )
-    {
-    epsilontolerance = atof(argv[argct]);
-    }
-  argct++;
-
-  typename ImageType::Pointer image1 = ITK_NULLPTR;
-  ReadImage<ImageType>(image1, fn1.c_str() );
-  typename ImageType::Pointer image2 = ITK_NULLPTR;
-  ReadImage<ImageType>(image2, fn2.c_str() );
-
-/*
-  typedef itk::ImageRegionIteratorWithIndex<FieldType> VIterator;
-  typename FieldType::Pointer field=FieldType::New();
-  field->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  field->SetBufferedRegion( image1->GetLargestPossibleRegion() );
-  field->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  field->Allocate();
-  field->SetSpacing(image1->GetSpacing());
-  field->SetOrigin(image1->GetOrigin());
-  VectorType zero;
-  zero.Fill(0);
-  VIterator vfIter2( field,  field->GetLargestPossibleRegion() );
-  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-    {
-      IndexType index=vfIter2.GetIndex();
-      vfIter2.Set(zero);
-    }
-*/
-  typename ImageType::Pointer metricimg = AllocImage<ImageType>(image1, 0);
-
-  typedef ImageType FixedImageType;
-  typedef ImageType MovingImageType;
-  typedef FieldType DisplacementFieldType;
-
-  // Choose the similarity metric
-  typedef itk::AvantsMutualInformationRegistrationFunction<FixedImageType, MovingImageType,
-                                                           DisplacementFieldType>  MIMetricType;
-  typedef itk::SpatialMutualInformationRegistrationFunction<FixedImageType, MovingImageType,
-                                                            DisplacementFieldType> SMIMetricType;
-  typedef itk::CrossCorrelationRegistrationFunction<FixedImageType, MovingImageType,
-                                                    DisplacementFieldType>         CCMetricType;
-  // typedef itk::LandmarkCrossCorrelationRegistrationFunction<FixedImageType,MovingImageType,DisplacementFieldType>
-  // MetricType;
-  // typename
-  typename MIMetricType::Pointer mimet = MIMetricType::New();
-  typename SMIMetricType::Pointer smimet = SMIMetricType::New();
-  typename CCMetricType::Pointer ccmet = CCMetricType::New();
-
-//  int nbins=32;
-
-  typename CCMetricType::RadiusType hradius;
-  typename CCMetricType::RadiusType ccradius;
-  ccradius.Fill(4);
-  typename MIMetricType::RadiusType miradius;
-  miradius.Fill(0);
-
-//  mimet->SetDisplacementField(field);
-  mimet->SetFixedImage(image1);
-  mimet->SetMovingImage(image2);
-  mimet->SetRadius(miradius);
-  mimet->SetGradientStep(1.e2);
-  mimet->SetNormalizeGradient(false);
-
-//  ccmet->SetDisplacementField(field);
-  ccmet->SetFixedImage(image1);
-  ccmet->SetMovingImage(image2);
-  ccmet->SetRadius(ccradius);
-  ccmet->SetGradientStep(1.e2);
-  ccmet->SetNormalizeGradient(false);
-
-  double      metricvalue = 0;
-  std::string metricname = "";
-  if( whichmetric  == 0 )
-    {
-    hradius = miradius;
-    unsigned long ct = 0;
-    Iterator      iter( metricimg,  metricimg->GetLargestPossibleRegion() );
-    for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+    if( verbose )
       {
-      IndexType index = iter.GetIndex();
-      double    fval = image1->GetPixel(index);
-      double    mval = image2->GetPixel(index);
-      metricvalue += fabs(fval - mval);
-      metricimg->SetPixel(index, fabs(fval - mval) );
-      ct++;
+      std::cout << "  Reading mask(s)." << std::endl;
       }
-    metricvalue /= (float)ct;
-    metricname = "MSQ ";
-    }
-  else if( whichmetric == 1 ) // imagedifference
-    {
-    double ccval = 0;
-    hradius = ccradius;
-    metricname = "CC ";
-    typedef itk::ConstNeighborhoodIterator<FixedImageType> ScanIteratorType;
-    typename FixedImageType::RegionType region = image1->GetLargestPossibleRegion();
-    ScanIteratorType asamIt( hradius, image1, region);
-    unsigned long    ct = 0;
-    Iterator         iter( metricimg,  metricimg->GetLargestPossibleRegion() );
-    for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+    if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      IndexType index = iter.GetIndex();
-      double    val = 0;
-      double    fmip = 0, mmip = 0, ffip = 0;
-      asamIt.SetLocation(index);
-      for( unsigned int i = 0; i < asamIt.Size(); i++ )
+      for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
         {
-        IndexType locind = asamIt.GetIndex(i);
-        if( region.IsInside( locind ) )
+        std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
+        typename MaskImageType::Pointer maskImage;
+        ReadImage<MaskImageType>( maskImage, fname.c_str() );
+        if( m == 0 )
           {
-          double f = image1->GetPixel(locind);
-          double m = image2->GetPixel(locind);
-          fmip += (f * m);  mmip += (m * m);  ffip += (f * f);
+          fixedImageMask = ImageMaskSpatialObjectType::New();
+          fixedImageMask->SetImage( maskImage );
+          if( verbose )
+            {
+            if( maskImage.IsNotNull() )
+              {
+              std::cout << "      Fixed mask = " << fname.c_str() << std::endl;
+              }
+            else
+              {
+              std::cout << "      No fixed mask" << std::endl;
+              }
+            }
+          }
+        else if( m == 1 )
+          {
+          movingImageMask = ImageMaskSpatialObjectType::New();
+          movingImageMask->SetImage( maskImage );
+          if( verbose )
+            {
+            if( maskImage.IsNotNull() )
+              {
+              std::cout << "      Moving mask = " << fname << std::endl;
+              }
+            else
+              {
+              std::cout << "      No moving mask" << std::endl;
+              }
+            }
           }
         }
-      double denom = mmip * ffip;
-      if( denom == 0 )
-        {
-        val = 1;
-        }
-      else
-        {
-        val = fmip / sqrt(denom);
-        }
-      metricimg->SetPixel(index, val);
-      // if (ct % 10000 == 0)
-      //        std::cout << val << " index " << index << std::endl;
-      //      asamIt.SetLocation(index);
-      //      totval+=met->localProbabilistic;
-      ccval += val;
-      ct++;
-      }
-    if( ct >  0 )
-      {
-      metricvalue = ccval / ct;
       }
     else
       {
-      metricvalue = 0;
+      std::string fname = maskOption->GetFunction( 0 )->GetName();
+      typename MaskImageType::Pointer maskImage;
+      ReadImage<MaskImageType>( maskImage, fname.c_str() );
+      fixedImageMask = ImageMaskSpatialObjectType::New();
+      fixedImageMask->SetImage( maskImage );
+      if( verbose )
+        {
+        if( maskImage.IsNotNull() )
+          {
+          std::cout << "      Fixed mask = " << fname << std::endl;
+          }
+        else
+          {
+          std::cout << "      No fixed mask" << std::endl;
+          }
+        }
       }
-    /*
-    std::cout << metricname << std::endl;
-    ccmet->InitializeIteration();
-    metricimg=ccmet->MakeImage();
-    metricvalue=ccmet->ComputeCrossCorrelation()*(1.0);
-    */
     }
-  else if( whichmetric == 2 )
+
+  itk::ants::CommandLineParser::OptionType::Pointer metricOption =
+    parser->GetOption( "metric" );
+  if( !metricOption || metricOption->GetNumberOfFunctions() == 0 )
     {
-    hradius = miradius;
-    mimet->InitializeIteration();
-    metricvalue = mimet->ComputeMutualInformation();
-    metricname = "MI ";
-    }
-  else if( whichmetric == 3 )
-    {
-    hradius = miradius;
-    smimet->InitializeIteration();
-    metricvalue = smimet->ComputeSpatialMutualInformation();
-    metricname = "SMI ";
-    }
-  std::cout << fn1 << " : " << fn2 << " => " <<  metricname << metricvalue << std::endl;
-  if( logfilename.length() > 3 )
-    {
-    std::ofstream logfile;
-    logfile.open(logfilename.c_str(), std::ofstream::app);
-    if( logfile.good() )
+    if( verbose )
       {
-      logfile <<  fn1 << " : " << fn2 << " => " << metricname << metricvalue << std::endl;
+      std::cerr << "ERROR: the metric option ('-m') must be specified.  See help menu." << std::endl;
       }
-    else
-      {
-      std::cout << " cant open file ";
-      }
-    logfile.close();
-    }
-
-  if( imgfilename.length() > 3 )
-    {
-    std::cout << "Only Implemented for MSQ and CC " << std::endl;
-    typename writertype::Pointer w = writertype::New();
-    w->SetInput(metricimg);
-    w->SetFileName(imgfilename.c_str() );
-    w->Write(); //  met->WriteImages();
-
-/*
-  typename MetricType::NeighborhoodType   asamIt( hradius, field,field->GetLargestPossibleRegion());
-  unsigned long ct = 0;
-  double totval = 0;
-  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-    {
-      IndexType index=vfIter2.GetIndex();
-      double val=0;
-      asamIt.SetLocation(index);
-      //      met->ComputeUpdate( asamIt,  gd);
-      met->ComputeMetricAtPairB(index,  zero);
-      metricimg->SetPixel(index, val);
-      //if (ct % 10000 == 0)
-      //        std::cout << val << " index " << index << std::endl;
-      //      asamIt.SetLocation(index);
-      //      totval+=met->localProbabilistic;
-      ct++;
-    }
-
-  std::cout << " AvantsMI : " << totval/(double)ct << " E " <<  met->GetEnergy() <<  std::endl;
-  std::cout << " write begin " << std::endl;
-
-  std::cout << " write end " << std::endl;
-*/
-    }
-
-  double diff = ( (double)metricvalue - (double) targetvalue);
-  std::cout << " targetvalue " << targetvalue << " metricvalue " << metricvalue << " diff " << diff << " toler "
-           << epsilontolerance << std::endl;
-
-  if( diff < epsilontolerance )
-    {
-    return EXIT_SUCCESS;
-    }
-  else
-    {
     return EXIT_FAILURE;
     }
+
+  // The metric weighting is irrelevant for this program.  We keep it to maintain consistency
+  //   with other ANTs programs.
+  float metricWeighting = 1.0;
+  if( metricOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
+    {
+    metricWeighting = parser->Convert<float>( metricOption->GetFunction( 0 )->GetParameter( 2 ) );
+    }
+
+  std::string fixedImageName = metricOption->GetFunction( 0 )->GetParameter( 0 );
+  if( ! ReadImage<ImageType>( fixedImage, fixedImageName.c_str() ) )
+    {
+    if( verbose )
+      {
+      std::cerr << "ERROR:  The fixed image file " << fixedImageName.c_str() << " does not exist." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
+
+  std::string movingImageName = metricOption->GetFunction( 0 )->GetParameter( 1 );
+  if( ! ReadImage<ImageType>( movingImage, movingImageName.c_str() ) )
+    {
+    if( verbose )
+      {
+      std::cerr << "ERROR:  The moving image file " << movingImageName.c_str() << " does not exist." << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
+
+  const bool gradientfilter = false;
+
+  TComputeType samplingPercentage = 1.0;
+  if( metricOption->GetFunction( 0 )->GetNumberOfParameters() > 5 )
+    {
+    samplingPercentage = parser->Convert<TComputeType>( metricOption->GetFunction( 0 )->GetParameter( 5 ) );
+    }
+
+  typename RegistrationHelperType::Pointer regHelper = RegistrationHelperType::New();
+  std::string whichMetric = metricOption->GetFunction( 0 )->GetName();
+  ConvertToLowerCase( whichMetric );
+  typename RegistrationHelperType::MetricEnumeration currentMetric = regHelper->StringToMetricType( whichMetric );
+
+  typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
+  std::string strategy = "none";
+  if( metricOption->GetFunction( 0 )->GetNumberOfParameters() > 4 )
+    {
+    strategy = metricOption->GetFunction( 0 )->GetParameter( 4 );
+    }
+  ConvertToLowerCase( strategy );
+
+  if( strategy == "random" )
+    {
+    samplingStrategy = RegistrationHelperType::random;
+    }
+  else if( strategy == "regular" )
+    {
+    samplingStrategy = RegistrationHelperType::regular;
+    }
+  else if( ( strategy == "none" ) || ( strategy == "" ) )
+    {
+    samplingStrategy = RegistrationHelperType::none;
+    }
+
+  typename ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
+
+  switch( currentMetric )
+    {
+    case RegistrationHelperType::CC:
+      {
+      const unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
+      if( verbose )
+        {
+        std::cout << "  using the CC metric (radius = "
+                     << radiusOption << ", weight = " << metricWeighting << ")" << std::endl;
+        }
+      typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> CorrelationMetricType;
+      typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
+      typename CorrelationMetricType::RadiusType radius;
+      radius.Fill( radiusOption );
+      correlationMetric->SetRadius( radius );
+      correlationMetric->SetUseMovingImageGradientFilter( gradientfilter );
+      correlationMetric->SetUseFixedImageGradientFilter( gradientfilter );
+
+      imageMetric = correlationMetric;
+      }
+      break;
+    case RegistrationHelperType::Mattes:
+      {
+      const unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
+      if( verbose )
+        {
+        std::cout << "  using the Mattes MI metric (number of bins = "
+                     << binOption << ", weight = " << metricWeighting << ")" << std::endl;
+        }
+      typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MutualInformationMetricType;
+      typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
+      mutualInformationMetric = mutualInformationMetric;
+      mutualInformationMetric->SetNumberOfHistogramBins( binOption );
+      mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
+      mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
+      mutualInformationMetric->SetUseFixedSampledPointSet( false );
+
+      imageMetric = mutualInformationMetric;
+      }
+      break;
+    case RegistrationHelperType::MI:
+      {
+      const unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
+      if( verbose )
+        {
+        std::cout << "  using the joint histogram MI metric (number of bins = "
+                     << binOption << ", weight = " << metricWeighting << ")" << std::endl;
+        }
+      typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType,
+                                                                       TComputeType> MutualInformationMetricType;
+      typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
+      mutualInformationMetric = mutualInformationMetric;
+      mutualInformationMetric->SetNumberOfHistogramBins( binOption );
+      mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
+      mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
+      mutualInformationMetric->SetUseFixedSampledPointSet( false );
+      mutualInformationMetric->SetVarianceForJointPDFSmoothing( 1.0 );
+
+      imageMetric = mutualInformationMetric;
+      }
+      break;
+    case RegistrationHelperType::MeanSquares:
+      {
+      if( verbose )
+        {
+        std::cout << "  using the MeanSquares metric (weight = " << metricWeighting << ")" << std::endl;
+        }
+
+      typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MeanSquaresMetricType;
+      typename MeanSquaresMetricType::Pointer meanSquaresMetric = MeanSquaresMetricType::New();
+      meanSquaresMetric = meanSquaresMetric;
+
+      imageMetric = meanSquaresMetric;
+      }
+      break;
+    case RegistrationHelperType::Demons:
+      {
+      if( verbose )
+        {
+        std::cout << "  using the Demons metric (weight = " << metricWeighting << ")" << std::endl;
+        }
+
+      typedef itk::DemonsImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> DemonsMetricType;
+      typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
+
+      imageMetric = demonsMetric;
+      }
+      break;
+    case RegistrationHelperType::GC:
+      {
+      if( verbose )
+        {
+        std::cout << "  using the global correlation metric (weight = " << metricWeighting << ")" << std::endl;
+        }
+      typedef itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> corrMetricType;
+      typename corrMetricType::Pointer corrMetric = corrMetricType::New();
+
+      imageMetric = corrMetric;
+      }
+      break;
+    default:
+      if( verbose )
+        {
+        std::cout << "ERROR: Unrecognized metric. " << std::endl;
+        }
+      return EXIT_FAILURE;
+    }
+
+  imageMetric->SetVirtualDomainFromImage( fixedImage );
+
+  imageMetric->SetFixedImage( fixedImage );
+  imageMetric->SetFixedImageMask( fixedImageMask );
+  imageMetric->SetUseFixedImageGradientFilter( gradientfilter );
+
+  imageMetric->SetMovingImage( movingImage );
+  imageMetric->SetMovingImageMask( movingImageMask );
+  imageMetric->SetUseMovingImageGradientFilter( gradientfilter );
+
+  /** Sample the image domain **/
+
+  if( samplingStrategy != RegistrationHelperType::none )
+    {
+    const typename ImageType::SpacingType oneThirdVirtualSpacing = fixedImage->GetSpacing() / 3.0;
+
+    typedef typename ImageMetricType::FixedSampledPointSetType MetricSamplePointSetType;
+    typename MetricSamplePointSetType::Pointer samplePointSet = MetricSamplePointSetType::New();
+    samplePointSet->Initialize();
+
+    typedef typename MetricSamplePointSetType::PointType SamplePointType;
+
+    typedef typename itk::Statistics::MersenneTwisterRandomVariateGenerator RandomizerType;
+    typename RandomizerType::Pointer randomizer = RandomizerType::New();
+    randomizer->SetSeed( 1234 );
+
+    unsigned long index = 0;
+
+    switch( samplingStrategy )
+      {
+      case RegistrationHelperType::regular:
+        {
+        const unsigned long sampleCount = static_cast<unsigned long>( std::ceil( 1.0 / samplingPercentage ) );
+        unsigned long count = sampleCount; //Start at sampleCount to keep behavior backwards identical, using first element.
+        itk::ImageRegionConstIteratorWithIndex<ImageType> It( fixedImage, fixedImage->GetRequestedRegion() );
+        for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+          {
+          if( count == sampleCount )
+            {
+            count = 0; //Reset counter
+            SamplePointType point;
+            fixedImage->TransformIndexToPhysicalPoint( It.GetIndex(), point );
+
+            // randomly perturb the point within a voxel (approximately)
+            for( unsigned int d = 0; d < ImageDimension; d++ )
+              {
+              point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
+              }
+            if( !fixedImageMask || fixedImageMask->IsInside( point ) )
+              {
+              samplePointSet->SetPoint( index, point );
+              ++index;
+              }
+            }
+          ++count;
+          }
+        break;
+        }
+      case RegistrationHelperType::random:
+        {
+        const unsigned long totalVirtualDomainVoxels = fixedImage->GetRequestedRegion().GetNumberOfPixels();
+        const unsigned long sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
+        itk::ImageRandomConstIteratorWithIndex<ImageType> ItR( fixedImage, fixedImage->GetRequestedRegion() );
+        ItR.SetNumberOfSamples( sampleCount );
+        for( ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR )
+          {
+          SamplePointType point;
+          fixedImage->TransformIndexToPhysicalPoint( ItR.GetIndex(), point );
+
+          // randomly perturb the point within a voxel (approximately)
+          for ( unsigned int d = 0; d < ImageDimension; d++ )
+            {
+            point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
+            }
+          if( !fixedImageMask || fixedImageMask->IsInside( point ) )
+            {
+            samplePointSet->SetPoint( index, point );
+            ++index;
+            }
+          }
+        break;
+        }
+      case RegistrationHelperType::none:
+        break;
+      case RegistrationHelperType::invalid:
+        break;
+      }
+    imageMetric->SetFixedSampledPointSet( samplePointSet );
+    imageMetric->SetUseFixedSampledPointSet( true );
+    }
+
+  imageMetric->Initialize();
+
+  if( verbose )
+    {
+    imageMetric->Print( std::cout, 3 );
+    }
+
+  std::cout << imageMetric->GetValue() << std::endl;
+
+  return EXIT_SUCCESS;
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
-// 'main()'
+void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+{
+  typedef itk::ants::CommandLineParser::OptionType OptionType;
+
+  {
+  std::string description =
+    std::string( "Dimensionality of the fixed/moving image pair." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "dimensionality" );
+  option->SetShortName( 'd' );
+  option->SetUsageOption( 0, "2/3/4" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "These image metrics are available--- " )
+    + std::string( "CC:  ANTS neighborhood cross correlation, MI:  Mutual information, " )
+    + std::string( "Demons: (Thirion), MeanSquares, and GC: Global Correlation. " )
+    + std::string( "The \"metricWeight\" variable is not used.  " )
+    + std::string( "The metrics can also employ a sampling strategy defined by a " )
+    + std::string( "sampling percentage. The sampling strategy defaults to \'None\' (aka a dense sampling of ")
+    + std::string( "one sample per voxel), otherwise it defines a point set over which to optimize the metric. " );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "metric" );
+  option->SetShortName( 'm' );
+  option->SetUsageOption(
+    0,
+    "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    1,
+    "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    2,
+    "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    3,
+    "MeanSquares[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    4,
+    "Demons[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+  option->SetUsageOption(
+    5,
+    "GC[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "Image masks to limit voxels considered by the metric. " );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "masks" );
+  option->SetShortName( 'x' );
+  option->SetUsageOption( 0, "fixedImageMask" );
+  option->SetUsageOption( 1, "[fixedImageMask,movingImageMask]" );
+  option->SetUsageOption( 2, "[fixedImageMask,NULL]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "Verbose output." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'v' );
+  option->SetLongName( "verbose" );
+  option->SetUsageOption( 0, "(0)/1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "Print the help menu (short version)." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'h' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "Print the help menu." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "help" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+}
+
 int MeasureImageSimilarity( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
 {
-  try
-    {
-    // put the arguments coming in as 'args' into standard (argc,argv) format;
-    // 'args' doesn't have the command name as first, argument, so add it manually;
-    // 'args' may have adjacent arguments concatenated into one argument,
-    // which the parser should handle
-    args.insert( args.begin(), "MeasureImageSimilarity" );
 
-    int     argc = args.size();
-    char* * argv = new char *[args.size() + 1];
-    for( unsigned int i = 0; i < args.size(); ++i )
-      {
-      // allocate space for the string plus a null character
-      argv[i] = new char[args[i].length() + 1];
-      std::strncpy( argv[i], args[i].c_str(), args[i].length() );
-      // place the null character in the end
-      argv[i][args[i].length()] = '\0';
-      }
-    argv[argc] = ITK_NULLPTR;
-    // class to automatically cleanup argv upon destruction
-    class Cleanup_argv
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+
+  args.insert( args.begin(), "MeasureImageSimilarity" );
+
+  int    argc = args.size();
+  char** argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
     {
-public:
-      Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
-      {
-      }
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = ITK_NULLPTR;
+
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+    {
+    public:
+      Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ ){}
 
       ~Cleanup_argv()
-      {
+        {
         for( unsigned int i = 0; i < argc_plus_one; ++i )
           {
           delete[] argv[i];
           }
         delete[] argv;
-      }
-
-private:
-      char* *      argv;
-      unsigned int argc_plus_one;
-    };
-    Cleanup_argv cleanup_argv( argv, argc + 1 );
-
-    // antscout->set_stream( out_stream );
-
-    if( argc < 3 )
-      {
-      std::cout << "Basic useage ex: " << std::endl;
-      std::cout << argv[0]
-               <<
-        " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}"
-               << std::endl;
-      std::cout << "  outimage (Not Implemented for MI yet)  and logfile are optional  " << std::endl;
-      std::cout
-        <<
-        " target-value and epsilon-tolerance set goals for the metric value -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds "
-        << std::endl;
-      std::cout << "  Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information , 3-SMI "
-               << std::endl;
-      if( argc >= 2 &&
-          ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
-        {
-        return EXIT_SUCCESS;
         }
+    private:
+    char**       argv;
+    unsigned int argc_plus_one;
+    };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  // antscout->set_stream( out_stream );
+  typedef itk::ants::CommandLineParser ParserType;
+
+  ParserType::Pointer parser = ParserType::New();
+  parser->SetCommand( argv[0] );
+
+  std::string commandDescription = std::string( "Program to calculate the " )
+    + std::string( "similarity between two images using various metrics." );
+
+  parser->SetCommandDescription( commandDescription );
+  InitializeCommandLineOptions( parser );
+
+  if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
+
+  bool verbose = false;
+  itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
+    parser->GetOption( "verbose" );
+  if( verboseOption && verboseOption->GetNumberOfFunctions() )
+    {
+    verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
+    }
+
+  if( argc == 1 )
+    {
+    parser->PrintMenu( std::cout, 5, false );
+    return EXIT_FAILURE;
+    }
+  else if( parser->GetOption( "help" )->GetFunction() && parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
+    {
+    parser->PrintMenu( std::cout, 5, false );
+    return EXIT_SUCCESS;
+    }
+  else if( parser->GetOption( 'h' )->GetFunction() && parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
+    {
+    parser->PrintMenu( std::cout, 5, true );
+    return EXIT_SUCCESS;
+    }
+
+  unsigned int dimension = 3;
+
+  ParserType::OptionType::Pointer dimOption = parser->GetOption( "dimensionality" );
+  if( dimOption && dimOption->GetNumberOfFunctions() )
+    {
+    dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
+    }
+  else
+    {
+    if( verbose )
+      {
+      std::cerr << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
+      }
+    return EXIT_FAILURE;
+    }
+
+  switch( dimension )
+    {
+    case 2:
+      {
+      return MeasureImageSimilarity<2>( parser );
+      break;
+      }
+    case 3:
+      {
+      return MeasureImageSimilarity<3>( parser );
+      break;
+      }
+    case 4:
+      {
+      return MeasureImageSimilarity<4>( parser );
+      break;
+      }
+    default:
+      {
+      std::cerr << "Unrecognized dimensionality.  Please see help menu." << std::endl;
       return EXIT_FAILURE;
       }
-
-    int metricsuccess = EXIT_FAILURE;
-
-    // Get the image dimension
-    switch( atoi(argv[1]) )
-      {
-      case 2:
-        {
-        metricsuccess = MeasureImageSimilarity<2>(argc, argv);
-        }
-        break;
-      case 3:
-        {
-        metricsuccess = MeasureImageSimilarity<3>(argc, argv);
-        }
-        break;
-      default:
-        std::cout << "Unsupported dimension" << std::endl;
-        return EXIT_FAILURE;
-      }
-
-    std::cout << " Failure? " << metricsuccess << std::endl;
-    return metricsuccess;
     }
-  catch( const itk::ExceptionObject & e )
-    {
-    e.Print( std::cerr );
-    return EXIT_FAILURE;
-    }
-  catch( const std::exception & e )
-    {
-    std::cerr << e.what() << std::endl;
-    return EXIT_FAILURE;
-    }
-  catch( ... )
-    {
-    std::cerr << "UNKNOWN FAILURE" << std::endl;
-    return EXIT_FAILURE;
-    }
+  return EXIT_SUCCESS;
 }
 } // namespace ants
