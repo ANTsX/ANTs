@@ -230,7 +230,9 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     + std::string( "the deformation or rotation of 3-D volume to the first two dimensions, ")
     + std::string( "this is possible by specifying a weight vector of \'1x1x0\' for a " )
     + std::string( "deformation field or  \'1x1x0x1x1x0\' for a rigid transformation. " )
-    + std::string( "Low-dimensional restriction only works if there are no preceding transformations." );
+    + std::string( "Low-dimensional restriction only works if there are no preceding transformations." )
+    + std::string( "All stages up to and including the desired stage must have this option specified," )
+    + std::string( "even if they should not be restricted (in which case specify 1x1x1...)" );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "restrict-deformation" );
