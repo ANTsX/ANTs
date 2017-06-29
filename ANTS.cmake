@@ -135,14 +135,14 @@ link_directories( ${ITK_LIBRARY_PATH}  )
 #----------------------------------------------------------------------------
 # Setup ants build environment
 set(PICSL_INCLUDE_DIRS
-  ${CMAKE_CURRENT_SOURCE_DIR}/Utilities
-  ${CMAKE_CURRENT_SOURCE_DIR}/ImageRegistration
-  ${CMAKE_CURRENT_SOURCE_DIR}/ImageSegmentation
+${CMAKE_CURRENT_SOURCE_DIR}/Utilities
+${CMAKE_CURRENT_SOURCE_DIR}/ImageRegistration
+${CMAKE_CURRENT_SOURCE_DIR}/ImageSegmentation
 #  ${CMAKE_CURRENT_SOURCE_DIR}/GraphTheory
-  ${CMAKE_CURRENT_SOURCE_DIR}/Tensor
-  ${CMAKE_CURRENT_SOURCE_DIR}/Temporary
-  ${CMAKE_CURRENT_SOURCE_DIR}/Examples
-  ${CMAKE_CURRENT_BINARY_DIR}
+${CMAKE_CURRENT_SOURCE_DIR}/Tensor
+${CMAKE_CURRENT_SOURCE_DIR}/Temporary
+${CMAKE_CURRENT_SOURCE_DIR}/Examples
+${CMAKE_CURRENT_BINARY_DIR}
 )
 include_directories(${PICSL_INCLUDE_DIRS})
 
