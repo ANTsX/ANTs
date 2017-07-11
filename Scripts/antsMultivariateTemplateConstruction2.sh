@@ -1379,7 +1379,6 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             pexe="$pexe ${basecall} ${stageId} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
           elif [[ $NOWARP -eq 1 ]];
             then
-	      stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [${MAXITERATIONS},1e-9,10] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
     	      if [[ ${TRANSFORMATION} == "Affine"* ]]; 
 	        then
           	  # If affine, do standard rigid, then affine with levels, etc from command line
