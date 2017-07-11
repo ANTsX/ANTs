@@ -132,7 +132,7 @@ Optional arguments:
             L = fine resolution iteratioxns (here, full resolution).
           Finer resolutions take much more time per iteration than coarser resolutions.
 
-     -f:  Shrink factors (default = 6x4x2x1):  Also in the same form as -q max iterations.  
+     -f:  Shrink factors (default = 6x4x2x1):  Also in the same form as -q max iterations.
           Needs to have the same number of components.
 
      -s:  Smoothing factors (default = 3x2x1x0):  Also in the same form as -q max
@@ -163,6 +163,11 @@ Optional arguments:
             BSplineSyN = Greedy B-spline SyN
             TimeVaryingVelocityField = Time-varying velocity field
             TimeVaryingBSplineVelocityField = Time-varying B-spline velocity field
+             
+            The transformations above are used after linear registration. To use use linear registration only:
+
+            Affine = Rigid + Affine.
+            Rigid = Rigid only. 
 
      -u:  Walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
           per pairwise registration.
@@ -265,8 +270,9 @@ function summarizeimageset() {
   case $method in
     0) #mean
       ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}
+      ${ANTSPATH}/Imagemath $dim $output Sharpen $output
       ;;
-    1) #mean of normalized images
+    1) #mean of normalized images, sharpens automatically
       ${ANTSPATH}/AverageImages $dim $output 1 ${images[*]}
       ;;
     2) #median
@@ -277,6 +283,7 @@ function summarizeimageset() {
         done
 
       ${ANTSPATH}/ImageSetStatistics $dim ${output}_list.txt ${output} 0
+      ${ANTSPATH}/Imagemath $dim $output Sharpen $output
       rm ${output}_list.txt
       ;;
   esac
@@ -731,6 +738,16 @@ elif [[ $TRANSFORMATIONTYPE == "Affine"* ]];
         TRANSFORMATION=${TRANSFORMATIONTYPE}
       else
         TRANSFORMATION=Affine[0.1]
+    fi
+elif [[ $TRANSFORMATIONTYPE == "Rigid"* ]];
+  then
+    echo "Rigid transforms only!!!!"
+    NOWARP=1
+    if [[ $TRANSFORMATIONTYPE == "Rigid["*"]" ]]
+      then
+        TRANSFORMATION=${TRANSFORMATIONTYPE}
+      else
+        TRANSFORMATION=Rigid[0.1]
     fi
 else
   echo "Invalid transformation. See `basename $0` -h for help menu."
@@ -1362,8 +1379,17 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             pexe="$pexe ${basecall} ${stageId} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
           elif [[ $NOWARP -eq 1 ]];
             then
-              exe="$exebase ${basecall} ${stage0} ${stage1} ${stage2}\n";
-              pexe="$pexebase ${basecall} ${stage0} ${stage1} ${stage2} >> ${outdir}/job_${count}_metriclog.txt\n"
+	      stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [${MAXITERATIONS},1e-9,10] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
+    	      if [[ ${TRANSFORMATION} == "Affine"* ]]; 
+	        then
+          	  # If affine, do standard rigid, then affine with levels, etc from command line
+		  exe="$exebase ${basecall} ${stage0} ${stage1} ${stage3}\n";
+		  pexe="$pexebase ${basecall} ${stage0} ${stage1} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
+	        else
+		  # Rigid only - just use command line params
+		  exe="$exebase ${basecall} ${stage0} ${stage3}\n";
+		  pexe="$pexebase ${basecall} ${stage0} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
+                fi
           else
             exe="$exe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3}\n"
             pexe="$pexe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
