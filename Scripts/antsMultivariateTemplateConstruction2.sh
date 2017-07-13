@@ -270,7 +270,7 @@ function summarizeimageset() {
   case $method in
     0) #mean
       ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}
-      ${ANTSPATH}/Imagemath $dim $output Sharpen $output
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
       ;;
     1) #mean of normalized images, sharpens automatically
       ${ANTSPATH}/AverageImages $dim $output 1 ${images[*]}
@@ -283,7 +283,7 @@ function summarizeimageset() {
         done
 
       ${ANTSPATH}/ImageSetStatistics $dim ${output}_list.txt ${output} 0
-      ${ANTSPATH}/Imagemath $dim $output Sharpen $output
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
       rm ${output}_list.txt
       ;;
   esac
