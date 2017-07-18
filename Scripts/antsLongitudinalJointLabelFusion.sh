@@ -142,7 +142,10 @@ Example:
               -p malfPosteriors%04d.nii.gz \
               -g atlas1.nii.gz -l labels1.nii.gz \
               -g atlas2.nii.gz -l labels2.nii.gz \
-              -g atlas3.nii.gz -l labels3.nii.gz
+              -g atlas3.nii.gz -l labels3.nii.gz \
+              -b timepoint_0_dir \
+              -b timepoint_1_dir \
+              -b timepoint_2_dir
 
 --------------------------------------------------------------------------------------
 JLF was created by:
@@ -158,7 +161,7 @@ Wang H, Suh JW, Das SR, Pluta J, Craige C, Yushkevich PA.
 Multi-Atlas Segmentation with Joint Label Fusion.
 IEEE Trans Pattern Anal Mach Intell.
 --------------------------------------------------------------------------------------
-script by Nick Tustison
+script by Jeff Duda
 --------------------------------------------------------------------------------------
 
 USAGE
@@ -169,7 +172,7 @@ function Help {
     cat <<HELP
 
 `basename $0` will propagate labels from a set of pre-labeled atlases using the JLF
-algorithm.
+algorithm. This occurs via a single subject template provided by antsLongitudinalCorticalThickness.
 
 Usage:
 
@@ -190,7 +193,7 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
 
      -o:  OutputPrefix:   A prefix that is prepended to all output files.
 
-     -t:  TargetImage:    Target image to be labeled.
+     -t:  TargetImage:    Target image for registrations - single subject template.
 
      -g:  Atlas:          Atlas to be warped to target image.
 
@@ -281,7 +284,7 @@ Wang H, Suh JW, Das SR, Pluta J, Craige C, Yushkevich PA.
 Multi-Atlas Segmentation with Joint Label Fusion.
 IEEE Trans Pattern Anal Mach Intell.
 --------------------------------------------------------------------------------------
-script by Nick Tustison
+script by Jeff Duda
 --------------------------------------------------------------------------------------
 
 HELP
