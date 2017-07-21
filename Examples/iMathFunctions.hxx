@@ -299,7 +299,7 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )
               objectedge++;
               totaledge++;
               }
-            else if( (val2 == 1) && GHood.GetPixel(i) != lab )
+            else if( (val2 != 1) && GHood.GetPixel(i) != lab )
               {
               backgroundedge++;
               totaledge++;
