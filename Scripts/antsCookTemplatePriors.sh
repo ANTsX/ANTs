@@ -617,7 +617,7 @@ if [[ ${TEMPLATE_PRIORS_EXIST} -eq 0 ]];
           done
 
         logCmd rm -f $TMP_CSF_POSTERIOR
-        logCmd rm -f ${EMPLATE_MALF_LABELS_PREFIX}*log.txt
+        logCmd rm -f ${TEMPLATE_MALF_LABELS_PREFIX}*log.txt
       fi
   fi
 
