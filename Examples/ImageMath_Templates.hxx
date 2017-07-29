@@ -1827,7 +1827,7 @@ int NeighborhoodStats( int itkNotUsed( argc ), char * argv[] )
 }
 
 template <unsigned int ImageDimension>
-int PadImage(int /*argc */, char *argv[])
+int PadImage(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
@@ -1836,9 +1836,16 @@ int PadImage(int /*argc */, char *argv[])
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
   argct += 2;
-  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn1 = std::string(argv[argct]);   
+  argct++;
   const float padvalue = atof(argv[argct]);
-  argct += 2;
+  argct++;
+
+  PixelType padVoxelValue = itk::NumericTraits<PixelType>::Zero; 
+  if( argc > 6 )
+    {
+    padVoxelValue = static_cast<PixelType>( atof( argv[argct] ) );
+    }
 
   typename ImageType::Pointer image1 = ITK_NULLPTR;
   if( fn1.length() > 3 )
@@ -1864,7 +1871,7 @@ int PadImage(int /*argc */, char *argv[])
     AllocImage<ImageType>(newregion,
                           image1->GetSpacing(),
                           origin2,
-                          image1->GetDirection(), 0);
+                          image1->GetDirection(), padVoxelValue);
 
   typename ImageType::IndexType index;
   typename ImageType::IndexType index2;

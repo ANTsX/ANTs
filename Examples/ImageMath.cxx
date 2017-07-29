@@ -627,7 +627,7 @@ private:
     std::cout << "      Usage        : Normalize Image.ext opt" << std::endl;
 
     std::cout << "\n  PadImage       : If Pad-Number is negative, de-Padding occurs" << std::endl;
-    std::cout << "      Usage        : PadImage ImageIn Pad-Number" << std::endl;
+    std::cout << "      Usage        : PadImage ImageIn PaddingSize [PaddingVoxelValue=0]" << std::endl;
 
     std::cout << "\n  SigmoidImage   : " << std::endl;
     std::cout << "      Usage        : SigmoidImage ImageIn [alpha=1.0] [beta=0.0]" << std::endl;
