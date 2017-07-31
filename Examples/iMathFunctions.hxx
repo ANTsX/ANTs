@@ -463,6 +463,14 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
   typename FilterType::Pointer filter = FilterType::New();
   typename RelabelType::Pointer relabel = RelabelType::New();
 
+  typename LabelImageType::Pointer labelImage = LabelImageType::New();
+  labelImage->SetRegions( image->GetLargestPossibleRegion() );
+  labelImage->SetSpacing( image->GetSpacing() );
+  labelImage->SetOrigin( image->GetOrigin() );
+  labelImage->SetDirection( image->GetDirection() );
+  labelImage->Allocate();
+  labelImage->FillBuffer(0);
+
   threshold->SetInput(image);
   threshold->SetInsideValue(1);
   threshold->SetOutsideValue(0);
@@ -543,12 +551,12 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     {
     if( Clusters->GetPixel( vfIter.GetIndex() ) >= maximgval )
       {
-      image->SetPixel( vfIter.GetIndex(), 1);
+      labelImage->SetPixel( vfIter.GetIndex(), 1);
       }
-    else
-      {
-      image->SetPixel( vfIter.GetIndex(), 0);
-      }
+    //else
+    //  {
+    //  image->SetPixel( vfIter.GetIndex(), 0);
+    //  }
     }
 
   return image;
@@ -977,7 +985,7 @@ iMathPropagateLabelsThroughMask( typename ImageType::Pointer speedimage,
   outlabimage->Allocate();
   outlabimage->FillBuffer(0);
   */
-  
+
   typename CastFilterType::Pointer caster = CastFilterType::New();
   caster->SetInput( labimage );
   caster->Update();
