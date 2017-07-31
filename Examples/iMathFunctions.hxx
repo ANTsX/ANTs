@@ -559,7 +559,7 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     //  }
     }
 
-  return image;
+  return labelImage;
 }
 
 template <class ImageType>
