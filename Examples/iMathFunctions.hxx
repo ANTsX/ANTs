@@ -558,8 +558,16 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     //  image->SetPixel( vfIter.GetIndex(), 0);
     //  }
     }
+ 
+  typedef itk::CastImageFilter<LabelImageType, ImageType> CasterType;
+  typename CasterType::Pointer caster = CasterType::New();
+  caster->SetInput( labelImage );
+  
+  typename ImageType::Pointer returnLabelImage = caster->GetOutput();
+  returnLabelImage->Update();
+  returnLabelImage->DisconnectPipeline();
 
-  return labelImage;
+  return returnLabelImage;
 }
 
 template <class ImageType>
