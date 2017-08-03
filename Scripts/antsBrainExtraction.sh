@@ -267,7 +267,7 @@ else
 fi
 
 ATROPOS_BRAIN_EXTRACTION_MRF="[0.1,1x1x1]"
-if [[ DIMENSION -eq 2 ]];
+if [[ $DIMENSION -eq 2 ]];
   then
     ATROPOS_BRAIN_EXTRACTION_MRF="[0.1,1x1]"
   fi
@@ -275,7 +275,7 @@ if [[ DIMENSION -eq 2 ]];
 if [[ -z "$ATROPOS_SEGMENTATION_MRF" ]];
   then
     ATROPOS_SEGMENTATION_MRF="[0.1,1x1x1]";
-    if [[ DIMENSION -eq 2 ]];
+    if [[ $DIMENSION -eq 2 ]];
       then
         ATROPOS_SEGMENTATION_MRF="[0.1,1x1]"
       fi
