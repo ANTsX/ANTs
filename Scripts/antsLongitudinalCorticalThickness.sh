@@ -618,13 +618,14 @@ logCmd mkdir -p ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}
 # Pad initial template image to avoid problems with SST drifting out of FOV
 for(( i=0; i < ${NUMBER_OF_MODALITIES}; i++ ))
   do
-    TEMPLATE_INPUT_IMAGE="${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}initTemplateModality${i}.nii.gz"
-
-    let k=$i*$NUMBER_OF_MODALITIES
-
-    logCmd ${ANTSPATH}/ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$k]} 10
 
     if [[ ${AFFINE_UPDATE_FULL} -gt 0 ]]; then
+      TEMPLATE_INPUT_IMAGE="${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}initTemplateModality${i}.nii.gz"
+ 
+      let k=$i*$NUMBER_OF_MODALITIES
+
+      logCmd ${ANTSPATH}/ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$k]} 10
+      
       TEMPLATE_Z_IMAGES="${TEMPLATE_Z_IMAGES} -z ${TEMPLATE_INPUT_IMAGE}"
     else
       # If we will not update the template rigid transform, set the group template
