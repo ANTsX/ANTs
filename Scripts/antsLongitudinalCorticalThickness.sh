@@ -248,7 +248,7 @@ ATROPOS_SEGMENTATION_PRIOR_WEIGHT_SST=0.25
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT=0.5
 ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=5
 
-AFFINE_UPDATE_FULL=0
+AFFINE_UPDATE_FULL=1
 
 DOQSUB=0
 CORES=2
@@ -352,7 +352,7 @@ else
           w) #atropos prior weight for each individual time point
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT=$OPTARG
        ;;
-          y) # 1 update with full affine, 0 for no rigid (default = 0)
+          y) # 1 update with full affine, 0 for no rigid (default = 1)
        AFFINE_UPDATE_FULL=$OPTARG
        ;;
           z) #debug mode
