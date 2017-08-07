@@ -622,7 +622,7 @@ for(( i=0; i < ${NUMBER_OF_MODALITIES}; i++ ))
 
     let k=$i*$NUMBER_OF_MODALITIES
 
-    logCmd ${ANTSPATH}/ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$k]} 5
+    logCmd ${ANTSPATH}/ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$k]} 10
 
     if [[ ${AFFINE_UPDATE_FULL} -gt 0 ]]; then
       TEMPLATE_Z_IMAGES="${TEMPLATE_Z_IMAGES} -z ${TEMPLATE_INPUT_IMAGE}"
