@@ -1,0 +1,59 @@
+# Adapt as necessary starting from here
+init:
+  # setting PATH to be specific - no MinGW overall - just R's
+  - ps: echo "${PATH}"
+  - set PATH=c:\MinGW\bin
+  - set PATH=%PATH%;C:\Program Files\Git\cmd;
+  - set PATH=%PATH%;"C:\Program Files (x86)\CMake\bin";
+  - set PATH=%PATH%;C:\Program Files\Git\usr\bin  
+  - set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\npm
+  - set PATH=%PATH%;C:\Users\appveyor\AppData\Local\Yarn\bin
+  - set PATH=%PATH%;C:\Program Files\AppVeyor\BuildAgent\
+  - set PATH=%PATH%;C:\Windows\system32
+  - set PATH=%PATH%;C:\Windows
+  - set PATH=%PATH%;C:\Windows\System32\Wbem
+  - set PATH=%PATH%;C:\Windows\System32\WindowsPowerShell\v1.0\
+  - set PATH=%PATH%;C:\Program Files\7-Zip
+  - git clone https://itk.org/ITK
+
+before_build:
+  - mkdir ITKbin
+  - cd ITKbin
+  - cmake -G "MinGW Makefiles" \
+    -DCMAKE_BUILD_TYPE:STRING="Release" \
+    -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -O2 -DNDEBUG  "\
+    -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}${compflags} -DNDEBUG  "\
+    -DCMAKE_SH:BOOL=OFF \
+    -DITK_USE_GIT_PROTOCOL:BOOL=OFF \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DBUILD_TESTING:BOOL=OFF \
+    -DBUILD_EXAMPLES:BOOL=OFF \
+    -DITK_LEGACY_REMOVE:BOOL=OFF  \
+    -DITK_FUTURE_LEGACY_REMOVE:=BOOL=ON \
+    -DITKV3_COMPATIBILITY:BOOL=ON \
+    -DITK_BUILD_DEFAULT_MODULES:BOOL=OFF \
+    -DKWSYS_USE_MD5:BOOL=ON \
+    -DITK_WRAPPING:BOOL=OFF \
+    -DModule_MGHIO:BOOL=ON \
+    -DModule_ITKDeprecated:BOOL=OFF \
+    -DModule_ITKReview:BOOL=ON \
+    -DModule_ITKVtkGlue:BOOL=OFF \
+    -D ITKGroup_Core=ON \
+    -D Module_ITKReview=ON \
+    -D ITKGroup_Filtering=ON \
+    -D ITKGroup_IO=ON \
+    -D ITKGroup_Numerics=ON \
+    -D ITKGroup_Registration=ON \
+    -D ITKGroup_Segmentation=ON ../ITK
+  - cd ITKbin 
+  - mingw32-make -j 2 
+  - mingw32-make install
+  - rm -rf ../ITK
+
+on_failure:
+  - 7z a failure.zip *
+  - appveyor PushArtifact failure.zip
+
+artifacts:
+  - path: '\*_*.zip'
+    name: Bits
