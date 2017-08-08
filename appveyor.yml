@@ -24,7 +24,7 @@ init:
   - git clone https://itk.org/ITK.git
   - mkdir ITKbin
   - cd ITKbin
-  - cmake -G "%GENERATOR%" -DCMAKE_BUILD_TYPE:STRING="Release" -DCMAKE_SH:BOOL=OFF ../ITK
+  - cmake -G "%GENERATOR%" -DCMAKE_BUILD_TYPE:STRING="Release" -DCMAKE_SH:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DBUILD_TESTING:BOOL=OFF  ../ITK
   - mingw32-make -j 2 
   - mingw32-make install
   - rm -rf ../ITK
