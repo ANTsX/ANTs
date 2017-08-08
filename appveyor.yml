@@ -25,10 +25,16 @@ init:
   - mkdir ITKbin
   - cd ITKbin
   - cmake -G "%GENERATOR%" -DCMAKE_BUILD_TYPE:STRING="Release" -DCMAKE_SH:BOOL=OFF ../ITK
-  - cd ITKbin 
   - mingw32-make -j 2 
   - mingw32-make install
   - rm -rf ../ITK
+  - set PATH=%CD%\ITKbin;%PATH%;
+  - echo %APPVEYOR_BUILD_FOLDER%
+
+before_build:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - mingw32-make -j 2 
+  - mingw32-make install
 
 on_failure:
   - 7z a failure.zip *
