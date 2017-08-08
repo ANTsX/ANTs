@@ -17,7 +17,7 @@ environment:
         COMPILER: MinGW
 
 init:
-  - if "%COMPILER%"=="MinGW" (set "PATH=%CD%\%MINGW_DIR%\bin;%PATH:C:\Program Files\Git\usr\bin;=%")
+  - if "%COMPILER%"=="MinGW" (set "PATH=%CD%\minGW\bin;%PATH:C:\Program Files\Git\usr\bin;=%")
   - if "%COMPILER%"=="MinGW" (g++ --version)
   - if "%COMPILER%"=="MinGW" (mingw32-make --version)  
   - cmd: ECHO %PATH%
