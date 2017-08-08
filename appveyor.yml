@@ -1,5 +1,6 @@
 # Adapt as necessary starting from here
 init:
+  - cmd: ECHO %PATH%
   # setting PATH to be specific - no MinGW overall - just R's
   # - ps: echo "${PATH}"
   # - set PATH=c:\MinGW\bin
