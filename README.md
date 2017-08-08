@@ -45,8 +45,7 @@ versions [@ sourceforge](http://sourceforge.net/projects/advants/files/ANTS/) ..
 [Github Releases are here](https://github.com/stnava/ANTs/releases) thanks to Arman Eshaghi.
 
  Build [ANTs](https://github.com/stnava/ANTs) from:
-[Source-Code](http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/)
-(recommended)
+Source-Code (recommended) on [Linux / Mac OS](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or [Windows](https://github.com/stnava/ANTsR/wiki/Installing-ANTsR-in-Windows-10-(along-with-FSL,-Rstudio,-Freesurfer,-etc).).
 
 [ANTs Dashboard](https://travis-ci.org/stnava/ANTs/) thanks to Arman Eshaghi and  Hans J. Johnson
 
