@@ -1,7 +1,5 @@
 # Adapt as necessary starting from here
-    # - GENERATOR: "Visual Studio 14"
-    #   CONFIG: Release
-    #   COMPILER: MSVC
+
   # - GENERATOR: "Visual Studio 14 Win64"
   #   CONFIG: Release
   #   COMPILER: MSVC   
@@ -10,7 +8,7 @@ environment:
       - GENERATOR: "MinGW Makefiles"
         MINGW_DIR: mingw32
         CONFIG: Release
-        COMPILER: MinGW
+        COMPILER: MinGW    
 
 init:
   - set PATH=C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%;
@@ -26,32 +24,7 @@ init:
   - git clone https://itk.org/ITK.git
   - mkdir ITKbin
   - cd ITKbin
-  - cmake -G "%GENERATOR%" \
-    -DCMAKE_BUILD_TYPE:STRING="Release" \
-    -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -O2 -DNDEBUG  "\
-    -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS}${compflags} -DNDEBUG  "\
-    -DCMAKE_SH:BOOL=OFF \
-    -DITK_USE_GIT_PROTOCOL:BOOL=OFF \
-    -DBUILD_SHARED_LIBS=OFF \
-    -DBUILD_TESTING:BOOL=OFF \
-    -DBUILD_EXAMPLES:BOOL=OFF \
-    -DITK_LEGACY_REMOVE:BOOL=OFF  \
-    -DITK_FUTURE_LEGACY_REMOVE:=BOOL=ON \
-    -DITKV3_COMPATIBILITY:BOOL=ON \
-    -DITK_BUILD_DEFAULT_MODULES:BOOL=OFF \
-    -DKWSYS_USE_MD5:BOOL=ON \
-    -DITK_WRAPPING:BOOL=OFF \
-    -DModule_MGHIO:BOOL=ON \
-    -DModule_ITKDeprecated:BOOL=OFF \
-    -DModule_ITKReview:BOOL=ON \
-    -DModule_ITKVtkGlue:BOOL=OFF \
-    -D ITKGroup_Core=ON \
-    -D Module_ITKReview=ON \
-    -D ITKGroup_Filtering=ON \
-    -D ITKGroup_IO=ON \
-    -D ITKGroup_Numerics=ON \
-    -D ITKGroup_Registration=ON \
-    -D ITKGroup_Segmentation=ON ../ITK
+  - cmake -G "%GENERATOR%" -DCMAKE_BUILD_TYPE:STRING="Release" -DCMAKE_SH:BOOL=OFF ../ITK
   - cd ITKbin 
   - mingw32-make -j 2 
   - mingw32-make install
