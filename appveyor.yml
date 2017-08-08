@@ -15,7 +15,7 @@ init:
   - set PATH=%PATH%;C:\Windows\System32\WindowsPowerShell\v1.0\
   - set PATH=%PATH%;C:\Program Files\7-Zip
   - cd ../
-  - git clone https://itk.org/ITK
+  - git clone https://itk.org/ITK.git
   - mkdir ITKbin
   - cd ITKbin
   - cmake -G "MinGW Makefiles" \
