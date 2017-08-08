@@ -24,8 +24,10 @@ init:
   # - set PATH=%PATH%;C:\Program Files\7-Zip
   - cd ../
   - git clone https://github.com/InsightSoftwareConsortium/ITK.git
+  - cd ITKR
   - git checkout master
   - git checkout %itktag%
+  - cd ../
   # - git clone https://itk.org/ITK.git
   - mkdir ITKbin
   - cd ITKbin
