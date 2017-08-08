@@ -4,22 +4,24 @@
     #   COMPILER: MSVC
   # - GENERATOR: "Visual Studio 14 Win64"
   #   CONFIG: Release
-  #   COMPILER: MSVC    
-matrix:
-    - GENERATOR: "MinGW Makefiles"
-      MINGW_DIR: mingw32
-      CONFIG: Release
-      COMPILER: MinGW
-    - GENERATOR: "MinGW Makefiles"
-      MINGW_DIR: mingw64
-      CONFIG: Release
-      COMPILER: MinGW
+  #   COMPILER: MSVC   
+environment:
+  matrix:
+      - GENERATOR: "MinGW Makefiles"
+        MINGW_DIR: mingw32
+        CONFIG: Release
+        COMPILER: MinGW
+      - GENERATOR: "MinGW Makefiles"
+        MINGW_DIR: mingw64
+        CONFIG: Release
+        COMPILER: MinGW
 
 init:
   - if "%COMPILER%"=="MinGW" (set "PATH=%CD%\%MINGW_DIR%\bin;%PATH:C:\Program Files\Git\usr\bin;=%")
   - if "%COMPILER%"=="MinGW" (g++ --version)
   - if "%COMPILER%"=="MinGW" (mingw32-make --version)  
   - cmd: ECHO %PATH%
+  # C:\MinGW\msys\1.0\bin to %PATH%
   # - set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\npm
   # - set PATH=%PATH%;C:\Users\appveyor\AppData\Local\Yarn\bin
   # - set PATH=%PATH%;C:\Program Files\AppVeyor\BuildAgent\
