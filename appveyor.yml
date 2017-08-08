@@ -11,10 +11,6 @@ environment:
         MINGW_DIR: mingw32
         CONFIG: Release
         COMPILER: MinGW
-      - GENERATOR: "MinGW Makefiles"
-        MINGW_DIR: mingw64
-        CONFIG: Release
-        COMPILER: MinGW
 
 init:
   - set PATH=C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%;
