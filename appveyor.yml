@@ -3,10 +3,10 @@ init:
   - cmd: ECHO %PATH%
   # setting PATH to be specific - no MinGW overall - just R's
   # - ps: echo "${PATH}"
-  # - set PATH=c:\MinGW\bin
-  # - set PATH=%PATH%;C:\Program Files\Git\cmd;
-  # - set PATH=%PATH%;"C:\Program Files (x86)\CMake\bin";
-  # - set PATH=%PATH%;C:\Program Files\Git\usr\bin  
+  - set PATH=c:\MinGW\bin;%PATH%;
+  - set PATH=%PATH%;C:\Program Files\Git\cmd;
+  - set PATH=%PATH%;"C:\Program Files (x86)\CMake\bin";
+  - set PATH=%PATH%;C:\Program Files\Git\usr\bin  
   # - set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\npm
   # - set PATH=%PATH%;C:\Users\appveyor\AppData\Local\Yarn\bin
   # - set PATH=%PATH%;C:\Program Files\AppVeyor\BuildAgent\
