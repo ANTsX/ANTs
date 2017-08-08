@@ -6,14 +6,14 @@
   #   CONFIG: Release
   #   COMPILER: MSVC    
 matrix:
-  - GENERATOR: "MinGW Makefiles"
-    MINGW_DIR: mingw32
-    CONFIG: Release
-    COMPILER: MinGW
-  - GENERATOR: "MinGW Makefiles"
-    MINGW_DIR: mingw64
-    CONFIG: Release
-    COMPILER: MinGW
+    - GENERATOR: "MinGW Makefiles"
+      MINGW_DIR: mingw32
+      CONFIG: Release
+      COMPILER: MinGW
+    - GENERATOR: "MinGW Makefiles"
+      MINGW_DIR: mingw64
+      CONFIG: Release
+      COMPILER: MinGW
 
 init:
   - if "%COMPILER%"=="MinGW" (set "PATH=%CD%\%MINGW_DIR%\bin;%PATH:C:\Program Files\Git\usr\bin;=%")
