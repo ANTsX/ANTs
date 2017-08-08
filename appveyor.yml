@@ -7,6 +7,7 @@ init:
   - set PATH=%PATH%;C:\Program Files\Git\cmd;
   - set PATH=%PATH%;"C:\Program Files (x86)\CMake\bin";
   - set PATH=%PATH%;C:\Program Files\Git\usr\bin  
+  - cmd: ECHO %PATH%
   # - set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\npm
   # - set PATH=%PATH%;C:\Users\appveyor\AppData\Local\Yarn\bin
   # - set PATH=%PATH%;C:\Program Files\AppVeyor\BuildAgent\
