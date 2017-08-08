@@ -17,12 +17,9 @@ environment:
         COMPILER: MinGW
 
 init:
-  - if "%COMPILER%"=="MinGW" (set "PATH=%CD%\minGW\bin;%PATH:C:\Program Files\Git\usr\bin;=%")
-  - if "%COMPILER%"=="MinGW" (g++ --version)
-  - if "%COMPILER%"=="MinGW" (mingw32-make --version)  
   - cmd: ECHO %PATH%
   # C:\MinGW\msys\1.0\bin to %PATH%
-  # - set PATH=%PATH%;C:\Users\appveyor\AppData\Roaming\npm
+  - set PATH=C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%;
   # - set PATH=%PATH%;C:\Users\appveyor\AppData\Local\Yarn\bin
   # - set PATH=%PATH%;C:\Program Files\AppVeyor\BuildAgent\
   # - set PATH=%PATH%;C:\Windows\system32
