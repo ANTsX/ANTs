@@ -17,9 +17,8 @@ environment:
         COMPILER: MinGW
 
 init:
-  - cmd: ECHO %PATH%
-  # C:\MinGW\msys\1.0\bin to %PATH%
   - set PATH=C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%;
+  - cmd: ECHO %PATH%
   # - set PATH=%PATH%;C:\Users\appveyor\AppData\Local\Yarn\bin
   # - set PATH=%PATH%;C:\Program Files\AppVeyor\BuildAgent\
   # - set PATH=%PATH%;C:\Windows\system32
