@@ -77,8 +77,6 @@ Compulsory arguments (minimal command line requires SGE/PBS cluster, otherwise u
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
    ImageDimension: 4 (for template generation of time-series data)
 
-     -o:  OutputPrefix; A prefix that is prepended to all output files.
-
 <images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
           of the command.  Optionally, one can specify a .csv or .txt file where each
           line is the location of the input image.  One can also specify more than
@@ -139,6 +137,8 @@ Optional arguments:
           iterations.  Needs to have the same number of components.
 
      -n:  N4BiasFieldCorrection of moving image: 0 == off, 1 == on (default 1).
+
+     -o:  OutputPrefix; A prefix that is prepended to all output files (default = "antsBTP").
 
      -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set
           paths, etc)
@@ -494,6 +494,7 @@ MEMORY="8gb"
 # It can be set to an empty string if you do not need any special cluster options
 QSUBOPTS="" # EDIT THIS
 OUTPUTNAME=antsBTP
+TEMPLATENAME=${OUTPUTNAME}template
 AFFINE_UPDATE_FULL=1
 
 ##Getting system info from linux can be done with these variables.
