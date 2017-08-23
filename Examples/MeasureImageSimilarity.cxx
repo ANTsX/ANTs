@@ -4,7 +4,9 @@
 
 #include "itkantsRegistrationHelper.h"
 
+#include "itkImageRegionIterator.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
+#include "itkNumericTraits.h"
 
 namespace ants
 {
@@ -16,10 +18,14 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
 
   typedef typename ants::RegistrationHelper<TComputeType, ImageDimension> RegistrationHelperType;
   typedef typename RegistrationHelperType::ImageType                      ImageType;
-
+  typedef typename RegistrationHelperType::DisplacementFieldType          DisplacementFieldType;
+  typedef typename DisplacementFieldType::PixelType                       DisplacementVectorType;
+  typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
+  
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>  ImageMetricType;
   typedef itk::ImageMaskSpatialObject<ImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                            MaskImageType;
+
 
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
@@ -387,6 +393,56 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
     }
 
   std::cout << imageMetric->GetValue() << std::endl;
+  
+  itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
+  if( outputOption && outputOption->GetNumberOfFunctions() )
+    {
+    const DisplacementVectorType zeroVector( 0.0 );
+    
+    typename DisplacementFieldType::Pointer identityField = DisplacementFieldType::New();
+    identityField->CopyInformation( fixedImage );
+    identityField->SetRegions( fixedImage->GetLargestPossibleRegion() );
+    identityField->Allocate();
+    identityField->FillBuffer( zeroVector );
+
+    typename DisplacementFieldTransformType::Pointer identityDisplacementFieldTransform = DisplacementFieldTransformType::New();
+    identityDisplacementFieldTransform->SetDisplacementField( identityField );
+    identityDisplacementFieldTransform->SetInverseDisplacementField( identityField );
+
+    imageMetric->SetFixedTransform( identityDisplacementFieldTransform );
+    imageMetric->SetMovingTransform( identityDisplacementFieldTransform );
+
+    imageMetric->Initialize();
+    
+    typedef typename ImageMetricType::DerivativeType MetricDerivativeType;
+    const typename MetricDerivativeType::SizeValueType metricDerivativeSize = 
+      fixedImage->GetLargestPossibleRegion().GetNumberOfPixels() * ImageDimension;
+    MetricDerivativeType metricDerivative( metricDerivativeSize );
+
+    metricDerivative.Fill( itk::NumericTraits<typename MetricDerivativeType::ValueType>::ZeroValue() );
+    TComputeType value;
+    imageMetric->GetValueAndDerivative( value, metricDerivative );
+
+    typename DisplacementFieldType::Pointer gradientField = DisplacementFieldType::New();
+    gradientField->CopyInformation( fixedImage );
+    gradientField->SetRegions( fixedImage->GetLargestPossibleRegion() );
+    gradientField->Allocate();
+  
+    itk::ImageRegionIterator<DisplacementFieldType> ItG( gradientField, gradientField->GetRequestedRegion() );
+  
+    itk::SizeValueType count = 0;
+    for( ItG.GoToBegin(); !ItG.IsAtEnd(); ++ItG )
+      {
+      DisplacementVectorType displacement;
+      for( itk::SizeValueType d = 0; d < ImageDimension; d++ )
+        {
+        displacement[d] = metricDerivative[count++];
+        }
+      ItG.Set( displacement );
+      }
+
+    WriteImage<DisplacementFieldType>( gradientField, ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+    }
 
   return EXIT_SUCCESS;
 }
@@ -466,6 +522,17 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   parser->AddOption( option );
   }
 
+  {
+  std::string description = std::string( "Output the metric gradient image (optional)." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetShortName( 'o' );
+  option->SetLongName( "output" );
+  option->SetUsageOption( 0, "gradientImage" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+  
   {
   std::string description = std::string( "Print the help menu (short version)." );
 
