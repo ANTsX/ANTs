@@ -287,7 +287,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
             {
             IndexType searchNeighborhoodPatchIndex = neighborhoodIndex + neighborhoodPatchOffsetList[n];
             IndexType centerNeighborhoodPatchIndex = centerIndex + neighborhoodPatchOffsetList[n];
-            if( ! targetImageRegion.IsInside( searchNeighborhoodPatchIndex ) )
+            if( ! targetImageRegion.IsInside( searchNeighborhoodPatchIndex ) || ! targetImageRegion.IsInside( centerNeighborhoodPatchIndex ) )
               {
               continue;
               }
