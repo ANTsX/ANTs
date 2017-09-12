@@ -580,6 +580,19 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     }
 
+  bool                doHistogramMatch(true);
+  OptionType::Pointer histogramMatchOption = parser->GetOption( "use-histogram-matching" );
+  if( histogramMatchOption && histogramMatchOption->GetNumberOfFunctions() )
+    {
+    std::string histogramMatchFunction = histogramMatchOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( histogramMatchFunction );
+    if( histogramMatchFunction.compare( "0" ) == 0 || histogramMatchFunction.compare( "false" ) == 0 )
+      {
+      doHistogramMatch = false;
+      }
+    }
+
+
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
   totalTimer.Start();
@@ -778,7 +791,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           if( timedim == 0 )
             {
-            if ( verbose ) std::cout << "using fixed reference image for all frames " << std::endl;
+            if ( verbose ) std::cout << "  using fixed reference image for all frames " << std::endl;
             }
           fixed_time_slice = fixedImage;
           extractRegion.SetIndex(ImageDimension, timedim );
@@ -832,11 +845,20 @@ int ants_motion( itk::ants::CommandLineParser *parser )
                                          1, 0.001, 0.999,
                                          ITK_NULLPTR );
 
+      typename FixedImageType::Pointer histogramMatchRef = ITK_NULLPTR;
+
+      if ( doHistogramMatch )
+	{
+	histogramMatchRef = preprocessFixedImage;
+	}
+
+      if ( verbose ) std::cout << "  use histogram matching " << doHistogramMatch << std::endl;
+
       typename FixedImageType::Pointer preprocessMovingImage =
         PreprocessImage<FixedImageType>( moving_time_slice,
                                          0, 1,
                                          0.001, 0.999,
-                                         preprocessFixedImage );
+                                         histogramMatchRef );
 
       typedef itk::ImageToImageMetricv4<FixedImageType, FixedImageType> MetricType;
       typename MetricType::Pointer metric;
@@ -897,6 +919,11 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         unsigned int binOption =
           parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
+
+        if( timedim == 0 )
+          {
+          if ( verbose ) std::cout << "  using the Mattes MI metric." << std::endl;
+          }
         typedef itk::MattesMutualInformationImageToImageMetricv4<FixedImageType,
                                                                  FixedImageType> MutualInformationMetricType;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
@@ -926,7 +953,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::CorrelationImageToImageMetricv4<FixedImageType, FixedImageType> corrMetricType;
         typename corrMetricType::Pointer corrMetric = corrMetricType::New();
         metric = corrMetric;
-        if ( verbose ) std::cout << " global corr metric set " << std::endl;
+        if ( verbose ) std::cout << "  global corr metric set " << std::endl;
         }
       else
         {
@@ -960,7 +987,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           if( timedim == 0 )
             {
-            if ( verbose ) std::cout << " employing scales estimator " << std::endl;
+            if ( verbose ) std::cout << "  employing scales estimator " << std::endl;
             }
           optimizer->SetScalesEstimator( scalesEstimator );
           }
@@ -968,7 +995,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           if( timedim == 0 )
             {
-            if ( verbose ) std::cout << " not employing scales estimator " << scalesFunction << std::endl;
+            if ( verbose ) std::cout << "  not employing scales estimator " << scalesFunction << std::endl;
             }
           }
         }
@@ -1746,10 +1773,19 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
   }
 
   {
-  std::string         description = std::string( "Write the low-dimensional 3D transforms to a 4D displacement field" );
+  std::string         description = std::string( "Write the low-dimensional 3D transforms to a 4D displacement field." );
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "write-displacement" );
   option->SetShortName( 'w' );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string         description = std::string( "Histogram match the moving images to the reference image." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "use-histogram-matching" );
+  option->SetUsageOption( 0, "0/(1)" );
   option->SetDescription( description );
   parser->AddOption( option );
   }

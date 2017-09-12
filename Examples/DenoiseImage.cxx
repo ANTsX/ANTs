@@ -195,7 +195,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
   typename DenoiserType::NeighborhoodRadiusType neighborhoodSearchRadius;
 
   neighborhoodPatchRadius.Fill( 1 );
-  neighborhoodSearchRadius.Fill( 3 );
+  neighborhoodSearchRadius.Fill( 2 );
 
   // Get the search and patch radii
   typename OptionType::Pointer searchRadiusOption = parser->GetOption( "search-radius" );
@@ -204,7 +204,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
     std::string searchRadiusString = searchRadiusOption->GetFunction( 0 )->GetName();
 
     std::vector<unsigned int> searchRadius;
-    searchRadius.push_back( 3 );
+    searchRadius.push_back( 2 );
     if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
       {
       searchRadius = parser->ConvertVector<unsigned int>( searchRadiusString );
@@ -456,13 +456,13 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   {
   std::string description =
-    std::string( "Search radius.  Default = 3x3x3." );
+    std::string( "Search radius.  Default = 2x2x2." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "search-radius" );
   option->SetShortName( 'r' );
-  option->SetUsageOption( 0, "3" );
-  option->SetUsageOption( 1, "3x3x3" );
+  option->SetUsageOption( 0, "2" );
+  option->SetUsageOption( 1, "2x2x2" );
   option->SetDescription( description );
   parser->AddOption( option );
   }

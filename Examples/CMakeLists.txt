@@ -54,7 +54,6 @@ set(CORE_ANTS_APPS
   antsJointFusion
   DenoiseImage
   SurfaceBasedSmoothing
-  CreateJacobianDeterminantImage
   ThresholdImage
   ResampleImage
   sccan
@@ -78,6 +77,7 @@ set(MORE_ANTS_APPS
     iMath
     ANTS
     ANTSJacobian
+    CreateJacobianDeterminantImage
     PrintHeader
     ResetDirection
     ANTSUseLandmarkImagesToGetAffineTransform

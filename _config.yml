@@ -1,0 +1,8 @@
+title: ANTs
+description: Advanced Normalization Tools
+google_analytics: "47460530"
+show_downloads: true
+theme: jekyll-theme-midnight
+
+gems:
+  - jekyll-mentions
