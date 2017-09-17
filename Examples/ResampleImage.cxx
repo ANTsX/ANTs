@@ -322,6 +322,7 @@ private:
     std::cout << "  4  :  int   " << std::endl;
     std::cout << "  5  :  unsigned int   " << std::endl;
     std::cout << "  6  :  float (default)  " << std::endl;
+    std::cout << "  7  :  double  " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -491,9 +492,27 @@ private:
           return ResampleImage<4,float>( argc, argv );
           }
           break;
-        default:
-          std::cout << "Unsupported dimension" << std::endl;
-          return EXIT_FAILURE;
+    case 7:
+      switch( atoi( argv[1] ) )
+        {
+        case 2:
+         {
+         return ResampleImage<2,double>( argc, argv );
+         }
+         break;
+       case 3:
+         {
+         return ResampleImage<3,double>( argc, argv );
+         }
+         break;
+       case 4:
+         {
+         return ResampleImage<4,double>( argc, argv );
+         }
+         break;
+       default:
+        std::cout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
         }
     default:
       std::cout << "Unsupported pixel type" << std::endl;
