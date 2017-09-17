@@ -385,7 +385,6 @@ private:
           return EXIT_FAILURE;
         }
         break;
-    //
     case 2:
       switch( atoi( argv[1] ) )
         {
@@ -492,6 +491,10 @@ private:
           return ResampleImage<4,float>( argc, argv );
           }
           break;
+        default:
+          std::cout << "Unsupported dimension" << std::endl;
+          return EXIT_FAILURE;
+          }
     case 7:
       switch( atoi( argv[1] ) )
         {
