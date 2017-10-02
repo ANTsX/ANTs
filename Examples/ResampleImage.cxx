@@ -24,11 +24,10 @@
 namespace ants
 {
 
-template <unsigned int ImageDimension>
+template <unsigned int ImageDimension, class PixelType>
 int ResampleImage( int argc, char *argv[] )
 {
   typedef double                                RealType;
-  typedef double                                PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
   typename ImageType::Pointer image = ITK_NULLPTR;
@@ -308,13 +307,22 @@ private:
   if( argc < 5 )
     {
     std::cout << "Usage: " << argv[0] << " imageDimension inputImage "
-             << "outputImage MxNxO [size=1,spacing=0] [interpolate type]" << std::endl;
+             << "outputImage MxNxO [size=1,spacing=0] [interpolate type] [pixeltype]" << std::endl;
     std::cout << "  Interpolation type: " << std::endl;
     std::cout << "    0. linear (default)" << std::endl;
     std::cout << "    1. nn " << std::endl;
     std::cout << "    2. gaussian [sigma=imageSpacing] [alpha=1.0]" << std::endl;
     std::cout << "    3. windowedSinc [type = 'c'osine, 'w'elch, 'b'lackman, 'l'anczos, 'h'amming]" << std::endl;
     std::cout << "    4. B-Spline [order=3]" << std::endl;
+    std::cout << " pixeltype  :  TYPE " << std::endl;
+    std::cout << "  0  :  char   " << std::endl;
+    std::cout << "  1  :  unsigned char   " << std::endl;
+    std::cout << "  2  :  short   " << std::endl;
+    std::cout << "  3  :  unsigned short   " << std::endl;
+    std::cout << "  4  :  int   " << std::endl;
+    std::cout << "  5  :  unsigned int   " << std::endl;
+    std::cout << "  6  :  float (default)  " << std::endl;
+    std::cout << "  7  :  double  " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -323,27 +331,196 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  unsigned int typeoption = 6;
+  if( argc > 7 )
     {
-    case 2:
-      {
-      return ResampleImage<2>( argc, argv );
-      }
-      break;
-    case 3:
-      {
-      return ResampleImage<3>( argc, argv );
-      }
-      break;
-    case 4:
-      {
-      return ResampleImage<4>( argc, argv );
-      }
-      break;
-    default:
-      std::cout << "Unsupported dimension" << std::endl;
-      return EXIT_FAILURE;
+    typeoption = atoi(argv[7]);
     }
+
+  switch ( typeoption )
+    {
+    case 0:
+      switch( atoi( argv[1] ) )
+        {
+        case 2:
+          {
+          return ResampleImage<2,char>( argc, argv );
+          }
+          break;
+        case 3:
+          {
+          return ResampleImage<3,char>( argc, argv );
+          }
+          break;
+        case 4:
+          {
+          return ResampleImage<4,char>( argc, argv );
+          }
+          break;
+        default:
+          std::cout << "Unsupported dimension" << std::endl;
+          return EXIT_FAILURE;
+        }
+        break;
+    case 1:
+      switch( atoi( argv[1] ) )
+        {
+        case 2:
+          {
+          return ResampleImage<2,unsigned char>( argc, argv );
+          }
+          break;
+        case 3:
+          {
+          return ResampleImage<3,unsigned char>( argc, argv );
+          }
+          break;
+        case 4:
+          {
+          return ResampleImage<4,unsigned char>( argc, argv );
+          }
+          break;
+        default:
+          std::cout << "Unsupported dimension" << std::endl;
+          return EXIT_FAILURE;
+        }
+        break;
+    case 2:
+      switch( atoi( argv[1] ) )
+        {
+        case 2:
+          {
+          return ResampleImage<2,short>( argc, argv );
+          }
+          break;
+        case 3:
+          {
+          return ResampleImage<3,short>( argc, argv );
+          }
+          break;
+        case 4:
+          {
+          return ResampleImage<4,short>( argc, argv );
+          }
+          break;
+        default:
+          std::cout << "Unsupported dimension" << std::endl;
+          return EXIT_FAILURE;
+        }
+    case 3:
+      switch( atoi( argv[1] ) )
+        {
+        case 2:
+          {
+          return ResampleImage<2,unsigned short>( argc, argv );
+          }
+          break;
+        case 3:
+          {
+          return ResampleImage<3,unsigned short>( argc, argv );
+          }
+          break;
+        case 4:
+          {
+          return ResampleImage<4,unsigned short>( argc, argv );
+          }
+          break;
+        default:
+          std::cout << "Unsupported dimension" << std::endl;
+          return EXIT_FAILURE;
+        }
+    case 4:
+      switch( atoi( argv[1] ) )
+        {
+        case 2:
+          {
+          return ResampleImage<2,int>( argc, argv );
+          }
+          break;
+        case 3:
+          {
+          return ResampleImage<3,int>( argc, argv );
+          }
+          break;
+        case 4:
+          {
+          return ResampleImage<4,int>( argc, argv );
+          }
+          break;
+        default:
+          std::cout << "Unsupported dimension" << std::endl;
+          return EXIT_FAILURE;
+        }
+    case 5:
+      switch( atoi( argv[1] ) )
+        {
+        case 2:
+          {
+          return ResampleImage<2,unsigned int>( argc, argv );
+          }
+          break;
+        case 3:
+          {
+          return ResampleImage<3,unsigned int>( argc, argv );
+          }
+          break;
+        case 4:
+          {
+          return ResampleImage<4,unsigned int>( argc, argv );
+          }
+          break;
+        default:
+          std::cout << "Unsupported dimension" << std::endl;
+          return EXIT_FAILURE;
+        }
+    case 6:
+      switch( atoi( argv[1] ) )
+        {
+        case 2:
+          {
+          return ResampleImage<2,float>( argc, argv );
+          }
+          break;
+        case 3:
+          {
+          return ResampleImage<3,float>( argc, argv );
+          }
+          break;
+        case 4:
+          {
+          return ResampleImage<4,float>( argc, argv );
+          }
+          break;
+        default:
+          std::cout << "Unsupported dimension" << std::endl;
+          return EXIT_FAILURE;
+          }
+    case 7:
+      switch( atoi( argv[1] ) )
+        {
+        case 2:
+         {
+         return ResampleImage<2,double>( argc, argv );
+         }
+         break;
+       case 3:
+         {
+         return ResampleImage<3,double>( argc, argv );
+         }
+         break;
+       case 4:
+         {
+         return ResampleImage<4,double>( argc, argv );
+         }
+         break;
+       default:
+        std::cout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
+        }
+    default:
+      std::cout << "Unsupported pixel type" << std::endl;
+      return EXIT_FAILURE;
+      }
   return EXIT_SUCCESS;
-}
+} // end of function
 } // namespace ants

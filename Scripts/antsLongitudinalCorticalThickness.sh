@@ -507,9 +507,9 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
 
     SUBJECT_ANATOMICAL_IMAGES=''
     for (( j=0; j < $NUMBER_OF_MODALITIES; j++ ))
-      do
-        SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -a ${ANATOMICAL_IMAGES[$j]}"
-      done
+     do
+       SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -a ${ANATOMICAL_IMAGES[$j]}"
+     done
 
     # Won't be quick unless -q 3 was specified
     # But if you are running a longitudinal script without longitudinal data, that may not be the only problem
