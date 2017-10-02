@@ -102,8 +102,8 @@ Optional arguments:
                                                 and moving image = template) to produce the files.
                                                 The output from this step is
                                                   * ${OUTPUT_PREFIX}TemplateToSubject0GenericAffine.mat
-                                                  * ${OUTPUT_PREFIX}TemplateToSubject1Warp.${OUTPUT_SUFFIX}
-                                                  * ${OUTPUT_PREFIX}TemplateToSubject1InverseWarp.${OUTPUT_SUFFIX}
+                                                  * ${OUTPUT_PREFIX}TemplateToSubject1Warp.nii.gz
+                                                  * ${OUTPUT_PREFIX}TemplateToSubject1InverseWarp.nii.gz
                                                   * ${OUTPUT_PREFIX}TemplateToSubjectLogJacobian.${OUTPUT_SUFFIX}
      -f:  extraction registration mask          Mask (defined in the template space) used during registration
                                                 for brain extraction.
@@ -164,7 +164,7 @@ function checkOutputExists() {
 
   if [[ -f ${REGISTRATION_TEMPLATE} ]];
     then
-      singleOutputs=( ${singleOutputs[@]} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_SUFFIX} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX} )
+      singleOutputs=( ${singleOutputs[@]} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.nii.gz ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.nii.gz ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX} )
     fi
 
   missingOutput=0
@@ -1014,14 +1014,14 @@ fi # BAStages seg
 # These affect output; keep them consistent with usage and checkOutputExists function
 REGISTRATION_TEMPLATE_OUTPUT_PREFIX=${OUTPUT_PREFIX}SubjectToTemplate
 REGISTRATION_TEMPLATE_GENERIC_AFFINE=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat
-REGISTRATION_TEMPLATE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_SUFFIX}
-REGISTRATION_TEMPLATE_INVERSE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX}
+REGISTRATION_TEMPLATE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.nii.gz
+REGISTRATION_TEMPLATE_INVERSE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.nii.gz
 REGISTRATION_LOG_JACOBIAN=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX}
 
 # Want to have transforms for both directions
 REGISTRATION_SUBJECT_OUTPUT_PREFIX=${OUTPUT_PREFIX}TemplateToSubject
 REGISTRATION_SUBJECT_GENERIC_AFFINE=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}1GenericAffine.mat
-REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.${OUTPUT_SUFFIX}
+REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.nii.gz
 
 # Use first N4 corrected segmentation image, which we assume to be T1
 HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
