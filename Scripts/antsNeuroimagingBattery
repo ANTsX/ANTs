@@ -226,7 +226,7 @@ for my $dtfile ( @$dtifiles ) {
     print("$res\n");
     system($res);
 
-    my $dtiexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $dwi -b $dtfile -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+    my $dtiexe = "${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $dwi -b $dtfile -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
     print( "$dtiexe\n");
     system( $dtiexe );
 
@@ -345,7 +345,7 @@ for my $paslfile ( @$paslfiles ) {
       system( $makecbf );
     }
 
-    my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -a $cbf -i $meanM0 -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+    my $alignexe = "${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -a $cbf -i $meanM0 -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
     print( "$alignexe\n");
 
     system( $alignexe );
@@ -396,7 +396,7 @@ for my $boldfile ( @$boldfiles ) {
   system($res);
   }
 
-  my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+  my $alignexe = "${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
   system( $alignexe );
 
   system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}_brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}_MOCOparams.csv -0 ${outdir}${dirname}${outname}${outid}_MOCOstats.csv -f 1");
@@ -440,7 +440,7 @@ for my $rsboldfile ( @$rsboldfiles ) {
   system($res);
   }
 
-  my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+  my $alignexe = "${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
   system( $alignexe );
 
   system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}MOCOparams.csv -o ${outdir}${dirname}${outname}${outid}MOCOStatsFramewise.csv -f 1");
