@@ -503,54 +503,60 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
 
 if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
   then
-    echo "Only one set of anatomical images.  Running antsCorticalThickness.sh on the single subject."
+    #echo "Only one set of anatomical images.  Running antsCorticalThickness.sh on the single subject."
 
-    SUBJECT_ANATOMICAL_IMAGES=''
-    for (( j=0; j < $NUMBER_OF_MODALITIES; j++ ))
-      do
-        SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -a ${ANATOMICAL_IMAGES[$j]}"
-      done
+    #SUBJECT_ANATOMICAL_IMAGES=''
+    #for (( j=0; j < $NUMBER_OF_MODALITIES; j++ ))
+    # do
+    #   SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -a ${ANATOMICAL_IMAGES[$j]}"
+    # done
 
     # Won't be quick unless -q 3 was specified
     # But if you are running a longitudinal script without longitudinal data, that may not be the only problem
-    if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
-        then
-    logCmd ${ANTSPATH}/antsCorticalThickness.sh \
-      -d ${DIMENSION}
-      -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
-      -t ${REGISTRATION_TEMPLATE} \
-      -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
-      ${SUBJECT_ANATOMICAL_IMAGES} \
-      -e ${BRAIN_TEMPLATE} \
-      -f ${EXTRACTION_REGISTRATION_MASK} \
-      -m ${EXTRACTION_PRIOR} \
-      -k ${KEEP_TMP_IMAGES} \
-      -g ${DENOISE} \
-      -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT} \
-      -z ${DEBUG_MODE} \
-      -p ${SEGMENTATION_PRIOR} \
-      -o ${OUTPUT_PREFIX}
-    fi
+    #if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
+    #    then
+    #      logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+    #        -d ${DIMENSION} \
+    #        -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
+    #        -t ${REGISTRATION_TEMPLATE} \
+    #        -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
+    #        -e ${BRAIN_TEMPLATE} \
+    #        -f ${EXTRACTION_REGISTRATION_MASK} \
+    #        -m ${EXTRACTION_PRIOR} \
+    #        -k ${KEEP_TMP_IMAGES} \
+    #        -g ${DENOISE} \
+    #        -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT} \
+    #        -z ${DEBUG_MODE} \
+    #        -p ${SEGMENTATION_PRIOR} \
+    #        -o ${OUTPUT_PREFIX} \
+    #        ${SUBJECT_ANATOMICAL_IMAGES}
+    #  fi
 
-    if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 0 ]];
-        then
-    logCmd ${ANTSPATH}/antsCorticalThickness.sh \
-      -d ${DIMENSION}
-      -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
-      -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
-      ${SUBJECT_ANATOMICAL_IMAGES} \
-      -e ${BRAIN_TEMPLATE} \
-      -f ${EXTRACTION_REGISTRATION_MASK} \
-      -m ${EXTRACTION_PRIOR} \
-      -k ${KEEP_TMP_IMAGES} \
-      -g ${DENOISE} \
-      -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT} \
-      -z ${DEBUG_MODE} \
-      -p ${SEGMENTATION_PRIOR} \
-      -o ${OUTPUT_PREFIX}
-    fi
+    #if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 0 ]];
+    #  then
+    #     logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+    #       -d ${DIMENSION} \
+    #       -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
+    #       -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
+    #       -e ${BRAIN_TEMPLATE} \
+    #       -f ${EXTRACTION_REGISTRATION_MASK} \
+    #       -m ${EXTRACTION_PRIOR} \
+    #       -k ${KEEP_TMP_IMAGES} \
+    #       -g ${DENOISE} \
+    #       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT} \
+    #       -z ${DEBUG_MODE} \
+    #       -p ${SEGMENTATION_PRIOR} \
+    #       -o ${OUTPUT_PREFIX} \
+    #       ${SUBJECT_ANATOMICAL_IMAGES}
+    # fi
+    #exit 0
 
-    exit 0
+    # Use single timepoint as template
+    echo "Only one set of anatomical images. Treating subject as its own template."
+    OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE="${OUTPUT_PREFIX}SingleSubjectTemplate/"
+    SINGLE_SUBJECT_TEMPLATE=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}T_template0.nii.gz
+    logCmd mkdir -p ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}
+    logCmd ${ANTSPATH}/DenoiseImage -d ${DIMENSION} -i ${ANATOMICAL_IMAGES[0]} -o ${SINGLE_SUBJECT_TEMPLATE}  --verbose 1
   fi
 
 if [[ ! -f ${BRAIN_TEMPLATE} ]];

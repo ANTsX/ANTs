@@ -102,8 +102,8 @@ Optional arguments:
                                                 and moving image = template) to produce the files.
                                                 The output from this step is
                                                   * ${OUTPUT_PREFIX}TemplateToSubject0GenericAffine.mat
-                                                  * ${OUTPUT_PREFIX}TemplateToSubject1Warp.${OUTPUT_SUFFIX}
-                                                  * ${OUTPUT_PREFIX}TemplateToSubject1InverseWarp.${OUTPUT_SUFFIX}
+                                                  * ${OUTPUT_PREFIX}TemplateToSubject1Warp.nii.gz
+                                                  * ${OUTPUT_PREFIX}TemplateToSubject1InverseWarp.nii.gz
                                                   * ${OUTPUT_PREFIX}TemplateToSubjectLogJacobian.${OUTPUT_SUFFIX}
      -f:  extraction registration mask          Mask (defined in the template space) used during registration
                                                 for brain extraction.
@@ -164,7 +164,7 @@ function checkOutputExists() {
 
   if [[ -f ${REGISTRATION_TEMPLATE} ]];
     then
-      singleOutputs=( ${singleOutputs[@]} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_SUFFIX} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX} )
+      singleOutputs=( ${singleOutputs[@]} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.nii.gz ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.nii.gz ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX} )
     fi
 
   missingOutput=0
@@ -749,10 +749,10 @@ fi # check completion
 # Brain segmentation
 #
 ################################################################################
-SEGMENTATION_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1Warp.nii.gz
-SEGMENTATION_INVERSE_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1InverseWarp.nii.gz
+SEGMENTATION_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1Warp.${OUTPUT_SUFFIX}
+SEGMENTATION_INVERSE_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX}
 SEGMENTATION_GENERIC_AFFINE=${SEGMENTATION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
-SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.nii.gz
+SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.${OUTPUT_SUFFIX}
 SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
 
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
@@ -1014,18 +1014,18 @@ fi # BAStages seg
 # These affect output; keep them consistent with usage and checkOutputExists function
 REGISTRATION_TEMPLATE_OUTPUT_PREFIX=${OUTPUT_PREFIX}SubjectToTemplate
 REGISTRATION_TEMPLATE_GENERIC_AFFINE=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat
-REGISTRATION_TEMPLATE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_SUFFIX}
-REGISTRATION_TEMPLATE_INVERSE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX}
+REGISTRATION_TEMPLATE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.nii.gz
+REGISTRATION_TEMPLATE_INVERSE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.nii.gz
 REGISTRATION_LOG_JACOBIAN=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX}
 
 # Want to have transforms for both directions
 REGISTRATION_SUBJECT_OUTPUT_PREFIX=${OUTPUT_PREFIX}TemplateToSubject
 REGISTRATION_SUBJECT_GENERIC_AFFINE=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}1GenericAffine.mat
-REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.${OUTPUT_SUFFIX}
+REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.nii.gz
 
 # Use first N4 corrected segmentation image, which we assume to be T1
 HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
-EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.nii.gz
+EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.${OUTPUT_SUFFIX}
 
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage4Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
@@ -1288,8 +1288,8 @@ if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 6  ]] ; then # BAStages qc
 echo "--------------------------------------------------------------------------------------"
 echo "Compute summary measurements"
 echo "--------------------------------------------------------------------------------------"
-if [[ ! -s ${OUTPUT_PREFIX}CorticalThickness.nii.gz ]] ; then
-  echo ${OUTPUT_PREFIX}CorticalThickness.nii.gz incomplete!
+if [[ ! -s ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX} ]] ; then
+  echo ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX} incomplete!
   exit 1
 fi
 if [[ -f ${REGISTRATION_TEMPLATE_WARP} ]];
@@ -1299,11 +1299,11 @@ if [[ -f ${REGISTRATION_TEMPLATE_WARP} ]];
 
     EXTRACTED_SEGMENTATION_BRAIN_DEFORMED=${OUTPUT_PREFIX}BrainNormalizedToTemplate.${OUTPUT_SUFFIX}
 
-    REGISTRATION_TEMPLATE_BRAIN_MASK=${OUTPUT_PREFIX}RegistrationTemplateBrainMask.nii.gz
+    REGISTRATION_TEMPLATE_BRAIN_MASK=${OUTPUT_PREFIX}RegistrationTemplateBrainMask.${OUTPUT_SUFFIX}
 
     logCmd ${ANTSPATH}/ThresholdImage 3 ${REGISTRATION_TEMPLATE} ${REGISTRATION_TEMPLATE_BRAIN_MASK} 1E-6 Inf
 
-    EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.nii.gz
+    EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.${OUTPUT_SUFFIX}
 
     logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} m ${HEAD_N4_IMAGE} ${BRAIN_EXTRACTION_MASK}
 
@@ -1320,13 +1320,13 @@ thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_IMAGE} | c
 echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}brainvols.csv
 echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}brainvols.csv
 if [[ -f ${ANTSPATH}/GetMeshAndTopology ]] && [[ ${DIMENSION} -eq 3 ]] ; then
-  ${ANTSPATH}/ThresholdImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${OUTPUT_PREFIX}temp.nii.gz 3 3
-  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz ME ${OUTPUT_PREFIX}temp.nii.gz 1
-  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz GetLargestComponent ${OUTPUT_PREFIX}temp.nii.gz 1
-  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz MD ${OUTPUT_PREFIX}temp.nii.gz 2
+  ${ANTSPATH}/ThresholdImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 3 3
+  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} ME ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 1
+  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} GetLargestComponent ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 1
+  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} MD ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 2
   ${ANTSPATH}/SmoothImage 3 ${CORTICAL_THICKNESS_IMAGE} 1 ${OUTPUT_PREFIX}temp2.nii.gz
-  #          ${ANTSPATH}/GetMeshAndTopology ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
-  rm -f ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz
+  #          ${ANTSPATH}/GetMeshAndTopology ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}temp2.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
+  rm -f ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}temp2.${OUTPUT_SUFFIX}
 fi
 echo "--------------------------------------------------------------------------------------"
 #### BA Edits End ####
@@ -1335,19 +1335,19 @@ echo "--------------------------------------------------------------------------
 ################################################################################
 #
 # Create QA/QC output:
-#   - tiled mosaic of ${OUTPUT_PREFIX}BrainSegmentation0N4.nii.gz with
-#     ${OUTPUT_PREFIX}CorticalThickness.nii.gz overlay
+#   - tiled mosaic of ${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX} with
+#     ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX} overlay
 ################################################################################
 
 HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
-HEAD_N4_IMAGE_RESAMPLED="${OUTPUT_PREFIX}BrainSegmentation0N4Resampled.nii.gz"
-CORTICAL_THICKNESS_IMAGE_RESAMPLED="${OUTPUT_PREFIX}CorticalThicknessHotResampled.nii.gz"
-CORTICAL_THICKNESS_IMAGE_RGB="${OUTPUT_PREFIX}CorticalThicknessHotRGB.nii.gz"
+HEAD_N4_IMAGE_RESAMPLED="${OUTPUT_PREFIX}BrainSegmentation0N4Resampled.${OUTPUT_SUFFIX}"
+CORTICAL_THICKNESS_IMAGE_RESAMPLED="${OUTPUT_PREFIX}CorticalThicknessHotResampled.${OUTPUT_SUFFIX}"
+CORTICAL_THICKNESS_IMAGE_RGB="${OUTPUT_PREFIX}CorticalThicknessHotRGB.${OUTPUT_SUFFIX}"
 CORTICAL_THICKNESS_MOSAIC="${OUTPUT_PREFIX}CorticalThicknessTiledMosaic.png"
 CORTICAL_THICKNESS_MASK="${OUTPUT_PREFIX}CorticalThicknessMask.${OUTPUT_SUFFIX}"
-BRAIN_EXTRACTION_MASK_RESAMPLED="${OUTPUT_PREFIX}BrainExtractionMaskResampled.nii.gz"
-BRAIN_SEGMENTATION_IMAGE_RESAMPLED="${OUTPUT_PREFIX}BrainSegmentationResampled.nii.gz"
-BRAIN_SEGMENTATION_IMAGE_RGB="${OUTPUT_PREFIX}BrainSegmentationRGB.nii.gz"
+BRAIN_EXTRACTION_MASK_RESAMPLED="${OUTPUT_PREFIX}BrainExtractionMaskResampled.${OUTPUT_SUFFIX}"
+BRAIN_SEGMENTATION_IMAGE_RESAMPLED="${OUTPUT_PREFIX}BrainSegmentationResampled.${OUTPUT_SUFFIX}"
+BRAIN_SEGMENTATION_IMAGE_RGB="${OUTPUT_PREFIX}BrainSegmentationRGB.${OUTPUT_SUFFIX}"
 BRAIN_SEGMENTATION_MOSAIC="${OUTPUT_PREFIX}BrainSegmentationTiledMosaic.png"
 ITKSNAP_COLORMAP="${OUTPUT_PREFIX}ItkSnapColormap.txt"
 
