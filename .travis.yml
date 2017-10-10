@@ -25,6 +25,13 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ];  then echo "need cmake 3.2"; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew install ccache; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
+  - |
+   if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CXX" == "clang++" ]; then
+     export CFLAGS="-Qunused-arguments"
+     export CXXFLAGS="-Qunused-arguments"
+     sudo ln -s $(which ccache) /usr/lib/ccache/clang
+     sudo ln -s $(which ccache) /usr/lib/ccache/clang++
+   fi
   - mkdir antsbin
   - cd antsbin
 
