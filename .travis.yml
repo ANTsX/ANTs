@@ -29,7 +29,7 @@ before_install:
   - cd antsbin
 
 script:
-  - cmake -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON ./.. && make -j 2 && cd ANTS-build/ && make test
+  - cmake -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON -DITK_BUILD_MINC_SUPPORT=ON -DUSE_VTK=ON ./.. && make -j 2 && cd ANTS-build/ && make test
 
 notifications:
   email:
