@@ -157,6 +157,9 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       ${${proj}_FFTWD_ARGS}
       ${${proj}_MINC_ARGS}
       )
+      if( USE_SYSTEM_VTK STREQUAL "OFF" )
+        LIST(APPEND ${proj}_CMAKE_OPTIONS -DVTK_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/VTK-install/lib/cmake/vtk-6.2 )
+      endif()
       list(APPEND ${proj}_DEPENDENCIES VTK)
     endif()
 
