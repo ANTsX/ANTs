@@ -397,7 +397,7 @@ private:
     std::cout << "  MostLikely : Select label from from maximum probabilistic segmentations" << std::endl;
     std::cout << "    Usage: MostLikely probabilityThreshold ProbabilityImages*" << std::endl;
     std::cout << "  AverageLabels : Select label using STAPLE method" << std::endl;
-    std::cout << "    Usage: STAPLE LabelImages*" << std::endl;
+    std::cout << "    Usage: AverageLabels LabelImages*" << std::endl;
     std::cout << "    Note:  Gives probabilistic output (float)" << std::endl;
 
     std::cout << "\nImage Metrics & Info:" <<  std::endl;
