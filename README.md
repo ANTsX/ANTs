@@ -41,7 +41,7 @@ Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *n
  Install ANTs via pre-built:
 [Packages @ github](https://github.com/stnava/ANTs/releases) older
 versions [@ sourceforge](http://sourceforge.net/projects/advants/files/ANTS/) ... also,
-[Github Releases are here](https://github.com/stnava/ANTs/releases) thanks to Arman Eshaghi.
+[Github Releases are here](https://github.com/stnava/ANTs/releases) thanks to Arman Eshaghi. You can also run ANTs Cortical Thickness pipeline in the cloud using the free [http://OpenNeuro.org](OpenNeuro.org) platform (no installation required).
 
  Build [ANTs](https://github.com/stnava/ANTs) from:
 Source-Code (recommended) on [Linux / Mac OS](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or [Windows](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Windows-10).
