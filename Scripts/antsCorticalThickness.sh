@@ -732,7 +732,11 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
 
 if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
   then
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN} m ${ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK}
+    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN} m ${ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK} 
+
+    # Do a quick N4 on the brain before registration
+    logCmd $N4 -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN} -s ${N4_SHRINK_FACTOR_1} -c ${N4_CONVERGENCE_1} -o ${EXTRACTED_SEGMENTATION_BRAIN} -x ${BRAIN_EXTRACTION_MASK} -b ${N4_BSPLINE_PARAMS}
+
   fi
 
 if [[ -f ${BRAIN_TEMPLATE} ]] && [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
@@ -826,7 +830,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
                     basecall="${basecall} -p f"
                   fi
             else
-              basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
+              basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.0,0.999] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
               IMAGES="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
               if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
                 then
@@ -951,6 +955,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
         ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${OUTPUT_PREFIX}BrainSegmentation${j}N4.${OUTPUT_SUFFIX}";
       done
 
+    ## Don't de-noise a second time
     logCmd ${ANTSPATH}/antsAtroposN4.sh \
       -d ${DIMENSION} \
       -b ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION} \
@@ -965,7 +970,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
       -u ${USE_RANDOM_SEEDING} \
-      -g ${DENOISE_ANATOMICAL_IMAGES} \
+      -g 0 \
       -k ${KEEP_TMP_IMAGES} \
       -s ${OUTPUT_SUFFIX} \
       -z ${DEBUG_MODE}
@@ -1063,7 +1068,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
           fi
       else
         IMAGES="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE}"
-        basecall="${ANTS} -d ${DIMENSION} -v 1 -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${IMAGES},1] --float ${USE_FLOAT_PRECISION}"
+        basecall="${ANTS} -d ${DIMENSION} -v 1 -u 1 -w [0.0,0.999] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${IMAGES},1] --float ${USE_FLOAT_PRECISION}"
         stage1="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
         stage2="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
         stage3="-m CC[${IMAGES},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
