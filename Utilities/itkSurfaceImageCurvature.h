@@ -152,7 +152,6 @@ public:
   itkGetMacro(UseLabel, bool);
 
   itkSetMacro(kSign, float);
-  itkSetMacro(Sigma, float);
 
   itkSetMacro(Threshold, float);
 
@@ -260,7 +259,6 @@ private:
   NeighborhoodIteratorType m_ti2;
   bool                     m_UseLabel;
   float                    m_kSign;
-  float                    m_Sigma;
   float                    m_Threshold;
   float                    m_Area;
   RealType                 m_MinSpacing;
