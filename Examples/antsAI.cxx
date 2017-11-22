@@ -1299,10 +1299,10 @@ int antsAI( itk::ants::CommandLineParser *parser )
     if( ImageDimension == 2 )
       {
       for ( RealType translation1 = -1.0 * translationSearchGrid[0];
-           translation1 <= translationSearchGrid[0]; translation1 += translationSearchStepSize )
+           translation1 <= translationSearchGrid[0] + 0.000001; translation1 += translationSearchStepSize )
         {
         for ( RealType translation2 = -1.0 * translationSearchGrid[1];
-             translation2 <= translationSearchGrid[1]; translation2 += translationSearchStepSize )
+             translation2 <= translationSearchGrid[1] + 0.000001; translation2 += translationSearchStepSize )
           {
           typename AffineTransformType::OutputVectorType searchTranslation;
           searchTranslation[0] = translation1;
@@ -1352,13 +1352,13 @@ int antsAI( itk::ants::CommandLineParser *parser )
         for( RealType angle3 = ( vnl_math::pi * -arcFraction ); angle3 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle3 += searchFactor )
           {
           for ( RealType translation1 = -1.0 * translationSearchGrid[0];
-                translation1 <= translationSearchGrid[0]; translation1 += translationSearchStepSize )
+                translation1 <= translationSearchGrid[0] + 0.000001; translation1 += translationSearchStepSize )
             {
             for ( RealType translation2 = -1.0 * translationSearchGrid[1];
-                  translation2 <= translationSearchGrid[1]; translation2 += translationSearchStepSize )
+                  translation2 <= translationSearchGrid[1] + 0.000001; translation2 += translationSearchStepSize )
               {
               for ( RealType translation3 = -1.0 * translationSearchGrid[2];
-                    translation3 <= translationSearchGrid[2]; translation3 += translationSearchStepSize )
+                    translation3 <= translationSearchGrid[2] + 0.000001; translation3 += translationSearchStepSize )
                 {
                 typename AffineTransformType::OutputVectorType searchTranslation;
                 searchTranslation[0] = translation1;
