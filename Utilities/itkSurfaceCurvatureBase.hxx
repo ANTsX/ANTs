@@ -60,6 +60,7 @@ SurfaceCurvatureBase<TSurface, TDimension>
   m_UseGeodesicNeighborhood = false;
 
   m_TotalArea = 0.0;
+  m_Sigma = 1.0F;
 }
 
 template <typename TSurface, unsigned int TDimension>
