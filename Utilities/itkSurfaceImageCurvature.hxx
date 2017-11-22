@@ -86,7 +86,6 @@ SurfaceImageCurvature<TSurface>
   m_UseLabel = false;
   m_kSign = -1.0;
   m_FunctionImage = ITK_NULLPTR;
-  m_Sigma = 1.0;
   this->m_Vinterp = ITK_NULLPTR;
   this->m_MinSpacing = itk::NumericTraits<RealType>::max() ;
 }
