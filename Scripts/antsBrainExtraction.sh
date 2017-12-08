@@ -462,9 +462,10 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
 #             exe_initial_align="${ANTSPATH}/antsAffineInitializer ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} ${EXTRACTION_INITIAL_AFFINE_MOVING} ${EXTRACTION_INITIAL_AFFINE} 15 0.1 0 10"
           exe_initial_align="${ANTSPATH}/antsAI -d ${DIMENSION} -v 1"
-          exe_initial_align="${exe_initial_align} -m Mattes[${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.25]"
+          exe_initial_align="${exe_initial_align} -m Mattes[${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2]"
           exe_initial_align="${exe_initial_align} -t Affine[0.1]"
-          exe_initial_align="${exe_initial_align} -s [15,0.1]"
+          exe_initial_align="${exe_initial_align} -s [20,0.12]"
+          exe_initial_align="${exe_initial_align} -g [0x50x50,50]"
           exe_initial_align="${exe_initial_align} -p 0"
           exe_initial_align="${exe_initial_align} -c 10"
           exe_initial_align="${exe_initial_align} -o ${EXTRACTION_INITIAL_AFFINE}"
