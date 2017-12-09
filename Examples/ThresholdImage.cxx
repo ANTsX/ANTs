@@ -220,7 +220,7 @@ typename TImage::Pointer OtsuThreshold(
     typename OtsuType::Pointer otsu = OtsuType::New();
     otsu->SetInputHistogram( stats->GetHistogram( maskLabel ) );
     otsu->SetNumberOfThresholds( NumberOfThresholds );
-    otsu->Update();
+    otsu->Compute();
 
     typename OtsuType::OutputType thresholds = otsu->GetOutput();
 
