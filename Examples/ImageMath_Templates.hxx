@@ -12668,7 +12668,6 @@ int InPaint(int argc, char *argv[])
     sigma = atof(argv[argct]); argct++;
     }
   typename ImageType::Pointer image1 = ITK_NULLPTR;
-  typename ImageType::Pointer varimage = ITK_NULLPTR;
   ReadImage<ImageType>(image1, fn1.c_str() );
   PixelType     spacingsize = 0;
   PixelType     minsp = image1->GetSpacing()[0];
@@ -12745,7 +12744,7 @@ int InPaint(int argc, char *argv[])
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
   duplicator->SetInputImage( image1 );
   duplicator->Update();
-  varimage =  duplicator->GetOutput();
+  typename ImageType::Pointer varimage = duplicator->GetModifiableOutput();
   for ( unsigned int i = 0; i < sigma; i++ )
     {
     typedef itk::ConvolutionImageFilter< ImageType, ImageType > FilterType;

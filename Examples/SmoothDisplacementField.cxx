@@ -59,7 +59,7 @@ int SmoothDisplacementField( int argc, char *argv[] )
     duplicator->SetInputImage( field );
     duplicator->Update();
 
-    smoothField = duplicator->GetOutput();
+    smoothField = duplicator->GetModifiableOutput();
 
     itk::TimeProbe timer;
     timer.Start();

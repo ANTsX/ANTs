@@ -466,7 +466,7 @@ typename TPointSet::Pointer ReadLabeledPointSet( char* fn )
 }
 
 template <class TPointSet>
-bool WritePointSet( itk::SmartPointer<TPointSet> pointSet, const char *file )
+bool WritePointSet( const TPointSet * const pointSet, const char * const file )
 {
   if( std::string(file).length() < 3 )
     {
@@ -488,7 +488,7 @@ bool WritePointSet( itk::SmartPointer<TPointSet> pointSet, const char *file )
 }
 
 template <class TImageType>
-bool WriteImage(const itk::SmartPointer<TImageType> image, const char *file)
+bool WriteImage(const TImageType * const image, const char * const file)
 {
   if( std::string(file).length() < 3 )
     {
@@ -507,7 +507,7 @@ bool WriteImage(const itk::SmartPointer<TImageType> image, const char *file)
     {
     void* ptr;
     sscanf(file, "%p", (void **)&ptr);
-    *( static_cast<typename TImageType::Pointer *>( ptr ) ) = image;
+    *( static_cast<typename TImageType::Pointer *>( ptr ) ) = const_cast<TImageType *>(image);
     }
   else
     {
@@ -650,7 +650,7 @@ MakeNewImage(typename TImage::Pointer image1, typename TImage::PixelType initval
 
 template <class TField>
 void
-WriteDisplacementField(TField* field, std::string filename)
+WriteDisplacementField(const TField* const field, std::string filename)
 {
   typedef TField                        FieldType;
   enum { ImageDimension = FieldType::ImageDimension };
@@ -684,7 +684,7 @@ WriteDisplacementField(TField* field, std::string filename)
 
 template <class TField>
 void
-WriteDisplacementField2(TField* field, std::string filename, std::string app)
+WriteDisplacementField2(const TField * const field, std::string filename, std::string app)
 {
   typedef TField                        FieldType;
   enum { ImageDimension = FieldType::ImageDimension };
