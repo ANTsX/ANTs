@@ -173,9 +173,6 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     // Current Sigma refers to the center filter, hence next it'll be
     // the center
     m_CurrentSigma = sigma;
-
-    // after each pass reset progress to accumulate next iteration
-    progress->ResetFilterProgressAndKeepAccumulatedProgress();
     }
 
   // clean up member variables
