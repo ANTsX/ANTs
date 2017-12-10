@@ -1160,7 +1160,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         if( virtualDomainImage.IsNull() )
           {
-          virtualDomainImage = imageMetric->GetVirtualImage();
+          virtualDomainImage = imageMetric->GetModifiableVirtualImage();
           }
 
         if( useMultiMetric )
@@ -1191,7 +1191,7 @@ RegistrationHelper<TComputeType, VImageDimension>
             intensityPointSetMetric->SetVirtualDomainFromImage( caster->GetOutput() );
             if( virtualDomainImage.IsNull() )
               {
-              virtualDomainImage = intensityPointSetMetric->GetVirtualImage();
+              virtualDomainImage = intensityPointSetMetric->GetModifiableVirtualImage();
               }
             }
 
@@ -1218,7 +1218,7 @@ RegistrationHelper<TComputeType, VImageDimension>
             labeledPointSetMetric->SetVirtualDomainFromImage( caster->GetOutput() );
             if( virtualDomainImage.IsNull() )
               {
-              virtualDomainImage = labeledPointSetMetric->GetVirtualImage();
+              virtualDomainImage = labeledPointSetMetric->GetModifiableVirtualImage();
               }
             }
           if( useMultiMetric )
@@ -3388,12 +3388,12 @@ RegistrationHelper<TComputeType, VImageDimension>
         dynamic_cast<DisplacementFieldTransformType *>( compToRestore->GetNthTransform( numTransforms-1 ).GetPointer() );
 
       typename DisplacementFieldTransformType::Pointer fixedToMiddleTransform = DisplacementFieldTransformType::New();
-      fixedToMiddleTransform->SetDisplacementField( fixedToMiddleForwardTx->GetDisplacementField() );
-      fixedToMiddleTransform->SetInverseDisplacementField( fixedToMiddleInverseTx->GetDisplacementField() );
+      fixedToMiddleTransform->SetDisplacementField( fixedToMiddleForwardTx->GetModifiableDisplacementField() );
+      fixedToMiddleTransform->SetInverseDisplacementField( fixedToMiddleInverseTx->GetModifiableDisplacementField() );
 
       typename DisplacementFieldTransformType::Pointer movingToMiddleTransform = DisplacementFieldTransformType::New();
-      movingToMiddleTransform->SetDisplacementField( movingToMiddleForwardTx->GetDisplacementField() );
-      movingToMiddleTransform->SetInverseDisplacementField( movingToMiddleInverseTx->GetDisplacementField() );
+      movingToMiddleTransform->SetDisplacementField( movingToMiddleForwardTx->GetModifiableDisplacementField() );
+      movingToMiddleTransform->SetInverseDisplacementField( movingToMiddleInverseTx->GetModifiableDisplacementField() );
 
       this->Logger() << "Initial FixedToMiddle and MovingToMiddle transforms are restored from the registration state file."
                 << std::endl;

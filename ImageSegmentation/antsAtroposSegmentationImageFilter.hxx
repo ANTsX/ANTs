@@ -860,7 +860,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   typename OtsuType::Pointer otsu = OtsuType::New();
   otsu->SetInputHistogram( stats->GetHistogram( NumericTraits<LabelType>::OneValue() ) );
   otsu->SetNumberOfThresholds( this->m_NumberOfTissueClasses - 1 );
-  otsu->Update();
+  otsu->Compute();
 
   typename OtsuType::OutputType thresholds = otsu->GetOutput();
 
