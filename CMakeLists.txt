@@ -10,7 +10,7 @@ set(LIBRARY_SOVERSION_INFO 2)
 set(LIBRARY_VERSION_INFO 2.2.0)
 
 set(LOCAL_PROJECT_NAME ANTS)
-INCLUDE(InstallRequiredSystemLibraries)
+include(InstallRequiredSystemLibraries)
 ## NOTE THERE SHOULD BE NO PROJECT STATEMENT HERE!
 ## This file acts as a simple switch to initiate
 ## two completely independant CMake build environments.

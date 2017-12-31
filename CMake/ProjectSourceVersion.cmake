@@ -106,7 +106,7 @@ if(_GIT_VERSION VERSION_EQUAL _${CMAKE_PROJECT_NAME}_VERSION)
 else()
   # The first commit after a tag should increase the project version
   # number in Version.cmake and be "dev1"
-  MATH(EXPR _GIT_VERSION_COUNT "${_GIT_VERSION_COUNT}+1")
+  math(EXPR _GIT_VERSION_COUNT "${_GIT_VERSION_COUNT}+1")
   set(_GIT_VERSION_DEV "${_GIT_VERSION_COUNT}")
 endif()
 
