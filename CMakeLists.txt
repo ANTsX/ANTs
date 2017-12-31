@@ -1,5 +1,12 @@
-cmake_minimum_required(VERSION 2.8.9)
-cmake_policy(VERSION 2.8.9)
+if(CMAKE_CXX_STANDARD)
+  #if CMAKE_CXX_STANDARD is requested, then require
+  #new version of cmake to force C++11 that can
+  #improve support of C++11 features.
+  cmake_minimum_required(VERSION 3.8.2 FATAL_ERROR)
+else()
+  cmake_minimum_required(VERSION 2.8.9)
+  cmake_policy(VERSION 2.8.9)
+endif()
 
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
