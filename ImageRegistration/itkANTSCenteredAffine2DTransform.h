@@ -174,7 +174,7 @@ public:
    * Get local Jacobian for the given point
    * \c j will sized properly as needed.
    */
-  virtual void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const ITK_OVERRIDE;
+  void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const ITK_OVERRIDE;
 
   /**
    * This method creates and returns a new ANTSCenteredAffine2DTransform object
@@ -189,7 +189,7 @@ public:
   void CloneTo( Pointer & clone ) const;
 
   /** Reset the parameters to create and identity transform. */
-  virtual void SetIdentity() ITK_OVERRIDE;
+  void SetIdentity() ITK_OVERRIDE;
 
 protected:
   // Rigid2DTransform();
@@ -200,7 +200,7 @@ protected:
   ANTSCenteredAffine2DTransform( unsigned int outputSpaceDimension, unsigned int parametersDimension);
 
   //  ~Rigid2DTransform();
-  ~ANTSCenteredAffine2DTransform();
+  virtual ~ANTSCenteredAffine2DTransform() ITK_OVERRIDE;
 
   /**
     * Print contents of an ANTSCenteredAffine2DTransform
@@ -210,13 +210,13 @@ protected:
   /** Compute the matrix from angle. This is used in Set methods
    * to update the underlying matrix whenever a transform parameter
    * is changed. */
-  virtual void ComputeMatrix() ITK_OVERRIDE;
+  void ComputeMatrix() ITK_OVERRIDE;
 
   /** Compute the angle from the matrix. This is used to compute
    * transform parameters from a given matrix. This is used in
    * MatrixOffsetTransformBase::Compose() and
    * MatrixOffsetTransformBase::GetInverse(). */
-  virtual void ComputeMatrixParameters() ITK_OVERRIDE;
+  void ComputeMatrixParameters() ITK_OVERRIDE;
 
   /** Update angle without recomputation of other internal variables. */
   void SetVarAngle( TScalarType angle )

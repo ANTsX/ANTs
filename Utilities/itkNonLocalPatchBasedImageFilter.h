@@ -141,7 +141,7 @@ public:
 protected:
 
   NonLocalPatchBasedImageFilter();
-  ~NonLocalPatchBasedImageFilter() {}
+  virtual ~NonLocalPatchBasedImageFilter() ITK_OVERRIDE {}
 
   void BeforeThreadedGenerateData() ITK_OVERRIDE;
 

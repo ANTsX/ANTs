@@ -1178,7 +1178,7 @@ protected:
   }
 
   antsSCCANObject();
-  ~antsSCCANObject()
+  virtual ~antsSCCANObject() ITK_OVERRIDE
   {
   }
 

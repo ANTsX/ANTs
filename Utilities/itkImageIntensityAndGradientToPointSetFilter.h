@@ -124,13 +124,13 @@ public:
 
 protected:
   ImageIntensityAndGradientToPointSetFilter();
-  ~ImageIntensityAndGradientToPointSetFilter()
+  virtual ~ImageIntensityAndGradientToPointSetFilter() ITK_OVERRIDE
   {
   }
 
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
-  virtual void GenerateData() ITK_OVERRIDE;
+  void GenerateData() ITK_OVERRIDE;
 
   double                    m_Sigma;
 

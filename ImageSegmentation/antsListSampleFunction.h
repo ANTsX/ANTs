@@ -103,11 +103,11 @@ public:
 
   /** Evaluate the function at specified Point position.
    * Subclasses must provide this method. */
-  virtual TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE = 0;
+  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE = 0;
 
 protected:
   ListSampleFunction();
-  ~ListSampleFunction()
+  virtual ~ListSampleFunction() ITK_OVERRIDE
   {
   }
 

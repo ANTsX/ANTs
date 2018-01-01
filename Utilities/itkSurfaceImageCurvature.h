@@ -240,7 +240,7 @@ public:
 protected:
 
   SurfaceImageCurvature();
-  ~SurfaceImageCurvature()
+  virtual ~SurfaceImageCurvature() ITK_OVERRIDE
   {
   };
 

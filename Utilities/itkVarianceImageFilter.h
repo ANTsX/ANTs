@@ -90,7 +90,7 @@ public:
 
 protected:
   VarianceImageFilter();
-  virtual ~VarianceImageFilter() {}
+  virtual ~VarianceImageFilter() ITK_OVERRIDE {}
 
   /** VarianceImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()

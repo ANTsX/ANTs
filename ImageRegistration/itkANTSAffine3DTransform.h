@@ -99,7 +99,7 @@ public:
   itkGetConstReferenceMacro( K3, TScalarType );
 
   /** Set the parameters to the IdentityTransform */
-  virtual void SetIdentity() ITK_OVERRIDE;
+  void SetIdentity() ITK_OVERRIDE;
 
   /** Set the transformation from a container of parameters.
    * This is typically used by optimizers.
@@ -126,20 +126,20 @@ public:
  * Get local Jacobian for the given point
  * \c j will sized properly as needed.
  */
-  virtual void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const ITK_OVERRIDE;
+  void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const ITK_OVERRIDE;
 
 protected:
 /*   ANTSAffine3DTransform(const MatrixType &matrix, */
 /*                            const OutputVectorType &offset); */
   ANTSAffine3DTransform(unsigned int outputDims, unsigned int paramDims);
   ANTSAffine3DTransform();
-  ~ANTSAffine3DTransform()
+  virtual ~ANTSAffine3DTransform() ITK_OVERRIDE
   {
   };
 
-  virtual void ComputeMatrix() ITK_OVERRIDE;
+  void ComputeMatrix() ITK_OVERRIDE;
 
-  virtual void ComputeMatrixParameters() ITK_OVERRIDE;
+  void ComputeMatrixParameters() ITK_OVERRIDE;
 
   void SetVarRotation(const VnlQuaternionType & rotation)
   {

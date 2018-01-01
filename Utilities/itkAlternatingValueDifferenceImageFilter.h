@@ -116,7 +116,7 @@ public:
 #endif
 protected:
   AlternatingValueDifferenceImageFilter();
-  ~AlternatingValueDifferenceImageFilter()
+  virtual ~AlternatingValueDifferenceImageFilter() ITK_OVERRIDE
   {
   }
 
@@ -127,12 +127,12 @@ protected:
    *
    * \sa ProcessObject::VerifyInputInformation
    */
-  virtual void VerifyInputInformation() ITK_OVERRIDE;
+  void VerifyInputInformation() ITK_OVERRIDE;
 
   /** Overrides GenerateOutputInformation() in order to produce
    * an image which has a different information than the first input.
    * \sa ProcessObject::GenerateOutputInformaton() */
-  virtual void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() ITK_OVERRIDE;
 
   /** Overrides GenerateInputRequestedRegion() in order to inform
    * the pipeline execution model of different input requested regions
@@ -142,12 +142,12 @@ protected:
 
   /** This method is used to set the state of the filter before
    * multi-threading. */
-  virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
   /** AlternatingValueDifferenceImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
-  virtual void ThreadedGenerateData(const OutputImageRegionType &
+  void ThreadedGenerateData(const OutputImageRegionType &
                                     outputRegionForThread, ThreadIdType threadId) ITK_OVERRIDE;
 
 private:

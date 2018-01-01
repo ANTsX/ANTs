@@ -53,7 +53,7 @@ public:
     m_StageID( 0 )
   {
   };
-  ~OptionFunction()
+  virtual ~OptionFunction() ITK_OVERRIDE
   {
   };
 
@@ -194,7 +194,7 @@ public:
 
 protected:
   CommandLineOption();
-  virtual ~CommandLineOption()
+  virtual ~CommandLineOption() ITK_OVERRIDE
   {
   };
 private:
