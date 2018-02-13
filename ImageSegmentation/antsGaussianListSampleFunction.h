@@ -65,13 +65,13 @@ public:
 
   /** Helper functions */
 
-  virtual void SetInputListSample( const InputListSampleType * ptr ) ITK_OVERRIDE;
+  void SetInputListSample( const InputListSampleType * ptr ) ITK_OVERRIDE;
 
-  virtual TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE;
+  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE;
 
 protected:
   GaussianListSampleFunction();
-  virtual ~GaussianListSampleFunction();
+  virtual ~GaussianListSampleFunction() ITK_OVERRIDE;
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
   void GenerateData();

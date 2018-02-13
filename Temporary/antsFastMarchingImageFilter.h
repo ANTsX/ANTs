@@ -333,7 +333,7 @@ private:
 #endif
 protected:
   FMarchingImageFilter();
-  ~FMarchingImageFilter()
+  virtual ~FMarchingImageFilter() ITK_OVERRIDE
   {
   };
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
@@ -352,9 +352,9 @@ protected:
   void GenerateData() ITK_OVERRIDE;
 
   /** Generate the output image meta information. */
-  virtual void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() ITK_OVERRIDE;
 
-  virtual void EnlargeOutputRequestedRegion(DataObject *output) ITK_OVERRIDE;
+  void EnlargeOutputRequestedRegion(DataObject *output) ITK_OVERRIDE;
 
   /** Get Large Value. This value is used to
       represent the concept of infinity for the time assigned to pixels that

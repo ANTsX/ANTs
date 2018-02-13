@@ -29,7 +29,7 @@ macro(MakeTestDriverFromANTSbinary ANTSbinaryName ANTSbinaryTestSourceName ANTS_
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
     )
-endmacro(MakeTestDriverFromANTSbinary ANTSbinaryName)
+endmacro()
 
 #-----------------------------------------------------------------------
 # Setup locations to find externally maintained test data.
@@ -949,7 +949,7 @@ endif()
 
 ############ End of CompositeTransformUtil tests#################
 
-endif(RUN_LONG_TESTS)
+endif()
 
 ##############################################################
 ##############################################################
@@ -1075,11 +1075,11 @@ ExternalData_expand_arguments(${PROJECT_NAME}FetchData C_IMAGE DATA{${SMALL_DATA
 
 include(ANTS_SYN_WITH_TIME_test.cmake)
 include(APOC_OTSU_INIT_test.cmake)
-endif(RUN_LONG_TESTS)
+endif()
 
 include(ANTS_PSE_MSQ_TXT_test.cmake)
 include(ANTS_PSE_MSQ_VTK_test.cmake)
 
-endif(RUN_SHORT_TESTS)
+endif()
 
 ExternalData_add_target( ${PROJECT_NAME}FetchData )  # Name of data management target

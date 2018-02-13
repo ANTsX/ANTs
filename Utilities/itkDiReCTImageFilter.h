@@ -261,7 +261,7 @@ public:
 protected:
 
   DiReCTImageFilter();
-  virtual ~DiReCTImageFilter();
+  virtual ~DiReCTImageFilter() ITK_OVERRIDE;
 
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 

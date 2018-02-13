@@ -303,7 +303,7 @@ public:
   }
 
   antsMatrixUtilities();
-  ~antsMatrixUtilities()
+  virtual ~antsMatrixUtilities() ITK_OVERRIDE
   {
   }
 

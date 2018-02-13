@@ -109,15 +109,15 @@ public:
   itkSetObjectMacro( MaskImage, TMaskImage );
   itkSetObjectMacro( ConfidenceImage, TConfidenceImage );
 
-  virtual MeasureType GetValue( const ParametersType & parameters ) const ITK_OVERRIDE;
+  MeasureType GetValue( const ParametersType & parameters ) const ITK_OVERRIDE;
 
-  virtual void GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const ITK_OVERRIDE;
+  void GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const ITK_OVERRIDE;
 
-  virtual unsigned int GetNumberOfParameters() const ITK_OVERRIDE;
+  unsigned int GetNumberOfParameters() const ITK_OVERRIDE;
 
 protected:
   N3BiasFieldScaleCostFunction();
-  virtual ~N3BiasFieldScaleCostFunction();
+  virtual ~N3BiasFieldScaleCostFunction() ITK_OVERRIDE;
 private:
   N3BiasFieldScaleCostFunction(const Self &); // purposely not implemented
   void operator=(const Self &);               // purposely not implemented
@@ -256,7 +256,7 @@ public:
   itkGetConstMacro( CurrentConvergenceMeasurement, RealType );
 protected:
   N3MRIBiasFieldCorrectionImageFilter();
-  ~N3MRIBiasFieldCorrectionImageFilter()
+  virtual ~N3MRIBiasFieldCorrectionImageFilter() ITK_OVERRIDE
   {
   };
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;

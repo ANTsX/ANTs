@@ -93,7 +93,7 @@ protected:
   }
 
 
-  ~NeighborhoodFirstOrderStatisticsImageFilter() {}
+  virtual ~NeighborhoodFirstOrderStatisticsImageFilter() ITK_OVERRIDE {}
 private:
   NeighborhoodFirstOrderStatisticsImageFilter(const Self &); //purposely not implemented
   void operator=(const Self &);                  //purposely not implemented

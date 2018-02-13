@@ -113,7 +113,7 @@ public:
 #endif
 protected:
   PulsedArterialSpinLabeledCerebralBloodFlowImageFilter();
-  ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter()
+  virtual ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter() ITK_OVERRIDE
   {
   }
 
@@ -125,7 +125,7 @@ protected:
   /** PulsedArterialSpinLabeledCerebralBloodFlowImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
-  virtual void ThreadedGenerateData(const OutputImageRegionType &
+  void ThreadedGenerateData(const OutputImageRegionType &
                                     outputRegionForThread, ThreadIdType threadId) ITK_OVERRIDE;
 
 private:

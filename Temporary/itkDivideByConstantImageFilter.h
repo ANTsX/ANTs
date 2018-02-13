@@ -140,7 +140,7 @@ protected:
   DivideByConstantImageFilter()
   {
   };
-  virtual ~DivideByConstantImageFilter()
+  virtual ~DivideByConstantImageFilter() ITK_OVERRIDE
   {
   };
 

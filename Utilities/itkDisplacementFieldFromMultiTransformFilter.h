@@ -57,20 +57,20 @@ public:
 
   typedef typename Superclass::PointType PointType;
 
-  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE
+  void GenerateInputRequestedRegion() ITK_OVERRIDE
   {
     Superclass::GenerateInputRequestedRegion();
   }
 
-  virtual void BeforeThreadedGenerateData() ITK_OVERRIDE
+  void BeforeThreadedGenerateData() ITK_OVERRIDE
   {
   };
 
-  virtual void AfterThreadedGenerateData() ITK_OVERRIDE
+  void AfterThreadedGenerateData() ITK_OVERRIDE
   {
   };
 
-  virtual void GenerateOutputInformation() ITK_OVERRIDE
+  void GenerateOutputInformation() ITK_OVERRIDE
   {
     // call the superclass's implementation
     Superclass::GenerateOutputInformation();
@@ -83,7 +83,7 @@ protected:
     Superclass::m_EdgePaddingValue.Fill(kMaxDisp);
   }
 
-  ~DisplacementFieldFromMultiTransformFilter()
+  virtual ~DisplacementFieldFromMultiTransformFilter() ITK_OVERRIDE
   {
   };
   void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE

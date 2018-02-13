@@ -231,7 +231,7 @@ public:
    * implemenation for GenerateOutputInformation() which set
    * the output information according the OutputSpacing, OutputOrigin
    * and the deformation field's LargestPossibleRegion. */
-  virtual void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() ITK_OVERRIDE;
 
   /** It is difficult to compute in advance the input image region
    * required to compute the requested output region. Thus the safest
@@ -239,15 +239,15 @@ public:
    *
    * For the deformation field, the input requested region
    * set to be the same as that of the output requested region. */
-  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
   /** This method is used to set the state of the filter before
    * multi-threading. */
-  virtual void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
   /** This method is used to set the state of the filter after
    * multi-threading. */
-  virtual void AfterThreadedGenerateData() ITK_OVERRIDE;
+  void AfterThreadedGenerateData() ITK_OVERRIDE;
 
   /** precompute the smoothed image if necessary **/
   void SetSmoothScale(double scale);
@@ -297,7 +297,7 @@ public:
   bool m_bFirstDeformNoInterp;
 protected:
   WarpImageMultiTransformFilter();
-  ~WarpImageMultiTransformFilter()
+  virtual ~WarpImageMultiTransformFilter() ITK_OVERRIDE
   {
   };
   void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;

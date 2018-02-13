@@ -133,17 +133,17 @@ public:
    /**
     * Initialize the metric by estimating the intensity and distance sigmas
     */
-  virtual void Initialize( void ) throw ( ExceptionObject ) ITK_OVERRIDE;
+  void Initialize( void ) throw ( ExceptionObject ) ITK_OVERRIDE;
 
   /**
    * Prepare point sets for use.
    */
-  virtual void InitializePointSets() const ITK_OVERRIDE;
+  void InitializePointSets() const ITK_OVERRIDE;
 
   /**
    * Calculates the local metric value for a single point.
    */
-  virtual MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & ) const ITK_OVERRIDE;
+  MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & ) const ITK_OVERRIDE;
 
   /** Helper method allows for code reuse while skipping the metric value
    * calculation when appropriate */
@@ -152,16 +152,16 @@ public:
   /**
    * Calculates the local value and derivative for a single point.
    */
-  virtual void GetLocalNeighborhoodValueAndDerivative( const PointType &,
+  void GetLocalNeighborhoodValueAndDerivative( const PointType &,
     MeasureType &, LocalDerivativeType &, const PixelType & ) const ITK_OVERRIDE;
 
   /** Clone method will clone the existing instance of this type,
    *  including its internal member variables. */
-  virtual typename LightObject::Pointer InternalClone() const ITK_OVERRIDE;
+  typename LightObject::Pointer InternalClone() const ITK_OVERRIDE;
 
 protected:
   MeanSquaresPointSetToPointSetIntensityMetricv4();
-  virtual ~MeanSquaresPointSetToPointSetIntensityMetricv4();
+  virtual ~MeanSquaresPointSetToPointSetIntensityMetricv4() ITK_OVERRIDE;
 
   /**
    * Estimate the intensity distance sigma based on simple heuristic

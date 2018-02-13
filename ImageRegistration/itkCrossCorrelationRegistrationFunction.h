@@ -143,14 +143,14 @@ public:
                                                               typename TDisplacementField::PixelType vec );
 
   /** This class uses a constant timestep of 1. */
-  virtual TimeStepType ComputeGlobalTimeStep(void * /* GlobalData */) const ITK_OVERRIDE
+  TimeStepType ComputeGlobalTimeStep(void * /* GlobalData */) const ITK_OVERRIDE
   {
     return m_TimeStep;
   }
 
   /** Return a pointer to a global data structure that is passed to
    * this object from the solver at each calculation.  */
-  virtual void * GetGlobalDataPointer() const ITK_OVERRIDE
+  void * GetGlobalDataPointer() const ITK_OVERRIDE
   {
     GlobalDataStruct *global = new GlobalDataStruct();
 
@@ -158,7 +158,7 @@ public:
   }
 
   /** Release memory for global data structure. */
-  virtual void ReleaseGlobalDataPointer( void *GlobalData ) const ITK_OVERRIDE
+  void ReleaseGlobalDataPointer( void *GlobalData ) const ITK_OVERRIDE
   {
     //HACK: This code is suspicous and a possible source of
     //      very difficult to diagnose failures.
@@ -170,7 +170,7 @@ public:
   }
 
   /** Set the object's state before each iteration. */
-  virtual void InitializeIteration() ITK_OVERRIDE;
+  void InitializeIteration() ITK_OVERRIDE;
 
   double ComputeCrossCorrelation()
   {
@@ -276,7 +276,7 @@ public:
     m_FixedImageMask = img;
   }
 
-  virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
+  VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
                                    void * /* globalData */,
                                    const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) ITK_OVERRIDE
   {
@@ -294,7 +294,7 @@ public:
     return update;
   }
 
-  virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
+  VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
                                       void * /* globalData */,
                                       const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) ITK_OVERRIDE
   {
@@ -341,7 +341,7 @@ public:
 
 protected:
   CrossCorrelationRegistrationFunction();
-  ~CrossCorrelationRegistrationFunction()
+  virtual ~CrossCorrelationRegistrationFunction() ITK_OVERRIDE
   {
   }
 

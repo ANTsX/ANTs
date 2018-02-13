@@ -89,11 +89,11 @@ public:
 //   itkGetConstMacro( Outliers, InstanceIdentifierContainerType );
 protected:
   BoxPlotQuantileListSampleFilter();
-  virtual ~BoxPlotQuantileListSampleFilter();
+  virtual ~BoxPlotQuantileListSampleFilter() ITK_OVERRIDE;
 
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
-  virtual void GenerateData() ITK_OVERRIDE;
+  void GenerateData() ITK_OVERRIDE;
 
 private:
   BoxPlotQuantileListSampleFilter( const Self & ); // purposely not implemented

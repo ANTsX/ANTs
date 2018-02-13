@@ -104,7 +104,7 @@ public:
 
 protected:
   LabeledPointSetFileReader();
-  ~LabeledPointSetFileReader()
+  virtual ~LabeledPointSetFileReader() ITK_OVERRIDE
   {
   }
 
