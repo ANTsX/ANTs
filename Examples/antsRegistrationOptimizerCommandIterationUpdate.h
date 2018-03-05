@@ -311,7 +311,11 @@ public:
   typename CompositeTransformType::ConstPointer GetMovingTransform(itk::WeakPointer<OptimizerType> myOptimizer)
   {
     typename CompositeTransformType::ConstPointer movingTransform;
+
+    // Get the registration metric from the optimizer
     typename OptimizerType::MetricType *metric = myOptimizer->GetModifiableMetric();
+
+    // Try casting it to a multi-metric type
     typename MultiMetricType::Pointer multiMetric = dynamic_cast<MultiMetricType *>(metric);
 
     // The dynamic_cast will return NULL if the real object type is not a multi metric
@@ -342,14 +346,12 @@ public:
 
   void WriteIntervalVolumes(itk::WeakPointer<OptimizerType> myOptimizer)
   {
-    // Get the registration metric from the optimizer
-    typename ImageMetricType::Pointer inputMetric( dynamic_cast<ImageMetricType *>( myOptimizer->GetModifiableMetric() ) );
-
     // First, compute the moving transform
     typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
 
-    typename CompositeTransformType::ConstPointer inputMovingTransform =
-                                                        dynamic_cast<CompositeTransformType *>( inputMetric->GetModifiableMovingTransform() );
+    // Get the moving transform of the current metric
+    typename CompositeTransformType::ConstPointer inputMovingTransform = this->GetMovingTransform(myOptimizer);
+
     const unsigned int N = inputMovingTransform->GetNumberOfTransforms();
     for( unsigned int i = 0; i < N; i++ )
       {
