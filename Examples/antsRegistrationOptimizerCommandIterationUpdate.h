@@ -20,6 +20,8 @@ public:
   typedef typename itk::Image<PixelType, VImageDimension>              ImageType;
   typedef itk::ImageToImageMetricv4
                 <ImageType, ImageType, ImageType, RealType>            ImageMetricType;
+  typedef itk::ObjectToObjectMultiMetricv4
+                <VImageDimension, VImageDimension, ImageType, RealType> MultiMetricType;
   typedef typename ImageMetricType::MeasureType                        MeasureType;
   typedef itk::CompositeTransform<RealType, VImageDimension>           CompositeTransformType;
   typedef typename CompositeTransformType::TransformType               TransformBaseType;
@@ -304,6 +306,38 @@ public:
     metric->SetMovingTransform( movingTransform );
     metric->Initialize();
     metricValue = metric->GetValue();
+  }
+
+  typename CompositeTransformType::ConstPointer GetMovingTransform(itk::WeakPointer<OptimizerType> myOptimizer)
+  {
+    typename CompositeTransformType::ConstPointer movingTransform;
+    typename OptimizerType::MetricType *metric = myOptimizer->GetModifiableMetric();
+    typename MultiMetricType::Pointer multiMetric = dynamic_cast<MultiMetricType *>(metric);
+
+    // The dynamic_cast will return NULL if the real object type is not a multi metric
+    if( multiMetric )
+      {
+      // Just get the first metric; we're more interested in the moving transform, which should be the same for
+      // all metrics.
+      typename ImageMetricType::Pointer firstMetric( dynamic_cast<ImageMetricType *>( multiMetric->GetMetricQueue()[0].GetPointer() ) );
+
+      if( firstMetric.IsNotNull() )
+        {
+        movingTransform = dynamic_cast<CompositeTransformType *>( firstMetric->GetModifiableMovingTransform() );
+        }
+      else
+        {
+        itkExceptionMacro( "Invalid metric conversion." );
+        }
+      }
+    else
+      {
+      // Get the metric's moving transform
+      typename ImageMetricType::Pointer singleMetric( dynamic_cast<ImageMetricType *>(metric) );
+      movingTransform = dynamic_cast<CompositeTransformType *>( singleMetric->GetModifiableMovingTransform() );
+      }
+
+    return movingTransform;
   }
 
   void WriteIntervalVolumes(itk::WeakPointer<OptimizerType> myOptimizer)
