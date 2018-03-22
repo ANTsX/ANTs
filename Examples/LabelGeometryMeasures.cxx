@@ -127,15 +127,12 @@ int LabelGeometryMeasures( int argc, char * argv[] )
       columnHeaders.push_back( std::string( "AxesLength_z" ) );
       }
     columnHeaders.push_back( std::string( "BoundingBoxLower_x" ) );
-    columnHeaders.push_back( std::string( "BoundingBoxLower_y" ) );
-    if( ImageDimension == 3 )
-      {
-      columnHeaders.push_back( std::string( "BoundingBoxLower_z" ) );
-      }
     columnHeaders.push_back( std::string( "BoundingBoxUpper_x" ) );
+    columnHeaders.push_back( std::string( "BoundingBoxLower_y" ) );
     columnHeaders.push_back( std::string( "BoundingBoxUpper_y" ) );
     if( ImageDimension == 3 )
       {
+      columnHeaders.push_back( std::string( "BoundingBoxLower_z" ) );
       columnHeaders.push_back( std::string( "BoundingBoxUpper_z" ) );
       }
 
