@@ -143,8 +143,11 @@ Optional arguments:
                                                 subject template before running through antsCorticalThickness.  This potentially
                                                 reduces bias caused by subject orientation and voxel spacing (default = 0).
      -b:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = 0).
-     -y:  averge rigid transform component      Update the template with the full affine transform (default 0). If 1, the rigid
-                                                component of the affine transform will be used to update the template.
+     -y:  Average rigid transform to SST        Update the SST with the full affine transform (default 1). If 1, the rigid
+                                                component of the affine transform will be used to update the template. If there is
+                                                a large translation between time points, it may be necessary to use '-y 0' to remove
+                                                the rigid component of the update. In this case, the group template space is used to 
+                                                initialize the SST so that the rigid alignment of the SST is not biased to any time point.  
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0
                                                 in the antsCorticalThickness.sh script (i.e., no random seeding).
                                                 Requires single thread computation for complete reproducibility.
@@ -245,11 +248,11 @@ ATROPOS_SEGMENTATION_PRIOR_WEIGHT_SST=0.25
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT=0.5
 ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=5
 
-AFFINE_UPDATE_FULL=0
+AFFINE_UPDATE_FULL=1
 
 DOQSUB=0
 CORES=2
-RIGID_ALIGNMENT_TO_SST=0
+RIGID_ALIGNMENT_TO_SST=1
 
 MALF_ATLASES=()
 MALF_LABELS=()
@@ -349,7 +352,7 @@ else
           w) #atropos prior weight for each individual time point
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT_TIMEPOINT=$OPTARG
        ;;
-          y) # 1 update with full affine, 0 for no rigid (default = 0)
+          y) # 1 update with full affine, 0 for no rigid (default = 1)
        AFFINE_UPDATE_FULL=$OPTARG
        ;;
           z) #debug mode
@@ -621,11 +624,20 @@ logCmd mkdir -p ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}
 # Pad initial template image to avoid problems with SST drifting out of FOV
 for(( i=0; i < ${NUMBER_OF_MODALITIES}; i++ ))
   do
-    TEMPLATE_INPUT_IMAGE="${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}initTemplateModality${i}.nii.gz"
 
-    logCmd ${ANTSPATH}/ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$i]} 5
+    if [[ ${AFFINE_UPDATE_FULL} -gt 0 ]]; then
+      TEMPLATE_INPUT_IMAGE="${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}initTemplateModality${i}.nii.gz"
+ 
+      let k=$i*$NUMBER_OF_MODALITIES
 
-    TEMPLATE_Z_IMAGES="${TEMPLATE_Z_IMAGES} -z ${TEMPLATE_INPUT_IMAGE}"
+      logCmd ${ANTSPATH}/ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$k]} 10
+      
+      TEMPLATE_Z_IMAGES="${TEMPLATE_Z_IMAGES} -z ${TEMPLATE_INPUT_IMAGE}"
+    else
+      # If we will not update the template rigid transform, set the group template
+      # as initial (rigid) template, so that the rigid transform is not biased to first time point
+      TEMPLATE_Z_IMAGES="${TEMPLATE_Z_IMAGES} -z ${BRAIN_TEMPLATE}"
+    fi
   done
 
 
