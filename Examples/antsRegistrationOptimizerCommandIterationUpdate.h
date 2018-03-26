@@ -391,19 +391,24 @@ public:
 
     const unsigned int curIter = this->m_Optimizer->GetCurrentIteration() + 1;
 
-    if( curIter > 9 )
+    if( curIter < 10 )
       {
-      currentFileName << "_Iters" << curIter << ".nii.gz";
+      currentFileName << "_Iter000" << curIter << ".nii.gz";
       }
-    else if( curIter > 19 )
+    else if( curIter < 100 )
       {
-      currentFileName << "_Itert" << curIter << ".nii.gz";
+      currentFileName << "_Iter00" << curIter << ".nii.gz";
+      }
+    else if( curIter < 1000 )
+      {
+      currentFileName << "_Iter0" << curIter << ".nii.gz";
       }
     else
       {
       currentFileName << "_Iter" << curIter << ".nii.gz";
       }
     std::cout << "*"; // The star befor each DIAGNOSTIC shows that its output is writtent out.
+    std::cout << currentFileName.str() << std::endl; // The star befor each DIAGNOSTIC shows that its output is writtent out.
 
     typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;
     typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();
