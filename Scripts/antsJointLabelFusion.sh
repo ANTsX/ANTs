@@ -710,7 +710,7 @@ if [[ $DOQSUB -eq 0 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]};"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -908,7 +908,7 @@ if [[ $DOQSUB -eq 4 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]};"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -996,7 +996,7 @@ if [[ $DOQSUB -eq 2 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]};"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1096,7 +1096,7 @@ if [[ $DOQSUB -eq 3 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]};"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1199,7 +1199,7 @@ if [[ $DOQSUB -eq 5 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="${ANTSPATH}/ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]};"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
