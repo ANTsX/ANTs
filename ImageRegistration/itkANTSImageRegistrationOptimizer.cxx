@@ -470,7 +470,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, TReal>   DefaultInterpolatorType;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   vinterp->SetInputImage(field);
-  //    vinterp->SetParameters(NULL,1);
+  //    vinterp->SetParameters(ITK_NULLPTR,1);
 
   VPointType pointIn1;
   VPointType pointIn2;
@@ -1068,17 +1068,17 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                                    DisplacementFieldPointer totalUpdateInvField,
                                    bool updateenergy)
 {
-  ImagePointer mask = NULL;
+  ImagePointer mask = ITK_NULLPTR;
 
   if( movingwarp && this->m_MaskImage )
     {
-    mask = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_MaskImage, NULL, movingwarp, false,
+    mask = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_MaskImage, ITK_NULLPTR, movingwarp, false,
                                      this->m_FixedImageAffineTransform );
     }
   else if( this->m_MaskImage )
     {
     mask = this->SubsampleImage( this->m_MaskImage, this->m_ScaleFactor,
-                                 this->m_MaskImage->GetOrigin(), this->m_MaskImage->GetDirection(),  NULL);
+                                 this->m_MaskImage->GetOrigin(), this->m_MaskImage->GetDirection(),  ITK_NULLPTR);
     }
 
   if( !fixedwarp )
@@ -1146,7 +1146,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 /** FIXME really should pass an image list and then warp each one in
       turn  then expand the update field to fit size of total
       deformation */
-    ImagePointer wmimage = NULL;
+    ImagePointer wmimage = ITK_NULLPTR;
     if( fixedwarp )
       {
       wmimage =
@@ -1159,15 +1159,15 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       wmimage = this->SubsampleImage( this->m_SmoothMovingImages[metricCount], this->m_ScaleFactor,
                                       this->m_SmoothMovingImages[metricCount]->GetOrigin(),
-                                      this->m_SmoothMovingImages[metricCount]->GetDirection(),  NULL);
+                                      this->m_SmoothMovingImages[metricCount]->GetDirection(),  ITK_NULLPTR);
       }
 
 //    std::cout << " C " << std::endl;
-    ImagePointer wfimage = NULL;
+    ImagePointer wfimage = ITK_NULLPTR;
     if( movingwarp )
       {
       wfimage =
-        this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_SmoothFixedImages[metricCount], NULL, movingwarp,
+        this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_SmoothFixedImages[metricCount], ITK_NULLPTR, movingwarp,
                                   false,
                                   this->m_FixedImageAffineTransform );
       }
@@ -1175,7 +1175,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       wfimage = this->SubsampleImage( this->m_SmoothFixedImages[metricCount], this->m_ScaleFactor,
                                       this->m_SmoothFixedImages[metricCount]->GetOrigin(),
-                                      this->m_SmoothFixedImages[metricCount]->GetDirection(),  NULL);
+                                      this->m_SmoothFixedImages[metricCount]->GetDirection(),  ITK_NULLPTR);
       }
 
 //    std::cout << " D " << std::endl;
@@ -1773,9 +1773,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
 
   ImagePointer           wfimage, wmimage;
-  PointSetPointer        wfpoints = NULL, wmpoints = NULL;
+  PointSetPointer        wfpoints = ITK_NULLPTR, wmpoints = ITK_NULLPTR;
   AffineTransformPointer aff = this->m_AffineTransform;
-  AffineTransformPointer affinverse = NULL;
+  AffineTransformPointer affinverse = ITK_NULLPTR;
 
 // here, SyNF holds the moving velocity field, SyNM holds the fixed
 // velocity field and we integrate both to generate the inv/fwd fields
@@ -1799,7 +1799,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
   if( fpoints )
     {  // need full inverse map
-    wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, fpoints,  NULL, this->m_SyNF, false,
+    wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, fpoints,  ITK_NULLPTR, this->m_SyNF, false,
                                         this->m_FixedImageAffineTransform );
     }
 

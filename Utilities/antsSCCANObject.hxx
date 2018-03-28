@@ -5030,7 +5030,7 @@ template <class TInputImage, class TRealType>
 bool antsSCCANObject<TInputImage, TRealType>
 ::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov , unsigned int k )
 {
-  // srand (time(NULL));
+  // srand (time(ITK_NULLPTR));
   RealType gsteP = this->m_GradStepP;
   RealType gsteQ = this->m_GradStepQ;
   this->m_FractionNonZeroP = this->m_SparsenessP( k );

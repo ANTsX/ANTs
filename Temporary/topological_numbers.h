@@ -218,7 +218,7 @@ NBH * N_6_2(NBH* nbh_src, NBH* nbh_dst)
   int  i, j, k;
   NBH* nbh;
 
-  nbh = N_6_1(nbh_src, NULL);
+  nbh = N_6_1(nbh_src, ITK_NULLPTR);
   for( i = 0; i < 3; i = i + 2 )
     {
     if( (*nbh)[i][1][1] )
@@ -310,7 +310,7 @@ NBH * N_6_3(NBH* nbh_src, NBH* nbh_dst)
   int  i, j, k;
   NBH* nbh;
 
-  nbh = N_6_2(nbh_src, NULL);
+  nbh = N_6_2(nbh_src, ITK_NULLPTR);
 
   i = 0; j = 0; k = 0;
   if( (*nbh_src)[i][j][k] )
@@ -448,7 +448,7 @@ NBH * N_18_2(NBH* nbh_src, NBH* nbh_dst)
   int  i, j, k;
   NBH* nbh;
 
-  nbh = N_18_1(nbh_src, NULL);
+  nbh = N_18_1(nbh_src, ITK_NULLPTR);
 
   i = 0; j = 0; k = 0;
   if( (*nbh_src)[i][j][k] )

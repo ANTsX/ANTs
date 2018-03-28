@@ -40,7 +40,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeGraph()
   NodeLocationType loc;
   while(  !GraphIterator.IsAtEnd()  )
     {
-    typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = NULL;
+    typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = ITK_NULLPTR;
     GraphIterator.Set(G);
     ++GraphIterator;
     /*
@@ -52,9 +52,9 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeGraph()
     G->SetTotalCost(m_MaxCost);
     for (int i=0; i<GraphDimension; i++) loc[i]=m_GraphIndex[i];
     G->SetLocation(loc);
-    G->SetPredecessor(NULL);
+    G->SetPredecessor(ITK_NULLPTR);
     m_Graph->SetPixel(m_GraphIndex,G);*/
-    m_Graph->SetPixel( GraphIterator.GetIndex(), NULL);  // USE IF POINTER IMAGE defines visited
+    m_Graph->SetPixel( GraphIterator.GetIndex(), ITK_NULLPTR);  // USE IF POINTER IMAGE defines visited
     }
 
   m_SearchFinished = false;
@@ -86,7 +86,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeQueue()
   for( int i = 0; i < m_QS->m_SinkNodes.size(); i++ )
     {
     typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = m_QS->m_SinkNodes[i];
-    G->SetPredecessor(NULL);
+    G->SetPredecessor(ITK_NULLPTR);
     loc = G->GetLocation();
     for( int d = 0; d < GraphDimension; d++ )
       {

@@ -34,7 +34,7 @@ int TextureRunLengthFeatures( int argc, char *argv[] )
   typename RunLengthFilterType::Pointer runLengthFilter = RunLengthFilterType::New();
   runLengthFilter->SetInput( inputImage );
 
-  typename ImageType::Pointer mask = NULL;
+  typename ImageType::Pointer mask = ITK_NULLPTR;
   PixelType label = itk::NumericTraits<PixelType>::OneValue();
   if ( argc > 4 )
     {
@@ -125,7 +125,7 @@ int TextureRunLengthFeatures( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int TextureRunLengthFeatures( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int TextureRunLengthFeatures( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

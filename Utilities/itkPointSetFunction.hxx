@@ -25,7 +25,7 @@ template <class TInputPointSet, class TOutput, class TCoordRep>
 PointSetFunction<TInputPointSet, TOutput, TCoordRep>
 ::PointSetFunction()
 {
-  m_PointSet = NULL;
+  m_PointSet = ITK_NULLPTR;
 }
 
 /**

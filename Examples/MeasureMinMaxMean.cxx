@@ -129,7 +129,7 @@ int MeasureMinMaxMean(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int MeasureMinMaxMean( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int MeasureMinMaxMean( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -193,7 +193,7 @@ private:
   unsigned int ncomponents = imageIO->GetNumberOfComponents();
 
   int returnValue = EXIT_FAILURE;
-  
+
   // Get the image dimension
   switch( atoi(argv[1]) )
     {
@@ -288,6 +288,6 @@ private:
       return EXIT_FAILURE;
     }
   return returnValue;
- 
+
 }
 } // namespace ants

@@ -349,7 +349,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     img_ref = reader_img_ref->GetOutput();
     }
   // else
-  //    img_ref = NULL;
+  //    img_ref = ITK_NULLPTR;
 
   typename WarperType::Pointer  warper = WarperType::New();
   warper->SetInput(img_mov);
@@ -627,7 +627,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int WarpImageMultiTransform( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int WarpImageMultiTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

@@ -107,7 +107,7 @@ int ANTSex(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTS( std::vector<std::string> args, std::ostream* /*out_stream = NULL*/ )
+int ANTS( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR*/ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -279,7 +279,7 @@ private:
       pos = delimPos + 1;
       }
 
-    char * *     my_argv = NULL;
+    char * *     my_argv = ITK_NULLPTR;
     if( my_argc > 0 )
       {
       unsigned int arg_count = 0;

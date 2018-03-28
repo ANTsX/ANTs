@@ -28,7 +28,7 @@ namespace ants
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsTransformInfo( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
+int antsTransformInfo( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -71,7 +71,7 @@ private:
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
   for (int i=1; i<argc; i++) {
-  
+
     std::cout << "Transform file: " << argv[i] << std::endl;
 
     itk::TransformFileReader::Pointer reader = itk::TransformFileReader::New();
