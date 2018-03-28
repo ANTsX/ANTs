@@ -106,7 +106,7 @@ void generatePermGroup(int * groupID, int lengthGroupA, int lengthGroupB,
 
   if( !first )
     {
-    first = 1; srand(time(NULL) );
+    first = 1; srand(time(ITK_NULLPTR) );
     // cout << "generatePermGroup called" << endl;
     }
   int * newPerm = new int[numSubjects];
@@ -123,7 +123,7 @@ void generatePerm(int length, int * genPerm)
 {
   if( !first )
     {
-    first = 1; srand(time(NULL) );
+    first = 1; srand(time(ITK_NULLPTR) );
     // cout << "generatePerm called" << endl;
     }
   PermElement * newPerm = new PermElement[length];
@@ -169,7 +169,7 @@ double computeQuantile(int numObs, double * stat, double quantile)
   if( !first )
     {
     first = 1;
-    srand(time(NULL) );
+    srand(time(ITK_NULLPTR) );
     }
 
   StatElement * sortStat = new StatElement[numObs];
@@ -212,7 +212,7 @@ void computePermStatPval(int numFeatures, int numPerms,
   if( !first )
     {
     first = 1;
-    srand(time(NULL) );
+    srand(time(ITK_NULLPTR) );
     }
 
   int feat;
@@ -427,7 +427,7 @@ int StudentsTestOnImages(int argc, char *argv[])
   typedef float                                 PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
-  typename ImageType::Pointer mask = NULL;
+  typename ImageType::Pointer mask = ITK_NULLPTR;
 //  ReadImage<ImageType>(mask, argv[1], false);
 
   unsigned int numSubjectsA = atoi(argv[3]);
@@ -561,7 +561,7 @@ int StudentsTestOnImages(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int StudentsTestOnImages( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int StudentsTestOnImages( std::vector<std::string> args, std::ostream* out_stream = ITK_NULLPTR )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

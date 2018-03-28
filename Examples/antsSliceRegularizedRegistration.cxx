@@ -168,7 +168,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
                                              typename ImageType::PixelType lowerScaleFunction,
                                              typename ImageType::PixelType upperScaleFunction,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
-                                             ImageType *histogramMatchSourceImage = NULL )
+                                             ImageType *histogramMatchSourceImage = ITK_NULLPTR )
 {
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
@@ -1243,7 +1243,7 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsSliceRegularizedRegistration( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
+int antsSliceRegularizedRegistration( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

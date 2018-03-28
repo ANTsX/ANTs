@@ -1836,12 +1836,12 @@ int PadImage(int argc, char *argv[])
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
   argct += 2;
-  std::string fn1 = std::string(argv[argct]);   
+  std::string fn1 = std::string(argv[argct]);
   argct++;
   const float padvalue = atof(argv[argct]);
   argct++;
 
-  PixelType padVoxelValue = itk::NumericTraits<PixelType>::Zero; 
+  PixelType padVoxelValue = itk::NumericTraits<PixelType>::Zero;
   if( argc > 6 )
     {
     padVoxelValue = static_cast<PixelType>( atof( argv[argct] ) );
@@ -3199,7 +3199,7 @@ int PCASLQuantifyCBF(int argc, char *  /*NOT USED argv*/[])
     }
 
 
-  typename TimeImageType::Pointer diff = NULL;
+  typename TimeImageType::Pointer diff = ITK_NULLPTR;
   if( fn1.length() > 3 )
     {
     ReadImage<TimeImageType>(diff, fn1.c_str() );
@@ -3209,7 +3209,7 @@ int PCASLQuantifyCBF(int argc, char *  /*NOT USED argv*/[])
     return 1;
     }
 
-  typename ImageType::Pointer m0 = NULL;
+  typename ImageType::Pointer m0 = ITK_NULLPTR;
   if( m0name.length() > 3 )
     {
     ReadImage<ImageType>(m0, m0name.c_str() );
@@ -5010,11 +5010,11 @@ int FitSphere(int argc, char *argv[])
   float MaxRad=5;
   if (argc > argct) MaxRad = atof(argv[argct]);   argct++;
 
-  typename ImageType::Pointer image1 = NULL;
-  typename ImageType::Pointer radimage = NULL;
-  typename ImageType::Pointer radimage2 = NULL;
-  typename ImageType::Pointer priorimage = NULL;
-  typename ImageType::Pointer wmimage = NULL;
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
+  typename ImageType::Pointer radimage = ITK_NULLPTR;
+  typename ImageType::Pointer radimage2 = ITK_NULLPTR;
+  typename ImageType::Pointer priorimage = ITK_NULLPTR;
+  typename ImageType::Pointer wmimage = ITK_NULLPTR;
   if (fn2.length() > 3)   ReadImage<ImageType>(wmimage, fn2.c_str());
   // std::cout <<"  read " << fn1 << " MXR " << MaxRad << std::endl;
   ReadImage<ImageType>(image1, fn1.c_str());
@@ -5035,7 +5035,7 @@ int FitSphere(int argc, char *argv[])
   typename ScalarInterpolatorType::ContinuousIndexType  Y2;
   typename ScalarInterpolatorType::ContinuousIndexType  GMx;
   typename ScalarInterpolatorType::ContinuousIndexType  WMx;
-  typename ScalarInterpolatorType::Pointer winterp=NULL;
+  typename ScalarInterpolatorType::Pointer winterp= ITK_NULLPTR;
   if (wmimage)
     {
       winterp=ScalarInterpolatorType::New();
@@ -6719,7 +6719,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
 //
 //   typedef itk::ImageFileReader< InputImageType >  ReaderType;
 //   typename ReaderType::Pointer reader =  ReaderType::New();
-//   typename InputImageType::Pointer priors=NULL;
+//   typename InputImageType::Pointer priors= ITK_NULLPTR;
 //
 //   if (priorfn.length()  > 3 )
 //     {
@@ -11042,7 +11042,7 @@ int RandomlySampleImageSetToCSV(unsigned int argc, char *argv[])
   argct += 2;
   unsigned int n_samples = atoi(argv[argct]);   argct++;
   /* std::string maskfn=std::string(argv[argct]); argct++;
-  typename ImageType::Pointer mask = NULL;
+  typename ImageType::Pointer mask = ITK_NULLPTR;
   ReadImage<ImageType>(mask,maskfn.c_str());
   Iterator mIter( mask,mask->GetLargestPossibleRegion() );
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
@@ -12782,8 +12782,8 @@ int InPaint2(int argc, char *argv[])
     {
     sigma = atof(argv[argct]); argct++;
     }
-  typename ImageType::Pointer image1 = NULL;
-  typename ImageType::Pointer varimage = NULL;
+  typename ImageType::Pointer image1 = ITK_NULLPTR;
+  typename ImageType::Pointer varimage = ITK_NULLPTR;
   ReadImage<ImageType>(image1, fn1.c_str() );
   PixelType     spacingsize = 0;
   PixelType     minsp = image1->GetSpacing()[0];

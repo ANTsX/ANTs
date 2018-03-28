@@ -166,8 +166,8 @@ iMathHelperAll(int argc, char **argv)
   if( operation == "BlobDetector" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     if ( argc < 6 )
     {
@@ -200,8 +200,8 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "Canny" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     if ( argc < 8 )
     {
@@ -237,8 +237,8 @@ iMathHelperAll(int argc, char **argv)
     {
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     bool useSpacing = iMathDistanceMapUseSpacing;
 
@@ -271,8 +271,8 @@ iMathHelperAll(int argc, char **argv)
     {
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     double holeType = iMathFillHolesHoleParam;
 
@@ -311,8 +311,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -344,8 +344,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -377,8 +377,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -410,8 +410,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -442,8 +442,8 @@ iMathHelperAll(int argc, char **argv)
     }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -480,8 +480,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -506,8 +506,8 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "HistogramEqualization" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
     float alpha = 0;
     float beta  = 1;
     if ( argc >= 6 )
@@ -555,8 +555,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -623,8 +623,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -691,8 +691,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -758,8 +758,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -825,8 +825,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -859,8 +859,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -885,8 +885,8 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "Normalize" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -914,8 +914,8 @@ iMathHelperAll(int argc, char **argv)
     int padding = atoi(argv[5]);
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -952,8 +952,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -978,8 +978,8 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "Sharpen" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -1010,8 +1010,8 @@ iMathHelperAll(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-    typename ImageType::Pointer mask = NULL;
-    typename ImageType::Pointer labels = NULL;
+    typename ImageType::Pointer mask = ITK_NULLPTR;
+    typename ImageType::Pointer labels = ITK_NULLPTR;
 
     ReadImage<ImageType>( mask, inName.c_str() );
     ReadImage<ImageType>( labels, argv[5] );
@@ -1063,15 +1063,15 @@ iMathHelperAll(int argc, char **argv)
       nBins= atoi(argv[7]);
       }
 
-    typename MaskType::Pointer mask = NULL;
+    typename MaskType::Pointer mask = ITK_NULLPTR;
     if ( argc >= 9 )
       {
       ReadImage<MaskType>( mask, argv[8] );
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = NULL;
-    typename ImageType::Pointer output = NULL;
+    typename ImageType::Pointer input = ITK_NULLPTR;
+    typename ImageType::Pointer output = ITK_NULLPTR;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )

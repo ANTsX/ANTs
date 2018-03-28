@@ -167,7 +167,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
                                              typename ImageType::PixelType lowerScaleFunction,
                                              typename ImageType::PixelType upperScaleFunction,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
-                                             ImageType *histogramMatchSourceImage = NULL )
+                                             ImageType *histogramMatchSourceImage = ITK_NULLPTR )
 {
   bool verbose = false;
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
@@ -1824,7 +1824,7 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
+int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

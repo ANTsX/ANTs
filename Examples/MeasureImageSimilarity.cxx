@@ -21,7 +21,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
   typedef typename RegistrationHelperType::DisplacementFieldType          DisplacementFieldType;
   typedef typename DisplacementFieldType::PixelType                       DisplacementVectorType;
   typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
-  
+
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>  ImageMetricType;
   typedef itk::ImageMaskSpatialObject<ImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                            MaskImageType;
@@ -393,12 +393,12 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
     }
 
   std::cout << imageMetric->GetValue() << std::endl;
-  
+
   itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     const DisplacementVectorType zeroVector( 0.0 );
-    
+
     typename DisplacementFieldType::Pointer identityField = DisplacementFieldType::New();
     identityField->CopyInformation( fixedImage );
     identityField->SetRegions( fixedImage->GetLargestPossibleRegion() );
@@ -413,9 +413,9 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
     imageMetric->SetMovingTransform( identityDisplacementFieldTransform );
 
     imageMetric->Initialize();
-    
+
     typedef typename ImageMetricType::DerivativeType MetricDerivativeType;
-    const typename MetricDerivativeType::SizeValueType metricDerivativeSize = 
+    const typename MetricDerivativeType::SizeValueType metricDerivativeSize =
       fixedImage->GetLargestPossibleRegion().GetNumberOfPixels() * ImageDimension;
     MetricDerivativeType metricDerivative( metricDerivativeSize );
 
@@ -427,9 +427,9 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
     gradientField->CopyInformation( fixedImage );
     gradientField->SetRegions( fixedImage->GetLargestPossibleRegion() );
     gradientField->Allocate();
-  
+
     itk::ImageRegionIterator<DisplacementFieldType> ItG( gradientField, gradientField->GetRequestedRegion() );
-  
+
     itk::SizeValueType count = 0;
     for( ItG.GoToBegin(); !ItG.IsAtEnd(); ++ItG )
       {
@@ -532,7 +532,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetDescription( description );
   parser->AddOption( option );
   }
-  
+
   {
   std::string description = std::string( "Print the help menu (short version)." );
 
@@ -552,7 +552,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   }
 }
 
-int MeasureImageSimilarity( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int MeasureImageSimilarity( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
 {
 
   // put the arguments coming in as 'args' into standard (argc,argv) format;

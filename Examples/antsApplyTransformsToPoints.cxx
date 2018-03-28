@@ -380,7 +380,7 @@ static void antsApplyTransformsToPointsInitializeCommandLineOptions( itk::ants::
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
+int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

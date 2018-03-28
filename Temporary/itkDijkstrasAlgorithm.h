@@ -318,8 +318,8 @@ protected:
     m_Value2 = 0.0;
     m_Value3 = 0.0;
     m_Value4 = 0.0;
-    m_PredecessorAddress = NULL;
-    m_AncestorAddress = NULL;
+    m_PredecessorAddress = ITK_NULLPTR;
+    m_AncestorAddress = ITK_NULLPTR;
     m_State = UnVisitedState;
     m_NumberOfNeighbors = 0;
     m_Identity = 0;

@@ -73,7 +73,7 @@ public:
   {
     const TInputImage *img = this->GetInputImage();
 
-    if( img == NULL )
+    if( img == ITK_NULLPTR )
       {
       return;
       }
@@ -128,7 +128,7 @@ public:
   virtual OutputType EvaluateAtContinuousIndex(
     const ContinuousIndexType & index ) const
   {
-    return EvaluateAtContinuousIndex(index, NULL);
+    return EvaluateAtContinuousIndex(index, ITK_NULLPTR);
   }
 
   virtual OutputType EvaluateAtContinuousIndex(

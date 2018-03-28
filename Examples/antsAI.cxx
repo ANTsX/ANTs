@@ -1559,7 +1559,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   }
 }
 
-int antsAI( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int antsAI( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
 {
 
   // put the arguments coming in as 'args' into standard (argc,argv) format;

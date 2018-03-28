@@ -95,7 +95,7 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
   return invalidTransform;      // Return an empty registration type.
 }
 
-int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
 {
   // the arguments coming in as 'args' is a replacement for the standard (argc,argv) format
   // Just notice that the argv[i] equals to args[i-1]

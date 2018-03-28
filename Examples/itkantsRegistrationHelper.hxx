@@ -78,7 +78,7 @@ typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  i
                                              typename ImageType::PixelType lowerScaleValue,
                                              typename ImageType::PixelType upperScaleValue,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
-                                             typename ImageType::ConstPointer histogramMatchSourceImage = NULL )
+                                             typename ImageType::ConstPointer histogramMatchSourceImage = ITK_NULLPTR )
 {
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
