@@ -40,13 +40,15 @@ ReadTransform(const std::string & filename,
   // There are known tranform type extentions that should not be considered as imaging files
   // That would be used as deformatino feilds
   // If file is an hdf5 file, assume it is a tranform instead of an image.
-  if(    filename.find(".h5")   == std::string::npos
-      && filename.find(".hdf5") == std::string::npos
-      && filename.find(".hdf4") == std::string::npos
-      && filename.find(".mat")  == std::string::npos
-      && filename.find(".txt")  == std::string::npos
-      && filename.find(".xfm")  == std::string::npos
-      )
+  bool recognizedExtension = false;
+  recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".h5" );
+  recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".hdf5" );
+  recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".hdf4" );
+  recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".mat" );
+  recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".txt" );
+  recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".xfm" );
+
+  if( !recognizedExtension )
     {
     try
       {
