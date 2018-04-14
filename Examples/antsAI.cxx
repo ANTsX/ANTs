@@ -152,7 +152,6 @@ typedef itk::Similarity3DTransform<float> TransformType;
 
 // ##########################################################################
 // ##########################################################################
-
 template<class TImage, class TGradientImage, class TInterpolator, class TReal>
 TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
                         itk::NeighborhoodIterator<TImage> movingNeighborhood,
@@ -733,7 +732,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   std::string transform = "";
   std::string outputTransformTypeName = "";
   RealType learningRate = 0.1;
-  RealType searchFactor = 10.0 * vnl_math::pi / 180.0;
+  RealType searchFactor = 20.0 * vnl_math::pi / 180.0;
   RealType arcFraction = 1.0;
 
   itk::ants::CommandLineParser::OptionType::Pointer searchFactorOption = parser->GetOption( "search-factor" );
@@ -753,6 +752,25 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     }
 
+  std::vector<RealType> translationSearchGrid;
+
+  RealType translationSearchStepSize = 25.0;
+
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    translationSearchGrid.push_back(0.0);
+    }
+
+  itk::ants::CommandLineParser::OptionType::Pointer translationSearchGridOption = parser->GetOption( "translation-search-grid" );
+  if( translationSearchGridOption && translationSearchGridOption->GetNumberOfFunctions() )
+    {
+    translationSearchGrid = parser->ConvertVector<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 0 ) );
+    if( translationSearchGridOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+      {
+      translationSearchStepSize = parser->Convert<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 1 ) );
+      }
+    }
+  
   itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfFunctions() )
     {
@@ -1273,86 +1291,132 @@ int antsAI( itk::ants::CommandLineParser *parser )
   multiStartOptimizer->SetScales( movingScales );
   multiStartOptimizer->SetMetric( imageMetric );
 
+  unsigned int trialCounter = 0;
+  
   typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
   for( RealType angle1 = ( vnl_math::pi * -arcFraction ); angle1 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle1 += searchFactor )
     {
     if( ImageDimension == 2 )
       {
-      affineSearchTransform->SetIdentity();
-      affineSearchTransform->SetCenter( initialTransform->GetCenter() );
-      affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
-      affineSearchTransform->SetOffset( initialTransform->GetOffset() );
-      affineSearchTransform->Rotate2D( angle1, 1 );
-
-      if( strcmp( transform.c_str(), "affine" ) == 0 )
+      for ( RealType translation1 = -1.0 * translationSearchGrid[0];
+           translation1 <= translationSearchGrid[0] + 0.000001; translation1 += translationSearchStepSize )
         {
-        affineSearchTransform->Scale( bestScale );
-        parametersList.push_back( affineSearchTransform->GetParameters() );
-        }
-      else if( strcmp( transform.c_str(), "rigid" ) == 0 )
-        {
-        rigidSearchTransform->SetIdentity();
-        rigidSearchTransform->SetCenter( initialTransform->GetCenter() );
-        rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
-        rigidSearchTransform->SetOffset( initialTransform->GetOffset() );
-
-        parametersList.push_back( rigidSearchTransform->GetParameters() );
-        }
-      else if( strcmp( transform.c_str(), "similarity" ) == 0 )
-        {
-        similaritySearchTransform->SetIdentity();
-        similaritySearchTransform->SetCenter( initialTransform->GetCenter() );
-        similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
-        similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
-        similaritySearchTransform->SetScale( bestScale );
-
-        similaritySearchTransform->SetScale( bestScale );
-
-        parametersList.push_back( similaritySearchTransform->GetParameters() );
+        for ( RealType translation2 = -1.0 * translationSearchGrid[1];
+             translation2 <= translationSearchGrid[1] + 0.000001; translation2 += translationSearchStepSize )
+          {
+          typename AffineTransformType::OutputVectorType searchTranslation;
+          searchTranslation[0] = translation1;
+          searchTranslation[1] = translation2;
+            
+          affineSearchTransform->SetIdentity();
+          affineSearchTransform->SetCenter( initialTransform->GetCenter() );
+          affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
+          affineSearchTransform->SetOffset( initialTransform->GetOffset() );
+          affineSearchTransform->Translate( searchTranslation , 1 );
+          affineSearchTransform->Rotate2D( angle1, 1 );
+          
+          if( strcmp( transform.c_str(), "affine" ) == 0 )
+            {
+            affineSearchTransform->Scale( bestScale );
+            parametersList.push_back( affineSearchTransform->GetParameters() );
+            }
+          else if( strcmp( transform.c_str(), "rigid" ) == 0 )
+            {
+            rigidSearchTransform->SetIdentity();
+            rigidSearchTransform->SetCenter( initialTransform->GetCenter() );
+            rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
+            rigidSearchTransform->SetOffset( initialTransform->GetOffset() );
+            
+            parametersList.push_back( rigidSearchTransform->GetParameters() );
+            }
+          else if( strcmp( transform.c_str(), "similarity" ) == 0 )
+            {
+            similaritySearchTransform->SetIdentity();
+            similaritySearchTransform->SetCenter( initialTransform->GetCenter() );
+            similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
+            similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
+            similaritySearchTransform->SetScale( bestScale );
+            
+            similaritySearchTransform->SetScale( bestScale );
+            
+            parametersList.push_back( similaritySearchTransform->GetParameters() );
+            }
+          trialCounter++;
+          }
         }
       }
     if( ImageDimension == 3 )
       {
       for( RealType angle2 = ( vnl_math::pi * -arcFraction ); angle2 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle2 += searchFactor )
         {
-        affineSearchTransform->SetIdentity();
-        affineSearchTransform->SetCenter( initialTransform->GetCenter() );
-        affineSearchTransform->SetOffset( initialTransform->GetOffset() );
-        affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
-        affineSearchTransform->Rotate3D( axis1, angle1, 1 );
-        affineSearchTransform->Rotate3D( axis2, angle2, 1 );
-
-        if( strcmp( transform.c_str(), "affine" ) == 0 )
+        for( RealType angle3 = ( vnl_math::pi * -arcFraction ); angle3 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle3 += searchFactor )
           {
-          affineSearchTransform->Scale( bestScale );
-          parametersList.push_back( affineSearchTransform->GetParameters() );
-          }
-        else if( strcmp( transform.c_str(), "rigid" ) == 0 )
-          {
-          rigidSearchTransform->SetIdentity();
-          rigidSearchTransform->SetCenter( initialTransform->GetCenter() );
-          rigidSearchTransform->SetOffset( initialTransform->GetOffset() );
-          rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
-
-          parametersList.push_back( rigidSearchTransform->GetParameters() );
-          }
-        else if( strcmp( transform.c_str(), "similarity" ) == 0 )
-          {
-          similaritySearchTransform->SetIdentity();
-          similaritySearchTransform->SetCenter( initialTransform->GetCenter() );
-          similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
-          similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
-          similaritySearchTransform->SetScale( bestScale );
-
-          parametersList.push_back( similaritySearchTransform->GetParameters() );
+          for ( RealType translation1 = -1.0 * translationSearchGrid[0];
+                translation1 <= translationSearchGrid[0] + 0.000001; translation1 += translationSearchStepSize )
+            {
+            for ( RealType translation2 = -1.0 * translationSearchGrid[1];
+                  translation2 <= translationSearchGrid[1] + 0.000001; translation2 += translationSearchStepSize )
+              {
+              for ( RealType translation3 = -1.0 * translationSearchGrid[2];
+                    translation3 <= translationSearchGrid[2] + 0.000001; translation3 += translationSearchStepSize )
+                {
+                typename AffineTransformType::OutputVectorType searchTranslation;
+                searchTranslation[0] = translation1;
+                searchTranslation[1] = translation2;
+                searchTranslation[2] = translation3;
+                
+                affineSearchTransform->SetIdentity();
+                affineSearchTransform->SetCenter( initialTransform->GetCenter() );
+                affineSearchTransform->SetOffset( initialTransform->GetOffset() );
+                affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
+                affineSearchTransform->Translate( searchTranslation, 0 );
+                affineSearchTransform->Rotate3D( axis1, angle1, 1 );
+                affineSearchTransform->Rotate3D( axis2, angle2, 1 );
+                affineSearchTransform->Rotate3D( axis1, angle3, 1 );
+                
+                if( strcmp( transform.c_str(), "affine" ) == 0 )
+                  {
+                  affineSearchTransform->Scale( bestScale );
+                  parametersList.push_back( affineSearchTransform->GetParameters() );
+                }
+                else if( strcmp( transform.c_str(), "rigid" ) == 0 )
+                  {
+                  rigidSearchTransform->SetIdentity();
+                  rigidSearchTransform->SetCenter( initialTransform->GetCenter() );
+                  rigidSearchTransform->SetOffset( initialTransform->GetOffset() );
+                  rigidSearchTransform->Translate( searchTranslation, 0 );
+                  rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
+                  parametersList.push_back( rigidSearchTransform->GetParameters() );
+                }
+                else if( strcmp( transform.c_str(), "similarity" ) == 0 )
+                  {
+                  similaritySearchTransform->SetIdentity();
+                  similaritySearchTransform->SetCenter( initialTransform->GetCenter() );
+                  similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
+                  similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
+                  similaritySearchTransform->SetScale( bestScale );
+                
+                  parametersList.push_back( similaritySearchTransform->GetParameters() );
+                  }
+                }
+              trialCounter++;
+              }
+            }
           }
         }
       }
     }
+  
+  if( verbose )
+    {
+    std::cout << "Starting optimizer with " << trialCounter << " starting points" << std::endl;
+    }
+  
   multiStartOptimizer->SetParametersList( parametersList );
   multiStartOptimizer->SetLocalOptimizer( localOptimizer );
   multiStartOptimizer->StartOptimization();
 
+    
   /////////////////////////////////////////////////////////////////
   //
   //         Write the output after convergence
@@ -1489,11 +1553,23 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetLongName( "search-factor" );
   option->SetShortName( 's' );
   option->SetUsageOption( 0, "searchFactor" );
-  option->SetUsageOption( 1, "[searchFactor,<arcFraction=1.0>]" );
+  option->SetUsageOption( 1, "[searchFactor=20,<arcFraction=1.0>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
 
+  {
+  std::string description = std::string( "Translation search grid in mm, which will " )
+    + std::string( "translate the moving image in each dimension in increments of the step size.");
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "translation-search-grid" );
+  option->SetShortName( 'g' );
+  option->SetUsageOption( 0, "[stepSize=25, AxBxC=0x0x0]" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+ 
   {
   std::string description =
     std::string( "Number of iterations." );
