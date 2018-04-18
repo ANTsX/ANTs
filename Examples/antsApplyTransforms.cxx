@@ -497,6 +497,9 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           {
           transformWriter->SetInput( transform );
           }
+#if ITK_VERSION_MAJOR >= 5
+        transformWriter->SetUseCompression(true);
+#endif
         transformWriter->Update();
         }
       }

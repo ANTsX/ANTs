@@ -219,6 +219,9 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     TransformWriterType::Pointer transformWriter = TransformWriterType::New();
     transformWriter->SetInput( affineTransform1 );
     transformWriter->SetFileName( outputName.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+    transformWriter->SetUseCompression(true);
+#endif
     transformWriter->Update();
 
     return EXIT_SUCCESS;

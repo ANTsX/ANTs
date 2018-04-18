@@ -128,6 +128,9 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
   typename itk::TransformFileWriter::Pointer transform_writer = itk::TransformFileWriter::New();
   transform_writer->SetFileName( outputTransform );
   transform_writer->SetInput( transform );
+#if ITK_VERSION_MAJOR >= 5
+  transform_writer->SetUseCompression(true);
+#endif
   transform_writer->Update();
 
   return EXIT_SUCCESS;

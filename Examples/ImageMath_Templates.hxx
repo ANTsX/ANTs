@@ -321,6 +321,9 @@ void ReflectionMatrix(int argc, char *argv[])
   typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( aff );
   transformWriter->SetFileName( outname.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+  transformWriter->SetUseCompression(true);
+#endif
   transformWriter->Update();
   return;
 }
@@ -345,6 +348,9 @@ void MakeAffineTransform(int argc, char *argv[])
     TransformWriterType::New();
   transformWriter->SetInput( aff );
   transformWriter->SetFileName( outname.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+  transformWriter->SetUseCompression(true);
+#endif
   transformWriter->Update();
   return;
 }

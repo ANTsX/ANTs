@@ -170,6 +170,9 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
         typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
         transformWriter->SetInput(tmp_xfrm);
         transformWriter->SetFileName(filename.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+        transformWriter->SetUseCompression(true);
+#endif
         transformWriter->Update();
         }
       }
@@ -209,6 +212,9 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
         transformWriter->SetInput(xfrm);
         }
       transformWriter->SetFileName(filename.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+      transformWriter->SetUseCompression(true);
+#endif
       transformWriter->Update();
       }
     }
@@ -253,6 +259,9 @@ WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimensio
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
       transformWriter->SetInput(inv_xfrm);
       transformWriter->SetFileName(filename.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+      transformWriter->SetUseCompression(true);
+#endif
       transformWriter->Update();
       }
     }

@@ -173,6 +173,9 @@ int InitializeLinearTransform( int itkNotUsed( argc ), char *argv[] )
   typename itk::TransformFileWriter::Pointer transformWriter = itk::TransformFileWriter::New();
   transformWriter->SetFileName( argv[5] );
   transformWriter->SetInput( transform );
+#if ITK_VERSION_MAJOR >= 5
+  transformWriter->SetUseCompression(true);
+#endif
 
   try
     {
