@@ -160,6 +160,9 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
   transform_writer = itk::TransformFileWriter::New();
   transform_writer->SetFileName(filename);
   transform_writer->SetInput(transform);
+#if ITK_VERSION_MAJOR >= 5
+  transform_writer->SetUseCompression(true);
+#endif
 
   try
     {

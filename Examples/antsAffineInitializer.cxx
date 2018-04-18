@@ -332,6 +332,9 @@ int antsAffineInitializerImp(int argc, char *argv[])
     typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
     transformWriter->SetInput( affine1 );
     transformWriter->SetFileName( outname.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+    transformWriter->SetUseCompression(true);
+#endif
     transformWriter->Update();
     }
   if( ImageDimension > 3  )
@@ -514,6 +517,9 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( bestaffine );
   transformWriter->SetFileName( outname.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+  transformWriter->SetUseCompression(true);
+#endif
   transformWriter->Update();
   return EXIT_SUCCESS;
 }

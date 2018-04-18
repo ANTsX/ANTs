@@ -1102,6 +1102,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
         transformWriter->SetInput( affineRegistration->GetOutput()->Get() );
         transformWriter->SetFileName( filename.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+        transformWriter->SetUseCompression(true);
+#endif
         //      transformWriter->Update();
         if( timedim == 0 )
           {
@@ -1173,6 +1176,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
         transformWriter->SetInput( rigidRegistration->GetOutput()->Get() );
         transformWriter->SetFileName( filename.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+        transformWriter->SetUseCompression(true);
+#endif
         //      transformWriter->Update();
         if( timedim == 0 )
           {

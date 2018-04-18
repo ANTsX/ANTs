@@ -326,6 +326,9 @@ private:
     TransformWriterType::Pointer transformWriter = TransformWriterType::New();
     transformWriter->SetInput( optimalTransform );
     transformWriter->SetFileName( argv[7] );
+#if ITK_VERSION_MAJOR >= 5
+    transformWriter->SetUseCompression(true);
+#endif
     transformWriter->Update();
     }
 

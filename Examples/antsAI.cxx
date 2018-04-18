@@ -1026,6 +1026,9 @@ int antsAI( itk::ants::CommandLineParser *parser )
         }
 
       transformWriter->SetFileName( outputName.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+      transformWriter->SetUseCompression(true);
+#endif
       transformWriter->Update();
       }
 

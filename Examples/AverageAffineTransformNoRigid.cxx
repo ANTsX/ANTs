@@ -218,6 +218,9 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
   typename TranWriterType::Pointer tran_writer = TranWriterType::New();
   tran_writer->SetFileName(output_affine_txt);
   tran_writer->SetInput(aff_output);
+#if ITK_VERSION_MAJOR >= 5
+  tran_writer->SetUseCompression(true);
+#endif
   tran_writer->Update();
 
   std::cout << "wrote file to : " << output_affine_txt << std::endl;
