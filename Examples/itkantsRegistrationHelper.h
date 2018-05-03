@@ -824,6 +824,9 @@ private:
     typename RegistrationMethodType::Pointer registrationMethod = RegistrationMethodType::New();
     typedef typename RegistrationMethodType::OutputTransformType  RegistrationMethodTransformType;
 
+    // Fixed seed for testing
+    registrationMethod->MetricSamplingReinitializeSeed(5042517);
+
     for( unsigned int n = 0; n < stageMetricList.size(); n++ )
       {
       if( !this->IsPointSetMetric( stageMetricList[n].m_MetricType ) )
