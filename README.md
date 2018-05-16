@@ -6,7 +6,7 @@
 [Advanced Normalization Tools](https://imgur.com/a/kySGi)
 =========================================================
 
-[![Build Status](https://travis-ci.org/stnava/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
+[![Build Status](https://travis-ci.org/ANTsX/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
 
 ANTs computes high-dimensional mappings to capture the statistics of brain
 structure and function.  See the [FAQ page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd).
@@ -196,7 +196,7 @@ ANTs has won several unbiased & international competitions
 Learning about ANTs (examples, etc.)
 ----------------------------------------------------------
 
-### General 
+### General
 
 * **antsRegistration** [bash example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
 
@@ -268,7 +268,7 @@ Learning about ANTs (examples, etc.)
 
 * **Partial EPI slab to T1 image registration** [example](https://github.com/ntustison/PartialSlabEpiT1ImageRegistration)
 
-### Lung 
+### Lung
 
 * **CT lung registration** [example](https://github.com/ntustison/antsCtLungRegistrationExample)
 
