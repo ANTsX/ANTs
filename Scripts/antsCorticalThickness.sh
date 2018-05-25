@@ -164,12 +164,12 @@ function checkOutputExists() {
 
   if [[ -f ${REGISTRATION_TEMPLATE} ]];
     then
-      singleOutputs=( ${singleOutputs[@]} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.nii.gz ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.nii.gz ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX} )
+      singleOutputs=( ${singleOutputs[@]} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.nii.gz ${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.nii.gz ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX} )
     fi
 
   missingOutput=0
 
-  for img in $singleOutputs;
+  for img in ${singleOutputs[@]};
     do
       if [[ ! -f $img ]];
         then
@@ -732,7 +732,7 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
 
 if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
   then
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN} m ${ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK} 
+    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN} m ${ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK}
 
     # Do a quick N4 on the brain before registration
     logCmd $N4 -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN} -s ${N4_SHRINK_FACTOR_1} -c ${N4_CONVERGENCE_1} -o ${EXTRACTED_SEGMENTATION_BRAIN} -x ${BRAIN_EXTRACTION_MASK} -b ${N4_BSPLINE_PARAMS}
