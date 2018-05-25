@@ -764,10 +764,12 @@ int antsAI( itk::ants::CommandLineParser *parser )
   itk::ants::CommandLineParser::OptionType::Pointer translationSearchGridOption = parser->GetOption( "translation-search-grid" );
   if( translationSearchGridOption && translationSearchGridOption->GetNumberOfFunctions() )
     {
-    translationSearchGrid = parser->ConvertVector<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 0 ) );
+
+    translationSearchStepSize = parser->Convert<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 0 ) );
+
     if( translationSearchGridOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
-      translationSearchStepSize = parser->Convert<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 1 ) );
+      translationSearchGrid = parser->ConvertVector<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 1 ) );
       }
     }
   
