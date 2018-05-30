@@ -181,7 +181,7 @@ private:
       return LabelUniquely<3>(argc, argv + 1);
       }
       break;
-    case 3:
+    case 4:
       {
       return LabelUniquely<4>(argc, argv + 1);
       }
