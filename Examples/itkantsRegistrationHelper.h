@@ -824,6 +824,13 @@ private:
     typename RegistrationMethodType::Pointer registrationMethod = RegistrationMethodType::New();
     typedef typename RegistrationMethodType::OutputTransformType  RegistrationMethodTransformType;
 
+    char* antsRandomSeed = getenv( "ANTS_RANDOM_SEED" );
+    if ( antsRandomSeed != NULL )
+      {
+      registrationMethod->MetricSamplingReinitializeSeed(
+        atoi( antsRandomSeed ) );
+      }
+
     for( unsigned int n = 0; n < stageMetricList.size(); n++ )
       {
       if( !this->IsPointSetMetric( stageMetricList[n].m_MetricType ) )
