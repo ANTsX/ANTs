@@ -16,6 +16,7 @@
 #include "antsUtilities.h"
 
 #include "itkAdaptiveHistogramEqualizationImageFilter.h"
+#include "itkAddImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
@@ -43,6 +44,7 @@
 #include "itkLaplacianSharpeningImageFilter.h"
 #include "itkMultiScaleLaplacianBlobDetectorImageFilter.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkPadImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
@@ -558,11 +560,11 @@ iMathGetLargestComponent( typename ImageType::Pointer image,
     //  image->SetPixel( vfIter.GetIndex(), 0);
     //  }
     }
- 
+
   typedef itk::CastImageFilter<LabelImageType, ImageType> CasterType;
   typename CasterType::Pointer caster = CasterType::New();
   caster->SetInput( labelImage );
-  
+
   typename ImageType::Pointer returnLabelImage = caster->GetOutput();
   returnLabelImage->Update();
   returnLabelImage->DisconnectPipeline();
