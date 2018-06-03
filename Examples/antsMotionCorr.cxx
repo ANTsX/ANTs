@@ -1207,9 +1207,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         RealType sigmaForTotalField = parser->Convert<float>( transformOption->GetFunction(
                                                                 currentStage )->GetParameter(  2 ) );
         const unsigned int VImageDimension = ImageDimension;
-        typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
         // ORIENTATION ALERT: Original code set image size to
         // fixedImage buffered region, & if fixedImage BufferedRegion
         // != LargestPossibleRegion, this code would be wrong.
@@ -1293,9 +1291,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         RealType sigmaForTotalField = parser->Convert<float>( transformOption->GetFunction(
                                                                 currentStage )->GetParameter(  2 ) );
         const unsigned int VImageDimension = ImageDimension;
-        typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
 
         typename DisplacementFieldType::Pointer displacementField = AllocImage<DisplacementFieldType>(
             preprocessFixedImage, zeroVector );
@@ -1493,7 +1489,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         converter2->SetTransform( compositeTransform->GetInverseTransform() );
         converter2->Update();
         /** Here, we put the 3d tx into a 4d displacement field */
-        typedef itk::ImageRegionIteratorWithIndex<FixedImageType> Iterator;
         Iterator vfIterInv(  moving_time_slice,
           moving_time_slice->GetLargestPossibleRegion() );
         for(  vfIterInv.GoToBegin(); !vfIterInv.IsAtEnd(); ++vfIterInv )
