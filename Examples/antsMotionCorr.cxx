@@ -592,6 +592,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     }
 
+  char* antsRandomSeed = getenv( "ANTS_RANDOM_SEED" );
 
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
@@ -1048,6 +1049,10 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       if( std::strcmp( whichTransform.c_str(), "affine" ) == 0 )
         {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
+        if ( antsRandomSeed != NULL )
+          {
+          affineRegistration->MetricSamplingReinitializeSeed( atoi( antsRandomSeed ) );
+          }
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetIdentity();
         affineTransform->SetOffset( trans );
@@ -1126,6 +1131,10 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
                                                RigidTransformType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+        if ( antsRandomSeed != NULL )
+          {
+          rigidRegistration->MetricSamplingReinitializeSeed( atoi( antsRandomSeed ) );
+          }
         metric->SetFixedImage( preprocessFixedImage );
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
         metric->SetMovingImage( preprocessMovingImage );
