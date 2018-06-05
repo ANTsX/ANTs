@@ -303,7 +303,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   ".*OpenCV.*"
   ".*VTK.*"
   ".*has no symbols."
-  "ITKv4"
+  "ITKv5"
   "SlicerExecutionModel"
   "SimpleITK"
 
@@ -352,7 +352,7 @@ set(CTEST_CUSTOM_ERROR_EXCEPTION
   ".*OpenCV.*"
   ".*VTK.*"
   ".*has no symbols."
-  "ITKv4"
+  "ITKv5"
   "SlicerExecutionModel"
   "SimpleITK"
 

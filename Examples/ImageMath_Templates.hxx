@@ -7869,7 +7869,12 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
   std::string lname = tempname + std::string("_label") + extension;
   WriteImage<ImageType>(fastimage, kname.c_str() );
   WriteImage<ImageType>(outlabimage, outname.c_str() );
-  WriteImage<LabelImageType>(fastMarching->GetLabelImage(), lname.c_str() );
+
+// this nonsense fixes a type error
+  typedef itk::CastImageFilter<LabelImageType, LabelImageType>                 CastFilterType;
+  typename CastFilterType::Pointer castRegions = CastFilterType::New();
+  castRegions->SetInput( fastMarching->GetLabelImage() );
+  WriteImage<LabelImageType>( castRegions->GetOutput(), lname.c_str() );
   return 0;
 }
 
@@ -8141,7 +8146,13 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
   std::string lname = tempname + std::string("_label") + extension;
   WriteImage<ImageType>(fastimage, kname.c_str() );
   WriteImage<ImageType>(outlabimage, outname.c_str() );
-  WriteImage<LabelImageType>(fastMarching->GetLabelImage(), lname.c_str() );
+
+  // this nonsense fixes a type error
+  typedef itk::CastImageFilter<LabelImageType, LabelImageType>                 CastFilterType;
+  typename CastFilterType::Pointer castRegions = CastFilterType::New();
+  castRegions->SetInput( fastMarching->GetLabelImage() );
+  WriteImage<LabelImageType>( castRegions->GetOutput(), lname.c_str() );
+
   return 0;
 }
 
@@ -8701,7 +8712,7 @@ int PoissonDiffusion( int argc, char *argv[])
   duplicator->SetInputImage( reader->GetOutput() );
   duplicator->Update();
 
-  typename ImageType::Pointer output = duplicator->GetModifiableOutput();
+  typename ImageType::Pointer output = duplicator->GetOutput();
   output->DisconnectPipeline();
 
   typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
@@ -12750,7 +12761,7 @@ int InPaint(int argc, char *argv[])
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
   duplicator->SetInputImage( image1 );
   duplicator->Update();
-  typename ImageType::Pointer varimage = duplicator->GetModifiableOutput();
+  typename ImageType::Pointer varimage = duplicator->GetOutput();
   for ( unsigned int i = 0; i < sigma; i++ )
     {
     typedef itk::ConvolutionImageFilter< ImageType, ImageType > FilterType;
@@ -12991,7 +13002,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
     duplicator->SetInputImage( labelImage );
     duplicator->Update();
 
-    typename LabelImageType::Pointer permutedLabelImage = duplicator->GetModifiableOutput();
+    typename LabelImageType::Pointer permutedLabelImage = duplicator->GetOutput();
 
     itk::ImageRegionIterator<LabelImageType> ItP( permutedLabelImage, permutedLabelImage->GetRequestedRegion() );
     for( ItP.GoToBegin(); !ItP.IsAtEnd(); ++ItP )
@@ -13065,7 +13076,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
         duplicator->SetInputImage( labelImage );
         duplicator->Update();
 
-        typename LabelImageType::Pointer permutedLabelImage = duplicator->GetModifiableOutput();
+        typename LabelImageType::Pointer permutedLabelImage = duplicator->GetOutput();
 
         itk::ImageRegionIteratorWithIndex<LabelImageType> ItP( permutedLabelImage,
                                                                permutedLabelImage->GetRequestedRegion() );

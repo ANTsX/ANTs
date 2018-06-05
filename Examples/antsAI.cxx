@@ -764,13 +764,15 @@ int antsAI( itk::ants::CommandLineParser *parser )
   itk::ants::CommandLineParser::OptionType::Pointer translationSearchGridOption = parser->GetOption( "translation-search-grid" );
   if( translationSearchGridOption && translationSearchGridOption->GetNumberOfFunctions() )
     {
-    translationSearchGrid = parser->ConvertVector<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 0 ) );
+
+    translationSearchStepSize = parser->Convert<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 0 ) );
+
     if( translationSearchGridOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
-      translationSearchStepSize = parser->Convert<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 1 ) );
+      translationSearchGrid = parser->ConvertVector<RealType>( translationSearchGridOption->GetFunction( 0 )->GetParameter( 1 ) );
       }
     }
-  
+
   itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfFunctions() )
     {
@@ -1179,8 +1181,16 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
     typedef typename itk::Statistics::MersenneTwisterRandomVariateGenerator RandomizerType;
     typename RandomizerType::Pointer randomizer = RandomizerType::New();
-    randomizer->SetSeed( 1234 );
 
+    char* antsRandomSeed = getenv( "ANTS_RANDOM_SEED" );
+    if ( antsRandomSeed != NULL )
+      {
+      randomizer->SetSeed( atoi( antsRandomSeed ) );
+      }
+    else
+      {
+      randomizer->SetSeed( 1234 );
+      }
     unsigned long index = 0;
 
     switch( samplingStrategy )
@@ -1295,7 +1305,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   multiStartOptimizer->SetMetric( imageMetric );
 
   unsigned int trialCounter = 0;
-  
+
   typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
   for( RealType angle1 = ( vnl_math::pi * -arcFraction ); angle1 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle1 += searchFactor )
     {
@@ -1310,14 +1320,14 @@ int antsAI( itk::ants::CommandLineParser *parser )
           typename AffineTransformType::OutputVectorType searchTranslation;
           searchTranslation[0] = translation1;
           searchTranslation[1] = translation2;
-            
+
           affineSearchTransform->SetIdentity();
           affineSearchTransform->SetCenter( initialTransform->GetCenter() );
           affineSearchTransform->SetMatrix( initialTransform->GetMatrix() );
           affineSearchTransform->SetOffset( initialTransform->GetOffset() );
           affineSearchTransform->Translate( searchTranslation , 1 );
           affineSearchTransform->Rotate2D( angle1, 1 );
-          
+
           if( strcmp( transform.c_str(), "affine" ) == 0 )
             {
             affineSearchTransform->Scale( bestScale );
@@ -1329,7 +1339,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
             rigidSearchTransform->SetCenter( initialTransform->GetCenter() );
             rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
             rigidSearchTransform->SetOffset( initialTransform->GetOffset() );
-            
+
             parametersList.push_back( rigidSearchTransform->GetParameters() );
             }
           else if( strcmp( transform.c_str(), "similarity" ) == 0 )
@@ -1339,9 +1349,9 @@ int antsAI( itk::ants::CommandLineParser *parser )
             similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
             similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
             similaritySearchTransform->SetScale( bestScale );
-            
+
             similaritySearchTransform->SetScale( bestScale );
-            
+
             parametersList.push_back( similaritySearchTransform->GetParameters() );
             }
           trialCounter++;
@@ -1367,7 +1377,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
                 searchTranslation[0] = translation1;
                 searchTranslation[1] = translation2;
                 searchTranslation[2] = translation3;
-                
+
                 affineSearchTransform->SetIdentity();
                 affineSearchTransform->SetCenter( initialTransform->GetCenter() );
                 affineSearchTransform->SetOffset( initialTransform->GetOffset() );
@@ -1376,7 +1386,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
                 affineSearchTransform->Rotate3D( axis1, angle1, 1 );
                 affineSearchTransform->Rotate3D( axis2, angle2, 1 );
                 affineSearchTransform->Rotate3D( axis1, angle3, 1 );
-                
+
                 if( strcmp( transform.c_str(), "affine" ) == 0 )
                   {
                   affineSearchTransform->Scale( bestScale );
@@ -1398,7 +1408,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
                   similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
                   similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
                   similaritySearchTransform->SetScale( bestScale );
-                
+
                   parametersList.push_back( similaritySearchTransform->GetParameters() );
                   }
                 }
@@ -1409,17 +1419,17 @@ int antsAI( itk::ants::CommandLineParser *parser )
         }
       }
     }
-  
+
   if( verbose )
     {
     std::cout << "Starting optimizer with " << trialCounter << " starting points" << std::endl;
     }
-  
+
   multiStartOptimizer->SetParametersList( parametersList );
   multiStartOptimizer->SetLocalOptimizer( localOptimizer );
   multiStartOptimizer->StartOptimization();
 
-    
+
   /////////////////////////////////////////////////////////////////
   //
   //         Write the output after convergence
@@ -1572,7 +1582,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetDescription( description );
   parser->AddOption( option );
   }
- 
+
   {
   std::string description =
     std::string( "Number of iterations." );

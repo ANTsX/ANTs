@@ -518,7 +518,7 @@ public:
   /**
    * Get the prior label parameters.
    */
-  void GetPriorLabelParameterMap()
+  LabelParameterMapType GetPriorLabelParameterMap()
   {
     return this->m_PriorLabelParameterMap;
   }

@@ -181,6 +181,11 @@ private:
       return LabelUniquely<3>(argc, argv + 1);
       }
       break;
+    case 4:
+      {
+      return LabelUniquely<4>(argc, argv + 1);
+      }
+      break;
     default:
       std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;

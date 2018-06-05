@@ -465,7 +465,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
           exe_initial_align="${exe_initial_align} -m Mattes[${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2]"
           exe_initial_align="${exe_initial_align} -t Affine[0.1]"
           exe_initial_align="${exe_initial_align} -s [20,0.12]"
-          exe_initial_align="${exe_initial_align} -g [0x50x50,50]"
+          exe_initial_align="${exe_initial_align} -g [40,0x40x40]"
           exe_initial_align="${exe_initial_align} -p 0"
           exe_initial_align="${exe_initial_align} -c 10"
           exe_initial_align="${exe_initial_align} -o ${EXTRACTION_INITIAL_AFFINE}"

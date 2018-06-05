@@ -950,7 +950,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
           duplicator->SetInputImage( outputRgbSlice2 );
           duplicator->Update();
 
-          compositeRgbSlice = duplicator->GetModifiableOutput();
+          compositeRgbSlice = duplicator->GetOutput();
           }
         compositeAlpha = currentAlpha;
         }

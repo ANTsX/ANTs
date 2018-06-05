@@ -1,6 +1,6 @@
 #ifndef __ReadWriteData_h_
 #define __ReadWriteData_h_
-#include <antsAllocImage.h>
+#include "antsAllocImage.h"
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -156,7 +156,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
   typedef itk::ImageFileReader<ImageType> FileSourceType;
 
   typedef itk::LogTensorImageFilter<ImageType, ImageType> LogFilterType;
-  typename FileSourceType::Pointer reffilter = ITK_NULLPTR;
+  typename FileSourceType::Pointer reffilter = nullptr;
   if( file[0] == '0' && file[1] == 'x' )
     {
     void* ptr;
@@ -177,7 +177,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
       {
       std::cerr << "Exception caught during reference file reading " << std::endl;
       std::cerr << e << " file " << file << std::endl;
-      target = ITK_NULLPTR;
+      target = nullptr;
       return;
       }
 
@@ -198,7 +198,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
       {
       std::cerr << "Exception caught during log tensor filter " << std::endl;
       std::cerr << e << " file " << file << std::endl;
-      target = ITK_NULLPTR;
+      target = nullptr;
       return;
       }
     target = logFilter->GetOutput();
@@ -214,7 +214,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
   enum { ImageDimension = TImageType::ImageDimension };
   if( std::string(file).length() < 3 )
     {
-    target = ITK_NULLPTR;
+    target = nullptr;
     return false;
     }
 
@@ -239,7 +239,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     {
     if( !ANTSFileExists(std::string(file) ) )
       {
-      std::cerr << " file " << std::string(file) << " does not exist . " << std::endl; target = ITK_NULLPTR;
+      std::cerr << " file " << std::string(file) << " does not exist . " << std::endl; target = nullptr;
       return false;
       }
     typedef TImageType                      ImageType;
@@ -255,7 +255,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
       {
       std::cerr << "Exception caught during reference file reading " << std::endl;
       std::cerr << e << " file " << file << std::endl;
-      target = ITK_NULLPTR;
+      target = nullptr;
       std::exception();
       return false;
       }
@@ -286,7 +286,7 @@ typename ImageType::Pointer ReadImage(char* fn )
     {
     std::cerr << "Exception caught during image reference file reading " << std::endl;
     std::cerr << e << std::endl;
-    return ITK_NULLPTR;
+    return nullptr;
     }
 
   //typename ImageType::DirectionType dir;
@@ -317,7 +317,7 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
     {
     std::cerr << "Exception caught during tensor image reference file reading " << std::endl;
     std::cerr << e << std::endl;
-    return NULL;
+    return nullptr;
     }
 
   typename ImageType::Pointer target = reffilter->GetOutput();
@@ -342,7 +342,7 @@ bool ReadLabeledPointSet( itk::SmartPointer<TPointSet> & target, const char *fil
 {
   if( std::string( file ).length() < 3 )
     {
-    target = ITK_NULLPTR;
+    target = nullptr;
     return false;
     }
 
@@ -381,35 +381,35 @@ bool ReadImageIntensityPointSet( itk::SmartPointer<TPointSet> & target, const ch
   if( std::string( imageFile ).length() < 3 )
     {
     std::cerr << " bad image file name " << std::string( imageFile ) << std::endl;
-    target = ITK_NULLPTR;
+    target = nullptr;
     return false;
     }
 
   if( !ANTSFileExists( std::string( imageFile ) ) )
     {
     std::cerr << " image file " << std::string( imageFile ) << " does not exist . " << std::endl;
-    target = ITK_NULLPTR;
+    target = nullptr;
     return false;
     }
 
   if( std::string( maskFile ).length() < 3 )
     {
     std::cerr << " bad mask file name " << std::string( maskFile ) << std::endl;
-    target = ITK_NULLPTR;
+    target = nullptr;
     return false;
     }
 
   if( !ANTSFileExists( std::string( maskFile ) ) )
     {
     std::cerr << " mask file " << std::string( maskFile ) << " does not exist . " << std::endl;
-    target = ITK_NULLPTR;
+    target = nullptr;
     return false;
     }
 
   if( neighborhoodRadius.size() != TImage::ImageDimension )
     {
     std::cerr << " size of the neighborhood radius is not equal to the image dimension." << std::endl;
-    target = ITK_NULLPTR;
+    target = nullptr;
     return false;
     }
 
@@ -457,7 +457,7 @@ typename TPointSet::Pointer ReadLabeledPointSet( char* fn )
     {
     std::cerr << "Exception caught during point set reference file reading " << std::endl;
     std::cerr << e << std::endl;
-    return NULL;
+    return nullptr;
     }
 
   typename TPointSet::Pointer target = reffilter->GetOutput();
@@ -466,7 +466,7 @@ typename TPointSet::Pointer ReadLabeledPointSet( char* fn )
 }
 
 template <class TPointSet>
-bool WritePointSet( const TPointSet * const pointSet, const char * const file )
+bool WritePointSet( itk::SmartPointer<TPointSet> pointSet, const char *file )
 {
   if( std::string(file).length() < 3 )
     {
@@ -478,7 +478,7 @@ bool WritePointSet( const TPointSet * const pointSet, const char * const file )
   writer->SetFileName( file );
   if( !pointSet )
     {
-    std::cerr << " Point set is null." << std::endl;
+    std::cerr << " Point set is nullptr." << std::endl;
     std::exception();
     }
   writer->SetInput( pointSet );
@@ -488,7 +488,7 @@ bool WritePointSet( const TPointSet * const pointSet, const char * const file )
 }
 
 template <class TImageType>
-bool WriteImage(const TImageType * const image, const char * const file)
+bool WriteImage(const itk::SmartPointer<TImageType> image, const char *file)
 {
   if( std::string(file).length() < 3 )
     {
@@ -507,7 +507,7 @@ bool WriteImage(const TImageType * const image, const char * const file)
     {
     void* ptr;
     sscanf(file, "%p", (void **)&ptr);
-    *( static_cast<typename TImageType::Pointer *>( ptr ) ) = const_cast<TImageType *>(image);
+    *( static_cast<typename TImageType::Pointer *>( ptr ) ) = image;
     }
   else
     {
@@ -516,7 +516,7 @@ bool WriteImage(const TImageType * const image, const char * const file)
     writer->SetFileName(file);
     if( !image )
       {
-      std::cerr << "Image is null." << std::endl;
+      std::cerr << "Image is nullptr." << std::endl;
       std::exception();
       }
     writer->SetInput(image);
@@ -587,7 +587,7 @@ ReadWarpFromFile( std::string warpfn, std::string ext)
   typename RealImageType::Pointer yvec = ReadImage<ImageType>( (char *)fn.c_str() );
   // std::cout << " done reading " << fn << std::endl;
   fn = warpfn + "z" + ext;
-  typename RealImageType::Pointer zvec = ITK_NULLPTR;
+  typename RealImageType::Pointer zvec = nullptr;
   // std::cout << " done reading " << fn << std::endl;
   if( ImageDimension == 3 )
     {
@@ -650,7 +650,7 @@ MakeNewImage(typename TImage::Pointer image1, typename TImage::PixelType initval
 
 template <class TField>
 void
-WriteDisplacementField(const TField* const field, std::string filename)
+WriteDisplacementField(TField* field, std::string filename)
 {
   typedef TField                        FieldType;
   enum { ImageDimension = FieldType::ImageDimension };
@@ -684,7 +684,7 @@ WriteDisplacementField(const TField* const field, std::string filename)
 
 template <class TField>
 void
-WriteDisplacementField2(const TField * const field, std::string filename, std::string app)
+WriteDisplacementField2(TField* field, std::string filename, std::string app)
 {
   typedef TField                        FieldType;
   enum { ImageDimension = FieldType::ImageDimension };
@@ -719,12 +719,12 @@ class nullBuf
 : public std::streambuf
 {
 public:
-  virtual std::streamsize xsputn( const char * itkNotUsed( s ), std::streamsize n ) ITK_OVERRIDE
+  virtual std::streamsize xsputn( const char * itkNotUsed( s ), std::streamsize n )
     {
     return n;
     }
 
-  virtual int overflow( int itkNotUsed( c ) ) ITK_OVERRIDE
+  virtual int overflow( int itkNotUsed( c ) )
     {
     return 1;
     }

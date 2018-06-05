@@ -19,7 +19,7 @@ ProjectDependancyPush(CACHED_proj ${proj})
 # even if other External_${ExtProjName}.cmake files are sourced by
 # SlicerMacroCheckExternalProjectDependency
 set(extProjName ITK) #The find_package known name
-set(proj      ITKv4) #This local name
+set(proj      ITKv5) #This local name
 set(${extProjName}_REQUIRED_VERSION ${${extProjName}_VERSION_MAJOR})  #If a required version is necessary, then set this, else leave blank
 
 #if(${USE_SYSTEM_${extProjName}})
@@ -149,7 +149,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
   set(${proj}_GIT_TAG 902c9d0e0a2d8349796b1b2b805fd94648e8a197) ##
-  set(ITK_VERSION_ID ITK-4.12) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
+  set(ITK_VERSION_ID ITK-5.0) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
