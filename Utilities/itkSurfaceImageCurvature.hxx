@@ -1116,26 +1116,26 @@ void  SurfaceImageCurvature<TSurface>
 
       //      this->PrintFrame();
 
-      bool geterror = false;
-      if( geterror )
-        {
-        float error = 0.0;
-        float temp1 = this->ErrorEstimate(this->GetOrigin() );
-        float temp2 = this->ErrorEstimate(this->GetOrigin(), -1);
-        if( temp1 < temp2 )
-          {
-          error = temp1;
-          }
-        else
-          {
-          error = temp2;
-          this->SwitchNormalSign();
-//         this->ComputeWeightsAndDirectionalKappaAndAngles(this->GetOrigin());
-//         this->EstimateCurvature(this->m_A,this->m_B,this->m_B,this->m_C);
-//         this->EstimateCurvature();
-          }
-        // std::cout << " best error " << error << std::endl;
-        }
+//       bool geterror = false;
+//       if( geterror )
+//         {
+//         float error = 0.0;
+//         float temp1 = this->ErrorEstimate(this->GetOrigin() );
+//         float temp2 = this->ErrorEstimate(this->GetOrigin(), -1);
+//         if( temp1 < temp2 )
+//           {
+//           error = temp1;
+//           }
+//         else
+//           {
+//           error = temp2;
+//           this->SwitchNormalSign();
+// //         this->ComputeWeightsAndDirectionalKappaAndAngles(this->GetOrigin());
+// //         this->EstimateCurvature(this->m_A,this->m_B,this->m_B,this->m_C);
+// //         this->EstimateCurvature();
+//           }
+//         // std::cout << " best error " << error << std::endl;
+//         }
 
       kpix = 0;
       float fval = this->m_GaussianKappa;
