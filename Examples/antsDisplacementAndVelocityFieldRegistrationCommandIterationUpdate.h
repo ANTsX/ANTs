@@ -269,8 +269,8 @@ public:
                                                          GetInverseDisplacementField() );
       FixedInverseDisplacementDuplicator->Update();
 
-      myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetModifiableOutput() );
-      myFixedToMiddleTransform->SetInverseDisplacementField( FixedInverseDisplacementDuplicator->GetModifiableOutput() );
+      myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetOutput() );
+      myFixedToMiddleTransform->SetInverseDisplacementField( FixedInverseDisplacementDuplicator->GetOutput() );
 
       // copy MovingToMiddleTransform
       typename DisplacementFieldDuplicatorType::Pointer MovingDisplacementDuplicator =
@@ -288,8 +288,8 @@ public:
                                                           GetInverseDisplacementField() );
       MovingInverseDisplacementDuplicator->Update();
 
-      myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetModifiableOutput() );
-      myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetModifiableOutput() );
+      myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetOutput() );
+      myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetOutput() );
 
       // Based on SyN Registration implementation, fixed composite and moving composite transforms are generated to
       // compute the metric value at each iteration.
@@ -413,8 +413,8 @@ public:
     disInverseDuplicator->Update();
 
     typename DisplacementFieldTransformType::Pointer outputTransformReadyToUse = DisplacementFieldTransformType::New();
-    outputTransformReadyToUse->SetDisplacementField( disDuplicator->GetModifiableOutput() );
-    outputTransformReadyToUse->SetInverseDisplacementField( disInverseDuplicator->GetModifiableOutput() );
+    outputTransformReadyToUse->SetDisplacementField( disDuplicator->GetOutput() );
+    outputTransformReadyToUse->SetInverseDisplacementField( disInverseDuplicator->GetOutput() );
 
     // Now add this updated transform to the composite transform including the initial trnasform
     typedef typename TFilter::InitialTransformType InitialTransformType;
