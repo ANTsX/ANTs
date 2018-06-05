@@ -141,9 +141,9 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
-  --compareIntensityTolerance 7
-  --compareRadiusTolerance 0
-  --compareNumberOfPixelsTolerance 777
+  --compareIntensityTolerance 25
+  --compareRadiusTolerance 1
+  --compareNumberOfPixelsTolerance 1000
 
   antsRegistrationTest
   -v --dimensionality 3
