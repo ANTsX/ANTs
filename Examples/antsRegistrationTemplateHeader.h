@@ -52,7 +52,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
     }
 
-  nullptrStream cnul;
+  nullStream cnul;
   if( ! verbose )
     {
     regHelper->SetLogStream( cnul );

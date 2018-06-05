@@ -715,7 +715,7 @@ WriteDisplacementField2(TField* field, std::string filename, std::string app)
   return;
 }
 
-class nullptrBuf
+class nullBuf
 : public std::streambuf
 {
 public:
@@ -730,13 +730,13 @@ public:
     }
 };
 
-class nullptrStream
+class nullStream
 : public std::ostream
 {
   public:
-    nullptrStream() : std::ostream( &buf ) {}
+    nullStream() : std::ostream( &buf ) {}
   private:
-    nullptrBuf buf;
+    nullBuf buf;
 };
 
 #endif
