@@ -29,6 +29,7 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ];  then alias cmake=/usr/local/bin/cmake; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ];  then echo "need cmake 3.2"; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew install ccache; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install cmake; brew upgrade cmake; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
   - mkdir antsbin
   - cd antsbin
