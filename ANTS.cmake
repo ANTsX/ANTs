@@ -42,7 +42,7 @@ message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\""
 
 
 # Set up ITK
-find_package(ITK 4 REQUIRED)
+find_package(ITK 5 REQUIRED)
 include(${ITK_USE_FILE})
 
 
