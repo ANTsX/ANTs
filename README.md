@@ -6,7 +6,7 @@
 [Advanced Normalization Tools](https://imgur.com/a/kySGi)
 =========================================================
 
-[![Build Status](https://travis-ci.org/ANTsX/ANTs.svg?branch=master)](https://travis-ci.org/stnava/ANTs)
+[![Build Status](https://travis-ci.org/ANTsX/ANTs.svg?branch=master)](https://travis-ci.org/ANTsX/ANTs)
 
 ANTs computes high-dimensional mappings to capture the statistics of brain
 structure and function.  See the [FAQ page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd).
@@ -45,8 +45,6 @@ versions [@ sourceforge](http://sourceforge.net/projects/advants/files/ANTS/) ..
 
  Build [ANTs](https://github.com/stnava/ANTs) from:
 Source-Code (recommended) on [Linux / Mac OS](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or [Windows](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Windows-10).
-
-[ANTs Dashboard](https://travis-ci.org/stnava/ANTs/) thanks to Arman Eshaghi and  Hans J. Johnson
 
 ANTs extracts information from complex datasets that include imaging
 ([Word Cloud](http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg)).
