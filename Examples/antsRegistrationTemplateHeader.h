@@ -52,7 +52,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
     }
 
-  nullStream cnul;
+  nullptrStream cnul;
   if( ! verbose )
     {
     regHelper->SetLogStream( cnul );
@@ -225,13 +225,13 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         std::stringstream currentFileName;
         if( useMincFormat )
-          {  
+          {
           currentFileName << outputPrefix << n << "DerivedInitialMovingTranslation.xfm";
           }
-        else 
+        else
           {
           currentFileName << outputPrefix << n << "DerivedInitialMovingTranslation.mat";
-          }  
+          }
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer currentTransform =
           compositeTransform->GetNthTransform( n );
@@ -267,8 +267,8 @@ DoRegistration(typename ParserType::Pointer & parser)
           {
           currentFileName << outputPrefix << n << "DerivedInitialFixedTranslation.xfm";
           }
-        else 
-          {  
+        else
+          {
           currentFileName << outputPrefix << n << "DerivedInitialFixedTranslation.mat";
           }
 
@@ -1318,8 +1318,8 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         compositeTransformFileName += std::string( ".xfm" );
         }
-      else 
-        {  
+      else
+        {
         compositeTransformFileName += std::string( "Composite.h5" );
         }
 
@@ -1328,8 +1328,8 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         inverseCompositeTransformFileName += std::string( "_inverse.xfm" );
         }
-      else 
-        {  
+      else
+        {
         inverseCompositeTransformFileName += std::string( "InverseComposite.h5" );
         }
 
@@ -1379,11 +1379,11 @@ DoRegistration(typename ParserType::Pointer & parser)
             {
             currentInverseFileName << outputPrefix << i << "_inverse" << transformTemplateName;
             }
-          else 
+          else
             {
             currentInverseFileName << outputPrefix << i << "Inverse" << transformTemplateName;
-            }  
- 
+            }
+
           // write inverse transform file
           itk::ants::WriteInverseTransform<TComputeType, VImageDimension>( dispTransform, currentInverseFileName.str() );
           }
@@ -1406,11 +1406,11 @@ DoRegistration(typename ParserType::Pointer & parser)
             {
             currentVelocityFieldFileName << outputPrefix << i << "_VelocityField.mnc";
             }
-          else 
+          else
             {
             currentVelocityFieldFileName << outputPrefix << i << "VelocityField.nii.gz";
-            }  
-          
+            }
+
           try
             {
             if( !tvVelocityFieldTransform.IsNull() )
