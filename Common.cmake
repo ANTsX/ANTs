@@ -35,7 +35,7 @@ set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 # endif("${isSystemDir}" STREQUAL "-1")
 #####################################################################################################
 
-set(USE_ITKv4 ON)
+set(USE_ITKv5 ON)
 set(ITK_VERSION_MAJOR 5 CACHE STRING "Choose the expected ITK major version to build ANTS only version 5 allowed.")
 # Set the possible values of ITK major version for cmake-gui
 set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "5")
