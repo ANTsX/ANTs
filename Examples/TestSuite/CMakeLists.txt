@@ -1053,7 +1053,7 @@ endforeach()
 ###
 #  ANTS labeled data testing
 ###
-# if(RUN_LONG_TESTS)
+if(RUN_LONG_TESTS)
 #   include(ANTS_PSE_MSQ_IMG_test.cmake)
 
 ###
@@ -1067,7 +1067,7 @@ ExternalData_expand_arguments(${PROJECT_NAME}FetchData ROT_MOV_IMAGE DATA{${SMAL
   include(ANTS_ROT_GSYN_test.cmake)
   include(ANTS_ROT_EXP_test.cmake)
 #add_test(NAME ANTS_ROT_EXP_CLEAN COMMAND rm ${ROT_WARP_FILES})
-###
+### 
 #  Test SyN with time
 ###
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData CHALF_IMAGE DATA{${SMALL_DATA_DIR}/chalf.nii.gz})
