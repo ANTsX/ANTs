@@ -1039,22 +1039,22 @@ endforeach()
 ###
 #  ANTS transform testing
 ###
-include(ANTS_CC_1_test.cmake)
-include(ANTS_CC_2_test.cmake)
-include(ANTS_CC_3_test.cmake)
-include(ANTS_MSQ_test.cmake)
-include(ANTS_MI_1_test.cmake)
-include(ANTS_MI_2_test.cmake)
-include(ANTS_ELASTIC_test.cmake)
-include(ANTS_GSYN_test.cmake)
-include(ANTS_EXP_test.cmake)
-include(ANTS_SYN_test.cmake)
+# include(ANTS_CC_1_test.cmake)
+# include(ANTS_CC_2_test.cmake)
+# include(ANTS_CC_3_test.cmake)
+# include(ANTS_MSQ_test.cmake)
+# include(ANTS_MI_1_test.cmake)
+# include(ANTS_MI_2_test.cmake)
+# include(ANTS_ELASTIC_test.cmake)
+# include(ANTS_GSYN_test.cmake)
+# include(ANTS_EXP_test.cmake)
+# include(ANTS_SYN_test.cmake)
 
 ###
 #  ANTS labeled data testing
 ###
-if(RUN_LONG_TESTS)
-  include(ANTS_PSE_MSQ_IMG_test.cmake)
+# if(RUN_LONG_TESTS)
+#   include(ANTS_PSE_MSQ_IMG_test.cmake)
 
 ###
 #  ANTS images with non-trival rotation header test
@@ -1077,8 +1077,8 @@ include(ANTS_SYN_WITH_TIME_test.cmake)
 include(APOC_OTSU_INIT_test.cmake)
 endif()
 
-include(ANTS_PSE_MSQ_TXT_test.cmake)
-include(ANTS_PSE_MSQ_VTK_test.cmake)
+# include(ANTS_PSE_MSQ_TXT_test.cmake)
+# include(ANTS_PSE_MSQ_VTK_test.cmake)
 
 endif()
 
