@@ -7,6 +7,7 @@
 #include "itkConjugateGradientLineSearchOptimizerv4.h"
 #include "itkEuler2DTransform.h"
 #include "itkEuler3DTransform.h"
+#include "itkCenteredTransformInitializer.h"
 #include "itkCorrelationImageToImageMetricv4.h"
 #include "itkImageMaskSpatialObject.h"
 #include "itkImageMomentsCalculator.h"
@@ -22,6 +23,7 @@
 #include "itkRigid2DTransform.h"
 #include "itkSimilarity2DTransform.h"
 #include "itkSimilarity3DTransform.h"
+#include "itkTranslationTransform.h"
 #include "itkVersorRigid3DTransform.h"
 #include "itkTransformFileWriter.h"
 
@@ -730,7 +732,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   /////////////////////////////////////////////////////////////////
 
   std::string transform = "";
-  std::string outputTransformTypeName = "";
+  // std::string outputTransformTypeName = "";
   RealType learningRate = 0.1;
   RealType searchFactor = 20.0 * vnl_math::pi / 180.0;
   RealType arcFraction = 1.0;
@@ -788,21 +790,51 @@ int antsAI( itk::ants::CommandLineParser *parser )
   typename RigidTransformType::Pointer rigidSearchTransform = RigidTransformType::New();
   typename SimilarityTransformType::Pointer similaritySearchTransform = SimilarityTransformType::New();
 
+  typename AffineTransformType::Pointer initialTransform = AffineTransformType::New();
+  initialTransform->SetIdentity();
+    
+  bool initialTransformInitializedWithImages = false;
+
   unsigned int numberOfTransformParameters = 0;
   if( strcmp( transform.c_str(), "affine" ) == 0 )
     {
     numberOfTransformParameters = AffineTransformType::ParametersDimension;
-    outputTransformTypeName = std::string( "Affine" );
+    // outputTransformTypeName = std::string( "Affine" );
     }
   else if( strcmp( transform.c_str(), "rigid" ) == 0 )
     {
     numberOfTransformParameters = RigidTransformType::ParametersDimension;
-    outputTransformTypeName = std::string( "Rigid" );
+    // outputTransformTypeName = std::string( "Rigid" );
     }
   else if( strcmp( transform.c_str(), "similarity" ) == 0 )
     {
     numberOfTransformParameters = SimilarityTransformType::ParametersDimension;
-    outputTransformTypeName = std::string( "Similarity" );
+    // outputTransformTypeName = std::string( "Similarity" );
+    }
+  else if( strcmp( transform.c_str(), "aligngeometriccenters" ) == 0 || 
+    strcmp( transform.c_str(), "aligncentersofmass" ) == 0 )
+    {
+    typedef itk::CenteredTransformInitializer<AffineTransformType, ImageType, ImageType> TransformInitializerType;
+    typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
+
+    initializer->SetTransform( initialTransform );
+
+    initializer->SetFixedImage( fixedImage );
+    initializer->SetMovingImage( movingImage );
+
+    if( strcmp( transform.c_str(), "aligngeometriccenters" ) == 0 )
+      {
+      initializer->GeometryOn();
+      }
+    else // strcmp( transform.c_str(), "aligncentersofmass" ) == 0
+      {
+      initializer->MomentsOn();
+      }
+    initializer->InitializeTransform();
+
+    initialTransformInitializedWithImages = true;
+
+    // outputTransformTypeName = std::string( "Translation" );
     }
   else
     {
@@ -816,7 +848,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
   /////////////////////////////////////////////////////////////////
   //
   //         Align the images using center of mass and principal axes
-  //         or feature blobs.
+  //         or feature blobs if the initial transform hasn't already
+  //         been initialized.
   //
   /////////////////////////////////////////////////////////////////
 
@@ -827,176 +860,175 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
   RealType bestScale = 1.0;
 
-  typename AffineTransformType::Pointer initialTransform = AffineTransformType::New();
-  initialTransform->SetIdentity();
-
-  const unsigned int minimumNumberOfBlobs = 3;  // should a different min number of blobs be expected?
-
-  unsigned int numberOfBlobsToExtract = 0;
-  unsigned int numberOfBlobsToMatch = 0;
-  itk::ants::CommandLineParser::OptionType::Pointer blobsOption = parser->GetOption( "align-blobs" );
-  if( blobsOption && blobsOption->GetNumberOfFunctions() )
+  if( initialTransformInitializedWithImages == false )
     {
-    if( blobsOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+    const unsigned int minimumNumberOfBlobs = 3;  // should a different min number of blobs be expected?
+
+    unsigned int numberOfBlobsToExtract = 0;
+    unsigned int numberOfBlobsToMatch = 0;
+    itk::ants::CommandLineParser::OptionType::Pointer blobsOption = parser->GetOption( "align-blobs" );
+    if( blobsOption && blobsOption->GetNumberOfFunctions() )
       {
-      numberOfBlobsToExtract = parser->Convert<unsigned int>( blobsOption->GetFunction( 0 )->GetName() );
-      numberOfBlobsToMatch = numberOfBlobsToExtract;
-      }
-    if( blobsOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
-      {
-      numberOfBlobsToExtract = parser->Convert<unsigned int>( blobsOption->GetFunction( 0 )->GetParameter( 0 ) );
-      numberOfBlobsToMatch = numberOfBlobsToExtract;
-      }
-    if( blobsOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
-      {
-      numberOfBlobsToMatch = parser->Convert<unsigned int>( blobsOption->GetFunction( 0 )->GetParameter( 1 ) );
-      }
-    if( numberOfBlobsToExtract < minimumNumberOfBlobs )
-      {
-      std::cerr << "Please specify a greater number of blobs (>=" << minimumNumberOfBlobs << ")." << std::endl;
-      return EXIT_FAILURE;
-      }
-    }
-
-  if( numberOfBlobsToExtract >= minimumNumberOfBlobs )
-    {
-    if( strcmp( transform.c_str(), "affine" ) == 0 )
-      {
-      typename AffineTransformType::Pointer initialAffineTransform =
-        GetTransformFromFeatureMatching<ImageType, AffineTransformType>( fixedImage, movingImage, numberOfBlobsToExtract, numberOfBlobsToMatch );
-
-      initialTransform->SetOffset( initialAffineTransform->GetOffset() );
-      initialTransform->SetMatrix( initialAffineTransform->GetMatrix() );
-      }
-    else  // RigidTransform or SimilarityTransform
-      {
-
-      typename LandmarkRigidTransformType::Pointer initialRigidTransform =
-        GetTransformFromFeatureMatching<ImageType, LandmarkRigidTransformType>( fixedImage, movingImage, numberOfBlobsToExtract, numberOfBlobsToMatch );
-
-      initialTransform->SetOffset( initialRigidTransform->GetOffset() );
-      initialTransform->SetMatrix( initialRigidTransform->GetMatrix() );
-      }
-    }
-  else
-    {
-    bool doAlignPrincipalAxes = false;
-
-    itk::ants::CommandLineParser::OptionType::Pointer axesOption = parser->GetOption( "align-principal-axes" );
-    if( axesOption && axesOption->GetNumberOfFunctions() )
-      {
-      doAlignPrincipalAxes = parser->Convert<bool>( axesOption->GetFunction( 0 )->GetName() );
-      }
-
-    typedef typename itk::ImageMomentsCalculator<ImageType> ImageMomentsCalculatorType;
-    typedef typename ImageMomentsCalculatorType::MatrixType MatrixType;
-
-    typename ImageMomentsCalculatorType::Pointer fixedImageMomentsCalculator = ImageMomentsCalculatorType::New();
-    typename ImageMomentsCalculatorType::Pointer movingImageMomentsCalculator = ImageMomentsCalculatorType::New();
-
-    fixedImageMomentsCalculator->SetImage( fixedImage );
-    fixedImageMomentsCalculator->Compute();
-    VectorType fixedImageCenterOfGravity = fixedImageMomentsCalculator->GetCenterOfGravity();
-    MatrixType fixedImagePrincipalAxes = fixedImageMomentsCalculator->GetPrincipalAxes();
-
-    movingImageMomentsCalculator->SetImage( movingImage );
-    movingImageMomentsCalculator->Compute();
-    VectorType movingImageCenterOfGravity = movingImageMomentsCalculator->GetCenterOfGravity();
-    MatrixType movingImagePrincipalAxes = movingImageMomentsCalculator->GetPrincipalAxes();
-
-    // RealType bestScale = 1.0; // movingImageMomentsCalculator->GetTotalMass() / fixedImageMomentsCalculator->GetTotalMass();
-
-    typename AffineTransformType::OutputVectorType translation;
-    itk::Point<RealType, ImageDimension> center;
-    for( unsigned int i = 0; i < ImageDimension; i++ )
-      {
-      translation[i] = movingImageCenterOfGravity[i] - fixedImageCenterOfGravity[i];
-      center[i] = fixedImageCenterOfGravity[i];
-      }
-    initialTransform->SetTranslation( translation );
-
-    /** Solve Wahba's problem --- http://en.wikipedia.org/wiki/Wahba%27s_problem */
-
-    vnl_vector<RealType> fixedPrimaryEigenVector;
-    vnl_vector<RealType> fixedSecondaryEigenVector;
-    vnl_vector<RealType> fixedTertiaryEigenVector;
-    vnl_vector<RealType> movingPrimaryEigenVector;
-    vnl_vector<RealType> movingSecondaryEigenVector;
-
-    vnl_matrix<RealType> B;
-
-    if( ImageDimension == 2 )
-      {
-      fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
-      movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
-
-      B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector );
-      }
-    else if( ImageDimension == 3 )
-      {
-      fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
-      fixedSecondaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
-
-      movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
-      movingSecondaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
-
-      B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector ) +
-        outer_product( movingSecondaryEigenVector, fixedSecondaryEigenVector );
-      }
-
-    if( doAlignPrincipalAxes )
-      {
-      vnl_svd<RealType> wahba( B );
-      vnl_matrix<RealType> A = wahba.V() * wahba.U().transpose();
-      A = vnl_inverse( A );
-      RealType det = vnl_determinant( A );
-
-      if( det < 0.0 )
+      if( blobsOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
         {
-        if( verbose )
+        numberOfBlobsToExtract = parser->Convert<unsigned int>( blobsOption->GetFunction( 0 )->GetName() );
+        numberOfBlobsToMatch = numberOfBlobsToExtract;
+        }
+      if( blobsOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+        {
+        numberOfBlobsToExtract = parser->Convert<unsigned int>( blobsOption->GetFunction( 0 )->GetParameter( 0 ) );
+        numberOfBlobsToMatch = numberOfBlobsToExtract;
+        }
+      if( blobsOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+        {
+        numberOfBlobsToMatch = parser->Convert<unsigned int>( blobsOption->GetFunction( 0 )->GetParameter( 1 ) );
+        }
+      if( numberOfBlobsToExtract < minimumNumberOfBlobs )
+        {
+        std::cerr << "Please specify a greater number of blobs (>=" << minimumNumberOfBlobs << ")." << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+
+    if( numberOfBlobsToExtract >= minimumNumberOfBlobs )
+      {
+      if( strcmp( transform.c_str(), "affine" ) == 0 )
+        {
+        typename AffineTransformType::Pointer initialAffineTransform =
+          GetTransformFromFeatureMatching<ImageType, AffineTransformType>( fixedImage, movingImage, numberOfBlobsToExtract, numberOfBlobsToMatch );
+
+        initialTransform->SetOffset( initialAffineTransform->GetOffset() );
+        initialTransform->SetMatrix( initialAffineTransform->GetMatrix() );
+        }
+      else  // RigidTransform or SimilarityTransform
+        {
+
+        typename LandmarkRigidTransformType::Pointer initialRigidTransform =
+          GetTransformFromFeatureMatching<ImageType, LandmarkRigidTransformType>( fixedImage, movingImage, numberOfBlobsToExtract, numberOfBlobsToMatch );
+
+        initialTransform->SetOffset( initialRigidTransform->GetOffset() );
+        initialTransform->SetMatrix( initialRigidTransform->GetMatrix() );
+        }
+      }
+    else
+      {
+      bool doAlignPrincipalAxes = false;
+
+      itk::ants::CommandLineParser::OptionType::Pointer axesOption = parser->GetOption( "align-principal-axes" );
+      if( axesOption && axesOption->GetNumberOfFunctions() )
+        {
+        doAlignPrincipalAxes = parser->Convert<bool>( axesOption->GetFunction( 0 )->GetName() );
+        }
+
+      typedef typename itk::ImageMomentsCalculator<ImageType> ImageMomentsCalculatorType;
+      typedef typename ImageMomentsCalculatorType::MatrixType MatrixType;
+
+      typename ImageMomentsCalculatorType::Pointer fixedImageMomentsCalculator = ImageMomentsCalculatorType::New();
+      typename ImageMomentsCalculatorType::Pointer movingImageMomentsCalculator = ImageMomentsCalculatorType::New();
+
+      fixedImageMomentsCalculator->SetImage( fixedImage );
+      fixedImageMomentsCalculator->Compute();
+      VectorType fixedImageCenterOfGravity = fixedImageMomentsCalculator->GetCenterOfGravity();
+      MatrixType fixedImagePrincipalAxes = fixedImageMomentsCalculator->GetPrincipalAxes();
+
+      movingImageMomentsCalculator->SetImage( movingImage );
+      movingImageMomentsCalculator->Compute();
+      VectorType movingImageCenterOfGravity = movingImageMomentsCalculator->GetCenterOfGravity();
+      MatrixType movingImagePrincipalAxes = movingImageMomentsCalculator->GetPrincipalAxes();
+
+      // RealType bestScale = 1.0; // movingImageMomentsCalculator->GetTotalMass() / fixedImageMomentsCalculator->GetTotalMass();
+
+      typename AffineTransformType::OutputVectorType translation;
+      itk::Point<RealType, ImageDimension> center;
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        translation[i] = movingImageCenterOfGravity[i] - fixedImageCenterOfGravity[i];
+        center[i] = fixedImageCenterOfGravity[i];
+        }
+      initialTransform->SetTranslation( translation );
+
+      /** Solve Wahba's problem --- http://en.wikipedia.org/wiki/Wahba%27s_problem */
+
+      vnl_vector<RealType> fixedPrimaryEigenVector;
+      vnl_vector<RealType> fixedSecondaryEigenVector;
+      vnl_vector<RealType> fixedTertiaryEigenVector;
+      vnl_vector<RealType> movingPrimaryEigenVector;
+      vnl_vector<RealType> movingSecondaryEigenVector;
+
+      vnl_matrix<RealType> B;
+
+      if( ImageDimension == 2 )
+        {
+        fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+        movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+
+        B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector );
+        }
+      else if( ImageDimension == 3 )
+        {
+        fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
+        fixedSecondaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+
+        movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
+        movingSecondaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+
+        B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector ) +
+          outer_product( movingSecondaryEigenVector, fixedSecondaryEigenVector );
+        }
+
+      if( doAlignPrincipalAxes )
+        {
+        vnl_svd<RealType> wahba( B );
+        vnl_matrix<RealType> A = wahba.V() * wahba.U().transpose();
+        A = vnl_inverse( A );
+        RealType det = vnl_determinant( A );
+
+        if( det < 0.0 )
           {
-          std::cout << "Bad determinant = " << det << std::endl;
-          std::cout <<  "  det( V ) = " <<  vnl_determinant( wahba.V() ) << std::endl;
-          std::cout <<  "  det( U ) = " << vnl_determinant( wahba.U() )  << std::endl;
-          }
-        vnl_matrix<RealType> I( A );
-        I.set_identity();
-        for( unsigned int i = 0; i < ImageDimension; i++ )
-          {
-          if( A( i, i ) < 0.0 )
+          if( verbose )
             {
-            I( i, i ) = -1.0;
+            std::cout << "Bad determinant = " << det << std::endl;
+            std::cout <<  "  det( V ) = " <<  vnl_determinant( wahba.V() ) << std::endl;
+            std::cout <<  "  det( U ) = " << vnl_determinant( wahba.U() )  << std::endl;
+            }
+          vnl_matrix<RealType> I( A );
+          I.set_identity();
+          for( unsigned int i = 0; i < ImageDimension; i++ )
+            {
+            if( A( i, i ) < 0.0 )
+              {
+              I( i, i ) = -1.0;
+              }
+            }
+          A = A * I.transpose();
+          det = vnl_determinant( A );
+
+          if( verbose )
+            {
+            std::cout << "New determinant = " << det << std::endl;
             }
           }
-        A = A * I.transpose();
-        det = vnl_determinant( A );
-
-        if( verbose )
-          {
-          std::cout << "New determinant = " << det << std::endl;
-          }
+        initialTransform->SetMatrix( A );
         }
-      initialTransform->SetMatrix( A );
-      }
-    initialTransform->SetCenter( center );
+      initialTransform->SetCenter( center );
 
-    if( ImageDimension == 2 )
-      {
-      fixedTertiaryEigenVector = fixedSecondaryEigenVector;
-      fixedSecondaryEigenVector = fixedPrimaryEigenVector;
-      }
-    if( ImageDimension == 3 )
-      {
-      fixedTertiaryEigenVector = vnl_cross_3d( fixedPrimaryEigenVector, fixedSecondaryEigenVector );
-      }
+      if( ImageDimension == 2 )
+        {
+        fixedTertiaryEigenVector = fixedSecondaryEigenVector;
+        fixedSecondaryEigenVector = fixedPrimaryEigenVector;
+        }
+      if( ImageDimension == 3 )
+        {
+        fixedTertiaryEigenVector = vnl_cross_3d( fixedPrimaryEigenVector, fixedSecondaryEigenVector );
+        }
 
-    for( unsigned int d = 0; d < ImageDimension; d++ )
-      {
-      axis1[d] = fixedTertiaryEigenVector[d];
-      axis2[d] = fixedSecondaryEigenVector[d];
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        axis1[d] = fixedTertiaryEigenVector[d];
+        axis2[d] = fixedSecondaryEigenVector[d];
+        }
       }
     }
-
   /////////////////////////////////////////////////////////////////
   //
   //         Write the output if the number of iterations == 0
@@ -1044,10 +1076,17 @@ int antsAI( itk::ants::CommandLineParser *parser )
         bestSimilarityTransform->SetOffset( initialTransform->GetOffset() );
         transformWriter->SetInput( bestSimilarityTransform );
         }
+      else if( initialTransformInitializedWithImages == true )
+        {
+        typedef itk::TranslationTransform<RealType, ImageDimension> TranslationTransformType;
+        typename TranslationTransformType::Pointer bestTranslationTransform = TranslationTransformType::New();
+        bestTranslationTransform->SetOffset( initialTransform->GetOffset() );
+        transformWriter->SetInput( bestTranslationTransform );
+        }  
 
       transformWriter->SetFileName( outputName.c_str() );
 #if ITK_VERSION_MAJOR >= 5
-      transformWriter->SetUseCompression(true);
+      transformWriter->SetUseCompression( true );
 #endif
       transformWriter->Update();
       }
@@ -1520,9 +1559,12 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   }
 
   {
-  std::string description = std::string( "Several transform options are available.  The gradientStep or " )
-    + std::string( "learningRate characterizes the gradient descent optimization and is scaled appropriately " )
-    + std::string( "for each transform using the shift scales estimator. " );
+  std::string description = std::string( "Several transform options are available.  For the rigid, " )
+    + std::string( "affine, and similarity transforms, the gradientStep characterizes the gradient " )
+    + std::string( "descent optimization and is scaled appropriately for each transform using the " )
+    + std::string( "shift scales estimator. The other two transform types finds the simple translation " )
+    + std::string( "transform which aligns the specified image feature.  Note that the images are read " )
+    + std::string( "from the similarity metric option although the metric isn't actually used." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "transform" );
@@ -1530,6 +1572,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetUsageOption(  0, "Rigid[gradientStep]" );
   option->SetUsageOption(  1, "Affine[gradientStep]" );
   option->SetUsageOption(  2, "Similarity[gradientStep]" );
+  option->SetUsageOption(  3, "AlignGeometricCenters" );
+  option->SetUsageOption(  4, "AlignCentersOfMass" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
