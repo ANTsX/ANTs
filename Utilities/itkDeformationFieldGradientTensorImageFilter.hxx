@@ -35,6 +35,7 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>
   this->m_CalculateJacobian = false;
   this->m_Order = 1;
   this->m_DerivativeWeights.Fill( 1.0 );
+  this->DynamicMultiThreadingOff();
 }
 
 template <typename TInputImage, typename TRealType, typename TOutputImage>
