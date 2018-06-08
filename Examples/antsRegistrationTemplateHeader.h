@@ -58,6 +58,25 @@ DoRegistration(typename ParserType::Pointer & parser)
     regHelper->SetLogStream( cnul );
     }
 
+  OptionType::Pointer fixRandomSeed = parser->GetOption( "random-seed" );
+  if( fixRandomSeed && fixRandomSeed->GetNumberOfFunctions() )
+    {
+    int randomSeed = parser->Convert<int>( fixRandomSeed->GetFunction(0)->GetName() );
+    regHelper->SetRegistrationRandomSeed(randomSeed);
+    }
+  else
+    {
+    char* randomSeedEnv = getenv( "ANTS_RANDOM_SEED" );
+    if ( randomSeedEnv != NULL )
+      {
+      regHelper->SetRegistrationRandomSeed( atoi( randomSeedEnv ) );
+      }
+    else
+      {
+      regHelper->SetRegistrationRandomSeed(0);
+      }
+    }
+
   OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( !transformOption || transformOption->GetNumberOfFunctions() == 0 )
     {
