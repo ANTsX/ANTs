@@ -1230,7 +1230,6 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     else
       {
-
       char* envSeed = getenv( "ANTS_RANDOM_SEED" );
       
       if ( envSeed != NULL )
@@ -1239,7 +1238,10 @@ int antsAI( itk::ants::CommandLineParser *parser )
 	}
       }
 
-    randomizer->SetSeed( antsRandomSeed );
+    if ( antsRandomSeed != 0 ) 
+      {
+      randomizer->SetSeed( antsRandomSeed );
+      }
     
     unsigned long index = 0;
 
@@ -1676,7 +1678,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   {
   std::string description = std::string( "Use a fixed seed for random number generation. " ) 
     + std::string( "The default fixed seed is overwritten by this value. " )
-    + std::string( "The seed can be any nonzero int value." );
+    + std::string( "The fixed seed can be any nonzero int value. If the specified seed is zero, " )
+    + std::string( "the system time will be used." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "random-seed" );
