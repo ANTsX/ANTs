@@ -52,6 +52,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
 
   m_SmoothScale = -1;
 
+  this->DynamicMultiThreadingOff();
   // m_bOutputDisplacementField = false;
 
   // m_TransformOrder = AffineFirst;
