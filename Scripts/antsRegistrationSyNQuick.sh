@@ -175,6 +175,8 @@ Optional arguments:
 
      -z:  collapse output transforms (default = 1)
 
+     -e:  Fix random seed to an int value (default = system time)
+
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
           pair correspondence is given by the order specified on the command line.
@@ -282,9 +284,10 @@ NUMBEROFBINS=32
 MASKIMAGES=()
 USEHISTOGRAMMATCHING=0
 COLLAPSEOUTPUTTRANSFORMS=1
+RANDOMSEED=0
 
 # reading command line arguments
-while getopts "d:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
+while getopts "d:e:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
   do
   case $OPT in
       h) #help
@@ -293,6 +296,9 @@ while getopts "d:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
    ;;
       d)  # dimensions
    DIM=$OPTARG
+   ;;
+      e)  # seed
+   RANDOMSEED=$OPTARG
    ;;
       x)  # inclusive mask
    MASKIMAGES[${#MASKIMAGES[@]}]=$OPTARG
@@ -563,7 +569,13 @@ case "$PRECISIONTYPE" in
   ;;
 esac
 
-COMMAND="${ANTS} --verbose 1 \
+RANDOMOPT=""
+
+if [[ ! $RANDOMSEED -eq 0 ]]; then
+    RANDOMOPT=" --random-seed $RANDOMSEED "
+fi
+
+COMMAND="${ANTS} --verbose 1 $RANDOMOPT \
                  --dimensionality $DIM $PRECISION \
                  --collapse-output-transforms $COLLAPSEOUTPUTTRANSFORMS \
                  --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \

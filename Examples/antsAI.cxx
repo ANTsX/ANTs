@@ -1221,15 +1221,28 @@ int antsAI( itk::ants::CommandLineParser *parser )
     typedef typename itk::Statistics::MersenneTwisterRandomVariateGenerator RandomizerType;
     typename RandomizerType::Pointer randomizer = RandomizerType::New();
 
-    char* antsRandomSeed = getenv( "ANTS_RANDOM_SEED" );
-    if ( antsRandomSeed != NULL )
+    int antsRandomSeed = 1234;
+
+    itk::ants::CommandLineParser::OptionType::Pointer randomSeedOption = parser->GetOption( "random-seed" );
+    if( randomSeedOption && randomSeedOption->GetNumberOfFunctions() )
       {
-      randomizer->SetSeed( atoi( antsRandomSeed ) );
+      antsRandomSeed = parser->Convert<int>( randomSeedOption->GetFunction(0)->GetName() );
       }
     else
       {
-      randomizer->SetSeed( 1234 );
+      char* envSeed = getenv( "ANTS_RANDOM_SEED" );
+      
+      if ( envSeed != NULL )
+	{
+	antsRandomSeed = atoi( envSeed );
+	}
       }
+
+    if ( antsRandomSeed != 0 ) 
+      {
+      randomizer->SetSeed( antsRandomSeed );
+      }
+    
     unsigned long index = 0;
 
     switch( samplingStrategy )
@@ -1430,7 +1443,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
                   {
                   affineSearchTransform->Scale( bestScale );
                   parametersList.push_back( affineSearchTransform->GetParameters() );
-                }
+		  }
                 else if( strcmp( transform.c_str(), "rigid" ) == 0 )
                   {
                   rigidSearchTransform->SetIdentity();
@@ -1439,7 +1452,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
                   rigidSearchTransform->Translate( searchTranslation, 0 );
                   rigidSearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
                   parametersList.push_back( rigidSearchTransform->GetParameters() );
-                }
+		  }
                 else if( strcmp( transform.c_str(), "similarity" ) == 0 )
                   {
                   similaritySearchTransform->SetIdentity();
@@ -1447,11 +1460,11 @@ int antsAI( itk::ants::CommandLineParser *parser )
                   similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
                   similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
                   similaritySearchTransform->SetScale( bestScale );
-
+		  
                   parametersList.push_back( similaritySearchTransform->GetParameters() );
                   }
+		trialCounter++;
                 }
-              trialCounter++;
               }
             }
           }
@@ -1658,6 +1671,19 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetLongName( "output" );
   option->SetShortName( 'o' );
   option->SetUsageOption( 0, "outputFileName" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "Use a fixed seed for random number generation. " ) 
+    + std::string( "The default fixed seed is overwritten by this value. " )
+    + std::string( "The fixed seed can be any nonzero int value. If the specified seed is zero, " )
+    + std::string( "the system time will be used." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "random-seed" );
+  option->SetUsageOption( 0, "seedValue" );
   option->SetDescription( description );
   parser->AddOption( option );
   }

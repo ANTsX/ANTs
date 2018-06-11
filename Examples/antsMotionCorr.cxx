@@ -592,8 +592,25 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     }
 
-  char* antsRandomSeed = getenv( "ANTS_RANDOM_SEED" );
-
+  // Zero seed means use default behavior: registration randomizer seeds from system time
+  // and does not re-seed iterator
+  int antsRandomSeed = 0;
+  
+  itk::ants::CommandLineParser::OptionType::Pointer randomSeedOption = parser->GetOption( "random-seed" );
+  if( randomSeedOption && randomSeedOption->GetNumberOfFunctions() )
+    {
+    antsRandomSeed = parser->Convert<int>( randomSeedOption->GetFunction(0)->GetName() );
+    }
+  else
+    {
+    char* envSeed = getenv( "ANTS_RANDOM_SEED" );
+    
+    if ( envSeed != NULL )
+      {
+      antsRandomSeed = atoi( envSeed );
+      }
+    }
+  
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
   totalTimer.Start();
@@ -1049,9 +1066,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       if( std::strcmp( whichTransform.c_str(), "affine" ) == 0 )
         {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
-        if ( antsRandomSeed != NULL )
+        if ( antsRandomSeed != 0 )
           {
-          affineRegistration->MetricSamplingReinitializeSeed( atoi( antsRandomSeed ) );
+          affineRegistration->MetricSamplingReinitializeSeed( antsRandomSeed );
           }
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetIdentity();
@@ -1131,9 +1148,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
                                                RigidTransformType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
-        if ( antsRandomSeed != NULL )
+        if ( antsRandomSeed != 0 )
           {
-          rigidRegistration->MetricSamplingReinitializeSeed( atoi( antsRandomSeed ) );
+          rigidRegistration->MetricSamplingReinitializeSeed( antsRandomSeed );
           }
         metric->SetFixedImage( preprocessFixedImage );
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
@@ -1799,6 +1816,18 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
   option->SetDescription( description );
   parser->AddOption( option );
   }
+
+  {
+  std::string description = std::string( "Use a fixed seed for random number generation. " ) 
+    + std::string( "By default, the system clock is used to initialize the seeding. " )
+    + std::string( "The fixed seed can be any nonzero int value." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "random-seed" );
+  option->SetUsageOption( 0, "seedValue" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
 
   {
   std::string description = std::string( "Verbose output." );
