@@ -486,6 +486,18 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
   }
 
   {
+  std::string description = std::string( "Use a fixed seed for random number generation. " ) 
+    + std::string( "By default, the system clock is used to initialize the seeding. " )
+    + std::string( "The fixed seed can be any nonzero int value." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "random-seed" );
+  option->SetUsageOption( 0, "seedValue" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
   std::string description = std::string( "Verbose output." );
 
   OptionType::Pointer option = OptionType::New();
