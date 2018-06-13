@@ -31,7 +31,9 @@ namespace itk
 template< typename TInputImage, typename TOutputImage >
 VarianceImageFilter< TInputImage, TOutputImage >
 ::VarianceImageFilter()
-{}
+{
+  this->DynamicMultiThreadingOff();  
+}
 
 template< typename TInputImage, typename TOutputImage >
 void
