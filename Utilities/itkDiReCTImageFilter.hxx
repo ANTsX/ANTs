@@ -1015,7 +1015,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       }
     ++dimageIterator;
     }
-  WriteImage<DisplacementFieldType>( outputField, "/Users/stnava/Downloads/temp.nii.gz"  );
   return outputField;
 }
 
