@@ -288,6 +288,26 @@ int DiReCT( itk::ants::CommandLineParser *parser )
                                  bsplineSmoothingOption->GetFunction( 0 )->GetName() ) );
     }
 
+
+    //
+    // do matrix-based smoothing?
+    //
+    typename itk::ants::CommandLineParser::OptionType::Pointer
+      mtxSmoothingOption = parser->GetOption( "use-matrix-smoothing" );
+    if( mtxSmoothingOption && mtxSmoothingOption->GetNumberOfFunctions() )
+      {
+      direct->SetUseMaskedSmoothing( parser->Convert<bool>(
+                                   mtxSmoothingOption->GetFunction( 0 )->GetName() ) );
+      }
+
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+    restrictOption = parser->GetOption( "restrict-deformation" );
+  if( restrictOption && restrictOption->GetNumberOfFunctions() )
+    {
+    direct->SetRestrictDeformation( parser->Convert<bool>(
+                                 restrictOption->GetFunction( 0 )->GetName() ) );
+    }
+
   //
   // smoothing parameter for the velocity field
   //
@@ -556,6 +576,32 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "use-bspline-smoothing" );
   option->SetShortName( 'b' );
+  option->SetUsageOption( 0, "1/(0)" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( " Sets the option for matrix-based smoothing of the velocity field.  smoothing-velocity-field-parameter controls amount of smoothing." )
+    + std::string( "Default = false." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "use-matrix-smoothing" );
+  option->SetShortName( 'x' );
+  option->SetUsageOption( 0, "1/(0)" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( " Restrict the last dimension's deformation." )
+    + std::string( "Default = false." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "restrict-deformation" );
+  option->SetShortName( 'e' );
   option->SetUsageOption( 0, "1/(0)" );
   option->SetDescription( description );
   parser->AddOption( option );

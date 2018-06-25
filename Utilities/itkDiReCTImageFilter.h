@@ -17,6 +17,8 @@
 #include "itkImageToImageFilter.h"
 
 #include "itkVector.h"
+#include <vnl/vnl_sparse_matrix.h>
+
 
 namespace itk
 {
@@ -72,6 +74,7 @@ public:
   typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
   typedef typename VectorType::ValueType            VectorValueType;
   typedef typename DisplacementFieldType::PointType PointType;
+  typedef vnl_sparse_matrix<RealType>               SparseMatrixType;
 
   /**
    * Set the segmentation image.  The segmentation image is a labeled image
@@ -233,12 +236,27 @@ public:
   itkSetMacro( NumberOfIntegrationPoints, unsigned int  );
   itkGetConstMacro( NumberOfIntegrationPoints, unsigned int );
 
+
+  /**
+   * Set/Get the option to restrict deformation along the last dimension.  Default = false.
+   */
+  itkSetMacro( RestrictDeformation, bool  );
+  itkGetConstMacro( RestrictDeformation, bool  );
+  itkBooleanMacro( RestrictDeformation );
+
   /**
    * Set/Get the option to use B-spline smoothing.  Default = false.
    */
   itkSetMacro( UseBSplineSmoothing, bool  );
   itkGetConstMacro( UseBSplineSmoothing, bool  );
   itkBooleanMacro( UseBSplineSmoothing );
+
+  /**
+   * Set/Get the option to use masked smoothing.  Default = false.
+   */
+  itkSetMacro( UseMaskedSmoothing, bool  );
+  itkGetConstMacro( UseMaskedSmoothing, bool  );
+  itkBooleanMacro( UseMaskedSmoothing );
 
   /**
    * Get the number of elapsed iterations.  This is a helper function for
@@ -274,6 +292,17 @@ protected:
 private:
 
   /**
+   * Private function to determine if a voxel is in the mask.
+   */
+  bool TestMask( IndexType index )
+    {
+    return(
+      this->GetSegmentationImage()->GetPixel( index ) == this->m_GrayMatterLabel |
+      this->GetSegmentationImage()->GetPixel( index ) == this->m_WhiteMatterLabel
+    );
+    }
+
+  /**
    * Private function for extracting regions (e.g. gray or white).
    */
   InputImagePointer ExtractRegion( const InputImageType *, LabelType );
@@ -302,6 +331,11 @@ private:
    * Private function for smoothing the deformation field.
    */
   DisplacementFieldPointer GaussianSmoothDisplacementField( const DisplacementFieldType *, const RealType );
+
+  /**
+   * Private function for smoothing the deformation field.
+   */
+  DisplacementFieldPointer MaskedGaussianSmoothDisplacementField( const DisplacementFieldType * );
 
   /**
    * Private function for smoothing the deformation field.
@@ -335,6 +369,10 @@ private:
   RealImagePointer  m_ThicknessPriorImage;
 
   bool m_UseBSplineSmoothing;
+  bool m_UseMaskedSmoothing;
+  bool m_RestrictDeformation;
+  SparseMatrixType m_SparseMatrix;
+  RealImagePointer m_SparseMatrixIndexImage;
 
 };
 } // end namespace itk
