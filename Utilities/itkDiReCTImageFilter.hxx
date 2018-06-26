@@ -563,6 +563,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       inverter1->SetMaximumNumberOfIterations( this->m_MaximumNumberOfInvertDisplacementFieldIterations );
       inverter1->SetMeanErrorToleranceThreshold( 0.001 );
       inverter1->SetMaxErrorToleranceThreshold( 0.1 );
+      if ( this->m_UseMaskedSmoothing )
+        inverter1->SetEnforceBoundaryCondition( false );
       inverter1->Update();
 
       integratedField = inverter1->GetOutput();
@@ -574,6 +576,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       inverter2->SetMaximumNumberOfIterations( this->m_MaximumNumberOfInvertDisplacementFieldIterations );
       inverter2->SetMeanErrorToleranceThreshold( 0.001 );
       inverter2->SetMaxErrorToleranceThreshold( 0.1 );
+      if ( this->m_UseMaskedSmoothing )
+        inverter2->SetEnforceBoundaryCondition( false );
       inverter2->Update();
 
       inverseField = inverter2->GetOutput();
