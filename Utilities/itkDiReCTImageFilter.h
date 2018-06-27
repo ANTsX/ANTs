@@ -245,6 +245,12 @@ public:
   itkBooleanMacro( RestrictDeformation );
 
   /**
+   * Set/Get the temporal spacing values.  Default = no special value.
+   */
+  itkSetMacro( TimeSpacing, std::vector<RealType>  );
+  itkGetConstMacro( TimeSpacing, std::vector<RealType>  );
+
+  /**
    * Set/Get the option to use B-spline smoothing.  Default = false.
    */
   itkSetMacro( UseBSplineSmoothing, bool  );
@@ -373,6 +379,7 @@ private:
   bool m_RestrictDeformation;
   SparseMatrixType m_SparseMatrix;
   RealImagePointer m_SparseMatrixIndexImage;
+  std::vector< RealType > m_TimeSpacing;
 
 };
 } // end namespace itk

@@ -300,6 +300,18 @@ int DiReCT( itk::ants::CommandLineParser *parser )
                                    mtxSmoothingOption->GetFunction( 0 )->GetName() ) );
       }
 
+
+      /**
+       * time spacing
+       */
+      typename itk::ants::CommandLineParser::OptionType::Pointer tsOption =
+        parser->GetOption( "time-spacing" );
+
+      if( tsOption && tsOption->GetNumberOfFunctions() )
+        {
+        direct->SetTimeSpacing( parser->ConvertVector<RealType>( tsOption->GetFunction( 0 )->GetName() ) );
+        }
+
   typename itk::ants::CommandLineParser::OptionType::Pointer
     restrictOption = parser->GetOption( "restrict-deformation" );
   if( restrictOption && restrictOption->GetNumberOfFunctions() )
@@ -593,6 +605,20 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
   option->SetDescription( description );
   parser->AddOption( option );
   }
+
+  {
+  std::string description =
+    std::string( "time-spacing for irregularly spaced time samples." )
+    + std::string( "The user specifies 0.0x1.2x4.5 for input with 3 time slices where the numeric value defines the time of sampling e.g. in years." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "time-spacing" );
+  option->SetShortName( 'p' );
+  option->SetUsageOption( 0, "1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
 
   {
   std::string description =

@@ -207,6 +207,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   unsigned int ninds = static_cast<unsigned int>(
     std::pow( r*2+1, ImageDimension ) );
   niterator.GoToBegin();
+
+  unsigned int timedim =
+    segmentationImage->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
+
   while( !niterator.IsAtEnd() )
     {
     typename RealImageType::IndexType centerIndex = niterator.GetIndex();
@@ -227,9 +231,27 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             if ( nxt >= 0 & locn >= 0 & IsInBounds )
               {
               RealType gaussVal = 0;
-              for ( unsigned int k = 0; k < ImageDimension; k++ )
+              if ( this->m_TimeSpacing.size() != timedim )
+                for ( unsigned int k = 0; k < ImageDimension; k++ )
+                  gaussVal += ( centerIndex[k] - index[k] ) * spacing[ k ] *
+                              ( centerIndex[k] - index[k] ) * spacing[ k ];
+
+           // handle non-uniform temporal regularization
+            if ( this->m_TimeSpacing.size() == timedim )
+              {
+              gaussVal = 0;
+              for ( unsigned int k = 0; k < ImageDimension - 1; k++ )
+                {
                 gaussVal += ( centerIndex[k] - index[k] ) * spacing[ k ] *
                             ( centerIndex[k] - index[k] ) * spacing[ k ];
+                }
+              RealType timedist =
+                this->m_TimeSpacing[ centerIndex[ ImageDimension - 1 ] ] -
+                this->m_TimeSpacing[ index[ ImageDimension - 1 ] ];
+
+              gaussVal += timedist * timedist;
+              }
+
               gaussVal = exp( -1.0 * ( gaussVal ) /
                 this->m_SmoothingVelocityFieldVariance );
               this->m_SparseMatrix( locn , nxt ) = gaussVal;
