@@ -310,8 +310,11 @@ int DiReCT( itk::ants::CommandLineParser *parser )
       if( tsOption && tsOption->GetNumberOfFunctions() )
         {
         direct->SetTimeSpacing( parser->ConvertVector<RealType>( tsOption->GetFunction( 0 )->GetName() ) );
+        if ( tsOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+          direct->SetTimeSigma( parser->Convert<float>(
+            tsOption->GetFunction( 0 )->GetParameter( 1 ) ) );
         }
-
+        
   typename itk::ants::CommandLineParser::OptionType::Pointer
     restrictOption = parser->GetOption( "restrict-deformation" );
   if( restrictOption && restrictOption->GetNumberOfFunctions() )
@@ -608,8 +611,10 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   {
   std::string description =
-    std::string( "time-spacing for irregularly spaced time samples." )
-    + std::string( "The user specifies 0.0x1.2x4.5 for input with 3 time slices where the numeric value defines the time of sampling e.g. in years." );
+    std::string( "time-spacing for irregularly spaced time samples and" ) +
+    std::string( "time-variance with which to compute distance metric." ) +
+    std::string( "The user specifies [0.0x1.2x4.5,3] for input with 3 time" ) +
+    std::string( "slices where the vector of numeric value defines the time of sampling e.g. in years and the scalar value ( here 3 ) defines the variance." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "time-spacing" );

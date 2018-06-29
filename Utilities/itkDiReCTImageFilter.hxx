@@ -65,7 +65,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_ConvergenceWindowSize( 10 ),
   m_UseBSplineSmoothing( false ),
   m_UseMaskedSmoothing( false ),
-  m_RestrictDeformation( false )
+  m_RestrictDeformation( false ),
+  m_TimeSigma( 1.0 )
 {
   this->m_ThicknessPriorImage = ITK_NULLPTR;
   this->m_SparseMatrixIndexImage = ITK_NULLPTR;
@@ -230,30 +231,32 @@ DiReCTImageFilter<TInputImage, TOutputImage>
               niterator.GetPixel( i, IsInBounds ) + 0.5 ) - 1;
             if ( nxt >= 0 & locn >= 0 & IsInBounds )
               {
-              RealType gaussVal = 0;
+              RealType spaceVal = 0;
+              RealType timeVal = 0;
               if ( this->m_TimeSpacing.size() != timedim )
                 for ( unsigned int k = 0; k < ImageDimension; k++ )
-                  gaussVal += ( centerIndex[k] - index[k] ) * spacing[ k ] *
+                  spaceVal += ( centerIndex[k] - index[k] ) * spacing[ k ] *
                               ( centerIndex[k] - index[k] ) * spacing[ k ];
 
            // handle non-uniform temporal regularization
             if ( this->m_TimeSpacing.size() == timedim )
               {
-              gaussVal = 0;
+              spaceVal = 0;
               for ( unsigned int k = 0; k < ImageDimension - 1; k++ )
                 {
-                gaussVal += ( centerIndex[k] - index[k] ) * spacing[ k ] *
+                spaceVal += ( centerIndex[k] - index[k] ) * spacing[ k ] *
                             ( centerIndex[k] - index[k] ) * spacing[ k ];
                 }
               RealType timedist =
                 this->m_TimeSpacing[ centerIndex[ ImageDimension - 1 ] ] -
                 this->m_TimeSpacing[ index[ ImageDimension - 1 ] ];
 
-              gaussVal += timedist * timedist;
+              timeVal = timedist * timedist;
               }
 
-              gaussVal = exp( -1.0 * ( gaussVal ) /
-                this->m_SmoothingVelocityFieldVariance );
+              RealType gaussVal = exp( -1.0 * (
+                spaceVal / this->m_SmoothingVelocityFieldVariance +
+                timeVal  / this->m_TimeSigma ) );
               this->m_SparseMatrix( locn , nxt ) = gaussVal;
               }
             }

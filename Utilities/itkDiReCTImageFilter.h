@@ -159,6 +159,13 @@ public:
   itkGetConstMacro( MaximumNumberOfIterations, unsigned int );
 
   /**
+   * Set/Get the sigma for time regularization.
+   */
+  itkSetMacro( TimeSigma, RealType );
+  itkGetConstMacro( TimeSigma, RealType );
+
+
+  /**
    * Set/Get the maximum number of inversion iterations.  Default = 20.
    */
   itkSetMacro( MaximumNumberOfInvertDisplacementFieldIterations, unsigned int );
@@ -380,6 +387,7 @@ private:
   SparseMatrixType m_SparseMatrix;
   RealImagePointer m_SparseMatrixIndexImage;
   std::vector< RealType > m_TimeSpacing;
+  RealType m_TimeSigma;
 
 };
 } // end namespace itk
