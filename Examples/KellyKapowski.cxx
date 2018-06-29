@@ -309,12 +309,12 @@ int DiReCT( itk::ants::CommandLineParser *parser )
 
       if( tsOption && tsOption->GetNumberOfFunctions() )
         {
-        direct->SetTimeSpacing( parser->ConvertVector<RealType>( tsOption->GetFunction( 0 )->GetName() ) );
+        direct->SetTimeSpacing( parser->ConvertVector<RealType>( tsOption->GetFunction( 0 )->GetParameter( 0 ) ) );
         if ( tsOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
           direct->SetTimeSigma( parser->Convert<float>(
             tsOption->GetFunction( 0 )->GetParameter( 1 ) ) );
         }
-        
+
   typename itk::ants::CommandLineParser::OptionType::Pointer
     restrictOption = parser->GetOption( "restrict-deformation" );
   if( restrictOption && restrictOption->GetNumberOfFunctions() )

@@ -212,6 +212,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   unsigned int timedim =
     segmentationImage->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
 
+  bool useTimeRegularization = this->m_TimeSpacing.size() == timedim;
+
   while( !niterator.IsAtEnd() )
     {
     typename RealImageType::IndexType centerIndex = niterator.GetIndex();
@@ -226,6 +228,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         if ( IsInBounds )
           {
           typename RealImageType::IndexType index = niterator.GetIndex(i);
+
           if ( this->TestMask( index ) ) {
             long nxt = static_cast<long>(
               niterator.GetPixel( i, IsInBounds ) + 0.5 ) - 1;
@@ -239,21 +242,23 @@ DiReCTImageFilter<TInputImage, TOutputImage>
                               ( centerIndex[k] - index[k] ) * spacing[ k ];
 
            // handle non-uniform temporal regularization
-            if ( this->m_TimeSpacing.size() == timedim )
+            if ( useTimeRegularization )
               {
+
               spaceVal = 0;
               for ( unsigned int k = 0; k < ImageDimension - 1; k++ )
                 {
                 spaceVal += ( centerIndex[k] - index[k] ) * spacing[ k ] *
                             ( centerIndex[k] - index[k] ) * spacing[ k ];
                 }
+
               RealType timedist =
                 this->m_TimeSpacing[ centerIndex[ ImageDimension - 1 ] ] -
                 this->m_TimeSpacing[ index[ ImageDimension - 1 ] ];
 
               timeVal = timedist * timedist;
-              }
 
+              }
               RealType gaussVal = exp( -1.0 * (
                 spaceVal / this->m_SmoothingVelocityFieldVariance +
                 timeVal  / this->m_TimeSigma ) );
