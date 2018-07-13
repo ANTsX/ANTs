@@ -473,7 +473,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       return EXIT_FAILURE;
       }
 
-    std::string movingPointSetFileName = metricOption->GetFunction( 0 )->GetParameter( 0 );
+    std::string movingPointSetFileName = metricOption->GetFunction( 0 )->GetParameter( 1 );
     if( ! ReadLabeledPointSet<LabeledPointSetType>( movingLabeledPointSet, movingPointSetFileName.c_str(), false, 1.0 ) )
       {
       if( verbose )
