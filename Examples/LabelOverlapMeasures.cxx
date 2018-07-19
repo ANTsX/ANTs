@@ -34,7 +34,7 @@ int LabelOverlapMeasures( int argc, char * argv[] )
     outputCSVFormat = true;
     }
 
-  typedef unsigned int                          PixelType;
+  typedef int                          PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
   typename ImageType::Pointer sourceImage = ImageType::New();
