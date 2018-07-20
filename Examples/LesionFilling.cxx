@@ -57,7 +57,7 @@ namespace ants
       return 0;
       }
     typename T1ImageReaderType::Pointer T1Reader = T1ImageReaderType::New();
-    T1Reader->SetFileName( T1FileName); 
+    T1Reader->SetFileName( T1FileName);
     try
       {
       T1Reader->Update();
@@ -67,7 +67,7 @@ namespace ants
       std::cout << "no T1 image that can be read" << std::endl;
       return 0;
       }
-    typename T1ImageType::Pointer outImage = NULL ;
+    typename T1ImageType::Pointer outImage = ITK_NULLPTR ;
     outImage = T1Reader->GetOutput() ;
     typedef itk::ImageRegionIterator< T1ImageType> IteratorType;
     typedef itk::BinaryThresholdImageFilter <T1ImageType, T1ImageType>
@@ -106,7 +106,7 @@ namespace ants
        //first finding the edges of lesions
        //by subtracting dilated lesion map from lesion map itself
        typename DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
-  
+
        StructuringElementType structuringElement;
        structuringElement.SetRadius( 1 );  // 3x3 structuring element
        structuringElement.CreateStructuringElement();
@@ -129,9 +129,9 @@ namespace ants
        maskFilter->SetInput( outImage ) ;
        maskFilter->SetMaskImage( subtractFilter->GetOutput() );
        maskFilter->Update() ;
-       typename T1ImageType::Pointer LesionEdge= NULL ;
+       typename T1ImageType::Pointer LesionEdge= ITK_NULLPTR ;
        LesionEdge = maskFilter->GetOutput() ;
-       
+
        //calculating mean lesion intesity
        //Note: lesions should not be filled with values
        //less than their originial values, this is a
@@ -158,8 +158,8 @@ namespace ants
            ++it;
          }
        meanInsideLesion /= (double) counter;
-       
-       //check that all outer voxels are more than the mean 
+
+       //check that all outer voxels are more than the mean
        //intensity of the lesion, i.e. not including CSF voxels
        IteratorType itNoCSF( maskFilter->GetOutput(),
                          maskFilter->GetOutput()->GetLargestPossibleRegion() );
@@ -176,7 +176,7 @@ namespace ants
       //walk through original T1
       //and change inside the lesion with a random pick from
       //collected normal appearing WM voxels (outerWMVoxels)
-      IteratorType it4( outImage, 
+      IteratorType it4( outImage,
                         outImage->GetLargestPossibleRegion() );
       IteratorType itL( thresholdFilter->GetOutput(),
                         thresholdFilter->GetOutput()->GetLargestPossibleRegion() );
@@ -208,10 +208,10 @@ namespace ants
     std::cerr << "ExceptionObject caught !" << std::endl;
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
-    } 
+    }
   return EXIT_SUCCESS;
   }//main int
-  
+
   int LesionFilling( std::vector<std::string> args, std::ostream* itkNotUsed( out_stream ) )
   {
     // put the arguments coming in as 'args' into standard (argc,argv) format;
@@ -219,7 +219,7 @@ namespace ants
     // 'args' may have adjacent arguments concatenated into one argument,
     // which the parser should handle
     args.insert( args.begin(), "LesionFilling" );
-  
+
     int     argc = args.size();
     char* * argv = new char *[args.size() + 1];
     for( unsigned int i = 0; i < args.size(); ++i )
@@ -238,7 +238,7 @@ namespace ants
       Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
       {
       }
-  
+
       ~Cleanup_argv()
       {
         for( unsigned int i = 0; i < argc_plus_one; ++i )
@@ -247,20 +247,20 @@ namespace ants
           }
         delete[] argv;
       }
-  
+
   private:
       char* *      argv;
       unsigned int argc_plus_one;
     };
     Cleanup_argv cleanup_argv( argv, argc + 1 );
-  
+
     // antscout->set_stream( out_stream );
-  
+
     //LesionFilling dimension t1.nii.gz lesionmask output.nii.gz
     if( argc < 3 )
       {
       std::cout << "Example usage: " << argv[0] << " imageDimension T1_image.nii.gz lesion_mask.nii.gz output_lesion_filled.nii.gz" << std::endl;
-  
+
       if( argc >= 2 &&
           ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
         {
@@ -268,7 +268,7 @@ namespace ants
         }
       return EXIT_FAILURE;
       }
-  
+
       switch( atoi( argv[1] ) )
         {
         case 2:
@@ -285,6 +285,6 @@ namespace ants
           std::cout << "Unsupported dimension" << std::endl;
           return EXIT_FAILURE;
         }
-     return EXIT_SUCCESS;    
+     return EXIT_SUCCESS;
   }//int LesionFilling std::vector
 }//namespace ants

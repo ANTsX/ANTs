@@ -66,7 +66,7 @@ static bool ComposeMultiTransform_ParseInput(int argc, char * *argv, char *& out
     ind++;
     }
 
-//    if (reference_image_filename == NULL) {
+//    if (reference_image_filename == ITK_NULLPTR) {
 //        std::cout << "the reference image file (-R) must be given!!!"
 //        << std::endl;
 //        return false;
@@ -276,6 +276,9 @@ void ComposeMultiAffine(char *output_affine_txt,
       typename TranWriterType::Pointer tran_writer = TranWriterType::New();
       tran_writer->SetFileName(output_affine_txt);
       tran_writer->SetInput(aff_output);
+#if ITK_VERSION_MAJOR >= 5
+      tran_writer->SetUseCompression(true);
+#endif
       tran_writer->Update();
       }
     }
@@ -284,7 +287,7 @@ void ComposeMultiAffine(char *output_affine_txt,
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ComposeMultiTransform( std::vector<std::string> args, std::ostream* /*out_stream = NULL */)
+int ComposeMultiTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -361,7 +364,7 @@ private:
     }
 
   TRAN_OPT_QUEUE opt_queue;
-  //    char *moving_image_filename = NULL;
+  //    char *moving_image_filename = ITK_NULLPTR;
   char *output_image_filename = ITK_NULLPTR;
   char *reference_image_filename = ITK_NULLPTR;
 

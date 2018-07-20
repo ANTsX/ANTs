@@ -269,8 +269,8 @@ public:
                                                          GetInverseDisplacementField() );
       FixedInverseDisplacementDuplicator->Update();
 
-      myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetModifiableOutput() );
-      myFixedToMiddleTransform->SetInverseDisplacementField( FixedInverseDisplacementDuplicator->GetModifiableOutput() );
+      myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetOutput() );
+      myFixedToMiddleTransform->SetInverseDisplacementField( FixedInverseDisplacementDuplicator->GetOutput() );
 
       // copy MovingToMiddleTransform
       typename DisplacementFieldDuplicatorType::Pointer MovingDisplacementDuplicator =
@@ -288,8 +288,8 @@ public:
                                                           GetInverseDisplacementField() );
       MovingInverseDisplacementDuplicator->Update();
 
-      myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetModifiableOutput() );
-      myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetModifiableOutput() );
+      myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetOutput() );
+      myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetOutput() );
 
       // Based on SyN Registration implementation, fixed composite and moving composite transforms are generated to
       // compute the metric value at each iteration.
@@ -413,8 +413,8 @@ public:
     disInverseDuplicator->Update();
 
     typename DisplacementFieldTransformType::Pointer outputTransformReadyToUse = DisplacementFieldTransformType::New();
-    outputTransformReadyToUse->SetDisplacementField( disDuplicator->GetModifiableOutput() );
-    outputTransformReadyToUse->SetInverseDisplacementField( disInverseDuplicator->GetModifiableOutput() );
+    outputTransformReadyToUse->SetDisplacementField( disDuplicator->GetOutput() );
+    outputTransformReadyToUse->SetInverseDisplacementField( disInverseDuplicator->GetOutput() );
 
     // Now add this updated transform to the composite transform including the initial trnasform
     typedef typename TFilter::InitialTransformType InitialTransformType;
@@ -451,19 +451,24 @@ public:
      To prevent: "Iter1 Iter10 Iter2 Iter20" we use the following style.
      Then the order is: "Iter1 Iter2 ... Iters10 ... Itert20"
     */
-    if( curIter > 9 )
+	if( curIter < 10 )
       {
-      currentFileName << "_Iters" << curIter << ".nii.gz";
+      currentFileName << "_Iter000" << curIter << ".nii.gz";
       }
-    else if( curIter > 19 )
+    else if( curIter < 100 )
       {
-      currentFileName << "_Itert" << curIter << ".nii.gz";
+      currentFileName << "_Iter00" << curIter << ".nii.gz";
+      }
+    else if( curIter < 1000 )
+      {
+      currentFileName << "_Iter0" << curIter << ".nii.gz";
       }
     else
       {
       currentFileName << "_Iter" << curIter << ".nii.gz";
       }
     std::cout << "*"; // The star befor each DIAGNOSTIC shows that its output is writtent out.
+    std::cout << currentFileName.str() << std::endl; // The star befor each DIAGNOSTIC shows that its output is writtent out.
 
     typedef itk::ImageFileWriter<MovingImageType> WarpedImageWriterType;
     typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();

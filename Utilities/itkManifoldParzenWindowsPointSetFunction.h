@@ -122,7 +122,7 @@ public:
       }
     else
       {
-      return NULL;
+      return nullptr;
       }
     this->Modified();
   }

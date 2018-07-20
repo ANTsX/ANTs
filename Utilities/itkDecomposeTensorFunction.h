@@ -73,7 +73,7 @@ public:
   RealType EvaluateDeterminant( InputMatrixType & );
 
   DecomposeTensorFunction();
-  virtual ~DecomposeTensorFunction()
+  virtual ~DecomposeTensorFunction() ITK_OVERRIDE
   {
   }
 

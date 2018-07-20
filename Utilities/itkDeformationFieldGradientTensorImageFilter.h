@@ -89,7 +89,7 @@ public:
    * pipeline execution model.
    *
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-  virtual void GenerateInputRequestedRegion() throw( InvalidRequestedRegionError ) ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() throw( InvalidRequestedRegionError ) ITK_OVERRIDE;
 
   itkSetClampMacro( Order, unsigned int, 1, 2 );
   itkGetConstReferenceMacro( Order, unsigned int );
@@ -111,7 +111,7 @@ public:
 
 protected:
   DeformationFieldGradientTensorImageFilter();
-  virtual ~DeformationFieldGradientTensorImageFilter() {}
+  virtual ~DeformationFieldGradientTensorImageFilter() ITK_OVERRIDE {}
 
   /** Do any necessary casting/copying of the input data.  Input pixel types
      whose value types are not real number types must be cast to real number

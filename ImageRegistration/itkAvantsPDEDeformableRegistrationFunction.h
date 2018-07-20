@@ -224,7 +224,7 @@ public:
     return update * this->m_GradientStep;
   }
 
-  virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
+  VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
                                    void * /* globalData */,
                                    const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) ITK_OVERRIDE
   {
@@ -318,7 +318,7 @@ protected:
     this->m_RobustnessParameter = -1.e12;
   }
 
-  ~AvantsPDEDeformableRegistrationFunction()
+  virtual ~AvantsPDEDeformableRegistrationFunction() ITK_OVERRIDE
   {
   }
 

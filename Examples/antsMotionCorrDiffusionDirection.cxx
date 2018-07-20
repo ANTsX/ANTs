@@ -254,7 +254,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
             directionArray(i-2,j) = schemeMatrix(i-2,j);
           }
       }
-    
+
     }
 
   bool transposeArray = true;
@@ -330,7 +330,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
      std::cout << "Can't read reference image " << physicalName << std::endl;
      return EXIT_FAILURE;
    }
- if (imageIO->GetNumberOfDimensions() != ImageDimension) 
+ if (imageIO->GetNumberOfDimensions() != ImageDimension)
    {
      std::cout << "Reference image must be 3D " << std::endl;
      return EXIT_FAILURE;
@@ -382,7 +382,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
     AffineTransformType::Pointer directionTransform = AffineTransformType::New();
     AffineTransformType::ParametersType params;
 
-    if (nTransformParams == 6) { 
+    if (nTransformParams == 6) {
       RigidTransformType::Pointer rigid = RigidTransformType::New();
       RigidTransformType::ParametersType rParams;
 
@@ -395,7 +395,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
       affineTransform->SetMatrix( rigid->GetMatrix() );
       affineTransform->SetTranslation( rigid->GetTranslation() );
     }
-    else if (nTransformParams == 12) { 
+    else if (nTransformParams == 12) {
       params.SetSize( nTransformParams );
       for ( unsigned int t=0; t<nTransformParams; t++ )
         {
@@ -571,7 +571,7 @@ void antsMotionCorrDiffusionDirectionInitializeCommandLineOptions( itk::ants::Co
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsMotionCorrDiffusionDirection( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
+int antsMotionCorrDiffusionDirection( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

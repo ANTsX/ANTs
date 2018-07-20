@@ -1,18 +1,15 @@
-#include "antsUtilities.h"
-#include <algorithm>
-
 #include "itkCSVArray2DDataObject.h"
 #include "itkCSVArray2DFileReader.h"
 #include "itkCSVNumericObjectFileWriter.h"
-#include "itkHausdorffDistanceImageFilter.h"
 #include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
-#include "itkSignedMaurerDistanceMapImageFilter.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <vector>
+
+#include "antsUtilities.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {
@@ -40,16 +37,15 @@ int LabelOverlapMeasures( int argc, char * argv[] )
   typedef unsigned int                          PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
-  typedef itk::ImageFileReader<ImageType> ReaderType;
-  typename ReaderType::Pointer reader1 = ReaderType::New();
-  reader1->SetFileName( argv[2] );
-  typename ReaderType::Pointer reader2 = ReaderType::New();
-  reader2->SetFileName( argv[3] );
+  typename ImageType::Pointer sourceImage = ImageType::New();
+  ReadImage<ImageType>( sourceImage, argv[2] );
+  typename ImageType::Pointer targetImage = ImageType::New();
+  ReadImage<ImageType>( targetImage, argv[3] );
 
   typedef itk::LabelOverlapMeasuresImageFilter<ImageType> FilterType;
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetSourceImage( reader1->GetOutput() );
-  filter->SetTargetImage( reader2->GetOutput() );
+  filter->SetSourceImage( sourceImage );
+  filter->SetTargetImage( targetImage );
   filter->Update();
 
   typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
@@ -181,7 +177,7 @@ int LabelOverlapMeasures( int argc, char * argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int LabelOverlapMeasures( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
+int LabelOverlapMeasures( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

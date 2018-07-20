@@ -59,12 +59,12 @@ Optional arguments:
                                                 This produces a segmentation image with K classes, ordered by mean
                                                 intensity in increasing order. With this option, you can control
                                                 K and tell the script which classes represent CSF, gray and white matter. 
-                                                Format (K, csfLabel, gmLabel, wmLabel)
+                                                Format (\"KxcsfLabelxgmLabelxwmLabel\")
                                                 Examples:   
-                                                         -c 3,1,2,3 for T1 with K=3, CSF=1, GM=2, WM=3 (default)
-                                                         -c 3,3,2,1 for T2 with K=3, CSF=3, GM=2, WM=1
-                                                         -c 3,1,3,2 for FLAIR with K=3, CSF=1 GM=3, WM=2
-                                                         -c 4,4,2,3 uses K=4, CSF=4, GM=2, WM=3
+                                                         -c 3x1x2x3 for T1 with K=3, CSF=1, GM=2, WM=3 (default)
+                                                         -c 3x3x2x1 for T2 with K=3, CSF=3, GM=2, WM=1
+                                                         -c 3x1x3x2 for FLAIR with K=3, CSF=1 GM=3, WM=2
+                                                         -c 4x4x2x3 uses K=4, CSF=4, GM=2, WM=3
 
      -f:  Brain extraction registration mask    Mask used for registration to limit the metric computation to
                                                 a specific region.
@@ -224,7 +224,18 @@ else
        ANATOMICAL_IMAGES[${#ANATOMICAL_IMAGES[@]}]=$OPTARG
        ;;
           c) #k-means segmentation params
-       kmeansParamsArr=(${OPTARG//,/ })
+       # Check conventional ANTs vector designation (i.e.,  'x')
+       kmeansParamsArr=(${OPTARG//x/ })  
+       if [ ${#kmeansParamsArr[@]} -ne 4 ];
+         then
+           # Check alternative form
+           kmeansParamsArr=(${OPTARG//,/ })  
+           if [ ${#kmeansParamsArr[@]} -ne 4 ];
+             then
+               echo "ERROR:  unrecognized kmeans option (-c)."
+               exit 1
+             fi
+         fi
        ATROPOS_NUM_CLASSES=${kmeansParamsArr[0]}
        ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[${ATROPOS_NUM_CLASSES}]"
        ATROPOS_CSF_CLASS_LABEL=${kmeansParamsArr[1]}
@@ -451,9 +462,10 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
 #             exe_initial_align="${ANTSPATH}/antsAffineInitializer ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} ${EXTRACTION_INITIAL_AFFINE_MOVING} ${EXTRACTION_INITIAL_AFFINE} 15 0.1 0 10"
           exe_initial_align="${ANTSPATH}/antsAI -d ${DIMENSION} -v 1"
-          exe_initial_align="${exe_initial_align} -m Mattes[${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.25]"
+          exe_initial_align="${exe_initial_align} -m Mattes[${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2]"
           exe_initial_align="${exe_initial_align} -t Affine[0.1]"
-          exe_initial_align="${exe_initial_align} -s [15,0.1]"
+          exe_initial_align="${exe_initial_align} -s [20,0.12]"
+          exe_initial_align="${exe_initial_align} -g [40,0x40x40]"
           exe_initial_align="${exe_initial_align} -p 0"
           exe_initial_align="${exe_initial_align} -c 10"
           exe_initial_align="${exe_initial_align} -o ${EXTRACTION_INITIAL_AFFINE}"

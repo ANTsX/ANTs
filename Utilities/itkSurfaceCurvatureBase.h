@@ -159,8 +159,8 @@ public:
 
   itkGetMacro(Normal, FixedVectorType);
 
-  itkGetMacro(Sigma, RealType);
   itkGetMacro(MeanKappa, RealType);
+  itkGetMacro(Sigma, RealType);
   itkSetMacro(Sigma, RealType);
 
   itkGetMacro(UseGeodesicNeighborhood, bool);
@@ -195,7 +195,7 @@ public:
 protected:
 
   SurfaceCurvatureBase();
-  virtual ~SurfaceCurvatureBase()
+  virtual ~SurfaceCurvatureBase() ITK_OVERRIDE
   {
   };
 

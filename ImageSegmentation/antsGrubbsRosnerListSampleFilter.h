@@ -86,11 +86,11 @@ public:
 //   itkGetConstMacro( Outliers, InstanceIdentifierContainerType );
 protected:
   GrubbsRosnerListSampleFilter();
-  virtual ~GrubbsRosnerListSampleFilter();
+  virtual ~GrubbsRosnerListSampleFilter() ITK_OVERRIDE;
 
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
-  virtual void GenerateData() ITK_OVERRIDE;
+  void GenerateData() ITK_OVERRIDE;
 
 private:
   GrubbsRosnerListSampleFilter( const Self & ); // purposely not implemented

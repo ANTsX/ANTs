@@ -162,7 +162,7 @@ public:
 
 protected:
   AdaptiveNonLocalMeansDenoisingImageFilter();
-  ~AdaptiveNonLocalMeansDenoisingImageFilter() {}
+  virtual ~AdaptiveNonLocalMeansDenoisingImageFilter() ITK_OVERRIDE {}
 
   void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
 
@@ -174,8 +174,8 @@ protected:
 
 private:
 
-  AdaptiveNonLocalMeansDenoisingImageFilter( const Self& ) ITK_DELETE_FUNCTION;
-  void operator=( const Self& ) ITK_DELETE_FUNCTION;
+  AdaptiveNonLocalMeansDenoisingImageFilter( const Self& ) ITK_DELETED_FUNCTION;
+  void operator=( const Self& ) ITK_DELETED_FUNCTION;
 
   RealType CalculateCorrectionFactor( RealType );
 

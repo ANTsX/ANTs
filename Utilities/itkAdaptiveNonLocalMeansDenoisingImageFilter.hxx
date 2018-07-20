@@ -58,6 +58,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
   this->m_RicianBiasImage = ITK_NULLPTR;
 
   this->m_NeighborhoodRadiusForLocalMeanAndVariance.Fill( 1 );
+  this->DynamicMultiThreadingOff();
 }
 
 template<typename TInputImage, typename TOutputImage, typename TMaskImage>
@@ -287,13 +288,13 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
             {
             IndexType searchNeighborhoodPatchIndex = neighborhoodIndex + neighborhoodPatchOffsetList[n];
             IndexType centerNeighborhoodPatchIndex = centerIndex + neighborhoodPatchOffsetList[n];
-            if( ! targetImageRegion.IsInside( searchNeighborhoodPatchIndex ) )
+            if( ! targetImageRegion.IsInside( searchNeighborhoodPatchIndex ) || ! targetImageRegion.IsInside( centerNeighborhoodPatchIndex ) )
               {
               continue;
               }
-            RealType distance1 = inputImage->GetPixel( searchNeighborhoodPatchIndex ) - 
+            RealType distance1 = inputImage->GetPixel( searchNeighborhoodPatchIndex ) -
                                  this->m_MeanImage->GetPixel( searchNeighborhoodPatchIndex );
-            RealType distance2 = inputImage->GetPixel( centerNeighborhoodPatchIndex ) - 
+            RealType distance2 = inputImage->GetPixel( centerNeighborhoodPatchIndex ) -
                                  this->m_MeanImage->GetPixel( centerNeighborhoodPatchIndex );
             averageDistance += vnl_math_sqr( distance1 - distance2 );
             count += 1.0;
@@ -374,7 +375,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
         estimate += ( weightedAverageIntensities[n] / sumOfWeights );
 
         outputImage->SetPixel( neighborhoodPatchIndex, estimate );
-        this->m_ThreadContributionCountImage->SetPixel( neighborhoodPatchIndex, 
+        this->m_ThreadContributionCountImage->SetPixel( neighborhoodPatchIndex,
          this->m_ThreadContributionCountImage->GetPixel( neighborhoodPatchIndex ) + 1 );
         }
       }

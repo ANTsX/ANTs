@@ -744,7 +744,7 @@ int ImageSetStatistics(int argc, char *argv[])
   typename ImageType::Pointer meanimage;
   std::vector<typename ImageType::Pointer> imagestack;
   imagestack.resize(filecount1);
-  //  imagestack.fill(NULL);
+  //  imagestack.fill(ITK_NULLPTR);
   std::vector<std::string> filenames(filecount1);
   typename ImageType::Pointer StatImage;
   unsigned int  ct = 0;
@@ -959,7 +959,7 @@ int ImageSetStatistics(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ImageSetStatistics( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int ImageSetStatistics( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

@@ -28,6 +28,9 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
   transform_writer = itk::TransformFileWriter::New();
   transform_writer->SetFileName(filename);
   transform_writer->SetInput(transform);
+#if ITK_VERSION_MAJOR >= 5
+  transform_writer->SetUseCompression(true);
+#endif
 
   try
     {
@@ -367,7 +370,7 @@ int LandmarkBasedTransformInitializerBA(int, char * argv[])
   return EXIT_SUCCESS;
 }
 
-int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = NULL */)
+int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

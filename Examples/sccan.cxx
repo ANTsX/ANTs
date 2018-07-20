@@ -427,7 +427,7 @@ int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
   std::string funcName = std::string("matrixOperation");
 
   typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typename ImageType::Pointer outputImage = NULL;
+  typename ImageType::Pointer outputImage = ITK_NULLPTR;
 
   //   option->SetUsageOption( 2, "multires_matrix_invert[list.txt,maskhighres.nii.gz,masklowres.nii.gz,matrix.mhd]" );
 
@@ -2463,7 +2463,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int sccan( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
+int sccan( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

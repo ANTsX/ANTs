@@ -87,18 +87,18 @@ public:
 
 protected:
   SplitAlternatingTimeSeriesImageFilter();
-  ~SplitAlternatingTimeSeriesImageFilter() {}
+  virtual ~SplitAlternatingTimeSeriesImageFilter() ITK_OVERRIDE {}
   void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
 
   /** Overrides GenerateOutputInformation() in order to produce
    * an image which has a different information than the first input.
    * \sa ProcessObject::GenerateOutputInformaton() */
-  virtual void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() ITK_OVERRIDE;
 
   /** SplitAlternatingTimeSeriesImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
-  virtual void ThreadedGenerateData(const OutputImageRegionType &
+  void ThreadedGenerateData(const OutputImageRegionType &
                                     outputRegionForThread, ThreadIdType threadId) ITK_OVERRIDE;
 
 private:

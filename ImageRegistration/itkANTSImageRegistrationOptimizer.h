@@ -329,7 +329,7 @@ public:
       }
   }
 
-  void SmoothDisplacementFieldGauss(DisplacementFieldPointer field = NULL, TReal sig = 0.0, bool useparamimage = false,
+  void SmoothDisplacementFieldGauss(DisplacementFieldPointer field = ITK_NULLPTR, TReal sig = 0.0, bool useparamimage = false,
                                     unsigned int lodim = ImageDimension);
 
 //  TReal = smoothingparam, int = maxdim to smooth
@@ -340,13 +340,13 @@ public:
 
   DisplacementFieldPointer ComputeUpdateFieldAlternatingMin(DisplacementFieldPointer fixedwarp,
                                                             DisplacementFieldPointer movingwarp,
-                                                            PointSetPointer  fpoints = NULL,  PointSetPointer wpoints =
-                                                              NULL, DisplacementFieldPointer updateFieldInv = NULL,
+                                                            PointSetPointer  fpoints = ITK_NULLPTR,  PointSetPointer wpoints =
+                                                              ITK_NULLPTR, DisplacementFieldPointer updateFieldInv = ITK_NULLPTR,
                                                             bool updateenergy = true);
 
   DisplacementFieldPointer ComputeUpdateField(DisplacementFieldPointer fixedwarp, DisplacementFieldPointer movingwarp,
-                                              PointSetPointer  fpoints = NULL,  PointSetPointer wpoints = NULL,
-                                              DisplacementFieldPointer updateFieldInv = NULL, bool updateenergy = true);
+                                              PointSetPointer  fpoints = ITK_NULLPTR,  PointSetPointer wpoints = ITK_NULLPTR,
+                                              DisplacementFieldPointer updateFieldInv = ITK_NULLPTR, bool updateenergy = true);
 
   TimeVaryingVelocityFieldPointer ExpandVelocity()
   {
@@ -437,7 +437,7 @@ public:
 
   ImagePointer SubsampleImage( ImagePointer, RealType, typename ImageType::PointType outputOrigin,
                                typename ImageType::DirectionType outputDirection,
-                               AffineTransformPointer aff = NULL);
+                               AffineTransformPointer aff = ITK_NULLPTR);
 
   DisplacementFieldPointer SubsampleField( DisplacementFieldPointer field, typename ImageType::SizeType
                                            targetSize, typename ImageType::SpacingType targetSpacing )
@@ -769,8 +769,8 @@ public:
 
   /** Base optimization functions */
   // AffineTransformPointer AffineOptimization(AffineTransformPointer &aff_init, OptAffine &affine_opt); // {return
-  // NULL;}
-  AffineTransformPointer AffineOptimization(OptAffineType & affine_opt);  // {return NULL;}
+  // ITK_NULLPTR;}
+  AffineTransformPointer AffineOptimization(OptAffineType & affine_opt);  // {return ITK_NULLPTR;}
 
   std::string GetTransformationModel()
   {
@@ -1704,22 +1704,22 @@ public:
   }
 
   void DiffeomorphicExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints =
-                                            NULL, PointSetPointer mpoints = NULL);
+                                            ITK_NULLPTR, PointSetPointer mpoints = ITK_NULLPTR);
 
-  void GreedyExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
-                                   PointSetPointer mpoints = NULL);
+  void GreedyExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
+                                   PointSetPointer mpoints = ITK_NULLPTR);
 
-  void SyNRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
-                             PointSetPointer mpoints = NULL);
+  void SyNRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
+                             PointSetPointer mpoints = ITK_NULLPTR);
 
-  void SyNExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
-                                PointSetPointer mpoints = NULL);
+  void SyNExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
+                                PointSetPointer mpoints = ITK_NULLPTR);
 
-  void SyNTVRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
-                               PointSetPointer mpoints = NULL);
+  void SyNTVRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
+                               PointSetPointer mpoints = ITK_NULLPTR);
 
-  void DiReCTUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
-                    PointSetPointer mpoints = NULL);
+  void DiReCTUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
+                    PointSetPointer mpoints = ITK_NULLPTR);
 
   /** allows one to copy or add a field to a time index within the velocity
 * field
@@ -2091,7 +2091,7 @@ protected:
   }
 
   ANTSImageRegistrationOptimizer();
-  virtual ~ANTSImageRegistrationOptimizer()
+  virtual ~ANTSImageRegistrationOptimizer() ITK_OVERRIDE
   {
   }
 

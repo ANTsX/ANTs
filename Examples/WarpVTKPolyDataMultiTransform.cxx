@@ -81,7 +81,7 @@ static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, cha
   input_vtk_filename = argv[0];
   output_vtk_filename = argv[1];
 
-  reference_image_filename = NULL;
+  reference_image_filename = ITK_NULLPTR;
 
   int ind = 2;
   while( ind < argc )
@@ -126,7 +126,7 @@ static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, cha
     ind++;
     }
 
-//    if (reference_image_filename == NULL) {
+//    if (reference_image_filename == ITK_NULLPTR) {
 //        std::cout << "the reference image file (-R) must be given!!!"
 //        << std::endl;
 //        return false;
@@ -478,6 +478,9 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
   typename TranWriterType::Pointer tran_writer = TranWriterType::New();
   tran_writer->SetFileName(output_affine_txt);
   tran_writer->SetInput(aff_output);
+#if ITK_VERSION_MAJOR >= 5
+  tran_writer->SetUseCompression(true);
+#endif
   tran_writer->Update();
 
   std::cout << "wrote file to : " << output_affine_txt << std::endl;
@@ -540,10 +543,10 @@ private:
     }
 
   TRAN_OPT_QUEUE opt_queue;
-  //    char *moving_image_filename = NULL;
-  char *input_vtk_filename = NULL;
-  char *output_vtk_filename = NULL;
-  char *reference_image_filename = NULL;
+  //    char *moving_image_filename = ITK_NULLPTR;
+  char *input_vtk_filename = ITK_NULLPTR;
+  char *output_vtk_filename = ITK_NULLPTR;
+  char *reference_image_filename = ITK_NULLPTR;
 
   int  kImageDim = atoi(argv[1]);
 
@@ -556,7 +559,7 @@ private:
       {
       case DEFORMATION_FILE:
         {
-        if( reference_image_filename == NULL )
+        if( reference_image_filename == ITK_NULLPTR )
           {
           std::cout << "the reference image file (-R) must be given!!!"
                    << std::endl;

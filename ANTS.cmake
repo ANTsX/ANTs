@@ -42,7 +42,7 @@ message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\""
 
 
 # Set up ITK
-find_package(ITK 4 REQUIRED)
+find_package(ITK 5 REQUIRED)
 include(${ITK_USE_FILE})
 
 
@@ -68,7 +68,7 @@ if(USE_VTK)
    vtkImagingGeneral
    vtkRenderingAnnotation
    )
-  else(VTK_VERSION_MAJOR GREATER 6)
+  else()
      find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL
      vtkCommonCore
      vtkCommonDataModel
@@ -80,16 +80,16 @@ if(USE_VTK)
      vtkImagingStencil
      vtkImagingGeneral
      vtkRenderingAnnotation)
-  endif(VTK_VERSION_MAJOR GREATER 6)
+  endif()
 
   if(VTK_FOUND)
     include(${VTK_USE_FILE})
     include_directories(${VTK_INCLUDE_DIRS})
     set(INIT_VTK_LIBRARIES ${VTK_LIBRARIES})
-  else(VTK_FOUND)
+  else()
      message("Cannot build some programs without VTK.  Please set VTK_DIR if you need these programs.")
-  endif(VTK_FOUND)
-endif(USE_VTK)
+  endif()
+endif()
 
 # With MS compilers on Win64, we need the /bigobj switch, else generated
 # code results in objects with number of sections exceeding object file
@@ -106,11 +106,11 @@ if (ITK_USE_FFTWD OR ITK_USE_FFTWF)
   if(ITK_USE_SYSTEM_FFTW)
       find_package( FFTW )
       link_directories(${FFTW_LIBDIR})
-  else(ITK_USE_SYSTEM_FFTW)
+  else()
       link_directories(${ITK_DIR}/fftw/lib)
       include_directories(${ITK_DIR}/fftw/include)
-  endif(ITK_USE_SYSTEM_FFTW)
-endif(ITK_USE_FFTWD OR ITK_USE_FFTWF)
+  endif()
+endif()
 
 # These are configure time options that specify which
 # subset of tests should be run

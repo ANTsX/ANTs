@@ -60,14 +60,14 @@ FEMConformalMap<TSurface, TImage, TDimension>
   m_NorthPole = 0;
   m_SouthPole = 1;
 
-  m_VtkSurfaceMesh = NULL;
+  m_VtkSurfaceMesh = ITK_NULLPTR;
   m_Pi = 3.14159265358979323846;
   m_ReadFromFile = true;
   m_Debug = false;
   m_FindingRealSolution = true;
-  m_SurfaceMesh = NULL;
-  m_Image = NULL;
-  m_SphereImage = NULL;
+  m_SurfaceMesh = ITK_NULLPTR;
+  m_Image = ITK_NULLPTR;
+  m_SphereImage = ITK_NULLPTR;
   for( int i = 0; i < 7; i++ )
     {
     m_PoleElementsGN[i] = 0;
@@ -1196,7 +1196,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   ::std::cout << " start pts ";
   int idx = 0;
 
-  vtkDataArray* scs = NULL;
+  vtkDataArray* scs = ITK_NULLPTR;
   if( m_VtkSurfaceMesh )
     {
     vtkPointData *pd = m_VtkSurfaceMesh->GetPointData();

@@ -84,17 +84,17 @@ public:
   /**
    * Evaluate Jacobian
    */
-  virtual MatrixType Evaluate( const PointType & point ) const ITK_OVERRIDE
+  MatrixType Evaluate( const PointType & point ) const ITK_OVERRIDE
   {
     return this->EvaluateJacobian( point );
   }
 
-  virtual MatrixType EvaluateAtIndex( const IndexType & idx ) const ITK_OVERRIDE
+  MatrixType EvaluateAtIndex( const IndexType & idx ) const ITK_OVERRIDE
   {
     return this->EvaluateJacobianAtIndex( idx );
   }
 
-  virtual MatrixType EvaluateAtContinuousIndex( const ContinuousIndexType & idx ) const ITK_OVERRIDE
+  MatrixType EvaluateAtContinuousIndex( const ContinuousIndexType & idx ) const ITK_OVERRIDE
   {
     return this->EvaluateJacobianAtContinuousIndex( idx );
   }
@@ -250,7 +250,7 @@ public:
 
 protected:
   VectorFieldGradientImageFunction();
-  virtual ~VectorFieldGradientImageFunction()
+  virtual ~VectorFieldGradientImageFunction() ITK_OVERRIDE
   {
   }
 

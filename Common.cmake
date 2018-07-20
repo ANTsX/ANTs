@@ -25,20 +25,20 @@ set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
 ######################################################################################################
 # BA - add this stuff to help installation of ANTsR
-# SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-# SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-# SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-# SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-# LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-# IF("${isSystemDir}" STREQUAL "-1")
-#   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-# ENDIF("${isSystemDir}" STREQUAL "-1")
+# set(CMAKE_SKIP_BUILD_RPATH  FALSE)
+# set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+# set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+# set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+# list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+# if("${isSystemDir}" STREQUAL "-1")
+#   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+# endif("${isSystemDir}" STREQUAL "-1")
 #####################################################################################################
 
-set(USE_ITKv4 ON)
-set(ITK_VERSION_MAJOR 4 CACHE STRING "Choose the expected ITK major version to build ANTS only version 4 allowed.")
+set(USE_ITKv5 ON)
+set(ITK_VERSION_MAJOR 5 CACHE STRING "Choose the expected ITK major version to build ANTS only version 5 allowed.")
 # Set the possible values of ITK major version for cmake-gui
-set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "4")
+set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "5")
 set(expected_ITK_VERSION_MAJOR ${ITK_VERSION_MAJOR})
 if(${ITK_VERSION_MAJOR} VERSION_LESS ${expected_ITK_VERSION_MAJOR})
   # Note: Since ITKv3 doesn't include a ITKConfigVersion.cmake file, let's check the version
@@ -158,4 +158,3 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
   endif()
 endif()
-

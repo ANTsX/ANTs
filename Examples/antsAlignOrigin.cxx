@@ -128,6 +128,9 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
   typename itk::TransformFileWriter::Pointer transform_writer = itk::TransformFileWriter::New();
   transform_writer->SetFileName( outputTransform );
   transform_writer->SetInput( transform );
+#if ITK_VERSION_MAJOR >= 5
+  transform_writer->SetUseCompression(true);
+#endif
   transform_writer->Update();
 
   return EXIT_SUCCESS;
@@ -216,7 +219,7 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsAlignOrigin( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int antsAlignOrigin( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

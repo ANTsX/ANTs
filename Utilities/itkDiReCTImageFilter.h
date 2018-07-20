@@ -17,6 +17,8 @@
 #include "itkImageToImageFilter.h"
 
 #include "itkVector.h"
+#include <vnl/vnl_sparse_matrix.h>
+
 
 namespace itk
 {
@@ -72,6 +74,7 @@ public:
   typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
   typedef typename VectorType::ValueType            VectorValueType;
   typedef typename DisplacementFieldType::PointType PointType;
+  typedef vnl_sparse_matrix<RealType>               SparseMatrixType;
 
   /**
    * Set the segmentation image.  The segmentation image is a labeled image
@@ -156,6 +159,13 @@ public:
   itkGetConstMacro( MaximumNumberOfIterations, unsigned int );
 
   /**
+   * Set/Get the sigma for time regularization.
+   */
+  itkSetMacro( TimeSigma, RealType );
+  itkGetConstMacro( TimeSigma, RealType );
+
+
+  /**
    * Set/Get the maximum number of inversion iterations.  Default = 20.
    */
   itkSetMacro( MaximumNumberOfInvertDisplacementFieldIterations, unsigned int );
@@ -233,12 +243,33 @@ public:
   itkSetMacro( NumberOfIntegrationPoints, unsigned int  );
   itkGetConstMacro( NumberOfIntegrationPoints, unsigned int );
 
+
+  /**
+   * Set/Get the option to restrict deformation along the last dimension.  Default = false.
+   */
+  itkSetMacro( RestrictDeformation, bool  );
+  itkGetConstMacro( RestrictDeformation, bool  );
+  itkBooleanMacro( RestrictDeformation );
+
+  /**
+   * Set/Get the temporal spacing values.  Default = no special value.
+   */
+  itkSetMacro( TimeSpacing, std::vector<RealType>  );
+  itkGetConstMacro( TimeSpacing, std::vector<RealType>  );
+
   /**
    * Set/Get the option to use B-spline smoothing.  Default = false.
    */
   itkSetMacro( UseBSplineSmoothing, bool  );
   itkGetConstMacro( UseBSplineSmoothing, bool  );
   itkBooleanMacro( UseBSplineSmoothing );
+
+  /**
+   * Set/Get the option to use masked smoothing.  Default = false.
+   */
+  itkSetMacro( UseMaskedSmoothing, bool  );
+  itkGetConstMacro( UseMaskedSmoothing, bool  );
+  itkBooleanMacro( UseMaskedSmoothing );
 
   /**
    * Get the number of elapsed iterations.  This is a helper function for
@@ -261,7 +292,7 @@ public:
 protected:
 
   DiReCTImageFilter();
-  virtual ~DiReCTImageFilter();
+  virtual ~DiReCTImageFilter() ITK_OVERRIDE;
 
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
@@ -272,6 +303,17 @@ protected:
   void GenerateData() ITK_OVERRIDE;
 
 private:
+
+  /**
+   * Private function to determine if a voxel is in the mask.
+   */
+  bool TestMask( IndexType index )
+    {
+    return(
+      this->GetSegmentationImage()->GetPixel( index ) == this->m_GrayMatterLabel |
+      this->GetSegmentationImage()->GetPixel( index ) == this->m_WhiteMatterLabel
+    );
+    }
 
   /**
    * Private function for extracting regions (e.g. gray or white).
@@ -306,6 +348,11 @@ private:
   /**
    * Private function for smoothing the deformation field.
    */
+  DisplacementFieldPointer MaskedGaussianSmoothDisplacementField( const DisplacementFieldType * );
+
+  /**
+   * Private function for smoothing the deformation field.
+   */
   DisplacementFieldPointer BSplineSmoothDisplacementField( const DisplacementFieldType *, const RealType );
 
   /**
@@ -335,6 +382,12 @@ private:
   RealImagePointer  m_ThicknessPriorImage;
 
   bool m_UseBSplineSmoothing;
+  bool m_UseMaskedSmoothing;
+  bool m_RestrictDeformation;
+  SparseMatrixType m_SparseMatrix;
+  RealImagePointer m_SparseMatrixIndexImage;
+  std::vector< RealType > m_TimeSpacing;
+  RealType m_TimeSigma;
 
 };
 } // end namespace itk

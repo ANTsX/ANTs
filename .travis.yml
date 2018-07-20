@@ -22,8 +22,12 @@ addons:
       - cmake-data
 
 before_install:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ];  then  CMAKE_INSTALLER=install-cmake.sh && curl -sSL https://cmake.org/files/v3.11/cmake-3.11.3-Linux-x86_64.sh -o ${CMAKE_INSTALLER} &&  chmod +x ${CMAKE_INSTALLER} && sudo ./${CMAKE_INSTALLER} --prefix=/usr/local --skip-license; fi
+  - alias cmake=/usr/local/bin/cmake
+  - export PATH=/usr/local/bin/cmake/bin:/usr/local/bin:${PATH}
   - if [ "$TRAVIS_OS_NAME" == "osx" ];  then echo "need cmake 3.2"; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update && brew install ccache; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew upgrade cmake; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export PATH="/usr/local/opt/ccache/libexec:$PATH"; fi
   - mkdir antsbin
   - cd antsbin

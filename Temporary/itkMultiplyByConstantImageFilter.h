@@ -57,7 +57,7 @@ protected:
   {
   }
 
-  virtual ~MultiplyByConstantImageFilter()
+  virtual ~MultiplyByConstantImageFilter() ITK_OVERRIDE
   {
   }
 };

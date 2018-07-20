@@ -52,11 +52,11 @@ JensenTsallisBSplineRegistrationFunction<TFixedImage,
 
   this->m_Alpha = 2.0;
 
-//  this->m_FixedControlPointLattice = NULL;
-//  this->m_MovingControlPointLattice = NULL;
+//  this->m_FixedControlPointLattice = ITK_NULLPTR;
+//  this->m_MovingControlPointLattice = ITK_NULLPTR;
 
-  this->m_DerivativeFixedField = NULL;
-  this->m_DerivativeMovingField = NULL;
+  this->m_DerivativeFixedField = ITK_NULLPTR;
+  this->m_DerivativeMovingField = ITK_NULLPTR;
   this->m_IsPointSetMetric = true;
 
   this->m_SplineOrder = 3;

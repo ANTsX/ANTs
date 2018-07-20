@@ -173,6 +173,9 @@ int InitializeLinearTransform( int itkNotUsed( argc ), char *argv[] )
   typename itk::TransformFileWriter::Pointer transformWriter = itk::TransformFileWriter::New();
   transformWriter->SetFileName( argv[5] );
   transformWriter->SetInput( transform );
+#if ITK_VERSION_MAJOR >= 5
+  transformWriter->SetUseCompression(true);
+#endif
 
   try
     {
@@ -510,7 +513,7 @@ int InitializeBSplineTransform( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsLandmarkBasedTransformInitializer( std::vector<std::string> args, std::ostream* /*out_stream = NULL */)
+int antsLandmarkBasedTransformInitializer( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

@@ -17,7 +17,7 @@ GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
   this->m_SplineOrder = 3;
   this->m_NumberOfControlPoints.Fill( this->m_SplineOrder + 1 );
 
-//  this->m_ConfidenceImage = NULL;
+//  this->m_ConfidenceImage = ITK_NULLPTR;
 }
 
 template <class TInputImage, class TOutputImage>

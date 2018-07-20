@@ -518,7 +518,7 @@ public:
   /**
    * Get the prior label parameters.
    */
-  void GetPriorLabelParameterMap()
+  LabelParameterMapType GetPriorLabelParameterMap()
   {
     return this->m_PriorLabelParameterMap;
   }
@@ -608,7 +608,7 @@ public:
   /**
    * Set the outlier handling filter.  This takes the intensity samples from the
    * input images and modifies the sample such that the outlier effects of the
-   * sample points are removed.  Default = NULL.
+   * sample points are removed.  Default = ITK_NULLPTR.
    */
   itkSetObjectMacro( OutlierHandlingFilter, OutlierHandlingFilterType );
 
@@ -737,7 +737,7 @@ public:
 #endif
 protected:
   AtroposSegmentationImageFilter();
-  ~AtroposSegmentationImageFilter();
+  virtual ~AtroposSegmentationImageFilter() ITK_OVERRIDE;
 
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 

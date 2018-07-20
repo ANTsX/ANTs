@@ -31,6 +31,9 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
   transform_writer = itk::TransformFileWriter::New();
   transform_writer->SetFileName(filename);
   transform_writer->SetInput(transform);
+#if ITK_VERSION_MAJOR >= 5
+  transform_writer->SetUseCompression(true);
+#endif
 
   try
     {
@@ -415,7 +418,7 @@ typedef itk::Rigid2DTransform< double > TransformType;
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = NULL */)
+int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

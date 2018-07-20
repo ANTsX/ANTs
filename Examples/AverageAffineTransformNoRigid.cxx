@@ -96,7 +96,7 @@ static bool AverageAffineTransformNoRigid_ParseInput(int argc, char * *argv, cha
     ind++;
     }
 
-//    if (reference_image_filename == NULL) {
+//    if (reference_image_filename == ITK_NULLPTR) {
 //        std::cout << "the reference image file (-R) must be given!!!"
 //        << std::endl;
 //        return false;
@@ -218,6 +218,9 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
   typename TranWriterType::Pointer tran_writer = TranWriterType::New();
   tran_writer->SetFileName(output_affine_txt);
   tran_writer->SetInput(aff_output);
+#if ITK_VERSION_MAJOR >= 5
+  tran_writer->SetUseCompression(true);
+#endif
   tran_writer->Update();
 
   std::cout << "wrote file to : " << output_affine_txt << std::endl;
@@ -225,7 +228,7 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int AverageAffineTransformNoRigid( std::vector<std::string> args, std::ostream* /*out_stream = NULL */)
+int AverageAffineTransformNoRigid( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

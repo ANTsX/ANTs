@@ -30,8 +30,8 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
 
   this->m_EvaluationKNeighborhood = 50;
 
-  this->m_SamplePoints = NULL;
-  this->m_KdTreeGenerator = NULL;
+  this->m_SamplePoints = ITK_NULLPTR;
+  this->m_KdTreeGenerator = ITK_NULLPTR;
 
   this->m_RegularizationSigma = 1.0;
   this->m_KernelSigma = 1.0;

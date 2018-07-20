@@ -266,7 +266,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
     // set back.
     outputPtr->SetLargestPossibleRegion(m_OutputImageRegion);
 
-    this->SetProgress( 1.0 );
+    this->UpdateProgress( 1.0 );
     return;
     }
 

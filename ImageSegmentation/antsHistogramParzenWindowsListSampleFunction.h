@@ -74,13 +74,13 @@ public:
   itkSetMacro( NumberOfHistogramBins, unsigned int );
   itkGetConstMacro( NumberOfHistogramBins, unsigned int );
 
-  virtual void SetInputListSample( const InputListSampleType * ptr ) ITK_OVERRIDE;
+  void SetInputListSample( const InputListSampleType * ptr ) ITK_OVERRIDE;
 
-  virtual TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE;
+  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE;
 
 protected:
   HistogramParzenWindowsListSampleFunction();
-  virtual ~HistogramParzenWindowsListSampleFunction();
+  virtual ~HistogramParzenWindowsListSampleFunction() ITK_OVERRIDE;
   void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
 
   void GenerateData();

@@ -79,7 +79,7 @@ void Display( vtkPolyData *vtkMesh,
               const std::vector<float> backgroundColor,
               const std::string screenCaptureFileName,
               const bool renderScalarBar = false,
-              vtkLookupTable *scalarBarLookupTable = NULL,
+              vtkLookupTable *scalarBarLookupTable = ITK_NULLPTR,
               const std::string scalarBarTitle = std::string( "" ),
               unsigned int scalarBarNumberOfLabels = 5,
               unsigned int scalarBarWidthInPixels = 0,
@@ -204,7 +204,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
   // Read in input surface image
 
-  ImageType::Pointer inputImage = NULL;
+  ImageType::Pointer inputImage = ITK_NULLPTR;
 
   RealType defaultColorRed = 255.0;
   RealType defaultColorGreen = 255.0;
@@ -1000,7 +1000,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsSurf( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int antsSurf( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

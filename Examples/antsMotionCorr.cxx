@@ -167,7 +167,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
                                              typename ImageType::PixelType lowerScaleFunction,
                                              typename ImageType::PixelType upperScaleFunction,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
-                                             ImageType *histogramMatchSourceImage = NULL )
+                                             ImageType *histogramMatchSourceImage = ITK_NULLPTR )
 {
   bool verbose = false;
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
@@ -580,6 +580,37 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     }
 
+  bool                doHistogramMatch(true);
+  OptionType::Pointer histogramMatchOption = parser->GetOption( "use-histogram-matching" );
+  if( histogramMatchOption && histogramMatchOption->GetNumberOfFunctions() )
+    {
+    std::string histogramMatchFunction = histogramMatchOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( histogramMatchFunction );
+    if( histogramMatchFunction.compare( "0" ) == 0 || histogramMatchFunction.compare( "false" ) == 0 )
+      {
+      doHistogramMatch = false;
+      }
+    }
+
+  // Zero seed means use default behavior: registration randomizer seeds from system time
+  // and does not re-seed iterator
+  int antsRandomSeed = 0;
+  
+  itk::ants::CommandLineParser::OptionType::Pointer randomSeedOption = parser->GetOption( "random-seed" );
+  if( randomSeedOption && randomSeedOption->GetNumberOfFunctions() )
+    {
+    antsRandomSeed = parser->Convert<int>( randomSeedOption->GetFunction(0)->GetName() );
+    }
+  else
+    {
+    char* envSeed = getenv( "ANTS_RANDOM_SEED" );
+    
+    if ( envSeed != NULL )
+      {
+      antsRandomSeed = atoi( envSeed );
+      }
+    }
+  
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
   totalTimer.Start();
@@ -778,7 +809,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           if( timedim == 0 )
             {
-            if ( verbose ) std::cout << "using fixed reference image for all frames " << std::endl;
+            if ( verbose ) std::cout << "  using fixed reference image for all frames " << std::endl;
             }
           fixed_time_slice = fixedImage;
           extractRegion.SetIndex(ImageDimension, timedim );
@@ -832,11 +863,20 @@ int ants_motion( itk::ants::CommandLineParser *parser )
                                          1, 0.001, 0.999,
                                          ITK_NULLPTR );
 
+      typename FixedImageType::Pointer histogramMatchRef = ITK_NULLPTR;
+
+      if ( doHistogramMatch )
+	{
+	histogramMatchRef = preprocessFixedImage;
+	}
+
+      if ( verbose ) std::cout << "  use histogram matching " << doHistogramMatch << std::endl;
+
       typename FixedImageType::Pointer preprocessMovingImage =
         PreprocessImage<FixedImageType>( moving_time_slice,
                                          0, 1,
                                          0.001, 0.999,
-                                         preprocessFixedImage );
+                                         histogramMatchRef );
 
       typedef itk::ImageToImageMetricv4<FixedImageType, FixedImageType> MetricType;
       typename MetricType::Pointer metric;
@@ -897,6 +937,11 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         unsigned int binOption =
           parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
+
+        if( timedim == 0 )
+          {
+          if ( verbose ) std::cout << "  using the Mattes MI metric." << std::endl;
+          }
         typedef itk::MattesMutualInformationImageToImageMetricv4<FixedImageType,
                                                                  FixedImageType> MutualInformationMetricType;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
@@ -926,7 +971,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::CorrelationImageToImageMetricv4<FixedImageType, FixedImageType> corrMetricType;
         typename corrMetricType::Pointer corrMetric = corrMetricType::New();
         metric = corrMetric;
-        if ( verbose ) std::cout << " global corr metric set " << std::endl;
+        if ( verbose ) std::cout << "  global corr metric set " << std::endl;
         }
       else
         {
@@ -960,7 +1005,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           if( timedim == 0 )
             {
-            if ( verbose ) std::cout << " employing scales estimator " << std::endl;
+            if ( verbose ) std::cout << "  employing scales estimator " << std::endl;
             }
           optimizer->SetScalesEstimator( scalesEstimator );
           }
@@ -968,7 +1013,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           if( timedim == 0 )
             {
-            if ( verbose ) std::cout << " not employing scales estimator " << scalesFunction << std::endl;
+            if ( verbose ) std::cout << "  not employing scales estimator " << scalesFunction << std::endl;
             }
           }
         }
@@ -1021,6 +1066,10 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       if( std::strcmp( whichTransform.c_str(), "affine" ) == 0 )
         {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
+        if ( antsRandomSeed != 0 )
+          {
+          affineRegistration->MetricSamplingReinitializeSeed( antsRandomSeed );
+          }
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetIdentity();
         affineTransform->SetOffset( trans );
@@ -1075,6 +1124,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
         transformWriter->SetInput( affineRegistration->GetOutput()->Get() );
         transformWriter->SetFileName( filename.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+        transformWriter->SetUseCompression(true);
+#endif
         //      transformWriter->Update();
         if( timedim == 0 )
           {
@@ -1096,6 +1148,10 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
                                                RigidTransformType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+        if ( antsRandomSeed != 0 )
+          {
+          rigidRegistration->MetricSamplingReinitializeSeed( antsRandomSeed );
+          }
         metric->SetFixedImage( preprocessFixedImage );
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
         metric->SetMovingImage( preprocessMovingImage );
@@ -1146,6 +1202,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
         transformWriter->SetInput( rigidRegistration->GetOutput()->Get() );
         transformWriter->SetFileName( filename.c_str() );
+#if ITK_VERSION_MAJOR >= 5
+        transformWriter->SetUseCompression(true);
+#endif
         //      transformWriter->Update();
         if( timedim == 0 )
           {
@@ -1165,9 +1224,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         RealType sigmaForTotalField = parser->Convert<float>( transformOption->GetFunction(
                                                                 currentStage )->GetParameter(  2 ) );
         const unsigned int VImageDimension = ImageDimension;
-        typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
         // ORIENTATION ALERT: Original code set image size to
         // fixedImage buffered region, & if fixedImage BufferedRegion
         // != LargestPossibleRegion, this code would be wrong.
@@ -1251,9 +1308,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         RealType sigmaForTotalField = parser->Convert<float>( transformOption->GetFunction(
                                                                 currentStage )->GetParameter(  2 ) );
         const unsigned int VImageDimension = ImageDimension;
-        typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
 
         typename DisplacementFieldType::Pointer displacementField = AllocImage<DisplacementFieldType>(
             preprocessFixedImage, zeroVector );
@@ -1451,7 +1506,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         converter2->SetTransform( compositeTransform->GetInverseTransform() );
         converter2->Update();
         /** Here, we put the 3d tx into a 4d displacement field */
-        typedef itk::ImageRegionIteratorWithIndex<FixedImageType> Iterator;
         Iterator vfIterInv(  moving_time_slice,
           moving_time_slice->GetLargestPossibleRegion() );
         for(  vfIterInv.GoToBegin(); !vfIterInv.IsAtEnd(); ++vfIterInv )
@@ -1746,13 +1800,34 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
   }
 
   {
-  std::string         description = std::string( "Write the low-dimensional 3D transforms to a 4D displacement field" );
+  std::string         description = std::string( "Write the low-dimensional 3D transforms to a 4D displacement field." );
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "write-displacement" );
   option->SetShortName( 'w' );
   option->SetDescription( description );
   parser->AddOption( option );
   }
+
+  {
+  std::string         description = std::string( "Histogram match the moving images to the reference image." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "use-histogram-matching" );
+  option->SetUsageOption( 0, "0/(1)" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description = std::string( "Use a fixed seed for random number generation. " ) 
+    + std::string( "By default, the system clock is used to initialize the seeding. " )
+    + std::string( "The fixed seed can be any nonzero int value." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "random-seed" );
+  option->SetUsageOption( 0, "seedValue" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
 
   {
   std::string description = std::string( "Verbose output." );
@@ -1788,7 +1863,7 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
+int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

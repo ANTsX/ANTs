@@ -26,6 +26,8 @@ Usage: antsNeuroimagingBattery.pl
 
 --template-transform-name basename of tranforms from anatomical to template space (must be in output base dir)
 
+--template-labels labels in template space
+
 --dti-flag DIRNAME/fileflag/outid [for example DTI/_30dir_dt.nii.gz/30dir for a file in DTI/*_30dir_dt.nii.gz ]
 
 --pcasl-flag DIRNAME/fileflag/outid
@@ -73,6 +75,7 @@ my $anat = "";
 my $mask = "";
 my $template = "";
 my $templateWarps = "";
+my $templateLabels = "";
 my @dtiflag = ();
 my @pcaslflag = ();
 my @paslflag = ();
@@ -95,6 +98,7 @@ GetOptions ("input-directory=s"         => \$subdir,    # string
             "anatomical-mask=s"         => \$mask,
             "template=s"                => \$template,
             "template-transform-name=s" => \$templateWarps,
+            "template-labels=s"         => \$templateLabels,
             "dti-flag=s"                => \@dtiflag,
             "pcasl-flag=s"              => \@pcaslflag,
             "pasl-flag=s"               => \@paslflag,
@@ -226,7 +230,7 @@ for my $dtfile ( @$dtifiles ) {
     print("$res\n");
     system($res);
 
-    my $dtiexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $dwi -b $dtfile -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+    my $dtiexe = "${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $dwi -b $dtfile -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
     print( "$dtiexe\n");
     system( $dtiexe );
 
@@ -277,9 +281,13 @@ for my $pcaslfile ( @$pcaslfiles ) {
     my $cbf = "${outdir}${dirname}${outname}${outid}CBF.nii.gz";
     my $obase = "${outdir}${dirname}${outname}${outid}";
 
-    if ( ! -e "$cbf" ) {
+    my $labelOpt = "";
+    if ( -e "$templateLabels" ) {
+      $labelOpt = " -l $templateLabels "
+    }
 
-      system("${ANTSPATH}/antsASLProcessing.R -s $pcaslfile  -o ${outdir}${dirname}${outname}${outid} -a ${outdir}${outname} -t $template");
+    if ( ! -e "$cbf" ) {
+      system("${ANTSPATH}/antsASLProcessing.R -s $pcaslfile  -o ${outdir}${dirname}${outname}${outid} -a ${outdir}${outname} -t $template $labelOpt");
     }
 
     #system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}MOCOparams.csv -o ${outdir}${dirname}${outname}${outid}MOCOStatsFramewise.csv -f 1");
@@ -345,7 +353,7 @@ for my $paslfile ( @$paslfiles ) {
       system( $makecbf );
     }
 
-    my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -a $cbf -i $meanM0 -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+    my $alignexe = "${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -a $cbf -i $meanM0 -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
     print( "$alignexe\n");
 
     system( $alignexe );
@@ -396,7 +404,7 @@ for my $boldfile ( @$boldfiles ) {
   system($res);
   }
 
-  my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+  my $alignexe = "${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
   system( $alignexe );
 
   system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}_brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}_MOCOparams.csv -0 ${outdir}${dirname}${outname}${outid}_MOCOstats.csv -f 1");
@@ -440,7 +448,7 @@ for my $rsboldfile ( @$rsboldfiles ) {
   system($res);
   }
 
-  my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+  my $alignexe = "${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
   system( $alignexe );
 
   system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}MOCOparams.csv -o ${outdir}${dirname}${outname}${outid}MOCOStatsFramewise.csv -f 1");

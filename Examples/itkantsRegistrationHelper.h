@@ -700,6 +700,12 @@ public:
   itkBooleanMacro( InitializeTransformsPerStage );
 
   /**
+   * Set a constant random seed with an int != 0
+   */
+  itkSetMacro( RegistrationRandomSeed, int );
+  itkGetConstMacro( RegistrationRandomSeed, int );
+
+  /**
    * turn on winsorize image intensity normalization
    */
   void SetWinsorizeImageIntensities( bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0 );
@@ -792,7 +798,7 @@ public:
 
 protected:
   RegistrationHelper();
-  virtual ~RegistrationHelper();
+  virtual ~RegistrationHelper() ITK_OVERRIDE;
 private:
 
   typename itk::ImageBase<VImageDimension>::Pointer GetShrinkImageOutputInformation(const itk::ImageBase<VImageDimension> * inputImageInformation,
@@ -823,6 +829,11 @@ private:
   {
     typename RegistrationMethodType::Pointer registrationMethod = RegistrationMethodType::New();
     typedef typename RegistrationMethodType::OutputTransformType  RegistrationMethodTransformType;
+
+    if ( this->m_RegistrationRandomSeed != 0 )
+      {
+      registrationMethod->MetricSamplingReinitializeSeed( this->m_RegistrationRandomSeed );
+      }
 
     for( unsigned int n = 0; n < stageMetricList.size(); n++ )
       {
@@ -1006,6 +1017,8 @@ private:
   RealType                                m_LowerQuantile;
   RealType                                m_UpperQuantile;
   std::ostream *                          m_LogStream;
+
+  int m_RegistrationRandomSeed;
 
   bool         m_ApplyLinearTransformsToFixedImageHeader;
   unsigned int m_PrintSimilarityMeasureInterval;

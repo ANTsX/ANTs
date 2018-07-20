@@ -543,7 +543,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       {
       if( this->GetMaskImage() )
         {
-        typedef MaskImageFilter<ClassifiedImageType, ClassifiedImageType,
+        typedef MaskImageFilter<ClassifiedImageType, MaskImageType,
                                                      ClassifiedImageType> MaskerType;
         typename MaskerType::Pointer masker = MaskerType::New();
         masker->SetInput1( this->GetPriorLabelImage() );
@@ -559,7 +559,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         duplicator->SetInputImage( this->GetPriorLabelImage() );
         duplicator->Update();
 
-        this->SetNthOutput( 0, duplicator->GetModifiableOutput() );
+        this->SetNthOutput( 0, duplicator->GetOutput() );
         }
       }
       break;
@@ -718,7 +718,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
     sumPriorProbabilityImage = adder->GetOutput();
 
-    ImageRegionIteratorWithIndex<ImageType> ItP( priorProbabilityImage,
+    ImageRegionIteratorWithIndex<RealImageType> ItP( priorProbabilityImage,
                                                  priorProbabilityImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItM( maxPriorProbabilityImage,
                                             maxPriorProbabilityImage->GetRequestedRegion() );
@@ -762,7 +762,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     RealImagePointer priorProbabilityImage = this->GetPriorProbabilityImage( n + 1 );
 
-    ImageRegionIteratorWithIndex<ImageType> ItP( priorProbabilityImage,
+    ImageRegionIteratorWithIndex<RealImageType> ItP( priorProbabilityImage,
                                                  priorProbabilityImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItS( sumPriorProbabilityImage,
                                             sumPriorProbabilityImage->GetRequestedRegion() );
@@ -860,7 +860,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   typename OtsuType::Pointer otsu = OtsuType::New();
   otsu->SetInputHistogram( stats->GetHistogram( NumericTraits<LabelType>::OneValue() ) );
   otsu->SetNumberOfThresholds( this->m_NumberOfTissueClasses - 1 );
-  otsu->Update();
+  otsu->Compute();
 
   typename OtsuType::OutputType thresholds = otsu->GetOutput();
 
@@ -1077,7 +1077,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     for( unsigned int i = 0; i < this->m_NumberOfIntensityImages; i++ )
       {
       typedef LabelStatisticsImageFilter<ImageType, ClassifiedImageType> ClassStatsType;
-      typename ClassStatsType::Pointer stats2 = StatsType::New();
+      typename ClassStatsType::Pointer stats2 = ClassStatsType::New();
       stats2->SetInput( this->GetIntensityImage( i ) );
       stats2->SetLabelInput( this->GetOutput() );
       stats2->UseHistogramsOff();
@@ -2228,7 +2228,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           duplicator->Update();
 
           this->m_PosteriorProbabilityImages.push_back(
-            duplicator->GetModifiableOutput() );
+            duplicator->GetOutput() );
           }
         }
 

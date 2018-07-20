@@ -141,7 +141,7 @@ public:
 protected:
 
   NonLocalPatchBasedImageFilter();
-  ~NonLocalPatchBasedImageFilter() {}
+  virtual ~NonLocalPatchBasedImageFilter() ITK_OVERRIDE {}
 
   void BeforeThreadedGenerateData() ITK_OVERRIDE;
 
@@ -173,8 +173,8 @@ protected:
 
 private:
 
-  NonLocalPatchBasedImageFilter( const Self& ) ITK_DELETE_FUNCTION;
-  void operator=( const Self& ) ITK_DELETE_FUNCTION;
+  NonLocalPatchBasedImageFilter( const Self& ) ITK_DELETED_FUNCTION;
+  void operator=( const Self& ) ITK_DELETED_FUNCTION;
 
 };
 

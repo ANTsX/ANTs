@@ -154,7 +154,7 @@ int compareTransforms( const typename itk::Transform<double, VImageDimension, VI
   return EXIT_SUCCESS;
 }
 
-int compareTwoTransforms( std::vector<std::string> args, std::ostream* /* out_stream = NULL */ )
+int compareTwoTransforms( std::vector<std::string> args, std::ostream* /* out_stream = ITK_NULLPTR */ )
 {
   // the arguments coming in as 'args' is a replacement for the standard (argc,argv) format
   // Just notice that the argv[i] equals to args[i-1]

@@ -80,6 +80,9 @@ void write_transform_file(TransformPointerType & transform, StringType filename)
   transform_writer = itk::TransformFileWriter::New();
   transform_writer->SetFileName(filename);
   transform_writer->SetInput(transform);
+#if ITK_VERSION_MAJOR >= 5
+  transform_writer->SetUseCompression(true);
+#endif
 
   try
     {
@@ -208,10 +211,10 @@ void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerTy
   int          number_of_iteration = 10000;
   int          MI_bins = 32;
   int          MI_samples = 6000;
-  unsigned int time_seed = (unsigned int) time(NULL);
+  unsigned int time_seed = (unsigned int) time(ITK_NULLPTR);
   srand(time_seed);
   // TODO: need to fix here
-  bool b_use_mask = 0;   // (mask_fixed == NULL);
+  bool b_use_mask = 0;   // (mask_fixed == ITK_NULLPTR);
 
   std::cout << "number_of_seeds: " << number_of_seeds << std::endl;
   std::cout << "rand_time_seed: " << time_seed << std::endl;
@@ -999,10 +1002,10 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
   int          number_of_iteration = 500;
   int          MI_bins = 32;
   int          MI_samples = 6000;
-  unsigned int time_seed = (unsigned int) time(NULL);
+  unsigned int time_seed = (unsigned int) time(ITK_NULLPTR);
   srand(time_seed);
   // TODO: need to fix here
-  bool b_use_mask = 0;   // (mask_fixed == NULL);
+  bool b_use_mask = 0;   // (mask_fixed == ITK_NULLPTR);
 
   std::cout << "number_of_seeds: " << number_of_seeds << std::endl;
   std::cout << "rand_time_seed: " << time_seed << std::endl;

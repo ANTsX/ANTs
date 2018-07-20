@@ -20,6 +20,8 @@ public:
   typedef typename itk::Image<PixelType, VImageDimension>              ImageType;
   typedef itk::ImageToImageMetricv4
                 <ImageType, ImageType, ImageType, RealType>            ImageMetricType;
+  typedef itk::ObjectToObjectMultiMetricv4
+                <VImageDimension, VImageDimension, ImageType, RealType> MultiMetricType;
   typedef typename ImageMetricType::MeasureType                        MeasureType;
   typedef itk::CompositeTransform<RealType, VImageDimension>           CompositeTransformType;
   typedef typename CompositeTransformType::TransformType               TransformBaseType;
@@ -306,16 +308,50 @@ public:
     metricValue = metric->GetValue();
   }
 
+  typename CompositeTransformType::ConstPointer GetMovingTransform(itk::WeakPointer<OptimizerType> myOptimizer)
+  {
+    typename CompositeTransformType::ConstPointer movingTransform;
+
+    // Get the registration metric from the optimizer
+    typename OptimizerType::MetricType *metric = myOptimizer->GetModifiableMetric();
+
+    // Try casting it to a multi-metric type
+    typename MultiMetricType::Pointer multiMetric = dynamic_cast<MultiMetricType *>(metric);
+
+    // The dynamic_cast will return NULL if the real object type is not a multi metric
+    if( multiMetric )
+      {
+      // Just get the first metric; we're more interested in the moving transform, which should be the same for
+      // all metrics.
+      typename ImageMetricType::Pointer firstMetric( dynamic_cast<ImageMetricType *>( multiMetric->GetMetricQueue()[0].GetPointer() ) );
+
+      if( firstMetric.IsNotNull() )
+        {
+        movingTransform = dynamic_cast<CompositeTransformType *>( firstMetric->GetModifiableMovingTransform() );
+        }
+      else
+        {
+        itkExceptionMacro( "Invalid metric conversion." );
+        }
+      }
+    else
+      {
+      // Get the metric's moving transform
+      typename ImageMetricType::Pointer singleMetric( dynamic_cast<ImageMetricType *>(metric) );
+      movingTransform = dynamic_cast<CompositeTransformType *>( singleMetric->GetModifiableMovingTransform() );
+      }
+
+    return movingTransform;
+  }
+
   void WriteIntervalVolumes(itk::WeakPointer<OptimizerType> myOptimizer)
   {
-    // Get the registration metric from the optimizer
-    typename ImageMetricType::Pointer inputMetric( dynamic_cast<ImageMetricType *>( myOptimizer->GetModifiableMetric() ) );
-
     // First, compute the moving transform
     typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
 
-    typename CompositeTransformType::ConstPointer inputMovingTransform =
-                                                        dynamic_cast<CompositeTransformType *>( inputMetric->GetModifiableMovingTransform() );
+    // Get the moving transform of the current metric
+    typename CompositeTransformType::ConstPointer inputMovingTransform = this->GetMovingTransform(myOptimizer);
+
     const unsigned int N = inputMovingTransform->GetNumberOfTransforms();
     for( unsigned int i = 0; i < N; i++ )
       {
@@ -355,19 +391,24 @@ public:
 
     const unsigned int curIter = this->m_Optimizer->GetCurrentIteration() + 1;
 
-    if( curIter > 9 )
+    if( curIter < 10 )
       {
-      currentFileName << "_Iters" << curIter << ".nii.gz";
+      currentFileName << "_Iter000" << curIter << ".nii.gz";
       }
-    else if( curIter > 19 )
+    else if( curIter < 100 )
       {
-      currentFileName << "_Itert" << curIter << ".nii.gz";
+      currentFileName << "_Iter00" << curIter << ".nii.gz";
+      }
+    else if( curIter < 1000 )
+      {
+      currentFileName << "_Iter0" << curIter << ".nii.gz";
       }
     else
       {
       currentFileName << "_Iter" << curIter << ".nii.gz";
       }
     std::cout << "*"; // The star befor each DIAGNOSTIC shows that its output is writtent out.
+    std::cout << currentFileName.str() << std::endl; // The star befor each DIAGNOSTIC shows that its output is writtent out.
 
     typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;
     typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();

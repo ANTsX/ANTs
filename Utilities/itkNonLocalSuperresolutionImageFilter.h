@@ -195,7 +195,7 @@ public:
 
 protected:
   NonLocalSuperresolutionImageFilter();
-  ~NonLocalSuperresolutionImageFilter() {}
+  virtual ~NonLocalSuperresolutionImageFilter() ITK_OVERRIDE {}
 
   void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
 
@@ -217,8 +217,8 @@ protected:
 
 private:
 
-  NonLocalSuperresolutionImageFilter( const Self& ) ITK_DELETE_FUNCTION;
-  void operator=( const Self& ) ITK_DELETE_FUNCTION;
+  NonLocalSuperresolutionImageFilter( const Self& ) ITK_DELETED_FUNCTION;
+  void operator=( const Self& ) ITK_DELETED_FUNCTION;
 
   InputImagePointer PerformMeanCorrection( InputImageType * );
 

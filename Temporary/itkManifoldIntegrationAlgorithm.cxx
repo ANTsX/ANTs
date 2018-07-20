@@ -19,7 +19,7 @@ namespace itk
 template <class TGraphSearchNode>
 ManifoldIntegrationAlgorithm<TGraphSearchNode>::ManifoldIntegrationAlgorithm()
 {
-  m_SurfaceMesh = NULL;
+  m_SurfaceMesh = ITK_NULLPTR;
   m_QS = DijkstrasAlgorithmQueue<TGraphSearchNode>::New();
   m_MaxCost = vnl_huge_val(m_MaxCost);
   m_PureDist = false;
@@ -110,7 +110,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
       loc[j] = pt[j];
       }
     G->SetLocation(loc);
-    G->SetPredecessor(NULL);
+    G->SetPredecessor(ITK_NULLPTR);
     G->m_NumberOfNeighbors = 0;
     G->SetIdentity(i);
     m_GraphX[i] = G;
@@ -250,14 +250,14 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
       loc[j] = pt[j];
       }
     G->SetLocation(loc);
-    G->SetPredecessor(NULL);
+    G->SetPredecessor(ITK_NULLPTR);
     G->m_NumberOfNeighbors = 0;
     m_GraphX[i] = G;
     }
 
   std::cout << " allocation of graph done ";
 
-  vtkIdType nPoints = 0; vtkIdType *xPoints = NULL;
+  vtkIdType nPoints = 0; vtkIdType *xPoints = ITK_NULLPTR;
   for( unsigned int i = 0; i < nEdges; i++ )
     {
     // Get the next edge
@@ -337,7 +337,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
       loc[j] = pt[j];
       }
     G->SetLocation(loc);
-    G->SetPredecessor(NULL);
+    G->SetPredecessor(ITK_NULLPTR);
     G->m_NumberOfNeighbors = 0;
     m_GraphX[i] = G;
     }
@@ -345,7 +345,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
 
   std::cout << " begin edg iter ";
   vtkIdType  nPoints = 0;
-  vtkIdType *xPoints = NULL;
+  vtkIdType *xPoints = ITK_NULLPTR;
   for( unsigned int i = 0; i < nedg; i++ )
     {
     // Get the next edge
@@ -407,7 +407,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeQueue()
   for( unsigned int i = 0; i < m_QS->m_SinkNodes.size(); i++ )
     {
     typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = m_QS->m_SinkNodes[i];
-    G->SetPredecessor(NULL);
+    G->SetPredecessor(ITK_NULLPTR);
     loc = G->GetLocation();
 //      for (int d=0;d<GraphDimension;d++) m_GraphIndex[d]=(long)loc[d];
 //        m_Graph->SetPixel(m_GraphIndex,G);
@@ -425,7 +425,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
 {
   std::vector<SearchNodePointer> neighborlist;
   bool                           I_Am_A_Neighbor = false;
-  SearchNodePointer              neighbor = NULL;
+  SearchNodePointer              neighbor = ITK_NULLPTR;
   SearchNodePointer              curNode = rootNode;
   //  unsigned int rootnn=rootNode>m_NumberOfNeighbors;
   unsigned int ct = 0;

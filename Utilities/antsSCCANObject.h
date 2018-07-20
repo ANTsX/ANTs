@@ -155,8 +155,8 @@ public:
 
   RealType ReconstructionError( MatrixType, MatrixType );
 
-  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = NULL,  MatrixType* projecterV =
-                             NULL )
+  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = ITK_NULLPTR,  MatrixType* projecterV =
+                             ITK_NULLPTR )
   {
     if( ( !projecterM ) &&  ( !projecterV ) )
       {
@@ -1178,7 +1178,7 @@ protected:
   }
 
   antsSCCANObject();
-  ~antsSCCANObject()
+  virtual ~antsSCCANObject() ITK_OVERRIDE
   {
   }
 

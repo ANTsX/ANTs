@@ -63,17 +63,17 @@ public:
   /**
    * Evaluate at the given index
    */
-  virtual OutputType EvaluateAtContinuousIndex(
+  OutputType EvaluateAtContinuousIndex(
     const ContinuousIndexType & cindex ) const ITK_OVERRIDE
     {
-    return this->EvaluateAtContinuousIndex( cindex, NULL );
+    return this->EvaluateAtContinuousIndex( cindex, ITK_NULLPTR );
     }
 
-  virtual void SetInputImage( const TInputImage *image ) ITK_OVERRIDE;
+  void SetInputImage( const TInputImage *image ) ITK_OVERRIDE;
 
 protected:
   LabelImageGenericInterpolateImageFunction();
-  ~LabelImageGenericInterpolateImageFunction(){};
+  virtual ~LabelImageGenericInterpolateImageFunction() ITK_OVERRIDE{};
 
 	std::vector<typename InternalInterpolatorType::Pointer> m_InternalInterpolators;
 	std::vector<typename LabelSelectionAdaptorType::Pointer> m_LabelSelectionAdaptors;
