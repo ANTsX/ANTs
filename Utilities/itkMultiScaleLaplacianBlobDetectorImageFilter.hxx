@@ -65,7 +65,6 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 
   typedef itk::CastImageFilter<InputImageType, InputImageType> CasterFilterType;
   typename CasterFilterType::Pointer caster = CasterFilterType::New();
-  caster->SetNumberOfThreads( this->GetNumberOfThreads() );
   caster->InPlaceOff();
   caster->SetInput( inputImage );
 
