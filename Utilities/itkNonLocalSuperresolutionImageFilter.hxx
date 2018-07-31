@@ -165,8 +165,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
     str1.Filter = this;
 
 // FIXME - this is for compilation - not sure what the right thing is here ...
-    this->GetMultiThreader()->SetGlobalDefaultNumberOfThreads(
-      this->GetNumberOfThreads() );
+//    this->GetMultiThreader()->SetGlobalDefaultNumberOfThreads(    this->GetNumberOfThreads() );
 
     this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str1 );
 
