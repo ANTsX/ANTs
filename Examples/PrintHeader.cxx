@@ -490,6 +490,11 @@ private:
       PrintHeader<4>(argc, argv);
       }
       break;
+    case 5:
+      {
+      PrintHeader<5>(argc, argv);
+      }
+      break;
     default:
       std::cout << "Unsupported dimension " <<  imageIO->GetNumberOfDimensions() << std::endl;
       return EXIT_FAILURE;
