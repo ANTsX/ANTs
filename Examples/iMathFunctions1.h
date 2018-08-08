@@ -23,8 +23,6 @@ namespace ants
 // iMath.cxx and iMath.cpp (in ANTSR)
 // after each function, suggested default parameters are defined
 
-unsigned int morph_shape_flag( const char * shape );
-
 #define iMathGetLargestComponentMinSize 50;
 
 template <unsigned int ImageDimension>

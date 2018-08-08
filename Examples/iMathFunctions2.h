@@ -48,8 +48,6 @@ iMathGetFlatStructuringElement( unsigned int shape,
 // iMath.cxx and iMath.cpp (in ANTSR)
 // after each function, suggested default parameters are defined
 
-unsigned int morph_shape_flag( const char * shape );
-
 // iMathFillHolesHoleParam 2;
 
 // Return the largest connected component in a mask
