@@ -164,7 +164,6 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
     typename ImageSource<TOutputImage>::ThreadStruct str1;
     str1.Filter = this;
 
-    this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
     this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str1 );
 
     this->GetMultiThreader()->SingleMethodExecute();

@@ -65,7 +65,6 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 
   typedef itk::CastImageFilter<InputImageType, InputImageType> CasterFilterType;
   typename CasterFilterType::Pointer caster = CasterFilterType::New();
-  caster->SetNumberOfThreads( this->GetNumberOfThreads() );
   caster->InPlaceOff();
   caster->SetInput( inputImage );
 
@@ -78,7 +77,10 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
   progress->SetMiniPipelineFilter(this);
 
   // prepare one time threaded data
-  this->m_BlobHeapPerThread.resize( this->GetNumberOfThreads() );
+//  this->m_BlobHeapPerThread.resize( this->GetNumberOfThreads() );
+// FIXME - setting to 2 threads
+  this->m_BlobHeapPerThread.resize(
+    this->GetMultiThreader()->GetGlobalDefaultNumberOfThreads() );
 
   // we wish to add an additional laplacian before and after the user
   // defined range to check for maximums
@@ -92,7 +94,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
   for( unsigned int i = 0; i < 3; ++i )
     {
     laplacianFilter[i] = LaplacianFilterType::New();
-    laplacianFilter[i]->SetNumberOfThreads( this->GetNumberOfThreads() );
+//    laplacianFilter[i]->SetNumberOfThreads( this->GetNumberOfThreads() );
     laplacianFilter[i]->SetInput( inputImage );
     laplacianFilter[i]->SetNormalizeAcrossScale( true );
     progress->RegisterInternalFilter( laplacianFilter[i],   1.0 / numberOfScales );
@@ -127,7 +129,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
       typename Superclass::ThreadStruct str;
       str.Filter = this;
 
-      this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
+//      this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
       this->GetMultiThreader()->SetSingleMethod( Self::ThreaderCallback, &str );
 
       // multithread the execution
