@@ -15,6 +15,7 @@
 #include "ReadWriteData.h"
 #include "antsUtilities.h"
 
+#include "itkAddImageFilter.h"
 #include "itkAdaptiveHistogramEqualizationImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryErodeImageFilter.h"
