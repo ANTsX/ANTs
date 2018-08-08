@@ -8,7 +8,7 @@ if(UNIX)
   endif()
 
   execute_process(
-    COMMAND make
+    COMMAND $(MAKE)
     WORKING_DIRECTORY "@CMAKE_CURRENT_BINARY_DIR@/@proj@-build"
     )
 
