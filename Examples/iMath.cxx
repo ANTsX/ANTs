@@ -12,6 +12,8 @@
 
 =========================================================================*/
 #include "iMathFunctions.h"
+#include "iMathFunctions1.h"
+#include "iMathFunctions2.h"
 #include "ReadWriteData.h"
 #include "antsUtilities.h"
 

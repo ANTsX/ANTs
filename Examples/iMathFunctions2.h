@@ -11,46 +11,17 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __iMathFunctions_h
-#define __iMathFunctions_h
+#ifndef __iMathFunctions2_h
+#define __iMathFunctions2_h
 
 #include "antsUtilities.h"
 #include "itkFlatStructuringElement.h"
 
 namespace ants
 {
-// Templated functions that perform the work for
-// iMath.cxx and iMath.cpp (in ANTSR)
-// after each function, suggested default parameters are defined
-
-unsigned int morph_shape_flag( const char * shape );
-
-template<class ImageType>
-typename ImageType::Pointer
-iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs);                    /*???*/
-
-// Canny Edge Filter
-template <class ImageType>
-typename ImageType::Pointer
-iMathCanny(typename ImageType::Pointer image,                                                    /*0*/
-           double sigma,
-           double lowerThreshold,
-           double upperThreshold );
-
-// Distance Map
-template <class ImageType>
-typename ImageType::Pointer
-iMathDistanceMap(typename ImageType::Pointer image, bool useSpacing );                               /*0*/
-#define iMathDistanceMapUseSpacing true;
-
-// Fill Holes in objects
-template <class ImageType>
-typename ImageType::Pointer
-iMathFillHoles(typename ImageType::Pointer image, double holeParam );                                  /*0*/
-#define iMathFillHolesHoleParam 2;
-
-
-#define iMathGetLargestComponentMinSize 50;
+	
+	
+	#define iMathGetLargestComponentMinSize 50;
 
 template <unsigned int ImageDimension>
 typename itk::FlatStructuringElement<ImageDimension>
@@ -67,13 +38,28 @@ iMathGetFlatStructuringElement( unsigned int shape,
 #define iMathGetFlatStructuringElementIncludeCenter false;
 #define iMathGetFlatStructuringElementRadiusIsParametric false;
 
+	
+	
+	
+	
+	
+	
+// Templated functions that perform the work for
+// iMath.cxx and iMath.cpp (in ANTSR)
+// after each function, suggested default parameters are defined
 
-// Grayscale morphological closing
+unsigned int morph_shape_flag( const char * shape );
+
+// iMathFillHolesHoleParam 2;
+
+// Return the largest connected component in a mask
 template <class ImageType>
 typename ImageType::Pointer
-iMathGC(typename ImageType::Pointer image, unsigned long radius);                               /*0*/
-#define iMathGCRadius 1;
-#define iMathGCValue 1;
+iMathGetLargestComponent(typename ImageType::Pointer image,                                        /*3*/
+                         unsigned long minSize );
+#define iMathGetLargestComponentMinSize 50;
+
+
 
 // Grayscale morphological dilation
 template <class ImageType>
@@ -82,9 +68,33 @@ iMathGD(typename ImageType::Pointer image, unsigned long radius);               
 #define iMathGDRadius 1;
 #define iMathGDValue 1;
 
+// Grayscale morphological erosion
+template <class ImageType>
+typename ImageType::Pointer
+iMathGE(typename ImageType::Pointer image, unsigned long radius);                      ///*3*/
+#define iMathGERadius 1;
+#define iMathGEValue 1;
+
+// Grayscale morphological opening
+template <class ImageType>
+typename ImageType::Pointer
+iMathGO(typename ImageType::Pointer image, unsigned long radius);                    /*3*/
+#define iMathGORadius 1;
+#define iMathGOValue 1;
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathGrad( typename ImageType::Pointer image, double sigma, bool normalize );       /*3*/
+#define iMathGradSigma 0.5;
+#define iMathGradNormalize false;
+
+template <class ImageType>
+typename ImageType::Pointer
+iMathHistogramEqualization( typename ImageType::Pointer image, double, double, unsigned int );     /*3*/
+
 
 
 }
-#include "iMathFunctions.hxx"
+#include "iMathFunctions2.hxx"
 
 #endif
