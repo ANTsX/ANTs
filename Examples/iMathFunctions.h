@@ -23,7 +23,7 @@ namespace ants
 // iMath.cxx and iMath.cpp (in ANTSR)
 // after each function, suggested default parameters are defined
 
-void morph_shape_flag( const char * shape );
+unsigned int morph_shape_flag( const char * shape );
 
 template<class ImageType>
 typename ImageType::Pointer

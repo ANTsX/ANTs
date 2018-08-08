@@ -79,7 +79,7 @@ BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
   // sensitive parameters are set here - end
 }
 */
-void morph_shape_flag( const char * shape )
+unsigned int morph_shape_flag( const char * shape )
 {
   std::string shapeStr( shape );
   std::transform(shapeStr.begin(), shapeStr.end(), shapeStr.begin(), ::tolower);
