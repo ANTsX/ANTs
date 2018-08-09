@@ -15,6 +15,7 @@
 #include "ReadWriteData.h"
 #include "antsUtilities.h"
 
+#include "itkAddImageFilter.h"
 #include "itkAdaptiveHistogramEqualizationImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryErodeImageFilter.h"
@@ -43,6 +44,7 @@
 #include "itkLaplacianSharpeningImageFilter.h"
 #include "itkMultiScaleLaplacianBlobDetectorImageFilter.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkPadImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
