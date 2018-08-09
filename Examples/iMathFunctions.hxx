@@ -44,6 +44,7 @@
 #include "itkLaplacianSharpeningImageFilter.h"
 #include "itkMultiScaleLaplacianBlobDetectorImageFilter.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkPadImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
