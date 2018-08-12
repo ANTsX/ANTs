@@ -25,20 +25,6 @@ namespace ants
 
 #define iMathGetLargestComponentMinSize 50;
 
-template <unsigned int ImageDimension>
-typename itk::FlatStructuringElement<ImageDimension>
-iMathGetFlatStructuringElement( unsigned int shape,
-                                unsigned long radius,
-                                bool radiusIsParametric,
-                                unsigned int lines,
-                                unsigned int thickness,
-                                bool includeCenter );
-#define iMathGetFlatStructuringElementShape 1;
-#define iMathGetFlatStructuringElementRadius 1;
-#define iMathGetFlatStructuringElementLines 3;
-#define iMathGetFlatStructuringElementThickness 1;
-#define iMathGetFlatStructuringElementIncludeCenter false;
-#define iMathGetFlatStructuringElementRadiusIsParametric false;
 
 
 
