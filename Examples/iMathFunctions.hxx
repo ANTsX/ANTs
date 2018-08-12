@@ -29,7 +29,7 @@
 #include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkFastMarchingImageFilterBase.h"
 #include "itkFastMarchingThresholdStoppingCriterion.h"
-#include "itkFlatStructuringElement.h"
+// #include "itkFlatStructuringElement.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
 #include "itkGrayscaleDilateImageFilter.h"
@@ -384,45 +384,6 @@ iMathGD(typename ImageType::Pointer image, unsigned long radius)                
 
   return filter->GetOutput();
 
-}
-
-//
-// shape (1=ball, 2=box, 3=cross, 4=annulus, 5=polygon)
-
-template <unsigned int ImageDimension>
-typename itk::FlatStructuringElement<ImageDimension>
-iMathGetFlatStructuringElement( unsigned int shape, unsigned long radius,
-                                bool radiusIsParametric, unsigned int lines,
-                                unsigned int thickness, bool includeCenter )
-{
-  typedef typename itk::FlatStructuringElement<ImageDimension> ElementType;
-  ElementType element;
-
-  typename ElementType::RadiusType elRadius;
-  elRadius.Fill( radius );
-
-  switch( shape )
-    {
-    case 1:
-      element = ElementType::Ball(elRadius,radiusIsParametric);
-      break;
-    case 2:
-      element = ElementType::Box(elRadius);
-      break;
-    case 3:
-      element = ElementType::Cross(elRadius);
-      break;
-    case 4:
-      element = ElementType::Annulus(elRadius,thickness,includeCenter,radiusIsParametric);
-      break;
-    case 5:
-      element = ElementType::Polygon(elRadius, lines);
-      break;
-    default:
-      break;
-    }
-
-  return element;
 }
 
 
