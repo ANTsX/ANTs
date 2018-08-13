@@ -58,13 +58,6 @@ iMathGC(typename ImageType::Pointer image, unsigned long radius);               
 #define iMathGCRadius 1;
 #define iMathGCValue 1;
 
-// Grayscale morphological dilation
-template <class ImageType>
-typename ImageType::Pointer
-iMathGD(typename ImageType::Pointer image, unsigned long radius);                            /*0*/   /*3*/
-#define iMathGDRadius 1;
-#define iMathGDValue 1;
-
 
 
 }

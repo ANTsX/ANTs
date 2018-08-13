@@ -303,6 +303,30 @@ iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, dou
 
 //
 // shape (1=ball, 2=box, 3=cross, 4=annulus, 5=polygon)
+template <class ImageType>
+typename ImageType::Pointer
+iMathGD(typename ImageType::Pointer image, unsigned long radius)                   /*0*/      /*3*/
+{
 
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType                         PixelType;
+
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
+    StructuringElementType;
+
+  typedef itk::GrayscaleDilateImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(radius);
+  structuringElement.CreateStructuringElement();
+
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image );
+  filter->SetKernel( structuringElement );
+  filter->Update();
+
+  return filter->GetOutput();
+
+}
 
 } // namespace ants
