@@ -1204,7 +1204,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   imageMetric->SetMovingImage( movingImage );
   imageMetric->SetFixedImageMask( fixedMaskSpatialObject );
   imageMetric->SetMovingImageMask( movingMaskSpatialObject );
-  imageMetric->SetUseFixedSampledPointSet( false );
+  imageMetric->SetUseSampledPointSet( false );
 
   /** Sample the image domain **/
 
@@ -1303,7 +1303,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
         break;
       }
     imageMetric->SetFixedSampledPointSet( samplePointSet );
-    imageMetric->SetUseFixedSampledPointSet( true );
+    imageMetric->SetUseSampledPointSet( true );
     }
 
   imageMetric->Initialize();

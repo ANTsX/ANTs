@@ -956,7 +956,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           mutualInformationMetric->SetNumberOfHistogramBins( binOption );
           mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
-          mutualInformationMetric->SetUseFixedSampledPointSet( false );
+          mutualInformationMetric->SetUseSampledPointSet( false );
 
           imageMetric = mutualInformationMetric;
           }
@@ -974,7 +974,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           mutualInformationMetric->SetNumberOfHistogramBins( binOption );
           mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
-          mutualInformationMetric->SetUseFixedSampledPointSet( false );
+          mutualInformationMetric->SetUseSampledPointSet( false );
           mutualInformationMetric->SetVarianceForJointPDFSmoothing( 1.0 );
 
           imageMetric = mutualInformationMetric;
