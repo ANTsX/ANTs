@@ -233,7 +233,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
         mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
         mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
-        mutualInformationMetric->SetUseFixedSampledPointSet( false );
+        mutualInformationMetric->SetUseSampledPointSet( false );
 
         imageMetric = mutualInformationMetric;
         }
@@ -253,7 +253,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
         mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
         mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
-        mutualInformationMetric->SetUseFixedSampledPointSet( false );
+        mutualInformationMetric->SetUseSampledPointSet( false );
         mutualInformationMetric->SetVarianceForJointPDFSmoothing( 1.0 );
 
         imageMetric = mutualInformationMetric;
@@ -394,7 +394,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           break;
         }
       imageMetric->SetFixedSampledPointSet( samplePointSet );
-      imageMetric->SetUseFixedSampledPointSet( true );
+      imageMetric->SetUseSampledPointSet( true );
       }
 
     imageMetric->Initialize();
