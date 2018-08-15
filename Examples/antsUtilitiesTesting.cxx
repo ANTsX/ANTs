@@ -196,7 +196,7 @@ private:
     count++;
     }
   imageMetric->SetFixedSampledPointSet( pointSet );
-  imageMetric->SetUseFixedSampledPointSet( true );
+  imageMetric->SetUseSampledPointSet( true );
 
   // Now go through the rotations + scalings to find the optimal pose.
 

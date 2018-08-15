@@ -16,7 +16,7 @@
 #include <algorithm>
 
 #include "itkMedianImageFilter.h"
-#include "itkDiscreteGaussianImageFilter.h"
+#include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "ReadWriteData.h"
 
 namespace ants
@@ -33,13 +33,13 @@ int SmoothImage(int argc, char *argv[])
   typename ImageType::Pointer varimage = ITK_NULLPTR;
   ReadImage<ImageType>(image1, argv[2]);
 
-  typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
+  typedef itk::SmoothingRecursiveGaussianImageFilter<ImageType, ImageType> rgf;
   typedef itk::MedianImageFilter<ImageType, ImageType>           medf;
-  typename dgf::Pointer filter = dgf::New();
+  typename rgf::Pointer filter = rgf::New();
   typename medf::Pointer filter2 = medf::New();
+  typename rgf::SigmaArrayType sigmaArray;
+  auto & spacing  = image1->GetSpacing();
   bool usespacing = false;
-  float gaussianmaxerror = 0.01;
-  int gaussianmaxkernelwidth = 32;
   if( argc  >  5 )
     {
     usespacing = atoi(argv[5]);
@@ -49,44 +49,33 @@ int SmoothImage(int argc, char *argv[])
     {
     usemedian = atoi(argv[6]);
     }
-  if( argc  >  7 )
-    {
-    gaussianmaxerror = atof(argv[7]);
-    }
-  if( argc  >  8 )
-    {
-    gaussianmaxkernelwidth = atoi(argv[8]);
-    }
-  if( !usespacing )
-    {
-    filter->SetUseImageSpacingOff();
-    }
-  else
-    {
-    filter->SetUseImageSpacingOn();
-    }
 
   if( !usemedian )
     {
-    if( sigmaVector.size() == 1 )
+    if( (sigmaVector.size() == ImageDimension) || (sigmaVector.size() == 1) )
       {
-      filter->SetVariance( vnl_math_sqr( sigmaVector[0] ) );
-      }
-    else if( sigmaVector.size() == ImageDimension )
-      {
-      typename dgf::ArrayType varianceArray;
+
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        varianceArray[d] = vnl_math_sqr( sigmaVector[d] );
+        if ( sigmaVector.size() == 1 ) {
+          if ( usespacing ) {
+            sigmaArray[d] = sigmaVector[0]*spacing[d];
+          } else {
+            sigmaArray[d] = sigmaVector[0];
+          }
+        } else
+          if ( usespacing ) {
+            sigmaArray[d] = sigmaVector[d]*spacing[d];
+          } else {
+            sigmaArray[d] = sigmaVector[d];
+          }
         }
-      filter->SetVariance( varianceArray );
+      filter->SetSigmaArray( sigmaArray );
       }
     else
       {
       std::cerr << "Incorrect sigma vector size.  Must either be of size 1 or ImageDimension." << std::endl;
       }
-    filter->SetMaximumError( gaussianmaxerror );
-    filter->SetMaximumKernelWidth( gaussianmaxkernelwidth );
     filter->SetInput( image1 );
     filter->Update();
     varimage = filter->GetOutput();
@@ -169,7 +158,7 @@ private:
     std::cout << "Usage:  " << std::endl;
     std::cout << argv[0]
              <<
-      " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-coordinates-0/1} {medianfilter-0/1} {GaussianSetMaximumError=0.01} {GaussianSetMaximumKernelWidth=32}"
+      " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-coordinates-0/1} {medianfilter-0/1}"
              << std::endl;
     std::cout << " if median, then sigma means radius of filtering " << std::endl;
     std::cout << " A separate sigma can be specified for each dimension, e.g., 1.5x1x2 " << std::endl;

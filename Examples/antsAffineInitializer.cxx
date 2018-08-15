@@ -424,9 +424,9 @@ int antsAffineInitializerImp(int argc, char *argv[])
         ct++;
       }
       mimetric->SetFixedSampledPointSet( pset );
-      mimetric->SetUseFixedSampledPointSet( true );
+      mimetric->SetUseSampledPointSet( true );
       gcmetric->SetFixedSampledPointSet( pset );
-      gcmetric->SetUseFixedSampledPointSet( true );
+      gcmetric->SetUseSampledPointSet( true );
     }
     if ( whichMetric.compare("MI") == 0  ) {
       mimetric->Initialize();
