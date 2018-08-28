@@ -39,10 +39,10 @@ if [[ ${#ANTSPATH} -le 3 ]];
 ANTS=${ANTSPATH}/antsRegistration
 WARP=${ANTSPATH}/antsApplyTransforms
 JLF=${ANTSPATH}/antsJointFusion
-PEXEC=${ANTSPATH}ANTSpexec.sh
-SGE=${ANTSPATH}waitForSGEQJobs.pl
-PBS=${ANTSPATH}waitForPBSQJobs.pl
-XGRID=${ANTSPATH}waitForXGridJobs.pl
+PEXEC=${ANTSPATH}/ANTSpexec.sh
+SGE=${ANTSPATH}/waitForSGEQJobs.pl
+PBS=${ANTSPATH}/waitForPBSQJobs.pl
+XGRID=${ANTSPATH}/waitForXGridJobs.pl
 SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 
 fle_error=0
