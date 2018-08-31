@@ -1,0 +1,54 @@
+# Adapt as necessary starting from here
+
+  # - GENERATOR: "Visual Studio 14 Win64"
+  #   CONFIG: Release
+  #   COMPILER: MSVC   
+environment:
+  matrix:
+      - GENERATOR: "MinGW Makefiles"
+        MINGW_DIR: mingw32
+        CONFIG: Release
+        COMPILER: MinGW    
+  itktag: c5138560409c75408ff76bccff938f21e5dcafc6
+
+init:
+  # - set PATH=C:\MinGW\bin;C:\MinGW\msys\1.0\bin;%PATH%;
+  - set PATH=C:\MinGW\bin;%PATH%;
+  - cmd: ECHO %PATH%
+  # - set PATH=%PATH%;C:\Users\appveyor\AppData\Local\Yarn\bin
+  # - set PATH=%PATH%;C:\Program Files\AppVeyor\BuildAgent\
+  # - set PATH=%PATH%;C:\Windows\system32
+  # - set PATH=%PATH%;C:\Windows
+  # - set PATH=%PATH%;C:\Windows\System32\Wbem
+  # - set PATH=%PATH%;C:\Windows\System32\WindowsPowerShell\v1.0\
+  # - set PATH=%PATH%;C:\Program Files\7-Zip
+  - cd ../
+  - git clone https://github.com/InsightSoftwareConsortium/ITK.git
+  - cd ITK
+  - git checkout master
+  - git checkout %itktag%
+  - cd ../
+  # - git clone https://itk.org/ITK.git
+  - mkdir ITKbin
+  - cd ITKbin
+  - cmake -G "%GENERATOR%" -DCMAKE_BUILD_TYPE:STRING="Release" -DCMAKE_SH:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DBUILD_TESTING:BOOL=OFF  ../ITK
+  - mingw32-make -j 2 
+  - mingw32-make install
+  - rm -rf ../ITK
+  - set PATH=%CD%\ITKbin;%PATH%;
+  - echo %APPVEYOR_BUILD_FOLDER%
+
+before_build:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - cmake -G "%GENERATOR%" -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON ./.. 
+  - cd ANTS-build/
+  - mingw32-make test
+  - mingw32-make install
+
+on_failure:
+  - 7z a failure.zip *
+  - appveyor PushArtifact failure.zip
+
+artifacts:
+  - path: '\*_*.zip'
+    name: Bits
