@@ -15,6 +15,7 @@
 #include "itkN4BiasFieldCorrectionImageFilter.h"
 #include "itkShrinkImageFilter.h"
 #include "itkTimeProbe.h"
+#include "itkStatisticsImageFilter.h"
 
 #include <string>
 #include <algorithm>
@@ -448,15 +449,43 @@ int N4( itk::ants::CommandLineParser *parser )
     expFilter->Update();
 
     typedef itk::DivideImageFilter<ImageType, ImageType, ImageType> DividerType;
-    typename DividerType::Pointer divider = DividerType::New();
-    divider->SetInput1( inputImage );
-    divider->SetInput2( expFilter->GetOutput() );
-    divider->Update();
+    typename DividerType::Pointer divider1 = DividerType::New();
+    divider1->SetInput1( inputImage );
+
+    bool donormalizeField = true;
+
+    typename itk::ants::CommandLineParser::OptionType::Pointer normalizeField =
+      parser->GetOption( "normalize-biasfield" );
+    if(  normalizeField && normalizeField->GetNumberOfFunctions() &&
+      ! parser->Convert<bool>( normalizeField->GetFunction()->GetName() ) )
+      {
+      donormalizeField = false;
+      }
+
+    if (donormalizeField) {
+      typedef itk::StatisticsImageFilter<ImageType> StatisticsImageFilterType;
+      typename StatisticsImageFilterType::Pointer statisticsImageFilter
+              = StatisticsImageFilterType::New ();
+      statisticsImageFilter->SetInput(expFilter->GetOutput());
+      statisticsImageFilter->Update();
+      RealType biasmean = statisticsImageFilter->GetMean();
+      typename DividerType::Pointer divider2 = DividerType::New();
+      divider2->SetInput1( expFilter->GetOutput() );
+      divider2->SetConstant2( biasmean );
+      divider2->Update();
+
+      divider1->SetInput2( divider2->GetOutput() );
+
+    } else {
+      divider1->SetInput2( expFilter->GetOutput() );
+    }
+
+    divider1->Update();
 
     if( maskImageOption && maskImageOption->GetNumberOfFunctions() > 0 )
       {
-      itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
-                                                        divider->GetOutput()->GetLargestPossibleRegion() );
+      itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider1->GetOutput(),
+                                                        divider1->GetOutput()->GetLargestPossibleRegion() );
       itk::ImageRegionIterator<ImageType> ItI( inputImage,
                                                inputImage->GetLargestPossibleRegion() );
       for( ItD.GoToBegin(), ItI.GoToBegin(); !ItD.IsAtEnd(); ++ItD, ++ItI )
@@ -504,7 +533,7 @@ int N4( itk::ants::CommandLineParser *parser )
       RealType maxOriginal = stats->GetMaximum( maskLabel );
 
       typename StatsType::Pointer stats2 = StatsType::New();
-      stats2->SetInput( divider->GetOutput() );
+      stats2->SetInput( divider1->GetOutput() );
       stats2->SetLabelInput( thresholder->GetOutput() );
       stats2->UseHistogramsOff();
       stats2->Update();
@@ -514,8 +543,8 @@ int N4( itk::ants::CommandLineParser *parser )
 
       RealType slope = ( maxOriginal - minOriginal ) / ( maxBiasCorrected - minBiasCorrected );
 
-      itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
-                                                        divider->GetOutput()->GetLargestPossibleRegion() );
+      itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider1->GetOutput(),
+                                                        divider1->GetOutput()->GetLargestPossibleRegion() );
       for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
         if( maskImage->GetPixel( ItD.GetIndex() ) == maskLabel )
@@ -533,7 +562,7 @@ int N4( itk::ants::CommandLineParser *parser )
 
     typedef itk::ExtractImageFilter<ImageType, ImageType> CropperType;
     typename CropperType::Pointer cropper = CropperType::New();
-    cropper->SetInput( divider->GetOutput() );
+    cropper->SetInput( divider1->GetOutput() );
     cropper->SetExtractionRegion( inputRegion );
     cropper->SetDirectionCollapseToSubmatrix();
     cropper->Update();
@@ -630,7 +659,21 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "rescale-intensities" );
   option->SetShortName( 'r' );
-  option->SetUsageOption( 0, "0/(1)" );
+  option->SetUsageOption( 0, "(0)/1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "In the case where a mask is not available, the bias field is " )
+    + std::string("divided by its mean so that overall the intensity doesn't shift ")
+    + std::string("too much");
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "normalize-biasfield" );
+  option->SetShortName( 'n' );
+  option->SetUsageOption( 1, "0/(1)" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
