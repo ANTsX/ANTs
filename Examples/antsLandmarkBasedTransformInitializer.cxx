@@ -183,7 +183,7 @@ int InitializeLinearTransform( int itkNotUsed( argc ), char *argv[] )
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cerr << "Exception in writing tranform file: " << argv[5] << std::endl;
+    std::cerr << "Exception in writing transform file: " << argv[5] << std::endl;
     return EXIT_FAILURE;
     }
 

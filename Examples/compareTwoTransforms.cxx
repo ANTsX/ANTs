@@ -139,7 +139,7 @@ int compareTransforms( const typename itk::Transform<double, VImageDimension, VI
       }
     else
       {
-      std::cout << "The input tranforms are neither composite transform nor displacement field transform." << std::endl;
+      std::cout << "The input transforms are neither composite transform nor displacement field transform." << std::endl;
       std::cout << "First Transform Type: " << firstTransform->GetNameOfClass() << std::endl;
       std::cout << "Second Transform Type: " << secondTransform->GetNameOfClass() << std::endl;
       if( firstTransform->GetFixedParameters() != secondTransform->GetFixedParameters() ||
