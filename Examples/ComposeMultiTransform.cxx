@@ -208,7 +208,7 @@ void ComposeMultiAffine(char *output_affine_txt,
   typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType,
                                              AffineTransformType> WarperType;
   typename WarperType::Pointer warper = WarperType::New();
-  bool      has_affine_tranform = false;
+  bool      has_affine_transform = false;
   const int kOptQueueSize = opt_queue.size();
   for( int i = 0; i < kOptQueueSize; i++ )
     {
@@ -228,7 +228,7 @@ void ComposeMultiAffine(char *output_affine_txt,
           aff->GetInverse(aff);
           }
         warper->PushBackAffineTransform(aff);
-        has_affine_tranform = true;
+        has_affine_transform = true;
         }
         break;
       case DEFORMATION_FILE:
@@ -254,7 +254,7 @@ void ComposeMultiAffine(char *output_affine_txt,
     }
   else
     {
-    if( has_affine_tranform == true )
+    if( has_affine_transform == true )
       {
       std::cout << "the reference affine file for center is selected as the first affine!" << std::endl;
       aff_ref_tmp = ( (warper->GetTransformList() ).begin() )->second.aex.aff;

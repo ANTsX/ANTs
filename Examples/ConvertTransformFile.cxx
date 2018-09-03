@@ -34,7 +34,7 @@
  * it in one of several different formats, defaulting to legacy text format for human reading.
  * Options are available to instead output only a transform matrix to a text file,
  * one row per dimension with space-delimited values. This option works only for
- * transforms of MatrixOffsetTranformBase or derived, Translation and Identity transforms. */
+ * transforms of MatrixOffsetTransformBase or derived, Translation and Identity transforms. */
 
 namespace ants
 {
@@ -508,13 +508,13 @@ private:
              << "   Output only the transform matrix (from transform::GetMatrix() )" << std::endl
              << "   to a text file, one row per line with space-delimited values. " << std::endl
              << "   Only works for transforms of type identity, translation or " << std::endl
-             << "   MatrixOffsetTranformBase and its derived types." << std::endl
+             << "   MatrixOffsetTransformBase and its derived types." << std::endl
              << "   The output filename must end in '.mat'." << std::endl
              << std::endl
              << " --homogeneousMatrix, --hm" << std::endl
              << "   Output an N+1 square homogeneous matrix from the transform matrix and offset." << std::endl
              << "   Only works for transforms of type identity, translation or " << std::endl
-             << "   MatrixOffsetTranformBase and its derived types." << std::endl
+             << "   MatrixOffsetTransformBase and its derived types." << std::endl
              << "   The output filename must end in '.mat'." << std::endl
              << std::endl
              << " --RAS, --ras" << std::endl

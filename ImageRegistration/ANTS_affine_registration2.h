@@ -171,7 +171,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
   catch( itk::ExceptionObject & err )
     {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << err << std::endl
-                     << "Exception in writing tranform file: " << std::endl
+                     << "Exception in writing transform file: " << std::endl
                      << filename << std::endl;
     return;
     }

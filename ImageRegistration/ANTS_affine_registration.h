@@ -91,7 +91,7 @@ void write_transform_file(TransformPointerType & transform, StringType filename)
   catch( itk::ExceptionObject & err )
     {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
-                     << "Exception in writing tranform file: " << std::endl
+                     << "Exception in writing transform file: " << std::endl
                      << filename << std::endl;
     return;
     }

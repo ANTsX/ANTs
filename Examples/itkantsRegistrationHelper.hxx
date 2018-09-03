@@ -820,7 +820,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
   // ########################################################################################
   // ########################################################################################
-  // ##The main loop for exstimating the total composite tranform
+  // ##The main loop for exstimating the total composite transform
   // ########################################################################################
   // ########################################################################################
   for( unsigned int currentStageNumber = 0; currentStageNumber < this->m_NumberOfStages; currentStageNumber++ )

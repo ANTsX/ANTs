@@ -37,9 +37,9 @@ ReadTransform(const std::string & filename,
   typename DisplacementFieldReaderType::Pointer fieldReader = DisplacementFieldReaderType::New();
   typedef typename itk::CompositeTransform<T, VImageDimension> CompositeTransformType;
 
-  // There are known tranform type extentions that should not be considered as imaging files
+  // There are known transform type extentions that should not be considered as imaging files
   // That would be used as deformatino feilds
-  // If file is an hdf5 file, assume it is a tranform instead of an image.
+  // If file is an hdf5 file, assume it is a transform instead of an image.
   bool recognizedExtension = false;
   recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".h5" );
   recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".hdf5" );
