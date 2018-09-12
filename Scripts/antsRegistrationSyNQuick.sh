@@ -393,19 +393,17 @@ if [[ ${#MASKIMAGES[@]} -gt 0 ]];
 
 ORIGINALNUMBEROFTHREADS=${ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS}
 
-
 # NUMBEROFTHREADS is > 0 if the option has been set to a positive value
-if [[ $NUMBEROFTHREADS -lt 1 ]]; then
-    
+if [[ $NUMBEROFTHREADS -lt 1 ]]
+  then
     # Number of threads not set on the command line, try ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
-    
-    if [[ $ORIGINALNUMBEROFTHREADS -gt 0 ]]; then
+    if [[ $ORIGINALNUMBEROFTHREADS -gt 0 ]]
+      then
 	NUMBEROFTHREADS=$ORIGINALNUMBEROFTHREADS
     else
 	NUMBEROFTHREADS=1
     fi
-
-fi
+  fi
 
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$NUMBEROFTHREADS
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
