@@ -61,7 +61,7 @@ Compulsory arguments:
 
 Optional arguments:
 
-     -n:  Number of threads (default = 1)
+     -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
 
      -i:  initial transform(s) --- order specified on the command line matters
 
@@ -141,7 +141,7 @@ Compulsory arguments:
 
 Optional arguments:
 
-     -n:  Number of threads (default = 1)
+     -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
 
      -i:  initial transform(s) --- order specified on the command line matters
 
@@ -276,7 +276,7 @@ FIXEDIMAGES=()
 MOVINGIMAGES=()
 INITIALTRANSFORMS=()
 OUTPUTNAME=output
-NUMBEROFTHREADS=1
+NUMBEROFTHREADS=0
 SPLINEDISTANCE=26
 TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
@@ -392,6 +392,19 @@ if [[ ${#MASKIMAGES[@]} -gt 0 ]];
 ###############################
 
 ORIGINALNUMBEROFTHREADS=${ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS}
+
+# NUMBEROFTHREADS is > 0 if the option has been set to a positive value
+if [[ $NUMBEROFTHREADS -lt 1 ]]
+  then
+    # Number of threads not set on the command line, try ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
+    if [[ $ORIGINALNUMBEROFTHREADS -gt 0 ]]
+      then
+	NUMBEROFTHREADS=$ORIGINALNUMBEROFTHREADS
+    else
+	NUMBEROFTHREADS=1
+    fi
+  fi
+
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$NUMBEROFTHREADS
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 
