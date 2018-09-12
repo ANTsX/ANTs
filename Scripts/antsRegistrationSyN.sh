@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 
 VERSION="0.0.0 test"
 
