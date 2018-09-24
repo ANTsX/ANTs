@@ -6107,7 +6107,7 @@ int TensorFunctions(int argc, char *argv[])
         }
       else if( whichvec > 2 && whichvec < 9 )
         {
-        vimage->SetPixel(ind, tIter.Value()[whichvec]);
+        vimage->SetPixel(ind, tIter.Value()[whichvec - 3]);
         }
       }
     else if( strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0 )
