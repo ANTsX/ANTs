@@ -101,6 +101,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
   this->m_OutlierHandlingFilter = ITK_NULLPTR;
 
+  this->m_RandomizerInitializationSeed = 
+    std::numeric_limits<RandomizerSeedType>::quiet_NaN();
   this->m_Randomizer = RandomizerType::New();
   this->m_Randomizer->Initialize();
 
@@ -124,8 +126,12 @@ void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SetRandomizerInitializationSeed( const RandomizerSeedType seed )
 {
-  this->m_Randomizer->Initialize( seed );
-  this->Modified();
+  if( seed != this->m_RandomizerInitializationSeed )
+    {
+    this->m_RandomizerInitializationSeed = seed;
+    this->m_Randomizer->Initialize( this->m_RandomizerInitializationSeed );
+    this->Modified();
+    }
 }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
