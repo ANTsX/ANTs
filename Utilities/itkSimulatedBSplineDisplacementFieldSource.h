@@ -28,7 +28,7 @@ namespace itk
  * \brief Computes a randomly SimulatedBSpline displacement field.
  *
  * SimulatedBSplineDisplacementFieldSource produces a random B-spline
- * displacement field.  
+ * displacement field.
  *
  * This source object expects the image to be of pixel type Vector.
  *

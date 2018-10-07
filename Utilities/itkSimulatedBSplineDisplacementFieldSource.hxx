@@ -43,10 +43,10 @@ SimulatedBSplineDisplacementFieldSource<TOutputImage>
 
   bsplineFilter->SetEstimateInverse( false );
   bsplineFilter->SetEnforceStationaryBoundary( this->GetEnforceStationaryBoundary() );
-  bsplineFilter->SetSplineOrder( 3 );
+  bsplineFilter->SetSplineOrder( this->m_SplineOrder );
   bsplineFilter->SetNumberOfFittingLevels( this->m_NumberOfFittingLevels );
   bsplineFilter->SetNumberOfControlPoints( this->m_NumberOfControlPoints );
-  bsplineFilter->SetBSplineDomain( this->GetOutputOrigin(), this->GetOutputSpacing(), 
+  bsplineFilter->SetBSplineDomain( this->GetOutputOrigin(), this->GetOutputSpacing(),
     this->GetOutputSize(), this->GetOutputDirection() );
 
   SizeType outputSize = this->GetOutputSize();
@@ -54,16 +54,16 @@ SimulatedBSplineDisplacementFieldSource<TOutputImage>
   typename PointSetType::Pointer randomPointSet = PointSetType::New();
   randomPointSet->Initialize();
 
-  for( SizeValueType n = 0; n < this->GetNumberOfRandomPoints(); n++ ) 
+  for( SizeValueType n = 0; n < this->GetNumberOfRandomPoints(); n++ )
     {
     VectorType randomVector;
-    ContinuousIndex<RealType, ImageDimension> randomIndex;    
+    ContinuousIndex<RealType, ImageDimension> randomIndex;
     for( SizeValueType d = 0; d < ImageDimension; d++ )
       {
-      randomIndex[d] = this->GetRandomizer()->GetUniformVariate( 
+      randomIndex[d] = this->GetRandomizer()->GetUniformVariate(
         NumericTraits<double>::ZeroValue(), static_cast<double>( outputSize[d] - 1 ) );
-      randomVector[d] = this->GetRandomizer()->GetNormalVariate( 
-        NumericTraits<double>::ZeroValue(), std::pow( this->m_DisplacementNoiseStandardDeviation[d], 2 ) );  
+      randomVector[d] = this->GetRandomizer()->GetNormalVariate(
+        NumericTraits<double>::ZeroValue(), std::pow( this->m_DisplacementNoiseStandardDeviation[d], 2 ) );
       }
     typename OutputImageType::PointType imagePoint;
     this->GetOutput()->TransformContinuousIndexToPhysicalPoint( randomIndex, imagePoint );

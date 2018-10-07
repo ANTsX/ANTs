@@ -19,6 +19,8 @@
 #include "itkSimulatedBSplineDisplacementFieldSource.h"
 #include "itkSimulatedExponentialDisplacementFieldSource.h"
 
+#include "string.h"
+
 namespace ants
 {
 
@@ -31,33 +33,104 @@ int SimulateDisplacementField( int argc, char *argv[] )
   typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
 
   typename RealImageType::Pointer domainImage;
-  ReadImage<RealImageType>( domainImage, argv[2] );
+  ReadImage<RealImageType>( domainImage, argv[3] );
 
-  typedef itk::SimulatedBSplineDisplacementFieldSource<DisplacementFieldType> BSplineSimulatorType;
-  typename BSplineSimulatorType::ArrayType numberOfControlPoints;
-  numberOfControlPoints.Fill( 8 );
+  if ( argc < 5 )
+    {
+    std::cout << argv[0] << " imageDimension displacementFieldType domainImage outputField ";
+    std::cout << "<numberOfRandomPoints=1000> <standardDeviationDisplacementField=10> <enforceStationaryBoundary=1> [options]" << std::endl;
+    std::cout << "Usage 1 [options] (displacementFieldType = \"BSpline\"): <numberOfFittingLevels=4> <numberOfControlPoints=4>" << std::endl;
+    std::cout << "Usage 2 [options] (displacementFieldType = \"Exponential\"): <smoothingStandardDeviation=4>" << std::endl;
+    }
 
-  typename BSplineSimulatorType::Pointer bsplineSimulator = BSplineSimulatorType::New();
-  bsplineSimulator->SetDisplacementFieldDomainFromImage( domainImage );
-  bsplineSimulator->SetNumberOfRandomPoints( 10 );
-  bsplineSimulator->SetNumberOfFittingLevels( 4 );
-  bsplineSimulator->SetNumberOfControlPoints( numberOfControlPoints );
-  bsplineSimulator->SetDisplacementNoiseStandardDeviation( 10.0 );
-  bsplineSimulator->Update();
+  itk::SizeValueType numberOfRandomPoints = 1000;
+  if( argc > 5 )
+    {
+    numberOfRandomPoints = static_cast<itk::SizeValueType>( atoi( argv[5] ) );
+    }
 
-  WriteImage<DisplacementFieldType>( bsplineSimulator->GetOutput(), argv[3] );
+  RealType standardDeviationDisplacementField = 10.0;
+  if( argc > 6 )
+    {
+    standardDeviationDisplacementField = static_cast<RealType>( atof( argv[6] ) );
+    }
 
-  typedef itk::SimulatedExponentialDisplacementFieldSource<DisplacementFieldType> ExponentialSimulatorType;
-  typename ExponentialSimulatorType::Pointer exponentialSimulator = ExponentialSimulatorType::New();
-  exponentialSimulator->SetDisplacementFieldDomainFromImage( domainImage );
-  exponentialSimulator->SetNumberOfRandomPoints( 1000 );
-  exponentialSimulator->SetDisplacementNoiseStandardDeviation( 10.0 );
-  exponentialSimulator->SetSmoothingStandardDeviation( 10.0 );
-  exponentialSimulator->Update();
+  bool enforceStationaryBoundary = true;
+  if( argc > 7 )
+    {
+    enforceStationaryBoundary = static_cast<bool>( atoi( argv[7] ) );
+    }
 
-  WriteImage<DisplacementFieldType>( exponentialSimulator->GetOutput(), argv[3] );
+  if( strcmp( argv[2], "BSpline" ) == 0 || strcmp( argv[2], "bspline" ) == 0 )
+    {
+    typedef itk::SimulatedBSplineDisplacementFieldSource<DisplacementFieldType> BSplineSimulatorType;
 
+    itk::SizeValueType numberOfFittingLevels = 4;
+    if( argc > 8 )
+      {
+      numberOfFittingLevels = static_cast<itk::SizeValueType>( atoi( argv[8] ) );
+      }
 
+    typename BSplineSimulatorType::ArrayType numberOfControlPoints;
+
+    numberOfControlPoints.Fill( 4 );
+    if( argc > 9 )
+      {
+      std::vector<RealType> ncps = ConvertVector<RealType>( std::string( argv[9] ) );
+      if( ncps.size() == 1 )
+        {
+        numberOfControlPoints.Fill( ncps[0] );
+        }
+      else if( ncps.size() == ImageDimension )
+        {
+        for( itk::SizeValueType d = 0; d < ImageDimension; d++ )
+          {
+          numberOfControlPoints[d] = ncps[d];
+          }
+        }
+      else
+        {
+        std::cerr << "Incorrect specification of the number of control points." << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+
+    typename BSplineSimulatorType::Pointer bsplineSimulator = BSplineSimulatorType::New();
+    bsplineSimulator->SetDisplacementFieldDomainFromImage( domainImage );
+    bsplineSimulator->SetNumberOfRandomPoints( numberOfRandomPoints );
+    bsplineSimulator->SetEnforceStationaryBoundary( enforceStationaryBoundary );
+    bsplineSimulator->SetDisplacementNoiseStandardDeviation( standardDeviationDisplacementField );
+    bsplineSimulator->SetNumberOfFittingLevels( numberOfFittingLevels );
+    bsplineSimulator->SetNumberOfControlPoints( numberOfControlPoints );
+    bsplineSimulator->Update();
+
+    bsplineSimulator->Print( std::cout, 5 );
+
+    WriteImage<DisplacementFieldType>( bsplineSimulator->GetOutput(), argv[4] );
+    }
+  else if( strcmp( argv[2], "Exponential" ) == 0 || strcmp( argv[2], "exponential" ) == 0 )
+    {
+    RealType standardDeviationSmoothing = 10.0;
+    if( argc > 8 )
+      {
+      standardDeviationSmoothing = static_cast<RealType>( atoi( argv[8] ) );
+      }
+
+    typedef itk::SimulatedExponentialDisplacementFieldSource<DisplacementFieldType> ExponentialSimulatorType;
+    typename ExponentialSimulatorType::Pointer exponentialSimulator = ExponentialSimulatorType::New();
+    exponentialSimulator->SetDisplacementFieldDomainFromImage( domainImage );
+    exponentialSimulator->SetNumberOfRandomPoints( numberOfRandomPoints );
+    exponentialSimulator->SetEnforceStationaryBoundary( enforceStationaryBoundary );
+    exponentialSimulator->SetDisplacementNoiseStandardDeviation( standardDeviationDisplacementField );
+    exponentialSimulator->SetSmoothingStandardDeviation( standardDeviationSmoothing );
+    exponentialSimulator->Update();
+    WriteImage<DisplacementFieldType>( exponentialSimulator->GetOutput(), argv[4] );
+    }
+  else
+    {
+    std::cerr << "Unknown displacementFieldType." << std::endl;
+    return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
 }
@@ -108,9 +181,12 @@ private:
 
   // antscout->set_stream( out_stream );
 
-  if ( argc < 4 )
+  if ( argc < 5 )
     {
-    std::cout << argv[0] << " imageDimension domainImage outputField" << std::endl;
+    std::cout << argv[0] << " imageDimension displacementFieldType domainImage outputField ";
+    std::cout << "<numberOfRandomPoints=1000> <standardDeviationDisplacementField=10> <enforceStationaryBoundary=1> [options]" << std::endl;
+    std::cout << "Usage 1 [options] (displacementFieldType = \"BSpline\"): <numberOfFittingLevels=4> <numberOfControlPoints=4>" << std::endl;
+    std::cout << "Usage 2 [options] (displacementFieldType = \"Exponential\"): <smoothingStandardDeviation=4>" << std::endl;
 
     return EXIT_FAILURE;
     }
