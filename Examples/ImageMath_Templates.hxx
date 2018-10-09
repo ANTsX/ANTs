@@ -1978,6 +1978,59 @@ int SigmoidImage(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int CoordinateComponentImages( int argc, char *argv[] )
+{
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+
+  if( argc < 4 )
+    {
+    std::cerr << "Error:  Not enough args.  See help.";
+    return EXIT_FAILURE;
+    }
+
+  int               argct = 2;
+  const std::string outPrefix = std::string( argv[argct++] );
+  argct++;
+  std::string domainImageFile = std::string( argv[argct++] );
+
+  typename ImageType::Pointer domainImage = ITK_NULLPTR;
+  if( domainImageFile.length() > 3 )
+    {
+    ReadImage<ImageType>( domainImage, domainImageFile.c_str() );
+    }
+
+  std::vector<typename ImageType::Pointer> coordinateImages( ImageDimension );
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    coordinateImages[d] = ImageType::New();
+    coordinateImages[d]->CopyInformation( domainImage );
+    coordinateImages[d]->SetRegions( domainImage->GetRequestedRegion() );
+    coordinateImages[d]->Allocate();
+    }
+
+  itk::ImageRegionIteratorWithIndex<ImageType> It( domainImage,
+    domainImage->GetRequestedRegion() );
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+    {
+    typename ImageType::PointType imagePoint;
+    domainImage->TransformIndexToPhysicalPoint( It.GetIndex(), imagePoint );
+
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      coordinateImages[d]->SetPixel( It.GetIndex(), imagePoint[d] );
+      }
+    }
+
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    std::string outputFile = outPrefix + std::to_string( d ) + std::string( ".nii.gz" );
+    WriteImage<ImageType>( coordinateImages[d], outputFile.c_str() );
+    }
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int SharpenImage(int argc, char *argv[])
 {
   if( argc < 5 )
@@ -14376,6 +14429,11 @@ ImageMathHelperAll(int argc, char **argv)
   if( operation == "SigmoidImage" )
     {
     SigmoidImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "CoordinateComponentImages" )
+    {
+    CoordinateComponentImages<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
   if( operation == "Sharpen" )

@@ -635,6 +635,9 @@ private:
     std::cout << "\n  Sharpen   : " << std::endl;
     std::cout << "      Usage        : Sharpen ImageIn" << std::endl;
 
+    std::cout << "\n  CoordinateComponentImages   : " << std::endl;
+    std::cout << "      Usage        : CoordinateComponentImages domainImage" << std::endl;
+
     std::cout << "\n  CenterImage2inImage1        : " << std::endl;
     std::cout << "      Usage       : ReferenceImageSpace ImageToCenter " << std::endl;
 
