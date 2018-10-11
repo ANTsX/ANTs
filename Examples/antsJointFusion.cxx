@@ -628,7 +628,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   return EXIT_SUCCESS;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+void ajfInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
@@ -933,7 +933,7 @@ private:
     + std::string( "Front. Neuroinform., 2013. " );
 
   parser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( parser );
+  ajfInitializeCommandLineOptions( parser );
 
   if( parser->Parse( argc, argv ) == EXIT_FAILURE )
     {
