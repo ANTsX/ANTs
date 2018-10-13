@@ -30,11 +30,17 @@ namespace itk
  *     are all labeled with values of 1, 2, and 3, respectively.
  *   - Corresponding grey matter and white matter probability maps.
  *
- * \author Nicholas J. Tustison
+ * \author Nick Tustison, Brian Avants
  *
  * \par REFERENCE
  * S. R. Das, B. B. Avants, M. Grossman, and J. C. Gee, "Registration based
  * cortical thickness measurement," Neuroimage 2009, 45:867--879.
+ *
+ * Nicholas J. Tustison, Philip A. Cook, Arno Klein, Gang Song, Sandhitsu
+ * R. Das, Jeffrey T. Duda, Benjamin M. Kandel, Niels van Strien, James R.
+ * Stone, James C. Gee, and Brian B. Avants. Large-Scale Evaluation of ANTs
+ * and FreeSurfer Cortical Thickness Measurements. NeuroImage, 99:166-179,
+ * Oct 2014.
  *
  */
 
@@ -243,6 +249,11 @@ public:
   itkSetMacro( NumberOfIntegrationPoints, unsigned int  );
   itkGetConstMacro( NumberOfIntegrationPoints, unsigned int );
 
+  /**
+   * Set/Get the sparse image neighborhood radius.  Default = 2.
+   */
+  itkSetMacro( SparseImageNeighborhoodRadius, unsigned int  );
+  itkGetConstMacro( SparseImageNeighborhoodRadius, unsigned int );
 
   /**
    * Set/Get the option to restrict deformation along the last dimension.  Default = false.
@@ -307,7 +318,7 @@ private:
   /**
    * Private function to determine if a voxel is in the mask.
    */
-  bool TestMask( IndexType index )
+  bool IsInsideMask( IndexType index )
     {
     return(
       this->GetSegmentationImage()->GetPixel( index ) == this->m_GrayMatterLabel |
@@ -367,6 +378,8 @@ private:
   RealType     m_InitialGradientStep;
   RealType     m_CurrentGradientStep;
   unsigned int m_NumberOfIntegrationPoints;
+
+  unsigned int m_SparseImageNeighborhoodRadius;
 
   LabelType m_GrayMatterLabel;
   LabelType m_WhiteMatterLabel;

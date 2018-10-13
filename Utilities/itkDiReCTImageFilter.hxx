@@ -29,7 +29,6 @@
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkImageDuplicator.h"
-#include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImportImageFilter.h"
 #include "itkInvertDisplacementFieldImageFilter.h"
@@ -56,6 +55,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_InitialGradientStep( 0.025 ),
   m_CurrentGradientStep( 0.025 ),
   m_NumberOfIntegrationPoints( 10 ),
+  m_SparseImageNeighborhoodRadius( 2 ),
   m_GrayMatterLabel( 2 ),
   m_WhiteMatterLabel( 3 ),
   m_MaximumNumberOfIterations( 50 ),
@@ -170,116 +170,121 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   caster->Update();
   RealImagePointer whiteMatterContours = caster->GetOutput();
 
-  if ( this->m_UseMaskedSmoothing )
-  {
-  // Initialize the sparse matrix smoother
-  // iterate over the segmentation mask and count the entries
-  // label an image with the numeric index
-  // make a sparse matrix of that size
-  // fill it in with neighborhood data
-  this->m_SparseMatrixIndexImage = RealImageType::New();
-  this->m_SparseMatrixIndexImage->CopyInformation( segmentationImage );
-  this->m_SparseMatrixIndexImage->SetRegions( segmentationImage->GetRequestedRegion() );
-  this->m_SparseMatrixIndexImage->Allocate();
-  this->m_SparseMatrixIndexImage->FillBuffer( 0.0 );
-  itk::ImageRegionIteratorWithIndex<RealImageType> simageIterator(
-    this->m_SparseMatrixIndexImage, segmentationImage->GetRequestedRegion() );
-  simageIterator.GoToBegin();
-  unsigned long n = 0;
-  // we count the number of non-zero entries in mask and label
-  // voxels according to their count ID
-  while(!simageIterator.IsAtEnd())
+  if( this->m_UseMaskedSmoothing )
     {
-    if ( this->TestMask( simageIterator.GetIndex() ) )
+    // Initialize the sparse matrix smoother.   Iterate over the segmentation
+    // mask and count the entries.  Label an image with the numeric index to
+    // make a sparse matrix of that size and fill it with neighborhood data.
+
+    this->m_SparseMatrixIndexImage = RealImageType::New();
+    this->m_SparseMatrixIndexImage->CopyInformation( segmentationImage );
+    this->m_SparseMatrixIndexImage->SetRegions( segmentationImage->GetRequestedRegion() );
+    this->m_SparseMatrixIndexImage->Allocate();
+    this->m_SparseMatrixIndexImage->FillBuffer( 0.0 );
+
+    ImageRegionIteratorWithIndex<RealImageType> ItSparseImage(
+      this->m_SparseMatrixIndexImage, segmentationImage->GetRequestedRegion() );
+    ItSparseImage.GoToBegin();
+
+    SizeValueType count = 0;
+    while( !ItSparseImage.IsAtEnd() )
       {
-      simageIterator.Set( n + 1 );
-      ++n;
-      }
-    ++simageIterator;
-    }
-//  WriteImage<RealImageType>( this->m_SparseMatrixIndexImage, "/tmp/temp.nii.gz" );
-  this->m_SparseMatrix.set_size( n, n );
-  typename RealImageType::SizeType radius;
-  unsigned int r = 2;
-  radius.Fill( r );
-  typename RealImageType::SpacingType spacing = segmentationImage->GetSpacing();
-  itk::NeighborhoodIterator<RealImageType> niterator( radius,
-    this->m_SparseMatrixIndexImage, segmentationImage->GetRequestedRegion() );
-  unsigned int ninds = static_cast<unsigned int>(
-    std::pow( r*2+1, ImageDimension ) );
-  niterator.GoToBegin();
-
-  unsigned int timedim =
-    segmentationImage->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
-
-  bool useTimeRegularization = this->m_TimeSpacing.size() == timedim;
-
-  while( !niterator.IsAtEnd() )
-    {
-    typename RealImageType::IndexType centerIndex = niterator.GetIndex();
-    if ( this->TestMask( centerIndex ) )
-      {
-      long locn = static_cast<long>(
-        this->m_SparseMatrixIndexImage->GetPixel( centerIndex ) + 0.5 ) - 1;
-      for(unsigned int i = 0; i < ninds; i++)
+      if ( this->IsInsideMask( ItSparseImage.GetIndex() ) )
         {
-        bool IsInBounds;
-        niterator.GetPixel( i, IsInBounds );
-        if ( IsInBounds )
+        ItSparseImage.Set( count + 1 );
+        ++count;
+        }
+      ++ItSparseImage;
+      }
+    this->m_SparseMatrix.set_size( count, count );
+
+    typename RealImageType::SizeType sparseRadius;
+    sparseRadius.Fill( this->m_SparseImageNeighborhoodRadius );
+    unsigned int numberOfNeighborhoodIndices = static_cast<unsigned int>(
+      std::pow( this->m_SparseImageNeighborhoodRadius * 2 + 1, ImageDimension ) );
+
+    NeighborhoodIterator<RealImageType> ItSparseImageNeighborhood(
+      sparseRadius,
+      this->m_SparseMatrixIndexImage, segmentationImage->GetRequestedRegion() );
+
+    typename RealImageType::SpacingType spacing = segmentationImage->GetSpacing();
+    unsigned int temporalDimension =
+      segmentationImage->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+    bool useTimeRegularization = ( this->m_TimeSpacing.size() == temporalDimension );
+
+    ItSparseImageNeighborhood.GoToBegin();
+    while( !ItSparseImageNeighborhood.IsAtEnd() )
+      {
+      typename RealImageType::IndexType centerIndex = ItSparseImageNeighborhood.GetIndex();
+
+      if( this->IsInsideMask( centerIndex ) )
+        {
+        long location = static_cast<long>(
+          this->m_SparseMatrixIndexImage->GetPixel( centerIndex ) + 0.5 ) - 1;
+
+        for( SizeValueType i = 0; i < numberOfNeighborhoodIndices; i++ )
           {
-          typename RealImageType::IndexType index = niterator.GetIndex(i);
+          bool isInBounds;
+          ItSparseImageNeighborhood.GetPixel( i, isInBounds );
+          if( isInBounds )
+            {
+            IndexType index = ItSparseImageNeighborhood.GetIndex( i );
 
-          if ( this->TestMask( index ) ) {
-            long nxt = static_cast<long>(
-              niterator.GetPixel( i, IsInBounds ) + 0.5 ) - 1;
-            if ( nxt >= 0 & locn >= 0 & IsInBounds )
+            if( this->IsInsideMask( index ) )
               {
-              RealType spaceVal = 0;
-              RealType timeVal = 0;
-              if ( this->m_TimeSpacing.size() != timedim )
-                for ( unsigned int k = 0; k < ImageDimension; k++ )
-                  spaceVal += ( centerIndex[k] - index[k] ) * spacing[ k ] *
-                              ( centerIndex[k] - index[k] ) * spacing[ k ];
+              long next = static_cast<long>(
+                ItSparseImageNeighborhood.GetPixel( i, isInBounds ) + 0.5 ) - 1;
 
-           // handle non-uniform temporal regularization
-            if ( useTimeRegularization )
-              {
-
-              spaceVal = 0;
-              for ( unsigned int k = 0; k < ImageDimension - 1; k++ )
+              if( next >= 0 && location >= 0 && isInBounds )
                 {
-                spaceVal += ( centerIndex[k] - index[k] ) * spacing[ k ] *
-                            ( centerIndex[k] - index[k] ) * spacing[ k ];
+                RealType spaceValue = 0;
+                RealType timeValue = 0;
+                if ( this->m_TimeSpacing.size() != temporalDimension )
+                  {
+                  for( SizeValueType k = 0; k < ImageDimension; k++ )
+                    {
+                    spaceValue += std::pow( ( centerIndex[k] - index[k] ) * spacing[ k ], 2.0 );
+                    }
+                  }
+
+                // handle non-uniform temporal regularization
+                if( useTimeRegularization )
+                  {
+                  spaceValue = 0;
+                  for ( unsigned int k = 0; k < ImageDimension - 1; k++ )
+                    {
+                    spaceValue += std::pow( ( centerIndex[k] - index[k] ) * spacing[ k ], 2.0 );
+                    }
+                  RealType timeDistance =
+                    this->m_TimeSpacing[centerIndex[ImageDimension - 1]] -
+                    this->m_TimeSpacing[index[ImageDimension - 1]];
+
+                  timeValue = std::pow( timeDistance, 2.0 );
+                  }
+                RealType gaussianValue = std::exp( -1.0 * (
+                  spaceValue / this->m_SmoothingVelocityFieldVariance +
+                  timeValue  / this->m_TimeSigma ) );
+                this->m_SparseMatrix( location, next ) = gaussianValue;
                 }
-
-              RealType timedist =
-                this->m_TimeSpacing[ centerIndex[ ImageDimension - 1 ] ] -
-                this->m_TimeSpacing[ index[ ImageDimension - 1 ] ];
-
-              timeVal = timedist * timedist;
-
-              }
-              RealType gaussVal = exp( -1.0 * (
-                spaceVal / this->m_SmoothingVelocityFieldVariance +
-                timeVal  / this->m_TimeSigma ) );
-              this->m_SparseMatrix( locn , nxt ) = gaussVal;
               }
             }
           }
         }
+      ++ItSparseImageNeighborhood;
       }
-    ++niterator;
+
+    // We use this for smoothing so we force rows to sum to one.
+    for( unsigned int k = 0; k < this->m_SparseMatrix.rows(); k++ )
+      {
+      RealType rowSum = this->m_SparseMatrix.sum_row( k );
+      if( rowSum > 0 )
+        {
+        this->m_SparseMatrix = this->m_SparseMatrix.scale_row( k, 1.0 / rowSum );
+        }
+      }
+    // next - make a function that uses the SparseMatrix to perform
+    // this->m_SparseMatrix %*% N*Dim  vector matrix smoothing ...
     }
-  // we will use this for smoothing so we force rows to sum to one ...
-  for ( unsigned int k = 0; k < n; k++ )
-    {
-    RealType rowsum = this->m_SparseMatrix.sum_row( k );
-    if ( rowsum > 0 )
-      this->m_SparseMatrix = this->m_SparseMatrix.scale_row( k, 1.0 / rowsum );
-    }
-  // next - make a function that uses the SparseMatrix to perform
-  // this->m_SparseMatrix %*% N*Dim  vector matrix smoothing ...
-  } // end of  if statement
 
   // Initialize fields and images.
   VectorType zeroVector( 0.0 );
@@ -726,8 +731,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       }
     else if ( this->m_UseMaskedSmoothing )
       {
-      velocityField = this->MaskedGaussianSmoothDisplacementField(
-        velocityField );
+      velocityField = this->MaskedGaussianSmoothDisplacementField( velocityField );
       }
     else
       {
@@ -821,18 +825,18 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 ::MakeThicknessImage( RealImagePointer hitImage, RealImagePointer totalImage,
   InputImagePointer segmentationImage, RealImagePointer corticalThicknessImage )
 {
-		RealImagePointer smoothHitImage;
-		RealImagePointer smoothTotalImage;
-		if( this->m_SmoothingVariance > 0.0 )
-				{
-				smoothHitImage = this->SmoothImage( hitImage, this->m_SmoothingVariance );
-				smoothTotalImage = this->SmoothImage( totalImage, this->m_SmoothingVariance );
-				}
-		else
-				{
-				smoothHitImage = hitImage;
-				smoothTotalImage = totalImage;
-				}
+  RealImagePointer smoothHitImage;
+  RealImagePointer smoothTotalImage;
+  if( this->m_SmoothingVariance > 0.0 )
+    {
+    smoothHitImage = this->SmoothImage( hitImage, this->m_SmoothingVariance );
+    smoothTotalImage = this->SmoothImage( totalImage, this->m_SmoothingVariance );
+    }
+  else
+    {
+    smoothHitImage = hitImage;
+    smoothTotalImage = totalImage;
+    }
 
   ImageRegionIterator<RealImageType> ItCorticalThicknessImage(
     corticalThicknessImage,
@@ -841,42 +845,42 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     segmentationImage,
     segmentationImage->GetRequestedRegion() );
 
-		ImageRegionConstIterator<RealImageType> ItSmoothHitImage( smoothHitImage,
-				smoothHitImage->GetRequestedRegion() );
-		ImageRegionConstIterator<RealImageType> ItSmoothTotalImage( smoothTotalImage,
-				smoothTotalImage->GetRequestedRegion() );
+  ImageRegionConstIterator<RealImageType> ItSmoothHitImage( smoothHitImage,
+      smoothHitImage->GetRequestedRegion() );
+  ImageRegionConstIterator<RealImageType> ItSmoothTotalImage( smoothTotalImage,
+      smoothTotalImage->GetRequestedRegion() );
 
-		ItCorticalThicknessImage.GoToBegin();
-		ItSegmentationImage.GoToBegin();
-		ItSmoothHitImage.GoToBegin();
-		ItSmoothTotalImage.GoToBegin();
+  ItCorticalThicknessImage.GoToBegin();
+  ItSegmentationImage.GoToBegin();
+  ItSmoothHitImage.GoToBegin();
+  ItSmoothTotalImage.GoToBegin();
 
-		RealType meanThickness = 0;
-		unsigned long count = 0;
-		while( !ItSegmentationImage.IsAtEnd() )
-				{
-				const typename InputImageType::PixelType grayMatterPixel =
-						static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
-				if(  ItSegmentationImage.Get() == grayMatterPixel )
-						{
-						RealType thicknessValue = 0.0;
-						if( ItSmoothHitImage.Get() > 0.001 )
-								{
-								thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
-       	meanThickness += thicknessValue;
-	       count++;
-								if( thicknessValue < 0.0 )
-										{
-										thicknessValue = 0.0;
-										}
-								}
-						ItCorticalThicknessImage.Set( thicknessValue );
-						}
-				++ItCorticalThicknessImage;
-				++ItSmoothHitImage;
-				++ItSegmentationImage;
-				++ItSmoothTotalImage;
-				}
+  RealType meanThickness = 0;
+  unsigned long count = 0;
+  while( !ItSegmentationImage.IsAtEnd() )
+    {
+    const typename InputImageType::PixelType grayMatterPixel =
+      static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
+    if( ItSegmentationImage.Get() == grayMatterPixel )
+      {
+      RealType thicknessValue = 0.0;
+      if( ItSmoothHitImage.Get() > 0.001 )
+        {
+        thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
+        meanThickness += thicknessValue;
+        count++;
+        if( thicknessValue < 0.0 )
+          {
+          thicknessValue = 0.0;
+          }
+        }
+        ItCorticalThicknessImage.Set( thicknessValue );
+      }
+    ++ItCorticalThicknessImage;
+    ++ItSmoothHitImage;
+    ++ItSegmentationImage;
+    ++ItSmoothTotalImage;
+    }
 }
 
 template <class TInputImage, class TOutputImage>
@@ -905,7 +909,7 @@ template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::GaussianSmoothDisplacementField( const DisplacementFieldType *inputField,
-                           const RealType variance )
+                                   const RealType variance )
 {
   typedef ImageDuplicator<DisplacementFieldType> DuplicatorType;
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
@@ -988,7 +992,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return outputField;
 }
 
-
 template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
@@ -1006,48 +1009,52 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   // 2. sparseMatrix * displacementMatrix
   // 3. put the result in the outputField
 
-  unsigned long nMaskVox = this->m_SparseMatrix.rows();
-  vnl_matrix< RealType > dispMat( nMaskVox, ImageDimension );
-  dispMat.fill( 0 );
-  itk::ImageRegionIteratorWithIndex<DisplacementFieldType> dimageIterator(
+  unsigned long numberOfMaskedVoxels = this->m_SparseMatrix.rows();
+  vnl_matrix<RealType> displacementFieldMatrix( numberOfMaskedVoxels, ImageDimension );
+  displacementFieldMatrix.fill( 0 );
+
+  itk::ImageRegionIteratorWithIndex<DisplacementFieldType> It(
     outputField, outputField->GetRequestedRegion() );
-  dimageIterator.GoToBegin();
-  // fill in the matrix of displacements
-  while(!dimageIterator.IsAtEnd())
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
-    if ( this->TestMask( dimageIterator.GetIndex() ) )
+    if( this->IsInsideMask( It.GetIndex() ) )
       {
-      VectorType vec = dimageIterator.Get();
-      long locn = static_cast<long>(
-        this->m_SparseMatrixIndexImage->GetPixel( dimageIterator.GetIndex() ) + 0.5 ) - 1;
-      for ( unsigned int k = 0; k < ImageDimension; k++ )
-        dispMat( locn, k ) = vec[ k ];
-      if ( this->m_RestrictDeformation ) dispMat( locn, ImageDimension - 1 ) = 0;
+      long location = static_cast<long>(
+        this->m_SparseMatrixIndexImage->GetPixel( It.GetIndex() ) + 0.5 ) - 1;
+
+      VectorType displacement = It.Get();
+      for( SizeValueType d = 0; d < ImageDimension; d++ )
+        {
+        displacementFieldMatrix( location, d ) = displacement[d];
+        }
+      if( this->m_RestrictDeformation )
+        {
+        displacementFieldMatrix( location, ImageDimension - 1 ) = 0;
+        }
       }
-    ++dimageIterator;
     }
 
   // perform the smoothing operation
-  for ( unsigned int k = 0; k < ImageDimension; k++ )
+  for( SizeValueType d = 0; d < ImageDimension; d++ )
     {
-    vnl_vector< RealType > temp;
-    this->m_SparseMatrix.mult( dispMat.get_column( k ), temp );
-    dispMat.set_column( k, temp );
+    vnl_vector<RealType> smoothColumn;
+    this->m_SparseMatrix.mult( displacementFieldMatrix.get_column( d ), smoothColumn );
+    displacementFieldMatrix.set_column( d, smoothColumn );
     }
 
-  dimageIterator.GoToBegin();
-  while(!dimageIterator.IsAtEnd())
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
-    if ( this->TestMask(   dimageIterator.GetIndex() ) )
+    if( this->IsInsideMask( It.GetIndex() ) )
       {
-      long locn = static_cast<long>(
-          this->m_SparseMatrixIndexImage->GetPixel( dimageIterator.GetIndex() ) + 0.5 ) - 1;
-      VectorType vec;
-      for ( unsigned int k = 0; k < ImageDimension; k++ )
-        vec[ k ] = dispMat( locn, k );
-      dimageIterator.Set( vec );
+      long location = static_cast<long>(
+          this->m_SparseMatrixIndexImage->GetPixel( It.GetIndex() ) + 0.5 ) - 1;
+      VectorType displacement = It.Get();
+      for( SizeValueType d = 0; d < ImageDimension; d++ )
+        {
+        displacement[d] = displacementFieldMatrix( location, d );
+        }
+      It.Set( displacement );
       }
-    ++dimageIterator;
     }
   return outputField;
 }
