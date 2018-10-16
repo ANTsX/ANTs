@@ -473,7 +473,7 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
   {
   std::string description =
     std::string( "A segmentation image must be supplied labeling the gray" )
-    + std::string( "and white matters.  Ddefault values = 2 and 3, respectively." );
+    + std::string( "and white matters.  Default values = 2 and 3, respectively." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "segmentation-image" );
