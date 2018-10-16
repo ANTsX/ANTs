@@ -88,7 +88,8 @@ int DiReCT( itk::ants::CommandLineParser *parser )
 
   if( verbose )
     {
-    std::cout << "Running DiReCT for " << ImageDimension << "-dimensional images." << std::endl << std::endl;
+    std::cout << "Running DiReCT for " << ImageDimension <<
+      "-dimensional images." << std::endl << std::endl;
     }
 
   //
@@ -123,15 +124,15 @@ int DiReCT( itk::ants::CommandLineParser *parser )
       ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
       if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        DirectLabelType gmval = parser->Convert<DirectLabelType>( segmentationImageOption->GetFunction(
-                                                                    0 )->GetParameter( 1 ) );
-        direct->SetGrayMatterLabel( gmval );
+        DirectLabelType grayMatterValue = parser->Convert<DirectLabelType>(
+          segmentationImageOption->GetFunction( 0 )->GetParameter( 1 ) );
+        direct->SetGrayMatterLabel( grayMatterValue );
         }
       if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
         {
-        DirectLabelType wmval = parser->Convert<DirectLabelType>( segmentationImageOption->GetFunction(
-                                                                    0 )->GetParameter( 2 ) );
-        direct->SetWhiteMatterLabel( wmval );
+        DirectLabelType whiteMatterValue = parser->Convert<DirectLabelType>(
+          segmentationImageOption->GetFunction( 0 )->GetParameter( 2 ) );
+        direct->SetWhiteMatterLabel( whiteMatterValue );
         }
       }
     }
@@ -242,17 +243,17 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       direct->SetMaximumNumberOfIterations( parser->Convert<unsigned int>(
-                                              convergenceOption->GetFunction( 0 )->GetParameter( 0 ) ) );
+        convergenceOption->GetFunction( 0 )->GetParameter( 0 ) ) );
       }
     if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
       direct->SetConvergenceThreshold( parser->Convert<float>(
-                                         convergenceOption->GetFunction( 0 )->GetParameter( 1 ) ) );
+        convergenceOption->GetFunction( 0 )->GetParameter( 1 ) ) );
       }
     if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
       {
       direct->SetConvergenceWindowSize( parser->Convert<unsigned int>(
-                                          convergenceOption->GetFunction( 0 )->GetParameter( 2 ) ) );
+        convergenceOption->GetFunction( 0 )->GetParameter( 2 ) ) );
       }
     }
 
@@ -264,8 +265,9 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( thicknessPriorOption && thicknessPriorOption->GetNumberOfFunctions() )
     {
     direct->SetThicknessPriorEstimate( parser->Convert<RealType>(
-                                       thicknessPriorOption->GetFunction( 0 )->GetName() ) );
+      thicknessPriorOption->GetFunction( 0 )->GetName() ) );
     }
+
   //
   // gradient step
   //
@@ -274,7 +276,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( gradientStepOption && gradientStepOption->GetNumberOfFunctions() )
     {
     direct->SetInitialGradientStep( parser->Convert<RealType>(
-                                    gradientStepOption->GetFunction( 0 )->GetName() ) );
+      gradientStepOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -285,7 +287,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( bsplineSmoothingOption && bsplineSmoothingOption->GetNumberOfFunctions() )
     {
     direct->SetUseBSplineSmoothing( parser->Convert<bool>(
-                                 bsplineSmoothingOption->GetFunction( 0 )->GetName() ) );
+      bsplineSmoothingOption->GetFunction( 0 )->GetName() ) );
     }
 
 
@@ -293,52 +295,55 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     // do matrix-based smoothing?
     //
     typename itk::ants::CommandLineParser::OptionType::Pointer
-      mtxSmoothingOption = parser->GetOption( "use-matrix-smoothing" );
-    if( mtxSmoothingOption && mtxSmoothingOption->GetNumberOfFunctions() )
+      maskedSmoothingOption = parser->GetOption( "use-masked-smoothing" );
+    if( maskedSmoothingOption && maskedSmoothingOption->GetNumberOfFunctions() )
       {
       direct->SetUseMaskedSmoothing( parser->Convert<bool>(
-                                   mtxSmoothingOption->GetFunction( 0 )->GetName() ) );
+        maskedSmoothingOption->GetFunction( 0 )->GetName() ) );
       }
 
-
-      /**
-       * time spacing
-       */
-      typename itk::ants::CommandLineParser::OptionType::Pointer tsOption =
-        parser->GetOption( "time-spacing" );
-
-      if( tsOption && tsOption->GetNumberOfFunctions() )
+    //
+    // time points
+    //
+    typename itk::ants::CommandLineParser::OptionType::Pointer
+      timePointsOption = parser->GetOption( "time-points" );
+    if( timePointsOption && timePointsOption->GetNumberOfFunctions() )
+      {
+      direct->SetTimePoints( parser->ConvertVector<RealType>(
+        timePointsOption->GetFunction( 0 )->GetParameter( 0 ) ) );
+      if( timePointsOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        direct->SetTimeSpacing( parser->ConvertVector<RealType>( tsOption->GetFunction( 0 )->GetParameter( 0 ) ) );
-        if ( tsOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
-          direct->SetTimeSigma( parser->Convert<float>(
-            tsOption->GetFunction( 0 )->GetParameter( 1 ) ) );
+        direct->SetTimeSmoothingVariance( parser->Convert<float>(
+          timePointsOption->GetFunction( 0 )->GetParameter( 1 ) ) );
         }
+      }
 
   typename itk::ants::CommandLineParser::OptionType::Pointer
     restrictOption = parser->GetOption( "restrict-deformation" );
   if( restrictOption && restrictOption->GetNumberOfFunctions() )
     {
     direct->SetRestrictDeformation( parser->Convert<bool>(
-                                 restrictOption->GetFunction( 0 )->GetName() ) );
+      restrictOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
   // smoothing parameter for the velocity field
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
-    smoothingVelocityFieldParameterOption = parser->GetOption( "smoothing-velocity-field-parameter" );
-  if( smoothingVelocityFieldParameterOption && smoothingVelocityFieldParameterOption->GetNumberOfFunctions() )
+    smoothingVelocityFieldParameterOption =
+    parser->GetOption( "smoothing-velocity-field-parameter" );
+  if( smoothingVelocityFieldParameterOption &&
+    smoothingVelocityFieldParameterOption->GetNumberOfFunctions() )
     {
     if( direct->GetUseBSplineSmoothing() )
       {
       direct->SetBSplineSmoothingIsotropicMeshSpacing( parser->Convert<RealType>(
-                                                 smoothingVelocityFieldParameterOption->GetFunction( 0 )->GetName() ) );
+        smoothingVelocityFieldParameterOption->GetFunction( 0 )->GetName() ) );
       }
     else
       {
       direct->SetSmoothingVelocityFieldVariance( parser->Convert<RealType>(
-                                               smoothingVelocityFieldParameterOption->GetFunction( 0 )->GetName() ) );
+        smoothingVelocityFieldParameterOption->GetFunction( 0 )->GetName() ) );
       }
     }
 
@@ -350,7 +355,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( smoothingVarianceOption && smoothingVarianceOption->GetNumberOfFunctions() )
     {
     direct->SetSmoothingVariance( parser->Convert<RealType>(
-                                  smoothingVarianceOption->GetFunction( 0 )->GetName() ) );
+      smoothingVarianceOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -358,21 +363,25 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
     numberOfIntegrationPointsOption = parser->GetOption( "number-of-integration-points" );
-  if( numberOfIntegrationPointsOption && numberOfIntegrationPointsOption->GetNumberOfFunctions() )
+  if( numberOfIntegrationPointsOption &&
+    numberOfIntegrationPointsOption->GetNumberOfFunctions() )
     {
     direct->SetNumberOfIntegrationPoints( parser->Convert<unsigned int>(
-                                          numberOfIntegrationPointsOption->GetFunction( 0 )->GetName() ) );
+      numberOfIntegrationPointsOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
   // number of invert displacement field iterations
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
-    numberOfInvertDisplacementFieldIterationsOption = parser->GetOption( "maximum-number-of-invert-displacement-field-iterations" );
-  if( numberOfInvertDisplacementFieldIterationsOption && numberOfInvertDisplacementFieldIterationsOption->GetNumberOfFunctions() )
+    numberOfInvertDisplacementFieldIterationsOption = parser->GetOption(
+    "maximum-number-of-invert-displacement-field-iterations" );
+  if( numberOfInvertDisplacementFieldIterationsOption &&
+    numberOfInvertDisplacementFieldIterationsOption->GetNumberOfFunctions() )
     {
-    direct->SetMaximumNumberOfInvertDisplacementFieldIterations( parser->Convert<unsigned int>(
-                                                                 numberOfInvertDisplacementFieldIterationsOption->GetFunction( 0 )->GetName() ) );
+    direct->SetMaximumNumberOfInvertDisplacementFieldIterations(
+      parser->Convert<unsigned int>(
+      numberOfInvertDisplacementFieldIterationsOption->GetFunction( 0 )->GetName() ) );
     }
 
   if( verbose )
@@ -585,7 +594,7 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   {
   std::string description =
-    std::string( " Sets the option for B-spline smoothing of the velocity field." )
+    std::string( "Sets the option for B-spline smoothing of the velocity field." )
     + std::string( "Default = false." );
 
   OptionType::Pointer option = OptionType::New();
@@ -598,11 +607,11 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   {
   std::string description =
-    std::string( " Sets the option for matrix-based smoothing of the velocity field.  smoothing-velocity-field-parameter controls amount of smoothing." )
+    std::string( "Sets the option for masked-based smoothing of the velocity field." )
     + std::string( "Default = false." );
 
   OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "use-matrix-smoothing" );
+  option->SetLongName( "use-masked-smoothing" );
   option->SetShortName( 'x' );
   option->SetUsageOption( 0, "1/(0)" );
   option->SetDescription( description );
@@ -611,24 +620,25 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   {
   std::string description =
-    std::string( "time-spacing for irregularly spaced time samples and" ) +
-    std::string( "time-variance with which to compute distance metric." ) +
-    std::string( "The user specifies [0.0x1.2x4.5,3] for input with 3 time" ) +
-    std::string( "slices where the vector of numeric value defines the time of sampling e.g. in years and the scalar value ( here 3 ) defines the variance." );
+    std::string( "Time points for irregularly spaced time samples and " ) +
+    std::string( "time-variance with which to compute distance metric. " ) +
+    std::string( "The user specifies [0.0x1.2x4.5,3] for input with 3 time " ) +
+    std::string( "slices where the vector of numeric value defines the time " ) +
+    std::string( "of sampling e.g. in years and the scalar value (here \'3\')" ) +
+    std::string( "defines the variance." );
 
   OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "time-spacing" );
+  option->SetLongName( "time-points" );
   option->SetShortName( 'p' );
   option->SetUsageOption( 0, "1" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
 
-
   {
   std::string description =
-    std::string( " Restrict the last dimension's deformation." )
-    + std::string( "Default = false." );
+    std::string( "Restrict the last dimension's deformation.  Meant for use " ) +
+    std::string( "with multiple time points.  Default = false." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "restrict-deformation" );
@@ -762,7 +772,11 @@ private:
     + std::string( "thickness.  It was published in S. R. Das, B. B. " )
     + std::string( "Avants, M. Grossman, and J. C. Gee, Registration based " )
     + std::string( "cortical thickness measurement, Neuroimage 2009, " )
-    + std::string( "45:867--879." );
+    + std::string( "45:867--879.  See also N. J. Tustison, P. A. Cook, " )
+    + std::string( "A. Klein, G. Song, S. R. Das, J. T. Duda, B M. Kandel, " )
+    + std::string( "N. van Strien, J. R. Stone, J. C. Gee, and B. B. Avants. " )
+    + std::string( "Large-Scale Evaluation of ANTs and FreeSurfer Cortical " )
+    + std::string( "Thickness Measurements. NeuroImage, 99:166-179, Oct 2014." );
 
   parser->SetCommandDescription( commandDescription );
   KellyKapowskiInitializeCommandLineOptions( parser );

@@ -33,6 +33,7 @@
 #include "itkImportImageFilter.h"
 #include "itkInvertDisplacementFieldImageFilter.h"
 #include "itkIterationReporter.h"
+#include "itkMaskedSmoothingImageFilter.h"
 #include "itkMaximumImageFilter.h"
 #include "itkMultiplyByConstantImageFilter.h"
 #include "itkStatisticsImageFilter.h"
@@ -40,8 +41,6 @@
 #include "itkVectorNeighborhoodOperatorImageFilter.h"
 #include "itkWarpImageFilter.h"
 #include "itkWindowConvergenceMonitoringFunction.h"
-
-#include "ReadWriteData.h"
 
 namespace itk
 {
@@ -66,11 +65,13 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_UseBSplineSmoothing( false ),
   m_UseMaskedSmoothing( false ),
   m_RestrictDeformation( false ),
-  m_TimeSigma( 1.0 )
+  m_TimeSmoothingVariance( 1.0 )
 {
-  this->m_ThicknessPriorImage = ITK_NULLPTR;
-  this->m_SparseMatrixIndexImage = ITK_NULLPTR;
+  this->m_ThicknessPriorImage = nullptr;
+  this->m_SparseMatrixIndexImage = nullptr;
   this->SetNumberOfRequiredInputs( 3 );
+
+  this->m_TimePoints.clear();
 }
 
 template <class TInputImage, class TOutputImage>
@@ -100,7 +101,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   typename InputImageType::DirectionType identity;
   identity.SetIdentity();
 
-  typedef ImportImageFilter<InputPixelType, ImageDimension> SegmentationImageImporterType;
+  using SegmentationImageImporterType = ImportImageFilter<InputPixelType, ImageDimension>;
   typename SegmentationImageImporterType::Pointer segmentationImageImporter = SegmentationImageImporterType::New();
   segmentationImageImporter->SetImportPointer( const_cast<InputPixelType *>(
                                                  this->GetSegmentationImage()->GetBufferPointer() ),
@@ -115,7 +116,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   segmentationImage->Update();
   segmentationImage->DisconnectPipeline();
 
-  typedef ImportImageFilter<RealType, ImageDimension> ProbablilityImageImporterType;
+  using ProbablilityImageImporterType = ImportImageFilter<RealType, ImageDimension>;
 
   typename ProbablilityImageImporterType::Pointer grayMatterProbabilityImageImporter = ProbablilityImageImporterType::New();
   grayMatterProbabilityImageImporter->SetImportPointer( const_cast<RealType *>(
@@ -151,7 +152,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   InputImagePointer grayMatter = this->ExtractRegion( segmentationImage, this->m_GrayMatterLabel );
   InputImagePointer whiteMatter = this->ExtractRegion( segmentationImage, this->m_WhiteMatterLabel );
 
-  typedef AddImageFilter<InputImageType, InputImageType, InputImageType> AdderType;
+  using AdderType = AddImageFilter<InputImageType, InputImageType, InputImageType>;
   typename AdderType::Pointer adder = AdderType::New();
   adder->SetInput1( grayMatter );
   adder->SetInput2( whiteMatter );
@@ -164,127 +165,11 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   InputImagePointer matterContours = this->ExtractRegionalContours( thresholdedRegion, 1 );
   InputImagePointer whiteMatterContoursTmp = this->ExtractRegionalContours( segmentationImage, this->m_WhiteMatterLabel );
 
-  typedef CastImageFilter<InputImageType, RealImageType> CasterType;
+  using CasterType = CastImageFilter<InputImageType, RealImageType>;
   typename CasterType::Pointer caster = CasterType::New();
   caster->SetInput( whiteMatterContoursTmp );
   caster->Update();
   RealImagePointer whiteMatterContours = caster->GetOutput();
-
-  if( this->m_UseMaskedSmoothing )
-    {
-    // Initialize the sparse matrix smoother.   Iterate over the segmentation
-    // mask and count the entries.  Label an image with the numeric index to
-    // make a sparse matrix of that size and fill it with neighborhood data.
-
-    this->m_SparseMatrixIndexImage = RealImageType::New();
-    this->m_SparseMatrixIndexImage->CopyInformation( segmentationImage );
-    this->m_SparseMatrixIndexImage->SetRegions( segmentationImage->GetRequestedRegion() );
-    this->m_SparseMatrixIndexImage->Allocate();
-    this->m_SparseMatrixIndexImage->FillBuffer( 0.0 );
-
-    ImageRegionIteratorWithIndex<RealImageType> ItSparseImage(
-      this->m_SparseMatrixIndexImage, segmentationImage->GetRequestedRegion() );
-    ItSparseImage.GoToBegin();
-
-    SizeValueType count = 0;
-    while( !ItSparseImage.IsAtEnd() )
-      {
-      if ( this->IsInsideMask( ItSparseImage.GetIndex() ) )
-        {
-        ItSparseImage.Set( count + 1 );
-        ++count;
-        }
-      ++ItSparseImage;
-      }
-    this->m_SparseMatrix.set_size( count, count );
-
-    typename RealImageType::SizeType sparseRadius;
-    sparseRadius.Fill( this->m_SparseImageNeighborhoodRadius );
-    unsigned int numberOfNeighborhoodIndices = static_cast<unsigned int>(
-      std::pow( this->m_SparseImageNeighborhoodRadius * 2 + 1, ImageDimension ) );
-
-    NeighborhoodIterator<RealImageType> ItSparseImageNeighborhood(
-      sparseRadius,
-      this->m_SparseMatrixIndexImage, segmentationImage->GetRequestedRegion() );
-
-    typename RealImageType::SpacingType spacing = segmentationImage->GetSpacing();
-    unsigned int temporalDimension =
-      segmentationImage->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-    bool useTimeRegularization = ( this->m_TimeSpacing.size() == temporalDimension );
-
-    ItSparseImageNeighborhood.GoToBegin();
-    while( !ItSparseImageNeighborhood.IsAtEnd() )
-      {
-      typename RealImageType::IndexType centerIndex = ItSparseImageNeighborhood.GetIndex();
-
-      if( this->IsInsideMask( centerIndex ) )
-        {
-        long location = static_cast<long>(
-          this->m_SparseMatrixIndexImage->GetPixel( centerIndex ) + 0.5 ) - 1;
-
-        for( SizeValueType i = 0; i < numberOfNeighborhoodIndices; i++ )
-          {
-          bool isInBounds;
-          ItSparseImageNeighborhood.GetPixel( i, isInBounds );
-          if( isInBounds )
-            {
-            IndexType index = ItSparseImageNeighborhood.GetIndex( i );
-
-            if( this->IsInsideMask( index ) )
-              {
-              long next = static_cast<long>(
-                ItSparseImageNeighborhood.GetPixel( i, isInBounds ) + 0.5 ) - 1;
-
-              if( next >= 0 && location >= 0 && isInBounds )
-                {
-                RealType spaceValue = 0;
-                RealType timeValue = 0;
-                if ( this->m_TimeSpacing.size() != temporalDimension )
-                  {
-                  for( SizeValueType k = 0; k < ImageDimension; k++ )
-                    {
-                    spaceValue += std::pow( ( centerIndex[k] - index[k] ) * spacing[ k ], 2.0 );
-                    }
-                  }
-
-                // handle non-uniform temporal regularization
-                if( useTimeRegularization )
-                  {
-                  spaceValue = 0;
-                  for ( unsigned int k = 0; k < ImageDimension - 1; k++ )
-                    {
-                    spaceValue += std::pow( ( centerIndex[k] - index[k] ) * spacing[ k ], 2.0 );
-                    }
-                  RealType timeDistance =
-                    this->m_TimeSpacing[centerIndex[ImageDimension - 1]] -
-                    this->m_TimeSpacing[index[ImageDimension - 1]];
-
-                  timeValue = std::pow( timeDistance, 2.0 );
-                  }
-                RealType gaussianValue = std::exp( -1.0 * (
-                  spaceValue / this->m_SmoothingVelocityFieldVariance +
-                  timeValue  / this->m_TimeSigma ) );
-                this->m_SparseMatrix( location, next ) = gaussianValue;
-                }
-              }
-            }
-          }
-        }
-      ++ItSparseImageNeighborhood;
-      }
-
-    // We use this for smoothing so we force rows to sum to one.
-    for( unsigned int k = 0; k < this->m_SparseMatrix.rows(); k++ )
-      {
-      RealType rowSum = this->m_SparseMatrix.sum_row( k );
-      if( rowSum > 0 )
-        {
-        this->m_SparseMatrix = this->m_SparseMatrix.scale_row( k, 1.0 / rowSum );
-        }
-      }
-    // next - make a function that uses the SparseMatrix to perform
-    // this->m_SparseMatrix %*% N*Dim  vector matrix smoothing ...
-    }
 
   // Initialize fields and images.
   VectorType zeroVector( 0.0 );
@@ -379,7 +264,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     whiteMatterContours->GetRequestedRegion() );
 
   // Monitor the convergence
-  typedef Function::WindowConvergenceMonitoringFunction<double> ConvergenceMonitoringType;
+  using ConvergenceMonitoringType = typename Function::WindowConvergenceMonitoringFunction<double>;
   ConvergenceMonitoringType::Pointer convergenceMonitoring = ConvergenceMonitoringType::New();
   convergenceMonitoring->SetWindowSize( this->m_ConvergenceWindowSize );
 
@@ -414,7 +299,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     unsigned int integrationPoint = 0;
     while( integrationPoint++ < this->m_NumberOfIntegrationPoints )
       {
-      typedef ComposeDisplacementFieldsImageFilter<DisplacementFieldType> ComposerType;
+      using ComposerType = ComposeDisplacementFieldsImageFilter<DisplacementFieldType>;
       typename ComposerType::Pointer composer = ComposerType::New();
       composer->SetDisplacementField( inverseIncrementalField );
       composer->SetWarpingField( inverseField );
@@ -427,8 +312,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       RealImagePointer warpedWhiteMatterContours = this->WarpImage( whiteMatterContours, inverseField );
       RealImagePointer warpedThicknessImage = this->WarpImage( thicknessImage, inverseField );
 
-      typedef GradientRecursiveGaussianImageFilter<RealImageType, DisplacementFieldType>
-        GradientImageFilterType;
+      using GradientImageFilterType = GradientRecursiveGaussianImageFilter<RealImageType, DisplacementFieldType>;
       typename GradientImageFilterType::Pointer gradientFilter =
         GradientImageFilterType::New();
       gradientFilter->SetInput( warpedWhiteMatterProbabilityImage );
@@ -590,7 +474,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         integratedField->FillBuffer( zeroVector );
         }
 
-      typedef InvertDisplacementFieldImageFilter<DisplacementFieldType> InverterType;
+      using InverterType = InvertDisplacementFieldImageFilter<DisplacementFieldType>;
 
       typename InverterType::Pointer inverter1 = InverterType::New();
       inverter1->SetInput( inverseField );
@@ -599,7 +483,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       inverter1->SetMeanErrorToleranceThreshold( 0.001 );
       inverter1->SetMaxErrorToleranceThreshold( 0.1 );
       if ( this->m_UseMaskedSmoothing )
+        {
         inverter1->SetEnforceBoundaryCondition( false );
+        }
       inverter1->Update();
 
       integratedField = inverter1->GetOutput();
@@ -612,7 +498,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       inverter2->SetMeanErrorToleranceThreshold( 0.001 );
       inverter2->SetMaxErrorToleranceThreshold( 0.1 );
       if ( this->m_UseMaskedSmoothing )
+        {
         inverter2->SetEnforceBoundaryCondition( false );
+        }
       inverter2->Update();
 
       inverseField = inverter2->GetOutput();
@@ -731,12 +619,25 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       }
     else if ( this->m_UseMaskedSmoothing )
       {
-      velocityField = this->MaskedGaussianSmoothDisplacementField( velocityField );
+      using MaskedSmootherType = MaskedSmoothingImageFilter<DisplacementFieldType, InputImageType>;
+      typename MaskedSmootherType::Pointer maskedSmoother = MaskedSmootherType::New();
+      maskedSmoother->SetInput( velocityField );
+      maskedSmoother->SetMaskImage( thresholdedRegion );
+      maskedSmoother->SetSmoothingVariance( this->m_SmoothingVariance );
+      maskedSmoother->SetSparseImageNeighborhoodRadius( this->m_SparseImageNeighborhoodRadius );
+      if( this->m_TimePoints.size() > 0 )
+        {
+        maskedSmoother->SetTimeSmoothingVariance( this->m_TimeSmoothingVariance );
+        maskedSmoother->SetTimePoints( this->m_TimePoints );
+        }
+      maskedSmoother->Update();
+
+      velocityField = maskedSmoother->GetOutput();
       }
     else
       {
-      velocityField = this->GaussianSmoothDisplacementField( velocityField,
-                                                   this->m_SmoothingVelocityFieldVariance );
+      velocityField = this->GaussianSmoothDisplacementField(
+        velocityField, this->m_SmoothingVelocityFieldVariance );
       }
 
     // Calculate current energy and current convergence measurement
@@ -776,8 +677,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 ::ExtractRegion( const InputImageType *segmentationImage,
                  typename DiReCTImageFilter<TInputImage, TOutputImage>::LabelType whichRegion )
 {
-  typedef BinaryThresholdImageFilter<InputImageType, InputImageType>
-    ThresholderType;
+  using ThresholderType = BinaryThresholdImageFilter<InputImageType, InputImageType>;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
   thresholder->SetInput( segmentationImage );
   thresholder->SetLowerThreshold( whichRegion );
@@ -800,10 +700,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
                            typename DiReCTImageFilter<TInputImage, TOutputImage>::LabelType whichRegion )
 {
   InputImagePointer thresholdedRegion = this->ExtractRegion(
-      segmentationImage, whichRegion );
+    segmentationImage, whichRegion );
 
-  typedef BinaryContourImageFilter<InputImageType, InputImageType>
-    ContourFilterType;
+  using ContourFilterType = BinaryContourImageFilter<InputImageType, InputImageType>;
   typename ContourFilterType::Pointer contourFilter = ContourFilterType::New();
   contourFilter->SetInput( thresholdedRegion );
   contourFilter->SetFullyConnected( true );
@@ -846,9 +745,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     segmentationImage->GetRequestedRegion() );
 
   ImageRegionConstIterator<RealImageType> ItSmoothHitImage( smoothHitImage,
-      smoothHitImage->GetRequestedRegion() );
+    smoothHitImage->GetRequestedRegion() );
   ImageRegionConstIterator<RealImageType> ItSmoothTotalImage( smoothTotalImage,
-      smoothTotalImage->GetRequestedRegion() );
+    smoothTotalImage->GetRequestedRegion() );
 
   ItCorticalThicknessImage.GoToBegin();
   ItSegmentationImage.GoToBegin();
@@ -889,7 +788,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 ::WarpImage( const RealImageType *inputImage,
              const DisplacementFieldType *displacementField )
 {
-  typedef WarpImageFilter<RealImageType, RealImageType, DisplacementFieldType> WarperType;
+  using WarperType = WarpImageFilter<RealImageType, RealImageType, DisplacementFieldType>;
   typename WarperType::Pointer warper = WarperType::New();
   warper->SetInput( inputImage );
   warper->SetDisplacementField( displacementField );
@@ -911,17 +810,16 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 ::GaussianSmoothDisplacementField( const DisplacementFieldType *inputField,
                                    const RealType variance )
 {
-  typedef ImageDuplicator<DisplacementFieldType> DuplicatorType;
+  using DuplicatorType = ImageDuplicator<DisplacementFieldType>;
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
   duplicator->SetInputImage( inputField );
   duplicator->Update();
   DisplacementFieldPointer outputField = duplicator->GetOutput();
 
-  typedef VectorNeighborhoodOperatorImageFilter<DisplacementFieldType,
-                                                DisplacementFieldType> SmootherType;
+  using SmootherType = VectorNeighborhoodOperatorImageFilter<DisplacementFieldType, DisplacementFieldType>;
   typename SmootherType::Pointer smoother = SmootherType::New();
 
-  typedef GaussianOperator<VectorValueType, ImageDimension> GaussianType;
+  using GaussianType = GaussianOperator<VectorValueType, ImageDimension>;
   GaussianType gaussian;
   gaussian.SetVariance( variance );
   gaussian.SetMaximumError( 0.001 );
@@ -949,8 +847,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     }
   RealType weight2 = 1.0 - weight1;
 
-  typedef MultiplyByConstantImageFilter<DisplacementFieldType, RealType,
-                                        DisplacementFieldType> MultiplierType;
+  using MultiplierType =
+    MultiplyByConstantImageFilter<DisplacementFieldType, RealType, DisplacementFieldType>;
 
   typename MultiplierType::Pointer multiplier1 = MultiplierType::New();
   multiplier1->SetConstant2( weight1 );
@@ -960,7 +858,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   multiplier2->SetConstant2( weight2 );
   multiplier2->SetInput1( inputField );
 
-  typedef AddImageFilter<DisplacementFieldType, DisplacementFieldType, DisplacementFieldType> AdderType;
+  using AdderType = AddImageFilter<DisplacementFieldType, DisplacementFieldType, DisplacementFieldType>;
   typename AdderType::Pointer adder = AdderType::New();
   adder->SetInput1( multiplier1->GetOutput() );
   adder->SetInput2( multiplier2->GetOutput() );
@@ -995,78 +893,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
-::MaskedGaussianSmoothDisplacementField(
-  const DisplacementFieldType *inputField )
-{
-  typedef ImageDuplicator<DisplacementFieldType> DuplicatorType;
-  typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
-  duplicator->SetInputImage( inputField );
-  duplicator->Update();
-  DisplacementFieldPointer outputField = duplicator->GetOutput();
-
-  // 0. use the fact that we already have a properly sized sparse matrix
-  // 1. build a vnl matrix that holds the current vector field
-  // 2. sparseMatrix * displacementMatrix
-  // 3. put the result in the outputField
-
-  unsigned long numberOfMaskedVoxels = this->m_SparseMatrix.rows();
-  vnl_matrix<RealType> displacementFieldMatrix( numberOfMaskedVoxels, ImageDimension );
-  displacementFieldMatrix.fill( 0 );
-
-  itk::ImageRegionIteratorWithIndex<DisplacementFieldType> It(
-    outputField, outputField->GetRequestedRegion() );
-  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-    {
-    if( this->IsInsideMask( It.GetIndex() ) )
-      {
-      long location = static_cast<long>(
-        this->m_SparseMatrixIndexImage->GetPixel( It.GetIndex() ) + 0.5 ) - 1;
-
-      VectorType displacement = It.Get();
-      for( SizeValueType d = 0; d < ImageDimension; d++ )
-        {
-        displacementFieldMatrix( location, d ) = displacement[d];
-        }
-      if( this->m_RestrictDeformation )
-        {
-        displacementFieldMatrix( location, ImageDimension - 1 ) = 0;
-        }
-      }
-    }
-
-  // perform the smoothing operation
-  for( SizeValueType d = 0; d < ImageDimension; d++ )
-    {
-    vnl_vector<RealType> smoothColumn;
-    this->m_SparseMatrix.mult( displacementFieldMatrix.get_column( d ), smoothColumn );
-    displacementFieldMatrix.set_column( d, smoothColumn );
-    }
-
-  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-    {
-    if( this->IsInsideMask( It.GetIndex() ) )
-      {
-      long location = static_cast<long>(
-          this->m_SparseMatrixIndexImage->GetPixel( It.GetIndex() ) + 0.5 ) - 1;
-      VectorType displacement = It.Get();
-      for( SizeValueType d = 0; d < ImageDimension; d++ )
-        {
-        displacement[d] = displacementFieldMatrix( location, d );
-        }
-      It.Set( displacement );
-      }
-    }
-  return outputField;
-}
-
-
-template <class TInputImage, class TOutputImage>
-typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
-DiReCTImageFilter<TInputImage, TOutputImage>
 ::BSplineSmoothDisplacementField( const DisplacementFieldType *inputField,
                            const RealType isotropicMeshSpacing )
 {
-  typedef itk::DisplacementFieldToBSplineImageFilter<DisplacementFieldType> BSplineFilterType;
+  using BSplineFilterType = DisplacementFieldToBSplineImageFilter<DisplacementFieldType>;
 
   // calculate the number of control points based on the isotropic mesh spacing
 
@@ -1099,7 +929,7 @@ typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::SmoothImage( const RealImageType *inputImage, const RealType variance )
 {
-  typedef DiscreteGaussianImageFilter<RealImageType, RealImageType> SmootherType;
+  using SmootherType = DiscreteGaussianImageFilter<RealImageType, RealImageType>;
   typename SmootherType::Pointer smoother = SmootherType::New();
   smoother->SetVariance( variance );
   smoother->SetUseImageSpacingOff();
@@ -1131,7 +961,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
                    << this->m_MaximumNumberOfIterations << std::endl;
   os << indent << "Thickness prior estimate = "
                    << this->m_ThicknessPriorEstimate << std::endl;
-  os << indent << "Smoothing sigma = "
+  os << indent << "Smoothing variance = "
                    << this->m_SmoothingVariance << std::endl;
   if( this->m_UseBSplineSmoothing )
     {
@@ -1140,7 +970,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     }
   else
     {
-    os << indent << "Smoothing velocity field sigma = "
+    os << indent << "Smoothing velocity field variance = "
                      << this->m_SmoothingVelocityFieldVariance << std::endl;
     }
   os << indent << "Number of integration points = "
@@ -1155,6 +985,11 @@ DiReCTImageFilter<TInputImage, TOutputImage>
                    << this->m_ConvergenceThreshold << std::endl;
   os << indent << "Convergence window size = "
                    << this->m_ConvergenceWindowSize << std::endl;
+
+  os << indent << "Time smoothing variance = "
+                   << this->m_TimeSmoothingVariance << std::endl;
+
+
 }
 } // end namespace itk
 
