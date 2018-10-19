@@ -123,7 +123,8 @@ private:
     std::cout << " -> " << convert << " space";
     ImageType::Pointer target;
     ReadImage<ImageType>( target, convert );
-    direction =  img_mov->GetDirection().GetTranspose() * target->GetDirection().GetVnlMatrix();
+    // converting from LOCAL to a reference LOCAL space
+    direction = target->GetDirection().GetTranspose() * img_mov->GetDirection().GetVnlMatrix();
     }
 
   // direction = direction.transpose(); // to accomodate for how

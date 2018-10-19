@@ -36,8 +36,10 @@ CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * re
 {
   typedef typename TensorImageType::DirectionType    DirectionType;
   typedef typename DirectionType::InternalMatrixType MatrixType;
-  MatrixType direction =
-    movingTensorImage->GetDirection().GetTranspose() * referenceImage->GetDirection().GetVnlMatrix();
+
+  // Assume tensors start in moving voxel space, we want to put them in fixed voxel space
+
+  MatrixType direction = referenceImage->GetDirection().GetTranspose() * movingTensorImage->GetDirection().GetVnlMatrix();
 
   if( !direction.is_identity( 0.00001 ) )
     {
@@ -67,8 +69,9 @@ CorrectImageVectorDirection( DisplacementFieldType * movingVectorImage, ImageTyp
 {
   typedef typename DisplacementFieldType::DirectionType DirectionType;
 
+  // Assume vectors are initially described in the voxel space of the moving image, like tensors
   typename DirectionType::InternalMatrixType direction =
-    movingVectorImage->GetDirection().GetTranspose() * referenceImage->GetDirection().GetVnlMatrix();
+    referenceImage->GetDirection().GetTranspose() * movingVectorImage->GetDirection().GetVnlMatrix();
 
   typedef typename DisplacementFieldType::PixelType VectorType;
 
