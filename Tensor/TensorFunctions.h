@@ -296,9 +296,9 @@ template <class TensorType>
 float  GetTensorFA( TensorType dtv )
 {
 
-  // Check for zero diffusion (probably background) and return zero FA 
+  // Check for zero diffusion (probably background) and return zero FA
   // if that's the case
-  if (dtv[0] + dtv[3] + dtv[5] == 0.0f) 
+  if (dtv[0] + dtv[3] + dtv[5] == 0.0f)
     {
       return 0.0f;
     }
@@ -536,7 +536,6 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
     return 0;
     }
 
-  itk::Vector<float, 6> dtv2;
   typedef vnl_matrix<double> MatrixType;
   MatrixType DT(3, 3);
   DT.fill(0);
@@ -659,7 +658,6 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
     return zero;
     }
 
-  itk::Vector<float, 6> dtv2;
   typedef vnl_matrix<double> MatrixType;
   MatrixType DT(3, 3);
   DT.fill(0);
@@ -740,7 +738,6 @@ itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned in
     return zero;
     }
 
-  itk::Vector<float, 6> dtv2;
   typedef vnl_matrix<double> MatrixType;
   MatrixType DT(3, 3);
   DT.fill(0);
