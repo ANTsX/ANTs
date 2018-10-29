@@ -94,7 +94,7 @@ protected:
    *
    * \sa ProcessObject::VerifyInputInformation
    */
-  void VerifyInputInformation() ITK_OVERRIDE;
+  void VerifyInputInformation();
 
   /** Overrides GenerateOutputInformation() in order to produce
    * an image which has a different information than the first input.

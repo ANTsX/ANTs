@@ -148,8 +148,8 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
-  set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
-  set(${proj}_GIT_TAG f44174c188466da6a9dcfbf3928d52bbd3b05cd2) ## ants fixes for jacobian performance
+  # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
+  set(${proj}_GIT_TAG 3a6158a416bd6f20882ac0dde27a0c1c50809991) ## itk vnl updates
   set(ITK_VERSION_ID ITK-5.0) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
