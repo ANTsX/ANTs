@@ -1048,9 +1048,7 @@ iMathHelperAll(int argc, char **argv)
     {
     typedef itk::Image<float,DIM>         ImageType;
     typedef itk::Image<unsigned int,DIM>           MaskType;
-
     int nBins = iMathTruncateIntensityNBins;
-
     if ( argc < 7 )
       {
       std::cerr << "TruncateIntensity needs a lower and upper quantile" << std::endl;

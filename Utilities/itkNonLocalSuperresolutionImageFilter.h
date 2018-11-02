@@ -209,7 +209,7 @@ protected:
 
   void AllocateOutputs() ITK_OVERRIDE;
 
-  void VerifyInputInformation() ITK_OVERRIDE;
+  void VerifyInputInformation();
 
   void GenerateOutputInformation() ITK_OVERRIDE;
 

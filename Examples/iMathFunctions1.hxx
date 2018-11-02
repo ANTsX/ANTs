@@ -454,7 +454,7 @@ iMathPropagateLabelsThroughMask( typename ImageType::Pointer speedimage,      /*
   outlabimage->Allocate();
   outlabimage->FillBuffer(0);
   */
-  
+
   typename CastFilterType::Pointer caster = CastFilterType::New();
   caster->SetInput( labimage );
   caster->Update();
@@ -636,12 +636,14 @@ iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ, double
     minValue++;
     }
 
-  stats->SetUseHistograms( true );
-  stats->SetHistogramParameters( nBins, minValue, maxValue );
-  stats->Update();
-
   typedef typename HistogramFilterType::HistogramPointer HistogramPointer;
-  HistogramPointer histogram = stats->GetHistogram( 1 );
+  typename HistogramFilterType::Pointer stats2 = HistogramFilterType::New();
+  stats2->SetInput( image );
+  stats2->SetLabelInput( mask );
+  stats2->UseHistogramsOn();
+  stats2->SetHistogramParameters( nBins, minValue, maxValue );
+  stats2->Update();
+  HistogramPointer histogram = stats2->GetHistogram( 1 );
 
   PixelType lowerQuantile = histogram->Quantile( 0, lowerQ );
   PixelType upperQuantile = histogram->Quantile( 0, upperQ );
