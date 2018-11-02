@@ -1048,9 +1048,6 @@ iMathHelperAll(int argc, char **argv)
     {
     typedef itk::Image<float,DIM>         ImageType;
     typedef itk::Image<unsigned int,DIM>           MaskType;
-
-    int nBins = iMathTruncateIntensityNBins;
-
     if ( argc < 7 )
       {
       std::cerr << "TruncateIntensity needs a lower and upper quantile" << std::endl;
@@ -1059,18 +1056,6 @@ iMathHelperAll(int argc, char **argv)
 
     double lowerQ = atof( argv[5] );
     double upperQ = atof( argv[6] );
-
-    if ( argc >= 8 )
-      {
-      nBins= atoi(argv[7]);
-      }
-
-    typename MaskType::Pointer mask = ITK_NULLPTR;
-    if ( argc >= 9 )
-      {
-      ReadImage<MaskType>( mask, argv[8] );
-      }
-
     typedef itk::Image<float,DIM> ImageType;
     typename ImageType::Pointer input = ITK_NULLPTR;
     typename ImageType::Pointer output = ITK_NULLPTR;
@@ -1083,7 +1068,7 @@ iMathHelperAll(int argc, char **argv)
 
     try
       {
-      output = iMathTruncateIntensity<ImageType>(input, lowerQ, upperQ, nBins, mask);
+      output = iMathTruncateIntensity<ImageType>(input, lowerQ, upperQ );
       }
     catch( itk::ExceptionObject & excep )
       {
