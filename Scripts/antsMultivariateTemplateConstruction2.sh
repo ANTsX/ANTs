@@ -1,5 +1,7 @@
 #!/bin/bash
 
+shopt -s extglob
+
 VERSION="0.0.0"
 
 # trap keyboard interrupt (control-c)
@@ -1322,12 +1324,12 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 indir=`pwd`
               fi
             IMGbase=`basename ${IMAGESETARRAY[$l]}`
-            OUTFN=${OUTPUTNAME}template${k}${IMGbase%%.*}
+            OUTFN=${OUTPUTNAME}template${k}${IMGbase/%?(.nii.gz|.nii)}
             OUTFN=`basename ${OUTFN}`
             DEFORMED="${outdir}/${OUTFN}${l}WarpedToTemplate.nii.gz"
 
             IMGbase=`basename ${IMAGESETARRAY[$j]}`
-            OUTWARPFN=${OUTPUTNAME}${IMGbase%%.*}
+            OUTWARPFN=${OUTPUTNAME}${IMGbase/%?(.nii.gz|.nii)}
             OUTWARPFN=`basename ${OUTWARPFN}`
             OUTWARPFN="${OUTWARPFN}${j}"
 
@@ -1360,7 +1362,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         done
 
         IMGbase=`basename ${IMAGESETARRAY[$j]}`
-        OUTWARPFN=${OUTPUTNAME}${IMGbase%%.*}
+        OUTWARPFN=${OUTPUTNAME}${IMGbase/%?(.nii.gz|.nii)}
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
         stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[$j]},1]"
