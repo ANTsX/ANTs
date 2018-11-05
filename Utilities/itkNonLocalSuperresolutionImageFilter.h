@@ -209,8 +209,6 @@ protected:
 
   void AllocateOutputs() ITK_OVERRIDE;
 
-  void VerifyInputInformation() ITK_OVERRIDE;
-
   void GenerateOutputInformation() ITK_OVERRIDE;
 
   void GenerateInputRequestedRegion() ITK_OVERRIDE;

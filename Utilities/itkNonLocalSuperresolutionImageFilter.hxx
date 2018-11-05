@@ -71,13 +71,6 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 template<typename TInputImage, typename TOutputImage>
 void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation()
-{
-}
-
-template<typename TInputImage, typename TOutputImage>
-void
-NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 ::AllocateOutputs()
 {
   typename OutputImageType::Pointer outputImage = this->GetOutput();
