@@ -17,7 +17,7 @@
 #include "itkManifoldParzenWindowsPointSetFunction.h"
 
 #include "vnl/vnl_vector.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 namespace itk
 {
@@ -242,7 +242,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
       queryPoint[d] = point[d];
       }
 
-    unsigned int numberOfNeighbors = vnl_math_min(
+    unsigned int numberOfNeighbors = std::min(
         this->m_EvaluationKNeighborhood,
         static_cast<unsigned int>( this->m_Gaussians.size() ) );
 

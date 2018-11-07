@@ -441,7 +441,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
         }
       else
         {
-        mean /= vnl_math_sqr(
+        mean /= itk::Math::sqr (
             densityFunctions[1]->GetGaussian( neighbors[n] )->GetSigma() );
         }
 
@@ -515,7 +515,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
           }
         else
           {
-          mean /= vnl_math_sqr(
+          mean /= itk::Math::sqr (
               densityFunctions[1]->GetGaussian( neighbors[i] )->GetSigma() );
           }
 
@@ -689,7 +689,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
         }
       else
         {
-        mean /= vnl_math_sqr(
+        mean /= itk::Math::sqr (
             densityFunctions[1]->GetGaussian( neighbors[n] )->GetSigma() );
         }
 
@@ -787,7 +787,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
           }
         else
           {
-          mean /= vnl_math_sqr(
+          mean /= itk::Math::sqr (
               densityFunctions[1]->GetGaussian( neighbors[i] )->GetSigma() );
           }
 

@@ -27,7 +27,7 @@
 #include "itkVectorGaussianInterpolateImageFunction.h"
 #include "itkResampleImageFilter.h"
 #include "itkVectorNeighborhoodOperatorImageFilter.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 #include "ANTS_affine_registration2.h"
 #include "itkWarpImageMultiTransformFilter.h"
 // #include "itkVectorImageFileWriter.h"

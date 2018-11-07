@@ -21,7 +21,7 @@
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageIterator.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 

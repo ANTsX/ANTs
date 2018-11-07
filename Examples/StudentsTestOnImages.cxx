@@ -22,7 +22,7 @@
 #include <itkImageRegionIteratorWithIndex.h>
 
 #include "itkTDistribution.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 #include "vnl/vnl_erf.h"
 
 namespace ants

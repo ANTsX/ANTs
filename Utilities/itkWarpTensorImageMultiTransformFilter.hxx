@@ -252,7 +252,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
         InputImagePointer image = const_cast<InputImageType *> (this->GetInput());
         for ( unsigned int d = 0; d < ImageDimension; d++ )
         {
-            double scaling = vnl_math_min( 1.0 / scale * minimumSpacing / inputSpacing[d],
+            double scaling = std::min( 1.0 / scale * minimumSpacing / inputSpacing[d],
                     static_cast<double>( inputSize[d] ) / 32.0 );
             outputSpacing[d] = inputSpacing[d] * scaling;
             outputSize[d] = static_cast<unsigned long>( inputSpacing[d] *

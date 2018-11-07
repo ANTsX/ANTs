@@ -697,7 +697,7 @@ RemoveNaNs(typename TImage::Pointer image, float replaceval )
   for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     typename TImage::PixelType v1 = vfIter.Get();
-    if( vnl_math_isnan(v1) )
+    if( std::isnan(v1) )
       {
       vfIter.Set(replaceval);
       }

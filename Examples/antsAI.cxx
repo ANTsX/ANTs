@@ -293,7 +293,7 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
     RealType movingSd = std::sqrt( movingSamples.squared_magnitude() );
     correlation = inner_product( fixedSamples, movingSamples ) / ( fixedSd * movingSd );
 
-    if( vnl_math_isnan( correlation ) || vnl_math_isinf( correlation )  )
+    if( std::isnan( correlation ) || std::isinf( correlation )  )
       {
       correlation = 0.0;
       }
@@ -359,13 +359,13 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
     RealType distance = 0.0;
     for( unsigned int j = 0; j < ImageDimension; j++ )
       {
-      distance += vnl_math_sqr( index[j] - zeroIndex[j] );
+      distance += itk::Math::sqr ( index[j] - zeroIndex[j] );
       }
     distance = std::sqrt( distance );
     if( distance <= radiusValue )
       {
       activeIndex.push_back( i );
-      RealType weight = std::exp( -1.0 * distance / vnl_math_sqr( radiusValue ) );
+      RealType weight = std::exp( -1.0 * distance / itk::Math::sqr ( radiusValue ) );
       weights.push_back( weight );
       weightSum += ( weight );
       }
@@ -734,7 +734,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   std::string transform = "";
   // std::string outputTransformTypeName = "";
   RealType learningRate = 0.1;
-  RealType searchFactor = 20.0 * vnl_math::pi / 180.0;
+  RealType searchFactor = 20.0 * itk::Math::pi / 180.0;
   RealType arcFraction = 1.0;
 
   itk::ants::CommandLineParser::OptionType::Pointer searchFactorOption = parser->GetOption( "search-factor" );
@@ -742,11 +742,11 @@ int antsAI( itk::ants::CommandLineParser *parser )
     {
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetName() ) * vnl_math::pi / 180.0;
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetName() ) * itk::Math::pi / 180.0;
       }
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter( 0 ) ) * vnl_math::pi / 180.0;
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter( 0 ) ) * itk::Math::pi / 180.0;
       }
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
@@ -1359,7 +1359,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   unsigned int trialCounter = 0;
 
   typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
-  for( RealType angle1 = ( vnl_math::pi * -arcFraction ); angle1 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle1 += searchFactor )
+  for( RealType angle1 = ( itk::Math::pi * -arcFraction ); angle1 <= ( itk::Math::pi * arcFraction + 0.000001 ); angle1 += searchFactor )
     {
     if( ImageDimension == 2 )
       {
@@ -1412,9 +1412,9 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     if( ImageDimension == 3 )
       {
-      for( RealType angle2 = ( vnl_math::pi * -arcFraction ); angle2 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle2 += searchFactor )
+      for( RealType angle2 = ( itk::Math::pi * -arcFraction ); angle2 <= ( itk::Math::pi * arcFraction + 0.000001 ); angle2 += searchFactor )
         {
-        for( RealType angle3 = ( vnl_math::pi * -arcFraction ); angle3 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle3 += searchFactor )
+        for( RealType angle3 = ( itk::Math::pi * -arcFraction ); angle3 <= ( itk::Math::pi * arcFraction + 0.000001 ); angle3 += searchFactor )
           {
           for ( RealType translation1 = -1.0 * translationSearchGrid[0];
                 translation1 <= translationSearchGrid[0] + 0.000001; translation1 += translationSearchStepSize )

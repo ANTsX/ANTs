@@ -129,7 +129,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
         weight = ( *this->GetListSampleWeights() )[N++];
         }
 
-      this->m_Dispersion += ( weight * vnl_math_sqr( distance ) );
+      this->m_Dispersion += ( weight * itk::Math::sqr ( distance ) );
       ++It;
       }
 
@@ -233,9 +233,9 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     }
   RealType distance = this->CalculateTensorDistance( T, this->m_MeanTensor );
   RealType preFactor = 1.0
-    / ( std::sqrt( 2.0 * vnl_math::pi * this->m_Dispersion ) );
+    / ( std::sqrt( 2.0 * itk::Math::pi * this->m_Dispersion ) );
   RealType probability = preFactor * std::exp( -0.5
-                                              * vnl_math_sqr( distance ) / this->m_Dispersion );
+                                              * itk::Math::sqr ( distance ) / this->m_Dispersion );
 
   return probability;
 }

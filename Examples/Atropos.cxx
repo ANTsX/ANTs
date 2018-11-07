@@ -70,7 +70,7 @@ public:
       * std::pow( filter->GetAnnealingRate(), static_cast<RealType>(
                    filter->GetElapsedIterations() ) );
 
-    annealingTemperature = vnl_math_max( annealingTemperature,
+    annealingTemperature = std::max( annealingTemperature,
                                          filter->GetMinimumAnnealingTemperature() );
 
     std::cout << " (annealing temperature = "

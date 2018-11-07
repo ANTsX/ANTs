@@ -204,7 +204,7 @@ int SmoothDisplacementField( int argc, char *argv[] )
     ItR.Set( ( fieldIt.Get() - smoothedFieldIt.Get() ).GetSquaredNorm() );
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      rmse_comp[d] += vnl_math_sqr( fieldIt.Get()[d] - smoothedFieldIt.Get()[d] );
+      rmse_comp[d] += itk::Math::sqr ( fieldIt.Get()[d] - smoothedFieldIt.Get()[d] );
       }
     rmse += ( fieldIt.Get() - smoothedFieldIt.Get() ).GetSquaredNorm();
     N += 1.0;

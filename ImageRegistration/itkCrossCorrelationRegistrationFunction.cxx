@@ -16,7 +16,7 @@
 
 #include "itkCrossCorrelationRegistrationFunction.h"
 #include "itkExceptionObject.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 #include "itkImageFileWriter.h"
 #include "itkImageLinearConstIteratorWithIndex.h"
 #include "itkDiscreteGaussianImageFilter.h"

@@ -89,8 +89,8 @@ int CreateMosaic( unsigned int argc, char *argv[] )
 
   unsigned long numberOfSlices = size[layout[0]];
 
-  int numberOfRows = vnl_math_min( static_cast<int>( layout[1] ), static_cast<int>( numberOfSlices ) );
-  int numberOfColumns = vnl_math_min( static_cast<int>( layout[2] ), static_cast<int>( numberOfSlices ) );
+  int numberOfRows = std::min( static_cast<int>( layout[1] ), static_cast<int>( numberOfSlices ) );
+  int numberOfColumns = std::min( static_cast<int>( layout[2] ), static_cast<int>( numberOfSlices ) );
 
   if( numberOfRows <= 0 && numberOfColumns > 0 )
     {

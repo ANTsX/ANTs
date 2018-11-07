@@ -300,11 +300,11 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // Now determine the sigma using a reasonable heuristic.
 
-  this->m_IntensityDistanceSigma = vnl_math_max( maxMovingIntensity, maxFixedIntensity )
-    - vnl_math_min( minMovingIntensity, maxMovingIntensity );
+  this->m_IntensityDistanceSigma = std::max( maxMovingIntensity, maxFixedIntensity )
+    - std::min( minMovingIntensity, maxMovingIntensity );
   if( this->m_IntensityDistanceSigma == 0 )
     {
-    this->m_IntensityDistanceSigma = vnl_math_max( maxMovingIntensity, maxFixedIntensity );
+    this->m_IntensityDistanceSigma = std::max( maxMovingIntensity, maxFixedIntensity );
     }
 }
 
@@ -341,7 +341,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic icp term
   const MeasureType euclideanDistance = point.EuclideanDistanceTo( closestPoint );
-  MeasureType distanceProbability = std::exp( -0.5 * vnl_math_sqr( euclideanDistance / this->m_EuclideanDistanceSigma ) );
+  MeasureType distanceProbability = std::exp( -0.5 * itk::Math::sqr ( euclideanDistance / this->m_EuclideanDistanceSigma ) );
 
   SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
   SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
@@ -349,7 +349,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic intensity term
   MeasureType intensityDistance = pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex];
-  MeasureType intensityProbability = std::exp( -0.5 * vnl_math_sqr( intensityDistance / this->m_IntensityDistanceSigma ) );
+  MeasureType intensityProbability = std::exp( -0.5 * itk::Math::sqr ( intensityDistance / this->m_IntensityDistanceSigma ) );
 
   const MeasureType measure = ( -1.0 ) * intensityProbability * distanceProbability;
 
@@ -389,7 +389,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic icp term
   const MeasureType euclideanDistance = point.EuclideanDistanceTo( closestPoint );
-  MeasureType distanceProbability = std::exp( -0.5 * vnl_math_sqr( euclideanDistance / this->m_EuclideanDistanceSigma ) );
+  MeasureType distanceProbability = std::exp( -0.5 * itk::Math::sqr ( euclideanDistance / this->m_EuclideanDistanceSigma ) );
 
   SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
   SizeValueType centerIntensityIndex =
@@ -397,7 +397,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic intensity term
   MeasureType intensityDistance = pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex];
-  MeasureType intensityProbability = std::exp( -0.5 * vnl_math_sqr( intensityDistance / this->m_IntensityDistanceSigma ) );
+  MeasureType intensityProbability = std::exp( -0.5 * itk::Math::sqr ( intensityDistance / this->m_IntensityDistanceSigma ) );
 
   measure = ( -1.0 ) * intensityProbability * distanceProbability;
 

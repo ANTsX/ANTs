@@ -17,7 +17,7 @@
 #endif
 
 #include "itkFEMElement3DC0LinearTriangular.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 #include "vnl/algo/vnl_svd.h"
 #include "vnl/algo/vnl_qr.h"

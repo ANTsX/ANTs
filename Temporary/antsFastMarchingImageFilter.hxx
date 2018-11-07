@@ -21,7 +21,7 @@
 #include "itkNumericTraits.h"
 #include "itkRelabelComponentImageFilter.h"
 
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 #include <algorithm>
 
@@ -410,8 +410,8 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
                 }
               else
                 {
-                minLabel = vnl_math_min( ItC.GetNext( d ), ItC.GetPrevious( d ) );
-                otherLabel = vnl_math_max( ItC.GetNext( d ), ItC.GetPrevious( d ) );
+                minLabel = std::min( ItC.GetNext( d ), ItC.GetPrevious( d ) );
+                otherLabel = std::max( ItC.GetNext( d ), ItC.GetPrevious( d ) );
                 }
               break;
               }
@@ -611,7 +611,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   if( speedImage )
     {
     cc = (double) speedImage->GetPixel( index ) / this->m_NormalizationFactor;
-    cc = -1.0 * vnl_math_sqr( 1.0 / cc );
+    cc = -1.0 * itk::Math::sqr ( 1.0 / cc );
     }
   else
     {
@@ -628,13 +628,13 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
     if( solution >= node.GetValue() )
       {
       const int    axis = node.GetAxis();
-      const double spaceFactor = vnl_math_sqr( 1.0 / spacing[axis] );
+      const double spaceFactor = itk::Math::sqr ( 1.0 / spacing[axis] );
       const double value = double(node.GetValue() );
       aa += spaceFactor;
       bb += value * spaceFactor;
-      cc += vnl_math_sqr( value ) * spaceFactor;
+      cc += itk::Math::sqr ( value ) * spaceFactor;
 
-      discrim = vnl_math_sqr( bb ) - aa * cc;
+      discrim = itk::Math::sqr ( bb ) - aa * cc;
       if( discrim < 0.0 )
         {
         // Discriminant of quadratic eqn. is negative

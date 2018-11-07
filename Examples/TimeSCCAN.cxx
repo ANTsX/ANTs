@@ -217,7 +217,7 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
           VectorType pVec = cca->GetVariateP();
           for ( unsigned int ip=0; ip<pVec.size(); ip++)
             {
-            pVec[ip] = vnl_math_abs( pVec[ip] );
+            pVec[ip] = itk::Math::abs ( pVec[ip] );
             }
           // pVec = pVec.normalize();
           pVec = P * pVec;
@@ -225,13 +225,13 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
           VectorType qVec = cca->GetVariateQ();
           for ( unsigned int iq=0; iq<qVec.size(); iq++)
             {
-            qVec[iq] = vnl_math_abs( qVec[iq] );
+            qVec[iq] = itk::Math::abs ( qVec[iq] );
             }
           //qVec = qVec.normalize();
           qVec = Q * qVec;
 
           double final_corr = vnl_pearson_corr(pVec,qVec);
-          if ( ! vnl_math_isfinite( final_corr ) )
+          if ( ! std::isfinite( final_corr ) )
             {
             final_corr = 0.0;
             }
@@ -360,7 +360,7 @@ for (unsigned int i=0; i<N; i++)
 
         double corr = vnl_pearson_corr(p,q);
 
-        if ( ! vnl_math_isfinite( corr ) )
+        if ( ! std::isfinite( corr ) )
           {
           corr = 0.0;
           }
@@ -550,7 +550,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
       NetworkType::Pointer labelMat = ITK_NULLPTR;
       ReadImage<NetworkType>( labelMat, labelMatrixName.c_str() );
 
-      float gradstep = -0.5 + vnl_math_abs( usel1 );
+      float gradstep = -0.5 + itk::Math::abs ( usel1 );
 
       RegionSCCA<NetworkType>( network, timeMat, labelMat, nLabels, roiSize, evec_ct, iterations,
                                sparsity, robustify, usel1, gradstep, keepPositive, clusterSize );

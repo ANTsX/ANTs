@@ -315,7 +315,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
         It.GetCenterPixel() - highResolutionInputImage->GetPixel( searchIndex );
 
       if( std::fabs( intensityDifference ) > 3.0 * this->m_IntensityDifferenceSigma *
-        vnl_math_sqr( this->m_ScaleLevels[this->m_CurrentIteration] ) )
+        itk::Math::sqr ( this->m_ScaleLevels[this->m_CurrentIteration] ) )
         {
         continue;
         }
@@ -323,10 +323,10 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
       RealType patchSimilarity = this->ComputeNeighborhoodPatchSimilarity(
         highResolutionInputImageList, searchIndex, highResolutionPatch, true );
 
-      RealType intensityWeight = vnl_math_sqr( intensityDifference /
+      RealType intensityWeight = itk::Math::sqr ( intensityDifference /
         ( this->m_IntensityDifferenceSigma * this->m_ScaleLevels[this->m_CurrentIteration] ) );
 
-      RealType patchWeight = vnl_math_sqr( patchSimilarity /
+      RealType patchWeight = itk::Math::sqr ( patchSimilarity /
         ( this->m_PatchSimilaritySigma * this->m_ScaleLevels[this->m_CurrentIteration] ) );
 
       RealType weight = std::exp( -( intensityWeight + patchWeight ) );

@@ -145,9 +145,9 @@ PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
   for( unsigned int d = 0; d < mean.Size(); d++ )
     {
     mean[d] = 0.5 * ( this->m_Mean[0][d] + this->m_Mean[1][d] );
-    covariance( d, d ) = 1.0 / 12.0 * vnl_math_sqr( this->m_Mean[0][d] )
+    covariance( d, d ) = 1.0 / 12.0 * itk::Math::sqr ( this->m_Mean[0][d] )
       + -1.0 / 6.0 * this->m_Mean[0][d] * this->m_Mean[1][d]
-      + 1.0 / 12.0 * vnl_math_sqr( this->m_Mean[1][d] );
+      + 1.0 / 12.0 * itk::Math::sqr ( this->m_Mean[1][d] );
     }
 
   this->m_Gaussian->SetMean( mean );

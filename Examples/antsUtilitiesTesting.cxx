@@ -125,7 +125,7 @@ private:
   // Get rotation sampling resolution
 
   unsigned int rotationNumberOfSamples = static_cast<unsigned int>( atoi( argv[5] ) );
-  double rotationDelta = ( 2.0 * vnl_math::pi - 0.0 ) / static_cast<double>( rotationNumberOfSamples - 1 );
+  double rotationDelta = ( 2.0 * itk::Math::pi - 0.0 ) / static_cast<double>( rotationNumberOfSamples - 1 );
 
   // Set up metric
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType> ImageMetricType;
@@ -229,7 +229,7 @@ private:
 
     initializer->InitializeTransform();
 
-    for( double angle = 0.0; angle < 2.0 * vnl_math::pi; angle += rotationDelta )
+    for( double angle = 0.0; angle < 2.0 * itk::Math::pi; angle += rotationDelta )
       {
       AffineTransformType::MatrixType rotationMatrix;
       rotationMatrix( 0, 0 ) = rotationMatrix( 1, 1 ) = std::cos( angle );

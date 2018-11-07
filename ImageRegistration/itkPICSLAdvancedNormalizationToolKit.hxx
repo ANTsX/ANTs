@@ -42,7 +42,7 @@
 
 // #include "itkJensenTsallisBSplineRegistrationFunction.h"
 
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 #include "ANTS_affine_registration2.h"
 
@@ -327,7 +327,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
     PixelType pixel = It.Get();
-    if( vnl_math_isinf( pixel ) || vnl_math_isnan( pixel ) )
+    if( std::isinf( pixel ) || std::isnan( pixel ) )
       {
       It.Set( value );
       }
@@ -360,7 +360,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   for( It2.GoToBegin(); !It2.IsAtEnd(); ++It2 )
     {
     PixelType pixel = It2.Get();
-    if( vnl_math_isinf( pixel ) || vnl_math_isnan( pixel ) )
+    if( std::isinf( pixel ) || std::isnan( pixel ) )
       {
       It2.Set( value );
       }

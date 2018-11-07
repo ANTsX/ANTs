@@ -16,7 +16,7 @@
 
 #include "itkSyNDemonsRegistrationFunction.h"
 #include "itkExceptionObject.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 namespace itk
 {
@@ -196,7 +196,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
       {
       gradient[j] = gradient[j] + mgradient[j];
       }
-    gradientSquaredMagnitude += vnl_math_sqr( gradient[j] );
+    gradientSquaredMagnitude += itk::Math::sqr ( gradient[j] );
     }
 
   /**
@@ -220,18 +220,18 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
   if( globalData )
     {
-    globalData->m_SumOfSquaredDifference += vnl_math_sqr( speedValue );
+    globalData->m_SumOfSquaredDifference += itk::Math::sqr ( speedValue );
     globalData->m_NumberOfPixelsProcessed += 1;
     }
 
-  double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
+  double denominator = itk::Math::sqr ( speedValue ) / m_Normalizer
     + gradientSquaredMagnitude;
   this->m_Energy += speedValue * speedValue;
   if( m_UseSSD )
     {
     denominator = 1;
     }
-  if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
+  if( itk::Math::abs (speedValue) < m_IntensityDifferenceThreshold ||
       denominator < m_DenominatorThreshold )
     {
     for( j = 0; j < ImageDimension; j++ )
@@ -245,7 +245,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     update[j] = speedValue * gradient[j] / denominator;
     if( globalData )
       {
-      globalData->m_SumOfSquaredChange += vnl_math_sqr( update[j] );
+      globalData->m_SumOfSquaredChange += itk::Math::sqr ( update[j] );
       }
     }
 
@@ -284,7 +284,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   gradient = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
   for( j = 0; j < ImageDimension; j++ )
     {
-    gradientSquaredMagnitude += vnl_math_sqr( gradient[j] );
+    gradientSquaredMagnitude += itk::Math::sqr ( gradient[j] );
     }
 
   /**
@@ -308,14 +308,14 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
   if( globalData )
     {
-    globalData->m_SumOfSquaredDifference += vnl_math_sqr( speedValue );
+    globalData->m_SumOfSquaredDifference += itk::Math::sqr ( speedValue );
     globalData->m_NumberOfPixelsProcessed += 1;
     }
 
-  double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
+  double denominator = itk::Math::sqr ( speedValue ) / m_Normalizer
     + gradientSquaredMagnitude;
 
-  if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
+  if( itk::Math::abs (speedValue) < m_IntensityDifferenceThreshold ||
       denominator < m_DenominatorThreshold )
     {
     for( j = 0; j < ImageDimension; j++ )
@@ -329,7 +329,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     update[j] = speedValue * gradient[j] / denominator;
     if( globalData )
       {
-      globalData->m_SumOfSquaredChange += vnl_math_sqr( update[j] );
+      globalData->m_SumOfSquaredChange += itk::Math::sqr ( update[j] );
       }
     }
 

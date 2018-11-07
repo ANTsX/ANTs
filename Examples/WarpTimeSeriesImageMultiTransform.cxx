@@ -403,7 +403,7 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
         }
       }
 
-    if( timedim % vnl_math_max(timedims / 10, static_cast<unsigned int>(1) ) == 0 )
+    if( timedim % std::max(timedims / 10, static_cast<unsigned int>(1) ) == 0 )
       {
       std::cout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;
       }

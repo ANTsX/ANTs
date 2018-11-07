@@ -170,7 +170,7 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
     {
     float ff = dtv[jj];
     mag += ff * ff;
-    if( vnl_math_isnan( ff ) || vnl_math_isinf(ff)   )
+    if( std::isnan( ff ) || std::isinf(ff)   )
       {
       dtv.Fill(0); // dtv[0]=eps;   dtv[3]=eps;  dtv[5]=eps;
       success = false;
@@ -249,9 +249,9 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
     eigmat(2, 2) = exp(e3);
     }
 
-  if( vnl_math_isnan(eigmat(0, 0) ) ||
-      vnl_math_isnan(eigmat(1, 1) ) ||
-      vnl_math_isnan(eigmat(2, 2) ) )
+  if( std::isnan(eigmat(0, 0) ) ||
+      std::isnan(eigmat(1, 1) ) ||
+      std::isnan(eigmat(2, 2) ) )
     {
     dtv.Fill(0);
     success = false;
@@ -284,7 +284,7 @@ bool IsRealTensor( TensorType dtv )
 
   for( unsigned int i = 0; i < 6; i++ )
     {
-    if( !vnl_math_isfinite( dtv[i] ) )
+    if( !std::isfinite( dtv[i] ) )
       {
       isreal = false;
       }
@@ -520,7 +520,7 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
     {
     float ff = dtv[jj];
     mag += ff * ff;
-    if( vnl_math_isnan( ff ) || vnl_math_isinf(ff)   )
+    if( std::isnan( ff ) || std::isinf(ff)   )
       {
       return 0;
       }
@@ -599,7 +599,7 @@ itk::RGBPixel<unsigned char>   GetTensorRGB( TTensorType dtv )
     {
     float ff = dtv[jj];
     mag += ff * ff;
-    if( vnl_math_isnan( ff ) || vnl_math_isinf(ff)   )
+    if( std::isnan( ff ) || std::isinf(ff)   )
       {
       return zero;
       }
@@ -642,7 +642,7 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
     {
     float ff = dtv[jj];
     mag += ff * ff;
-    if( vnl_math_isnan( ff ) || vnl_math_isinf(ff)   )
+    if( std::isnan( ff ) || std::isinf(ff)   )
       {
       return zero;
       }
@@ -722,7 +722,7 @@ itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned in
     {
     float ff = dtv[jj];
     mag += ff * ff;
-    if( vnl_math_isnan( ff ) || vnl_math_isinf(ff)   )
+    if( std::isnan( ff ) || std::isinf(ff)   )
       {
       return zero;
       }

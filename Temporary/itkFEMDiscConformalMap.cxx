@@ -20,7 +20,7 @@
 #include <vnl/vnl_real_polynomial.h>
 #include <vnl/vnl_vector.h>
 #include <vnl/vnl_vector_fixed.h>
-#include <vnl/vnl_math.h>
+#include <itkMath.h>
 #include "vtkDelaunay2D.h"
 #include "vtkSelectPolyData.h"
 #include "vtkFloatArray.h"

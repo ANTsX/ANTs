@@ -16,7 +16,7 @@
 
 #include "itkProbabilisticRegistrationFunction.h"
 #include "itkExceptionObject.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 #include "itkImageFileWriter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkMeanImageFilter.h"

@@ -43,7 +43,7 @@
 #include "vtkTextProperty.h"
 #include "vtkWindowToImageFilter.h"
 
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 #include <vector>
 #include <string>

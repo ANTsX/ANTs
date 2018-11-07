@@ -721,7 +721,7 @@ public:
 //    RealType maximumSpacing = inputSpacing.GetVnlVector().max_value();
     for( unsigned int d = 0; d < Dimension; d++ )
       {
-      RealType scaling = vnl_math_min( scalingFactor * minimumSpacing / inputSpacing[d],
+      RealType scaling = std::min( scalingFactor * minimumSpacing / inputSpacing[d],
                                        static_cast<RealType>( inputSize[d] ) / 32.0 );
       outputSpacing[d] = inputSpacing[d] * scaling;
       outputSize[d] = static_cast<unsigned long>( inputSpacing[d]
@@ -751,7 +751,7 @@ public:
   {
     typedef DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
     typename SmootherType::Pointer smoother = SmootherType::New();
-    smoother->SetVariance( vnl_math_sqr( sigma ) );
+    smoother->SetVariance( itk::Math::sqr ( sigma ) );
     smoother->SetMaximumError( 0.01 );
     smoother->SetInput( image );
 
@@ -1079,7 +1079,7 @@ public:
 
       if( this->m_SubsamplingFactors.size() == 0 )
         {
-        scaling = vnl_math_min( this->m_ScaleFactor * minimumSpacing
+        scaling = std::min( this->m_ScaleFactor * minimumSpacing
                                 / this->m_FullDomainSpacing[d],
                                 static_cast<RealType>( this->m_FullDomainSize[d] ) / 32.0 );
         }
