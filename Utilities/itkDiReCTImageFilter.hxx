@@ -358,7 +358,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         if( ItSegmentationImage.Get() == grayMatterPixel )
           {
           RealType norm = ( ItGradientImage.Get() ).GetNorm();
-          if( norm > 1e-3 && !vnl_math_isnan( norm ) && !vnl_math_isinf( norm ) )
+          if( norm > 1e-3 && !std::isnan( norm ) && !std::isinf( norm ) )
             {
             ItGradientImage.Set( ItGradientImage.Get() / norm );
             }
@@ -367,10 +367,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             ItGradientImage.Set( zeroVector );
             }
           RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get() );
-          currentEnergy += vnl_math_abs( delta );
+          currentEnergy += itk::Math::abs ( delta );
           numberOfGrayMatterVoxels++;
           RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
-          if( vnl_math_isnan( speedValue ) || vnl_math_isinf( speedValue ) )
+          if( std::isnan( speedValue ) || std::isinf( speedValue ) )
             {
             speedValue = 0.0;
             }
@@ -584,7 +584,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           if( ! this->m_ThicknessPriorImage && ( thicknessValue > this->m_ThicknessPriorEstimate ) )
             {
             RealType fraction = this->m_ThicknessPriorEstimate / thicknessValue;
-            ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
+            ItVelocityField.Set( ItVelocityField.Get() * itk::Math::sqr ( fraction ) );
             }
           else if( this->m_ThicknessPriorImage )
             {
@@ -593,11 +593,11 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             if( ( thicknessPrior > NumericTraits<RealType>::ZeroValue() ) &&
                 ( thicknessValue > thicknessPrior ) )
               {
-              priorEnergy += vnl_math_abs( thicknessPrior - thicknessValue );
+              priorEnergy += itk::Math::abs ( thicknessPrior - thicknessValue );
               priorEnergyCount++;
 
               RealType fraction = thicknessPrior / thicknessValue;
-              ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
+              ItVelocityField.Set( ItVelocityField.Get() * itk::Math::sqr ( fraction ) );
               }
             }
           }

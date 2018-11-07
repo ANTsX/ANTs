@@ -339,7 +339,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       squaredDistances[n].second = 0.0;
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        squaredDistances[n].second += vnl_math_sqr( offset[d] * spacing[d] );
+        squaredDistances[n].second += itk::Math::sqr ( offset[d] * spacing[d] );
         }
       }
     std::sort( squaredDistances.begin(), squaredDistances.end(), DistanceIndexComparator() );
@@ -383,7 +383,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           squaredDistances[n].second = 0.0;
           for( unsigned int d = 0; d < ImageDimension; d++ )
             {
-            squaredDistances[n].second += vnl_math_sqr( offset[d] * spacing[d] );
+            squaredDistances[n].second += itk::Math::sqr ( offset[d] * spacing[d] );
             }
           }
         std::sort( squaredDistances.begin(), squaredDistances.end(), DistanceIndexComparator() );
@@ -614,7 +614,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     else
       {
       vnl_cholesky cholesky( MxBar, vnl_cholesky::estimate_condition );
-      if( cholesky.rcond() > vnl_math::sqrteps )
+      if( cholesky.rcond() > itk::Math::sqrteps )
         {
         // well-conditioned matrix
         W = cholesky.solve( ones );

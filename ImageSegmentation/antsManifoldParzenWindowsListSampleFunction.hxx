@@ -105,7 +105,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 
       typename TreeGeneratorType::KdTreeType
       ::InstanceIdentifierVectorType neighbors;
-      unsigned int numberOfNeighbors = vnl_math_min(
+      unsigned int numberOfNeighbors = std::min(
           this->m_CovarianceKNeighborhood, static_cast<unsigned int>(
             this->GetInputListSample()->Size() ) );
       this->m_KdTreeGenerator->GetOutput()->Search(
@@ -190,7 +190,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 {
   try
     {
-    unsigned int numberOfNeighbors = vnl_math_min(
+    unsigned int numberOfNeighbors = std::min(
         this->m_EvaluationKNeighborhood,
         static_cast<unsigned int>( this->m_Gaussians.size() ) );
 

@@ -868,7 +868,7 @@ ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
   ImagePointer current_image = image;
   for( unsigned int d = 0; d < ImageType::ImageDimension; d++ )
     {
-    RealType scaling = vnl_math_min( scalingFactor * minimumSpacing / inputSpacing[d],
+    RealType scaling = std::min( scalingFactor * minimumSpacing / inputSpacing[d],
                                      static_cast<RealType>( inputSize[d] ) / 32.0 );
     outputSpacing[d] = inputSpacing[d] * scaling;
     outputSize[d] = static_cast<unsigned long>( inputSpacing[d]

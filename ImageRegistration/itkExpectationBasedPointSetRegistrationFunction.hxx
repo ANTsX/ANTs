@@ -16,7 +16,7 @@
 
 #include "itkExpectationBasedPointSetRegistrationFunction.h"
 #include "itkExceptionObject.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkPointSet.h"
@@ -826,7 +826,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         RealType distance = 0.0;
         for( unsigned int d = 0; d < PointDimension; d++ )
           {
-          distance += vnl_math_sqr( ItM.Value()[d] + vector[d]
+          distance += itk::Math::sqr ( ItM.Value()[d] + vector[d]
             - ItF.Value()[d] );
           }
         this->m_Energy += ItW.Value() * std::sqrt( distance );

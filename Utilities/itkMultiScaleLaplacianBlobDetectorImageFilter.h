@@ -67,7 +67,7 @@ public:
   /** The radius of the object if it is a solid hyper-sphere */
   double GetObjectRadius( void ) const
   {
-    return this->GetSigma() *  vnl_math::sqrt2;
+    return this->GetSigma() *  itk::Math::sqrt2;
   }
 
   /** The sigma of the laplacian where the extrema occoured */

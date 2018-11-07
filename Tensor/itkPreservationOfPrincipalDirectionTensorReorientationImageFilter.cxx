@@ -237,7 +237,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     {
     for( unsigned int jy = 0; jy < ImageDimension; jy++ )
       {
-      if( !vnl_math_isfinite(jMatrix(jx, jy) )  )
+      if( !std::isfinite(jMatrix(jx, jy) )  )
         {
         oktosample = false;
         }
@@ -335,7 +335,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     bool hasNans = false;
     for( unsigned int jj = 0; jj < 6; jj++ )
       {
-      if( vnl_math_isnan( inTensor[jj] ) || vnl_math_isinf( inTensor[jj]) )
+      if( std::isnan( inTensor[jj] ) || std::isinf( inTensor[jj]) )
         {
         hasNans = true;;
         }
@@ -380,7 +380,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     // valid values?
     for( unsigned int jj = 0; jj < 6; jj++ )
       {
-      if( vnl_math_isnan( outTensor[jj] ) || vnl_math_isinf( outTensor[jj]) )
+      if( std::isnan( outTensor[jj] ) || std::isinf( outTensor[jj]) )
         {
         outTensor[jj] = 0;
         }

@@ -1151,7 +1151,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
     }
   itk::ants::CommandLineParser::OptionType::Pointer option =
     sccanparser->GetOption( "svd" );
-  PixelType gradstep = vnl_math_abs( usel1 );
+  PixelType gradstep = itk::Math::abs ( usel1 );
   sccanobj->SetCovering( covering );
   sccanobj->SetSilent(  ! verbosity  );
   if( usel1 > 0 )
@@ -1411,7 +1411,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     {
     sccanobj->SetUseLongitudinalFormulation( uselong );
     }
-  PixelType gradstep = vnl_math_abs( usel1 );
+  PixelType gradstep = itk::Math::abs ( usel1 );
   if( usel1 > 0 )
     {
     sccanobj->SetUseL1( true );

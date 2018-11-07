@@ -634,12 +634,12 @@ void  SurfaceImageCurvature<TSurface>
     D(j, 0) = 1.0;
     RealType dfuv_u = 0;
     RealType dfuv_v = 0;
-    if ( ( vnl_math_abs(u1) > 0 ) && ( vnl_math_abs(u2) < 1.e-6 ) )
-      dfuv_u = vnl_math_abs( f_uv - 1.0 ) / vnl_math_abs(u1) * 100.0;
-    if ( ( vnl_math_abs(u2) > 0 ) && ( vnl_math_abs(u1) < 1.e-6 ) )
-      dfuv_v = vnl_math_abs( f_uv - 1.0 ) / vnl_math_abs(u2) * 100.0;
+    if ( ( itk::Math::abs (u1) > 0 ) && ( itk::Math::abs (u2) < 1.e-6 ) )
+      dfuv_u = itk::Math::abs ( f_uv - 1.0 ) / itk::Math::abs (u1) * 100.0;
+    if ( ( itk::Math::abs (u2) > 0 ) && ( itk::Math::abs (u1) < 1.e-6 ) )
+      dfuv_v = itk::Math::abs ( f_uv - 1.0 ) / itk::Math::abs (u2) * 100.0;
     // this->m_Area += sqrt( 1.0 + dfuv_u*dfuv_u + dfuv_v*dfuv_v );
-    this->m_Area += vnl_math_abs( f_uv - 1.0 );
+    this->m_Area += itk::Math::abs ( f_uv - 1.0 );
     }
   this->m_Area *= areaelt;
   vnl_svd<double>    svd(D);
@@ -1145,7 +1145,7 @@ void  SurfaceImageCurvature<TSurface>
 //        fval = 0;
 //        }
       kpix = this->m_kSign * fval; // sulci
-      if( vnl_math_isnan(kpix)  || vnl_math_isinf(kpix) )
+      if( std::isnan(kpix)  || std::isinf(kpix) )
         {
         this->m_Kappa1 = 0.0;
         this->m_Kappa2 = 0.0;

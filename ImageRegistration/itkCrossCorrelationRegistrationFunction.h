@@ -224,7 +224,7 @@ public:
     unsigned int j = 0;
     for( j = 0; j < ImageDimension; j++ )
       {
-      fixedGradientSquaredMagnitude += vnl_math_sqr( fixedGradient[j] );
+      fixedGradientSquaredMagnitude += itk::Math::sqr ( fixedGradient[j] );
       }
     double    movingValue;
     PointType mappedPoint;
@@ -251,11 +251,11 @@ public:
       {
       speedValue = 0;
       }
-    double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
+    double denominator = itk::Math::sqr ( speedValue ) / m_Normalizer
       + fixedGradientSquaredMagnitude;
     double DenominatorThreshold = 1e-9;
     double IntensityDifferenceThreshold = 0.001;
-    if( vnl_math_abs(speedValue) < IntensityDifferenceThreshold ||
+    if( itk::Math::abs (speedValue) < IntensityDifferenceThreshold ||
         denominator < DenominatorThreshold )
       {
       for( j = 0; j < ImageDimension; j++ )

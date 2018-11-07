@@ -249,7 +249,7 @@ void ClosestSimplifiedHeaderMatrix(int argc, char *argv[])
     for ( unsigned int dd = 0; dd < ImageDimension; dd++ )
       {
       RealType v = A_solution(d,dd);
-      long vlong = static_cast<long>( vnl_math_abs( v ) + 0.5 );
+      long vlong = static_cast<long>( itk::Math::abs ( v ) + 0.5 );
       if ( v < 0 ) vlong = vlong * (-1);
       mydir(d,dd) = static_cast<RealType>( vlong );
       }
@@ -980,7 +980,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
       {
       ItM.Set( 0 );
       }
-    if( vnl_math_isnan( ItI.Get() ) || vnl_math_isinf( ItI.Get() ) )
+    if( std::isnan( ItI.Get() ) || std::isinf( ItI.Get() ) )
       {
       ItM.Set( 0 );
       }
@@ -2874,7 +2874,7 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
   bool         robust = false;
   unsigned int iterct = 20;
   bool         useL1 = false;
-  float        gradstep = vnl_math_abs( useL1 );
+  float        gradstep = itk::Math::abs ( useL1 );
   bool         keepPositive = false;
   float        sparsity = 1.0;
   unsigned int minClusterSize = 1;
@@ -3096,7 +3096,7 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
           {
           corr = numer / denom;
           }
-        if( !vnl_math_isfinite( corr ) )
+        if( !std::isfinite( corr ) )
           {
           corr = 0.0;
           }
@@ -5448,7 +5448,7 @@ int ImageMath(int argc, char *argv[])
       }
     else if( strcmp(operation.c_str(), "max") == 0 )
       {
-      result = vnl_math_max( pix1, pix2 );
+      result = std::max( pix1, pix2 );
       }
     else if( strcmp(operation.c_str(), "abs") == 0 )
       {
@@ -6061,7 +6061,7 @@ int TensorFunctions(int argc, char *argv[])
     else if( strcmp(operation.c_str(), "TensorMeanDiffusion") == 0 )
       {
       result = GetTensorADC<TensorType>(tIter.Value(), 0);
-      if( vnl_math_isnan(result) )
+      if( std::isnan(result) )
         {
         result = 0;
         }
@@ -6070,7 +6070,7 @@ int TensorFunctions(int argc, char *argv[])
     else if( strcmp(operation.c_str(), "TensorRadialDiffusion") == 0 )
       {
       result = GetTensorADC<TensorType>(tIter.Value(), 2);
-      if( vnl_math_isnan(result) )
+      if( std::isnan(result) )
         {
         result = 0;
         }
@@ -6079,7 +6079,7 @@ int TensorFunctions(int argc, char *argv[])
     else if( strcmp(operation.c_str(), "TensorEigenvalue") == 0 )
       {
       result = GetTensorADC<TensorType>(tIter.Value(), 3 + whichvec);
-      if( vnl_math_isnan(result) )
+      if( std::isnan(result) )
         {
         result = 0;
         }
@@ -6088,7 +6088,7 @@ int TensorFunctions(int argc, char *argv[])
     else if( strcmp(operation.c_str(), "TensorAxialDiffusion") == 0 )
       {
       result = GetTensorADC<TensorType>(tIter.Value(), 5);
-      if( vnl_math_isnan(result) )
+      if( std::isnan(result) )
         {
         result = 0;
         }
@@ -6097,7 +6097,7 @@ int TensorFunctions(int argc, char *argv[])
     else if( strcmp(operation.c_str(), "TensorFANumerator") == 0 )
       {
       result = GetTensorFANumerator<TensorType>(tIter.Value() );
-      if( vnl_math_isnan(result) )
+      if( std::isnan(result) )
         {
         result = 0;
         }
@@ -6106,7 +6106,7 @@ int TensorFunctions(int argc, char *argv[])
     else if( strcmp(operation.c_str(), "TensorFADenominator") == 0 )
       {
       result = GetTensorFADenominator<TensorType>(tIter.Value() );
-      if( vnl_math_isnan(result) )
+      if( std::isnan(result) )
         {
         result = 0;
         }
@@ -6442,7 +6442,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
         {
         pix2 = image2->GetPixel(ind);
         }
-      if( vnl_math_isnan(pix2) || vnl_math_isinf(pix2) )
+      if( std::isnan(pix2) || std::isinf(pix2) )
         {
         pix2 = 0; image2->SetPixel(ind, 0);
         }
@@ -7650,14 +7650,14 @@ int SmoothImage(int argc, char *argv[])
 
   if( sigmaVector.size() == 1 )
     {
-    filter->SetVariance( vnl_math_sqr( sigmaVector[0] ) );
+    filter->SetVariance( itk::Math::sqr ( sigmaVector[0] ) );
     }
   else if( sigmaVector.size() == ImageDimension )
     {
     typename dgf::ArrayType varianceArray;
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      varianceArray[d] = vnl_math_sqr( sigmaVector[d] );
+      varianceArray[d] = itk::Math::sqr ( sigmaVector[d] );
       }
     filter->SetVariance( varianceArray );
     }
@@ -8821,7 +8821,7 @@ int PoissonDiffusion( int argc, char *argv[])
     // std::cout << "  Iteration " << iterations << ": " << convergence << std::endl;
     typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
     typename SmootherType::Pointer smoother = SmootherType::New();
-    smoother->SetVariance( vnl_math_sqr( sigma ) );
+    smoother->SetVariance( itk::Math::sqr ( sigma ) );
     smoother->SetMaximumError( 0.01f );
     smoother->SetInput( output );
 
@@ -10883,7 +10883,7 @@ int PValueImage(      int argc, char *argv[])
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     float val = image->GetPixel(vfIter.GetIndex() );
-    if( !vnl_math_isnan(val) && !vnl_math_isinf(val) )
+    if( !std::isnan(val) && !std::isinf(val) )
       {
       if( fabs( val ) > 0 )
         {
@@ -12515,7 +12515,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
     correlation = 0;
     }
 
-  if( vnl_math_isnan( correlation ) || vnl_math_isinf( correlation )  )
+  if( std::isnan( correlation ) || std::isinf( correlation )  )
     {
     return 0;
     }
@@ -13502,7 +13502,7 @@ int BlobDetector( int argc, char *argv[] )
         unsigned int kct = 0;
         for( unsigned int bp2 = 0; bp2 < blobpairs.size(); bp2++ )
           {
-          if( ( bp2 != bp ) && ( vnl_math_abs( distratiomat( bp2, bp ) - 1 ) <  dthresh ) )
+          if( ( bp2 != bp ) && ( itk::Math::abs ( distratiomat( bp2, bp ) - 1 ) <  dthresh ) )
             {
             kct++;
             }
@@ -13747,7 +13747,7 @@ int MatchBlobs( int argc, char *argv[] )
       kVectorType kLog1( kneighborhoodval, 0 );
       for( unsigned int bp2 = 0; bp2 < blobpairs.size(); bp2++ )
         {
-        if( ( bp2 != bp ) && ( vnl_math_abs( distratiomat( bp2, bp ) - 1 ) <  dthresh )
+        if( ( bp2 != bp ) && ( itk::Math::abs ( distratiomat( bp2, bp ) - 1 ) <  dthresh )
             //	  &&   ( blobpairs[bp2].first->GetScaleSpaceValue() != blobpairs[bp].first->GetScaleSpaceValue() )
             //   &&   ( blobpairs[bp2].second->GetScaleSpaceValue() != blobpairs[bp].second->GetScaleSpaceValue() )
             )

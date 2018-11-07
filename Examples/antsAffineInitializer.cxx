@@ -165,7 +165,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typedef float  PixelType;
 
   /** Define All Parameters Here */
-  double       pi = vnl_math::pi;                // probably a vnl alternative
+  double       pi = itk::Math::pi;                // probably a vnl alternative
   RealType     searchfactor = 10;                // in degrees, passed by user
   unsigned int mibins = 32;                      // for mattes MI metric
   RealType     degtorad = 0.0174532925;          // to convert degrees to radians

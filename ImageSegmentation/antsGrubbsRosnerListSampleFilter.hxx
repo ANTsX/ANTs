@@ -97,7 +97,7 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
 
     count += 1.0;
     variance += ( count - 1.0 )
-      * vnl_math_sqr( inputMeasurement[0] - mean ) / count;
+      * itk::Math::sqr ( inputMeasurement[0] - mean ) / count;
     mean = mean + ( inputMeasurement[0] - mean ) / count;
     ++It;
     }
@@ -126,7 +126,7 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
           - this->m_OutlierInstanceIdentifiers.size();
         mean = ( mean * count2 - measurement[0] ) / ( count2 - 1.0 );
         variance = ( count2 - 1.0 ) * variance - ( count2 - 1.0 )
-          * vnl_math_sqr( measurement[0] - mean ) / count2;
+          * itk::Math::sqr ( measurement[0] - mean ) / count2;
         variance /= ( count2 - 2.0 );
         this->m_OutlierInstanceIdentifiers.push_back( id );
         }
@@ -199,9 +199,9 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
                    this->m_OutlierInstanceIdentifiers.end(), inputID ) ==
         this->m_OutlierInstanceIdentifiers.end() )
       {
-      if( vnl_math_abs( inputMeasurement[0] - mean ) > maximumDeviation )
+      if( itk::Math::abs ( inputMeasurement[0] - mean ) > maximumDeviation )
         {
-        maximumDeviation = vnl_math_abs( inputMeasurement[0] - mean );
+        maximumDeviation = itk::Math::abs ( inputMeasurement[0] - mean );
         maximumID = inputID;
         }
       }
@@ -233,7 +233,7 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
   RealType nu = static_cast<RealType>( N - 1 );
   RealType g = nu / std::sqrt( nu + 1.0 ) * std::sqrt( t * t / ( nu - 1 + t * t ) );
 
-  return g < ( vnl_math_abs( x - mean ) / std::sqrt( variance ) );
+  return g < ( itk::Math::abs ( x - mean ) / std::sqrt( variance ) );
 }
 
 template <class TScalarListSample>

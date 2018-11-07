@@ -1625,8 +1625,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         this->m_MixtureModelProportions[k], priorProbability, 1,
         mrfPriorProbability, likelihood, It.GetIndex(), k + 1 );
 
-    if( vnl_math_isnan( posteriorProbability ) ||
-        vnl_math_isinf( posteriorProbability ) )
+    if( std::isnan( posteriorProbability ) ||
+        std::isinf( posteriorProbability ) )
       {
       posteriorProbability = 0.0;
       }
@@ -1642,8 +1642,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
   maxPosteriorProbability /= sumPosteriorProbability;
 
-  if( vnl_math_isnan( maxPosteriorProbability ) ||
-      vnl_math_isinf( maxPosteriorProbability ) )
+  if( std::isnan( maxPosteriorProbability ) ||
+      std::isinf( maxPosteriorProbability ) )
     {
     maxPosteriorProbability = 0.0;
     }
@@ -1760,10 +1760,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
   RealType probabilityEpsilon = 1.0e-10;
 
-  spatialPriorProbability = vnl_math_max( static_cast<RealType>( probabilityEpsilon ), spatialPriorProbability );
-  distancePriorProbability = vnl_math_max( static_cast<RealType>( probabilityEpsilon ), distancePriorProbability );
-  mrfPriorProbability = vnl_math_max( static_cast<RealType>( probabilityEpsilon ), mrfPriorProbability );
-  likelihood = vnl_math_max( static_cast<RealType>( probabilityEpsilon ), likelihood );
+  spatialPriorProbability = std::max( static_cast<RealType>( probabilityEpsilon ), spatialPriorProbability );
+  distancePriorProbability = std::max( static_cast<RealType>( probabilityEpsilon ), distancePriorProbability );
+  mrfPriorProbability = std::max( static_cast<RealType>( probabilityEpsilon ), mrfPriorProbability );
+  likelihood = std::max( static_cast<RealType>( probabilityEpsilon ), likelihood );
 
   RealType posteriorProbability = 0.0;
 
@@ -1857,14 +1857,14 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     RealType annealingTemperature = this->m_InitialAnnealingTemperature
       * std::pow( this->m_AnnealingRate, static_cast<RealType>( this->m_ElapsedIterations ) );
 
-    annealingTemperature = vnl_math_max( annealingTemperature,
+    annealingTemperature = std::max( annealingTemperature,
                                          this->m_MinimumAnnealingTemperature );
 
     posteriorProbability = std::pow( static_cast<RealType>( posteriorProbability ),
                                     static_cast<RealType>( 1.0 / annealingTemperature ) );
     }
-  if( vnl_math_isnan( posteriorProbability ) ||
-      vnl_math_isinf( posteriorProbability ) )
+  if( std::isnan( posteriorProbability ) ||
+      std::isinf( posteriorProbability ) )
     {
     posteriorProbability = 0.0;
     }
@@ -1914,7 +1914,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         RealType distance = 0.0;
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
-          distance += vnl_math_sqr( offset[d] * this->m_ImageSpacing[d] );
+          distance += itk::Math::sqr ( offset[d] * this->m_ImageSpacing[d] );
           }
         distance = std::sqrt( distance );
 
@@ -2208,8 +2208,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 distancePriorProbability, mrfPriorProbability, likelihood,
                 ItO.GetIndex(), c + 1 );
 
-            if( vnl_math_isnan( posteriorProbability ) ||
-                vnl_math_isinf( posteriorProbability ) )
+            if( std::isnan( posteriorProbability ) ||
+                std::isinf( posteriorProbability ) )
               {
               posteriorProbability = 0.0;
               }
@@ -2456,8 +2456,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               distancePriorProbability, mrfPriorProbability, likelihood,
               ItO.GetIndex(), whichClass );
 
-          if( vnl_math_isnan( posteriorProbability ) ||
-              vnl_math_isinf( posteriorProbability ) )
+          if( std::isnan( posteriorProbability ) ||
+              std::isinf( posteriorProbability ) )
             {
             posteriorProbability = 0.0;
             }
@@ -2664,9 +2664,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
           {
           if( ItD.Get() < 0 &&
-              maximumInteriorDistance < vnl_math_abs( ItD.Get() ) )
+              maximumInteriorDistance < itk::Math::abs ( ItD.Get() ) )
             {
-            maximumInteriorDistance = vnl_math_abs( ItD.Get() );
+            maximumInteriorDistance = itk::Math::abs ( ItD.Get() );
             }
           }
 
@@ -2701,7 +2701,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           else if( ItD.Get() < 0 )
             {
             ItD.Set( 1.0 - ( 1.0 - labelBoundaryProbability )
-                     * ( maximumInteriorDistance - vnl_math_abs( ItD.Get() ) )
+                     * ( maximumInteriorDistance - itk::Math::abs ( ItD.Get() ) )
                      / ( maximumInteriorDistance ) );
             }
           }
@@ -2894,9 +2894,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
         if( ItD.Get() < 0 &&
-            maximumInteriorDistance < vnl_math_abs( ItD.Get() ) )
+            maximumInteriorDistance < itk::Math::abs ( ItD.Get() ) )
           {
-          maximumInteriorDistance = vnl_math_abs( ItD.Get() );
+          maximumInteriorDistance = itk::Math::abs ( ItD.Get() );
           }
         }
 
@@ -2931,7 +2931,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         else if( ItD.Get() < 0 )
           {
           ItD.Set( 1.0 - ( 1.0 - labelBoundaryProbability )
-                   * ( maximumInteriorDistance - vnl_math_abs( ItD.Get() ) )
+                   * ( maximumInteriorDistance - itk::Math::abs ( ItD.Get() ) )
                    / ( maximumInteriorDistance ) );
           }
         }

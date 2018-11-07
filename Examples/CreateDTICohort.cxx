@@ -57,8 +57,8 @@ double CalculateFractionalAnisotropy( TensorType tensor )
   double denominator = 0.0;
   for( unsigned int d = 0; d < TensorType::Dimension; d++ )
     {
-    numerator += vnl_math_sqr( eigenvalues[d] - mean );
-    denominator += vnl_math_sqr( eigenvalues[d] );
+    numerator += itk::Math::sqr ( eigenvalues[d] - mean );
+    denominator += itk::Math::sqr ( eigenvalues[d] );
     }
   fa = std::sqrt( ( 3.0 * numerator ) / ( 2.0 * denominator ) );
 
@@ -707,7 +707,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         }
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        if( vnl_math_isnan( newEigenvalues[d] ) )
+        if( std::isnan( newEigenvalues[d] ) )
           {
           newEigenvalues[d] = 0.0;
           }
@@ -836,7 +836,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           TensorType tensor = It.Get();
           for( unsigned int i = 0; i < tensor.GetNumberOfComponents(); i++ )
             {
-            if( vnl_math_isnan( tensor[i] ) )
+            if( std::isnan( tensor[i] ) )
               {
               tensor[i] = 0.0;
               }
@@ -861,9 +861,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           if( noiseSigma > 0.0 )
             {
             realNoise = randomizer->GetNormalVariate( 0.0,
-                                                      vnl_math_sqr( noiseSigma ) );
+                                                      itk::Math::sqr ( noiseSigma ) );
             imagNoise = randomizer->GetNormalVariate( 0.0,
-                                                      vnl_math_sqr( noiseSigma ) );
+                                                      itk::Math::sqr ( noiseSigma ) );
             }
           RealType realSignal = signal + realNoise;
           RealType imagSignal = imagNoise;

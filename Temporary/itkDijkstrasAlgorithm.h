@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <queue>
 #include <map>
 
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 // #include "vnl/vnl_matrix_fixed.h"
 // #include "vnl/vnl_vector_fixed.h"
 #include "itkImage.h"

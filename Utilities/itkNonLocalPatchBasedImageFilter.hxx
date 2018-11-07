@@ -143,12 +143,12 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
     if( std::isfinite( *it ) )
       {
       sum += *it;
-      sumOfSquares += vnl_math_sqr( *it );
+      sumOfSquares += itk::Math::sqr ( *it );
       count += 1.0;
       }
     }
   mean = sum / count;
-  standardDeviation = std::sqrt( ( sumOfSquares - count * vnl_math_sqr( mean ) ) / ( count - 1.0 ) );
+  standardDeviation = std::sqrt( ( sumOfSquares - count * itk::Math::sqr ( mean ) ) / ( count - 1.0 ) );
 }
 
 template <class TInputImage, class TOutputImage>
@@ -183,10 +183,10 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
         RealType y = static_cast<RealType>( patchVectorY[count] );
 
         sumX += x;
-        sumOfSquaresX += vnl_math_sqr( x );
+        sumOfSquaresX += itk::Math::sqr ( x );
         sumXY += ( x * y );
 
-        sumOfSquaredDifferencesXY += vnl_math_sqr( y - x );
+        sumOfSquaredDifferencesXY += itk::Math::sqr ( y - x );
         N += 1.0;
         }
       ++count;
@@ -203,10 +203,10 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 
   if( this->m_SimilarityMetric == PEARSON_CORRELATION )
     {
-    RealType varianceX = sumOfSquaresX - vnl_math_sqr( sumX ) / N;
+    RealType varianceX = sumOfSquaresX - itk::Math::sqr ( sumX ) / N;
     varianceX = std::max( varianceX, static_cast<RealType>( 1.0e-6 ) );
 
-    RealType measure = vnl_math_sqr( sumXY ) / varianceX;
+    RealType measure = itk::Math::sqr ( sumXY ) / varianceX;
     if( sumXY > 0 )
       {
       return -measure;

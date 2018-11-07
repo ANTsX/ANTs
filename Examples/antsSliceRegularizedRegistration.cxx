@@ -220,7 +220,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
     calc->SetImage( inputImage );
     calc->ComputeMaximum();
     calc->ComputeMinimum();
-    if( vnl_math_abs( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
+    if( itk::Math::abs ( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
       {
       std::cout << "Warning: bad time point - too little intensity variation"
         << calc->GetMinimum() << " " <<  calc->GetMaximum() << std::endl;

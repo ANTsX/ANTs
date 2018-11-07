@@ -219,11 +219,11 @@ private:
       + std::string( "," ) + std::string( argv[2] ) + std::string( ",1,3] " );
     std::string outputNaming( " -o ANTS.nii.gz " );
 
-    long maxSize = vnl_math_min( fixedImageIO->GetDimensions( 0 ),
+    long maxSize = std::min( fixedImageIO->GetDimensions( 0 ),
                                  movingImageIO->GetDimensions( 0 ) );
     for( unsigned int d = 1; d < fdim; d++ )
       {
-      long tmpMax = vnl_math_max( fixedImageIO->GetDimensions( d ),
+      long tmpMax = std::max( fixedImageIO->GetDimensions( d ),
                                   movingImageIO->GetDimensions( d ) );
       if( maxSize < tmpMax )
         {

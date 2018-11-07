@@ -607,16 +607,16 @@ RegistrationHelper<TComputeType, VImageDimension>
     if( shrinkFactorsPerDimension[n] == 0 )
       {
       SpacingValueType newMinSpacing = spacing[n] * static_cast<SpacingValueType>( factor );
-      RealType minDifferenceFromMinSpacing = vnl_math_abs( newMinSpacing - newSpacing[minIndex] );
+      RealType minDifferenceFromMinSpacing = itk::Math::abs ( newMinSpacing - newSpacing[minIndex] );
       unsigned int minFactor = factor;
       for( unsigned int f = factor - 1; f > 0; f-- )
         {
         newMinSpacing = spacing[n] * static_cast<SpacingValueType>( f );
 
         // We use <= such that the smaller factor is preferred if distances are the same
-        if( vnl_math_abs( newMinSpacing - newSpacing[minIndex] ) <= minDifferenceFromMinSpacing )
+        if( itk::Math::abs ( newMinSpacing - newSpacing[minIndex] ) <= minDifferenceFromMinSpacing )
           {
-          minDifferenceFromMinSpacing = vnl_math_abs( newMinSpacing - newSpacing[minIndex] );
+          minDifferenceFromMinSpacing = itk::Math::abs ( newMinSpacing - newSpacing[minIndex] );
           minFactor = f;
           }
         }

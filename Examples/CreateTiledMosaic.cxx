@@ -279,7 +279,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
         ImageType::PointType::VectorType directionalVector = point - pointOrigin;
 
-        if( vnl_math_abs( directionalVector[physicalCoordinateComponent] ) > maxComponentValue )
+        if( itk::Math::abs ( directionalVector[physicalCoordinateComponent] ) > maxComponentValue )
           {
           direction = d;
           }
@@ -333,9 +333,9 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
           {
           if( d != direction )
             {
-            croppedSliceSize[count] = size[d] - ( vnl_math_abs( lowerBoundVector[count] )
-              + vnl_math_abs( upperBoundVector[count] ) );
-            croppedSliceIndex[count] = vnl_math_abs( lowerBoundVector[count] );
+            croppedSliceSize[count] = size[d] - ( itk::Math::abs ( lowerBoundVector[count] )
+              + itk::Math::abs ( upperBoundVector[count] ) );
+            croppedSliceIndex[count] = itk::Math::abs ( lowerBoundVector[count] );
             count++;
             }
           }
@@ -413,8 +413,8 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
             {
             if( d != direction )
               {
-              croppedSliceSize[count] = size[d] - 2 * vnl_math_abs( padWidth );
-              croppedSliceIndex[count] = vnl_math_abs( padWidth );
+              croppedSliceSize[count] = size[d] - 2 * itk::Math::abs ( padWidth );
+              croppedSliceIndex[count] = itk::Math::abs ( padWidth );
               count++;
               }
             }
@@ -566,16 +566,16 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         endSlice = parser->Convert<unsigned int>( endSliceString );
         }
 
-      startingSlice = vnl_math_max( itk::NumericTraits<int>::ZeroValue(), startingSlice );
-      startingSlice = vnl_math_min( startingSlice, static_cast<int>( size[direction] - 1 ) );
+      startingSlice = std::max( itk::NumericTraits<int>::ZeroValue(), startingSlice );
+      startingSlice = std::min( startingSlice, static_cast<int>( size[direction] - 1 ) );
 
-      endSlice = vnl_math_max( itk::NumericTraits<int>::ZeroValue(), endSlice );
-      endSlice = vnl_math_min( endSlice, static_cast<int>( size[direction] - 1 ) );
+      endSlice = std::max( itk::NumericTraits<int>::ZeroValue(), endSlice );
+      endSlice = std::min( endSlice, static_cast<int>( size[direction] - 1 ) );
 
       whichSlices.clear();
       if( reverseOrder )
         {
-        for( int n = endSlice; n >= startingSlice; n -= vnl_math_abs( numberOfSlicesToIncrement ) )
+        for( int n = endSlice; n >= startingSlice; n -= itk::Math::abs ( numberOfSlicesToIncrement ) )
           {
           whichSlices.push_back( n );
           }
@@ -607,8 +607,8 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
       std::cerr << "Tile geometry is specified as numberOfRowsxnumberOfColumns" << std::endl;
       return EXIT_FAILURE;
       }
-    numberOfRows = vnl_math_min( static_cast<int>( layout[0] ), static_cast<int>( numberOfSlices ) );
-    numberOfColumns = vnl_math_min( static_cast<int>( layout[1] ), static_cast<int>( numberOfSlices ) );
+    numberOfRows = std::min( static_cast<int>( layout[0] ), static_cast<int>( numberOfSlices ) );
+    numberOfColumns = std::min( static_cast<int>( layout[1] ), static_cast<int>( numberOfSlices ) );
     }
 
   if( numberOfRows <= 0 && numberOfColumns > 0 )

@@ -90,7 +90,7 @@ SmoothImage(typename TImage::Pointer image, double sig)
   for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     typename TImage::PixelType v1 = vfIter.Get();
-    if( vnl_math_isnan(v1) )
+    if( std::isnan(v1) )
       {
       vfIter.Set(0);
       }
@@ -781,7 +781,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           wmag = sqrt(wmag);
           if( checknans )
             {
-            if( vnl_math_isnan(wmag) || vnl_math_isinf(wmag) || wmag == 0 )
+            if( std::isnan(wmag) || std::isinf(wmag) || wmag == 0 )
               {
               wgradval.Fill(0);
               lapgrad2->SetPixel(speedindex, wgradval);
@@ -802,7 +802,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           dd *= gm->GetPixel(speedindex);
           if( checknans )
             {
-            if( vnl_math_isnan(dd) || vnl_math_isinf(dd) )
+            if( std::isnan(dd) || std::isinf(dd) )
               {
               dd = 0;
               }
@@ -864,11 +864,11 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           RealType bval = bsurf->GetPixel(velind);
           if( checknans )
             {
-            if( vnl_math_isnan(dmag) || vnl_math_isinf(dmag) )
+            if( std::isnan(dmag) || std::isinf(dmag) )
               {
               dmag = 0;
               }
-            if( vnl_math_isnan(bval) || vnl_math_isinf(bval) )
+            if( std::isnan(bval) || std::isinf(bval) )
               {
               bval = 0;
               }

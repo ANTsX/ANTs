@@ -145,8 +145,8 @@ public:
     //      std::cout << " index " << index << " VD " << VDim << std::endl;
     for( size_t d = 0; d < VDim; d++ )
       {
-      if( index[d] <= 0 || index[d] >= this->m_ImageSize[d] - 1  || vnl_math_isnan(index[d]) ||
-          vnl_math_isinf(index[d]) )
+      if( index[d] <= 0 || index[d] >= this->m_ImageSize[d] - 1  || std::isnan(index[d]) ||
+          std::isinf(index[d]) )
         {
         return Vout;
         }
@@ -217,7 +217,7 @@ public:
           grad[q] /= -1.4142135623730951 * this->sigma[q];
           }
         }
-      if( vnl_math_isnan(rc) )
+      if( std::isnan(rc) )
         {
         rc = 0;
         }

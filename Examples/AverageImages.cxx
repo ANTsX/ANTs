@@ -238,7 +238,7 @@ int AverageImages(unsigned int argc, char *argv[])
       {
       PixelType val = vfIter2.Get();
       double    valnorm = val.GetNorm();
-      if( !vnl_math_isnan( valnorm  ) &&  !vnl_math_isinf( valnorm  )   )
+      if( !std::isnan( valnorm  ) &&  !std::isinf( valnorm  )   )
         {
         val = val / (float)numberofimages;
         PixelType oldval = averageimage->GetPixel( vfIter2.GetIndex() );
