@@ -92,7 +92,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
       {
       continue;
       }
-    typename std::vector<LabelType>::iterator it =
+    auto it =
       std::find( labels.begin(), labels.end(), label );
     if( it == labels.end() )
       {
@@ -146,7 +146,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
         }
       }
 
-    typename std::vector<LabelType>::iterator it2 =
+    auto it2 =
       std::find( labels.begin(), labels.end(), *it );
     unsigned long index = it2 - labels.begin();
 

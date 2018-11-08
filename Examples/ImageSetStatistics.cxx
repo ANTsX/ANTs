@@ -464,7 +464,7 @@ float npdf(std::vector<float> vec, bool opt,  float www)
       {
       min = val;
       }
-    float n = (float) (i + 1);
+    auto n = (float) (i + 1);
     float wt1 = 1.0 / (float)n;
     float wt2 = 1.0 - wt1;
     mean = mean * wt2 + val * wt1;

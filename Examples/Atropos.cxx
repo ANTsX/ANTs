@@ -49,7 +49,7 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    const TFilter * filter =
+    const auto * filter =
       dynamic_cast<const TFilter *>( object );
 
     if( typeid( event ) != typeid( itk::IterationEvent ) )
@@ -334,7 +334,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
 
       if( posteriorOption->GetFunction( 0 )->GetNumberOfParameters() > 3 )
         {
-        RealType minimumAnnealingTemperature =
+        auto minimumAnnealingTemperature =
           parser->Convert<RealType>( posteriorOption->GetFunction( 0 )->GetParameter( 3 ) );
         segmenter->SetMinimumAnnealingTemperature( minimumAnnealingTemperature );
         }
@@ -561,7 +561,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       {
       typename SegmentationFilterType::LabelParameterMapType labelMap;
 
-      float labelLambda = parser->Convert<float>(
+      auto labelLambda = parser->Convert<float>(
           labelOption->GetFunction( 0 )->GetParameter( 0 ) );
       float labelBoundaryProbability = 1.0;
       if( labelOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
@@ -593,7 +593,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         {
         typename SegmentationFilterType::LabelParametersType labelPair;
 
-        float labelLambda = parser->Convert<float>(
+        auto labelLambda = parser->Convert<float>(
             labelOption->GetFunction( n )->GetParameter( 0 ) );
         float labelBoundaryProbability = 1.0;
         if( labelOption->GetFunction( n )->GetNumberOfParameters() > 1 )
@@ -611,7 +611,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         labelPair.first = labelLambda;
         labelPair.second = labelBoundaryProbability;
 
-        unsigned int whichClass = parser->Convert<unsigned int>( labelOption->GetFunction( n )->GetName() );
+        auto whichClass = parser->Convert<unsigned int>( labelOption->GetFunction( n )->GetName() );
 
         labelMap[whichClass] = labelPair;
         }

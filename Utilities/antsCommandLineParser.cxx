@@ -36,7 +36,7 @@ namespace ants
     cnvtMap[typeid(std::string).name()] = "std::string";
     cnvtMap[typeid(char *).name()] = "char *";
 
-    TypeMapType::iterator mi=cnvtMap.find(input);
+    auto mi=cnvtMap.find(input);
     if ( mi == cnvtMap.end() )
       {
       return std::string("Unmapped Type");

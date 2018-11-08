@@ -202,7 +202,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       {
       case RegistrationHelperType::CC:
         {
-        const unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
+        const auto radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
         if( verbose )
           {
           std::cout << "  using the CC metric (radius = "
@@ -221,7 +221,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         break;
       case RegistrationHelperType::Mattes:
         {
-        const unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
+        const auto binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
         if( verbose )
           {
           std::cout << "  using the Mattes MI metric (number of bins = "
@@ -240,7 +240,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         break;
       case RegistrationHelperType::MI:
         {
-        const unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
+        const auto binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
         if( verbose )
           {
           std::cout << "  using the joint histogram MI metric (number of bins = "
@@ -338,7 +338,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         {
         case RegistrationHelperType::regular:
           {
-          const unsigned long sampleCount = static_cast<unsigned long>( std::ceil( 1.0 / samplingPercentage ) );
+          const auto sampleCount = static_cast<unsigned long>( std::ceil( 1.0 / samplingPercentage ) );
           unsigned long count = sampleCount; //Start at sampleCount to keep behavior backwards identical, using first element.
           itk::ImageRegionConstIteratorWithIndex<ImageType> It( fixedImage, fixedImage->GetRequestedRegion() );
           for( It.GoToBegin(); !It.IsAtEnd(); ++It )
@@ -367,7 +367,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         case RegistrationHelperType::random:
           {
           const unsigned long totalVirtualDomainVoxels = fixedImage->GetRequestedRegion().GetNumberOfPixels();
-          const unsigned long sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
+          const auto sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
           itk::ImageRandomConstIteratorWithIndex<ImageType> ItR( fixedImage, fixedImage->GetRequestedRegion() );
           ItR.SetNumberOfSamples( sampleCount );
           for( ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR )

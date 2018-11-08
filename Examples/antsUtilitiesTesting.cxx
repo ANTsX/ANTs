@@ -119,7 +119,7 @@ private:
     }
   double scaleLowerBoundLog = std::log( scaleParameters[0] );
   double scaleUpperBoundLog = std::log( scaleParameters[1] );
-  unsigned int scaleNumberOfSamples = static_cast<unsigned int>( scaleParameters[2] );
+  auto scaleNumberOfSamples = static_cast<unsigned int>( scaleParameters[2] );
   double scaleDelta = ( scaleUpperBoundLog - scaleLowerBoundLog ) / static_cast<double>( scaleNumberOfSamples - 1 );
 
   // Get rotation sampling resolution

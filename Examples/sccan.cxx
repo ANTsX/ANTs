@@ -740,7 +740,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     /** count the labels in the mask image */
     for( mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
       {
-      unsigned int label = static_cast<unsigned int>( mIter.Get() + 0.5 );
+      auto label = static_cast<unsigned int>( mIter.Get() + 0.5 );
       if( label > 0 )
         {
         if( find( myLabelSet1.begin(), myLabelSet1.end(), label )
@@ -804,7 +804,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
       OutIndexType ind = vfIter2.GetIndex();
-      unsigned int label = static_cast<unsigned int>( mask->GetPixel( ind ) + 0.5 );
+      auto label = static_cast<unsigned int>( mask->GetPixel( ind ) + 0.5 );
       if( label > 0 )
         {
         unsigned int vind = vectorindexMap[label];
@@ -1175,7 +1175,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   typename ImageType::Pointer mask1 = nullptr;
   bool have_p_mask = false;
   have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
-  double  FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
+  auto  FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
   vMatrix priorScaleMat;
   if( svd_option == 7 )
     {
@@ -1496,13 +1496,13 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     }
 
   /** the penalties define the fraction of non-zero values for each view */
-  double FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
+  auto FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
     sccanobj->SetKeepPositiveP(false);  // true if P sparsity > 0
     }
-  double FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
+  auto FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
   if( FracNonZero2 < 0 )
     {
     FracNonZero2 = fabs(FracNonZero2);
@@ -1741,19 +1741,19 @@ int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
   typename ImageType::Pointer mask3 = nullptr;
 
   /** the penalties define the fraction of non-zero values for each view */
-  double FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 6 ) );
+  auto FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 6 ) );
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
     sccanobj->SetKeepPositiveP(false);
     }
-  double FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 7 ) );
+  auto FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 7 ) );
   if( FracNonZero2 < 0 )
     {
     FracNonZero2 = fabs(FracNonZero2);
     sccanobj->SetKeepPositiveQ(false);
     }
-  double FracNonZero3 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 8 ) );
+  auto FracNonZero3 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 8 ) );
   if( FracNonZero3 < 0 )
     {
     FracNonZero3 = fabs(FracNonZero3);
@@ -2320,7 +2320,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     std::string   outname = outputOption->GetFunction( 0 )->GetName();
     std::string   csvfn = matrixOptionV2I->GetFunction( 0 )->GetParameter( 0 );
     std::string   maskfn = matrixOptionV2I->GetFunction( 0 )->GetParameter( 1 );
-    unsigned long rowOrCol = sccanparser->Convert<unsigned long>( matrixOptionV2I->GetFunction( 0 )->GetParameter( 2 ) );
+    auto rowOrCol = sccanparser->Convert<unsigned long>( matrixOptionV2I->GetFunction( 0 )->GetParameter( 2 ) );
     ConvertCSVVectorToImage<double>( csvfn,  maskfn, outname, rowOrCol );
     // std::cout << " V2I done " << outname << std::endl;
     return EXIT_SUCCESS;

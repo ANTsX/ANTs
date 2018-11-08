@@ -35,7 +35,7 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    const TFilter * filter =
+    const auto * filter =
       dynamic_cast<const TFilter *>( object );
 
     if( typeid( event ) != typeid( itk::IterationEvent ) )
@@ -122,13 +122,13 @@ int DiReCT( itk::ants::CommandLineParser *parser )
       ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
       if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        DirectLabelType grayMatterValue = parser->Convert<DirectLabelType>(
+        auto grayMatterValue = parser->Convert<DirectLabelType>(
           segmentationImageOption->GetFunction( 0 )->GetParameter( 1 ) );
         direct->SetGrayMatterLabel( grayMatterValue );
         }
       if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
         {
-        DirectLabelType whiteMatterValue = parser->Convert<DirectLabelType>(
+        auto whiteMatterValue = parser->Convert<DirectLabelType>(
           segmentationImageOption->GetFunction( 0 )->GetParameter( 2 ) );
         direct->SetWhiteMatterLabel( whiteMatterValue );
         }

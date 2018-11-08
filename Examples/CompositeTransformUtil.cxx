@@ -54,7 +54,7 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
   typedef typename CompositeTransformType::TransformTypePointer             TransformPointer;
   typedef typename itk::DisplacementFieldTransform<double, VImageDimension> DisplacementFieldTransformType;
 
-  CompositeTransformType *composite = dynamic_cast<CompositeTransformType *>(transform);
+  auto *composite = dynamic_cast<CompositeTransformType *>(transform);
   if( composite == nullptr )
     {
     std::cout << "Transform File " << transformName << " is a "
@@ -67,7 +67,7 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
   for( unsigned int i = 0; i < numTransforms; ++i )
     {
     TransformPointer                curXfrm = composite->GetNthTransform(i);
-    DisplacementFieldTransformType *dispXfrm =
+    auto *dispXfrm =
       dynamic_cast<DisplacementFieldTransformType *>(curXfrm.GetPointer() );
     std::stringstream fname;
     fname << std::setfill('0') << std::setw(2) << i

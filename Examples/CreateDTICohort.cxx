@@ -308,9 +308,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       {
       for( unsigned int n = 0; n < pathologyOption->GetNumberOfFunctions(); n++ )
         {
-        LabelType whichClass = parser->Convert<LabelType>( pathologyOption->GetFunction( n )->GetName() );
+        auto whichClass = parser->Convert<LabelType>( pathologyOption->GetFunction( n )->GetName() );
 
-        std::vector<LabelType>::const_iterator it = std::find( labels.begin(), labels.end(), whichClass );
+        auto it = std::find( labels.begin(), labels.end(), whichClass );
 
         if( it == labels.end() )
           {
@@ -638,7 +638,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         eigenvalues[2] = eigenvalues[1];
         }
 
-      std::vector<LabelType>::const_iterator it = std::find( labels.begin(),
+      auto it = std::find( labels.begin(),
                                                              labels.end(), label );
       if( it == labels.end() )
         {

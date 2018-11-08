@@ -44,7 +44,7 @@ public:
 
   void Execute(itk::Object *caller, const itk::EventObject & event) override
     {
-    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>( caller );
+    auto *po = dynamic_cast<itk::ProcessObject *>( caller );
     if (! po) return;
 //    std::cout << po->GetProgress() << std::endl;
     if( typeid( event ) == typeid ( itk::ProgressEvent )  )
@@ -66,7 +66,7 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) override
     {
-    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>(
+    auto *po = dynamic_cast<itk::ProcessObject *>(
       const_cast<itk::Object *>( object ) );
     if (! po) return;
 
@@ -399,7 +399,7 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
     {
     for( unsigned int n = 0; n < exclusionImageOption->GetNumberOfFunctions(); n++ )
       {
-      LabelType label = parser->Convert<LabelType>( exclusionImageOption->GetFunction( n )->GetName() );
+      auto label = parser->Convert<LabelType>( exclusionImageOption->GetFunction( n )->GetName() );
 
       typename LabelImageType::Pointer exclusionImage = nullptr;
       std::string exclusionFile = exclusionImageOption->GetFunction( n )->GetParameter( 0 );

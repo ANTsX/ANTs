@@ -39,7 +39,7 @@ public:
 
   void Execute(itk::Object *caller, const itk::EventObject & event) override
     {
-    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>( caller );
+    auto *po = dynamic_cast<itk::ProcessObject *>( caller );
     if (! po) return;
 //    std::cout << po->GetProgress() << std::endl;
     if( typeid( event ) == typeid ( itk::ProgressEvent )  )
@@ -61,7 +61,7 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) override
     {
-    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>(
+    auto *po = dynamic_cast<itk::ProcessObject *>(
       const_cast<itk::Object *>( object ) );
     if (! po) return;
 

@@ -100,7 +100,7 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
+    auto * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
     unsigned int currentLevel = 0;
 
@@ -124,7 +124,7 @@ public:
                      << std::endl;
 
       typedef itk::ConjugateGradientLineSearchOptimizerv4 GradientDescentOptimizerType;
-      GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>( filter->GetModifiableOptimizer() );
+      auto * optimizer = reinterpret_cast<GradientDescentOptimizerType *>( filter->GetModifiableOptimizer() );
       optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
       optimizer->SetMinimumConvergenceValue( 1.e-7 );
       optimizer->SetConvergenceWindowSize( 10 );
@@ -270,7 +270,7 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
+    auto * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
     if( typeid( event ) != typeid( itk::IterationEvent ) )
       {
@@ -282,7 +282,7 @@ public:
       filter->GetTransformParametersAdaptorsPerLevel();
 
     typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
-    OptimizerType * optimizer = reinterpret_cast<OptimizerType *>( filter->GetModifiableOptimizer() );
+    auto * optimizer = reinterpret_cast<OptimizerType *>( filter->GetModifiableOptimizer() );
     optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
     optimizer->SetMinimumConvergenceValue( 1.e-7 );
     optimizer->SetConvergenceWindowSize( 10 );
@@ -314,7 +314,7 @@ void ants_slice_poly_regularize(
   typedef vnl_vector<RealType>                      vVector;
   for ( unsigned int z = 0; z < timedims; z++ )
     {
-    RealType zz = static_cast<RealType>( z + 1 );
+    auto zz = static_cast<RealType>( z + 1 );
     A(z,0) = zz;
     for ( unsigned int lcol = 1; lcol < A.cols(); lcol++ )
       {
@@ -664,7 +664,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
 
       if( std::strcmp( whichMetric.c_str(), "cc" ) == 0 )
         {
-        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction(
+        auto radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction(
                                                                      currentStage )->GetParameter(  3 ) );
 
         typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType,
@@ -679,7 +679,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         }
       else if( std::strcmp( whichMetric.c_str(), "mi" ) == 0 )
         {
-        unsigned int binOption =
+        auto binOption =
           parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
         typedef itk::MattesMutualInformationImageToImageMetricv4<FixedImageType,
                                                                  FixedImageType> MutualInformationMetricType;
@@ -722,7 +722,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
       typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
       scalesEstimator->SetMetric( metric );
       scalesEstimator->SetTransformForward( true );
-      float learningRate = parser->Convert<float>(
+      auto learningRate = parser->Convert<float>(
         transformOption->GetFunction( currentStage )->GetParameter(  0 ) );
 
       typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;

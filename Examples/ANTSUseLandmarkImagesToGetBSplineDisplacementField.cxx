@@ -299,7 +299,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 
         if( useWeights )
           {
-          std::vector<LabelType>::const_iterator it = std::find( userLabels.begin(), userLabels.end(), mItD.Value() );
+          auto it = std::find( userLabels.begin(), userLabels.end(), mItD.Value() );
           if( it != userLabels.end() )
             {
             weights->InsertElement( count, labelWeights[it - userLabels.begin()] );

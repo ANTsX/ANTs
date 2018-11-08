@@ -43,7 +43,7 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    const TFilter * filter =
+    const auto * filter =
       dynamic_cast<const TFilter *>( object );
 
     if( typeid( event ) != typeid( itk::IterationEvent ) )
@@ -228,9 +228,9 @@ int N4( itk::ants::CommandLineParser *parser )
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
           float domain = static_cast<RealType>( originalImageSize[d] - 1 ) * inputImage->GetSpacing()[d];
-          unsigned int numberOfSpans = static_cast<unsigned int>(
+          auto numberOfSpans = static_cast<unsigned int>(
               std::ceil( domain / splineDistance ) );
-          unsigned long extraPadding = static_cast<unsigned long>( ( numberOfSpans
+          auto extraPadding = static_cast<unsigned long>( ( numberOfSpans
                                                                      * splineDistance
                                                                      - domain ) / inputImage->GetSpacing()[d] + 0.5 );
           lowerBound[d] = static_cast<unsigned long>( 0.5 * extraPadding );

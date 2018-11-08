@@ -57,9 +57,9 @@ float CalculateGenus( vtkPolyData *mesh, bool verbose )
   extractEdges->SetInputData( mesh );
   extractEdges->Update();
 
-  float numberOfEdges = static_cast<float>( extractEdges->GetOutput()->GetNumberOfLines() );
-  float numberOfVertices = static_cast<float>( mesh->GetNumberOfPoints() );
-  float numberOfFaces = static_cast<float>( mesh->GetNumberOfPolys() );
+  auto numberOfEdges = static_cast<float>( extractEdges->GetOutput()->GetNumberOfLines() );
+  auto numberOfVertices = static_cast<float>( mesh->GetNumberOfPoints() );
+  auto numberOfFaces = static_cast<float>( mesh->GetNumberOfPolys() );
 
   float genus = 0.5 * ( 2.0 - numberOfVertices + numberOfEdges - numberOfFaces );
 
@@ -393,7 +393,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
       if( functionalOverlayOption->GetFunction( n )->GetNumberOfParameters() > 2 )
         {
-        RealType alpha = parser->Convert<RealType>(
+        auto alpha = parser->Convert<RealType>(
           functionalOverlayOption->GetFunction( n )->GetParameter( 2 ) );
         functionalAlphaValues.push_back( alpha );
         }

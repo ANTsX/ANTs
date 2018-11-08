@@ -255,7 +255,7 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
     }
 
   // float load_ratio = 0.01;
-  unsigned int nb_try_to_load = (unsigned int) ( (float) nb_voxels * load_ratio);
+  auto nb_try_to_load = (unsigned int) ( (float) nb_voxels * load_ratio);
 
   std::cout << "trying to load " << nb_try_to_load << " from " <<  nb_voxels << " points." << std::endl;
 

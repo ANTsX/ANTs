@@ -493,7 +493,7 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
   while( ( matchPoint <= numberOfBlobsToMatch ) && ( fixedCount < fixedImageBlobs.size() ) )
     {
     unsigned int maxPair = correspondenceMatrix.arg_max();
-    unsigned int maxRow = static_cast<unsigned int>( maxPair / correspondenceMatrix.cols() );
+    auto maxRow = static_cast<unsigned int>( maxPair / correspondenceMatrix.cols() );
     unsigned int maxCol = maxPair - maxRow * correspondenceMatrix.cols();
     BlobPointer fixedBlob = fixedImageBlobs[maxRow];
     bestBlob = movingImageBlobs[maxCol];
@@ -1249,7 +1249,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       {
       case REGULAR:
         {
-        const unsigned long sampleCount = static_cast<unsigned long>( std::ceil( 1.0 / samplingPercentage ) );
+        const auto sampleCount = static_cast<unsigned long>( std::ceil( 1.0 / samplingPercentage ) );
         unsigned long count = sampleCount; //Start at sampleCount to keep behavior backwards identical, using first element.
         itk::ImageRegionConstIteratorWithIndex<ImageType> It( fixedImage, fixedImage->GetRequestedRegion() );
         for( It.GoToBegin(); !It.IsAtEnd(); ++It )
@@ -1278,7 +1278,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       case RANDOM:
         {
         const unsigned long totalVirtualDomainVoxels = fixedImage->GetRequestedRegion().GetNumberOfPixels();
-        const unsigned long sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
+        const auto sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
         itk::ImageRandomConstIteratorWithIndex<ImageType> ItR( fixedImage, fixedImage->GetRequestedRegion() );
         ItR.SetNumberOfSamples( sampleCount );
         for( ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR )

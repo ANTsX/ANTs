@@ -208,7 +208,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
       if( functionalOverlayOption->GetFunction( n )->GetNumberOfParameters() > 2 )
         {
-        RealType localAlpha = parser->Convert<RealType>(
+        auto localAlpha = parser->Convert<RealType>(
           functionalOverlayOption->GetFunction( n )->GetParameter( 2 ) );
         functionalAlphaValues.push_back( localAlpha );
         }

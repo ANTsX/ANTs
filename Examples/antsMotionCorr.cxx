@@ -99,7 +99,7 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
+    auto * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
     unsigned int currentLevel = 0;
 
@@ -123,7 +123,7 @@ public:
                      << std::endl;
 
       typedef itk::ConjugateGradientLineSearchOptimizerv4 GradientDescentOptimizerType;
-      GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>( filter->GetModifiableOptimizer() );
+      auto * optimizer = reinterpret_cast<GradientDescentOptimizerType *>( filter->GetModifiableOptimizer() );
       optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
       optimizer->SetMinimumConvergenceValue( 1.e-7 );
       optimizer->SetConvergenceWindowSize( 10 );
@@ -270,7 +270,7 @@ public:
   void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
     bool verbose = false;
-    TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
+    auto * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
     if( typeid( event ) != typeid( itk::IterationEvent ) )
       {
@@ -292,7 +292,7 @@ public:
               << std::endl;
 
     typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
-    OptimizerType * optimizer = reinterpret_cast<OptimizerType *>( filter->GetModifiableOptimizer() );
+    auto * optimizer = reinterpret_cast<OptimizerType *>( filter->GetModifiableOptimizer() );
     optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
     optimizer->SetMinimumConvergenceValue( 1.e-7 );
     optimizer->SetConvergenceWindowSize( 10 );
@@ -914,7 +914,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
       if( std::strcmp( whichMetric.c_str(), "cc" ) == 0 )
         {
-        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
+        auto radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
 
         if( timedim == 0 )
           {
@@ -933,7 +933,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else if( std::strcmp( whichMetric.c_str(), "mi" ) == 0 )
         {
-        unsigned int binOption =
+        auto binOption =
           parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
 
         if( timedim == 0 )
@@ -983,7 +983,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       scalesEstimator->SetMetric( metric );
       scalesEstimator->SetTransformForward( true );
 
-      float learningRate = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter(  0 ) );
+      auto learningRate = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter(  0 ) );
 
       typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
       OptimizerType::Pointer optimizer = OptimizerType::New();
