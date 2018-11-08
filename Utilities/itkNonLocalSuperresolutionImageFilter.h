@@ -217,8 +217,8 @@ protected:
 
 private:
 
-  NonLocalSuperresolutionImageFilter( const Self& ) ITK_DELETED_FUNCTION;
-  void operator=( const Self& ) ITK_DELETED_FUNCTION;
+  NonLocalSuperresolutionImageFilter( const Self& ) = delete;
+  void operator=( const Self& ) = delete;
 
   InputImagePointer PerformMeanCorrection( InputImageType * );
 

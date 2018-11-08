@@ -173,8 +173,8 @@ protected:
 
 private:
 
-  NonLocalPatchBasedImageFilter( const Self& ) ITK_DELETED_FUNCTION;
-  void operator=( const Self& ) ITK_DELETED_FUNCTION;
+  NonLocalPatchBasedImageFilter( const Self& ) = delete;
+  void operator=( const Self& ) = delete;
 
 };
 
