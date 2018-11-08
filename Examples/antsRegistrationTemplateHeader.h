@@ -67,7 +67,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   else
     {
     char* randomSeedEnv = getenv( "ANTS_RANDOM_SEED" );
-    if ( randomSeedEnv != NULL )
+    if ( randomSeedEnv != nullptr )
       {
       regHelper->SetRegistrationRandomSeed( std::stoi( randomSeedEnv ) );
       }

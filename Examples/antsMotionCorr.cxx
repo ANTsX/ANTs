@@ -605,7 +605,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     {
     char* envSeed = getenv( "ANTS_RANDOM_SEED" );
     
-    if ( envSeed != NULL )
+    if ( envSeed != nullptr )
       {
       antsRandomSeed = std::stoi( envSeed );
       }

@@ -272,7 +272,7 @@ int CheckTopology( std::vector<std::string> args, std::ostream* )
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
