@@ -101,7 +101,7 @@ public:
 
 protected:
   PICSLAdvancedNormalizationToolKit();
-  virtual ~PICSLAdvancedNormalizationToolKit() override
+  ~PICSLAdvancedNormalizationToolKit() override
   {
   }
 

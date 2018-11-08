@@ -240,7 +240,7 @@ public:
 protected:
 
   SurfaceImageCurvature();
-  virtual ~SurfaceImageCurvature() override
+  ~SurfaceImageCurvature() override
   {
   };
 

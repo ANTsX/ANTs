@@ -318,7 +318,7 @@ public:
   float  m_TEMP;
 protected:
   ProbabilisticRegistrationFunction();
-  virtual ~ProbabilisticRegistrationFunction() override
+  ~ProbabilisticRegistrationFunction() override
   {
   }
 

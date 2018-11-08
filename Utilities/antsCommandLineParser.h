@@ -154,7 +154,7 @@ public:
 
 protected:
   CommandLineParser();
-  virtual ~CommandLineParser() override
+  ~CommandLineParser() override
   {
   }
 

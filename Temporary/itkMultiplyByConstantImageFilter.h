@@ -57,7 +57,7 @@ protected:
   {
   }
 
-  virtual ~MultiplyByConstantImageFilter() override
+  ~MultiplyByConstantImageFilter() override
   {
   }
 };

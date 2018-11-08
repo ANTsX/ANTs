@@ -124,7 +124,7 @@ public:
 
 protected:
   ImageIntensityAndGradientToPointSetFilter();
-  virtual ~ImageIntensityAndGradientToPointSetFilter() override
+  ~ImageIntensityAndGradientToPointSetFilter() override
   {
   }
 

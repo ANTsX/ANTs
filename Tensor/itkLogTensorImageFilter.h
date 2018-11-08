@@ -91,7 +91,7 @@ public:
   // itkGetConstReferenceMacro(Radius, InputSizeType);
 protected:
   LogTensorImageFilter();
-  virtual ~LogTensorImageFilter() override
+  ~LogTensorImageFilter() override
   {
   }
 

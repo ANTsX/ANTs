@@ -314,7 +314,7 @@ public:
 protected:
 
   WeightedVotingFusionImageFilter();
-  virtual ~WeightedVotingFusionImageFilter() override {}
+  ~WeightedVotingFusionImageFilter() override {}
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 

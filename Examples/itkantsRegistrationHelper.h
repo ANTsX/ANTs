@@ -798,7 +798,7 @@ public:
 
 protected:
   RegistrationHelper();
-  virtual ~RegistrationHelper() override;
+  ~RegistrationHelper() override;
 private:
 
   typename itk::ImageBase<VImageDimension>::Pointer GetShrinkImageOutputInformation(const itk::ImageBase<VImageDimension> * inputImageInformation,

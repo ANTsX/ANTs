@@ -114,7 +114,7 @@ protected:
   ~SimulatedExponentialDisplacementFieldSource() override = default;
   void PrintSelf( std::ostream & os, Indent indent ) const override;
 
-  virtual void GenerateData() override;
+  void GenerateData() override;
 
 private:
 

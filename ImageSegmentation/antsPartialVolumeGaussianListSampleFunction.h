@@ -72,7 +72,7 @@ public:
 
 protected:
   PartialVolumeGaussianListSampleFunction();
-  virtual ~PartialVolumeGaussianListSampleFunction() override;
+  ~PartialVolumeGaussianListSampleFunction() override;
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();

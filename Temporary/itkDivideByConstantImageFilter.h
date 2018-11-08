@@ -140,7 +140,7 @@ protected:
   DivideByConstantImageFilter()
   {
   };
-  virtual ~DivideByConstantImageFilter() override
+  ~DivideByConstantImageFilter() override
   {
   };
 

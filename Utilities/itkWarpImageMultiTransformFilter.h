@@ -297,7 +297,7 @@ public:
   bool m_bFirstDeformNoInterp;
 protected:
   WarpImageMultiTransformFilter();
-  virtual ~WarpImageMultiTransformFilter() override
+  ~WarpImageMultiTransformFilter() override
   {
   };
   void PrintSelf(std::ostream& os, Indent indent) const override;

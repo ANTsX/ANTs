@@ -92,7 +92,7 @@ public:
 
 protected:
   ManifoldParzenWindowsListSampleFunction();
-  virtual ~ManifoldParzenWindowsListSampleFunction() override;
+  ~ManifoldParzenWindowsListSampleFunction() override;
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();

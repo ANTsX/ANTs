@@ -318,7 +318,7 @@ protected:
     this->m_RobustnessParameter = -1.e12;
   }
 
-  virtual ~AvantsPDEDeformableRegistrationFunction() override
+  ~AvantsPDEDeformableRegistrationFunction() override
   {
   }
 

@@ -71,7 +71,7 @@ public:
 
 protected:
   GaussianListSampleFunction();
-  virtual ~GaussianListSampleFunction() override;
+  ~GaussianListSampleFunction() override;
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();

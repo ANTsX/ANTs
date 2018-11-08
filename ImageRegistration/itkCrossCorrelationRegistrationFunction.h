@@ -341,7 +341,7 @@ public:
 
 protected:
   CrossCorrelationRegistrationFunction();
-  virtual ~CrossCorrelationRegistrationFunction() override
+  ~CrossCorrelationRegistrationFunction() override
   {
   }
 

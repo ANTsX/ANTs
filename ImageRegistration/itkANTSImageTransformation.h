@@ -165,7 +165,7 @@ public:
   itkBooleanMacro( WriteComponentImages );
 protected:
   ANTSImageTransformation();
-  virtual ~ANTSImageTransformation() override
+  ~ANTSImageTransformation() override
   {
   }
 

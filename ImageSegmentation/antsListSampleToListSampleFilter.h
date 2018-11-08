@@ -68,7 +68,7 @@ public:
 
 protected:
   ListSampleToListSampleFilter();
-  virtual ~ListSampleToListSampleFilter() override
+  ~ListSampleToListSampleFilter() override
   {
   };
 

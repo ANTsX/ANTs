@@ -141,7 +141,7 @@ public:
 protected:
 
   NonLocalPatchBasedImageFilter();
-  virtual ~NonLocalPatchBasedImageFilter() override {}
+  ~NonLocalPatchBasedImageFilter() override {}
 
   void BeforeThreadedGenerateData() override;
 

@@ -2091,7 +2091,7 @@ protected:
   }
 
   ANTSImageRegistrationOptimizer();
-  virtual ~ANTSImageRegistrationOptimizer() override
+  ~ANTSImageRegistrationOptimizer() override
   {
   }
 

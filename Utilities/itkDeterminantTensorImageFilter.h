@@ -64,7 +64,7 @@ public:
 
 protected:
   DeterminantTensorImageFilter();
-  virtual ~DeterminantTensorImageFilter() override {}
+  ~DeterminantTensorImageFilter() override {}
 
   /** DeterminantTensorImageFilter can be implemented as a
    * multithreaded filter (we're only using vnl_det(), which is trivially

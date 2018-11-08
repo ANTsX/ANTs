@@ -195,7 +195,7 @@ public:
 protected:
 
   SurfaceCurvatureBase();
-  virtual ~SurfaceCurvatureBase() override
+  ~SurfaceCurvatureBase() override
   {
   };
 

@@ -303,7 +303,7 @@ public:
   }
 
   antsMatrixUtilities();
-  virtual ~antsMatrixUtilities() override
+  ~antsMatrixUtilities() override
   {
   }
 

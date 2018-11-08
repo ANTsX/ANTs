@@ -80,7 +80,7 @@ public:
 
 protected:
   LabelSelectionImageAdaptor() {}
-  virtual ~LabelSelectionImageAdaptor() override {}
+  ~LabelSelectionImageAdaptor() override {}
 
 private:
   LabelSelectionImageAdaptor(const Self &); //purposely not implemented

@@ -333,7 +333,7 @@ private:
 #endif
 protected:
   FMarchingImageFilter();
-  virtual ~FMarchingImageFilter() override
+  ~FMarchingImageFilter() override
   {
   };
   void PrintSelf( std::ostream& os, Indent indent ) const override;

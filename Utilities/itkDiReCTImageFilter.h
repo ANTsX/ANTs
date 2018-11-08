@@ -303,7 +303,7 @@ public:
 protected:
 
   DiReCTImageFilter();
-  virtual ~DiReCTImageFilter() override;
+  ~DiReCTImageFilter() override;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 

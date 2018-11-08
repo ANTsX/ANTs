@@ -91,7 +91,7 @@ public:
   // itkGetConstReferenceMacro(Radius, InputSizeType);
 protected:
   ExpTensorImageFilter();
-  virtual ~ExpTensorImageFilter() override
+  ~ExpTensorImageFilter() override
   {
   }
 

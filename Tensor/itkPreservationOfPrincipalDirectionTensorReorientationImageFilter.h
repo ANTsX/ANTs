@@ -131,7 +131,7 @@ public:
   typedef typename OutputImageType::IndexType OutputIndexType;
 protected:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter();
-  virtual ~PreservationOfPrincipalDirectionTensorReorientationImageFilter() override
+  ~PreservationOfPrincipalDirectionTensorReorientationImageFilter() override
   {
   }
 

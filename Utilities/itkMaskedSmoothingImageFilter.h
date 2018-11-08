@@ -112,7 +112,7 @@ public:
 protected:
 
   MaskedSmoothingImageFilter();
-  virtual ~MaskedSmoothingImageFilter() override;
+  ~MaskedSmoothingImageFilter() override;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 

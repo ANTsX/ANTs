@@ -86,7 +86,7 @@ public:
 //   itkGetConstMacro( Outliers, InstanceIdentifierContainerType );
 protected:
   GrubbsRosnerListSampleFilter();
-  virtual ~GrubbsRosnerListSampleFilter() override;
+  ~GrubbsRosnerListSampleFilter() override;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 

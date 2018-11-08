@@ -103,7 +103,7 @@ public:
   itkGetConstMacro( ImageDirection, ImageDirectionType );
 protected:
   LabeledPointSetFileWriter();
-  virtual ~LabeledPointSetFileWriter() override;
+  ~LabeledPointSetFileWriter() override;
 
   virtual void GenerateData();
 

@@ -87,7 +87,7 @@ public:
 
 protected:
   SplitAlternatingTimeSeriesImageFilter();
-  virtual ~SplitAlternatingTimeSeriesImageFilter() override {}
+  ~SplitAlternatingTimeSeriesImageFilter() override {}
   void PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Overrides GenerateOutputInformation() in order to produce

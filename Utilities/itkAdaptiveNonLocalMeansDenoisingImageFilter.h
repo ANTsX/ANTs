@@ -162,7 +162,7 @@ public:
 
 protected:
   AdaptiveNonLocalMeansDenoisingImageFilter();
-  virtual ~AdaptiveNonLocalMeansDenoisingImageFilter() override {}
+  ~AdaptiveNonLocalMeansDenoisingImageFilter() override {}
 
   void PrintSelf( std::ostream & os, Indent indent ) const override;
 

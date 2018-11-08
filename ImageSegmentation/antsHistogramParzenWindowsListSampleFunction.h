@@ -80,7 +80,7 @@ public:
 
 protected:
   HistogramParzenWindowsListSampleFunction();
-  virtual ~HistogramParzenWindowsListSampleFunction() override;
+  ~HistogramParzenWindowsListSampleFunction() override;
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();

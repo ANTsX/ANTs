@@ -113,7 +113,7 @@ public:
 #endif
 protected:
   PulsedArterialSpinLabeledCerebralBloodFlowImageFilter();
-  virtual ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter() override
+  ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter() override
   {
   }
 

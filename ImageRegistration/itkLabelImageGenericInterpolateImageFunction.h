@@ -73,7 +73,7 @@ public:
 
 protected:
   LabelImageGenericInterpolateImageFunction();
-  virtual ~LabelImageGenericInterpolateImageFunction() override{};
+  ~LabelImageGenericInterpolateImageFunction() override{};
 
 	std::vector<typename InternalInterpolatorType::Pointer> m_InternalInterpolators;
 	std::vector<typename LabelSelectionAdaptorType::Pointer> m_LabelSelectionAdaptors;

@@ -737,7 +737,7 @@ public:
 #endif
 protected:
   AtroposSegmentationImageFilter();
-  virtual ~AtroposSegmentationImageFilter() override;
+  ~AtroposSegmentationImageFilter() override;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 

@@ -229,7 +229,7 @@ public:
 
 protected:
   AverageOverDimensionImageFilter();
-  virtual ~AverageOverDimensionImageFilter() override {}
+  ~AverageOverDimensionImageFilter() override {}
   void PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** AverageOverDimensionImageFilter can produce an image which is a different

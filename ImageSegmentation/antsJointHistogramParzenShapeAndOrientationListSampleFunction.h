@@ -89,7 +89,7 @@ public:
 
 protected:
   JointHistogramParzenShapeAndOrientationListSampleFunction();
-  virtual ~JointHistogramParzenShapeAndOrientationListSampleFunction() override;
+  ~JointHistogramParzenShapeAndOrientationListSampleFunction() override;
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();

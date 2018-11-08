@@ -133,7 +133,7 @@ protected:
 /*                            const OutputVectorType &offset); */
   ANTSAffine3DTransform(unsigned int outputDims, unsigned int paramDims);
   ANTSAffine3DTransform();
-  virtual ~ANTSAffine3DTransform() override
+  ~ANTSAffine3DTransform() override
   {
   };
 

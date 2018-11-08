@@ -121,7 +121,7 @@ public:
 #endif
 protected:
   SliceTimingCorrectionImageFilter();
-  virtual ~SliceTimingCorrectionImageFilter() override
+  ~SliceTimingCorrectionImageFilter() override
   {
   }
 

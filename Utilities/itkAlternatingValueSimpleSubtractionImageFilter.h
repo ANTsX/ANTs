@@ -83,7 +83,7 @@ public:
 #endif
 protected:
   AlternatingValueSimpleSubtractionImageFilter();
-  virtual ~AlternatingValueSimpleSubtractionImageFilter() override
+  ~AlternatingValueSimpleSubtractionImageFilter() override
   {
   }
 

@@ -117,7 +117,7 @@ public:
 
 protected:
   N3BiasFieldScaleCostFunction();
-  virtual ~N3BiasFieldScaleCostFunction() override;
+  ~N3BiasFieldScaleCostFunction() override;
 private:
   N3BiasFieldScaleCostFunction(const Self &); // purposely not implemented
   void operator=(const Self &);               // purposely not implemented
@@ -256,7 +256,7 @@ public:
   itkGetConstMacro( CurrentConvergenceMeasurement, RealType );
 protected:
   N3MRIBiasFieldCorrectionImageFilter();
-  virtual ~N3MRIBiasFieldCorrectionImageFilter() override
+  ~N3MRIBiasFieldCorrectionImageFilter() override
   {
   };
   void PrintSelf( std::ostream& os, Indent indent ) const override;

@@ -1178,7 +1178,7 @@ protected:
   }
 
   antsSCCANObject();
-  virtual ~antsSCCANObject() override
+  ~antsSCCANObject() override
   {
   }
 

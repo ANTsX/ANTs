@@ -128,7 +128,7 @@ public:
   }
 
   /** Update method (why?) */
-  void Update()
+  void Update() override
   {
     this->GenerateData();
   }
@@ -273,7 +273,7 @@ protected:
     m_DecimateFactor = 0.0f;
   }
 
-  ~BinaryImageToMeshFilter()
+  ~BinaryImageToMeshFilter() override
   {
     // CLean up
     fltMarching->Delete();
@@ -286,7 +286,7 @@ protected:
   }
 
   /** Generate Data */
-  virtual void GenerateData( void )
+  void GenerateData( void ) override
   {
     // Run the computation
     cout << "Computing mesh from binary image" << endl;

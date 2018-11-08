@@ -83,7 +83,7 @@ protected:
     Superclass::m_EdgePaddingValue.Fill(kMaxDisp);
   }
 
-  virtual ~DisplacementFieldFromMultiTransformFilter() override
+  ~DisplacementFieldFromMultiTransformFilter() override
   {
   };
   void PrintSelf(std::ostream& os, Indent indent) const override

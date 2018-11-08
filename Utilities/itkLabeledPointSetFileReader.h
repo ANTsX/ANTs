@@ -104,7 +104,7 @@ public:
 
 protected:
   LabeledPointSetFileReader();
-  virtual ~LabeledPointSetFileReader() override
+  ~LabeledPointSetFileReader() override
   {
   }
 

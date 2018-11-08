@@ -115,7 +115,7 @@ public:
 
 protected:
   LabelPerimeterEstimationCalculator();
-  virtual ~LabelPerimeterEstimationCalculator() override {}
+  ~LabelPerimeterEstimationCalculator() override {}
   void PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:

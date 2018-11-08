@@ -850,12 +850,12 @@ class nullBuf
 : public std::streambuf
 {
 public:
-  virtual std::streamsize xsputn( const char * itkNotUsed( s ), std::streamsize n )
+  std::streamsize xsputn( const char * itkNotUsed( s ), std::streamsize n ) override
     {
     return n;
     }
 
-  virtual int overflow( int itkNotUsed( c ) )
+  int overflow( int itkNotUsed( c ) ) override
     {
     return 1;
     }

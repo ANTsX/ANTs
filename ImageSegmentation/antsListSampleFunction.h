@@ -107,7 +107,7 @@ public:
 
 protected:
   ListSampleFunction();
-  virtual ~ListSampleFunction() override
+  ~ListSampleFunction() override
   {
   }
 

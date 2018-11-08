@@ -78,7 +78,7 @@ public:
 protected:
 
   GeneralToBSplineDisplacementFieldFilter();
-  virtual ~GeneralToBSplineDisplacementFieldFilter() override;
+  ~GeneralToBSplineDisplacementFieldFilter() override;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 

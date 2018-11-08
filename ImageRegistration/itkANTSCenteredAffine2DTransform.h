@@ -200,7 +200,7 @@ protected:
   ANTSCenteredAffine2DTransform( unsigned int outputSpaceDimension, unsigned int parametersDimension);
 
   //  ~Rigid2DTransform();
-  virtual ~ANTSCenteredAffine2DTransform() override;
+  ~ANTSCenteredAffine2DTransform() override;
 
   /**
     * Print contents of an ANTSCenteredAffine2DTransform

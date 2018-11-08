@@ -161,7 +161,7 @@ public:
 
 protected:
   MeanSquaresPointSetToPointSetIntensityMetricv4();
-  virtual ~MeanSquaresPointSetToPointSetIntensityMetricv4() override;
+  ~MeanSquaresPointSetToPointSetIntensityMetricv4() override;
 
   /**
    * Estimate the intensity distance sigma based on simple heuristic

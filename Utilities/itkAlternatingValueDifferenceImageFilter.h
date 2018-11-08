@@ -116,7 +116,7 @@ public:
 #endif
 protected:
   AlternatingValueDifferenceImageFilter();
-  virtual ~AlternatingValueDifferenceImageFilter() override
+  ~AlternatingValueDifferenceImageFilter() override
   {
   }
 
