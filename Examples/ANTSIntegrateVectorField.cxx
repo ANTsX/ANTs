@@ -332,11 +332,6 @@ int IntegrateVectorField(int argc, char *argv[])
   VectorType zero;
   zero.Fill(0);
 
-  DPointType pointIn1;
-  DPointType pointIn2;
-  typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
-  DPointType pointIn3;
-
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
   VIteratorType VIterator( VECimage, VECimage->GetLargestPossibleRegion().GetSize() );
   VIterator.GoToBegin();

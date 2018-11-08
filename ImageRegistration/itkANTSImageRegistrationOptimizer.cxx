@@ -474,7 +474,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   VPointType pointIn1;
   VPointType pointIn2;
-  typename DefaultInterpolatorType::ContinuousIndexType  contind;   // married to pointIn2
   VPointType   pointIn3;
   unsigned int ct = 0;
   // iterate through fieldtowarpby finding the points that it maps to via field.
@@ -1936,7 +1935,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                             TReal timept)
 {
   typedef TimeVaryingVelocityFieldType tvt;
-  VectorType zero;
   typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
 
   int tpupdate = (unsigned int) ( ( (TReal) this->m_NTimeSteps - 1.0) * timept + 0.5);
@@ -2541,7 +2539,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       // std::cout <<" get point index " << point << std::endl;
 
-      ImagePointType pt, wpt;
+      ImagePointType pt;
       for( unsigned int jj = 0;  jj < ImageDimension; jj++ )
         {
         pt[jj] = point[jj];
@@ -2609,7 +2607,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   VectorType velo;
   velo.Fill(0);
-  typename VelocityFieldInterpolatorType::ContinuousIndexType  vcontind;
 
   TReal         itime = starttimein;
   unsigned long ct = 0;

@@ -698,7 +698,6 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
       double probtotal = 0.0;
       for( unsigned int dd = 0;   dd < KNeighbors; dd++ )
         {
-        PointType             movingpoint;
         unsigned long         wpt = neighbors[dd];
         MeasurementVectorType npt = mkdtree->GetOutput()->GetMeasurementVector(wpt);
         float                 _mag = 0;
@@ -719,7 +718,6 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         {
         for( unsigned int dd = 0;   dd < KNeighbors; dd++ )
           {
-          PointType             movingpoint;
           unsigned long         wpt = neighbors[dd];
           MeasurementVectorType npt = mkdtree->GetOutput()->GetMeasurementVector(wpt);
           double                pp = probabilities(dd) / probtotal;

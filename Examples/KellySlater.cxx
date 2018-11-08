@@ -620,7 +620,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
   typedef   DisplacementFieldType
     TimeVaryingVelocityFieldType;
-  typedef typename DisplacementFieldType::PointType                                         DPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, RealType> DefaultInterpolatorType;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   vinterp->SetInputImage(lapgrad);
@@ -629,11 +628,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   typename ScalarInterpolatorType::Pointer winterp =  ScalarInterpolatorType::New();
   winterp->SetInputImage(wm);
   ginterp->SetInputImage(gm);
-
-  DPointType pointIn1;
-  DPointType pointIn2;
-  typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
-  DPointType pointIn3;
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType>             IteratorType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;

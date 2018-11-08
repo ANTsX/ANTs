@@ -803,10 +803,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   double sff = 0.0;
   double smm = 0.0;
   double sfm = 0.0;
-//  double fixedValue;
-//  double movingValue;
-  PointType           mappedPoint;
-  CovariantVectorType gradI, gradJ;
+  CovariantVectorType gradI;
   if( this->m_FixedImageMask )
     {
     if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )
@@ -880,10 +877,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   double sff = 0.0;
   double smm = 0.0;
   double sfm = 0.0;
-//  double fixedValue;
-//  double movingValue;
-  PointType           mappedPoint;
-  CovariantVectorType gradI, gradJ;
+  CovariantVectorType gradJ;
   if( this->m_FixedImageMask )
     {
     if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )

@@ -265,9 +265,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
 
   typename FieldType::PixelType dPix;
   typename FieldType::PixelType lpix;
-  typename FieldType::PixelType llpix;
   typename FieldType::PixelType rpix;
-  typename FieldType::PixelType rrpix;
   typename FieldType::PixelType cpix;
 
   //   double totaljac=0.0;

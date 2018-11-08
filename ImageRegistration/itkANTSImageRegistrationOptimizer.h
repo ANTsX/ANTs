@@ -1159,7 +1159,6 @@ public:
     DisplacementFieldPointer updateField = nullptr;
 
     this->SetUpParameters();
-    typename ImageType::SpacingType spacing;
     VectorType zero;
     zero.Fill(0);
     std::cout << " setting N-TimeSteps = "
@@ -1734,7 +1733,6 @@ public:
 
   void ElasticRegistrationUpdate(ImagePointer /* fixedImage */, ImagePointer /* xxxxmovingImage */)
   {
-    typename ImageType::SpacingType spacing;
     VectorType zero;
     zero.Fill(0);
     DisplacementFieldPointer updateField;

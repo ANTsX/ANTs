@@ -769,7 +769,6 @@ int LaplacianThickness(int argc, char *argv[])
     }
   unsigned int m_NumberOfTimePoints = 2;
   typedef   DisplacementFieldType                                                        TimeVaryingVelocityFieldType;
-  typedef typename DisplacementFieldType::PointType                                      DPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float> DefaultInterpolatorType;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
@@ -781,11 +780,6 @@ int LaplacianThickness(int argc, char *argv[])
     }
   VectorType zero;
   zero.Fill(0);
-
-  DPointType pointIn1;
-  DPointType pointIn2;
-  typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
-  DPointType pointIn3;
 
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
   VIteratorType VIterator( lapgrad, lapgrad->GetLargestPossibleRegion().GetSize() );
