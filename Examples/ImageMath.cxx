@@ -732,7 +732,7 @@ private:
 
   std::string operation = std::string(argv[3]);
 
-  unsigned int imageDimension = atoi(argv[1]);
+  unsigned int imageDimension = std::stoi(argv[1]);
 
   switch( imageDimension )
     {

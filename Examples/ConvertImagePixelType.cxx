@@ -164,7 +164,7 @@ private:
   unsigned int typeoption = 0;
   if( argc > 3 )
     {
-    typeoption = atoi(argv[3]);
+    typeoption = std::stoi(argv[3]);
     }
   // Get the image dimension
   std::string               fn = std::string(argv[1]);

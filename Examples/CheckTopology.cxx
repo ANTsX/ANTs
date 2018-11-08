@@ -165,7 +165,7 @@ GetLargestComponent(typename TImage::Pointer image)
   filter->SetInput(threshold->GetOutput() );
   // if (argc > 5)
     {
-    int fullyConnected = 1;  // atoi( argv[5] );
+    int fullyConnected = 1;  // std::stoi( argv[5] );
     filter->SetFullyConnected( fullyConnected );
     }
   relabel->SetInput( filter->GetOutput() );

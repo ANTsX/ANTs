@@ -152,7 +152,7 @@ private:
     if( (outType == "0") || (outType == "1") || (outType == "2") || (outType == "3") ||
         (outType == "4") || (outType == "5") )
       {
-      int idx = atoi(outType.c_str() );
+      int idx = std::stoi(outType.c_str() );
       outImage->SetPixel(inputIt.GetIndex(), inputIt.Value()[idx]);
       }
     else if( (outType == "TR") || (outType == "MD") )

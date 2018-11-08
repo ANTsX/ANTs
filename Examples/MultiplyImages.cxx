@@ -183,7 +183,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  int                       dim = atoi( argv[1] );
+  int                       dim = std::stoi( argv[1] );
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(argv[2], itk::ImageIOFactory::ReadMode);
   imageIO->SetFileName(argv[2]);
@@ -193,7 +193,7 @@ private:
   int returnValue = EXIT_FAILURE;
 
   // Get the image dimension
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 1:
       {

@@ -63,7 +63,7 @@ int ExtractRegionFromImage( int argc, char *argv[] )
     stats->SetInput( caster->GetOutput() );
     stats->Update();
 
-    region = stats->GetRegion( atoi( argv[4] ) );
+    region = stats->GetRegion( std::stoi( argv[4] ) );
     }
   else
     {
@@ -130,7 +130,7 @@ int ExtractRegionFromImage( int argc, char *argv[] )
       stats->SetInput( caster->GetOutput() );
       stats->Update();
 
-      region = stats->GetRegion( atoi( argv[4] ) );
+      region = stats->GetRegion( std::stoi( argv[4] ) );
       }
     }
 
@@ -210,7 +210,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {

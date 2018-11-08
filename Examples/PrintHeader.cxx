@@ -127,7 +127,7 @@ int PrintHeader(int argc, char *argv[])
 
   if( argc > 2 )
     {
-    switch( atoi( argv[2] ) )
+    switch( std::stoi( argv[2] ) )
       {
       case 0:
         {

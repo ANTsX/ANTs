@@ -1234,7 +1234,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       
       if ( envSeed != NULL )
 	{
-	antsRandomSeed = atoi( envSeed );
+	antsRandomSeed = std::stoi( envSeed );
 	}
       }
 

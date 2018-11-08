@@ -58,54 +58,54 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
     {
     if( argc > 3 )
       {
-      upperFactors[0] = atoi(argv[3]);
+      upperFactors[0] = std::stoi(argv[3]);
       }
     if( argc > 4 )
       {
-      upperFactors[1] = atoi(argv[4]);
+      upperFactors[1] = std::stoi(argv[4]);
       }
     if( argc > 5 )
       {
-      lowerFactors[0] = atoi(argv[5]);
+      lowerFactors[0] = std::stoi(argv[5]);
       }
     if( argc > 6 )
       {
-      lowerFactors[1] = atoi(argv[6]);
+      lowerFactors[1] = std::stoi(argv[6]);
       }
     if( argc > 7 )
       {
-      flipaboutorigin = atoi(argv[7]);
+      flipaboutorigin = std::stoi(argv[7]);
       }
     }
   else if( Dimension == 3 )
     {
     if( argc > 3 )
       {
-      upperFactors[0] = atoi(argv[3]);
+      upperFactors[0] = std::stoi(argv[3]);
       }
     if( argc >  4 )
       {
-      upperFactors[1] = atoi(argv[4]);
+      upperFactors[1] = std::stoi(argv[4]);
       }
     if( argc > 5 )
       {
-      upperFactors[2] = atoi(argv[5]);
+      upperFactors[2] = std::stoi(argv[5]);
       }
     if( argc > 6 )
       {
-      lowerFactors[0] = atoi(argv[6]);
+      lowerFactors[0] = std::stoi(argv[6]);
       }
     if( argc > 7 )
       {
-      lowerFactors[1] = atoi(argv[7]);
+      lowerFactors[1] = std::stoi(argv[7]);
       }
     if( argc > 8  )
       {
-      lowerFactors[2] = atoi(argv[8]);
+      lowerFactors[2] = std::stoi(argv[8]);
       }
     if( argc > 9 )
       {
-      flipaboutorigin = atoi(argv[9]);
+      flipaboutorigin = std::stoi(argv[9]);
       }
     }
 
@@ -202,7 +202,7 @@ private:
     }
 
   // Get the image dimension
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

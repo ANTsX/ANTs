@@ -107,7 +107,7 @@ private:
 
   // Get number of iterations
 
-  unsigned int numberOfIterations = atoi( argv[3] );
+  unsigned int numberOfIterations = std::stoi( argv[3] );
 
   // Get scale parameters
 
@@ -124,7 +124,7 @@ private:
 
   // Get rotation sampling resolution
 
-  unsigned int rotationNumberOfSamples = static_cast<unsigned int>( atoi( argv[5] ) );
+  unsigned int rotationNumberOfSamples = static_cast<unsigned int>( std::stoi( argv[5] ) );
   double rotationDelta = ( 2.0 * itk::Math::pi - 0.0 ) / static_cast<double>( rotationNumberOfSamples - 1 );
 
   // Set up metric
@@ -332,7 +332,7 @@ private:
     transformWriter->Update();
     }
 
-  if( static_cast<bool>( atoi( argv[6] ) ) )
+  if( static_cast<bool>( std::stoi( argv[6] ) ) )
     {
     std::cout << trainingImageFileNames[optimalMetricIndex] << std::endl;
     }

@@ -542,7 +542,7 @@ private:
     }
 
   // Get the image dimension
-  unsigned int dimension = atoi( argv[1] );
+  unsigned int dimension = std::stoi( argv[1] );
 
   switch( dimension )
     {

@@ -453,11 +453,11 @@ int ThresholdImage( int argc, char * argv[] )
   std::string threshtype = std::string(argv[4]);
   if( strcmp(threshtype.c_str(), "Otsu") == 0 )
     {
-    thresh = OtsuThreshold<FixedImageType, MaskImageType>( atoi( argv[5] ), fixed, maskImage );
+    thresh = OtsuThreshold<FixedImageType, MaskImageType>( std::stoi( argv[5] ), fixed, maskImage );
     }
   else if( strcmp(threshtype.c_str(), "Kmeans") == 0 )
     {
-    thresh = KmeansThreshold<FixedImageType, MaskImageType>( atoi( argv[5] ), fixed, maskImage );
+    thresh = KmeansThreshold<FixedImageType, MaskImageType>( std::stoi( argv[5] ), fixed, maskImage );
     }
   else
     {
@@ -546,7 +546,7 @@ private:
 
   // Get the image dimension
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

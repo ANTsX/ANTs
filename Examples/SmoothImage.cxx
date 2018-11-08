@@ -42,12 +42,12 @@ int SmoothImage(int argc, char *argv[])
   bool usespacing = false;
   if( argc  >  5 )
     {
-    usespacing = atoi(argv[5]);
+    usespacing = std::stoi(argv[5]);
     }
   bool usemedian = false;
   if( argc  >  6 )
     {
-    usemedian = atoi(argv[6]);
+    usemedian = std::stoi(argv[6]);
     }
 
   if( !usemedian )
@@ -170,7 +170,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

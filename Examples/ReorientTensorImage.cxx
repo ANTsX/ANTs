@@ -209,7 +209,7 @@ private:
   char *         output_image_filename = ITK_NULLPTR;
 
   bool is_parsing_ok = false;
-  int  dim = atoi(argv[1]);
+  int  dim = std::stoi(argv[1]);
 
   if( dim != 3 )
     {

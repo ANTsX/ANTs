@@ -330,7 +330,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   bool enforceStationaryBoundary = true;
   if( argc > 7 )
     {
-    enforceStationaryBoundary = static_cast<bool>( atoi( argv[7] ) );
+    enforceStationaryBoundary = static_cast<bool>( std::stoi( argv[7] ) );
     }
   if( enforceStationaryBoundary )
     {
@@ -370,12 +370,12 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 
   typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
 
-  unsigned int numberOfLevels = atoi( argv[5] );
+  unsigned int numberOfLevels = std::stoi( argv[5] );
 
   unsigned int splineOrder = 3;
   if( argc > 6 )
     {
-    splineOrder = atoi( argv[6] );
+    splineOrder = std::stoi( argv[6] );
     }
 
   std::vector<unsigned int> meshSize = ConvertVector<unsigned int>( std::string( argv[4] ) );

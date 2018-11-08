@@ -72,7 +72,7 @@ int  LabelUniquely(int argc, char *argv[])
   bool fullyConnected = false;
   if( argc > 5 )
     {
-    fullyConnected = static_cast< bool >( atoi( argv[4] ) );
+    fullyConnected = static_cast< bool >( std::stoi( argv[4] ) );
     }
   std::string fn1 = std::string(argv[1]);
   float       clusterthresh = atof(argv[3]);
@@ -169,7 +169,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

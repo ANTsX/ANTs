@@ -144,7 +144,7 @@ private:
     }
 
   // Get the image dimension
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

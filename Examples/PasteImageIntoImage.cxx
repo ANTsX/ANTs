@@ -39,7 +39,7 @@ int PasteImageIntoImage( unsigned int argc, char *argv[] )
   unsigned int writeOver = 1;
   if( argc > 7 )
     {
-    writeOver = static_cast<unsigned int>( atoi( argv[7] ) );
+    writeOver = static_cast<unsigned int>( std::stoi( argv[7] ) );
     }
   PixelType conflictLabel = -1;
   if( argc > 8 )
@@ -156,7 +156,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {

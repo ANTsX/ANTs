@@ -129,7 +129,7 @@ private:
     }
   if( argc > 4 )
     {
-    opt = (int) atoi(argv[4]);
+    opt = (int) std::stoi(argv[4]);
     }
 
   if( opt < 0 )

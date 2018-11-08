@@ -43,7 +43,7 @@ int TextureRunLengthFeatures( int argc, char *argv[] )
 
     if ( argc > 5 )
       {
-      label = static_cast<PixelType>( atoi( argv[5] ) );
+      label = static_cast<PixelType>( std::stoi( argv[5] ) );
       }
     runLengthFilter->SetInsidePixelValue( label );
     }
@@ -52,7 +52,7 @@ int TextureRunLengthFeatures( int argc, char *argv[] )
   unsigned int numberOfBins = 256;
   if ( argc > 3 )
     {
-    numberOfBins = static_cast<PixelType>( atoi( argv[3] ) );
+    numberOfBins = static_cast<PixelType>( std::stoi( argv[3] ) );
     }
   runLengthFilter->SetNumberOfBinsPerAxis( numberOfBins );
 
@@ -179,7 +179,7 @@ private:
     exit( 1 );
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       TextureRunLengthFeatures<2>( argc, argv );

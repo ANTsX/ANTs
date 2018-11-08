@@ -70,13 +70,13 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
     stats->SetInput(reader->GetOutput() );
     stats->Update();
 
-    const unsigned int label = (argc >= 6) ? atoi(argv[5]) : 1;
+    const unsigned int label = (argc >= 6) ? std::stoi(argv[5]) : 1;
     region = stats->GetRegion(label);
 
     std::cout << "bounding box of label=" << label
              << " : " << region << std::endl;
 
-    const unsigned int padWidth = (argc >= 7) ? atoi(argv[6]) : 0;
+    const unsigned int padWidth = (argc >= 7) ? std::stoi(argv[6]) : 0;
 
     region.PadByRadius(padWidth);
 
@@ -168,7 +168,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

@@ -20,7 +20,7 @@ int AverageTensorImages(unsigned int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
 
   char * outputName = argv[2];
-  int    mathtype = atoi(argv[3]);
+  int    mathtype = std::stoi(argv[3]);
   float  numberofimages = (float)argc - 4.0;
 
   std::cout << "Averaging " << numberofimages << " images " << std::endl;
@@ -146,9 +146,9 @@ private:
       return EXIT_FAILURE;
       }
 
-    int dim = atoi(argv[1]);
+    int dim = std::stoi(argv[1]);
     // char * outputName = argv[2];
-    // int mathtype = atoi(argv[3]);
+    // int mathtype = std::stoi(argv[3]);
     // int numberofimages = argc - 4;
 
     // Get the image dimension

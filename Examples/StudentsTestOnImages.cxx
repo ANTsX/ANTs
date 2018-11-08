@@ -430,8 +430,8 @@ int StudentsTestOnImages(int argc, char *argv[])
   typename ImageType::Pointer mask = ITK_NULLPTR;
 //  ReadImage<ImageType>(mask, argv[1], false);
 
-  unsigned int numSubjectsA = atoi(argv[3]);
-  unsigned int numSubjectsB = atoi(argv[4]);
+  unsigned int numSubjectsA = std::stoi(argv[3]);
+  unsigned int numSubjectsB = std::stoi(argv[4]);
   unsigned int numSubjects = numSubjectsA + numSubjectsB;
   std::string  outname = std::string(argv[2]);
   unsigned int numvals = numSubjects;
@@ -633,7 +633,7 @@ private:
     return 1;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

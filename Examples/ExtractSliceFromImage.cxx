@@ -21,7 +21,7 @@ int ExtractSliceFromImage( int itkNotUsed( argc ), char *argv[] )
   size[atoi( argv[4] )] = 0;
   typename ImageType::IndexType index;
   index.Fill( 0 );
-  index[atoi( argv[4] )] = atoi( argv[5] );
+  index[atoi( argv[4] )] = std::stoi( argv[5] );
   region.SetIndex( index );
   region.SetSize( size );
 
@@ -103,7 +103,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {

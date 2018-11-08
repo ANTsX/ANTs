@@ -520,7 +520,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   unsigned int alltheits = 50;
   if( argc > argct )
     {
-    alltheits = atoi(argv[argct]);
+    alltheits = std::stoi(argv[argct]);
     }
   argct++;
   RealType thickprior = 6.0;
@@ -532,7 +532,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   // bool useCurvaturePrior = false;
   // if( argc > argct )
   //   {
-  //   useCurvaturePrior = atoi(argv[argct]);
+  //   useCurvaturePrior = std::stoi(argv[argct]);
   //   }
   argct++;
   RealType smoothingsigma = 1.5;
@@ -544,7 +544,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   // bool useEuclidean = true;
   // if( argc > argct )
   //   {
-  //   useEuclidean = atoi(argv[argct]);
+  //   useEuclidean = std::stoi(argv[argct]);
   //   }
   argct++;
   std::cout << " smooth " << smoothingsigma << " thp " << thickprior << " gs " << gradstep << std::endl;
@@ -1097,7 +1097,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  unsigned int dim = atoi(argv[1]);
+  unsigned int dim = std::stoi(argv[1]);
   std::cout << " dim " << dim << std::endl;
 
   switch( dim )

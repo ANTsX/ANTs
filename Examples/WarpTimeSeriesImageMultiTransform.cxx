@@ -745,7 +745,7 @@ private:
 
   MISC_OPT misc_opt;
 
-  int  kImageDim = atoi(argv[1]);
+  int  kImageDim = std::stoi(argv[1]);
 
   const bool is_parsing_ok =
     WarpTimeSeriesImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename,

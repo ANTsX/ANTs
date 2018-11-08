@@ -25,7 +25,7 @@ void CreateDisplacementField( int argc, char *argv[] )
   typename ComponentImageType::Pointer componentImage;
 
   // EnforceZeroBoundaryFlag
-  bool enforceZeroBoundaryFlag = static_cast<bool>( atoi( argv[2] ) );
+  bool enforceZeroBoundaryFlag = static_cast<bool>( std::stoi( argv[2] ) );
 
   // Get image info
   reader->SetFileName( argv[3] );
@@ -195,7 +195,7 @@ private:
       }
     return EXIT_FAILURE;
     }
-  itk::SizeValueType imageDimension = atoi( argv[1] );
+  itk::SizeValueType imageDimension = std::stoi( argv[1] );
 
   itk::SizeValueType numberOfComponents = argc - 4;
 

@@ -80,7 +80,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  unsigned int Dimension = atoi(argv[1]);
+  unsigned int Dimension = std::stoi(argv[1]);
 
   if( Dimension == 2 )
     {
@@ -116,17 +116,17 @@ private:
       }
     if( argc > 6 )
       {
-      dosmooth = atoi(argv[6]);
+      dosmooth = std::stoi(argv[6]);
       }
     int addvox = 0;
     if( argc > 7 )
       {
-      addvox = atoi(argv[7]);
+      addvox = std::stoi(argv[7]);
       }
     bool nn = false;
     if( argc > 8 )
       {
-      nn = atoi(argv[7]);
+      nn = std::stoi(argv[7]);
       }
 
     std::cout <<  " spacing2 " << spacing << std::endl;
@@ -254,17 +254,17 @@ private:
       }
     if( argc > 7 )
       {
-      dosmooth = atoi(argv[7]);
+      dosmooth = std::stoi(argv[7]);
       }
     int addvox = 0;
     if( argc > 8 )
       {
-      addvox = atoi(argv[8]);
+      addvox = std::stoi(argv[8]);
       }
     bool nn = false;
     if( argc > 9 )
       {
-      nn = atoi(argv[9]);
+      nn = std::stoi(argv[9]);
       }
 
     std::cout <<  " spacing2 " << spacing << std::endl;
@@ -391,17 +391,17 @@ spacing[3] = atof(argv[7]);
 }
 if( argc > 8 )
 {
-dosmooth = atoi(argv[8]);
+dosmooth = std::stoi(argv[8]);
 }
 int addvox = 0;
 if( argc > 9 )
 {
-addvox = atoi(argv[9]);
+addvox = std::stoi(argv[9]);
 }
 bool nn = false;
 if( argc > 9 )
 {
-nn = atoi(argv[10]);
+nn = std::stoi(argv[10]);
 }
 std::cout << " spacing2 " << spacing << std::endl;
 InternalImageType::Pointer smoothedImage = inputImage;

@@ -311,7 +311,7 @@ private:
   char *output_transform_filename = ITK_NULLPTR;
   char *reference_transform_filename = ITK_NULLPTR;
 
-  int  kImageDim = atoi(argv[1]);
+  int  kImageDim = std::stoi(argv[1]);
 
   const bool is_parsing_ok = AverageAffineTransform_ParseInput(argc - 2, argv + 2, output_transform_filename,
                                                     reference_transform_filename, opt_queue);

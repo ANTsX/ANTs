@@ -229,7 +229,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  const int ImageDimension = static_cast<int>( atoi( argv[1] ) );
+  const int ImageDimension = static_cast<int>( std::stoi( argv[1] ) );
 
   if( ImageDimension == 3 && argc == 5 )
     {

@@ -587,7 +587,7 @@ private:
 
   MISC_OPT misc_opt;
 
-  const int  kImageDim = atoi(argv[1]);
+  const int  kImageDim = std::stoi(argv[1]);
   const bool is_parsing_ok =
     WarpTensorImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename,
                                              opt_queue,

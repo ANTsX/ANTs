@@ -43,7 +43,7 @@ int ComputeSimilarityMetric(int argc, char *argv[])
 
 // get command line params
   unsigned int argct = 2;
-  unsigned int whichmetric = atoi(argv[argct]); argct++;
+  unsigned int whichmetric = std::stoi(argv[argct]); argct++;
   std::string  fn1 = std::string(argv[argct]); argct++;
   std::string  fn2 = std::string(argv[argct]); argct++;
   std::string  logfilename = "";
@@ -261,7 +261,7 @@ private:
     }
 
   // Get the image dimension
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

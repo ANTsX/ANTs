@@ -177,7 +177,7 @@ iMathHelperAll(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-    unsigned int nBlobs = atoi( argv[5] );
+    unsigned int nBlobs = std::stoi( argv[5] );
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -246,7 +246,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      useSpacing = atoi(argv[5]);
+      useSpacing = std::stoi(argv[5]);
       }
 
     ReadImage<ImageType>( input, inName.c_str() );
@@ -309,7 +309,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -342,7 +342,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -375,7 +375,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -408,7 +408,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -440,7 +440,7 @@ iMathHelperAll(int argc, char **argv)
     unsigned long minSize = iMathGetLargestComponentMinSize;
     if ( argc > 5)
     {
-      minSize = atoi( argv[5] );
+      minSize = std::stoi( argv[5] );
     }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -478,7 +478,7 @@ iMathHelperAll(int argc, char **argv)
       }
     if ( argc >= 7 )
       {
-      normalize = (bool) atoi(argv[6]);
+      normalize = (bool) std::stoi(argv[6]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -553,7 +553,7 @@ iMathHelperAll(int argc, char **argv)
       }
     if ( argc >= 7 )
       {
-      normalize = (bool) atoi(argv[6]);
+      normalize = (bool) std::stoi(argv[6]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -593,7 +593,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -602,26 +602,26 @@ iMathHelperAll(int argc, char **argv)
     if ( argc >= 8 )
       {
       shape = morph_shape_flag( argv[7] );
-      //shape = atoi(argv[7]);
+      //shape = std::stoi(argv[7]);
       }
     if ( argc >= 9 )
       {
       if (shape==5)
         {
-        lines = atoi(argv[8]);
+        lines = std::stoi(argv[8]);
         }
       else
         {
-        parametric = ( atoi(argv[8])==1 );
+        parametric = ( std::stoi(argv[8])==1 );
         }
       }
     if ( argc >= 10 ) //shape = 4 (annulus) only
       {
-      thickness = atoi(argv[9]);
+      thickness = std::stoi(argv[9]);
       }
     if ( argc >= 11 )
       {
-      includeCenter = ( atoi(argv[10])==1 );
+      includeCenter = ( std::stoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -662,7 +662,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -676,20 +676,20 @@ iMathHelperAll(int argc, char **argv)
       {
       if (shape==5)
         {
-        lines = atoi(argv[8]);
+        lines = std::stoi(argv[8]);
         }
       else
         {
-        parametric = ( atoi(argv[8])==1 );
+        parametric = ( std::stoi(argv[8])==1 );
         }
       }
     if ( argc >= 10 ) //shape = 4 (annulus) only
       {
-      thickness = atoi(argv[9]);
+      thickness = std::stoi(argv[9]);
       }
     if ( argc >= 11 )
       {
-      includeCenter = ( atoi(argv[10])==1 );
+      includeCenter = ( std::stoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -729,7 +729,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -743,20 +743,20 @@ iMathHelperAll(int argc, char **argv)
       {
       if (shape==5)
         {
-        lines = atoi(argv[8]);
+        lines = std::stoi(argv[8]);
         }
       else
         {
-        parametric = ( atoi(argv[8])==1 );
+        parametric = ( std::stoi(argv[8])==1 );
         }
       }
     if ( argc >= 10 ) //shape = 4 (annulus) only
       {
-      thickness = atoi(argv[9]);
+      thickness = std::stoi(argv[9]);
       }
     if ( argc >= 11 )
       {
-      includeCenter = ( atoi(argv[10])==1 );
+      includeCenter = ( std::stoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -796,7 +796,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -810,20 +810,20 @@ iMathHelperAll(int argc, char **argv)
       {
       if (shape==5)
         {
-        lines = atoi(argv[8]);
+        lines = std::stoi(argv[8]);
         }
       else
         {
-        parametric = ( atoi(argv[8])==1 );
+        parametric = ( std::stoi(argv[8])==1 );
         }
       }
     if ( argc >= 10 ) //shape = 4 (annulus) only
       {
-      thickness = atoi(argv[9]);
+      thickness = std::stoi(argv[9]);
       }
     if ( argc >= 11 )
       {
-      includeCenter = ( atoi(argv[10])==1 );
+      includeCenter = ( std::stoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
@@ -913,7 +913,7 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "Pad" )
     {
 
-    int padding = atoi(argv[5]);
+    int padding = std::stoi(argv[5]);
 
     typedef itk::Image<float,DIM> ImageType;
     typename ImageType::Pointer input = ITK_NULLPTR;
@@ -946,7 +946,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      nIterations = atoi(argv[5]);
+      nIterations = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -1027,7 +1027,7 @@ iMathHelperAll(int argc, char **argv)
       }
     if ( argc > 7)
       {
-      propagationMethod = atoi(argv[7]);
+      propagationMethod = std::stoi(argv[7]);
       }
 
     if ( propagationMethod > 2 )
@@ -1060,7 +1060,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 8 )
       {
-      nBins= atoi(argv[7]);
+      nBins= std::stoi(argv[7]);
       }
 
     typename MaskType::Pointer mask = ITK_NULLPTR;
@@ -1247,7 +1247,7 @@ private:
 
   std::string operation = std::string(argv[3]);
 
-  unsigned int imageDimension = atoi(argv[1]);
+  unsigned int imageDimension = std::stoi(argv[1]);
 
   switch( imageDimension )
     {

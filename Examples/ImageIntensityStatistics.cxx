@@ -229,7 +229,7 @@ private:
     exit( 1 );
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       return ImageIntensityStatistics<2>( argc, argv );

@@ -107,7 +107,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     typename RelabelType::Pointer relabel = RelabelType::New();
 
     filter->SetInput( thresh );
-    int fullyConnected = 0; // atoi( argv[5] );
+    int fullyConnected = 0; // std::stoi( argv[5] );
     filter->SetFullyConnected( fullyConnected );
     relabel->SetInput( filter->GetOutput() );
     relabel->SetMinimumObjectSize( (unsigned int) minSize );
@@ -347,7 +347,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

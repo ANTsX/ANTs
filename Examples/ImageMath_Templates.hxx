@@ -283,7 +283,7 @@ void ReflectionMatrix(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string  fn1 = std::string(argv[argct]);   argct++;
-  unsigned int axis = atoi(argv[argct]);  argct++;
+  unsigned int axis = std::stoi(argv[argct]);  argct++;
   typename ImageType::Pointer image1 = ITK_NULLPTR;
   ReadImage<ImageType>( image1, fn1.c_str() );
   // compute center of mass
@@ -370,7 +370,7 @@ int GetLargestComponent(int argc, char *argv[])
   unsigned long smallest = 50;
   if( argc > argct )
     {
-    smallest = atoi(argv[argct]); argct++;
+    smallest = std::stoi(argv[argct]); argct++;
     }
 
   typename ImageType::Pointer image1 = ITK_NULLPTR;
@@ -512,7 +512,7 @@ int ClusterThresholdVariate(int argc, char *argv[])
   unsigned int minclustersize = 50;
   if( argc > argct )
     {
-    minclustersize = atoi( argv[argct] );
+    minclustersize = std::stoi( argv[argct] );
     }
   typename ImageType::Pointer image = ITK_NULLPTR;
   ReadImage<ImageType>(image, fn1.c_str() );
@@ -615,7 +615,7 @@ int ExtractSlice(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string  fn1 = std::string(argv[argct]);   argct++;
-  unsigned int slice = atoi(argv[argct]);   argct++;
+  unsigned int slice = std::stoi(argv[argct]);   argct++;
   // std::cout << " Extract slice " << slice << " from dimension" << ImageDimension << std::endl;
   typename ImageType::Pointer image1 = ITK_NULLPTR;
   typename OutImageType::Pointer outimage = ITK_NULLPTR;
@@ -910,7 +910,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   unsigned int numberOfBins = 64;
   if( argc > argct )
     {
-    numberOfBins = atoi(argv[argct]);
+    numberOfBins = std::stoi(argv[argct]);
     }
   argct++;
 
@@ -1033,7 +1033,7 @@ int TileImages(unsigned int argc, char *argv[])
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
   argct += 2;
-  unsigned int nx = atoi(argv[argct]);   argct++;
+  unsigned int nx = std::stoi(argv[argct]);   argct++;
 
   unsigned int numberofimages = 0;
 
@@ -1242,19 +1242,19 @@ int TriPlanarView(unsigned int argc, char *argv[])
   unsigned int xslice = size[0] / 2;
   if( argc > argct )
     {
-    xslice = atoi(argv[argct]);
+    xslice = std::stoi(argv[argct]);
     }
   argct++;
   unsigned int yslice = size[1] / 2;
   if( argc > argct )
     {
-    yslice = atoi(argv[argct]);
+    yslice = std::stoi(argv[argct]);
     }
   argct++;
   unsigned int zslice = size[2] / 2;
   if( argc > argct )
     {
-    zslice = atoi(argv[argct]);
+    zslice = std::stoi(argv[argct]);
     }
   argct++;
 
@@ -1551,7 +1551,7 @@ int SetOrGetPixel(int argc, char *argv[])
   bool usephyspace = false;
   if( argc > argct )
     {
-    usephyspace = atoi(argv[argct]); argct++;
+    usephyspace = std::stoi(argv[argct]); argct++;
     }
   bool get = false;
   if( strcmp(Get.c_str(), "Get") == 0 )
@@ -1642,19 +1642,19 @@ int HistogramMatching(int argc, char * argv[])
   long        bins = 255;
   if( argc > argct )
     {
-    bins = atoi( argv[argct] );
+    bins = std::stoi( argv[argct] );
     }
   argct++;
   long points = 64;
   if( argc > argct )
     {
-    points = atoi( argv[argct] );
+    points = std::stoi( argv[argct] );
     }
   argct++;
   bool useThresholdAtMeanIntensity = false;
   if( argc > argct )
     {
-    useThresholdAtMeanIntensity = static_cast<bool>( atoi( argv[argct] ) );
+    useThresholdAtMeanIntensity = static_cast<bool>( std::stoi( argv[argct] ) );
     }
   argct++;
 
@@ -1758,8 +1758,8 @@ int NeighborhoodStats( int itkNotUsed( argc ), char * argv[] )
 
   const std::string  outputName = std::string( argv[2] );
   const std::string  inputName = std::string( argv[4] );
-  const unsigned int whichStat = static_cast<unsigned int>( atoi( argv[5] ) );
-  const unsigned int rad = static_cast<unsigned int>( atoi( argv[6] ) );
+  const unsigned int whichStat = static_cast<unsigned int>( std::stoi( argv[5] ) );
+  const unsigned int rad = static_cast<unsigned int>( std::stoi( argv[6] ) );
 
   typename ImageType::Pointer input;
   ReadImage<ImageType>( input, inputName.c_str() );
@@ -2370,7 +2370,7 @@ int TimeSeriesSubset(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string  fn1 = std::string(argv[argct]);   argct++;
-  unsigned int n_sub_vols = atoi(argv[argct]);   argct++;
+  unsigned int n_sub_vols = std::stoi(argv[argct]);   argct++;
   std::string::size_type idx;
   idx = outname.find_first_of('.');
   std::string tempname = outname.substr(0, idx);
@@ -2448,7 +2448,7 @@ int TimeSeriesSimpleSubtraction(int argc, char *argv[])
 
   if( argc >= 6 )
     {
-    if( atoi(argv[argct++]) > 0 )
+    if( std::stoi(argv[argct++]) > 0 )
       {
       mean = true;
       }
@@ -2544,7 +2544,7 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
   bool mean = false;
   if( argc >= 7 )
     {
-    if( atoi(argv[argct++]) > 0 )
+    if( std::stoi(argv[argct++]) > 0 )
       {
       mean = true;
       }
@@ -2689,7 +2689,7 @@ int SliceTimingCorrection(int argc, char *argv[])
       unsigned int sincRadius = 4;
       if( argc >= 8 )
         {
-        sincRadius = atoi( argv[argct++] );
+        sincRadius = std::stoi( argv[argct++] );
         }
       // std::cout << "Using sinc interpolation of radius " << sincRadius << std::endl;
 
@@ -2702,7 +2702,7 @@ int SliceTimingCorrection(int argc, char *argv[])
       unsigned int order = 3;
       if( argc >= 8 )
         {
-        order = atoi( argv[argct++] );
+        order = std::stoi( argv[argct++] );
         }
       // std::cout << "Using bspline interpolation of order " << order << std::endl;
 
@@ -2784,7 +2784,7 @@ int AverageOverDimension(int argc, char *argv[])
   const std::string outname = std::string(argv[argct++]);
   argct++;
   std::string  fn1 = std::string(argv[argct++]);
-  unsigned int dim = atoi( argv[argct++] );
+  unsigned int dim = std::stoi( argv[argct++] );
 
   typename ImageType::Pointer image1 = ITK_NULLPTR;
   if( fn1.length() > 3 )
@@ -3011,7 +3011,7 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
 
   if( argc > 6 )
     {
-    minRegionSize = atoi( argv[argct++] );
+    minRegionSize = std::stoi( argv[argct++] );
     }
 
   // FIXME - add option for multi input for combined CCA
@@ -3309,7 +3309,7 @@ int ComputeTimeSeriesLeverage(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string  fn1 = std::string(argv[argct]);   argct++;
-  unsigned int k_neighbors = atoi(argv[argct]);   argct++;
+  unsigned int k_neighbors = std::stoi(argv[argct]);   argct++;
   typename ImageType::Pointer image1 = ITK_NULLPTR;
   if( fn1.length() > 3 )
     {
@@ -3601,7 +3601,7 @@ int PASL(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string fn1 = std::string(argv[argct]);   argct++;
-  bool        firstiscontrol = atoi(argv[argct]);   argct++;
+  bool        firstiscontrol = std::stoi(argv[argct]);   argct++;
   std::string m0fn = "";
   if( argc > argct )
     {
@@ -3794,7 +3794,7 @@ int pCASL(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string fn1 = std::string(argv[argct]);   argct++;
-  bool        firstiscontrol = atoi(argv[argct]);   argct++;
+  bool        firstiscontrol = std::stoi(argv[argct]);   argct++;
   std::string m0fn = "";
   if( argc > argct )
     {
@@ -4046,7 +4046,7 @@ int CompCorrAuto(int argc, char *argv[])
   unsigned int n_comp_corr_vecs = 4; // number of eigenvectors to get from high variance voxels
   if( argc > argct )
     {
-    n_comp_corr_vecs = atoi(argv[argct]);
+    n_comp_corr_vecs = std::stoi(argv[argct]);
     }
   argct++;
   std::string::size_type idx;
@@ -4337,12 +4337,12 @@ int ThreeTissueConfounds(int argc, char *argv[])
   unsigned int csflabel = 3;
   if( argc > argct )
     {
-    csflabel = atoi(argv[argct]);
+    csflabel = std::stoi(argv[argct]);
     }
   argct++;
   if( argc > argct )
     {
-    wmlabel = atoi(argv[argct]);
+    wmlabel = std::stoi(argv[argct]);
     }
   argct++;
   std::string::size_type idx;
@@ -4880,22 +4880,22 @@ int MakeImage(int argc, char *argv[])
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
   argct += 2;
-  unsigned int sizevalx = atoi(argv[argct]);   argct++;
+  unsigned int sizevalx = std::stoi(argv[argct]);   argct++;
   unsigned int sizevaly = 0;
   if( argc > argct )
     {
-    sizevaly = atoi(argv[argct]); argct++;
+    sizevaly = std::stoi(argv[argct]); argct++;
     }
   unsigned int sizevalz = 0;
   if( argc > argct && ImageDimension > 2 )
     {
-    sizevalz = atoi(argv[argct]); argct++;
+    sizevalz = std::stoi(argv[argct]); argct++;
     }
 
   unsigned int sizevalt = 0;
   if( argc > argct && ImageDimension > 3 )
     {
-    sizevalt = atoi(argv[argct]); argct++;
+    sizevalt = std::stoi(argv[argct]); argct++;
     }
 
   typename ImageType::SizeType size;
@@ -4997,7 +4997,7 @@ int LabelSurfaceArea(int argc, char *argv[])
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
   typename iteratorType::RadiusType rad;
   rad.Fill( 1 );
-  if ( argc > argct )  rad.Fill( atoi( argv[argct] ) );
+  if ( argc > argct )  rad.Fill( std::stoi( argv[argct] ) );
   Scalar voxspc = 0;
   for ( unsigned int i = 0; i < ImageDimension; i++ )
     voxspc += input->GetSpacing()[i];
@@ -5962,7 +5962,7 @@ int TensorFunctions(int argc, char *argv[])
   if( argc > argct )
     {
     fn2 = std::string(argv[argct]);
-    whichvec = atoi(fn2.c_str() );
+    whichvec = std::stoi(fn2.c_str() );
     argct++;
     }
   if ( argc > argct )
@@ -7786,7 +7786,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
   unsigned int topocheck = 0;
   if(  argc > argct )
     {
-    topocheck = atoi(argv[argct]);   argct++;
+    topocheck = std::stoi(argv[argct]);   argct++;
     }
 
   typename ImageType::Pointer speedimage = ITK_NULLPTR;
@@ -8070,7 +8070,7 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
   unsigned int topocheck = 0;
   if(  argc > argct )
     {
-    topocheck = atoi(argv[argct]);   argct++;
+    topocheck = std::stoi(argv[argct]);   argct++;
     }
 
   typename ImageType::Pointer speedimage = ITK_NULLPTR;
@@ -8611,7 +8611,7 @@ int GradientImage(      int argc, char *argv[])
   bool normalize = false;
   if( argc > argct )
     {
-    normalize = atoi(argv[argct]);
+    normalize = std::stoi(argv[argct]);
     }
 
   typename ImageType::Pointer image = ITK_NULLPTR;
@@ -8663,7 +8663,7 @@ int LaplacianImage(      int argc, char *argv[])
   bool normalize = false;
   if( argc > argct )
     {
-    normalize = atoi(argv[argct]);
+    normalize = std::stoi(argv[argct]);
     }
 
   typename ImageType::Pointer image = ITK_NULLPTR;
@@ -8811,7 +8811,7 @@ int PoissonDiffusion( int argc, char *argv[])
   unsigned int maximumNumberOfIterations = 500;
   if( argc > 8 )
     {
-    maximumNumberOfIterations = atoi( argv[8] );
+    maximumNumberOfIterations = std::stoi( argv[8] );
     }
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   float        lastmean = 0;
@@ -9775,7 +9775,7 @@ int ExtractVectorComponent( int argc, char *argv[] )
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string  inname = std::string(argv[argct]);   argct++;
-  unsigned int whichvec = atoi(argv[argct]);   argct++;
+  unsigned int whichvec = std::stoi(argv[argct]);   argct++;
   typedef itk::ImageFileReader<ImageType> ReaderType;
   typename ReaderType::Pointer reader1 = ReaderType::New();
   reader1->SetFileName( inname.c_str() );
@@ -9927,7 +9927,7 @@ int ReplicateDisplacement( int argc, char *argv[] )
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string vecname1 = std::string(argv[argct]);   argct++;
-  unsigned int timedims = atoi(argv[argct]);  argct++;
+  unsigned int timedims = std::stoi(argv[argct]);  argct++;
   RealType tr = atof(argv[argct]);  argct++;
   RealType torigin = atof(argv[argct]);  argct++;
   /**
@@ -10012,12 +10012,12 @@ int ShiftImageSlicesInTime( int argc, char *argv[] )
   unsigned int shiftamount = 1;
   if(  argc > argct )
     {
-    shiftamount = atoi( argv[argct] );  argct++;
+    shiftamount = std::stoi( argv[argct] );  argct++;
     }
   unsigned int shiftdim = ImageDimension - 1;
   if(  argc > argct )
     {
-    shiftdim = atoi( argv[argct] );  argct++;
+    shiftdim = std::stoi( argv[argct] );  argct++;
     }
   typename ImageType::Pointer image = ITK_NULLPTR;
   ReadImage<ImageType>(image, fn1.c_str() );
@@ -10055,7 +10055,7 @@ int ReplicateImage( int argc, char *argv[] )
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string vecname1 = std::string(argv[argct]);   argct++;
-  unsigned int timedims = atoi(argv[argct]);  argct++;
+  unsigned int timedims = std::stoi(argv[argct]);  argct++;
   float tr = atof(argv[argct]);  argct++;
   float torigin = atof(argv[argct]);  argct++;
   typedef itk::ImageFileReader<ImageType> ReaderType;
@@ -10867,7 +10867,7 @@ int PValueImage(      int argc, char *argv[])
   unsigned int dof = 1;
   if( argc > argct )
     {
-    dof = atoi(argv[argct]);
+    dof = std::stoi(argv[argct]);
     }
   argct++;
 
@@ -10926,7 +10926,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   std::string       ext = itksys::SystemTools::GetFilenameExtension( outname );
   argct += 2;
-  unsigned int rowcoloption = atoi(argv[argct]);   argct++;
+  unsigned int rowcoloption = std::stoi(argv[argct]);   argct++;
   std::string  maskfn = std::string(argv[argct]); argct++;
   unsigned int numberofimages = 0;
   typename ImageType::Pointer mask = ITK_NULLPTR;
@@ -11110,7 +11110,7 @@ int RandomlySampleImageSetToCSV(unsigned int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   std::string       ext = itksys::SystemTools::GetFilenameExtension( outname );
   argct += 2;
-  unsigned int n_samples = atoi(argv[argct]);   argct++;
+  unsigned int n_samples = std::stoi(argv[argct]);   argct++;
   /* std::string maskfn=std::string(argv[argct]); argct++;
   typename ImageType::Pointer mask = ITK_NULLPTR;
   ReadImage<ImageType>(mask,maskfn.c_str());
@@ -11204,7 +11204,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   std::string       ext = std::string(".csv"); // itksys::SystemTools::GetFilenameExtension( outname );
   argct += 2;
-  unsigned int n_evecs = atoi(argv[argct]);   argct++;
+  unsigned int n_evecs = std::stoi(argv[argct]);   argct++;
   unsigned int rowcoloption = 1;
   std::string  maskfn = std::string(argv[argct]); argct++;
   unsigned int numberofimages = 0;
@@ -11454,7 +11454,7 @@ int CorrelationUpdate(      int argc, char *argv[])
   unsigned int radius = 2;
   if( argc > argct )
     {
-    radius = atoi(argv[argct]);
+    radius = std::stoi(argv[argct]);
     }
   argct++;
 
@@ -11895,7 +11895,7 @@ int CorrelationVoting( int argc, char *argv[] )
   int radius = 5;
   if( argc > ( 5 + 2 * nImages ) )
     {
-    radius = atoi( argv[5 + 2 * nImages] );
+    radius = std::stoi( argv[5 + 2 * nImages] );
     }
 
   typename ImageType::Pointer target;
@@ -12075,7 +12075,7 @@ int ImageMetrics( int argc, char *argv[] )
 
     if( argc > 6 )
       {
-      r = atoi( argv[6] );
+      r = std::stoi( argv[6] );
       }
     if( argc > 7 )
       {
@@ -12163,7 +12163,7 @@ int ImageMetrics( int argc, char *argv[] )
 
     if( argc > 6 )
       {
-      bins = atoi( argv[6] );
+      bins = std::stoi( argv[6] );
       }
 
     if( argc > 7 )
@@ -12268,8 +12268,8 @@ int Project( int argc, char *argv[] )
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string  fn1 = std::string(argv[argct]);   argct++;
-  unsigned int axis = atoi(argv[argct]);   argct++;
-  unsigned int which = atoi(argv[argct]);   argct++;
+  unsigned int axis = std::stoi(argv[argct]);   argct++;
+  unsigned int which = std::stoi(argv[argct]);   argct++;
   typename ImageType::Pointer imagein;
   typename ImageType::Pointer imageout;
   ReadImage<ImageType>( imagein, fn1.c_str() );
@@ -12697,7 +12697,7 @@ int ConvolveImage( int argc, char *argv[] )
   bool normalize = true;
   if( argc > argct )
     {
-    normalize = static_cast<bool>( atoi( argv[argct] ) );
+    normalize = static_cast<bool>( std::stoi( argv[argct] ) );
     }
 
   typename ImageType::Pointer inputImage = ITK_NULLPTR;
@@ -13317,7 +13317,7 @@ int BlobDetector( int argc, char *argv[] )
   std::string       outname2 = std::string("temp.nii.gz");
   argct += 2;
   std::string  fn1 = std::string(argv[argct]);   argct++;
-  unsigned int nblobs = atoi( argv[argct] );   argct++;
+  unsigned int nblobs = std::stoi( argv[argct] );   argct++;
   std::string  fn2 = "";
   if( argc > argct )
     {
@@ -13334,7 +13334,7 @@ int BlobDetector( int argc, char *argv[] )
     }
   if( argc > argct )
     {
-    radval = atoi(argv[argct]); argct++;
+    radval = std::stoi(argv[argct]); argct++;
     }
   if( argc > argct )
     {

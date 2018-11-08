@@ -573,7 +573,7 @@ private:
   unsigned int inflate = 0;
   if( argc > 8 )
     {
-    inflate = atoi(argv[8]);
+    inflate = std::stoi(argv[8]);
     }
   GetValueMesh<ImageType>(image, image2, outfn, paramname, scaledata, aaParm, offscreen, inflate );
   //  GetImageTopology<ImageType>(image);

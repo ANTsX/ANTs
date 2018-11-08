@@ -280,28 +280,28 @@ int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
   order[0] = 3;
   if ( argc > 3 )
     {
-    order[0] = atoi( argv[3] );
+    order[0] = std::stoi( argv[3] );
     }
   filter->SetSplineOrder( order );
   typename FilterType::ArrayType ncps;
   ncps[0] = order[0] + 1;
   if ( argc > 5 )
     {
-    ncps[0] = atoi( argv[5] );
+    ncps[0] = std::stoi( argv[5] );
     }
   filter->SetNumberOfControlPoints( ncps );
   typename FilterType::ArrayType nlevels;
   nlevels[0] = 5;
   if ( argc > 4 )
     {
-    nlevels[0] = atoi( argv[4] );
+    nlevels[0] = std::stoi( argv[4] );
     }
   filter->SetNumberOfLevels( nlevels );
   typename FilterType::ArrayType close;
   close[0] = false;
   if ( argc > 7 )
     {
-    close[0] = atoi( argv[7] );
+    close[0] = std::stoi( argv[7] );
     }
   filter->SetCloseDimension( close );
 
@@ -401,7 +401,7 @@ private:
     {
     if( imageDimensionString[1] == 'w' )
       {
-      switch( atoi( &imageDimensionString[0] ) )
+      switch( std::stoi( &imageDimensionString[0] ) )
        {
        case 2:
          return FitBSplineWarpFieldToPoints<2>( argc, argv );
@@ -422,7 +422,7 @@ private:
     }
   else
     {
-    switch( atoi( argv[1] ) )
+    switch( std::stoi( argv[1] ) )
      {
      case 1:
        return FitBSplineCurveToPoints<2>( argc, argv );

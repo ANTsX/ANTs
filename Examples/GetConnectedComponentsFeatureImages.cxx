@@ -196,7 +196,7 @@ private:
     }
 
   int returnStatus=EXIT_FAILURE;
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
    {
    case 2:
      returnStatus = GetConnectedComponentsFeatureImages<2>( argc, argv );

@@ -132,13 +132,13 @@ int SmoothDisplacementField( int argc, char *argv[] )
     unsigned int numberOfLevels = 1;
     if( argc > 5 )
       {
-      numberOfLevels = atoi( argv[5] );
+      numberOfLevels = std::stoi( argv[5] );
       }
 
     unsigned int splineOrder = 3;
     if( argc > 6 )
       {
-      splineOrder = atoi( argv[6] );
+      splineOrder = std::stoi( argv[6] );
       }
 
     typename BSplineFilterType::ArrayType ncps;
@@ -158,7 +158,7 @@ int SmoothDisplacementField( int argc, char *argv[] )
 
     if( argc > 7 )
       {
-      bspliner->SetEstimateInverse( static_cast<bool>( atoi( argv[7] ) ) );
+      bspliner->SetEstimateInverse( static_cast<bool>( std::stoi( argv[7] ) ) );
       }
 
     if( argc > 8 )
@@ -277,7 +277,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
    {
    case 2:
      return SmoothDisplacementField<2>( argc, argv );

@@ -269,7 +269,7 @@ GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int mi
   filter->SetInput(threshold->GetOutput() );
   // if (argc > 5)
     {
-    int fullyConnected = 1;  // atoi( argv[5] );
+    int fullyConnected = 1;  // std::stoi( argv[5] );
     filter->SetFullyConnected( fullyConnected );
     }
   relabel->SetInput( filter->GetOutput() );
@@ -631,7 +631,7 @@ int ImageSetStatistics(int argc, char *argv[])
   int          argct = 2;
   std::string  fn1 = std::string(argv[argct]); argct++;
   std::string  outfn = std::string(argv[argct]); argct++;
-  unsigned int whichstat = atoi(argv[argct]); argct++;
+  unsigned int whichstat = std::stoi(argv[argct]); argct++;
   std::string  roifn = "";
   if( argc > argct )
     {
@@ -1029,7 +1029,7 @@ private:
 
   // Get the image dimension
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

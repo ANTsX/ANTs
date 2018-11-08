@@ -212,11 +212,11 @@ int antsAffineInitializerImp(int argc, char *argv[])
     }
   if(  argc > argct )
     {
-    useprincaxis = atoi( argv[argct] );   argct++;
+    useprincaxis = std::stoi( argv[argct] );   argct++;
     }
   if(  argc > argct )
     {
-    localoptimizeriterations = atoi( argv[argct] );   argct++;
+    localoptimizeriterations = std::stoi( argv[argct] );   argct++;
     }
   typename ImageType::Pointer image1 = ITK_NULLPTR;
   typename ImageType::Pointer image2 = ITK_NULLPTR;
@@ -590,7 +590,7 @@ private:
     return 0;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

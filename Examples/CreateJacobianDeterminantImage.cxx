@@ -36,13 +36,13 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
   bool calculateLogJacobian = false;
   if ( argc > 4 )
     {
-    calculateLogJacobian = static_cast<bool>( atoi( argv[4] ) );
+    calculateLogJacobian = static_cast<bool>( std::stoi( argv[4] ) );
     }
 
   bool calculateGeometricJacobian = false;
   if ( argc > 5 )
     {
-    calculateGeometricJacobian = static_cast<bool>( atoi( argv[5] ) );
+    calculateGeometricJacobian = static_cast<bool>( std::stoi( argv[5] ) );
     }
 
   if( calculateGeometricJacobian )
@@ -162,7 +162,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {

@@ -413,7 +413,7 @@ int InitializeBSplineTransform( int argc, char *argv[] )
   bool enforceStationaryBoundary = true;
   if( argc > 9 )
     {
-    enforceStationaryBoundary = static_cast<bool>( atoi( argv[9] ) );
+    enforceStationaryBoundary = static_cast<bool>( std::stoi( argv[9] ) );
     }
   if( enforceStationaryBoundary )
     {
@@ -456,13 +456,13 @@ int InitializeBSplineTransform( int argc, char *argv[] )
   unsigned int numberOfLevels = 4;
   if( argc > 7 )
     {
-    numberOfLevels = atoi( argv[7] );
+    numberOfLevels = std::stoi( argv[7] );
     }
 
   unsigned int splineOrder = 3;
   if( argc > 8 )
     {
-    splineOrder = atoi( argv[8] );
+    splineOrder = std::stoi( argv[8] );
     }
 
 
@@ -577,7 +577,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  const unsigned int dimension = static_cast<unsigned int>( atoi( argv[1] ) );
+  const unsigned int dimension = static_cast<unsigned int>( std::stoi( argv[1] ) );
 
   typedef itk::Rigid2DTransform<double>           Rigid2DTransformType;
   typedef itk::VersorRigid3DTransform<double>     Rigid3DTransformType;

@@ -106,7 +106,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfFunctions() )
     {
-    transformIndex = atoi( transformOption->GetFunction(0)->GetName().c_str() );
+    transformIndex = std::stoi( transformOption->GetFunction(0)->GetName().c_str() );
     std::cout << "Index of transform to output: " << transformIndex << std::endl;
     writeTransform = true;
     }

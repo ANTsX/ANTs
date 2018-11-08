@@ -946,7 +946,7 @@ private:
     loth = atof(argv[2]);
     hith = atof(argv[3]);
     param = atof(argv[4]);
-    fixdir = atoi(argv[5]);
+    fixdir = std::stoi(argv[5]);
     outfn = std::string(argv[6]);
     }
   else

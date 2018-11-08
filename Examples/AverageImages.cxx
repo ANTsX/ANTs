@@ -61,7 +61,7 @@ int AverageImages1(unsigned int argc, char *argv[])
       }
     }
 
-  const bool  normalizei = atoi(argv[3]);
+  const bool  normalizei = std::stoi(argv[3]);
   const float numberofimages = (float)argc - 4.;
 
   typename ImageType::SizeType maxSize;
@@ -177,7 +177,7 @@ int AverageImages(unsigned int argc, char *argv[])
   typedef itk::ImageFileReader<ImageType>              ImageFileReader;
   typedef itk::ImageFileWriter<ImageType>              writertype;
 
-  //  bool  normalizei = atoi(argv[3]);
+  //  bool  normalizei = std::stoi(argv[3]);
   float numberofimages = (float)argc - 4.;
   typename ImageType::Pointer averageimage = ITK_NULLPTR;
   typename ImageType::Pointer image2 = ITK_NULLPTR;
@@ -324,7 +324,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  const int                 dim = atoi( argv[1] );
+  const int                 dim = std::stoi( argv[1] );
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(argv[4], itk::ImageIOFactory::ReadMode);
   imageIO->SetFileName(argv[4]);

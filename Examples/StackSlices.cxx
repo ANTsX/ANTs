@@ -113,9 +113,9 @@ private:
 
   char * stackName = argv[1];
   int    dimVars[3];
-  dimVars[0] = atoi( argv[2] );
-  dimVars[1] = atoi( argv[3] );
-  dimVars[2] = atoi( argv[4] );
+  dimVars[0] = std::stoi( argv[2] );
+  dimVars[1] = std::stoi( argv[3] );
+  dimVars[2] = std::stoi( argv[4] );
 
   int dim = -1;
   int slice = -1;
@@ -329,9 +329,9 @@ private:
 
   // Input parameters
 //   char * inputName  = argv[1];
-//   unsigned int flip_x = atoi( argv[2] );
-//   unsigned int flip_y = atoi( argv[3] );
-//   unsigned int flip_z = atoi( argv[4] );
+//   unsigned int flip_x = std::stoi( argv[2] );
+//   unsigned int flip_y = std::stoi( argv[3] );
+//   unsigned int flip_z = std::stoi( argv[4] );
 //   char * outputName = argv[5];
 
 //   ReaderType::Pointer reader = ReaderType::New();

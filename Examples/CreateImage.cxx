@@ -123,7 +123,7 @@ int CreateZeroImage( int argc, char *argv[] )
 
     if( argc > 5  )
       {
-      switch( atoi( argv[5] ) )
+      switch( std::stoi( argv[5] ) )
         {
         case 1: default:
           {
@@ -201,7 +201,7 @@ int CreateZeroImage( int argc, char *argv[] )
                                   atof( argv[6] ) );
     if( argc > 7  )
       {
-      switch( atoi( argv[7] ) )
+      switch( std::stoi( argv[7] ) )
         {
         case 1: default:
           {
@@ -303,7 +303,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 1:
       {

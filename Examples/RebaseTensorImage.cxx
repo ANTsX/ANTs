@@ -81,7 +81,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  const int dim = atoi(argv[1]);
+  const int dim = std::stoi(argv[1]);
   const char * const moving_image_filename = argv[2];
   const char * const output_image_filename = argv[3];
 

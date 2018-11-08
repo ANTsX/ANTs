@@ -159,7 +159,7 @@ private:
   int dim = 0;
   if( argc > 1 )
     {
-    dim = atoi( argv[1] );
+    dim = std::stoi( argv[1] );
     }
 
 //   if( dim <= 1 || dim > 3 )
@@ -173,7 +173,7 @@ private:
   /**
    * Try the simple case of the call "ANTS fixedImage movingImage"
    */
-  if( argc == 3 && ( atoi( argv[1] ) != '-' || atoi( argv[1] ) != 2 || atoi( argv[1] ) != 3 ) )
+  if( argc == 3 && ( std::stoi( argv[1] ) != '-' || std::stoi( argv[1] ) != 2 || std::stoi( argv[1] ) != 3 ) )
     {
     itk::ImageIOBase::Pointer fixedImageIO
       = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::ReadMode );

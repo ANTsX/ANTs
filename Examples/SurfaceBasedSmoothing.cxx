@@ -82,7 +82,7 @@ private:
   unsigned int numrepeats = 0;
   if( argc > 5 )
     {
-    numrepeats = atoi(argv[5]);
+    numrepeats = std::stoi(argv[5]);
     }
 
   ImageType::Pointer input;

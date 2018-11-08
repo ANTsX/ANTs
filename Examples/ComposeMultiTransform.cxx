@@ -368,7 +368,7 @@ private:
   char *output_image_filename = ITK_NULLPTR;
   char *reference_image_filename = ITK_NULLPTR;
 
-  int  kImageDim = atoi(argv[1]);
+  int  kImageDim = std::stoi(argv[1]);
 
   const bool is_parsing_ok = ComposeMultiTransform_ParseInput(argc - 2, argv + 2, output_image_filename,
                                                    reference_image_filename, opt_queue);

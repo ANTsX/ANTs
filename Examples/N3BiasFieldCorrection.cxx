@@ -93,8 +93,8 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
   if( argc > 4 )
     {
-    shrinker->SetShrinkFactors( atoi( argv[4] ) );
-    maskshrinker->SetShrinkFactors( atoi( argv[4] ) );
+    shrinker->SetShrinkFactors( std::stoi( argv[4] ) );
+    maskshrinker->SetShrinkFactors( std::stoi( argv[4] ) );
     }
   shrinker->Update();
   maskshrinker->Update();
@@ -107,17 +107,17 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
   if( argc > 6 )
     {
-    correcter->SetMaximumNumberOfIterations( atoi( argv[6] ) );
+    correcter->SetMaximumNumberOfIterations( std::stoi( argv[6] ) );
     }
   if( argc > 7 )
     {
-    correcter->SetNumberOfFittingLevels( atoi( argv[7] ) );
+    correcter->SetNumberOfFittingLevels( std::stoi( argv[7] ) );
     }
 
   bool verbose = false;
   if( argc > 7 )
     {
-    verbose = atoi( argv[8] );
+    verbose = std::stoi( argv[8] );
     }
 
   typedef CommandIterationUpdate<CorrecterType> CommandType;
@@ -256,7 +256,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {
