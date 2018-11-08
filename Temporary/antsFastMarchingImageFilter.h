@@ -98,8 +98,8 @@ namespace itk
  * \ingroup LevelSetSegmentation
  */
 template <
-  class TLevelSet,
-  class TSpeedImage = Image<float, TLevelSet::ImageDimension> >
+  typename TLevelSet,
+  typename TSpeedImage = Image<float, TLevelSet::ImageDimension> >
 class FMarchingImageFilter :
   public         ImageToImageFilter<TSpeedImage, TLevelSet>
 {

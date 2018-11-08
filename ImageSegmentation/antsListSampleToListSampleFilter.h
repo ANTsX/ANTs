@@ -35,7 +35,7 @@ namespace Statistics
  * \ingroup ListSampleFilters
  *
  */
-template <class TInputListSample, class TOutputListSample = TInputListSample>
+template <typename TInputListSample, typename TOutputListSample = TInputListSample>
 class ListSampleToListSampleFilter : public ProcessObject
 {
 public:

@@ -30,7 +30,7 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::JointHistogramParzenShapeAndOrientationListSampleFunction()
 {
@@ -50,13 +50,13 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   this->m_JointHistogramImages[2] = ITK_NULLPTR;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~JointHistogramParzenShapeAndOrientationListSampleFunction()
 {
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::IncrementJointHistogramForShape( RealType eigenvalue1, RealType eigenvalue2 )
@@ -184,7 +184,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   return;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::IncrementJointHistogramForOrientation(
@@ -402,7 +402,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   return;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
@@ -619,7 +619,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 */
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 TOutput
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
@@ -653,7 +653,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 /**
  * Standard "PrintSelf" method
  */
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PrintSelf(

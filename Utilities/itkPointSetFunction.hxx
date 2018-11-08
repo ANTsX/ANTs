@@ -21,7 +21,7 @@ namespace itk
 /**
  * Constructor
  */
-template <class TInputPointSet, class TOutput, class TCoordRep>
+template <typename TInputPointSet, typename TOutput, typename TCoordRep>
 PointSetFunction<TInputPointSet, TOutput, TCoordRep>
 ::PointSetFunction()
 {
@@ -31,7 +31,7 @@ PointSetFunction<TInputPointSet, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputPointSet, class TOutput, class TCoordRep>
+template <typename TInputPointSet, typename TOutput, typename TCoordRep>
 void
 PointSetFunction<TInputPointSet, TOutput, TCoordRep>
 ::PrintSelf(
@@ -46,7 +46,7 @@ PointSetFunction<TInputPointSet, TOutput, TCoordRep>
 /**
  * Initialize by setting the input point set
  */
-template <class TInputPointSet, class TOutput, class TCoordRep>
+template <typename TInputPointSet, typename TOutput, typename TCoordRep>
 void
 PointSetFunction<TInputPointSet, TOutput, TCoordRep>
 ::SetInputPointSet(

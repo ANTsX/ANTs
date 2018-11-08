@@ -27,7 +27,7 @@ namespace ants
 
 extern const char * RegTypeToFileName( const std::string & type, bool & writeInverse, bool & writeVelocityField, bool minc );
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 int
 DoRegistration(typename ParserType::Pointer & parser)
 {

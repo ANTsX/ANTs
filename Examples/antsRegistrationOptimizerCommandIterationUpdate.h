@@ -6,7 +6,7 @@ namespace ants
 /** \class antsRegistrationOptimizerCommandIterationUpdate
  *  \brief observe the optimizer for traditional registration methods
  */
-template <class ParametersValueType, unsigned VImageDimension, class TOptimizer>
+template <typename ParametersValueType, unsigned VImageDimension, typename TOptimizer>
 class antsRegistrationOptimizerCommandIterationUpdate : public itk::Command
 {
 public:

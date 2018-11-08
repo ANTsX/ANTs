@@ -109,7 +109,7 @@ public:
   void AssignStages();
 
 
-  template <class TValue>
+  template <typename TValue>
   TValue Convert( std::string optionString ) const
     {
     //Strip whitespace at end
@@ -128,7 +128,7 @@ public:
     return value;
     }
 
-  template <class TValue>
+  template <typename TValue>
   std::vector<TValue> ConvertVector( std::string optionString ) const
   {
     //Strip whitespace at end

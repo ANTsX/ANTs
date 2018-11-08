@@ -31,7 +31,7 @@ namespace itk
  *
  * \ingroup ImageFunctions ImageInterpolators
  */
-template <class TInputImage, class TCoordRep = double>
+template <typename TInputImage, typename TCoordRep = double>
 class VectorGaussianInterpolateImageFunction :
   public         InterpolateImageFunction<TInputImage, TCoordRep>
 {

@@ -37,7 +37,7 @@ namespace itk
  */
 namespace Functor
 {
-template <class TInput, class TConstant, class TOutput>
+template <typename TInput, typename TConstant, typename TOutput>
 class DivideByConstant
 {
 public:
@@ -84,7 +84,7 @@ public:
 };
 }
 
-template <class TInputImage, class TConstant, class TOutputImage>
+template <typename TInputImage, typename TConstant, typename TOutputImage>
 class DivideByConstantImageFilter :
   public
   UnaryFunctorImageFilter<TInputImage, TOutputImage,

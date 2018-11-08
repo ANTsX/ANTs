@@ -20,7 +20,7 @@
 
 namespace ants
 {
-template <class TField, class TImage>
+template <typename TField, typename TImage>
 typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
@@ -41,7 +41,7 @@ GetVectorComponent(typename TField::Pointer field, unsigned int index)
   return sfield;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, float sig)
 {
@@ -68,7 +68,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   return out;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
 {
@@ -97,7 +97,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
   return;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input, float distthresh )
@@ -159,7 +159,7 @@ LabelSurface(typename TImage::PixelType foreground,
   return Image;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer  Morphological( typename TImage::Pointer input, float rad, bool option)
 {
   typedef TImage ImageType;
@@ -241,7 +241,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
   return temp;
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 FMMGrad(typename TImage::Pointer wm, typename TImage::Pointer gm )
 {
@@ -317,7 +317,7 @@ FMMGrad(typename TImage::Pointer wm, typename TImage::Pointer gm )
   return sfield;
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float sig, unsigned int numits, float tolerance)
 {
@@ -395,7 +395,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
   return filter->GetOutput();
 }
 
-template <class TImage, class TField, class TInterp, class TInterp2>
+template <typename TImage, typename TField, typename TInterp, typename TInterp2>
 float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::Pointer /* thickimage */,
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
                        float starttime, float /* finishtime */,

@@ -139,7 +139,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
   inputPtr->SetRequestedRegionToLargestPossibleRegion();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 ::GenerateData()

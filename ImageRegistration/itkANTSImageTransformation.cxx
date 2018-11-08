@@ -35,7 +35,7 @@
 
 namespace itk
 {
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 ANTSImageTransformation<TDimension, TReal>
 ::ANTSImageTransformation()
 {
@@ -48,14 +48,14 @@ ANTSImageTransformation<TDimension, TReal>
   m_DeformationRegionOfInterestCenter.Fill(0);
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageTransformation<TDimension, TReal>
 ::Compose()
 {
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageTransformation<TDimension, TReal>
 ::Write()
@@ -244,7 +244,7 @@ ANTSImageTransformation<TDimension, TReal>
 /**
  * Standard "PrintSelf" method
  */
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageTransformation<TDimension, TReal>
 ::PrintSelf( std::ostream& os, Indent indent) const

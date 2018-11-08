@@ -37,7 +37,7 @@ namespace ants
 //      Transform traits to generalize the different linear transforms
 // ##########################################################################
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class RigidTransformTraits
 {
   // Don't worry about the fact that the default option is the
@@ -46,7 +46,7 @@ public:
 typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
 };
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class LandmarkRigidTransformTraits
 {
   // Don't worry about the fact that the default option is the
@@ -115,7 +115,7 @@ public:
 typedef itk::VersorRigid3DTransform<float> TransformType;
 };
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class SimilarityTransformTraits
 {
 // Don't worry about the fact that the default option is the
@@ -154,7 +154,7 @@ typedef itk::Similarity3DTransform<float> TransformType;
 
 // ##########################################################################
 // ##########################################################################
-template<class TImage, class TGradientImage, class TInterpolator, class TReal>
+template<typename TImage, typename TGradientImage, typename TInterpolator, typename TReal>
 TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
                         itk::NeighborhoodIterator<TImage> movingNeighborhood,
                         std::vector<unsigned int> activeIndex,
@@ -302,7 +302,7 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
   return correlation;
 }
 
-template<class TImage, class TBlobFilter>
+template<typename TImage, typename TBlobFilter>
 void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename TImage::Pointer movingImage,
                                   typename TBlobFilter::BlobsListType fixedBlobs, typename TBlobFilter::BlobsListType movingBlobs,
                                   float sigma, unsigned int radiusValue,
@@ -409,7 +409,7 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
   return;
 }
 
-template <class TImage, class TTransform>
+template <typename TImage, typename TTransform>
 typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::Pointer fixedImage,
   typename TImage::Pointer movingImage, unsigned int numberOfBlobsToExtract, unsigned int numberOfBlobsToMatch )
 {

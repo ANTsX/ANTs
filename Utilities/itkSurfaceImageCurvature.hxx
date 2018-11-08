@@ -63,7 +63,7 @@ public:
   }
 };
 
-template <class pclass>
+template <typename pclass>
 class GeodesicNodePriority /* defines the comparison operator for the prioritiy queue */
 {
 public:

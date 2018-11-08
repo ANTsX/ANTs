@@ -28,13 +28,13 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 ExpTensorImageFilter<TInputImage, TOutputImage>
 ::ExpTensorImageFilter()
 {
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 ExpTensorImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
@@ -60,7 +60,7 @@ ExpTensorImageFilter<TInputImage, TOutputImage>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputImage, class TOutput>
+template <typename TInputImage, typename TOutput>
 void
 ExpTensorImageFilter<TInputImage, TOutput>
 ::PrintSelf(

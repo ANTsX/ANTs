@@ -78,7 +78,7 @@ float vtkComputeTopology(vtkPolyData* pd)
   return g;
 }
 
-template <class TImage>
+template <typename TImage>
 float GetImageTopology(typename TImage::Pointer image)
 {
   typedef TImage      ImageType;
@@ -98,7 +98,7 @@ float GetImageTopology(typename TImage::Pointer image)
   return genus;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 NormalizeImage(typename TImage::Pointer image)
 {
@@ -122,7 +122,7 @@ NormalizeImage(typename TImage::Pointer image)
     }
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer SmoothImage( typename TImage::Pointer image, float sig )
 {
   typedef TImage ImageType;
@@ -138,7 +138,7 @@ typename TImage::Pointer SmoothImage( typename TImage::Pointer image, float sig 
   return filter->GetOutput();
 }
 
-template <class TImage>
+template <typename TImage>
 // std::vector<unsigned int>
 typename TImage::Pointer
 GetLargestComponent(typename TImage::Pointer image)

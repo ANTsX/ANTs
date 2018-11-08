@@ -71,7 +71,7 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
   this->m_TargetImageRegion = this->GetInput()->GetRequestedRegion();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>::InputImagePixelVectorType
 NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 ::VectorizeImageListPatch( const InputImageList &imageList, const IndexType index, const bool normalize )
@@ -88,7 +88,7 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
   return patchVector;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>::InputImagePixelVectorType
 NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 ::VectorizeImagePatch( const InputImagePointer image, const IndexType index, const bool normalize )
@@ -127,7 +127,7 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
   return patchVector;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 ::GetMeanAndStandardDeviationOfVectorizedImagePatch(
@@ -151,7 +151,7 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
   standardDeviation = std::sqrt( ( sumOfSquares - count * itk::Math::sqr ( mean ) ) / ( count - 1.0 ) );
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>::RealType
 NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 ::ComputeNeighborhoodPatchSimilarity( const InputImageList &imageList, const IndexType index,

@@ -108,7 +108,7 @@ namespace ants
 typedef itk::ants::CommandLineParser ParserType;
 typedef ParserType::OptionType       OptionType;
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 class RegistrationHelper : public itk::Object
 {
 public:
@@ -768,7 +768,7 @@ public:
   /**
    *
    */
-  template<class TTransformType>
+  template<typename TTransformType>
   bool InitializeWithPreviousLinearTransform(const CompositeTransformType *,
                                              const std::string,
                                              typename TTransformType::Pointer &);
@@ -811,7 +811,7 @@ private:
     return *m_LogStream;
   }
 
-  template<class RegistrationMethodType>
+  template<typename RegistrationMethodType>
   typename RegistrationMethodType::Pointer PrepareRegistrationMethod(
     CompositeTransformType *compositeTransform, const unsigned int currentStageNumber,
     const unsigned int parametersDimensionSize,
@@ -930,7 +930,7 @@ private:
     return registrationMethod;
   }
 
-  template<class RegistrationMethodType>
+  template<typename RegistrationMethodType>
   int AddLinearTransformToCompositeTransform(
     CompositeTransformType *compositeTransform, const unsigned int currentStageNumber,
     const unsigned int parametersDimensionSize,
@@ -1034,7 +1034,7 @@ private:
 /**
  * Transform traits to generalize the rigid transform
  */
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class RigidTransformTraits
 {
   // Don't worry about the fact that the default option is the
@@ -1075,7 +1075,7 @@ public:
 typedef itk::Euler3DTransform<float> TransformType;
 };
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class SimilarityTransformTraits
 {
 // Don't worry about the fact that the default option is the
@@ -1112,7 +1112,7 @@ public:
 typedef itk::Similarity3DTransform<float> TransformType;
 };
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class CompositeAffineTransformTraits
 {
 // Don't worry about the fact that the default option is the
@@ -1153,7 +1153,7 @@ typedef itk::ANTSAffine3DTransform<float> TransformType;
 // ##########################################################################
 
 // Provide common way of reading transforms.
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename ants::RegistrationHelper<TComputeType, VImageDimension>::CompositeTransformType::Pointer
 GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
                                        typename ParserType::OptionType::Pointer initialTransformOption,

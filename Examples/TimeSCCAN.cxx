@@ -29,7 +29,7 @@
 namespace ants
 {
 
-template <class TComp>
+template <typename TComp>
 double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
 {
   double xysum = 0;
@@ -51,7 +51,7 @@ double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
   return numer / denom;
 }
 
-template <class NetworkType>
+template <typename NetworkType>
 bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Pointer time, typename NetworkType::Pointer labels,
                 unsigned int nLabels, unsigned int minRegionSize, unsigned int n_evec, unsigned int iterct, float sparsity,
                 bool robust, bool useL1, float gradstep, bool keepPositive, unsigned int minClusterSize )
@@ -256,7 +256,7 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
 }
 
 
-template <class NetworkType>
+template <typename NetworkType>
 bool RegionAveraging(typename NetworkType::Pointer network, typename NetworkType::Pointer time, typename NetworkType::Pointer labels,
                      unsigned int nLabels, unsigned int minSize )
 {

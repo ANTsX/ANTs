@@ -27,7 +27,7 @@
 
 namespace ants
 {
-template <unsigned int ImageDimension, class TPIXELTYPE>
+template <unsigned int ImageDimension, typename TPIXELTYPE>
 int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
 {
   typedef  TPIXELTYPE                                outPixelType;

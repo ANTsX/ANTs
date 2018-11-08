@@ -40,7 +40,7 @@ namespace itk
  * \author Jeffrey Duda
  *
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 class SliceTimingCorrectionImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {

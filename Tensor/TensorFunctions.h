@@ -55,7 +55,7 @@ unsigned int Columns(const itk::VariableSizeMatrix<TFloat> & mat)
 
 }
 
-template <class TensorType, class MatrixType>
+template <typename TensorType, typename MatrixType>
 void Vector2Matrix( TensorType & dtv, MatrixType & dtm )
 {
   // dtm(0, 0) = dtv[0];
@@ -75,7 +75,7 @@ void Vector2Matrix( TensorType & dtv, MatrixType & dtm )
     }
 }
 
-template <class TensorType, class MatrixType>
+template <typename TensorType, typename MatrixType>
 MatrixType Vector2Matrix( TensorType dtv )
 {
   MatrixType dtm(3, 3);
@@ -85,7 +85,7 @@ MatrixType Vector2Matrix( TensorType dtv )
   return dtm;
 }
 
-template <class TensorType, class MatrixType>
+template <typename TensorType, typename MatrixType>
 TensorType Matrix2Vector( MatrixType dtm )
 {
   TensorType dtv;
@@ -108,7 +108,7 @@ TensorType Matrix2Vector( MatrixType dtm )
   return dtv;
 }
 
-template <class TensorType, class MatrixType>
+template <typename TensorType, typename MatrixType>
 void EigenAnalysis(TensorType dtv,  MatrixType & evals, MatrixType & evecs)
 {
   MatrixType dtm = Vector2Matrix<TensorType, MatrixType>(dtv);
@@ -118,7 +118,7 @@ void EigenAnalysis(TensorType dtv,  MatrixType & evals, MatrixType & evecs)
   decomposer.EvaluateSymmetricEigenDecomposition( dtm, evals, evecs );
 }
 
-template <class TensorType, class VectorType>
+template <typename TensorType, typename VectorType>
 float DiffusionCoefficient( TensorType dtv, VectorType direction, bool normalized = false)
 {
   vnl_matrix<double> tensor(3, 3);
@@ -161,7 +161,7 @@ unsigned int size(const itk::Vector<TFloat, NDim> &)
 }
 
 }
-template <class TensorType>
+template <typename TensorType>
 TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
 {
   float eps = 1.e-12, mag = 0;
@@ -265,19 +265,19 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
   return dtv2;
 }
 
-template <class TensorType>
+template <typename TensorType>
 TensorType TensorLog( TensorType dtv, bool success = true )
 {
   return TensorLogAndExp<TensorType>( dtv, true, success );
 }
 
-template <class TensorType>
+template <typename TensorType>
 TensorType TensorExp( TensorType dtv, bool /* takelog */, bool success = true)
 {
   return TensorLogAndExp<TensorType>( dtv, false, success );
 }
 
-template <class TensorType>
+template <typename TensorType>
 bool IsRealTensor( TensorType dtv )
 {
   bool isreal = true;
@@ -292,7 +292,7 @@ bool IsRealTensor( TensorType dtv )
   return isreal;
 }
 
-template <class TensorType>
+template <typename TensorType>
 float  GetTensorFA( TensorType dtv )
 {
 
@@ -332,7 +332,7 @@ float  GetTensorFA( TensorType dtv )
   return fa;
 }
 
-template <class TensorType>
+template <typename TensorType>
 float  GetTensorFANumerator( TensorType dtv )
 {
   typedef vnl_matrix<double> MatrixType;
@@ -362,7 +362,7 @@ float  GetTensorFANumerator( TensorType dtv )
   return numer;
 }
 
-template <class TensorType>
+template <typename TensorType>
 float  GetTensorFADenominator( TensorType dtv )
 {
   typedef vnl_matrix<double> MatrixType;
@@ -391,7 +391,7 @@ float  GetTensorFADenominator( TensorType dtv )
   return denom;
 }
 
-template <class TVectorType, class TTensorType>
+template <typename TVectorType, typename TTensorType>
 float  GetMetricTensorCost(  TVectorType dpath,  TTensorType dtv, unsigned int matrixpower)
 {
   typedef vnl_matrix<double> MatrixType;
@@ -430,7 +430,7 @@ float  GetMetricTensorCost(  TVectorType dpath,  TTensorType dtv, unsigned int m
   return sqrt(cost);
 }
 
-template <class TVectorType, class TTensorType>
+template <typename TVectorType, typename TTensorType>
 TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float epsilon)
 {
   typedef vnl_matrix<double> MatrixType;
@@ -508,7 +508,7 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
   return newtens;
 }
 
-template <class TTensorType>
+template <typename TTensorType>
 float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
 {
   if( opt <= 1 )
@@ -587,7 +587,7 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
     }
 }
 
-template <class TTensorType>
+template <typename TTensorType>
 itk::RGBPixel<unsigned char>   GetTensorRGB( TTensorType dtv )
 {
   typedef TTensorType TensorType;
@@ -631,7 +631,7 @@ itk::RGBPixel<unsigned char>   GetTensorRGB( TTensorType dtv )
   return rgb;
 }
 
-template <class TTensorType>
+template <typename TTensorType>
 itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
 {
   itk::RGBPixel<float> zero;
@@ -711,7 +711,7 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
   return rgb;
 }
 
-template <class TTensorType>
+template <typename TTensorType>
 itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned int whichvec)
 {
   itk::Vector<float, 3> zero;
@@ -775,7 +775,7 @@ itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned in
   return rgb;
 }
 
-template <class TTensorType>
+template <typename TTensorType>
 static float GetMetricTensorCost(  itk::Vector<float, 3> dpath,  TTensorType dtv )
 {
   typedef vnl_matrix<double> MatrixType;
@@ -809,7 +809,7 @@ static float GetMetricTensorCost(  itk::Vector<float, 3> dpath,  TTensorType dtv
   return cost;
 }
 
-template <class TensorType, class VersorTensorType, class MatrixType>
+template <typename TensorType, typename VersorTensorType, typename MatrixType>
 VersorTensorType VersorTensor( TensorType dtv )
 {
   typedef itk::VariableSizeMatrix<typename MatrixType::ValueType> EigenMatrixType;
@@ -849,7 +849,7 @@ VersorTensorType VersorTensor( TensorType dtv )
   return dtq;
 }
 
-template <class TensorType, class VersorTensorType, class MatrixType>
+template <typename TensorType, typename VersorTensorType, typename MatrixType>
 VersorTensorType VersorTensor( TensorType dtv, MatrixType frame )
 {
   typedef itk::VariableSizeMatrix<typename MatrixType::ValueType> EigenMatrixType;

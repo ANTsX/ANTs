@@ -52,7 +52,7 @@ namespace itk
 {
 namespace ants
 {
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::AtroposSegmentationImageFilter()
 {
@@ -115,13 +115,13 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_MaximumNumberOfICMIterations = 1;
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::~AtroposSegmentationImageFilter()
 {
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SetRandomizerInitializationSeed( const RandomizerSeedType seed )
@@ -134,7 +134,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SetMaskImage( const MaskImageType * mask )
@@ -143,7 +143,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_MaskImage = mask;
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 const typename AtroposSegmentationImageFilter
 <TInputImage, TMaskImage, TClassifiedImage>::MaskImageType
 * AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -157,7 +157,7 @@ const typename AtroposSegmentationImageFilter
   return this->m_MaskImage;
   }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SetPriorLabelImage( const ClassifiedImageType * prior )
@@ -166,7 +166,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_PriorLabelImage = prior;
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 const typename AtroposSegmentationImageFilter
 <TInputImage, TMaskImage, TClassifiedImage>::ClassifiedImageType
 * AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -181,7 +181,7 @@ const typename AtroposSegmentationImageFilter
   return this->m_PriorLabelImage;
   }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SetPriorProbabilityImage( unsigned int whichClass, RealImageType * priorImage )
@@ -244,7 +244,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealImagePointer
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -317,7 +317,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SetIntensityImage( unsigned int which, const ImageType * image )
@@ -342,7 +342,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_IntensityImages[which] = image;
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 const typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::ImageType
 * AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -372,7 +372,7 @@ const typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifi
   return image;
   }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::AddPartialVolumeLabelSet( PartialVolumeLabelSetType labelSet )
@@ -433,7 +433,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->Modified();
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GenerateData()
@@ -508,7 +508,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GenerateInitialClassLabeling()
@@ -694,7 +694,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GenerateInitialClassLabelingWithPriorProbabilityImages()
@@ -818,7 +818,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->SetPriorLabelImage( duplicator->GetOutput() );
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GenerateInitialClassLabelingWithOtsuThresholding()
@@ -903,7 +903,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GenerateInitialClassLabelingWithKMeansClustering()
@@ -1213,7 +1213,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealType
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -1551,7 +1551,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   return maxPosteriorSum / static_cast<RealType>( totalSampleSize );
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealType
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -1651,7 +1651,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   return maxPosteriorProbability;
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SamplePointer
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -1747,7 +1747,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   return scalarSamples;
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealType
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -1872,7 +1872,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   return posteriorProbability;
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::EvaluateMRFNeighborhoodWeights( ConstNeighborhoodIterator<TClassifiedImage> It,
@@ -1965,7 +1965,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealImagePointer
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -2487,7 +2487,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealImagePointer
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -2961,7 +2961,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealImagePointer
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -3092,7 +3092,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   return caster->GetOutput();
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealImagePointer
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
@@ -3155,7 +3155,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   return likelihoodImage;
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::ComputeICMCodeImage()
@@ -3222,7 +3222,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_MaximumICMCode--;
 }
 
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::PrintSelf( std::ostream& os, Indent indent ) const

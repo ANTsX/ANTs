@@ -27,23 +27,23 @@
 #include "itkWarpImageFilter.h"
 #include "itkWarpImageWAffineFilter.h"
 
-template <class StringType, class CastTransformPointerType>
+template <typename StringType, typename CastTransformPointerType>
 void read_transform_file(StringType filename, CastTransformPointerType & transform);
 
-template <class TransformPointerType, class StringType>
+template <typename TransformPointerType, typename StringType>
 void write_transform_file(TransformPointerType & transform, StringType str);
 
-template <class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
+template <typename ImagePointerType, typename MaskImagePointerType, typename TransformPointerType>
 void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerType I_moving,
                                         MaskImagePointerType mask_fixed, TransformPointerType & transform,
                                         TransformPointerType & transform_initial);
 
-template <class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
+template <typename ImagePointerType, typename MaskImagePointerType, typename TransformPointerType>
 void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerType I_moving,
                                         MaskImagePointerType mask_fixed, TransformPointerType & transform,
                                         TransformPointerType & transform_initial);
 
-template <class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
+template <typename ImagePointerType, typename MaskImagePointerType, typename TransformPointerType>
 void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerType movingImage,
                                      MaskImagePointerType maskImage, TransformPointerType & transform,
                                      TransformPointerType & transform_initial);
@@ -52,27 +52,27 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
 //        itk::Image<float, 2>::Pointer I_moving,
 //        itk::Image<float, 2>::Pointer mask_fixed,
 //        itk::CenteredAffine2DTransform<double>::Pointer &transform);
-template <class DisplacementFieldPointerType>
+template <typename DisplacementFieldPointerType>
 void create_deformation_field_byref(const DisplacementFieldPointerType & ref, DisplacementFieldPointerType & field);
 
 // this is obsolet, use itkWarpImageWAffineFilter
-template <class TransformPointerType, class DisplacementFieldPointerType>
+template <typename TransformPointerType, typename DisplacementFieldPointerType>
 void compose_affine_with_field(const TransformPointerType & aff, const DisplacementFieldPointerType & field,
                                DisplacementFieldPointerType & field_output);
 
-template <class ImagePointerType, class DisplacementFieldPointerType>
+template <typename ImagePointerType, typename DisplacementFieldPointerType>
 void warp_image_field(const ImagePointerType & img_input, const DisplacementFieldPointerType & field,
                       ImagePointerType & img_output);
 
-template <class ImagePointerType, class TransformPointerType, class DisplacementFieldPointerType>
+template <typename ImagePointerType, typename TransformPointerType, typename DisplacementFieldPointerType>
 void warp_image_field_waffine(const ImagePointerType & img_input, const TransformPointerType & aff,
                               const DisplacementFieldPointerType & field, ImagePointerType & img_output);
 
-template <class ImageTypePointer, class RefImageTypePointer, class TransformTypePointer>
+template <typename ImageTypePointer, typename RefImageTypePointer, typename TransformTypePointer>
 void affine_image(const ImageTypePointer & input_image, const TransformTypePointer & transform,
                   const RefImageTypePointer & ref_image, ImageTypePointer & img_aff );
 
-template <class TransformPointerType, class StringType>
+template <typename TransformPointerType, typename StringType>
 void write_transform_file(TransformPointerType & transform, StringType filename)
 {
   itk::TransformFileWriter::Pointer transform_writer;
@@ -99,7 +99,7 @@ void write_transform_file(TransformPointerType & transform, StringType filename)
   return;
 }
 
-template <class StringType, class CastTransformPointerType>
+template <typename StringType, typename CastTransformPointerType>
 void read_transform_file(StringType filename, CastTransformPointerType & transform)
 {
   typedef typename CastTransformPointerType::ObjectType CastTransformType;
@@ -130,14 +130,14 @@ void read_transform_file(StringType filename, CastTransformPointerType & transfo
   return;
 }
 
-template <class TransformPointerType, class DisplacementFieldType>
+template <typename TransformPointerType, typename DisplacementFieldType>
 void convert_affine_para_to_deformation_field(TransformPointerType & transform, DisplacementFieldType & def)
 {
   return;
 }
 
-template <class ParaType, unsigned Dimension = 3>
-class SEARCH_POINT_TYPE
+template <typename ParaType, unsigned Dimension = 3>
+typename SEARCH_POINT_TYPE
 {
 public:
   ParaType                      para0;               // seed parameter
@@ -148,24 +148,24 @@ public:
   int                           number_of_iteration; // the number of iteration used for gradient descent
 };
 
-template <class SEARCH_LIST, class ParaType>
+template <typename SEARCH_LIST, typename ParaType>
 void generate_search_seed_3d(SEARCH_LIST & search_list, ParaType & ret);
 
-template <class SEARCH_LIST, class ParaType>
+template <typename SEARCH_LIST, typename ParaType>
 void generate_search_seed_2d(SEARCH_LIST & search_list, ParaType & ret);
 
-template <class SEARCH_LIST, class SEARCH_POINT>
+template <typename SEARCH_LIST, typename SEARCH_POINT>
 void get_best_search_point(SEARCH_LIST & search_list, SEARCH_POINT & spt);
 
-template <class SEARCH_LIST, class SEARCH_POINT>
+template <typename SEARCH_LIST, typename SEARCH_POINT>
 void add_search_point(SEARCH_LIST & search_list, SEARCH_POINT spt);
 
 // use moment of the image  initializer to get cx and cy only
-template <class ImagePointerType, class ParaType>
+template <typename ImagePointerType, typename ParaType>
 bool register_image_cxyz(ImagePointerType fixed_image, ImagePointerType moving_image, ParaType & para1, double & rval);
 
 // use an optional mask for the fixed image
-template <class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
+template <typename ImagePointerType, typename ImageMaskSpatialObjectPointerType, typename ParaType>
 bool register_image_affine3d_mres_mask(ImagePointerType fixed_image, ImagePointerType moving_image,
                                        ImageMaskSpatialObjectPointerType mask_fixed_object, ParaType para0,
                                        itk::Point<double,
@@ -173,7 +173,7 @@ bool register_image_affine3d_mres_mask(ImagePointerType fixed_image, ImagePointe
                                        center, int number_of_iteration, int MI_bins, int MI_samples, ParaType & para1,
                                        double & rval);
 
-template <class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
+template <typename ImagePointerType, typename ImageMaskSpatialObjectPointerType, typename ParaType>
 bool register_image_affine2d_mres_mask(ImagePointerType fixed_image, ImagePointerType moving_image,
                                        ImageMaskSpatialObjectPointerType mask_fixed_object, ParaType para0,
                                        itk::Point<double,
@@ -181,17 +181,17 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image, ImagePointe
                                        center, int number_of_iteration, int MI_bins, int MI_samples, ParaType & para1,
                                        double & rval);
 
-template <class ImagePointerType, class ParaType, class PointType, class TransformTypePointer>
+template <typename ImagePointerType, typename ParaType, typename PointType, typename TransformTypePointer>
 double get_cost_value_mmi(ImagePointerType fixedImage, ImagePointerType movingImage, ParaType para, PointType center,
                           TransformTypePointer null_transform);
 
-template <class SEARCH_POINT>
+template <typename SEARCH_POINT>
 bool compare_search_point(const SEARCH_POINT& lhs, const SEARCH_POINT& rhs)
 {
   return lhs.rval < rhs.rval;
 }
 
-template <class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
+template <typename ImagePointerType, typename MaskImagePointerType, typename TransformPointerType>
 void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerType I_moving,
                                         MaskImagePointerType mask_fixed,
                                         TransformPointerType & transform,
@@ -366,7 +366,7 @@ double myrand(double l, double u)
   // std::cout<<"out myrand" << std::endl;
 }
 
-template <class ParaType>
+template <typename ParaType>
 double dist2_search_point(ParaType para0, ParaType para1)
 {
   // use theta / scale / skew to compare two nodes
@@ -381,7 +381,7 @@ double dist2_search_point(ParaType para0, ParaType para1)
   return d2;
 }
 
-template <class SEARCH_LIST, class ParaType>
+template <typename SEARCH_LIST, typename ParaType>
 void generate_search_seed_3d(SEARCH_LIST & search_list, ParaType & para)
 {
   bool   b_found = 0;
@@ -458,7 +458,7 @@ void generate_search_seed_3d(SEARCH_LIST & search_list, ParaType & para)
   // ret = para;
 }
 
-template <class SEARCH_LIST, class ParaType>
+template <typename SEARCH_LIST, typename ParaType>
 void generate_search_seed_2d(SEARCH_LIST & search_list, ParaType & para)
 {
   bool   b_found = 0;
@@ -514,7 +514,7 @@ void generate_search_seed_2d(SEARCH_LIST & search_list, ParaType & para)
     }
 }
 
-template <class SEARCH_LIST, class SEARCH_POINT>
+template <typename SEARCH_LIST, typename SEARCH_POINT>
 void get_best_search_point(SEARCH_LIST & search_list, SEARCH_POINT & spt)
 {
   std::sort(search_list.begin(), search_list.end(), compare_search_point<SEARCH_POINT> );
@@ -522,13 +522,13 @@ void get_best_search_point(SEARCH_LIST & search_list, SEARCH_POINT & spt)
   spt = search_list[0];
 }
 
-template <class SEARCH_LIST, class SEARCH_POINT>
+template <typename SEARCH_LIST, typename SEARCH_POINT>
 void add_search_point(SEARCH_LIST & search_list, SEARCH_POINT spt)
 {
   search_list.push_back(spt);
 }
 
-template <class ImagePointerType, class ParaType, class PointType, class TransformTypePointer>
+template <typename ImagePointerType, typename ParaType, typename PointType, typename TransformTypePointer>
 double get_cost_value_mmi(ImagePointerType fixedImage, ImagePointerType movingImage, ParaType para, PointType center,
                           TransformTypePointer null_transform)
 {
@@ -597,7 +597,7 @@ double get_cost_value_mmi(ImagePointerType fixedImage, ImagePointerType movingIm
   return rval;
 }
 
-template <class ImagePointerType, class ParaType>
+template <typename ImagePointerType, typename ParaType>
 bool register_image_cxy(ImagePointerType fixed_image, ImagePointerType moving_image, ParaType & para1, double & rval)
 {
   // for 3d image use CenteredRigid2DTransform
@@ -638,7 +638,7 @@ bool register_image_cxy(ImagePointerType fixed_image, ImagePointerType moving_im
   return true;
 }
 
-template <class ImagePointerType, class ParaType>
+template <typename ImagePointerType, typename ParaType>
 bool register_image_cxyz(ImagePointerType fixed_image, ImagePointerType moving_image, ParaType & para1, double & rval)
 {
   // for 3d image use CenteredRigid2DTransform
@@ -679,7 +679,7 @@ bool register_image_cxyz(ImagePointerType fixed_image, ImagePointerType moving_i
   return true;
 }
 
-template <class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
+template <typename ImagePointerType, typename ImageMaskSpatialObjectPointerType, typename ParaType>
 bool register_image_affine3d_mres_mask(ImagePointerType fixed_image,
                                        ImagePointerType moving_image,
                                        ImageMaskSpatialObjectPointerType mask_fixed_object,
@@ -831,7 +831,7 @@ bool register_image_affine3d_mres_mask(ImagePointerType fixed_image,
   return bsuc;
 }
 
-template <class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
+template <typename ImagePointerType, typename ImageMaskSpatialObjectPointerType, typename ParaType>
 bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
                                        ImagePointerType moving_image,
                                        ImageMaskSpatialObjectPointerType mask_fixed_object,
@@ -978,11 +978,11 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
   return bsuc;
 }
 
-// template<class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
+// template<typename ImagePointerType, typename MaskImagePointerType, typename TransformPointerType>
 // void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerType I_moving, MaskImagePointerType
 // mask_fixed, TransformPointerType &transform){
 
-template <class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
+template <typename ImagePointerType, typename MaskImagePointerType, typename TransformPointerType>
 void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerType I_moving,
                                         MaskImagePointerType mask_fixed,
                                         TransformPointerType & transform,
@@ -1156,7 +1156,7 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
   transform = transform_final;
 }
 
-template <class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
+template <typename ImagePointerType, typename MaskImagePointerType, typename TransformPointerType>
 void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerType movingImage,
                                      MaskImagePointerType maskImage,
                                      TransformPointerType & transform,
@@ -1277,7 +1277,7 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
     }
 }
 
-template <class DisplacementFieldPointerType>
+template <typename DisplacementFieldPointerType>
 void create_deformation_field_byref(const DisplacementFieldPointerType & ref, DisplacementFieldPointerType & field)
 {
   typedef typename DisplacementFieldPointerType::ObjectType DisplacementFieldType;
@@ -1295,7 +1295,7 @@ void create_deformation_field_byref(const DisplacementFieldPointerType & ref, Di
 // compose affine transform (in a matrix format A: (Ax+b)) with a deformation field F:
 // the new field is: F_new (x)  = F ( A (x) )
 // output should be allocated outside
-template <class TransformPointerType, class DisplacementFieldPointerType>
+template <typename TransformPointerType, typename DisplacementFieldPointerType>
 void compose_affine_with_field(const TransformPointerType & aff, const DisplacementFieldPointerType & field,
                                DisplacementFieldPointerType & field_output)
 {
@@ -1350,7 +1350,7 @@ void compose_affine_with_field(const TransformPointerType & aff, const Displacem
 }
 
 // this is obsolet, use itkWarpImageWAffineFilter
-template <class ImagePointerType, class DisplacementFieldPointerType>
+template <typename ImagePointerType, typename DisplacementFieldPointerType>
 void warp_image_field(const ImagePointerType & img_input, const DisplacementFieldPointerType & field,
                       ImagePointerType & img_output)
 {
@@ -1370,7 +1370,7 @@ void warp_image_field(const ImagePointerType & img_input, const DisplacementFiel
   img_output = warper->GetOutput();
 }
 
-template <class ImageTypePointer, class RefImageTypePointer, class TransformPointerType>
+template <typename ImageTypePointer, typename RefImageTypePointer, typename TransformPointerType>
 void affine_image(const ImageTypePointer & input_image,  const TransformPointerType & transform,
                   const RefImageTypePointer & ref_image,
                   ImageTypePointer & img_aff )
@@ -1396,7 +1396,7 @@ void affine_image(const ImageTypePointer & input_image,  const TransformPointerT
   img_aff = resampler->GetOutput();
 }
 
-template <class ImagePointerType, class TransformPointerType, class DisplacementFieldPointerType>
+template <typename ImagePointerType, typename TransformPointerType, typename DisplacementFieldPointerType>
 void warp_image_field_waffine(const ImagePointerType & img_input, const TransformPointerType & aff,
                               const DisplacementFieldPointerType & field,
                               ImagePointerType & img_output)

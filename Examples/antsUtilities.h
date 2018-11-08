@@ -32,7 +32,7 @@ namespace ants
 {
 // extern boost::iostreams::stream<ants_Sink> std::cout;
 
-template <class TImage>
+template <typename TImage>
 bool IsInside( typename TImage::Pointer input, typename TImage::IndexType index )
 {
   /** FIXME - should use StartIndex - */
@@ -58,7 +58,7 @@ bool IsInside( typename TImage::Pointer input, typename TImage::IndexType index 
 // ##########################################################################
 // ##########################################################################
 // Templates
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer  Morphological( typename TImage::Pointer input, float rad, unsigned int option,
                                          float dilateval)
 {
@@ -247,7 +247,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 // TODO:  I am pretty sure that this can be completely
 // replaced by the Morphological template above
 // with option = true, flase, and
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer  MorphologicalBinary( typename TImage::Pointer input, float rad, bool option)
 {
   typedef TImage ImageType;
@@ -330,7 +330,7 @@ typename TImage::Pointer  MorphologicalBinary( typename TImage::Pointer input, f
 
 #endif
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer BinaryThreshold(
   typename TImage::PixelType low,
   typename TImage::PixelType high,
@@ -362,7 +362,7 @@ typename TImage::Pointer BinaryThreshold(
   return inputThresholder->GetOutput();
 }
 
-template <class TPixel, unsigned int VDim>
+template <typename TPixel, unsigned int VDim>
 class VectorPixelCompare
 {
 public:
@@ -385,7 +385,7 @@ public:
   }
 };
 
-template <class ImageType, class AffineTransform>
+template <typename ImageType, typename AffineTransform>
 void GetAffineTransformFromImage(const typename ImageType::Pointer& img,
                                  typename AffineTransform::Pointer & aff)
 {
@@ -411,7 +411,7 @@ void GetAffineTransformFromImage(const typename ImageType::Pointer& img,
 //  std::cout << "aff from image:" << aff << std::endl;
 }
 
-template <class WarperType, class ImageType>
+template <typename WarperType, typename ImageType>
 void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
                              typename ImageType::Pointer & img,
                              typename ImageType::SizeType & largest_size,
@@ -562,7 +562,7 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
 //  std::cout << "pt_min: " << pt_min << " pt_max:" << pt_max << " largest_size:" << largest_size << std::endl;
 }
 
-template <class TImageIn, class TImageOut>
+template <typename TImageIn, typename TImageOut>
 typename TImageOut::Pointer
 arCastImage( typename TImageIn::Pointer Rimage )
 {
@@ -574,7 +574,7 @@ arCastImage( typename TImageIn::Pointer Rimage )
 }
 
 
-template<class TValue>
+template<typename TValue>
 TValue Convert( std::string optionString )
 {
   TValue value;
@@ -583,7 +583,7 @@ TValue Convert( std::string optionString )
   return value;
 }
 
-template<class TValue>
+template<typename TValue>
 std::vector<TValue> ConvertVector( std::string optionString )
 {
   std::vector<TValue> values;

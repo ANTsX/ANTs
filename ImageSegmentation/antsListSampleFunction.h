@@ -39,7 +39,7 @@ namespace Statistics
  *
  * \ingroup ListSampleFunctions
  */
-template <class TInputListSample, class TOutput, class TCoordRep = float>
+template <typename TInputListSample, typename TOutput, typename TCoordRep = float>
 class ListSampleFunction :
   public         FunctionBase<typename TInputListSample::MeasurementVectorType, TOutput>
 {

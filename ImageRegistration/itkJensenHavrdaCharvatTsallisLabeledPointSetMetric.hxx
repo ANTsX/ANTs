@@ -19,7 +19,7 @@
 #include "itkJensenHavrdaCharvatTsallisPointSetMetric.h"
 namespace itk
 {
-template <class TPointSet>
+template <typename TPointSet>
 JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 ::JensenHavrdaCharvatTsallisLabeledPointSetMetric()
 {
@@ -50,7 +50,7 @@ JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 }
 
 /** Initialize the metric */
-template <class TPointSet>
+template <typename TPointSet>
 void
 JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 ::Initialize( void )
@@ -91,7 +91,7 @@ throw ( ExceptionObject )
 }
 
 /** Return the number of values, i.e the number of points in the moving set */
-template <class TPointSet>
+template <typename TPointSet>
 unsigned int
 JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 ::GetNumberOfValues() const
@@ -115,7 +115,7 @@ JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 }
 
 /** Get the match Measure */
-template <class TPointSet>
+template <typename TPointSet>
 typename JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>::MeasureType
 JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 ::GetValue( const TransformParametersType & parameters ) const
@@ -225,7 +225,7 @@ JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 }
 
 /** Get the Derivative Measure */
-template <class TPointSet>
+template <typename TPointSet>
 void
 JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 ::GetDerivative( const TransformParametersType & parameters,
@@ -385,7 +385,7 @@ JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 }
 
 /** Get both the match Measure and theDerivative Measure  */
-template <class TPointSet>
+template <typename TPointSet>
 void
 JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 ::GetValueAndDerivative( const TransformParametersType & parameters,
@@ -551,7 +551,7 @@ JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
     }
 }
 
-template <class TPointSet>
+template <typename TPointSet>
 void
 JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 ::PrintSelf(std::ostream& os, Indent indent) const

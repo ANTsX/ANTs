@@ -50,7 +50,7 @@ namespace itk
  * \sa ProbabilisticRegistrationFilter
  * \ingroup FiniteDifferenceFunctions
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 class ProbabilisticRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage, TDisplacementField>

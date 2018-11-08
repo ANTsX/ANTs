@@ -102,7 +102,7 @@ private:
  *
  * \author Bradley Lowekamp
 */
-template <class TInputImage>
+template <typename TInputImage>
 class MultiScaleLaplacianBlobDetectorImageFilter
   : public       ImageToImageFilter<TInputImage, TInputImage>
 {

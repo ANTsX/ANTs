@@ -27,7 +27,7 @@ namespace itk
  * point-set type.
  *
  */
-template <class TPointSet>
+template <typename TPointSet>
 class JensenHavrdaCharvatTsallisLabeledPointSetMetric :
   public         PointSetToPointSetMetric<TPointSet, TPointSet>
 {

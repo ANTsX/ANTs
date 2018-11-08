@@ -23,7 +23,7 @@ namespace itk
 {
 namespace ants
 {
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 antsMatrixUtilities<TInputImage, TRealType>::antsMatrixUtilities()
 {
   this->m_Debug = false;
@@ -34,7 +34,7 @@ antsMatrixUtilities<TInputImage, TRealType>::antsMatrixUtilities()
   this->m_MaskImageR = ITK_NULLPTR;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsMatrixUtilities<TInputImage, TRealType>::MatrixType
 antsMatrixUtilities<TInputImage, TRealType>
 ::NormalizeMatrix( typename antsMatrixUtilities<TInputImage, TRealType>::MatrixType p )
@@ -68,7 +68,7 @@ antsMatrixUtilities<TInputImage, TRealType>
   return np;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsMatrixUtilities<TInputImage, TRealType>::MatrixType
 antsMatrixUtilities<TInputImage, TRealType>
 ::VNLPseudoInverse( typename antsMatrixUtilities<TInputImage, TRealType>::MatrixType rin, bool take_sqrt )
@@ -101,7 +101,7 @@ antsMatrixUtilities<TInputImage, TRealType>
   return ( eig.recompose() ).transpose();
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsMatrixUtilities<TInputImage, TRealType>::VectorType
 antsMatrixUtilities<TInputImage, TRealType>
 ::GetCovMatEigenvector( typename antsMatrixUtilities<TInputImage, TRealType>::MatrixType rin, unsigned int which )
@@ -127,7 +127,7 @@ antsMatrixUtilities<TInputImage, TRealType>
     }
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsMatrixUtilities<TInputImage, TRealType>::MatrixType
 antsMatrixUtilities<TInputImage, TRealType>
 ::GetCovMatEigenvectors( typename antsMatrixUtilities<TInputImage, TRealType>::MatrixType rin  )

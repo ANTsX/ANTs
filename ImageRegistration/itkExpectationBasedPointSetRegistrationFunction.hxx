@@ -26,7 +26,7 @@ namespace itk
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ExpectationBasedPointSetRegistrationFunction()
 {
@@ -71,7 +71,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::PrintSelf(std::ostream& os, Indent indent) const
@@ -82,7 +82,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /**
  *
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::SetEuclideanDistanceThreshold(double threshold)
@@ -93,7 +93,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /**
  *
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 double
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::GetEuclideanDistanceThreshold() const
@@ -104,7 +104,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ExpectationLandmarkField(float weight, bool whichdirection)
@@ -379,7 +379,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::InitializeIteration()
@@ -473,7 +473,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Compute update at a specify neighbourhood
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 typename ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::PixelType
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
@@ -493,7 +493,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Compute update at a specify neighbourhood
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 typename ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::PixelType
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
@@ -508,7 +508,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Update the metric and release the per-thread-global data.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ReleaseGlobalDataPointer( void *gd ) const
@@ -533,7 +533,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
  * Set the function state values before each iteration
  */
 
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>::SetUpKDTrees(
   long whichlabel)
@@ -609,7 +609,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::FastExpectationLandmarkField(float weight, bool whichdirection, long /* whichlabel */, bool dobspline)

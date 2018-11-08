@@ -28,7 +28,7 @@
 
 namespace itk
 {
-template <class TImage, class TVectorImage, class ConvertPixelTraits>
+template <typename TImage, typename TVectorImage, typename ConvertPixelTraits>
 VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::VectorImageFileReader()
 {
@@ -38,13 +38,13 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
   m_UseAvantsNamingConvention = true;
 }
 
-template <class TImage, class TVectorImage, class ConvertPixelTraits>
+template <typename TImage, typename TVectorImage, typename ConvertPixelTraits>
 VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::~VectorImageFileReader()
 {
 }
 
-template <class TImage, class TVectorImage, class ConvertPixelTraits>
+template <typename TImage, typename TVectorImage, typename ConvertPixelTraits>
 void VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
@@ -64,7 +64,7 @@ void VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
   os << indent << "m_FileName: " << m_FileName << "\n";
 }
 
-template <class TImage, class TVectorImage, class ConvertPixelTraits>
+template <typename TImage, typename TVectorImage, typename ConvertPixelTraits>
 void
 VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::SetImageIO( ImageIOBase * imageIO)
@@ -78,7 +78,7 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
   m_UserSpecifiedImageIO = true;
 }
 
-template <class TImage, class TVectorImage, class ConvertPixelTraits>
+template <typename TImage, typename TVectorImage, typename ConvertPixelTraits>
 void
 VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::GenerateOutputInformation(void)
@@ -305,7 +305,7 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
   this->m_FileName = tmpFileName;
 }
 
-template <class TImage, class TVectorImage, class ConvertPixelTraits>
+template <typename TImage, typename TVectorImage, typename ConvertPixelTraits>
 void
 VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::TestFileExistanceAndReadability()
@@ -404,7 +404,7 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
   this->m_FileName = tmpFileName;
 }
 
-template <class TImage, class TVectorImage, class ConvertPixelTraits>
+template <typename TImage, typename TVectorImage, typename ConvertPixelTraits>
 void
 VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::EnlargeOutputRequestedRegion(DataObject *output)
@@ -427,7 +427,7 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
     }
 }
 
-template <class TImage, class TVectorImage, class ConvertPixelTraits>
+template <typename TImage, typename TVectorImage, typename ConvertPixelTraits>
 void VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::GenerateData()
 {
@@ -634,7 +634,7 @@ void VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
     }
 }
 
-template <class TImage, class TVectorImage, class ConvertPixelTraits>
+template <typename TImage, typename TVectorImage, typename ConvertPixelTraits>
 void
 VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::DoConvertBuffer(void* inputData,

@@ -28,7 +28,7 @@ namespace itk
 {
 namespace ants
 {
-template <class TInputImage, class TRealType = double>
+template <typename TInputImage, typename TRealType = double>
 class antsSCCANObject :
   public ImageToImageFilter<TInputImage, TInputImage>
 {

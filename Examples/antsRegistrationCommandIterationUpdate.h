@@ -6,7 +6,7 @@ namespace ants
 /** \class antsRegistrationCommandIterationUpdate
  *  \brief change parameters between iterations of registration
  */
-template <class TFilter>
+template <typename TFilter>
 class antsRegistrationCommandIterationUpdate : public itk::Command
 {
 public:

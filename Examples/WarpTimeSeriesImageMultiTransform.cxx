@@ -216,7 +216,7 @@ static bool WarpTimeSeriesImageMultiTransform_ParseInput(int argc, char * *argv,
   return true;
 }
 
-template <class AffineTransformPointer>
+template <typename AffineTransformPointer>
 void GetIdentityTransform(AffineTransformPointer & aff)
 {
   typedef typename AffineTransformPointer::ObjectType AffineTransform;

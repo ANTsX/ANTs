@@ -30,7 +30,7 @@ namespace itk
  * Reads a file and creates an itkMesh.
  *
  */
-template <class TOutputMesh>
+template <typename TOutputMesh>
 class LabeledPointSetFileReader
   : public MeshSource<TOutputMesh>
 {

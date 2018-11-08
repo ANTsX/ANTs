@@ -37,7 +37,7 @@
 
 namespace itk
 {
-template <class TInputImage>
+template <typename TInputImage>
 MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 ::MultiScaleLaplacianBlobDetectorImageFilter( void )
 {
@@ -47,7 +47,7 @@ MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
   m_EndT = 128;
 }
 
-template <class TInputImage>
+template <typename TInputImage>
 void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 ::GenerateData( void )
 {
@@ -212,7 +212,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     }
 }
 
-template <class TInputImage>
+template <typename TInputImage>
 void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 ::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId )
 {

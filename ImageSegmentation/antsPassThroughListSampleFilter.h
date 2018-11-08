@@ -28,7 +28,7 @@ namespace Statistics
  *
  */
 
-template <class TListSample>
+template <typename TListSample>
 class PassThroughListSampleFilter
   : public       ListSampleToListSampleFilter<TListSample, TListSample>
 {

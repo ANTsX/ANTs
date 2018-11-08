@@ -34,7 +34,7 @@
 
 namespace ants
 {
-template <class TField, class TImage>
+template <typename TField, typename TImage>
 typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
@@ -54,7 +54,7 @@ GetVectorComponent(typename TField::Pointer field, unsigned int index)
   return sfield;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 MaurerDistanceMap(
   typename TImage::PixelType pixlo,
@@ -80,7 +80,7 @@ MaurerDistanceMap(
   return filter->GetOutput();
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, double sig)
 {
@@ -107,7 +107,7 @@ SmoothImage(typename TImage::Pointer image, double sig)
   return out;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 SmoothDeformation(typename TImage::Pointer vectorimage, double sig)
 {
@@ -140,7 +140,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, double sig)
 
 // this has to have never been called because it doesn't actually
 // copy anything
-template <class TImage, class TDisplacementField>
+template <typename TImage, typename TDisplacementField>
 typename TImage::Pointer
 CopyImage(TDisplacementField* field )
 {
@@ -157,7 +157,7 @@ CopyImage(TDisplacementField* field )
   return m_RealImage;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input, double distthresh )
@@ -218,7 +218,7 @@ LabelSurface(typename TImage::PixelType foreground,
   return Image;
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double sig)
 {
@@ -279,7 +279,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double s
   return filter->GetOutput();
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 ExpDiffMap(typename TField::Pointer velofield,  typename TImage::Pointer wm,  double sign, unsigned int numtimepoints )
 {
@@ -321,7 +321,7 @@ ExpDiffMap(typename TField::Pointer velofield,  typename TImage::Pointer wm,  do
   return warper->GetOutput();
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 DiReCTCompose(typename TField::Pointer velofield, typename TField::Pointer diffmap )
 {
@@ -342,7 +342,7 @@ DiReCTCompose(typename TField::Pointer velofield, typename TField::Pointer diffm
   return warper->GetOutput();
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 void
 InvertField( typename TField::Pointer field,
              typename TField::Pointer inverseFieldIN, double weight = 1.0,

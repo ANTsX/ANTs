@@ -16,7 +16,7 @@
 
 namespace itk
 {
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 ManifoldIntegrationAlgorithm<TGraphSearchNode>::ManifoldIntegrationAlgorithm()
 {
   m_SurfaceMesh = ITK_NULLPTR;
@@ -29,7 +29,7 @@ ManifoldIntegrationAlgorithm<TGraphSearchNode>::ManifoldIntegrationAlgorithm()
   this->m_LabelCostWeight = 0;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 float ManifoldIntegrationAlgorithm<TGraphSearchNode>::dstarUestimate(
   typename TGraphSearchNode::Pointer G)
 {
@@ -41,7 +41,7 @@ float ManifoldIntegrationAlgorithm<TGraphSearchNode>::dstarUestimate(
   return dsu;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
 {
   if( !m_SurfaceMesh )
@@ -175,7 +175,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
 {
   if( !m_SurfaceMesh )
@@ -296,7 +296,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
   m_SurfaceMesh = m_EdgePolys;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
 {
   if( !m_SurfaceMesh )
@@ -379,13 +379,13 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
   return;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>
 ::ConvertGraphBackToMesh()
 {   // this is a sanity check
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeQueue()
 {
   int n = m_QS->m_SourceNodes.size();
@@ -419,7 +419,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeQueue()
 *  parameterize the boundary --- an estimate
 */
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
 ::ParameterizeBoundary( ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchNodePointer rootNode )
 {
@@ -477,7 +477,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
 /**
 *  Compute the local cost using Manhattan distance.
 */
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 typename ManifoldIntegrationAlgorithm<TGraphSearchNode>::
 PixelType ManifoldIntegrationAlgorithm<TGraphSearchNode>::MyLocalCost()
 {
@@ -508,7 +508,7 @@ PixelType ManifoldIntegrationAlgorithm<TGraphSearchNode>::MyLocalCost()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 bool ManifoldIntegrationAlgorithm<TGraphSearchNode>::TerminationCondition()
 {
   if( !m_QS->m_SinkNodes.empty() )
@@ -528,7 +528,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>::TerminationCondition()
   return m_SearchFinished;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchEdgeSet()
 {
   int i = 0; // ,j=0;
@@ -549,7 +549,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchEdgeSet()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::GetSearchBoundary()
 {
   unsigned int gsz = this->GetGraphSize();
@@ -568,7 +568,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::GetSearchBoundary()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::CheckNodeStatus()
 // checks a graph neighbor's status
 {
@@ -620,7 +620,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::CheckNodeStatus()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::FindPath()
 {
   if( m_QS->m_SourceNodes.empty() )

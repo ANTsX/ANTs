@@ -219,7 +219,7 @@ static bool WarpTensorImageMultiTransform_ParseInput(int argc, char * *argv, cha
   return true;
 }
 
-template <class TAffineTransform>
+template <typename TAffineTransform>
 static void GetIdentityTransform(typename TAffineTransform::Pointer & aff)
 {
   aff = TAffineTransform::New();

@@ -33,7 +33,7 @@ namespace itk
  * \author Nicholas J. Tustison
  */
 
-template <class TInputImage, class TOutputImage = TInputImage>
+template <typename TInputImage, typename TOutputImage = TInputImage>
 class ComposeDiffeomorphismsImageFilter
   : public ImageToImageFilter<TInputImage, TOutputImage>
 {

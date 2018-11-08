@@ -26,9 +26,9 @@ namespace itk
  * \class JensenTsallisBSplineRegistrationFunction
  * \ingroup FiniteDifferenceFunctions
  */
-template <class TFixedImage, class TFixedPointSet,
-          class TMovingImage, class TMovingPointSet,
-          class TDisplacementField>
+template <typename TFixedImage, typename TFixedPointSet,
+          typename TMovingImage, typename TMovingPointSet,
+          typename TDisplacementField>
 class JensenTsallisBSplineRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage, TDisplacementField>

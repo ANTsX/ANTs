@@ -32,7 +32,7 @@
 
 using namespace std;
 
-template <class TImage>
+template <typename TImage>
 void ConnectITKToVTK(itk::VTKImageExport<TImage> *fltExport, vtkImageImport *fltImport)
 {
   fltImport->SetUpdateInformationCallback( fltExport->GetUpdateInformationCallback() );
@@ -76,7 +76,7 @@ private:
   float m_InsideValue;
 };
 
-template <class TImage>
+template <typename TImage>
 class BinaryImageToMeshFilter : public itk::ProcessObject
 {
 public:

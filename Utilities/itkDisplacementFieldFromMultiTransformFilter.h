@@ -6,9 +6,9 @@
 namespace itk
 {
 template <
-  class TOutputImage,
-  class TDisplacementField,
-  class TTransform
+  typename TOutputImage,
+  typename TDisplacementField,
+  typename TTransform
   >
 class DisplacementFieldFromMultiTransformFilter :
   public         WarpImageMultiTransformFilter<TOutputImage, TOutputImage, TDisplacementField, TTransform>

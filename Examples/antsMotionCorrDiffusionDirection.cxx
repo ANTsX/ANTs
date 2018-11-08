@@ -72,7 +72,7 @@
 namespace ants
 {
 
-template <class T>
+template <typename T>
 inline std::string ants_moco_to_string(const T& t)
 {
   std::stringstream ss;
@@ -80,7 +80,7 @@ inline std::string ants_moco_to_string(const T& t)
   return ss.str();
 }
 
-template <class T>
+template <typename T>
 struct ants_moco_index_cmp
   {
   ants_moco_index_cmp(const T _arr) : arr(_arr)

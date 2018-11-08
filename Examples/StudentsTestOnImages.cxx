@@ -55,7 +55,7 @@ int smallerStatElem(StatElement * elem1, StatElement * elem2)
     }
 }
 
-template <class TImageType>
+template <typename TImageType>
 void ReadImage(itk::SmartPointer<TImageType> & target, const char *file, bool copy)
 {
   //  std::cout << " reading b " << std::string(file) << std::endl;

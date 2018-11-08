@@ -41,7 +41,7 @@
 
 namespace ants
 {
-template <class TImageType>
+template <typename TImageType>
 void ReadImage(itk::SmartPointer<TImageType> & target, const char *file, bool copy)
 {
   //  std::cout << " reading b " << std::string(file) << std::endl;
@@ -117,7 +117,7 @@ double TProb(double t, int df)
   return 1 - (0.5 * (1 + (t1 * (1 - a * (df % 2) ) ) ) );
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, float sig)
 {
@@ -131,7 +131,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   return filter->GetOutput();
 }
 
-template <class TInputImage>
+template <typename TInputImage>
 // typename TInputImage::Pointer
 void
 HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInputImage::Pointer m_InputMovingImage)
@@ -159,7 +159,7 @@ HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInput
   return;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::Pointer meanimage )
 {
@@ -238,7 +238,7 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
   return; // localmean;
 }
 
-template <class TImage>
+template <typename TImage>
 // std::vector<unsigned int>
 float
 GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int minSize, unsigned int whichstat,

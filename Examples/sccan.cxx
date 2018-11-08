@@ -33,7 +33,7 @@
 namespace ants
 {
 // namespace antssccan {
-template <class TComp>
+template <typename TComp>
 double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
 {
   double xysum = 0;
@@ -55,7 +55,7 @@ double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
   return numer / denom;
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vector<TComp> w_p,
                                 typename TImage::Pointer  mask )
 {
@@ -80,7 +80,7 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
   WriteImage<TImage>( weights, fn1.c_str() );
 }
 
-template <class T>
+template <typename T>
 inline std::string sccan_to_string(const T& t)
 {
   std::stringstream ss;
@@ -104,7 +104,7 @@ inline std::string sccan_to_string(const T& t)
   return stringout;
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, vnl_matrix<TComp> varmat,
                                         typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat, bool have_mask,
                                         vnl_vector<TComp> l_array,
@@ -231,7 +231,7 @@ void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, 
     }
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_matrix<TComp> varmat,
                                   typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat,
                                   bool have_mask, vnl_matrix<TComp> u_mat  )
@@ -337,7 +337,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     }
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 vnl_matrix<TComp>
 CopyImageToVnlMatrix( typename TImage::Pointer   p_img )
 {
@@ -359,7 +359,7 @@ CopyImageToVnlMatrix( typename TImage::Pointer   p_img )
   return p;
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 vnl_matrix<TComp>
 DeleteRow(vnl_matrix<TComp> p_in, unsigned int row)
 {
@@ -387,7 +387,7 @@ int sccanRandom(int n)
   return rand() % n;
 }
 
-template <class TComp>
+template <typename TComp>
 vnl_matrix<TComp>
 PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
 {
@@ -420,7 +420,7 @@ PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
   return q_perm;
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
                      itk::ants::CommandLineParser::OptionType * /* outputOption */ = ITK_NULLPTR )
 {
@@ -444,7 +444,7 @@ int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
   return EXIT_SUCCESS;
 }
 
-template <class RealType>
+template <typename RealType>
 int
 CompareMatrixSizes(  vnl_matrix<RealType> & p,  vnl_matrix<RealType> & q )
 {
@@ -460,7 +460,7 @@ CompareMatrixSizes(  vnl_matrix<RealType> & p,  vnl_matrix<RealType> & q )
   return 0;
 }
 
-template <class PixelType>
+template <typename PixelType>
 void
 ReadMatrixFromCSVorImageSet( std::string matname, vnl_matrix<PixelType> & p )
 {
@@ -502,7 +502,7 @@ ReadMatrixFromCSVorImageSet( std::string matname, vnl_matrix<PixelType> & p )
   return;
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 itk::Array2D<double>
 ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string outname  )
 {
@@ -648,7 +648,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
   return matrix;
 }
 
-template <class PixelType>
+template <typename PixelType>
 int
 ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::string outname, double space_smoother,
                                 double time_smoother )
@@ -893,7 +893,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
   return EXIT_SUCCESS;
 }
 
-template <class PixelType>
+template <typename PixelType>
 int
 ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outname, unsigned long rowOrCol )
 {
@@ -972,7 +972,7 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
 }
 
 // p.d.
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 void ConvertImageVecListToProjection( std::string veclist, std::string imagelist, std::string outname, bool average  )
 {
   // typedef itk::Image<PixelType,ImageDimension> ImageType;
@@ -1079,7 +1079,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
   myfile.close();
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec,
                   unsigned int robustify, unsigned int p_cluster_thresh, unsigned int iterct,
                   unsigned int svd_option, PixelType usel1, PixelType row_sparseness, PixelType smoother,
@@ -1376,7 +1376,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   return EXIT_SUCCESS;
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
               PixelType usel1, PixelType uselong, PixelType row_sparseness, PixelType smoother, unsigned int covering,
@@ -1680,7 +1680,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
   return EXIT_SUCCESS;
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
                unsigned int permct, bool run_partial_scca = false, unsigned int n_e_vecs = 3, unsigned int newimp = 0,
                unsigned int robustify = 0, unsigned int p_cluster_thresh = 100, unsigned int q_cluster_thresh = 1,

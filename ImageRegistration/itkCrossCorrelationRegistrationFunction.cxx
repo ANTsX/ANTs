@@ -31,7 +31,7 @@ namespace itk
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::CrossCorrelationRegistrationFunction()
 {
@@ -77,7 +77,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PrintSelf(std::ostream& os, Indent indent) const
@@ -98,7 +98,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
@@ -379,7 +379,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ComputeMetricAtPairB(IndexType oindex, typename TDisplacementField::PixelType /* vec */)
@@ -441,7 +441,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ComputeMetricAtPairC(IndexType oindex, typename TDisplacementField::PixelType /* vec */)

@@ -40,7 +40,7 @@
 
 namespace ants
 {
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 MultiplyImage(typename TImage::Pointer image1, typename TImage::Pointer image2)
 {
@@ -60,7 +60,7 @@ MultiplyImage(typename TImage::Pointer image1, typename TImage::Pointer image2)
   // if the dist is g.t. D then speed = 1
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   typename TImage::PixelType low,
   typename TImage::PixelType high,
@@ -90,7 +90,7 @@ typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   return inputThresholder->GetOutput();
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input)
@@ -151,7 +151,7 @@ LabelSurface(typename TImage::PixelType foreground,
   return Image;
 }
 
-template <class TImage, class TMaskImage>
+template <typename TImage, typename TMaskImage>
 typename TImage::Pointer OtsuThreshold(
   int NumberOfThresholds, typename TImage::Pointer input, typename TMaskImage::Pointer maskImage )
 {
@@ -271,7 +271,7 @@ typename TImage::Pointer OtsuThreshold(
 
 }
 
-template <class TImage, class TMaskImage>
+template <typename TImage, typename TMaskImage>
 typename TImage::Pointer KmeansThreshold(
   int NumberOfThresholds, typename TImage::Pointer input, typename TMaskImage::Pointer maskImage )
 {

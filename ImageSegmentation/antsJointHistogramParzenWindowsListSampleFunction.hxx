@@ -30,7 +30,7 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::JointHistogramParzenWindowsListSampleFunction()
 {
@@ -39,13 +39,13 @@ JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
   this->m_UseNNforJointHistIncrements = true;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~JointHistogramParzenWindowsListSampleFunction()
 {
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::IncrementJointHistogram(RealType eigenvalue1, RealType eigenvalue2, unsigned int which_hist)
@@ -174,7 +174,7 @@ JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
   return;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
@@ -267,7 +267,7 @@ JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 TOutput
 JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
@@ -305,7 +305,7 @@ JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PrintSelf(

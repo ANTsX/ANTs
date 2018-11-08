@@ -29,7 +29,7 @@ namespace Statistics
  * \brief point set filter.
  */
 
-template <class TListSample, class TOutput = double, class TCoordRep = double>
+template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
 class PartialVolumeGaussianListSampleFunction
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {

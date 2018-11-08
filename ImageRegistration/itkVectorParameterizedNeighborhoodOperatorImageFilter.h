@@ -51,7 +51,7 @@ namespace itk
  * \sa NeighborhoodOperatorImageFilter
  */
 
-template <class TInputImage, class TOutputImage, class TParamImage>
+template <typename TInputImage, typename TOutputImage, typename TParamImage>
 class VectorParameterizedNeighborhoodOperatorImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {

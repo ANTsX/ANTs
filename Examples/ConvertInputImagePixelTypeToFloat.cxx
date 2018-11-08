@@ -27,7 +27,7 @@
 
 namespace ants
 {
-template <unsigned int ImageDimension, class TPIXELTYPE>
+template <unsigned int ImageDimension, typename TPIXELTYPE>
 int ConvertTypeToFloat( int argc, char *argv[] )
 {
   typedef  TPIXELTYPE                                inPixelType;

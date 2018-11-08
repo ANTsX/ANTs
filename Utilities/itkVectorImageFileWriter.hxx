@@ -27,7 +27,7 @@
 namespace itk
 {
 // ---------------------------------------------------------
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 VectorImageFileWriter<TVectorImage, TImage>
 ::VectorImageFileWriter() :
   m_FileName(""),
@@ -42,14 +42,14 @@ VectorImageFileWriter<TVectorImage, TImage>
 }
 
 // ---------------------------------------------------------
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 VectorImageFileWriter<TVectorImage, TImage>
 ::~VectorImageFileWriter()
 {
 }
 
 // ---------------------------------------------------------
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 void
 VectorImageFileWriter<TVectorImage, TImage>
 ::SetInput(const VectorImageType *input)
@@ -59,7 +59,7 @@ VectorImageFileWriter<TVectorImage, TImage>
 }
 
 // ---------------------------------------------------------
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 const typename VectorImageFileWriter<TVectorImage, TImage>::VectorImageType
 * VectorImageFileWriter<TVectorImage, TImage>
 ::GetInput(void)
@@ -74,7 +74,7 @@ const typename VectorImageFileWriter<TVectorImage, TImage>::VectorImageType
   }
 
 // ---------------------------------------------------------
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 const typename VectorImageFileWriter<TVectorImage, TImage>::VectorImageType
 * VectorImageFileWriter<TVectorImage, TImage>
 ::GetInput(unsigned int idx)
@@ -84,7 +84,7 @@ const typename VectorImageFileWriter<TVectorImage, TImage>::VectorImageType
   }
 
 // ---------------------------------------------------------
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 void
 VectorImageFileWriter<TVectorImage, TImage>
 ::SetIORegion(const ImageIORegion& region)
@@ -99,7 +99,7 @@ VectorImageFileWriter<TVectorImage, TImage>
 }
 
 // ---------------------------------------------------------
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 void
 VectorImageFileWriter<TVectorImage, TImage>
 ::GenerateData(void)
@@ -135,7 +135,7 @@ VectorImageFileWriter<TVectorImage, TImage>
 }
 
 // ---------------------------------------------------------
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 void
 VectorImageFileWriter<TVectorImage, TImage>
 ::Write()
@@ -383,7 +383,7 @@ VectorImageFileWriter<TVectorImage, TImage>
 }
 
 // ---------------------------------------------------------
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 void
 VectorImageFileWriter<TVectorImage, TImage>
 ::PrintSelf(std::ostream& os, Indent indent) const

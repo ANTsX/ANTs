@@ -34,7 +34,7 @@ namespace ants
 {
 using namespace std;
 /** below code from Paul Yushkevich's c3d */
-template <class AnyType>
+template <typename AnyType>
 bool
 try_print_metadata(itk::MetaDataDictionary & mdd, std::string key)
 {

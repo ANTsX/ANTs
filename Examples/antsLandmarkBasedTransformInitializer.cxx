@@ -21,7 +21,7 @@
 namespace ants
 {
 
-template<class ImageType, class PointSetType>
+template<typename ImageType, typename PointSetType>
 void ReadLabeledPointSetFromImage( typename ImageType::Pointer image, typename PointSetType::Pointer pointSet, std::vector<typename ImageType::PixelType> & labels )
 {
   labels.clear();
@@ -84,7 +84,7 @@ void ReadLabeledPointSetFromImage( typename ImageType::Pointer image, typename P
     }
 }
 
-template <unsigned int ImageDimension, class TransformType>
+template <unsigned int ImageDimension, typename TransformType>
 int InitializeLinearTransform( int itkNotUsed( argc ), char *argv[] )
 {
   typedef unsigned int                          LabelType;

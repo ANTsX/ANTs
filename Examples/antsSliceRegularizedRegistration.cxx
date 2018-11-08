@@ -77,7 +77,7 @@ namespace ants
 /** \class antsRegistrationCommandIterationUpdate
  *  \brief change parameters between iterations of registration
  */
-template <class TFilter>
+template <typename TFilter>
 class antsSliceRegularizedRegistrationCommandIterationUpdate : public itk::Command
 {
 public:
@@ -154,7 +154,7 @@ private:
   std::ostream *            m_LogStream;
 };
 
-template <class T>
+template <typename T>
 inline std::string ants_slice_regularized_to_string(const T& t)
 {
   std::stringstream ss;
@@ -163,7 +163,7 @@ inline std::string ants_slice_regularized_to_string(const T& t)
   return ss.str();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputImage,
                                              typename ImageType::PixelType lowerScaleFunction,
                                              typename ImageType::PixelType upperScaleFunction,
@@ -236,7 +236,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
   return outputImage;
 }
 
-template <class T>
+template <typename T>
 struct ants_slice_regularized_index_cmp
   {
   ants_slice_regularized_index_cmp(const T _arr) : arr(_arr)
@@ -251,7 +251,7 @@ struct ants_slice_regularized_index_cmp
   const T arr;
   };
 
-template <class TFilter>
+template <typename TFilter>
 class CommandIterationUpdate : public itk::Command
 {
 public:
@@ -341,7 +341,7 @@ void ants_slice_poly_regularize(
   }
 
 
-template <unsigned int ImageDimension, class TXType>
+template <unsigned int ImageDimension, typename TXType>
 int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
 {
   // We infer the number of stages by the number of transformations

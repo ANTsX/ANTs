@@ -24,12 +24,12 @@ namespace ants
 
 unsigned int morph_shape_flag( const char * shape );
 
-template<class ImageType>
+template<typename ImageType>
 typename ImageType::Pointer
 iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs);                    /*???*/
 
 // Canny Edge Filter
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathCanny(typename ImageType::Pointer image,                                                    /*0*/
            double sigma,
@@ -37,13 +37,13 @@ iMathCanny(typename ImageType::Pointer image,                                   
            double upperThreshold );
 
 // Distance Map
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathDistanceMap(typename ImageType::Pointer image, bool useSpacing );                               /*0*/
 #define iMathDistanceMapUseSpacing true;
 
 // Fill Holes in objects
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathFillHoles(typename ImageType::Pointer image, double holeParam );                                  /*0*/
 #define iMathFillHolesHoleParam 2;
@@ -52,7 +52,7 @@ iMathFillHoles(typename ImageType::Pointer image, double holeParam );           
 #define iMathGetLargestComponentMinSize 50;
 
 // Grayscale morphological closing
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGC(typename ImageType::Pointer image, unsigned long radius);                               /*0*/
 #define iMathGCRadius 1;

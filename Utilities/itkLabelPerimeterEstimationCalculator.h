@@ -34,7 +34,7 @@ namespace itk
  *
  * \sa
  */
-template< class TInputImage >
+template< typename TInputImage >
 class ITK_EXPORT LabelPerimeterEstimationCalculator:
   public Object
 {

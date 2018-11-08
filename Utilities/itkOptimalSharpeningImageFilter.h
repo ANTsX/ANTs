@@ -41,7 +41,7 @@ namespace itk
  * \sa LaplacianOperator
  *
  * \ingroup ImageFeatureExtraction */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 class OptimalSharpeningImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {

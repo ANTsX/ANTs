@@ -14,7 +14,7 @@ namespace itk
 {
 namespace ants
 {
-template <class T, unsigned VImageDimension>
+template <typename T, unsigned VImageDimension>
 typename itk::Transform<T, VImageDimension, VImageDimension>::Pointer
 ReadTransform(const std::string & filename,
               const bool useStaticCastForR = false) // This parameter changes to true by the programs that use R, so this code
@@ -129,7 +129,7 @@ ReadTransform(const std::string & filename,
   return transform;
 }
 
-template <class T, unsigned int VImageDimension>
+template <typename T, unsigned int VImageDimension>
 int
 WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Pointer & xfrm,
                const std::string & filename)
@@ -228,7 +228,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
   return EXIT_SUCCESS;
 }
 
-template <class T, unsigned int VImageDimension>
+template <typename T, unsigned int VImageDimension>
 int
 WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimension>::Pointer & xfrm,
                const std::string & filename)

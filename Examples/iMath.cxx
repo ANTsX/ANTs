@@ -33,7 +33,7 @@ void WIP(int argc, char **argv)
   exit(1);
 }
 
-template <class T>
+template <typename T>
 bool from_string(T& t,
                  const std::string& s,
                  std::ios_base & (*f)(std::ios_base &) )
@@ -51,7 +51,7 @@ bool from_string(T& t,
   return true;
 }
 
-template <class T>
+template <typename T>
 std::string ants_to_string(T t)
 {
   std::stringstream istream;

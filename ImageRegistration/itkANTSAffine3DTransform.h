@@ -13,7 +13,7 @@ namespace itk
  *
  * \ingroup Transforms
  */
-template <class TScalarType = double>
+template <typename TScalarType = double>
 // Data type for scalars (float or double)
 class ANTSAffine3DTransform :
   public         MatrixOffsetTransformBase<TScalarType, 3, 3>

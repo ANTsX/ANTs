@@ -114,7 +114,7 @@ namespace itk
  * \ingroup RegistrationMetrics
  * \ingroup ThreadUnSafe
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 class SpatialMutualInformationRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {

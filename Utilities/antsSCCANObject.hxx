@@ -40,7 +40,7 @@ namespace itk
 {
 namespace ants
 {
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
 {
   this->m_UseL1 = true;
@@ -77,7 +77,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_PriorWeight = 0;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename TInputImage::Pointer
 antsSCCANObject<TInputImage, TRealType>
 ::ConvertVariateToSpatialImage(  typename antsSCCANObject<TInputImage,
@@ -150,7 +150,7 @@ antsSCCANObject<TInputImage, TRealType>
 }
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename TInputImage::Pointer
 antsSCCANObject<TInputImage, TRealType>
 ::ConvertVariateToSpatialImage4D(  typename antsSCCANObject<TInputImage,
@@ -233,7 +233,7 @@ antsSCCANObject<TInputImage, TRealType>
 }
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType
 antsSCCANObject<TInputImage, TRealType>
 ::CurvatureSparseness(
@@ -312,7 +312,7 @@ antsSCCANObject<TInputImage, TRealType>
   return gradvec.two_norm();
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::ClusterThresholdVariate(  typename antsSCCANObject<TInputImage,
@@ -423,7 +423,7 @@ antsSCCANObject<TInputImage, TRealType>
 }
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::ClusterThresholdVariate4D(  typename antsSCCANObject<TInputImage,
@@ -540,7 +540,7 @@ antsSCCANObject<TInputImage, TRealType>
 
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::ConvertImageToVariate(  typename TInputImage::Pointer image, typename TInputImage::Pointer mask )
@@ -581,7 +581,7 @@ antsSCCANObject<TInputImage, TRealType>
   return vec;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::ConvertImageToVariate4D(  typename TInputImage::Pointer image, typename TInputImage::Pointer mask )
@@ -638,7 +638,7 @@ antsSCCANObject<TInputImage, TRealType>
 }
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::InitializeV( typename antsSCCANObject<TInputImage, TRealType>::MatrixType p, unsigned long seed )
@@ -666,7 +666,7 @@ antsSCCANObject<TInputImage, TRealType>
   return w_p;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::SpatiallySmoothVector( typename antsSCCANObject<TInputImage, TRealType>::VectorType vec,
@@ -741,7 +741,7 @@ antsSCCANObject<TInputImage, TRealType>
     }
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::ComputeVectorLaplacian( typename antsSCCANObject<TInputImage, TRealType>::VectorType vec,
@@ -770,7 +770,7 @@ antsSCCANObject<TInputImage, TRealType>
   return gradvec;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::ComputeVectorGradMag( typename antsSCCANObject<TInputImage, TRealType>::VectorType vec,
@@ -795,7 +795,7 @@ antsSCCANObject<TInputImage, TRealType>
   return gradvec;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::MatrixType
 antsSCCANObject<TInputImage, TRealType>
 ::NormalizeMatrix( typename antsSCCANObject<TInputImage, TRealType>::MatrixType p, bool makepositive )
@@ -834,7 +834,7 @@ antsSCCANObject<TInputImage, TRealType>
   return np;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::MatrixType
 antsSCCANObject<TInputImage, TRealType>
 ::VNLPseudoInverse( typename antsSCCANObject<TInputImage, TRealType>::MatrixType rin, bool take_sqrt )
@@ -882,7 +882,7 @@ antsSCCANObject<TInputImage, TRealType>
 
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void
 antsSCCANObject<TInputImage, TRealType>
 ::SoftClustThreshold( typename antsSCCANObject<TInputImage, TRealType>::VectorType &  v_in,
@@ -915,7 +915,7 @@ antsSCCANObject<TInputImage, TRealType>
 
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void
 antsSCCANObject<TInputImage, TRealType>
 ::ReSoftThreshold( typename antsSCCANObject<TInputImage, TRealType>::VectorType &
@@ -1013,7 +1013,7 @@ antsSCCANObject<TInputImage, TRealType>
   return;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void
 antsSCCANObject<TInputImage, TRealType>
 ::ConstantProbabilityThreshold( typename antsSCCANObject<TInputImage, TRealType>::VectorType &
@@ -1137,7 +1137,7 @@ antsSCCANObject<TInputImage, TRealType>
   return;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::TrueCCAPowerUpdate( TRealType penalty1,
@@ -1173,7 +1173,7 @@ antsSCCANObject<TInputImage, TRealType>
   return wpnew;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void
 antsSCCANObject<TInputImage, TRealType>
 ::UpdatePandQbyR()
@@ -1212,7 +1212,7 @@ antsSCCANObject<TInputImage, TRealType>
     }
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void antsSCCANObject<TInputImage, TRealType>
 ::RunDiagnostics( unsigned int n_vecs )
 {
@@ -1281,7 +1281,7 @@ void antsSCCANObject<TInputImage, TRealType>
     }
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseCCA(unsigned int /* nvecs */)
 {
@@ -1399,7 +1399,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return this->m_CanonicalCorrelations[0];
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparsePartialCCA(unsigned int /* nvecs */)
 {
@@ -1506,7 +1506,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return this->m_CanonicalCorrelations[0];
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void antsSCCANObject<TInputImage, TRealType>
 ::SortResults(unsigned int n_vecs)
 {
@@ -1615,7 +1615,7 @@ void antsSCCANObject<TInputImage, TRealType>
   this->m_CanonicalCorrelations = newcorrs;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseArnoldiSVD_z(unsigned int n_vecs )
 {
@@ -1805,7 +1805,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return fabs(this->m_CanonicalCorrelations[0]);
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType
 antsSCCANObject<TInputImage, TRealType>
 ::ReconstructionError( typename antsSCCANObject<TInputImage, TRealType>::MatrixType mymat,
@@ -1833,7 +1833,7 @@ antsSCCANObject<TInputImage, TRealType>
   return ( onenorm - reconerr ) / onenorm;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseReconPrior(unsigned int n_vecs, bool prior)
 {
@@ -1947,7 +1947,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return 1.0 / reconerr;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::IHTPowerIterationPrior( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
                           typename antsSCCANObject<TInputImage, TRealType>::VectorType& evec,
@@ -2059,7 +2059,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return rayquo;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseReconB(   typename antsSCCANObject<TInputImage,
                                            TRealType>::MatrixType& matrixB,
@@ -2110,7 +2110,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 }
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseRecon(unsigned int n_vecs)
 {
@@ -2327,7 +2327,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::IHTPowerIterationHome( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
                          typename antsSCCANObject<TInputImage, TRealType>::VectorType& evec,
@@ -2399,7 +2399,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return rayquo;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseReconHome(unsigned int n_vecs)
 {
@@ -2507,7 +2507,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return 1.0 / reconerr;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseArnoldiSVDGreedy(unsigned int n_vecs)
 {
@@ -2752,7 +2752,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return fabs(this->m_CanonicalCorrelations[0]);
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseArnoldiSVD_x(unsigned int n_vecs)
 {
@@ -2921,7 +2921,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return fabs(this->m_CanonicalCorrelations[0]);
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::ConjGrad( typename antsSCCANObject<TInputImage,
                                      TRealType>::MatrixType& A,
@@ -3002,7 +3002,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return ( soln - b_in).one_norm() / b_in.size();
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::EvaluateEnergy( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  x_k,
@@ -3018,7 +3018,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return e;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::GoldenSection( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
                  typename antsSCCANObject<TInputImage, TRealType>::VectorType&  x_k,
@@ -3076,7 +3076,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::LineSearch( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
               typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
@@ -3110,7 +3110,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return bestalph;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseNLConjGrad( typename antsSCCANObject<TInputImage,
                                              TRealType>::MatrixType& A,
@@ -3228,7 +3228,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return minerr / A.rows();
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseNLPreConjGrad( typename antsSCCANObject<TInputImage,
                                                 TRealType>::MatrixType& A,
@@ -3320,7 +3320,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return finalerr;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::PowerIteration( typename antsSCCANObject<TInputImage,
                                            TRealType>::MatrixType& A,
@@ -3353,7 +3353,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return inner_product( A * evec, A * evec );
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::IHTPowerIteration( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
                      typename antsSCCANObject<TInputImage, TRealType>::VectorType& evecin,
@@ -3446,7 +3446,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::IHTPowerIterationU( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
                      typename antsSCCANObject<TInputImage, TRealType>::VectorType& evecin,
@@ -3519,7 +3519,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::RidgeCCA(unsigned int n_vecs)
 {
@@ -3621,7 +3621,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return this->m_CanonicalCorrelations[0];
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::RidgeRegression( typename antsSCCANObject<TInputImage,
                                             TRealType>::MatrixType& A,
@@ -3679,7 +3679,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return minerr;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::CGSPCA(unsigned int n_vecs )
 {
@@ -3769,7 +3769,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return this->m_CanonicalCorrelations[0];
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void antsSCCANObject<TInputImage, TRealType>
 ::DeleteRow( typename antsSCCANObject<TInputImage,
                                       TRealType>::MatrixType& p_in,  unsigned int row )
@@ -3794,7 +3794,7 @@ void antsSCCANObject<TInputImage, TRealType>
   return;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void antsSCCANObject<TInputImage, TRealType>
 ::LASSO_alg(  typename antsSCCANObject<TInputImage, TRealType>::MatrixType& X,
               typename antsSCCANObject<TInputImage, TRealType>::VectorType& y,
@@ -3858,7 +3858,7 @@ void antsSCCANObject<TInputImage, TRealType>
     } // iterations
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::LASSO_Cross()
 {
@@ -3975,7 +3975,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return predictionerror;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::LASSO( unsigned int n_vecs )
 {
@@ -4036,7 +4036,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return this->m_CanonicalCorrelations( 0 );
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseConjGradRidgeRegression( typename antsSCCANObject<TInputImage,
                                                           TRealType>::MatrixType& A,
@@ -4154,7 +4154,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return minerr;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::IHTRegression( typename antsSCCANObject<TInputImage,
                                           TRealType>::MatrixType& A,
@@ -4254,7 +4254,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return minerr;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::MatchingPursuit( typename antsSCCANObject<TInputImage,
                                             TRealType>::MatrixType& A,
@@ -4321,7 +4321,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return minerr;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::NetworkDecomposition(unsigned int n_vecs )
 {
@@ -4634,7 +4634,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseArnoldiSVD_Other( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A )
 {
@@ -4688,7 +4688,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::BasicSVD()
 {
@@ -4783,7 +4783,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return this->m_CanonicalCorrelations[0];
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseArnoldiSVD(unsigned int n_vecs )
 {
@@ -4896,7 +4896,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return fabs(this->m_CanonicalCorrelations[0]);
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::ComputeSPCAEigenvalues(unsigned int n_vecs, TRealType trace, bool orth )
 {
@@ -4989,7 +4989,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return 0;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::MatrixType
 antsSCCANObject<TInputImage, TRealType>
 ::GetCovMatEigenvectors( typename antsSCCANObject<TInputImage, TRealType>::MatrixType rin  )
@@ -5026,7 +5026,7 @@ antsSCCANObject<TInputImage, TRealType>
     }
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 bool antsSCCANObject<TInputImage, TRealType>
 ::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov , unsigned int k )
 {
@@ -5241,7 +5241,7 @@ bool antsSCCANObject<TInputImage, TRealType>
   return this->m_CanonicalCorrelations.mean();
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::InitializeSCCA_simple( unsigned int n_vecs )
 {
@@ -5343,7 +5343,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 }
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::InitializeSCCA( unsigned int n_vecs, unsigned int seeder )
 {
@@ -5388,7 +5388,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparsePartialArnoldiCCA(unsigned int n_vecs_in)
 {
@@ -5642,7 +5642,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 */
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::IHTCCA(unsigned int n_vecs_in)
 {
@@ -5761,7 +5761,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void antsSCCANObject<TInputImage, TRealType>
 ::WhitenDataSetForRunSCCANMultiple(unsigned int nvecs)
 {
@@ -5846,7 +5846,7 @@ void antsSCCANObject<TInputImage, TRealType>
 }
 
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void antsSCCANObject<TInputImage, TRealType>
 ::NormalizeWeights(const unsigned int k )
 {
@@ -5858,7 +5858,7 @@ void antsSCCANObject<TInputImage, TRealType>
   this->m_VariatesQ.set_column( k, this->m_WeightsQ );
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void antsSCCANObject<TInputImage, TRealType>
 ::NormalizeWeightsByCovariance(const unsigned int k, const TRealType taup, const TRealType tauq)
 {
@@ -5909,7 +5909,7 @@ void antsSCCANObject<TInputImage, TRealType>
     }
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType
 antsSCCANObject<TInputImage, TRealType>
 ::RunSCCAN2multiple( unsigned int n_vecs )
@@ -6163,7 +6163,7 @@ antsSCCANObject<TInputImage, TRealType>
   return this->m_CanonicalCorrelations[0]; // corrsum;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::RunSCCAN2()
 {
@@ -6236,7 +6236,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return truecorr;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 TRealType
 antsSCCANObject<TInputImage, TRealType>
 ::RunSCCAN3()
@@ -6317,7 +6317,7 @@ antsSCCANObject<TInputImage, TRealType>
   return truecorr;
 }
 
-template <class TInputImage, class TRealType>
+template <typename TInputImage, typename TRealType>
 void
 antsSCCANObject<TInputImage, TRealType>
 ::MRFFilterVariateMatrix()

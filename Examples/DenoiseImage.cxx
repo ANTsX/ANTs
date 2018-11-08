@@ -19,7 +19,7 @@ namespace ants
 {
 
 
-template <class TFilter>
+template <typename TFilter>
 class CommandProgressUpdate : public itk::Command
 {
 public:

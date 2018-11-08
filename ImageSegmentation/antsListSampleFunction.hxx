@@ -26,7 +26,7 @@ namespace Statistics
 /**
  * Constructor
  */
-template <class TInputListSample, class TOutput, class TCoordRep>
+template <typename TInputListSample, typename TOutput, typename TCoordRep>
 ListSampleFunction<TInputListSample, TOutput, TCoordRep>
 ::ListSampleFunction()
 {
@@ -37,7 +37,7 @@ ListSampleFunction<TInputListSample, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputListSample, class TOutput, class TCoordRep>
+template <typename TInputListSample, typename TOutput, typename TCoordRep>
 void
 ListSampleFunction<TInputListSample, TOutput, TCoordRep>
 ::PrintSelf( std::ostream& os, Indent indent) const
@@ -48,7 +48,7 @@ ListSampleFunction<TInputListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TInputListSample, class TOutput, class TCoordRep>
+template <typename TInputListSample, typename TOutput, typename TCoordRep>
 void
 ListSampleFunction<TInputListSample, TOutput, TCoordRep>
 ::SetListSampleWeights( const unsigned int idx, ListSampleWeightArrayType* array )
@@ -66,7 +66,7 @@ ListSampleFunction<TInputListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TInputListSample, class TOutput, class TCoordRep>
+template <typename TInputListSample, typename TOutput, typename TCoordRep>
 typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::ListSampleWeightArrayType
 * ListSampleFunction<TInputListSample, TOutput, TCoordRep>
 ::GetListSampleWeights( const unsigned int idx )
@@ -84,7 +84,7 @@ typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::ListSampleWei
 /**
  * Initialize by setting the input point set
  */
-template <class TInputListSample, class TOutput, class TCoordRep>
+template <typename TInputListSample, typename TOutput, typename TCoordRep>
 void
 ListSampleFunction<TInputListSample, TOutput, TCoordRep>
 ::SetIndexedInputListSample( const unsigned int idx, const InputListSampleType * ptr )
@@ -102,7 +102,7 @@ ListSampleFunction<TInputListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TInputListSample, class TOutput, class TCoordRep>
+template <typename TInputListSample, typename TOutput, typename TCoordRep>
 const
 typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::InputListSampleType
 * ListSampleFunction<TInputListSample, TOutput, TCoordRep>

@@ -30,7 +30,7 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::HistogramParzenWindowsListSampleFunction()
 {
@@ -41,13 +41,13 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
   this->m_Sigma = 1.0;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~HistogramParzenWindowsListSampleFunction()
 {
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
@@ -189,7 +189,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 TOutput
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
@@ -223,7 +223,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PrintSelf(

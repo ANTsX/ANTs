@@ -44,7 +44,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::DiReCTImageFilter() :
   m_ThicknessPriorEstimate( 10.0 ),
@@ -74,13 +74,13 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   this->m_TimePoints.clear();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::~DiReCTImageFilter()
 {
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
@@ -671,7 +671,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   this->SetNthOutput( 1, warpedWhiteMatterProbabilityImage );
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::InputImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::ExtractRegion( const InputImageType *segmentationImage,
@@ -693,7 +693,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return thresholdRegion;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::InputImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::ExtractRegionalContours( const InputImageType *segmentationImage,
@@ -718,7 +718,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 }
 
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::MakeThicknessImage( RealImagePointer hitImage, RealImagePointer totalImage,
@@ -782,7 +782,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::WarpImage( const RealImageType *inputImage,
@@ -804,7 +804,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return warpedImage;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::GaussianSmoothDisplacementField( const DisplacementFieldType *inputField,
@@ -890,7 +890,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return outputField;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::BSplineSmoothDisplacementField( const DisplacementFieldType *inputField,
@@ -924,7 +924,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return outputField;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::SmoothImage( const RealImageType *inputImage, const RealType variance )
@@ -946,7 +946,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent) const

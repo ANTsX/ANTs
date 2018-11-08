@@ -56,7 +56,7 @@ namespace ants
 {
 
 /*
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
               typename ImageType::Pointer itkNotUsed(image2),
@@ -110,7 +110,7 @@ unsigned int morph_shape_flag( const char * shape )
   return flag;
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs )           /*?????*/
 {
@@ -135,7 +135,7 @@ iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs )     
   return( labimg );
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathCanny( typename ImageType::Pointer image,                                    /*0*/  
             double sigma,
@@ -157,7 +157,7 @@ iMathCanny( typename ImageType::Pointer image,                                  
 
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathDistanceMap( typename ImageType::Pointer image, bool useSpacing )           /*0*/
 {
@@ -180,7 +180,7 @@ iMathDistanceMap( typename ImageType::Pointer image, bool useSpacing )          
 // 4. label surface
 // 5. if everywhere on surface is next to object then it's a hole
 // 6. make sure it's not the background
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathFillHoles( typename ImageType::Pointer image, double holeParam )                /*0*/
 {
@@ -334,7 +334,7 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )           
 }
 
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGC(typename ImageType::Pointer image, unsigned long radius)                    /*0*/
 {

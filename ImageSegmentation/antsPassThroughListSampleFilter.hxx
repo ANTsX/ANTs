@@ -23,7 +23,7 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample>
+template <typename TListSample>
 PassThroughListSampleFilter<TListSample>
 ::PassThroughListSampleFilter()
 {
@@ -32,13 +32,13 @@ PassThroughListSampleFilter<TListSample>
     this->GetInput()->GetMeasurementVectorSize() );
 }
 
-template <class TListSample>
+template <typename TListSample>
 PassThroughListSampleFilter<TListSample>
 ::~PassThroughListSampleFilter()
 {
 }
 
-template <class TListSample>
+template <typename TListSample>
 void
 PassThroughListSampleFilter<TListSample>
 ::GenerateData()
@@ -54,7 +54,7 @@ PassThroughListSampleFilter<TListSample>
     }
 }
 
-template <class TListSample>
+template <typename TListSample>
 void
 PassThroughListSampleFilter<TListSample>
 ::PrintSelf( std::ostream& os, Indent indent ) const

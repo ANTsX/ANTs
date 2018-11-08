@@ -22,7 +22,7 @@
 
 namespace ants
 {
-template <class TransformType>
+template <typename TransformType>
 void WriteAffineTransformFile(typename TransformType::Pointer & transform,
                               const std::string & filename)
 {
@@ -52,7 +52,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
 
 // //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
-template <class RunningAffineTransformType, class AffineTransformType>
+template <typename RunningAffineTransformType, typename AffineTransformType>
 inline void PostConversionInAffine(const typename RunningAffineTransformType::Pointer & transform_running,
                                    typename AffineTransformType::Pointer & transform)
 {
@@ -69,7 +69,7 @@ inline void PostConversionInAffine(const typename RunningAffineTransformType::Po
   // std::cout << "transform" << transform << std::endl;
 }
 
-template <class TransformA>
+template <typename TransformA>
 void DumpTransformForANTS3D(const typename TransformA::Pointer & transform, const std::string & ANTS_prefix)
 {
   const int ImageDimension = 3;
@@ -109,7 +109,7 @@ void DumpTransformForANTS3D(const typename TransformA::Pointer & transform, cons
 //   assume PointContainerType is std::vector
 //   assume TrnasformPointerType is MatrixOffsetTransformBase
 
-template <class PointContainerType, class TransformType>
+template <typename PointContainerType, typename TransformType>
 void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
                                           typename TransformType::Pointer & transform)
 {
@@ -193,7 +193,7 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
   return;
 }
 
-template <class PointContainerType, class TTransform>
+template <typename PointContainerType, typename TTransform>
 void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
                                          typename TTransform::Pointer & aff)
 {
@@ -224,7 +224,7 @@ void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, Po
   PostConversionInAffine<TransformType, TTransform>(transform, aff);
 }
 
-template <class PointContainerType>
+template <typename PointContainerType>
 void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_field_file_name,
                                                float load_ratio,
                                                PointContainerType & fixedLandmarks,

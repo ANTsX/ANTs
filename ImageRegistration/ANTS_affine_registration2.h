@@ -41,7 +41,7 @@
 typedef enum { AffineWithMutualInformation = 1, AffineWithMeanSquareDifference, AffineWithHistogramCorrelation,
                AffineWithNormalizedCorrelation, AffineWithGradientDifference } AffineMetricType;
 
-template <class TAffineTransform, class TMaskImage>
+template <typename TAffineTransform, typename TMaskImage>
 class OptAffine
 {
 public:
@@ -98,7 +98,7 @@ public:
   bool ignore_void_orgin;
 };
 
-template <class TAffineTransform, class TMaskImage>
+template <typename TAffineTransform, typename TMaskImage>
 std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransform,  TMaskImage>& p)
 {
   os << "OptAffine: ";
@@ -151,7 +151,7 @@ std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransform,  T
   return os;
 };
 
-template <class TransformType>
+template <typename TransformType>
 void WriteAffineTransformFile(typename TransformType::Pointer & transform,
                               const std::string & filename)
 {
@@ -179,7 +179,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
   return;
 }
 
-template <class CastTransformType>
+template <typename CastTransformType>
 void ReadAffineTransformFile(const std::string & filename, typename CastTransformType::Pointer & transform)
 {
   //    const unsigned int InputSpaceDimension = CastTransformType::InputSpaceDimension;
@@ -209,7 +209,7 @@ void ReadAffineTransformFile(const std::string & filename, typename CastTransfor
   return;
 }
 
-template <class OptAffine>
+template <typename OptAffine>
 void InitializeAffineOptmizationParameters(OptAffine & opt, double translationScale)
 {
   const int kImageDim = OptAffine::MaskImageType::ImageDimension;
@@ -252,7 +252,7 @@ void InitializeAffineOptmizationParameters(OptAffine & opt, double translationSc
   std::cout << opt;
 }
 
-template <class TMaskObjectType, class TImagePyramid, class TMetricType, class TInterpolatorType>
+template <typename TMaskObjectType, typename TImagePyramid, typename TMetricType, typename TInterpolatorType>
 class RunningAffineCache
 {
 public:
@@ -281,7 +281,7 @@ public:
   InterpolatorPointerType interpolator;
 };
 
-template <class ImageTypePointer, class AffineTransformPointer>
+template <typename ImageTypePointer, typename AffineTransformPointer>
 void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPointer & aff)
 {
   typedef typename ImageTypePointer::ObjectType                        ImageType;
@@ -299,7 +299,7 @@ void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPoi
 }
 
 // //////////////////////////////////////////////////////////////////////
-template <class ImagePointerType, class RunningImagePointerType, class OptAffineType, class RunningOptAffineType>
+template <typename ImagePointerType, typename RunningImagePointerType, typename OptAffineType, typename RunningOptAffineType>
 inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePointerType& R_fixedImage,
                                   ImagePointerType & movingImage, RunningImagePointerType& R_movingImage,
                                   OptAffineType & opt, RunningOptAffineType & R_opt)
@@ -410,7 +410,7 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
 }
 
 // //////////////////////////////////////////////////////////////////////
-template <class RunningAffineTransformPointerType, class AffineTransformPointerType>
+template <typename RunningAffineTransformPointerType, typename AffineTransformPointerType>
 inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
                                    AffineTransformPointerType & transform)
 {
@@ -431,7 +431,7 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-template <class ImageType, class TransformType, class OptAffineType>
+template <typename ImageType, typename TransformType, typename OptAffineType>
 void ComputeSingleAffineTransform2D3D(typename ImageType::Pointer & fixed_image,
                                       typename ImageType::Pointer & moving_image,
                                       OptAffineType & opt,
@@ -571,7 +571,7 @@ void ComputeSingleAffineTransform2D3D(typename ImageType::Pointer & fixed_image,
 // /////////////////////////////////////////////////////////////////////////
 // the initial transform maybe any derivative class type from MatrixOffsetTransformBase,
 // it will be automatically converted to the my 2D/3D affine type
-template <class ImageType, class TransformType, class OptAffineType>
+template <typename ImageType, typename TransformType, typename OptAffineType>
 void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
                                   typename ImageType::Pointer & movingImage,
                                   OptAffineType & opt,
@@ -633,7 +633,7 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-template <class MaskImagePointerType, class ImageMaskSpatialObjectPointerType>
+template <typename MaskImagePointerType, typename ImageMaskSpatialObjectPointerType>
 void InitialzeImageMask(MaskImagePointerType & mask_fixed, ImageMaskSpatialObjectPointerType & mask_fixed_object)
 {
   if( mask_fixed.IsNull() )
@@ -657,7 +657,7 @@ void InitialzeImageMask(MaskImagePointerType & mask_fixed, ImageMaskSpatialObjec
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-template <class ImagePointerType>
+template <typename ImagePointerType>
 ImagePointerType
 AddRandomNoise(ImagePointerType & I)
 {
@@ -687,7 +687,7 @@ AddRandomNoise(ImagePointerType & I)
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-template <class ImagePointerType, class PointType, class VectorType>
+template <typename ImagePointerType, typename PointType, typename VectorType>
 void ComputeInitialPosition(ImagePointerType & I_fixed, ImagePointerType & I_moving, PointType & center,
                             VectorType & translation_vec)
 {
@@ -738,7 +738,7 @@ void ComputeInitialPosition(ImagePointerType & I_fixed, ImagePointerType & I_mov
 }
 
 // fake a all-zero vector
-template <class ImagePointerType, class PointType, class VectorType>
+template <typename ImagePointerType, typename PointType, typename VectorType>
 void ComputeInitialPosition_tmp(ImagePointerType & I_fixed, ImagePointerType & I_moving, PointType & center,
                                 VectorType & translation_vec)
 {
@@ -764,7 +764,7 @@ void ComputeInitialPosition_tmp(ImagePointerType & I_fixed, ImagePointerType & I
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-template <class PointType, class VectorType, class TransformPointerType>
+template <typename PointType, typename VectorType, typename TransformPointerType>
 void InjectInitialPara(PointType & center, VectorType & translation_vec, TransformPointerType & transform)
 {
   typedef typename TransformPointerType::ObjectType::ParametersType ParaType;
@@ -801,7 +801,7 @@ void InjectInitialPara(PointType & center, VectorType & translation_vec, Transfo
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
-template <class ImagePointerType, class ParaType, class PointType, class TransformTypePointer>
+template <typename ImagePointerType, typename ParaType, typename PointType, typename TransformTypePointer>
 double TestCostValueMMI(ImagePointerType fixedImage, ImagePointerType movingImage, ParaType para, PointType center,
                         TransformTypePointer /* null_transform */)
 {
@@ -846,7 +846,7 @@ double TestCostValueMMI(ImagePointerType fixedImage, ImagePointerType movingImag
   return rval;
 }
 
-template <class ImagePointer>
+template <typename ImagePointer>
 ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
 {
   typedef typename ImagePointer::ObjectType ImageType;
@@ -903,7 +903,7 @@ ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
   return image;
 }
 
-template <class ImagePointerType, class ImagePyramidType>
+template <typename ImagePointerType, typename ImagePyramidType>
 void BuildImagePyramid(const ImagePointerType & image, int number_of_levels, ImagePyramidType & image_pyramid)
 {
   image_pyramid.resize(number_of_levels);
@@ -921,7 +921,7 @@ void BuildImagePyramid(const ImagePointerType & image, int number_of_levels, Ima
   // std::endl;
 }
 
-template <class ImagePointerType, class OptAffineType, class RunningAffineCacheType>
+template <typename ImagePointerType, typename OptAffineType, typename RunningAffineCacheType>
 void InitializeRunningAffineCache(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType & opt,
                                   RunningAffineCacheType & running_cache)
 {
@@ -937,7 +937,7 @@ void InitializeRunningAffineCache(ImagePointerType & fixed_image, ImagePointerTy
   running_cache.invmetric = MetricType::New();
 }
 
-template <class ImagePointerType, class OptAffineType>
+template <typename ImagePointerType, typename OptAffineType>
 void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType& opt)
 {
   typedef typename OptAffineType::AffineTransformType TransformType;
@@ -960,7 +960,7 @@ void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType
     }
 }
 
-template <class ParaType>
+template <typename ParaType>
 ParaType NormalizeGradientForRigidTransform(ParaType & original_gradient, int kImageDim)
 {
   ParaType new_gradient(original_gradient.Size() );
@@ -986,8 +986,8 @@ ParaType NormalizeGradientForRigidTransform(ParaType & original_gradient, int kI
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// template<class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
-template <class RunningAffineCacheType, class OptAffine, class ParaType>
+// template<typename ImagePointerType, typename ImageMaskSpatialObjectPointerType, typename ParaType>
+template <typename RunningAffineCacheType, typename OptAffine, typename ParaType>
 bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache, OptAffine & opt,
                                                              ParaType & para_final)
 {
@@ -1205,8 +1205,8 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
 }
 
 // /////////////////////////////////////////////////////////////////////////////
-// template<class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
-template <class RunningAffineCacheType, class OptAffine, class ParaType>
+// template<typename ImagePointerType, typename ImageMaskSpatialObjectPointerType, typename ParaType>
+template <typename RunningAffineCacheType, typename OptAffine, typename ParaType>
 bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache, OptAffine & opt,
                                                          ParaType & para_final)
 {

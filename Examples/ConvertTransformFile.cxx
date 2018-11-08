@@ -74,7 +74,7 @@ bool FileExists(string strFilename)
 /*
  *
  */
-template <class TTransform>
+template <typename TTransform>
 bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransform::MatrixType & matrix,
                 bool outputRAS )
 {
@@ -157,7 +157,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
 /*
  *
  */
-template <class TTransform, class TMatrix>
+template <typename TTransform, typename TMatrix>
 bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatrix & hMatrix, bool outputRAS )
 {
   const unsigned int ImageDimension = TTransform::InputSpaceDimension;

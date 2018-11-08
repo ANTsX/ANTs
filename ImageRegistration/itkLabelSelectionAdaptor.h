@@ -18,7 +18,7 @@ namespace Accessor
  * \ingroup ImageAdaptors
  * \ingroup ITKImageAdaptors
  */
-template< class TInternalType, class TExternalType >
+template< typename TInternalType, typename TExternalType >
 class ITK_EXPORT LabelSelectionPixelAccessor
 {
 public:
@@ -51,7 +51,7 @@ protected:
  * \ingroup ImageAdaptors
  * \ingroup ITKImageAdaptors
  */
-template< class TImage, class TOutputPixelType >
+template< typename TImage, typename TOutputPixelType >
 class ITK_EXPORT LabelSelectionImageAdaptor:public
   ImageAdaptor< TImage,
                 Accessor::LabelSelectionPixelAccessor<

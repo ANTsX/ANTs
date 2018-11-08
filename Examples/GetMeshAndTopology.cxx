@@ -304,7 +304,7 @@ float vtkComputeTopology(vtkPolyData* pd)
 #endif
 }
 
-template <class TImage>
+template <typename TImage>
 void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image2,  std::string outfn,
                   const char* paramname, float scaledata,
                   float aaParm, std::string offscreen , unsigned int inflate )
@@ -448,7 +448,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   return;
 }
 
-template <class TImage>
+template <typename TImage>
 float GetImageTopology(typename TImage::Pointer image)
 {
   typedef TImage      ImageType;

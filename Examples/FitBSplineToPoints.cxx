@@ -14,7 +14,7 @@
 #include <fstream>
 #include <string>
 
-template<class TValue>
+template<typename TValue>
 std::vector<TValue> ConvertDelimitedArray( std::string optionString )
 {
   std::vector<TValue> values;

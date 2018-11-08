@@ -34,7 +34,7 @@
 
 namespace itk
 {
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::ANTSImageRegistrationOptimizer()
 {
@@ -76,7 +76,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   this->m_SyNFullTime = 0;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::ImagePointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::SubsampleImage( ImagePointer image, RealType /* scalingFactor */, typename ImageType::PointType outputOrigin,
@@ -123,7 +123,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return outimage;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DisplacementFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::CopyDisplacementField(  DisplacementFieldPointer input  )
@@ -144,7 +144,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return output;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::SmoothDisplacementFieldGauss(DisplacementFieldPointer field, TReal sig, bool /* useparamimage */, unsigned int lodim)
@@ -252,7 +252,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   delete oper;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::SmoothVelocityGauss(TimeVaryingVelocityFieldPointer field, TReal sig, unsigned int lodim)
@@ -353,7 +353,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   delete oper;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::SmoothDisplacementFieldBSpline( DisplacementFieldPointer field, ArrayType meshsize,
@@ -442,7 +442,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::ComposeDiffs(DisplacementFieldPointer fieldtowarpby, DisplacementFieldPointer field,
@@ -520,7 +520,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }   // end iteration
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DisplacementFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::IntegrateConstantVelocity(DisplacementFieldPointer totalField, unsigned int ntimesteps, TReal timestep)
@@ -537,7 +537,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return diffmap;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DisplacementFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::ComputeUpdateField(DisplacementFieldPointer fixedwarp, DisplacementFieldPointer movingwarp,   PointSetPointer fpoints,
@@ -1060,7 +1060,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return totalUpdateField;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DisplacementFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::ComputeUpdateFieldAlternatingMin(DisplacementFieldPointer fixedwarp, DisplacementFieldPointer movingwarp,
@@ -1505,7 +1505,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return totalUpdateField;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::DiffeomorphicExpRegistrationUpdate(ImagePointer /* fixedImage */, ImagePointer movingImage, PointSetPointer fpoints,
@@ -1573,7 +1573,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::GreedyExpRegistrationUpdate(ImagePointer /* fixedImage */, ImagePointer /* movingImage */, PointSetPointer fpoints,
@@ -1618,7 +1618,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 }
 
 // added by songgang
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::AffineTransformPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>::AffineOptimization(OptAffineType & affine_opt)
 {
@@ -1657,7 +1657,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::AffineOptimization(OptAffineT
   return transform;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::SyNRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints,
@@ -1743,7 +1743,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::SyNExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints,
@@ -1836,7 +1836,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::UpdateTimeVaryingVelocityFieldWithSyNFandSyNM()
@@ -1928,7 +1928,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 //  std::cout <<" ALlocated TV F "<< std::endl;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::CopyOrAddToVelocityField( TimeVaryingVelocityFieldPointer velocity,  DisplacementFieldPointer update1,
@@ -1971,7 +1971,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   //  std::cout << " tmag " << tmag << std::endl;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::SyNTVRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints,
@@ -2073,7 +2073,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::DiReCTUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints, PointSetPointer mpoints)
@@ -2367,7 +2367,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DisplacementFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::IntegrateVelocity(TReal starttimein, TReal finishtimein )
@@ -2481,7 +2481,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return intfield;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DisplacementFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::IntegrateLandmarkSetVelocity(TReal starttimein, TReal finishtimein,
@@ -2562,7 +2562,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   return intfield;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::VectorType
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::IntegratePointVelocity(TReal starttimein, TReal finishtimein, IndexType velind)
@@ -2944,7 +2944,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 /**
  * Standard "PrintSelf" method
  */
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::PrintSelf( std::ostream& os, Indent indent) const

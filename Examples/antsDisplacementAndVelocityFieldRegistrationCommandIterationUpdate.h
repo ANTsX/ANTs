@@ -16,7 +16,7 @@ There are two types of registration that do not use generic "itkImageRegistratio
     * TimeVaryingBSplineVelocityField
 As these registration types have their own specific optimization processes, a different observer is needed to watch their internal optimization procedure.
 */
-template <class TFilter>
+template <typename TFilter>
 class antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate : public itk::Command
 {
 public:

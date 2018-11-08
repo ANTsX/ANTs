@@ -23,7 +23,7 @@
 
 namespace ants
 {
-template <class TField, class TImage>
+template <typename TField, typename TImage>
 typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
@@ -43,7 +43,7 @@ GetVectorComponent(typename TField::Pointer field, unsigned int index)
   return sfield;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, float sig)
 {
@@ -70,7 +70,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   return out;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
 {
@@ -99,7 +99,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
   return;
 }
 
-template <class TImage, class TField, class TInterp, class TInterp2>
+template <typename TImage, typename TField, typename TInterp, typename TInterp2>
 float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointer /* thickimage */,
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
                        float starttime, const float deltaTime, typename TInterp::Pointer vinterp,

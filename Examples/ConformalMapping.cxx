@@ -172,7 +172,7 @@ void vtkCompositeManagerExitInteractor(vtkObject *vtkNotUsed(o),
     }
 }
 
-template <class TImage>
+template <typename TImage>
 void MapToSphere(typename TImage::Pointer image, int fixdir, float e)
 {
   typedef TImage                                           ImageType;
@@ -232,7 +232,7 @@ void MapToSphere(typename TImage::Pointer image, int fixdir, float e)
     }
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage( typename TImage::Pointer input, double var)
 {
@@ -309,7 +309,7 @@ float vtkComputeTopology(vtkPolyData* pd)
   return g;
 }
 
-template <class TImage>
+template <typename TImage>
 void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* filename)
 {
   typedef TImage      ImageType;
@@ -432,7 +432,7 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
   return;
 }
 
-template <class TImage>
+template <typename TImage>
 float GetImageTopology(typename TImage::Pointer image, float e, const char* filename)
 {
   typedef TImage      ImageType;
@@ -455,7 +455,7 @@ float GetImageTopology(typename TImage::Pointer image, float e, const char* file
   return genus;
 }
 
-template <class TImage>
+template <typename TImage>
 void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
 {
   typedef TImage                                        ImageType;
@@ -539,7 +539,7 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
 }
 
 /*
-template <class TImage>
+template <typename TImage>
 void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
 {
     const unsigned int Dimension = 2;
@@ -688,7 +688,7 @@ vtkwriter->Write();
 
 // }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 RemoveNaNs(typename TImage::Pointer image, float replaceval )
 {
@@ -706,7 +706,7 @@ RemoveNaNs(typename TImage::Pointer image, float replaceval )
 }
 
 /*
-template <class TImage>
+template <typename TImage>
 void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::string outfn)
 {
     const unsigned int Dimension = 2;

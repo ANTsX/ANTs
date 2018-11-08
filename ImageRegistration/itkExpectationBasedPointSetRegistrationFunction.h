@@ -56,7 +56,7 @@ namespace itk
 * \sa ExpectationBasedPointSetRegistrationFilter
 * \ingroup FiniteDifferenceFunctions
 */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 class ExpectationBasedPointSetRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage,

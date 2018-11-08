@@ -135,7 +135,7 @@ bool isDiagonalElement(std::vector<unsigned int> diagElements, unsigned int ind)
   return false;
 }
 
-template <class T, unsigned int Dimension>
+template <typename T, unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
   typedef T                                      RealType;

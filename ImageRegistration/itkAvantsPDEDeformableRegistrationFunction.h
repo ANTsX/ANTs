@@ -33,7 +33,7 @@ namespace itk
  * \sa AvantsPDEDeformableRegistrationFilter
  * \ingroup PDEDeformableRegistrationFunctions
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 class AvantsPDEDeformableRegistrationFunction :
   public         PDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {

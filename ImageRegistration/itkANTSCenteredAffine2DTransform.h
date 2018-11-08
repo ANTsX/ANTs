@@ -7,7 +7,7 @@
 
 namespace itk
 {
-template <class TScalarType = double>
+template <typename TScalarType = double>
 // Data type for scalars (float or double)
 // class Rigid2DTransform :
 class ANTSCenteredAffine2DTransform :

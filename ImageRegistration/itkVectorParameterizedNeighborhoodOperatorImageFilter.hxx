@@ -23,7 +23,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage, class TParamImage>
+template <typename TInputImage, typename TOutputImage, typename TParamImage>
 void
 VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TParamImage>
 ::GenerateInputRequestedRegion()
@@ -76,7 +76,7 @@ throw (InvalidRequestedRegionError)
     }
 }
 
-template <class TInputImage, class TOutputImage, class TParamImage>
+template <typename TInputImage, typename TOutputImage, typename TParamImage>
 void
 VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TParamImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,

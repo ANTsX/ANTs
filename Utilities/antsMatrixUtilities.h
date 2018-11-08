@@ -21,7 +21,7 @@ namespace itk
 {
 namespace ants
 {
-template <class TInputImage, class TRealType = double>
+template <typename TInputImage, typename TRealType = double>
 class antsMatrixUtilities :
   public         ImageToImageFilter<TInputImage, TInputImage>
 {

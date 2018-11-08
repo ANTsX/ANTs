@@ -23,7 +23,7 @@
 
 namespace ants
 {
-template <unsigned int Dimension, class RealType>
+template <unsigned int Dimension, typename RealType>
 int antsApplyTransformsToPoints(
   itk::ants::CommandLineParser::Pointer & parser )
 {

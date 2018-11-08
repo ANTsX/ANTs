@@ -147,7 +147,7 @@ extern std::string ANTSOptionValue(const char *str);
 extern std::string ANTSOptionName(const char *str);
 
 
-template <class T>
+template <typename T>
 bool from_string(T& t,
                  const std::string& s,
                  std::ios_base & (*f)(std::ios_base &) )
@@ -165,7 +165,7 @@ bool from_string(T& t,
   return true;
 }
 
-template <class T>
+template <typename T>
 std::string ants_to_string(T t)
 {
   std::stringstream istream;
@@ -4918,7 +4918,7 @@ int MakeImage(int argc, char *argv[])
   return 0;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
 {
@@ -6536,7 +6536,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
   return failure;
 }
 
-// template<class TImage>
+// template<typename TImage>
 // typename TImage::Pointer
 // SegmentKMeans(typename TImage::Pointer image , unsigned int nclasses)
 // {
@@ -6630,7 +6630,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
 //
 // }
 
-// template<class TImage>
+// template<typename TImage>
 // typename TImage::Pointer
 // BayesianSegmentation(typename TImage::Pointer image , unsigned int nclasses,  std::string priorfn ,  unsigned int
 // nsmooth = 2 )
@@ -7006,7 +7006,7 @@ int NegativeImage(int /*argc */, char *argv[])
   return 0;
 }
 
-// template<class TImage>
+// template<typename TImage>
 // typename TImage::Pointer
 // //void
 // SegmentMRF(typename TImage::Pointer image ,
@@ -7190,7 +7190,7 @@ int NegativeImage(int /*argc */, char *argv[])
 //
 // }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 // void
 itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
@@ -7347,7 +7347,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
   return filter->GetOutput();
 }
 
-// template<class TImage>
+// template<typename TImage>
 // typename TImage::Pointer
 // //void
 // SegmentMRFKM(typename TImage::Pointer image ,
@@ -11180,7 +11180,7 @@ int RandomlySampleImageSetToCSV(unsigned int argc, char *argv[])
   return 0;
 }
 
-template <class T>
+template <typename T>
 inline std::string to_string(const T& t)
 {
   std::stringstream ss;
@@ -12383,7 +12383,7 @@ int MinMaxMean( int argc, char *argv[] )
   return 0;
 }
 
-template <unsigned int ImageDimension, class TRealType, class TImageType, class TGImageType, class TInterp>
+template <unsigned int ImageDimension, typename TRealType, typename TImageType, typename TGImageType, typename TInterp>
 TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::NeighborhoodIterator<TImageType> GHood2,
                              std::vector<unsigned int> activeindex, std::vector<TRealType> weight,
                              typename TGImageType::Pointer gimage,
@@ -12525,7 +12525,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
     }
 }
 
-template <class TRealType>
+template <typename TRealType>
 void Sinkhorn( vnl_matrix<TRealType>&  correspondencematrix  )
 {
   // std::cout << " SH begin " << std::endl;
@@ -12556,7 +12556,7 @@ void Sinkhorn( vnl_matrix<TRealType>&  correspondencematrix  )
   // std::cout << " SH done " << std::endl;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer ComputeLaplacianImage( typename TImage::Pointer input )
 {
   typedef itk::LaplacianRecursiveGaussianImageFilter<TImage, TImage> dgf;
@@ -13151,7 +13151,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
   return EXIT_SUCCESS;
 }
 
-template <class T>
+template <typename T>
 struct blob_index_cmp
   {
   blob_index_cmp(const T arr) : barr(arr)
@@ -13166,7 +13166,7 @@ struct blob_index_cmp
   const T barr;
   };
 
-template <unsigned int ImageDimension, class TImage, class BlobsListType>
+template <unsigned int ImageDimension, typename TImage, typename BlobsListType>
 void getBlobCorrespondenceMatrix( unsigned int radval, typename TImage::Pointer image,  typename TImage::Pointer image2,
                                   vnl_matrix<float>& correspondencematrix, BlobsListType blobs1,  BlobsListType blobs2,
                                   float gradsig, bool dosinkhorn )

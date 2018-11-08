@@ -52,7 +52,7 @@
 
 namespace itk
 {
-template <unsigned int TDimension = 3, class TReal = float>
+template <unsigned int TDimension = 3, typename TReal = float>
 class ANTSImageRegistrationOptimizer
   : public       Object
 {

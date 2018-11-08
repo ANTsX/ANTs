@@ -76,7 +76,7 @@ namespace ants
 /** \class antsRegistrationCommandIterationUpdate
  *  \brief change parameters between iterations of registration
  */
-template <class TFilter>
+template <typename TFilter>
 class antsRegistrationCommandIterationUpdate : public itk::Command
 {
 public:
@@ -153,7 +153,7 @@ private:
   std::ostream *            m_LogStream;
 };
 
-template <class T>
+template <typename T>
 inline std::string ants_moco_to_string(const T& t)
 {
   std::stringstream ss;
@@ -162,7 +162,7 @@ inline std::string ants_moco_to_string(const T& t)
   return ss.str();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
                                              typename ImageType::PixelType lowerScaleFunction,
                                              typename ImageType::PixelType upperScaleFunction,
@@ -235,7 +235,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
   return outputImage;
 }
 
-template <class T>
+template <typename T>
 struct ants_moco_index_cmp
   {
   ants_moco_index_cmp(const T _arr) : arr(_arr)
@@ -250,7 +250,7 @@ struct ants_moco_index_cmp
   const T arr;
   };
 
-template <class TFilter>
+template <typename TFilter>
 class CommandIterationUpdate : public itk::Command
 {
 public:
@@ -386,7 +386,7 @@ public:
 };
 */
 
-template <class TImageIn, class TImageOut>
+template <typename TImageIn, typename TImageOut>
 void
 AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Pointer image_avg,
                    std::vector<unsigned int> timelist )

@@ -34,7 +34,7 @@ struct Dispatcher
   {
   };
 
-template <class TAffine>
+template <typename TAffine>
 struct HelperCommonType
   {
   typedef TAffine InternalAffineTransformType;
@@ -54,7 +54,7 @@ struct HelperCommonType
                                               unsigned int iEnd);
   };
 
-template <class T>
+template <typename T>
 class HelperType;
 
 // {
@@ -116,7 +116,7 @@ public:
 };
 }
 
-template <class TTransform>
+template <typename TTransform>
 class AverageAffineTransformNoRigidFunction
 {
 public:

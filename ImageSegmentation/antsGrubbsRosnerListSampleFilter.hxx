@@ -25,7 +25,7 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TScalarListSample>
+template <typename TScalarListSample>
 GrubbsRosnerListSampleFilter<TScalarListSample>
 ::GrubbsRosnerListSampleFilter()
 {
@@ -37,13 +37,13 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
   this->m_SignificanceLevel = 0.05;
 }
 
-template <class TScalarListSample>
+template <typename TScalarListSample>
 GrubbsRosnerListSampleFilter<TScalarListSample>
 ::~GrubbsRosnerListSampleFilter()
 {
 }
 
-template <class TScalarListSample>
+template <typename TScalarListSample>
 void
 GrubbsRosnerListSampleFilter<TScalarListSample>
 ::GenerateData()
@@ -178,7 +178,7 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
     }
 }
 
-template <class TScalarListSample>
+template <typename TScalarListSample>
 typename GrubbsRosnerListSampleFilter<TScalarListSample>
 ::InstanceIdentifierType
 GrubbsRosnerListSampleFilter<TScalarListSample>
@@ -211,7 +211,7 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
   return maximumID;
 }
 
-template <class TScalarListSample>
+template <typename TScalarListSample>
 bool
 GrubbsRosnerListSampleFilter<TScalarListSample>
 ::IsMeasurementAnOutlier( RealType x, RealType mean, RealType variance,
@@ -236,7 +236,7 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
   return g < ( itk::Math::abs ( x - mean ) / std::sqrt( variance ) );
 }
 
-template <class TScalarListSample>
+template <typename TScalarListSample>
 void
 GrubbsRosnerListSampleFilter<TScalarListSample>
 ::PrintSelf( std::ostream& os, Indent indent ) const

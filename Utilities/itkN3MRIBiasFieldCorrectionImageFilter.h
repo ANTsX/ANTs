@@ -83,8 +83,8 @@ namespace itk
  * Class definition for N3BiasFieldScaleCostFunction
  */
 
-template <class TInputImage, class TBiasFieldImage, class TMaskImage,
-          class TConfidenceImage>
+template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
+          typename TConfidenceImage>
 class N3BiasFieldScaleCostFunction
   : public       SingleValuedCostFunction
 {
@@ -131,7 +131,7 @@ private:
 /**
  * Class definition for N3MRIBiasFieldCorrectionImageFilter
  */
-template <class TInputImage, class TMaskImage = Image<unsigned char,
+template <typename TInputImage, typename TMaskImage = Image<unsigned char,
                                                       TInputImage::ImageDimension>,
           class TOutputImage = TInputImage>
 class N3MRIBiasFieldCorrectionImageFilter :

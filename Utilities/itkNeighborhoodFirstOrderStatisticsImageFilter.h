@@ -30,7 +30,7 @@ namespace itk
  * \ingroup ITK-TextureAnalysis
  */
 
-template< class TInputImage, class TOutputImage, class TKernel >
+template< typename TInputImage, typename TOutputImage, typename TKernel >
 class ITK_EXPORT NeighborhoodFirstOrderStatisticsImageFilter:
   public MovingHistogramImageFilter< TInputImage,
                                      TOutputImage,

@@ -21,14 +21,14 @@
 namespace itk
 {
 // Constructor with default arguments
-// template<class TScalarType>
+// template<typename TScalarType>
 // ANTSCenteredAffine2DTransform<TScalarType>::
 // ANTSCenteredAffine2DTransform():
 //   Superclass(OutputSpaceDimension, ParametersDimension)
 // {
 //   m_Angle = NumericTraits< TScalarType >::ZeroValue();
 // }
-template <class TScalarType>
+template <typename TScalarType>
 ANTSCenteredAffine2DTransform<TScalarType>::ANTSCenteredAffine2DTransform() :
   Superclass(ParametersDimension)
 {
@@ -39,7 +39,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::ANTSCenteredAffine2DTransform() :
 }
 
 // Constructor with arguments
-template <class TScalarType>
+template <typename TScalarType>
 ANTSCenteredAffine2DTransform<TScalarType>::ANTSCenteredAffine2DTransform( unsigned int spaceDimension,
                                                                            unsigned int parametersDimension) :
   Superclass(spaceDimension, parametersDimension)
@@ -51,14 +51,14 @@ ANTSCenteredAffine2DTransform<TScalarType>::ANTSCenteredAffine2DTransform( unsig
 }
 
 // Destructor
-template <class TScalarType>
+template <typename TScalarType>
 ANTSCenteredAffine2DTransform<TScalarType>::
 ~ANTSCenteredAffine2DTransform()
 {
 }
 
 // Print self
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>::PrintSelf(std::ostream & os, Indent indent) const
 {
@@ -72,7 +72,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::PrintSelf(std::ostream & os, Indent 
 }
 
 // Set the rotation matrix
-// template<class TScalarType>
+// template<typename TScalarType>
 // void
 // ANTSCenteredAffine2DTransform<TScalarType>::
 // SetMatrix(const MatrixType & matrix )
@@ -98,7 +98,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::PrintSelf(std::ostream & os, Indent 
 // }
 
 /** Compute the Angle from the Rotation Matrix */
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>
 ::ComputeMatrixParameters( void )
@@ -147,7 +147,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
 }
 
 // // Compose with a translation
-// template<class TScalarType>
+// template<typename TScalarType>
 // void
 // ANTSCenteredAffine2DTransform<TScalarType>::
 // Translate(const OffsetType &offset, bool)
@@ -158,7 +158,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
 // }
 
 // Create and return an inverse transformation
-// template<class TScalarType>
+// template<typename TScalarType>
 // void
 // ANTSCenteredAffine2DTransform<TScalarType>::
 // CloneInverseTo( Pointer & result ) const
@@ -170,7 +170,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
 // }
 
 // Create and return a clone of the transformation
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>::CloneTo( Pointer & result ) const
 {
@@ -184,7 +184,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::CloneTo( Pointer & result ) const
 }
 
 // Reset the transform to an identity transform
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>::SetIdentity( void )
 {
@@ -196,7 +196,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::SetIdentity( void )
 }
 
 // Set the angle of rotation
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>
 ::SetAngle(TScalarType angle)
@@ -207,7 +207,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
   this->Modified();
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>
 ::SetS1(TScalarType S1)
@@ -218,7 +218,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
   this->Modified();
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>
 ::SetS2(TScalarType S2)
@@ -229,7 +229,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
   this->Modified();
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>
 ::SetK(TScalarType K)
@@ -241,7 +241,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
 }
 
 // Set the angle of rotation
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>
 ::SetAngleInDegrees(TScalarType angle)
@@ -252,7 +252,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
 }
 
 // Compute the matrix from the angle
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>
 ::ComputeMatrix( void )
@@ -285,7 +285,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
 }
 
 // Set Parameters
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>::SetParameters( const ParametersType & parameters )
 {
@@ -325,7 +325,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::SetParameters( const ParametersType 
 }
 
 // Get Parameters
-template <class TScalarType>
+template <typename TScalarType>
 const typename ANTSCenteredAffine2DTransform<TScalarType>::ParametersType
 & ANTSCenteredAffine2DTransform<TScalarType>::
 GetParameters( void ) const
@@ -354,7 +354,7 @@ GetParameters( void ) const
   }
 
 // // Compute transformation Jacobian
-// template<class TScalarType>
+// template<typename TScalarType>
 // const typename ANTSCenteredAffine2DTransform<TScalarType>::JacobianType &
 // ANTSCenteredAffine2DTransform<TScalarType>::
 // GetJacobian( const InputPointType & p ) const
@@ -415,7 +415,7 @@ GetParameters( void ) const
 //
 // }
 
-template <class TScalarType>
+template <typename TScalarType>
 void
 ANTSCenteredAffine2DTransform<TScalarType>::ComputeJacobianWithRespectToParameters(const InputPointType  & p,
                                                                                    JacobianType & j) const
@@ -466,7 +466,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::ComputeJacobianWithRespectToParamete
 }
 
 // Back transform a point
-template <class TScalarType>
+template <typename TScalarType>
 typename ANTSCenteredAffine2DTransform<TScalarType>::InputPointType
 ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputPointType & point) const
 {
@@ -477,7 +477,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputPointType 
 }
 
 // Back transform a vector
-template <class TScalarType>
+template <typename TScalarType>
 typename ANTSCenteredAffine2DTransform<TScalarType>::InputVectorType
 ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputVectorType & vect ) const
 {
@@ -488,7 +488,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputVectorType
 }
 
 // Back transform a vnl_vector
-template <class TScalarType>
+template <typename TScalarType>
 typename ANTSCenteredAffine2DTransform<TScalarType>::InputVnlVectorType
 ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputVnlVectorType & vect ) const
 {
@@ -499,7 +499,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputVnlVectorT
 }
 
 // Back Transform a CovariantVector
-template <class TScalarType>
+template <typename TScalarType>
 typename ANTSCenteredAffine2DTransform<TScalarType>::InputCovariantVectorType
 ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputCovariantVectorType & vect) const
 {

@@ -13,7 +13,7 @@ namespace ants
 * By always using the same reference image, we can ensure that the same
 * shrink results always are produced.
 */
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename itk::ImageBase<VImageDimension>::Pointer
 RegistrationHelper<TComputeType, VImageDimension>::GetShrinkImageOutputInformation(const itk::ImageBase<VImageDimension> * inputImageInformation,
                                 const typename RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType &shrinkFactorsPerDimensionForCurrentLevel) const
@@ -36,7 +36,7 @@ RegistrationHelper<TComputeType, VImageDimension>::GetShrinkImageOutputInformati
 }
 
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 RegistrationHelper<TComputeType, VImageDimension>
 ::RegistrationHelper() :
   m_CompositeTransform( ITK_NULLPTR ),
@@ -67,13 +67,13 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_Interpolator = linearInterpolator;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 RegistrationHelper<TComputeType, VImageDimension>
 ::~RegistrationHelper()
 {
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  inputImage,
                                              typename ImageType::PixelType lowerScaleValue,
                                              typename ImageType::PixelType upperScaleValue,
@@ -135,7 +135,7 @@ typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  i
   return outputImage;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::MetricEnumeration
 RegistrationHelper<TComputeType, VImageDimension>
 ::StringToMetricType( const std::string & str ) const
@@ -183,7 +183,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return IllegalMetric;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::XfrmMethod
 RegistrationHelper<TComputeType, VImageDimension>
 ::StringToXfrmMethod(const std::string & str) const
@@ -254,7 +254,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return UnknownXfrm;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddMetric( MetricEnumeration metricType,
@@ -289,7 +289,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_Metrics.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::MetricListType
 RegistrationHelper<TComputeType, VImageDimension>
 ::GetMetricListPerStage( unsigned int stageID )
@@ -308,7 +308,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return stageMetricList;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddRigidTransform(RealType GradientStep)
@@ -320,7 +320,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddAffineTransform(RealType GradientStep)
@@ -332,7 +332,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddCompositeAffineTransform(RealType GradientStep)
@@ -344,7 +344,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddSimilarityTransform(RealType GradientStep)
@@ -356,7 +356,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddTranslationTransform(RealType GradientStep)
@@ -368,7 +368,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddBSplineTransform(RealType GradientStep, std::vector<unsigned int> & MeshSizeAtBaseLevel)
@@ -381,7 +381,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddGaussianDisplacementFieldTransform(RealType GradientStep, RealType UpdateFieldVarianceInVarianceSpace,
@@ -396,7 +396,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddBSplineDisplacementFieldTransform(RealType GradientStep,
@@ -414,7 +414,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddTimeVaryingVelocityFieldTransform( RealType GradientStep,
@@ -436,7 +436,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddTimeVaryingBSplineVelocityFieldTransform( RealType GradientStep, std::vector<unsigned int> VelocityFieldMeshSize,
@@ -452,7 +452,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddSyNTransform( RealType GradientStep, RealType UpdateFieldVarianceInVarianceSpace,
@@ -467,7 +467,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddBSplineSyNTransform( RealType GradientStep, std::vector<unsigned int> &  UpdateFieldMeshSizeAtBaseLevel,
@@ -484,7 +484,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddExponentialTransform( RealType GradientStep, RealType UpdateFieldVarianceInVarianceSpace,
@@ -501,7 +501,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddBSplineExponentialTransform( RealType GradientStep, std::vector<unsigned int> &  UpdateFieldMeshSizeAtBaseLevel,
@@ -521,7 +521,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_TransformMethods.push_back( init );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetIterations( const std::vector<std::vector<unsigned int> > & Iterations )
@@ -529,7 +529,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_Iterations = Iterations;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetConvergenceThresholds( const std::vector<RealType> & thresholds )
@@ -537,7 +537,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_ConvergenceThresholds = thresholds;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetConvergenceWindowSizes( const std::vector<unsigned int> & windowSizes )
@@ -545,7 +545,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_ConvergenceWindowSizes = windowSizes;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetSmoothingSigmas( const std::vector<std::vector<float> > & SmoothingSigmas )
@@ -553,7 +553,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_SmoothingSigmas = SmoothingSigmas;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetRestrictDeformationOptimizerWeights( const std::vector<std::vector<RealType> > & restrictDeformationWeights )
@@ -561,7 +561,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_RestrictDeformationOptimizerWeights = restrictDeformationWeights;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetSmoothingSigmasAreInPhysicalUnits( const std::vector<bool> & SmoothingSigmasAreInPhysicalUnits )
@@ -569,7 +569,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_SmoothingSigmasAreInPhysicalUnits = SmoothingSigmasAreInPhysicalUnits;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetShrinkFactors( const std::vector<std::vector<unsigned int> > & ShrinkFactors )
@@ -577,7 +577,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_ShrinkFactors = ShrinkFactors;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType
 RegistrationHelper<TComputeType, VImageDimension>
 ::CalculateShrinkFactorsPerDimension( unsigned int factor, ImageSpacingType spacing )
@@ -626,7 +626,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return shrinkFactorsPerDimension;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetWinsorizeImageIntensities( bool Winsorize, float LowerQuantile, float UpperQuantile )
@@ -636,7 +636,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->m_UpperQuantile = UpperQuantile;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 int
 RegistrationHelper<TComputeType, VImageDimension>
 ::ValidateParameters()
@@ -705,7 +705,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return EXIT_SUCCESS;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::ImageType::Pointer
 RegistrationHelper<TComputeType, VImageDimension>
 ::GetWarpedImage() const
@@ -727,7 +727,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return WarpedImage.GetPointer();
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::ImageType::Pointer
 RegistrationHelper<TComputeType, VImageDimension>
 ::GetInverseWarpedImage() const
@@ -753,7 +753,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return InverseWarpedImage.GetPointer();
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddFixedImageMask( typename MaskImageType::Pointer & fixedImageMask )
@@ -768,7 +768,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->AddFixedImageMask( so );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddMovingImageMask( typename MaskImageType::Pointer & movingImageMask )
@@ -783,7 +783,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   this->AddMovingImageMask( so );
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 int
 RegistrationHelper<TComputeType, VImageDimension>
 ::DoRegistration()
@@ -3292,7 +3292,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return EXIT_SUCCESS;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetMovingInitialTransform( const TransformType *initialTransform )
@@ -3319,7 +3319,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     }
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetFixedInitialTransform( const TransformType *initialTransform  )
@@ -3359,7 +3359,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     }
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetRestoreStateTransform( const TransformType *initialTransform )
@@ -3455,7 +3455,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     }
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 std::vector<unsigned int>
 RegistrationHelper<TComputeType, VImageDimension>
 ::CalculateMeshSizeForSpecifiedKnotSpacing( ImageBaseType * const inputImage,
@@ -3485,7 +3485,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return meshSize;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::AffineTransformType::Pointer
 RegistrationHelper<TComputeType, VImageDimension>
 ::CollapseLinearTransforms( const CompositeTransformType * compositeTransform )
@@ -3540,7 +3540,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return totalTransform;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::CompositeTransformType::Pointer
 RegistrationHelper<TComputeType, VImageDimension>
 ::CollapseDisplacementFieldTransforms( const CompositeTransformType * compositeTransform )
@@ -3632,7 +3632,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return combinedCompositeTransform;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::CompositeTransformPointer
 RegistrationHelper<TComputeType, VImageDimension>
 ::CollapseCompositeTransform( const CompositeTransformType * compositeTransform )
@@ -3730,7 +3730,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   return collapsedCompositeTransform;
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform,
@@ -3807,8 +3807,8 @@ RegistrationHelper<TComputeType, VImageDimension>
   image->SetOrigin( origin );
 }
 
-template <class TComputeType, unsigned VImageDimension>
-template <class TTransformType>
+template <typename TComputeType, unsigned VImageDimension>
+template <typename TTransformType>
 bool
 RegistrationHelper<TComputeType, VImageDimension>
 ::InitializeWithPreviousLinearTransform( const CompositeTransformType * compositeTransform,
@@ -3957,7 +3957,7 @@ RegistrationHelper<TComputeType, VImageDimension>
                // and the final results will be still correct.
 }
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::PrintState() const

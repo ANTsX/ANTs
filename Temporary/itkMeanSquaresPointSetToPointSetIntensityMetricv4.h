@@ -43,7 +43,7 @@ namespace itk
  * \ingroup ITKMetricsv4
  */
 template<typename TFixedPointSet, typename TMovingPointSet = TFixedPointSet,
-  class TInternalComputationValueType = double>
+  typename TInternalComputationValueType = double>
 class MeanSquaresPointSetToPointSetIntensityMetricv4:
   public PointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 {

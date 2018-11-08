@@ -27,7 +27,7 @@ namespace itk
  * Writes an itkMesh to a file in various txt file formats.
  *
  */
-template <class TInputMesh>
+template <typename TInputMesh>
 class LabeledPointSetFileWriter : public Object
 {
 public:

@@ -32,7 +32,7 @@
 
 namespace ants
 {
-template <class TensorType>
+template <typename TensorType>
 double CalculateFractionalAnisotropy( TensorType tensor )
 {
   typename TensorType::EigenValuesArrayType eigenvalues;
@@ -65,7 +65,7 @@ double CalculateFractionalAnisotropy( TensorType tensor )
   return fa;
 }
 
-template <class TensorType>
+template <typename TensorType>
 double CalculateMeanDiffusivity( TensorType tensor )
 {
   typename TensorType::EigenValuesArrayType eigenvalues;

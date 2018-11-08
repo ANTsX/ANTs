@@ -36,7 +36,7 @@ namespace itk
  * \ingroup ITKDeprecated
  * \sa MultiplyImageFilter
  */
-template <class TInputImage, class TConstant, class TOutputImage>
+template <typename TInputImage, typename TConstant, typename TOutputImage>
 class MultiplyByConstantImageFilter :
   public
   MultiplyImageFilter<TInputImage, Image<TConstant, TInputImage::ImageDimension>, TOutputImage>

@@ -14,7 +14,7 @@
 
 namespace ants
 {
-template <class TFilter>
+template <typename TFilter>
 class CommandIterationUpdate : public itk::Command
 {
 public:

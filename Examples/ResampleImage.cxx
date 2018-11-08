@@ -24,7 +24,7 @@
 namespace ants
 {
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int ResampleImage( int argc, char *argv[] )
 {
   typedef double                                RealType;

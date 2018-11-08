@@ -119,7 +119,7 @@
 namespace ants
 {
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class SimilarityTransformTraits
 {
   // Don't worry about the fact that the default option is the

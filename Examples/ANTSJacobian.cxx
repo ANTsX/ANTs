@@ -24,7 +24,7 @@
 
 namespace ants
 {
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer VectorAniDiff(typename TImage::Pointer img, unsigned int iters)
 {
   double timeStep = 0.065;
@@ -43,7 +43,7 @@ typename TImage::Pointer VectorAniDiff(typename TImage::Pointer img, unsigned in
   return filter->GetOutput();
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer GenerateGridImage(TImage* img, unsigned int gridsize)
 {
   typedef TImage ImageType;
@@ -98,7 +98,7 @@ typename TImage::Pointer GenerateGridImage(TImage* img, unsigned int gridsize)
   return img;
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer ReadAnImage(char* fn)
 {
   // Read the image files begin
@@ -116,7 +116,7 @@ typename ImageType::Pointer ReadAnImage(char* fn)
   return reffilter->GetOutput();
 }
 
-template <class TImage, class TDisplacementField>
+template <typename TImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 TransformVector(TDisplacementField* field, typename TImage::IndexType index )
 {
@@ -135,7 +135,7 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
   return newvec;
 }
 
-template <class TImage, class TDisplacementField>
+template <typename TImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 ProjectVector(typename TDisplacementField::PixelType invec, typename TDisplacementField::PixelType projvec )
 {
@@ -171,7 +171,7 @@ void antsjacobiansplit(const std::string& s, char c,
     }
 }
 
-template <class TImage, class TDisplacementField>
+template <typename TImage, typename TDisplacementField>
 void
 ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog = false, bool norm = false,
                 std::string projvec = "")

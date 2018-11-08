@@ -28,7 +28,7 @@ namespace itk
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ProbabilisticRegistrationFunction()
 {
@@ -74,7 +74,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PrintSelf(std::ostream& os, Indent indent) const
@@ -95,7 +95,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
@@ -569,7 +569,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIterationOld()
@@ -793,7 +793,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ComputeMetricAtPairB(IndexType oindex, typename TDisplacementField::PixelType /* vec */)
@@ -870,7 +870,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ComputeMetricAtPairC(IndexType oindex, typename TDisplacementField::PixelType /* vec */)

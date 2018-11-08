@@ -59,7 +59,7 @@ namespace ants
  *
  */
 
-template <class TInputImage, class TMaskImage
+template <typename TInputImage, typename TMaskImage
             = Image<unsigned char, TInputImage::ImageDimension>,
           class TClassifiedImage = TMaskImage>
 class AtroposSegmentationImageFilter :

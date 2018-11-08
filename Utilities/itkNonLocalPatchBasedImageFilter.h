@@ -31,7 +31,7 @@ namespace itk {
  * \ingroup ITKFiltering
  */
 
-template<typename TInputImage, class TOutputImage = TInputImage>
+template<typename TInputImage, typename TOutputImage = TInputImage>
 class NonLocalPatchBasedImageFilter :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {

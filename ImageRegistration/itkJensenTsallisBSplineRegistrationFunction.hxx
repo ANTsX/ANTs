@@ -22,9 +22,9 @@
 
 namespace itk
 {
-template <class TFixedImage, class TFixedPointSet,
-          class TMovingImage, class TMovingPointSet,
-          class TDisplacementField>
+template <typename TFixedImage, typename TFixedPointSet,
+          typename TMovingImage, typename TMovingPointSet,
+          typename TDisplacementField>
 JensenTsallisBSplineRegistrationFunction<TFixedImage,
                                          TFixedPointSet, TMovingImage, TMovingPointSet, TDisplacementField>
 ::JensenTsallisBSplineRegistrationFunction()
@@ -64,9 +64,9 @@ JensenTsallisBSplineRegistrationFunction<TFixedImage,
   this->m_MeshResolution.Fill( 1 );
 }
 
-template <class TFixedImage, class TFixedPointSet,
-          class TMovingImage, class TMovingPointSet,
-          class TDisplacementField>
+template <typename TFixedImage, typename TFixedPointSet,
+          typename TMovingImage, typename TMovingPointSet,
+          typename TDisplacementField>
 void
 JensenTsallisBSplineRegistrationFunction<TFixedImage,
                                          TFixedPointSet, TMovingImage, TMovingPointSet, TDisplacementField>
@@ -417,9 +417,9 @@ JensenTsallisBSplineRegistrationFunction<TFixedImage,
 //  this->m_FixedControlPointLattice = fixedBSpliner->GetPhiLattice();
 }
 
-template <class TFixedImage, class TFixedPointSet,
-          class TMovingImage, class TMovingPointSet,
-          class TDisplacementField>
+template <typename TFixedImage, typename TFixedPointSet,
+          typename TMovingImage, typename TMovingPointSet,
+          typename TDisplacementField>
 typename JensenTsallisBSplineRegistrationFunction<TFixedImage,
                                                   TFixedPointSet, TMovingImage, TMovingPointSet,
                                                   TDisplacementField>::VectorType
@@ -458,9 +458,9 @@ JensenTsallisBSplineRegistrationFunction<TFixedImage,
 */
 }
 
-template <class TFixedImage, class TFixedPointSet,
-          class TMovingImage, class TMovingPointSet,
-          class TDisplacementField>
+template <typename TFixedImage, typename TFixedPointSet,
+          typename TMovingImage, typename TMovingPointSet,
+          typename TDisplacementField>
 typename JensenTsallisBSplineRegistrationFunction<TFixedImage,
                                                   TFixedPointSet, TMovingImage, TMovingPointSet,
                                                   TDisplacementField>::VectorType
@@ -499,9 +499,9 @@ JensenTsallisBSplineRegistrationFunction<TFixedImage,
 */
 }
 
-template <class TFixedImage, class TFixedPointSet,
-          class TMovingImage, class TMovingPointSet,
-          class TDisplacementField>
+template <typename TFixedImage, typename TFixedPointSet,
+          typename TMovingImage, typename TMovingPointSet,
+          typename TDisplacementField>
 void
 JensenTsallisBSplineRegistrationFunction<TFixedImage,
                                          TFixedPointSet, TMovingImage, TMovingPointSet, TDisplacementField>

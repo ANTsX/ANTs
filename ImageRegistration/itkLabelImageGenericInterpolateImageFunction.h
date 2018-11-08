@@ -19,7 +19,7 @@ namespace itk
  * * \ingroup ITKImageFunction
  */
 
-template <typename TInputImage,template<class, typename> class TInterpolator, typename TCoordRep=double >
+template <typename TInputImage,template<typename, typename> class TInterpolator, typename TCoordRep=double >
 class LabelImageGenericInterpolateImageFunction :
   public InterpolateImageFunction<TInputImage, TCoordRep>
 {
