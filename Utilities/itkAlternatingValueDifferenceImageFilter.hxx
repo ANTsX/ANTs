@@ -49,7 +49,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation()
+::VerifyInputInformation() const
 {
   Superclass::VerifyInputInformation();
 

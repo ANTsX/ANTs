@@ -127,7 +127,7 @@ protected:
    *
    * \sa ProcessObject::VerifyInputInformation
    */
-  void VerifyInputInformation();
+  void VerifyInputInformation() const;
 
   /** Overrides GenerateOutputInformation() in order to produce
    * an image which has a different information than the first input.

@@ -71,7 +71,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 template<typename TInputImage, typename TOutputImage>
 void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation()
+::VerifyInputInformation() const
 {
 }
 

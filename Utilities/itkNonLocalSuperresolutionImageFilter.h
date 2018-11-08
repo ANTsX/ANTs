@@ -209,7 +209,7 @@ protected:
 
   void AllocateOutputs() override;
 
-  void VerifyInputInformation();
+  void VerifyInputInformation() const;
 
   void GenerateOutputInformation() override;
 

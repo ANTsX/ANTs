@@ -51,7 +51,7 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 void
 SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation()
+::VerifyInputInformation() const
 {
   Superclass::VerifyInputInformation();
 

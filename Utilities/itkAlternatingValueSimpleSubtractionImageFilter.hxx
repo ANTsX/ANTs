@@ -44,7 +44,7 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation()
+::VerifyInputInformation() const
 {
   Superclass::VerifyInputInformation();
 
