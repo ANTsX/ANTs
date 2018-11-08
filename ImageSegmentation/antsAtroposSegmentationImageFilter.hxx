@@ -83,8 +83,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_PriorProbabilitySparseImages.clear();
 
   this->m_IntensityImages.clear();
-  this->m_PriorLabelImage = ITK_NULLPTR;
-  this->m_MaskImage = ITK_NULLPTR;
+  this->m_PriorLabelImage = nullptr;
+  this->m_MaskImage = nullptr;
 
   this->m_MRFSmoothingFactor = 0.3;
   this->m_MRFRadius.Fill( 1 );
@@ -99,7 +99,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_PosteriorProbabilityImages.clear();
   this->m_DistancePriorProbabilityImages.clear();
 
-  this->m_OutlierHandlingFilter = ITK_NULLPTR;
+  this->m_OutlierHandlingFilter = nullptr;
 
   this->m_RandomizerInitializationSeed = 
     std::numeric_limits<RandomizerSeedType>::quiet_NaN();
@@ -110,7 +110,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_InitialAnnealingTemperature = 1.0;
   this->m_AnnealingRate = 1.0;
   this->m_MinimumAnnealingTemperature = 0.1;
-  this->m_ICMCodeImage = ITK_NULLPTR;
+  this->m_ICMCodeImage = nullptr;
   this->m_UseAsynchronousUpdating = true;
   this->m_MaximumNumberOfICMIterations = 1;
 }
@@ -252,7 +252,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 {
   if( this->m_InitializationStrategy != PriorProbabilityImages )
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
   if( this->m_NumberOfPartialVolumeClasses == 0 && whichClass
       > this->m_NumberOfTissueClasses )
@@ -263,7 +263,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   else if( whichClass > this->m_NumberOfTissueClasses )
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
 
   if( ( this->m_MinimizeMemoryUsage &&
@@ -689,7 +689,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     this->m_ControlPointLattices.push_back( container );
     for( unsigned int n = 0; n < this->m_NumberOfTissueClasses; n++ )
       {
-      this->m_ControlPointLattices[i].push_back( ITK_NULLPTR );
+      this->m_ControlPointLattices[i].push_back( nullptr );
       }
     }
 }
@@ -2012,7 +2012,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       this->m_SumPosteriorProbabilityImage =
         AllocImage<RealImageType>( this->GetOutput(), 0 );
 
-      RealImagePointer sumPriorProbabilityImage = ITK_NULLPTR;
+      RealImagePointer sumPriorProbabilityImage = nullptr;
 
       if( this->m_InitializationStrategy == PriorLabelImage ||
           this->m_InitializationStrategy == PriorProbabilityImages )
@@ -2073,7 +2073,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               }
             else
               {
-              smoothImages.push_back( ITK_NULLPTR );
+              smoothImages.push_back( nullptr );
               }
             }
           }
@@ -2277,7 +2277,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     else // whichClass > 1
       {
-      RealImagePointer sumPriorProbabilityImage = ITK_NULLPTR;
+      RealImagePointer sumPriorProbabilityImage = nullptr;
 
       if( this->m_InitializationStrategy == PriorLabelImage ||
           this->m_InitializationStrategy == PriorProbabilityImages )
@@ -2340,7 +2340,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             }
           else
             {
-            smoothImages.push_back( ITK_NULLPTR );
+            smoothImages.push_back( nullptr );
             }
           }
         }
@@ -2501,7 +2501,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       ( whichClass > this->m_NumberOfTissueClasses && whichClass <=
         totalNumberOfClasses ) )
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
   if( this->m_NumberOfPartialVolumeClasses == 0 && whichClass
       > this->m_NumberOfTissueClasses )
@@ -2512,7 +2512,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   else if( whichClass > this->m_NumberOfTissueClasses )
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
 
   //
@@ -2535,7 +2535,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     // the sum of the distance prior probability images needs to be calculated
     // for normalization purposes.  This sum is then saved for subsequent calls.
     //
-    RealImagePointer distancePriorProbabilityImage = ITK_NULLPTR;
+    RealImagePointer distancePriorProbabilityImage = nullptr;
 
     //
     // Calculate the sum of the distance probability images.  Also, store the
@@ -2970,7 +2970,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 {
   typename ScalarImageType::Pointer bsplineImage;
 
-  if( this->m_ControlPointLattices[whichImage][whichClass - 1].GetPointer() != ITK_NULLPTR )
+  if( this->m_ControlPointLattices[whichImage][whichClass - 1].GetPointer() != nullptr )
     {
     typedef BSplineControlPointImageFilter<ControlPointLatticeType,
                                            ScalarImageType> BSplineReconstructorType;
@@ -3119,7 +3119,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         }
       else
         {
-        smoothImages.push_back( ITK_NULLPTR );
+        smoothImages.push_back( nullptr );
         }
       }
     }

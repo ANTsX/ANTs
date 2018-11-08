@@ -57,9 +57,9 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 {
   this->SetNumberOfRequiredInputs( 2 );
 
-  this->m_WeightSumImage = ITK_NULLPTR;
+  this->m_WeightSumImage = nullptr;
 
-  this->m_InterpolatedLowResolutionInputImage = ITK_NULLPTR;
+  this->m_InterpolatedLowResolutionInputImage = nullptr;
 
   // Interpolator --- default to linear
   typedef LinearInterpolateImageFunction<InputImageType, RealType> LinearInterpolatorType;

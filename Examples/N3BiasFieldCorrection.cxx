@@ -67,7 +67,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
   shrinker->SetInput( image );
   shrinker->SetShrinkFactors( 1 );
 
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  typename MaskImageType::Pointer maskImage = nullptr;
 
   if( argc > 5 )
     {
@@ -199,7 +199,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int N3BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int N3BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -217,7 +217,7 @@ int N3BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

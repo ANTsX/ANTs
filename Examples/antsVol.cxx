@@ -53,7 +53,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 
   // Read in input image
 
-  ImageType::Pointer inputImage = ITK_NULLPTR;
+  ImageType::Pointer inputImage = nullptr;
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
@@ -79,7 +79,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
         }
       }
 
-    ImageType::Pointer readImage = ITK_NULLPTR;
+    ImageType::Pointer readImage = nullptr;
     ReadImage<ImageType>( readImage, inputFile.c_str() );
 
     typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
@@ -108,7 +108,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 
   // Read in input image
 
-  MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  MaskImageType::Pointer maskImage = nullptr;
 
   itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
     parser->GetOption( "mask-image" );
@@ -171,7 +171,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
         }
       else
         {
-        functionalMaskImages.push_back( ITK_NULLPTR );
+        functionalMaskImages.push_back( nullptr );
         }
       }
     }
@@ -470,7 +470,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsVol( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int antsVol( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

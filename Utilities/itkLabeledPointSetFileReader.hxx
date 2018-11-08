@@ -40,8 +40,8 @@ LabeledPointSetFileReader<TOutputMesh>
   m_FileName(),
   m_RandomPercentage(1.0),
   m_LabelSet(),
-  m_MultiComponentScalars(ITK_NULLPTR),
-  m_Lines(ITK_NULLPTR)
+  m_MultiComponentScalars(nullptr),
+  m_Lines(nullptr)
 {
   //
   // Create the output

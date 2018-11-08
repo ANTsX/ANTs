@@ -39,9 +39,9 @@ RegistrationHelper<TComputeType, VImageDimension>::GetShrinkImageOutputInformati
 template <typename TComputeType, unsigned VImageDimension>
 RegistrationHelper<TComputeType, VImageDimension>
 ::RegistrationHelper() :
-  m_CompositeTransform( ITK_NULLPTR ),
-  m_RegistrationState( ITK_NULLPTR ),
-  m_FixedInitialTransform( ITK_NULLPTR ),
+  m_CompositeTransform( nullptr ),
+  m_RegistrationState( nullptr ),
+  m_FixedInitialTransform( nullptr ),
   m_NumberOfStages( 0 ),
   m_Metrics(),
   m_TransformMethods(),
@@ -60,7 +60,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   m_WriteIntervalVolumes( 0 ),
   m_InitializeTransformsPerStage( false ),
   m_AllPreviousTransformsAreLinear( true ),
-  m_CompositeLinearTransformForFixedImageHeader( ITK_NULLPTR )
+  m_CompositeLinearTransformForFixedImageHeader( nullptr )
 {
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
   typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
@@ -78,7 +78,7 @@ typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  i
                                              typename ImageType::PixelType lowerScaleValue,
                                              typename ImageType::PixelType upperScaleValue,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
-                                             typename ImageType::ConstPointer histogramMatchSourceImage = ITK_NULLPTR )
+                                             typename ImageType::ConstPointer histogramMatchSourceImage = nullptr )
 {
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
@@ -110,7 +110,7 @@ typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  i
   windowingFilter->SetOutputMaximum( upperScaleValue );
   windowingFilter->Update();
 
-  typename ImageType::Pointer outputImage = ITK_NULLPTR;
+  typename ImageType::Pointer outputImage = nullptr;
   if( histogramMatchSourceImage )
     {
     typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> HistogramMatchingFilterType;
@@ -737,7 +737,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
   if( this->m_CompositeTransform->GetInverseTransform().IsNull() )
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
   typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResampleFilterType;
   typename ResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
@@ -758,7 +758,7 @@ void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddFixedImageMask( typename MaskImageType::Pointer & fixedImageMask )
 {
-  typename ImageMaskSpatialObjectType::Pointer so = ITK_NULLPTR;
+  typename ImageMaskSpatialObjectType::Pointer so = nullptr;
 
   if( fixedImageMask.IsNotNull() )
     {
@@ -773,7 +773,7 @@ void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddMovingImageMask( typename MaskImageType::Pointer & movingImageMask )
 {
-  typename ImageMaskSpatialObjectType::Pointer so = ITK_NULLPTR;
+  typename ImageMaskSpatialObjectType::Pointer so = nullptr;
 
   if( movingImageMask.IsNotNull() )
     {
@@ -909,19 +909,19 @@ RegistrationHelper<TComputeType, VImageDimension>
     std::vector<typename ImageType::Pointer> preprocessedFixedImagesPerStage;
     std::vector<typename ImageType::Pointer> preprocessedMovingImagesPerStage;
 
-    typename ImageBaseType::Pointer virtualDomainImage = ITK_NULLPTR;
+    typename ImageBaseType::Pointer virtualDomainImage = nullptr;
 
     for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
       {
       MetricEnumeration currentMetricType = stageMetricList[currentMetricNumber].m_MetricType;
 
-      typename ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
+      typename ImageMetricType::Pointer imageMetric = nullptr;
 
       typedef itk::LabeledPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, RealType> LabeledPointSetMetricType;
       typename LabeledPointSetMetricType::Pointer labeledPointSetMetric = LabeledPointSetMetricType::New();
 
       typedef itk::MeanSquaresPointSetToPointSetIntensityMetricv4<IntensityPointSetType, IntensityPointSetType, RealType> IntensityPointSetMetricType;
-      typename IntensityPointSetMetricType::Pointer intensityPointSetMetric = ITK_NULLPTR;
+      typename IntensityPointSetMetricType::Pointer intensityPointSetMetric = nullptr;
 
       switch( currentMetricType )
         {
@@ -1107,14 +1107,14 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename ImageType::Pointer preprocessFixedImage =
           PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
                                       upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                      ITK_NULLPTR );
+                                      nullptr );
 
         preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
 
         typename ImageType::Pointer preprocessMovingImage =
           PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
                                       upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                      ITK_NULLPTR );
+                                      nullptr );
 
         if( this->m_UseHistogramMatching )
           {
@@ -1174,8 +1174,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         }
       else
         {
-        preprocessedFixedImagesPerStage.push_back( ITK_NULLPTR );
-        preprocessedMovingImagesPerStage.push_back( ITK_NULLPTR );
+        preprocessedFixedImagesPerStage.push_back( nullptr );
+        preprocessedMovingImagesPerStage.push_back( nullptr );
 
         metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
 
@@ -1392,7 +1392,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     optimizer2->SetLearningRate( learningRate );
     optimizer2->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer2->SetNumberOfIterations( currentStageIterations[0] );
-    optimizer2->SetScalesEstimator( ITK_NULLPTR );
+    optimizer2->SetScalesEstimator( nullptr );
     optimizer2->SetMinimumConvergenceValue( convergenceThreshold );
     optimizer2->SetConvergenceWindowSize( convergenceWindowSize );
     optimizer2->SetDoEstimateLearningRateAtEachIteration( this->m_DoEstimateLearningRateAtEachIteration );
@@ -3439,7 +3439,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else
       {
-      this->m_RegistrationState = ITK_NULLPTR;
+      this->m_RegistrationState = nullptr;
       }
 
     if( compToAdd.IsNull() )
@@ -3451,7 +3451,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     }
   else
     {
-    this->m_CompositeTransform = ITK_NULLPTR;
+    this->m_CompositeTransform = nullptr;
     }
 }
 
@@ -3589,7 +3589,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       totalField->Update();
       totalField->DisconnectPipeline();
 
-      typename DisplacementFieldType::Pointer totalInverseField = ITK_NULLPTR;
+      typename DisplacementFieldType::Pointer totalInverseField = nullptr;
 
       if( isCurrentTransformInvertible )
         {

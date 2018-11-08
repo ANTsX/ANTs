@@ -73,7 +73,7 @@ public:
   {
     const TInputImage *img = this->GetInputImage();
 
-    if( img == ITK_NULLPTR )
+    if( img == nullptr )
       {
       return;
       }
@@ -128,7 +128,7 @@ public:
   virtual OutputType EvaluateAtContinuousIndex(
     const ContinuousIndexType & index ) const
   {
-    return EvaluateAtContinuousIndex(index, ITK_NULLPTR);
+    return EvaluateAtContinuousIndex(index, nullptr);
   }
 
   virtual OutputType EvaluateAtContinuousIndex(
@@ -151,7 +151,7 @@ public:
         return Vout;
         }
       double *pdx = const_cast<double *>(dx[d].data_block() );
-      double *pgx = grad ?  const_cast<double *>(gx[d].data_block() ) : ITK_NULLPTR;
+      double *pgx = grad ?  const_cast<double *>(gx[d].data_block() ) : nullptr;
       compute_erf_array(pdx, i0[d], i1[d], bb_start[d], nt[d], cut[d], index[d], sf[d], pgx);
       }
     // Get a pointer to the output value
@@ -262,7 +262,7 @@ private:
     double Cut,                   // The distance at which to cut off
     double p,                     // the value p
     double sfac,                  // scaling factor 1 / (Sqrt[2] sigma)
-    double *gx_erf = ITK_NULLPTR         // Output derivative/erf array (optional)
+    double *gx_erf = nullptr         // Output derivative/erf array (optional)
     ) const
   {
     // Determine the range of voxels along the line where to evaluate erf

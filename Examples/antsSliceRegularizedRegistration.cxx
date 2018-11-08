@@ -168,7 +168,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
                                              typename ImageType::PixelType lowerScaleFunction,
                                              typename ImageType::PixelType upperScaleFunction,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
-                                             ImageType *histogramMatchSourceImage = ITK_NULLPTR )
+                                             ImageType *histogramMatchSourceImage = nullptr )
 {
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
@@ -199,7 +199,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
   windowingFilter->SetOutputMaximum( upperScaleFunction );
   windowingFilter->Update();
 
-  typename ImageType::Pointer outputImage = ITK_NULLPTR;
+  typename ImageType::Pointer outputImage = nullptr;
   if( histogramMatchSourceImage )
     {
     typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> HistogramMatchingFilterType;
@@ -224,7 +224,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
       {
       std::cout << "Warning: bad time point - too little intensity variation"
         << calc->GetMinimum() << " " <<  calc->GetMaximum() << std::endl;
-      return ITK_NULLPTR;
+      return nullptr;
       }
     }
   else
@@ -457,7 +457,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   std::vector<typename FixedImageType::Pointer>            movingSliceList;
   typename FixedIOImageType::Pointer                       maskImage;
   typedef itk::Image< unsigned char, ImageDimension-1 >    ImageMaskType;
-  typename ImageMaskType::Pointer mask_time_slice = ITK_NULLPTR;
+  typename ImageMaskType::Pointer mask_time_slice = nullptr;
   if ( maskfn.length() > 3 )
     ReadImage<FixedIOImageType>( maskImage, maskfn.c_str() );
 
@@ -469,8 +469,8 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     // Get the fixed and moving images
     std::string fixedImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 0 );
     std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 1 );
-    typename FixedImageType::Pointer fixed_time_slice = ITK_NULLPTR;
-    typename FixedImageType::Pointer moving_time_slice = ITK_NULLPTR;
+    typename FixedImageType::Pointer fixed_time_slice = nullptr;
+    typename FixedImageType::Pointer moving_time_slice = nullptr;
     typename FixedIOImageType::Pointer fixedImage;
     ReadImage<FixedIOImageType>( fixedImage, fixedImageFileName.c_str() );
     unsigned int timedims = fixedImage->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
@@ -624,7 +624,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
       typename FixedImageType::Pointer preprocessFixedImage =
         sliceRegularizedPreprocessImage<FixedImageType>( fixedSliceList[timedim], 0,
                                          1, 0.005, 0.995,
-                                         ITK_NULLPTR );
+                                         nullptr );
 
       typename FixedImageType::Pointer preprocessMovingImage =
         sliceRegularizedPreprocessImage<FixedImageType>( movingSliceList[timedim],
@@ -1243,7 +1243,7 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsSliceRegularizedRegistration( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int antsSliceRegularizedRegistration( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -1261,7 +1261,7 @@ int antsSliceRegularizedRegistration( std::vector<std::string> args, std::ostrea
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

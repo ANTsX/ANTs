@@ -174,7 +174,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
 ::AfterThreadedGenerateData()
 {
   // Disconnect input image from interpolator
-  m_Interpolator->SetInputImage( ITK_NULLPTR );
+  m_Interpolator->SetInputImage( nullptr );
 }
 
 template <typename TInputImage, typename TOutputImage, typename TDisplacementField, typename TTransform>

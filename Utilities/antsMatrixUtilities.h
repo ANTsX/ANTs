@@ -75,8 +75,8 @@ public:
 
   MatrixType VNLPseudoInverse( MatrixType,  bool take_sqrt = false );
 
-  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = ITK_NULLPTR,  MatrixType* projecterV =
-                             ITK_NULLPTR )
+  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = nullptr,  MatrixType* projecterV =
+                             nullptr )
   {
     if( !projecterM && !projecterV )
       {

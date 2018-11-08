@@ -464,7 +464,7 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
   if( movingImageBlobs.empty() || fixedImageBlobs.empty() )
     {
     std::cerr << "The moving image or fixed image blobs list is empty." << std::endl;
-    return ITK_NULLPTR;
+    return nullptr;
     }
 
   vnl_matrix<RealType> correspondenceMatrix;
@@ -486,7 +486,7 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
 
   std::vector<BlobPairType> blobPairs;
 
-  BlobPointer bestBlob = ITK_NULLPTR;
+  BlobPointer bestBlob = nullptr;
 
   unsigned int matchPoint = 1;
   unsigned int fixedCount = 0;
@@ -1103,8 +1103,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
   typedef itk::ImageMaskSpatialObject<ImageDimension> ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType MaskImageType;
 
-  typename MaskImageType::Pointer fixedMask = ITK_NULLPTR;
-  typename MaskImageType::Pointer movingMask = ITK_NULLPTR;
+  typename MaskImageType::Pointer fixedMask = nullptr;
+  typename MaskImageType::Pointer movingMask = nullptr;
 
   itk::ants::CommandLineParser::OptionType::Pointer maskOption = parser->GetOption( "masks" );
   if( maskOption && maskOption->GetNumberOfFunctions() )
@@ -1124,14 +1124,14 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     }
 
-  typename ImageMaskSpatialObjectType::Pointer fixedMaskSpatialObject = ITK_NULLPTR;
+  typename ImageMaskSpatialObjectType::Pointer fixedMaskSpatialObject = nullptr;
   if( fixedMask.IsNotNull() )
     {
     fixedMaskSpatialObject = ImageMaskSpatialObjectType::New();
     fixedMaskSpatialObject->SetImage( const_cast<MaskImageType *>( fixedMask.GetPointer() ) );
     }
 
-  typename ImageMaskSpatialObjectType::Pointer movingMaskSpatialObject = ITK_NULLPTR;
+  typename ImageMaskSpatialObjectType::Pointer movingMaskSpatialObject = nullptr;
   if( movingMask.IsNotNull() )
     {
     movingMaskSpatialObject = ImageMaskSpatialObjectType::New();
@@ -1145,7 +1145,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   /////////////////////////////////////////////////////////////////
 
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType> ImageMetricType;
-  typename ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
+  typename ImageMetricType::Pointer imageMetric = nullptr;
 
   if( std::strcmp( metric.c_str(), "mattes" ) == 0 )
     {
@@ -1718,7 +1718,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   }
 }
 
-int antsAI( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int antsAI( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
 
   // put the arguments coming in as 'args' into standard (argc,argv) format;
@@ -1738,7 +1738,7 @@ int antsAI( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULL
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
 
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv

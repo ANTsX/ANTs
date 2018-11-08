@@ -81,7 +81,7 @@ static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, cha
   input_vtk_filename = argv[0];
   output_vtk_filename = argv[1];
 
-  reference_image_filename = ITK_NULLPTR;
+  reference_image_filename = nullptr;
 
   int ind = 2;
   while( ind < argc )
@@ -126,7 +126,7 @@ static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, cha
     ind++;
     }
 
-//    if (reference_image_filename == ITK_NULLPTR) {
+//    if (reference_image_filename == nullptr) {
 //        std::cout << "the reference image file (-R) must be given!!!"
 //        << std::endl;
 //        return false;
@@ -542,10 +542,10 @@ private:
     }
 
   TRAN_OPT_QUEUE opt_queue;
-  //    char *moving_image_filename = ITK_NULLPTR;
-  char *input_vtk_filename = ITK_NULLPTR;
-  char *output_vtk_filename = ITK_NULLPTR;
-  char *reference_image_filename = ITK_NULLPTR;
+  //    char *moving_image_filename = nullptr;
+  char *input_vtk_filename = nullptr;
+  char *output_vtk_filename = nullptr;
+  char *reference_image_filename = nullptr;
 
   int  kImageDim = std::stoi(argv[1]);
 
@@ -558,7 +558,7 @@ private:
       {
       case DEFORMATION_FILE:
         {
-        if( reference_image_filename == ITK_NULLPTR )
+        if( reference_image_filename == nullptr )
           {
           std::cout << "the reference image file (-R) must be given!!!"
                    << std::endl;

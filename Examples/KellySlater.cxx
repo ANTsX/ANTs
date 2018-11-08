@@ -151,7 +151,7 @@ CopyImage(TDisplacementField* field )
   typedef itk::Image<PixelType, ImageDimension> RealImageType;
   typename RealImageType::RegionType m_JacobianRegion;
 
-  typename RealImageType::Pointer m_RealImage = ITK_NULLPTR;
+  typename RealImageType::Pointer m_RealImage = nullptr;
   m_RealImage = AllocImage<RealImageType>(field, 0);
 
   return m_RealImage;
@@ -605,7 +605,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   RealType distthresh = 1.5;
   typename ImageType::Pointer wmgrow = Morphological<ImageType>(wmb, 0, 1, 1);
   typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh); // or wmb ?
-  typename ImageType::Pointer speedprior = ITK_NULLPTR;
+  typename ImageType::Pointer speedprior = nullptr;
   WriteImage<ImageType>(bsurf, "surf.nii.gz");
   //    typename RealTypeImageType::Pointer distfromboundary =
   //  typename ImageType::Pointer surf=MaurerDistanceMap<ImageType>(0.5,1.e9,bsurf);
@@ -703,18 +703,18 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     thickerrct = 1;
     bool debug = false;
     bool spatprior = false;
-    typename ImageType::Pointer priorim = ITK_NULLPTR;
+    typename ImageType::Pointer priorim = nullptr;
     if( speedprior )
       {
       spatprior = true;
       priorim = speedprior;
       }
-    typename ImageType::Pointer wpriorim = ITK_NULLPTR;
+    typename ImageType::Pointer wpriorim = nullptr;
     RealType origthickprior = thickprior;
 
     while( ttiter < numtimepoints )    // N time integration points
       {
-      //      m_MFR->Compose(incrinvfield,invfield,ITK_NULLPTR);
+      //      m_MFR->Compose(incrinvfield,invfield,nullptr);
       m_MFR->ComposeDiffs(invfield, incrinvfield, invfield, 1);
 
       if( debug )
@@ -1035,7 +1035,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int KellySlater( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int KellySlater( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -1053,7 +1053,7 @@ int KellySlater( std::vector<std::string> args, std::ostream* /*out_stream = ITK
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

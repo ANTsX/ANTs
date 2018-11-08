@@ -74,10 +74,10 @@ int N4( itk::ants::CommandLineParser *parser )
   typedef float RealType;
 
   typedef itk::Image<RealType, ImageDimension> ImageType;
-  typename ImageType::Pointer inputImage = ITK_NULLPTR;
+  typename ImageType::Pointer inputImage = nullptr;
 
   typedef itk::Image<RealType, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  typename MaskImageType::Pointer maskImage = nullptr;
 
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
@@ -140,7 +140,7 @@ int N4( itk::ants::CommandLineParser *parser )
     maskImage->FillBuffer( itk::NumericTraits<typename MaskImageType::PixelType>::OneValue() );
     }
 
-  typename ImageType::Pointer weightImage = ITK_NULLPTR;
+  typename ImageType::Pointer weightImage = nullptr;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer weightImageOption =
     parser->GetOption( "weight-image" );
@@ -782,7 +782,7 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int N4BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int N4BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -800,7 +800,7 @@ int N4BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

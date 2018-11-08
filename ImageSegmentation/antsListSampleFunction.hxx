@@ -77,7 +77,7 @@ typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::ListSampleWei
     }
   else
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
   }
 
@@ -114,7 +114,7 @@ typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::InputListSamp
     }
   else
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
   }
 } // end of namespace Statistics

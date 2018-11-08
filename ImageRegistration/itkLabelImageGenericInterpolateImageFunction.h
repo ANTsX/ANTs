@@ -66,7 +66,7 @@ public:
   OutputType EvaluateAtContinuousIndex(
     const ContinuousIndexType & cindex ) const ITK_OVERRIDE
     {
-    return this->EvaluateAtContinuousIndex( cindex, ITK_NULLPTR );
+    return this->EvaluateAtContinuousIndex( cindex, nullptr );
     }
 
   void SetInputImage( const TInputImage *image ) ITK_OVERRIDE;

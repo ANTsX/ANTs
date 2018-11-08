@@ -171,7 +171,7 @@ int ConvertImage( int argc, char *argv[] )
     bool isRescaleType = false;
     for( unsigned int i = 0; i < rescaleFileTypes.size(); i++ )
       {
-      if( strstr( argv[3], rescaleFileTypes[i].c_str() ) != ITK_NULLPTR )
+      if( strstr( argv[3], rescaleFileTypes[i].c_str() ) != nullptr )
         {
         isRescaleType = true;
         break;
@@ -203,7 +203,7 @@ int ConvertImage( int argc, char *argv[] )
   return EXIT_SUCCESS;
 }
 
-int ConvertImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ConvertImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -221,7 +221,7 @@ int ConvertImage( std::vector<std::string> args, std::ostream* /*out_stream = IT
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

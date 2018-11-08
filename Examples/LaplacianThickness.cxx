@@ -672,12 +672,12 @@ int LaplacianThickness(int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
   typename ImageType::Pointer wmb = BinaryThreshold<ImageType>(0.5, 1.e9, 1, wm);
-  typename DisplacementFieldType::Pointer lapgrad = ITK_NULLPTR;
-  typename DisplacementFieldType::Pointer lapgrad2 = ITK_NULLPTR;
+  typename DisplacementFieldType::Pointer lapgrad = nullptr;
+  typename DisplacementFieldType::Pointer lapgrad2 = nullptr;
   typename ImageType::Pointer gmb = BinaryThreshold<ImageType>(0.5, 1.e9, 1, gm);
 
 /** get sulcal priors */
-  typename ImageType::Pointer sulci = ITK_NULLPTR;
+  typename ImageType::Pointer sulci = nullptr;
   if( dosulc > 0 )
     {
     std::cout << "  using sulcal prior " << std::endl;
@@ -761,7 +761,7 @@ int LaplacianThickness(int argc, char *argv[])
   // std::cout << " MUCKING WITH START FINISH TIME " <<  finishtime <<  std::endl;
 
   typename DisplacementFieldType::IndexType velind;
-  typename ImageType::Pointer smooththick = ITK_NULLPTR;
+  typename ImageType::Pointer smooththick = nullptr;
   float timesign = 1.0;
   if( starttime  >  finishtime )
     {
@@ -942,7 +942,7 @@ int LaplacianThickness(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int LaplacianThickness( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int LaplacianThickness( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -960,7 +960,7 @@ int LaplacianThickness( std::vector<std::string> args, std::ostream* /*out_strea
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

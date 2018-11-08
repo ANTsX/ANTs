@@ -56,9 +56,9 @@ int MultiplyImages(int argc, char *argv[])
   std::string fn1 = std::string(argv[2]);
   std::string fn2 = std::string(argv[3]);
 
-  typename ImageType::Pointer image1 = ITK_NULLPTR;
-  typename ImageType::Pointer image2 = ITK_NULLPTR;
-  typename ImageType::Pointer varimage = ITK_NULLPTR;
+  typename ImageType::Pointer image1 = nullptr;
+  typename ImageType::Pointer image2 = nullptr;
+  typename ImageType::Pointer varimage = nullptr;
 
   typename readertype::Pointer reader2 = readertype::New();
   typename readertype::Pointer reader1 = readertype::New();
@@ -125,7 +125,7 @@ int MultiplyImages(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int MultiplyImages( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int MultiplyImages( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -143,7 +143,7 @@ int MultiplyImages( std::vector<std::string> args, std::ostream* /*out_stream = 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

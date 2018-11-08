@@ -41,7 +41,7 @@ int antsUtilitiesTesting( std::vector<std::string> args, std::ostream* itkNotUse
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -131,7 +131,7 @@ private:
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType> ImageMetricType;
   typedef ImageMetricType::FixedSampledPointSetType PointSetType;
 
-  ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
+  ImageMetricType::Pointer imageMetric = nullptr;
 
   if( strcmp( argv[2], "Mattes" ) == 0 )
     {
@@ -204,7 +204,7 @@ private:
   typedef itk::Similarity2DTransform<double> SimilarityTransformType;
 
   double optimalMetricValue = itk::NumericTraits<double>::max();
-  SimilarityTransformType::Pointer optimalTransform = ITK_NULLPTR;
+  SimilarityTransformType::Pointer optimalTransform = nullptr;
   unsigned int optimalMetricIndex = 0;
 
   for( unsigned int n = 0; n < trainingImageFileNames.size(); n++ )

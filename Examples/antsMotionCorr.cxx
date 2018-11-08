@@ -167,7 +167,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
                                              typename ImageType::PixelType lowerScaleFunction,
                                              typename ImageType::PixelType upperScaleFunction,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
-                                             ImageType *histogramMatchSourceImage = ITK_NULLPTR )
+                                             ImageType *histogramMatchSourceImage = nullptr )
 {
   bool verbose = false;
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
@@ -199,7 +199,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
   windowingFilter->SetOutputMaximum( upperScaleFunction );
   windowingFilter->Update();
 
-  typename ImageType::Pointer outputImage = ITK_NULLPTR;
+  typename ImageType::Pointer outputImage = nullptr;
   if( histogramMatchSourceImage )
     {
     typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> HistogramMatchingFilterType;
@@ -619,8 +619,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   typedef itk::AffineTransform<RealType, ImageDimension>                                      AffineTransformType;
   typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType, AffineTransformType> AffineRegistrationType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
-  typename DisplacementIOFieldType::Pointer displacementout = ITK_NULLPTR;
-  typename DisplacementIOFieldType::Pointer displacementinv = ITK_NULLPTR;
+  typename DisplacementIOFieldType::Pointer displacementout = nullptr;
+  typename DisplacementIOFieldType::Pointer displacementinv = nullptr;
 
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
@@ -634,8 +634,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter(  1 );
     if ( verbose ) std::cout << "  fixed image: " << fixedImageFileName << std::endl;
     if ( verbose ) std::cout << "  moving image: " << movingImageFileName << std::endl;
-    typename FixedImageType::Pointer fixed_time_slice = ITK_NULLPTR;
-    typename FixedImageType::Pointer moving_time_slice = ITK_NULLPTR;
+    typename FixedImageType::Pointer fixed_time_slice = nullptr;
+    typename FixedImageType::Pointer moving_time_slice = nullptr;
     typename FixedIOImageType::Pointer fixedInImage;
     ReadImage<FixedIOImageType>( fixedInImage, fixedImageFileName.c_str() );
     fixedInImage->Update();
@@ -778,7 +778,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
-      typename CompositeTransformType::Pointer compositeTransform = ITK_NULLPTR;
+      typename CompositeTransformType::Pointer compositeTransform = nullptr;
       if( currentStage == static_cast<int>(numberOfStages) - 1 )
         {
         compositeTransform = CompositeTransformType::New();
@@ -861,9 +861,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       typename FixedImageType::Pointer preprocessFixedImage =
         PreprocessImage<FixedImageType>( fixed_time_slice, 0,
                                          1, 0.001, 0.999,
-                                         ITK_NULLPTR );
+                                         nullptr );
 
-      typename FixedImageType::Pointer histogramMatchRef = ITK_NULLPTR;
+      typename FixedImageType::Pointer histogramMatchRef = nullptr;
 
       if ( doHistogramMatch )
 	{
@@ -1863,7 +1863,7 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -1881,7 +1881,7 @@ int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream =
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

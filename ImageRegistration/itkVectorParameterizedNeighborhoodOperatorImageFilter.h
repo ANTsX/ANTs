@@ -136,7 +136,7 @@ public:
 protected:
   VectorParameterizedNeighborhoodOperatorImageFilter()
   {
-    m_ParameterImage = ITK_NULLPTR;
+    m_ParameterImage = nullptr;
     this->DynamicMultiThreadingOff();
   }
 

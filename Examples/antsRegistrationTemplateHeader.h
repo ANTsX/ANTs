@@ -979,12 +979,12 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     // Get the fixed and moving images or point sets
 
-    typename ImageType::Pointer fixedImage = ITK_NULLPTR;
-    typename ImageType::Pointer movingImage = ITK_NULLPTR;
-    typename LabeledPointSetType::Pointer fixedLabeledPointSet = ITK_NULLPTR;
-    typename LabeledPointSetType::Pointer movingLabeledPointSet = ITK_NULLPTR;
-    typename IntensityPointSetType::Pointer fixedIntensityPointSet = ITK_NULLPTR;
-    typename IntensityPointSetType::Pointer movingIntensityPointSet = ITK_NULLPTR;
+    typename ImageType::Pointer fixedImage = nullptr;
+    typename ImageType::Pointer movingImage = nullptr;
+    typename LabeledPointSetType::Pointer fixedLabeledPointSet = nullptr;
+    typename LabeledPointSetType::Pointer movingLabeledPointSet = nullptr;
+    typename IntensityPointSetType::Pointer fixedIntensityPointSet = nullptr;
+    typename IntensityPointSetType::Pointer movingIntensityPointSet = nullptr;
 
     float metricWeighting = 1.0;
     if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 2 )

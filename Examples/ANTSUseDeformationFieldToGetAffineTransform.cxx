@@ -266,7 +266,7 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
 
   FieldIteratorType it(field, field->GetLargestPossibleRegion() );
 
-  srand( time(ITK_NULLPTR) );
+  srand( time(nullptr) );
 
   it.GoToBegin();
   unsigned int cnt = 0;
@@ -341,7 +341,7 @@ int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
   typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransformType;
   AffineTransformType::Pointer aff = AffineTransformType::New();
 
-  ImageType::Pointer maskimg = ITK_NULLPTR;
+  ImageType::Pointer maskimg = nullptr;
   if( maskfn.length() > 4 )
     {
     ReadImage<ImageType>(maskimg, maskfn.c_str() );
@@ -418,7 +418,7 @@ typedef itk::Rigid2DTransform< double > TransformType;
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -435,7 +435,7 @@ int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args, 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

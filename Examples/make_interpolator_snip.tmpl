@@ -13,7 +13,7 @@
  * Interpolation option
  */
 typedef itk::InterpolateImageFunction<ImageType, RealType> InterpolatorType;
-typename InterpolatorType::Pointer interpolator = ITK_NULLPTR;
+typename InterpolatorType::Pointer interpolator = nullptr;
 
   if( !std::strcmp( whichInterpolator.c_str(), "linear" ) )
     {

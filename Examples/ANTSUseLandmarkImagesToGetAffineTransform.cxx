@@ -370,7 +370,7 @@ int LandmarkBasedTransformInitializerBA(int, char * argv[])
   return EXIT_SUCCESS;
 }
 
-int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -387,7 +387,7 @@ int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args, st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

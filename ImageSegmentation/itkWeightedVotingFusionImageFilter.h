@@ -131,7 +131,7 @@ public:
   /**
    * Add an atlas (multi-modal image + segmentation)
    */
-  void AddAtlas( InputImageList imageList, LabelImageType *segmentation = ITK_NULLPTR )
+  void AddAtlas( InputImageList imageList, LabelImageType *segmentation = nullptr )
     {
     for( unsigned int i = 0; i < imageList.size(); i++ )
       {
@@ -148,7 +148,7 @@ public:
       }
     this->m_NumberOfAtlases++;
 
-    if( segmentation != ITK_NULLPTR )
+    if( segmentation != nullptr )
       {
       this->m_AtlasSegmentations.push_back( segmentation );
       this->m_NumberOfAtlasSegmentations++;
@@ -261,13 +261,13 @@ public:
       else
         {
         itkDebugMacro( "Not returning a label posterior probability image.  Requested label not found." );
-        return ITK_NULLPTR;
+        return nullptr;
         }
       }
     else
       {
       itkDebugMacro( "Not returning a label posterior probability image.  These images were not saved." );
-      return ITK_NULLPTR;
+      return nullptr;
       }
     }
 
@@ -285,13 +285,13 @@ public:
       else
         {
         itkDebugMacro( "Not returning a voting weight image.  Requested index is greater than the number of atlases." );
-        return ITK_NULLPTR;
+        return nullptr;
         }
       }
     else
       {
       itkDebugMacro( "Not returning a voting weight image.  These images were not saved." );
-      return ITK_NULLPTR;
+      return nullptr;
       }
     }
 
@@ -307,7 +307,7 @@ public:
     else
       {
       itkDebugMacro( "Not returning a joint intensity fusion image.  Requested index is greater than the number of modalities." );
-      return ITK_NULLPTR;
+      return nullptr;
       }
     }
 

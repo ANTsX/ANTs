@@ -45,11 +45,11 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   m_RetainAtlasVotingWeightImages( false ),
   m_ConstrainSolutionToNonnegativeWeights( false )
 {
-  this->m_MaskImage = ITK_NULLPTR;
+  this->m_MaskImage = nullptr;
 
-  this->m_CountImage = ITK_NULLPTR;
+  this->m_CountImage = nullptr;
 
-  this->m_NeighborhoodSearchRadiusImage = ITK_NULLPTR;
+  this->m_NeighborhoodSearchRadiusImage = nullptr;
 
   this->SetSimilarityMetric( Superclass::PEARSON_CORRELATION );
 }

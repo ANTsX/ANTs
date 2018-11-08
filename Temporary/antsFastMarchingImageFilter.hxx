@@ -47,9 +47,9 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   this->m_OutputDirection.SetIdentity();
   this->m_OverrideOutputInformation = false;
 
-  this->m_AlivePoints = ITK_NULLPTR;
-  this->m_TrialPoints = ITK_NULLPTR;
-  this->m_ProcessedPoints = ITK_NULLPTR;
+  this->m_AlivePoints = nullptr;
+  this->m_TrialPoints = nullptr;
+  this->m_ProcessedPoints = nullptr;
 
   this->m_SpeedConstant = 1.0;
   this->m_InverseSpeed = -1.0;
@@ -114,7 +114,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   Superclass::GenerateOutputInformation();
 
   // use user-specified output information
-  if( this->GetInput() == ITK_NULLPTR || this->m_OverrideOutputInformation )
+  if( this->GetInput() == nullptr || this->m_OverrideOutputInformation )
     {
     LevelSetPointer output = this->GetOutput();
     output->SetLargestPossibleRegion( this->m_OutputRegion );

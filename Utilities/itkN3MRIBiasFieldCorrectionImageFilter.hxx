@@ -39,10 +39,10 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
                              TConfidenceImage>
 ::N3BiasFieldScaleCostFunction()
 {
-  this->m_InputImage = ITK_NULLPTR;
-  this->m_BiasFieldImage = ITK_NULLPTR;
-  this->m_MaskImage = ITK_NULLPTR;
-  this->m_ConfidenceImage = ITK_NULLPTR;
+  this->m_InputImage = nullptr;
+  this->m_BiasFieldImage = nullptr;
+  this->m_MaskImage = nullptr;
+  this->m_ConfidenceImage = nullptr;
 }
 
 template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,

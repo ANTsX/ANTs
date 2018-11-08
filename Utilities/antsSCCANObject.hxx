@@ -57,9 +57,9 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_PinvTolerance = 1.e-6;
   this->m_PercentVarianceForPseudoInverse = 0.9;
   this->m_MaximumNumberOfIterations = 20;
-  this->m_MaskImageP = ITK_NULLPTR;
-  this->m_MaskImageQ = ITK_NULLPTR;
-  this->m_MaskImageR = ITK_NULLPTR;
+  this->m_MaskImageP = nullptr;
+  this->m_MaskImageQ = nullptr;
+  this->m_MaskImageR = nullptr;
   this->m_KeepPositiveP = true;
   this->m_KeepPositiveQ = true;
   this->m_KeepPositiveR = true;
@@ -5030,7 +5030,7 @@ template <typename TInputImage, typename TRealType>
 bool antsSCCANObject<TInputImage, TRealType>
 ::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov , unsigned int k )
 {
-  // srand (time(ITK_NULLPTR));
+  // srand (time(nullptr));
   RealType gsteP = this->m_GradStepP;
   RealType gsteQ = this->m_GradStepQ;
   this->m_FractionNonZeroP = this->m_SparsenessP( k );

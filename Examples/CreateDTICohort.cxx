@@ -99,10 +99,10 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
   typedef unsigned int                          LabelType;
   typedef itk::Image<LabelType, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  typename MaskImageType::Pointer maskImage = nullptr;
 
   typedef itk::Image<TensorType, ImageDimension> TensorImageType;
-  typename TensorImageType::Pointer inputAtlas = ITK_NULLPTR;
+  typename TensorImageType::Pointer inputAtlas = nullptr;
 
   typedef itk::ImageFileReader<TensorImageType> TensorReaderType;
   typename TensorReaderType::Pointer reader = TensorReaderType::New();
@@ -459,7 +459,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   //
   // Get DWI parameters
   //
-  typename ImageType::Pointer b0Image = ITK_NULLPTR;
+  typename ImageType::Pointer b0Image = nullptr;
   unsigned int                       numberOfDirections = 0;
   std::vector<vnl_vector<RealType> > directions;
   std::vector<RealType>              bvalues;
@@ -1064,7 +1064,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int CreateDTICohort( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int CreateDTICohort( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -1082,7 +1082,7 @@ int CreateDTICohort( std::vector<std::string> args, std::ostream* /*out_stream =
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

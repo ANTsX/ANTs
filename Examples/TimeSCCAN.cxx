@@ -544,10 +544,10 @@ int timesccan( itk::ants::CommandLineParser *parser )
       std::cout << "Time Series Data: " << timeMatrixName << std::endl;
       std::cout << "Time Series Labels: " << labelMatrixName << std::endl;
 
-      NetworkType::Pointer timeMat = ITK_NULLPTR;
+      NetworkType::Pointer timeMat = nullptr;
       ReadImage<NetworkType>( timeMat, timeMatrixName.c_str() );
 
-      NetworkType::Pointer labelMat = ITK_NULLPTR;
+      NetworkType::Pointer labelMat = nullptr;
       ReadImage<NetworkType>( labelMat, labelMatrixName.c_str() );
 
       float gradstep = -0.5 + itk::Math::abs ( usel1 );
@@ -560,10 +560,10 @@ int timesccan( itk::ants::CommandLineParser *parser )
       std::cout << "Time Series Data: " << timeMatrixName << std::endl;
       std::cout << "Time Series Labels: " << labelMatrixName << std::endl;
 
-      NetworkType::Pointer timeMat = ITK_NULLPTR;
+      NetworkType::Pointer timeMat = nullptr;
       ReadImage<NetworkType>( timeMat, timeMatrixName.c_str() );
 
-      NetworkType::Pointer labelMat = ITK_NULLPTR;
+      NetworkType::Pointer labelMat = nullptr;
       ReadImage<NetworkType>( labelMat, labelMatrixName.c_str() );
 
       RegionAveraging<NetworkType>( network, timeMat, labelMat, nLabels, roiSize );
@@ -770,7 +770,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int TimeSCCAN( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int TimeSCCAN( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -788,7 +788,7 @@ int TimeSCCAN( std::vector<std::string> args, std::ostream* /*out_stream = ITK_N
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

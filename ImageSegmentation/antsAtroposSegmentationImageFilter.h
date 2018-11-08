@@ -608,7 +608,7 @@ public:
   /**
    * Set the outlier handling filter.  This takes the intensity samples from the
    * input images and modifies the sample such that the outlier effects of the
-   * sample points are removed.  Default = ITK_NULLPTR.
+   * sample points are removed.  Default = nullptr.
    */
   itkSetObjectMacro( OutlierHandlingFilter, OutlierHandlingFilterType );
 
@@ -649,7 +649,7 @@ public:
       }
     else
       {
-      return ITK_NULLPTR;
+      return nullptr;
       }
   }
 

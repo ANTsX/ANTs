@@ -27,7 +27,7 @@ namespace ants
 {
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ResampleImageBySpacing( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ResampleImageBySpacing( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   args.insert( args.begin(), "ResampleImageBySpacing" );
   int     argc = args.size();
@@ -38,7 +38,7 @@ int ResampleImageBySpacing( std::vector<std::string> args, std::ostream* /*out_s
     std::strncpy( argv[i], args[i].c_str(), args[i].length() );
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   class Cleanup_argv
   {
 public:

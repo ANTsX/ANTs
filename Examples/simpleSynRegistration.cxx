@@ -91,11 +91,11 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
     return resultTransform;
     }
   std::cerr << "FATAL ERROR: REGISTRATION PROCESS WAS UNSUCCESSFUL" << std::endl;
-  CompositeTransformType::TransformTypePointer invalidTransform = ITK_NULLPTR;
+  CompositeTransformType::TransformTypePointer invalidTransform = nullptr;
   return invalidTransform;      // Return an empty registration type.
 }
 
-int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // the arguments coming in as 'args' is a replacement for the standard (argc,argv) format
   // Just notice that the argv[i] equals to args[i-1]

@@ -55,7 +55,7 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
   typedef typename itk::DisplacementFieldTransform<double, VImageDimension> DisplacementFieldTransformType;
 
   CompositeTransformType *composite = dynamic_cast<CompositeTransformType *>(transform);
-  if( composite == ITK_NULLPTR )
+  if( composite == nullptr )
     {
     std::cout << "Transform File " << transformName << " is a "
              << transform->GetNameOfClass() << " not a Composite Transform."
@@ -73,7 +73,7 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
     fname << std::setfill('0') << std::setw(2) << i
           << "_" << prefix << "_"
           << curXfrm->GetNameOfClass();
-    if( dispXfrm != ITK_NULLPTR )
+    if( dispXfrm != nullptr )
       {
       fname << ".nii.gz";    // if it's a displacement field transform
       }
@@ -167,7 +167,7 @@ static int Assemble(const std::string & CompositeName,
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int CompositeTransformUtil( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int CompositeTransformUtil( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -184,7 +184,7 @@ int CompositeTransformUtil( std::vector<std::string> args, std::ostream* /*out_s
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

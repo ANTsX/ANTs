@@ -81,12 +81,12 @@ SurfaceImageCurvature<TSurface>
   this->ProcessObject::SetNumberOfRequiredOutputs( 2 );
   m_SurfaceLabel = 1;
 
-  m_GradientImage = ITK_NULLPTR;
+  m_GradientImage = nullptr;
 
   m_UseLabel = false;
   m_kSign = -1.0;
-  m_FunctionImage = ITK_NULLPTR;
-  this->m_Vinterp = ITK_NULLPTR;
+  m_FunctionImage = nullptr;
+  this->m_Vinterp = nullptr;
   this->m_MinSpacing = itk::NumericTraits<RealType>::max() ;
 }
 
@@ -1189,7 +1189,7 @@ typename SurfaceImageCurvature<TSurface>::ImageType
   {
   if( this->GetNumberOfInputs() < 1 )
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
 
   return static_cast<ImageType *>

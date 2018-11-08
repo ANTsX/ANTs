@@ -95,7 +95,7 @@ public:
   /** Clear the input list sample to free memory */
   virtual void ClearInputListSample( const unsigned int idx = 0 )
   {
-    this->SetIndexedInputListSample( idx, ITK_NULLPTR );
+    this->SetIndexedInputListSample( idx, nullptr );
   }
 
   /** Gets the weights array */

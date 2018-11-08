@@ -155,8 +155,8 @@ public:
 
   RealType ReconstructionError( MatrixType, MatrixType );
 
-  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = ITK_NULLPTR,  MatrixType* projecterV =
-                             ITK_NULLPTR )
+  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = nullptr,  MatrixType* projecterV =
+                             nullptr )
   {
     if( ( !projecterM ) &&  ( !projecterV ) )
       {
@@ -817,7 +817,7 @@ protected:
       {
       keeppos = true;
       }
-    this->Sparsify( x_k1, fnp, keeppos, 0, ITK_NULLPTR );
+    this->Sparsify( x_k1, fnp, keeppos, 0, nullptr );
     this->m_UseL1 = usel1;
   }
 

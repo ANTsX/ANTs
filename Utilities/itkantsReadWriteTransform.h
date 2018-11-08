@@ -25,7 +25,7 @@ ReadTransform(const std::string & filename,
   if( !itksys::SystemTools::FileExists( filename.c_str() ) )
     {
     std::cerr << "Transform file does not exist: " << filename << std::endl;
-    return ITK_NULLPTR;
+    return nullptr;
     }
 
   bool hasTransformBeenRead = false;
@@ -146,7 +146,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
   // if it's a displacement field transform or output file indicates it should be a transform
   try
     {
-    if(  dispXfrm != ITK_NULLPTR 
+    if(  dispXfrm != nullptr 
       && filename.find(".mat") == std::string::npos
       && filename.find(".txt") == std::string::npos
       )
@@ -185,7 +185,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
         
       CompositeTransformType *comp_xfm =
         dynamic_cast<CompositeTransformType *>(xfrm.GetPointer() );        
-      if( comp_xfm != ITK_NULLPTR )
+      if( comp_xfm != nullptr )
         { //this is a composite transform, make sure it doesn't contain wiered stuff
         CompositeTransformPointer tmp_comp_xfm=CompositeTransformType::New();
       
@@ -196,7 +196,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
             DisplacementFieldTransformType *_dispXfrm =
               dynamic_cast<DisplacementFieldTransformType *>(_xfm );
               
-            if ( _dispXfrm != ITK_NULLPTR )
+            if ( _dispXfrm != nullptr )
               { //assume that we have to make it DisplacementFieldTransform 
                 typename DisplacementFieldTransformType::Pointer _xfm_disp=DisplacementFieldTransformType::New();
                 _xfm_disp->SetDisplacementField(_dispXfrm->GetModifiableDisplacementField());

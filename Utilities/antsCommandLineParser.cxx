@@ -336,7 +336,7 @@ CommandLineParser
       return *it;
       }
     }
-  return ITK_NULLPTR;
+  return nullptr;
 }
 
 CommandLineParser::OptionType::Pointer
@@ -352,7 +352,7 @@ CommandLineParser
       return *it;
       }
     }
-  return ITK_NULLPTR;
+  return nullptr;
 }
 
 bool

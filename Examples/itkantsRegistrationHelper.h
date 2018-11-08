@@ -491,8 +491,8 @@ public:
                   unsigned int radius,
                   RealType samplingPercentage )
     {
-    this->AddMetric( metricType, fixedImage, movingImage, ITK_NULLPTR, ITK_NULLPTR,
-      ITK_NULLPTR, ITK_NULLPTR,
+    this->AddMetric( metricType, fixedImage, movingImage, nullptr, nullptr,
+      nullptr, nullptr,
       stageID, weighting, samplingStrategy, numberOfBins, radius,
       false, 1.0, 50, 1.1, false, samplingPercentage, std::sqrt( 5 ), std::sqrt( 5 ) );
     }
@@ -1164,8 +1164,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
 
   typedef typename RegistrationHelperType::ImageType ImageType;
-  typename ImageType::Pointer fixedImage = ITK_NULLPTR;
-  typename ImageType::Pointer movingImage = ITK_NULLPTR;
+  typename ImageType::Pointer fixedImage = nullptr;
+  typename ImageType::Pointer movingImage = nullptr;
 
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
@@ -1314,7 +1314,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
           {
           std::cout << "Can't read initial transform " << initialTransformName << std::endl;
           }
-        return ITK_NULLPTR;
+        return nullptr;
         }
       if( useInverse )
         {
@@ -1325,7 +1325,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
             {
             std::cout << "Inverse does not exist for " << initialTransformName << std::endl;
             }
-          return ITK_NULLPTR;
+          return nullptr;
           }
         initialTransformName = std::string( "inverse of " ) + initialTransformName;
         }

@@ -25,7 +25,7 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
   reader->SetFileName( argv[2] );
   reader->Update();
 
-  typename ImageType::Pointer jacobian = ITK_NULLPTR;
+  typename ImageType::Pointer jacobian = nullptr;
 
   typename ImageType::Pointer minimumConstantImage = ImageType::New();
   minimumConstantImage->CopyInformation( reader->GetOutput() );
@@ -130,7 +130,7 @@ int CreateJacobianDeterminantImage( std::vector<std::string> args, std::ostream*
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

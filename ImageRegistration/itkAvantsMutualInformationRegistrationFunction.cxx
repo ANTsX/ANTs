@@ -42,7 +42,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   //  this->SetComputeGradient(false); // don't use the default gradient for no
 
   // Initialize PDFs to NULL
-  m_JointPDF = ITK_NULLPTR;
+  m_JointPDF = nullptr;
 
   m_OpticalFlow = false;
   typename TransformType::Pointer transformer = TransformType::New();
@@ -51,8 +51,8 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   typename BSplineInterpolatorType::Pointer interpolator = BSplineInterpolatorType::New();
   this->SetInterpolator(interpolator);
 
-  m_FixedImageMask = ITK_NULLPTR;
-  m_MovingImageMask = ITK_NULLPTR;
+  m_FixedImageMask = nullptr;
+  m_MovingImageMask = nullptr;
 
   // Initialize memory
   m_MovingImageNormalizedMin = 0.0;
@@ -61,9 +61,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   m_MovingImageTrueMax = 0.0;
   m_FixedImageBinSize = 0.0;
   m_MovingImageBinSize = 0.0;
-  m_CubicBSplineDerivativeKernel = ITK_NULLPTR;
-  m_BSplineInterpolator = ITK_NULLPTR;
-  m_DerivativeCalculator = ITK_NULLPTR;
+  m_CubicBSplineDerivativeKernel = nullptr;
+  m_BSplineInterpolator = nullptr;
+  m_DerivativeCalculator = nullptr;
   m_NumberOfParameters = ImageDimension;
 
   m_FixedImageGradientCalculator = GradientCalculatorType::New();

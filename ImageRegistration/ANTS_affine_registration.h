@@ -211,10 +211,10 @@ void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerTy
   int          number_of_iteration = 10000;
   int          MI_bins = 32;
   int          MI_samples = 6000;
-  unsigned int time_seed = (unsigned int) time(ITK_NULLPTR);
+  unsigned int time_seed = (unsigned int) time(nullptr);
   srand(time_seed);
   // TODO: need to fix here
-  bool b_use_mask = 0;   // (mask_fixed == ITK_NULLPTR);
+  bool b_use_mask = 0;   // (mask_fixed == nullptr);
 
   std::cout << "number_of_seeds: " << number_of_seeds << std::endl;
   std::cout << "rand_time_seed: " << time_seed << std::endl;
@@ -1002,10 +1002,10 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
   int          number_of_iteration = 500;
   int          MI_bins = 32;
   int          MI_samples = 6000;
-  unsigned int time_seed = (unsigned int) time(ITK_NULLPTR);
+  unsigned int time_seed = (unsigned int) time(nullptr);
   srand(time_seed);
   // TODO: need to fix here
-  bool b_use_mask = 0;   // (mask_fixed == ITK_NULLPTR);
+  bool b_use_mask = 0;   // (mask_fixed == nullptr);
 
   std::cout << "number_of_seeds: " << number_of_seeds << std::endl;
   std::cout << "rand_time_seed: " << time_seed << std::endl;

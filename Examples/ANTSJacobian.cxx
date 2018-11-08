@@ -111,7 +111,7 @@ typename ImageType::Pointer ReadAnImage(char* fn)
     }
   catch( ... )
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
   return reffilter->GetOutput();
 }
@@ -192,7 +192,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   enum { ImageDimension = TImage::ImageDimension };
   typedef itk::Image<float, ImageDimension> FloatImageType;
   typename FloatImageType::RegionType m_JacobianRegion;
-  typename FloatImageType::Pointer mask = ITK_NULLPTR;
+  typename FloatImageType::Pointer mask = nullptr;
   typename FieldType::PixelType pvec;
   if( !v.empty() )
     {
@@ -220,7 +220,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>             TransformType;
     typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, FieldType, TransformType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
-    warper->SetInput(ITK_NULLPTR);
+    warper->SetInput(nullptr);
     warper->SetEdgePaddingValue( 0);
     warper->SetSmoothScale(1);
     warper->PushBackDisplacementFieldTransform(field);
@@ -231,7 +231,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     typename writertype::Pointer writer = writertype::New();
     std::string fng = std::string(fnm) + "grid.nii.gz";
     writer->SetFileName(fng.c_str() );
-    writer->SetInput(ITK_NULLPTR);
+    writer->SetInput(nullptr);
     writer->Write();
     std::cout << " Grid done ";
     }
@@ -534,7 +534,7 @@ int Jacobian(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTSJacobian( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int ANTSJacobian( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -551,7 +551,7 @@ int ANTSJacobian( std::vector<std::string> args, std::ostream* /*out_stream = IT
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

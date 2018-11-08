@@ -321,7 +321,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     {
     if( targetImageOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      typename ImageType::Pointer targetImage = ITK_NULLPTR;
+      typename ImageType::Pointer targetImage = nullptr;
 
       std::string targetFile = targetImageOption->GetFunction( 0 )->GetName();
       ReadImage<ImageType>( targetImage, targetFile.c_str() );
@@ -335,7 +335,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       numberOfTargetModalities = targetImageOption->GetFunction( 0 )->GetNumberOfParameters();
       for( unsigned int n = 0; n < numberOfTargetModalities; n++ )
         {
-        typename ImageType::Pointer targetImage = ITK_NULLPTR;
+        typename ImageType::Pointer targetImage = nullptr;
 
         std::string targetFile = targetImageOption->GetFunction( 0 )->GetParameter( n );
         ReadImage<ImageType>( targetImage, targetFile.c_str() );
@@ -394,7 +394,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
   for( unsigned int m = 0; m < numberOfAtlases; m++ )
     {
     typename FusionFilterType::InputImageList atlasImageList;
-    typename LabelImageType::Pointer atlasSegmentation = ITK_NULLPTR;
+    typename LabelImageType::Pointer atlasSegmentation = nullptr;
 
     if( atlasImageOption->GetFunction( m )->GetNumberOfParameters() == 0 )
       {
@@ -408,7 +408,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
           }
         return EXIT_FAILURE;
         }
-      typename ImageType::Pointer atlasImage = ITK_NULLPTR;
+      typename ImageType::Pointer atlasImage = nullptr;
 
       std::string atlasFile = atlasImageOption->GetFunction( m )->GetName();
       ReadImage<ImageType>( atlasImage, atlasFile.c_str() );
@@ -431,7 +431,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
         }
       for( unsigned int n = 0; n < numberOfAtlasModalities; n++ )
         {
-        typename ImageType::Pointer atlasImage = ITK_NULLPTR;
+        typename ImageType::Pointer atlasImage = nullptr;
 
         std::string atlasFile = atlasImageOption->GetFunction( m )->GetParameter( n );
         ReadImage<ImageType>( atlasImage, atlasFile.c_str() );
@@ -456,7 +456,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
       {
       LabelType label = parser->Convert<LabelType>( exclusionImageOption->GetFunction( n )->GetName() );
 
-      typename LabelImageType::Pointer exclusionImage = ITK_NULLPTR;
+      typename LabelImageType::Pointer exclusionImage = nullptr;
       std::string exclusionFile = exclusionImageOption->GetFunction( n )->GetParameter( 0 );
       ReadImage<LabelImageType>( exclusionImage, exclusionFile.c_str() );
       fusionFilter->AddLabelExclusionImage( label, exclusionImage );
@@ -469,7 +469,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     parser->GetOption( "mask-image" );
   if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
     {
-    typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+    typename MaskImageType::Pointer maskImage = nullptr;
 
     std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
     ReadImage<MaskImageType>( maskImage, inputFile.c_str() );
@@ -870,7 +870,7 @@ void ajfInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsJointFusion( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int antsJointFusion( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -888,7 +888,7 @@ int antsJointFusion( std::vector<std::string> args, std::ostream* /*out_stream =
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
