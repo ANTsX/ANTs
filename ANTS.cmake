@@ -56,7 +56,7 @@ if(USE_VTK)
   find_package(VTK)
 
   if(VTK_VERSION_MAJOR GREATER 6)
-    find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL2
+    find_package(VTK 8.1.1 COMPONENTS vtkRenderingVolumeOpenGL2
    vtkCommonCore
    vtkCommonDataModel
    vtkIOGeometry
@@ -68,18 +68,6 @@ if(USE_VTK)
    vtkImagingGeneral
    vtkRenderingAnnotation
    )
-  else()
-     find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL
-     vtkCommonCore
-     vtkCommonDataModel
-     vtkIOGeometry
-     vtkIOXML
-     vtkIOLegacy
-     vtkIOPLY
-     vtkFiltersModeling
-     vtkImagingStencil
-     vtkImagingGeneral
-     vtkRenderingAnnotation)
   endif()
 
   if(VTK_FOUND)

@@ -200,7 +200,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
     vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput(renWin);
-    windowToImageFilter->SetMagnification( 4 );
+    windowToImageFilter->SetScale( 4 );
     windowToImageFilter->Update();
 
     vtkSmartPointer<vtkPNGWriter> writer =
