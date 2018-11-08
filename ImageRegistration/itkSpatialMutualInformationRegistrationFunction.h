@@ -673,8 +673,8 @@ protected:
 
 private:
 
-  SpatialMutualInformationRegistrationFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);                               // purposely not implemented
+  SpatialMutualInformationRegistrationFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   typename JointPDFType::Pointer m_JointHist;
   typename JointPDFDerivativesType::Pointer m_JointPDFDerivatives;

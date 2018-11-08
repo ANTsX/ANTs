@@ -101,15 +101,13 @@ public:
 
 protected:
   PICSLAdvancedNormalizationToolKit();
-  ~PICSLAdvancedNormalizationToolKit() override
-  {
-  }
+  ~PICSLAdvancedNormalizationToolKit() override = default;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
-  PICSLAdvancedNormalizationToolKit( const Self & ); // purposely not implemented
-  void operator=( const Self & );                    // purposely not implemented
+  PICSLAdvancedNormalizationToolKit( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   ImagePointer SubsampleImage( ImagePointer, RealType );
   ImagePointer PreprocessImage( ImagePointer );

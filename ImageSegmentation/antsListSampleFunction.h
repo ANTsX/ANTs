@@ -107,9 +107,7 @@ public:
 
 protected:
   ListSampleFunction();
-  ~ListSampleFunction() override
-  {
-  }
+  ~ListSampleFunction() override = default;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
@@ -117,8 +115,8 @@ protected:
   std::vector<typename InputListSampleType::ConstPointer> m_ListSamples;
   std::vector<ListSampleWeightArrayType *>                m_ListSampleWeights;
 private:
-  ListSampleFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);     // purposely not implemented
+  ListSampleFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end of namespace Statistics
 } // end of namespace ants

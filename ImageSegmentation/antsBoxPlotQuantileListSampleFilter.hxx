@@ -43,8 +43,7 @@ BoxPlotQuantileListSampleFilter<TScalarListSample>
 template <typename TScalarListSample>
 BoxPlotQuantileListSampleFilter<TScalarListSample>
 ::~BoxPlotQuantileListSampleFilter()
-{
-}
+= default;
 
 template <typename TScalarListSample>
 void

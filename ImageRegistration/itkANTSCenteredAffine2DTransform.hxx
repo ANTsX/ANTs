@@ -54,8 +54,7 @@ ANTSCenteredAffine2DTransform<TScalarType>::ANTSCenteredAffine2DTransform( unsig
 template <typename TScalarType>
 ANTSCenteredAffine2DTransform<TScalarType>::
 ~ANTSCenteredAffine2DTransform()
-{
-}
+= default;
 
 // Print self
 template <typename TScalarType>

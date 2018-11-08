@@ -162,8 +162,8 @@ protected:
   }
 
 private:
-  VectorParameterizedNeighborhoodOperatorImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);                                     // purposely not implemented
+  VectorParameterizedNeighborhoodOperatorImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** Pointer to the internal operator used to filter the image. */
   OperatorType m_Operator;

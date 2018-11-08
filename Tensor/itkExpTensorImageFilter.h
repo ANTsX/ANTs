@@ -91,9 +91,7 @@ public:
   // itkGetConstReferenceMacro(Radius, InputSizeType);
 protected:
   ExpTensorImageFilter();
-  ~ExpTensorImageFilter() override
-  {
-  }
+  ~ExpTensorImageFilter() override = default;
 
   void PrintSelf(std::ostream& os, Indent indent) const override;
 
@@ -110,8 +108,8 @@ protected:
   void GenerateData() override;
 
 private:
-  ExpTensorImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);       // purposely not implemented
+  ExpTensorImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

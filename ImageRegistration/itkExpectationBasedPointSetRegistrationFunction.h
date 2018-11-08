@@ -267,8 +267,8 @@ protected:
   void SetUpKDTrees(long whichlabel);
 
 private:
-  ExpectationBasedPointSetRegistrationFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);                               // purposely not implemented
+  ExpectationBasedPointSetRegistrationFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** Cache fixed image information. */
   SpacingType    m_FixedImageSpacing;

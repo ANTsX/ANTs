@@ -131,9 +131,7 @@ public:
   typedef Point<InternalScalarType, SpaceDimension> PointType;
 
   AverageAffineTransformNoRigidFunction();
-  ~AverageAffineTransformNoRigidFunction()
-  {
-  }
+  ~AverageAffineTransformNoRigidFunction() = default;
 
   ;
 

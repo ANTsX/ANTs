@@ -104,9 +104,7 @@ public:
 
 protected:
   LabeledPointSetFileReader();
-  ~LabeledPointSetFileReader() override
-  {
-  }
+  ~LabeledPointSetFileReader() override = default;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
@@ -121,8 +119,8 @@ protected:
   typename MultiComponentScalarSetType::Pointer   m_MultiComponentScalars;
   typename LineSetType::Pointer                   m_Lines;
 private:
-  LabeledPointSetFileReader( const Self & ); // purposely not implemented
-  void operator=( const Self & );            // purposely not implemented
+  LabeledPointSetFileReader( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   void ReadPointsFromImageFile();
 

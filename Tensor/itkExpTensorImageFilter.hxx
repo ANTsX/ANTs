@@ -31,8 +31,7 @@ namespace itk
 template <typename TInputImage, typename TOutputImage>
 ExpTensorImageFilter<TInputImage, TOutputImage>
 ::ExpTensorImageFilter()
-{
-}
+= default;
 
 template <typename TInputImage, typename TOutputImage>
 void

@@ -91,7 +91,7 @@ public:
 
 protected:
   GeometricJacobianDeterminantImageFilter();
-  ~GeometricJacobianDeterminantImageFilter() override {}
+  ~GeometricJacobianDeterminantImageFilter() override = default;
 
   /** Do any necessary casting/copying of the input data.  Input pixel types
      whose value types are not real number types must be cast to real number
@@ -137,8 +137,8 @@ private:
   RealType CalculateTetrahedralVolume( PointType, PointType, PointType, PointType );
   RealType CalculateTriangularArea( PointType, PointType, PointType );
 
-  GeometricJacobianDeterminantImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  GeometricJacobianDeterminantImageFilter(const Self&) = delete;
+  void operator=(const Self&) = delete;
 };
 
 } // end namespace itk

@@ -53,9 +53,7 @@ public:
     m_StageID( 0 )
   {
   };
-  ~OptionFunction() override
-  {
-  };
+  ~OptionFunction() override = default;
 
   typedef OptionFunction     Self;
   typedef DataObject         Superclass;
@@ -194,9 +192,7 @@ public:
 
 protected:
   CommandLineOption();
-  ~CommandLineOption() override
-  {
-  };
+  ~CommandLineOption() override = default;
 private:
   char                 m_ShortName;
   std::string          m_LongName;

@@ -38,8 +38,7 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 template <typename TListSample, typename TOutput, typename TCoordRep>
 GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~GaussianListSampleFunction()
-{
-}
+= default;
 
 template <typename TListSample, typename TOutput, typename TCoordRep>
 void

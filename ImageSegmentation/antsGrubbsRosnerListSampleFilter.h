@@ -93,8 +93,8 @@ protected:
   void GenerateData() override;
 
 private:
-  GrubbsRosnerListSampleFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );               // purposely not implemented
+  GrubbsRosnerListSampleFilter( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   InstanceIdentifierType FindMaximumNonOutlierDeviationValue( RealType, RealType );
   bool                   IsMeasurementAnOutlier( RealType, RealType, RealType, unsigned long );

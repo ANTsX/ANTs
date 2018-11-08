@@ -64,7 +64,7 @@ public:
 
 protected:
   DeterminantTensorImageFilter();
-  ~DeterminantTensorImageFilter() override {}
+  ~DeterminantTensorImageFilter() override = default;
 
   /** DeterminantTensorImageFilter can be implemented as a
    * multithreaded filter (we're only using vnl_det(), which is trivially
@@ -84,8 +84,8 @@ protected:
   void PrintSelf ( std::ostream& os, Indent indent ) const override;
 
 private:
-  DeterminantTensorImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  DeterminantTensorImageFilter(const Self&) = delete;
+  void operator=(const Self&) = delete;
 };
 
 } // end namespace itk

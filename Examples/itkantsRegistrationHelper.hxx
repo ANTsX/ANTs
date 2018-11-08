@@ -70,8 +70,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 template <typename TComputeType, unsigned VImageDimension>
 RegistrationHelper<TComputeType, VImageDimension>
 ::~RegistrationHelper()
-{
-}
+= default;
 
 template <typename ImageType>
 typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  inputImage,

@@ -44,9 +44,7 @@ public:
   DivideByConstant() : m_Constant(NumericTraits<TConstant>::OneValue())
   {
   };
-  ~DivideByConstant()
-  {
-  };
+  ~DivideByConstant() = default;
   bool operator!=( const DivideByConstant & other ) const
   {
     return !(*this == other);
@@ -137,12 +135,8 @@ public:
   /** End concept checking */
 #endif
 protected:
-  DivideByConstantImageFilter()
-  {
-  };
-  ~DivideByConstantImageFilter() override
-  {
-  };
+  DivideByConstantImageFilter() = default;
+  ~DivideByConstantImageFilter() override = default;
 
   void PrintSelf(std::ostream & os, Indent indent) const override
   {
@@ -154,8 +148,8 @@ protected:
   }
 
 private:
-  DivideByConstantImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);              // purposely not implemented
+  DivideByConstantImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

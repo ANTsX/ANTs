@@ -30,14 +30,12 @@ namespace Statistics
 template <typename TListSample, typename TOutput, typename TCoordRep>
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::LogEuclideanGaussianListSampleFunction()
-{
-}
+= default;
 
 template <typename TListSample, typename TOutput, typename TCoordRep>
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~LogEuclideanGaussianListSampleFunction()
-{
-}
+= default;
 
 template <typename TListSample, typename TOutput, typename TCoordRep>
 void

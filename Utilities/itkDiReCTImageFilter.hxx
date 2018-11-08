@@ -77,8 +77,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::~DiReCTImageFilter()
-{
-}
+= default;
 
 template <typename TInputImage, typename TOutputImage>
 void

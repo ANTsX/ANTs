@@ -240,9 +240,7 @@ public:
 protected:
 
   SurfaceImageCurvature();
-  ~SurfaceImageCurvature() override
-  {
-  };
+  ~SurfaceImageCurvature() override = default;
 
   void CopyImageToFunctionImage( OutputImagePointer, OutputImagePointer);
 

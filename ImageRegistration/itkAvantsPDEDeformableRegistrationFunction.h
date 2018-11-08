@@ -318,9 +318,7 @@ protected:
     this->m_RobustnessParameter = -1.e12;
   }
 
-  ~AvantsPDEDeformableRegistrationFunction() override
-  {
-  }
+  ~AvantsPDEDeformableRegistrationFunction() override = default;
 
   mutable double m_BestEnergy;
   mutable double m_LastLastEnergy;
@@ -339,8 +337,8 @@ protected:
 
   float m_RobustnessParameter;
 private:
-  AvantsPDEDeformableRegistrationFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);                          // purposely not implemented
+  AvantsPDEDeformableRegistrationFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

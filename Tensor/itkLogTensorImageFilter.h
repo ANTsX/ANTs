@@ -91,9 +91,7 @@ public:
   // itkGetConstReferenceMacro(Radius, InputSizeType);
 protected:
   LogTensorImageFilter();
-  ~LogTensorImageFilter() override
-  {
-  }
+  ~LogTensorImageFilter() override = default;
 
   void PrintSelf(std::ostream& os, Indent indent) const override;
 
@@ -110,8 +108,8 @@ protected:
   void GenerateData() override;
 
 private:
-  LogTensorImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);       // purposely not implemented
+  LogTensorImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

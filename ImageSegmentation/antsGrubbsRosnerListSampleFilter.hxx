@@ -40,8 +40,7 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
 template <typename TScalarListSample>
 GrubbsRosnerListSampleFilter<TScalarListSample>
 ::~GrubbsRosnerListSampleFilter()
-{
-}
+= default;
 
 template <typename TScalarListSample>
 void

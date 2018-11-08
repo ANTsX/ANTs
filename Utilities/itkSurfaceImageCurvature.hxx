@@ -58,9 +58,7 @@ public:
     imageindex = ind;
   }
 
-  ~GeodesicNode()
-  {
-  }
+  ~GeodesicNode() = default;
 };
 
 template <typename pclass>

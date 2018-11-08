@@ -195,7 +195,7 @@ public:
 
 protected:
   NonLocalSuperresolutionImageFilter();
-  ~NonLocalSuperresolutionImageFilter() override {}
+  ~NonLocalSuperresolutionImageFilter() override = default;
 
   void PrintSelf( std::ostream & os, Indent indent ) const override;
 

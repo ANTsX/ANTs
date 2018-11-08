@@ -195,9 +195,7 @@ public:
 protected:
 
   SurfaceCurvatureBase();
-  ~SurfaceCurvatureBase() override
-  {
-  };
+  ~SurfaceCurvatureBase() override = default;
 
   /** Holds the value of Pi. */
   double m_Pi;

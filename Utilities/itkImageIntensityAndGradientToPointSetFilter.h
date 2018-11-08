@@ -124,9 +124,7 @@ public:
 
 protected:
   ImageIntensityAndGradientToPointSetFilter();
-  ~ImageIntensityAndGradientToPointSetFilter() override
-  {
-  }
+  ~ImageIntensityAndGradientToPointSetFilter() override = default;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 

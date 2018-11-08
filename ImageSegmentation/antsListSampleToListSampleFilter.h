@@ -68,17 +68,15 @@ public:
 
 protected:
   ListSampleToListSampleFilter();
-  ~ListSampleToListSampleFilter() override
-  {
-  };
+  ~ListSampleToListSampleFilter() override = default;
 
   void GenerateData() override = 0;
 
   void AllocateOutput();
 
 private:
-  ListSampleToListSampleFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );               // purposely not implemented
+  ListSampleToListSampleFilter( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
 //   typename InputListSampleType::ConstPointer              m_InputListSample;
 //   typename OutputListSampleType::Pointer                  m_OutputListSample;

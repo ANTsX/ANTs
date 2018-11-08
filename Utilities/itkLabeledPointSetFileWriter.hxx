@@ -44,8 +44,7 @@ LabeledPointSetFileWriter<TInputMesh>
 template <typename TInputMesh>
 LabeledPointSetFileWriter<TInputMesh>
 ::~LabeledPointSetFileWriter()
-{
-}
+= default;
 
 //
 // Set the input mesh

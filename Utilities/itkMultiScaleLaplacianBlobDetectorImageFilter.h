@@ -195,15 +195,13 @@ protected:
   void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId ) override;
 
 private:
-  MultiScaleLaplacianBlobDetectorImageFilter( const Self &); // purposely not implemented
-  void operator=( const Self &);                             // purposely not implemented
+  MultiScaleLaplacianBlobDetectorImageFilter( const Self &) = delete;
+  void operator=( const Self &) = delete;
 
   class Blob
   {
 public:
-    Blob( void )
-    {
-    }
+    Blob( void ) = default;
 
     Blob( typename RealImageType::IndexType center, double sigma, RealPixelType value )
       : m_Center( center ),

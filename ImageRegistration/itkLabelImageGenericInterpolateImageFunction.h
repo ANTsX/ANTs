@@ -73,7 +73,7 @@ public:
 
 protected:
   LabelImageGenericInterpolateImageFunction();
-  ~LabelImageGenericInterpolateImageFunction() override{};
+  ~LabelImageGenericInterpolateImageFunction() override= default;
 
 	std::vector<typename InternalInterpolatorType::Pointer> m_InternalInterpolators;
 	std::vector<typename LabelSelectionAdaptorType::Pointer> m_LabelSelectionAdaptors;
@@ -81,8 +81,8 @@ protected:
 	LabelSetType m_Labels;
 
 private:
-  LabelImageGenericInterpolateImageFunction( const Self& ); //purposely not implemented
-  void operator=( const Self& ); //purposely not implemented
+  LabelImageGenericInterpolateImageFunction( const Self& ) = delete;
+  void operator=( const Self& ) = delete;
 
   /**
    * Evaluate function value at the given index

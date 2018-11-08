@@ -230,21 +230,17 @@ public:
   }
 
 protected:
-  VectorGaussianInterpolateImageFunction()
-  {
-  }
+  VectorGaussianInterpolateImageFunction() = default;
 
-  ~VectorGaussianInterpolateImageFunction()
-  {
-  };
+  ~VectorGaussianInterpolateImageFunction() = default;
   void PrintSelf(std::ostream& os, Indent indent) const
   {
     this->Superclass::PrintSelf(os, indent);
   }
 
 private:
-  VectorGaussianInterpolateImageFunction( const Self & ); // purposely not implemented
-  void operator=( const Self & );                         // purposely not implemented
+  VectorGaussianInterpolateImageFunction( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   /** Number of neighbors used in the interpolation */
   static const unsigned long m_Neighbors;

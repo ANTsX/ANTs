@@ -44,8 +44,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 template <typename TListSample, typename TOutput, typename TCoordRep>
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~HistogramParzenWindowsListSampleFunction()
-{
-}
+= default;
 
 template <typename TListSample, typename TOutput, typename TCoordRep>
 void

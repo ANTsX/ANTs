@@ -25,8 +25,7 @@ namespace itk
  */
 template <typename TTransform>
 AverageAffineTransformFunction<TTransform>::AverageAffineTransformFunction()
-{
-}
+= default;
 
 template <typename TTransform>
 void AverageAffineTransformFunction<TTransform>::PrintTransformList()

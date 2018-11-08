@@ -53,8 +53,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 template <typename TListSample, typename TOutput, typename TCoordRep>
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~JointHistogramParzenShapeAndOrientationListSampleFunction()
-{
-}
+= default;
 
 template <typename TListSample, typename TOutput, typename TCoordRep>
 void

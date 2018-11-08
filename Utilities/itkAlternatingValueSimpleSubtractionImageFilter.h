@@ -83,9 +83,7 @@ public:
 #endif
 protected:
   AlternatingValueSimpleSubtractionImageFilter();
-  ~AlternatingValueSimpleSubtractionImageFilter() override
-  {
-  }
+  ~AlternatingValueSimpleSubtractionImageFilter() override = default;
 
   void PrintSelf(std::ostream & os, Indent indent) const override;
 
@@ -114,8 +112,8 @@ protected:
                                     outputRegionForThread, ThreadIdType threadId) override;
 
 private:
-  AlternatingValueSimpleSubtractionImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);                         // purposely not implemented
+  AlternatingValueSimpleSubtractionImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** IndexValueType is used to switch among the inputs and
    * is used as the index value of the new dimension */

@@ -744,8 +744,8 @@ protected:
   void GenerateData() override;
 
 private:
-  AtroposSegmentationImageFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );                 // purposely not implemented
+  AtroposSegmentationImageFilter( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   /**
    * Initialize the segmentation labeling.

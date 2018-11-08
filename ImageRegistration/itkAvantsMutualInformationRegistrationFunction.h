@@ -688,15 +688,13 @@ public:
 protected:
 
   AvantsMutualInformationRegistrationFunction();
-  ~AvantsMutualInformationRegistrationFunction() override
-  {
-  };
+  ~AvantsMutualInformationRegistrationFunction() override = default;
   void PrintSelf(std::ostream& os, Indent indent) const override;
 
 private:
 
-  AvantsMutualInformationRegistrationFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);                              // purposely not implemented
+  AvantsMutualInformationRegistrationFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   typename JointPDFDerivativesType::Pointer m_JointPDFDerivatives;
 

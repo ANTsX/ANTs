@@ -341,9 +341,7 @@ public:
 
 protected:
   CrossCorrelationRegistrationFunction();
-  ~CrossCorrelationRegistrationFunction() override
-  {
-  }
+  ~CrossCorrelationRegistrationFunction() override = default;
 
   void PrintSelf(std::ostream& os, Indent indent) const override;
 
@@ -357,8 +355,8 @@ protected:
     FixedImageNeighborhoodIteratorType m_FixedImageIterator;
     };
 private:
-  CrossCorrelationRegistrationFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);                       // purposely not implemented
+  CrossCorrelationRegistrationFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** Cache fixed image information. */
   typename TFixedImage::SpacingType                  m_FixedImageSpacing;

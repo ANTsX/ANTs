@@ -118,8 +118,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::~AtroposSegmentationImageFilter()
-{
-}
+= default;
 
 template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void

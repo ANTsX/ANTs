@@ -44,9 +44,7 @@ public:
   AddConstantTo() : m_Constant(NumericTraits<TConstant>::OneValue())
   {
   };
-  ~AddConstantTo()
-  {
-  };
+  ~AddConstantTo() = default;
   bool operator!=( const AddConstantTo & other ) const
   {
     return !(*this == other);
@@ -132,12 +130,8 @@ public:
   /** End concept checking */
 #endif
 protected:
-  AddConstantToImageFilter()
-  {
-  };
-  virtual ~AddConstantToImageFilter()
-  {
-  };
+  AddConstantToImageFilter() = default;
+  virtual ~AddConstantToImageFilter() = default;
 
   void PrintSelf(std::ostream & os, Indent indent) const
   {
@@ -149,8 +143,8 @@ protected:
   }
 
 private:
-  AddConstantToImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);           // purposely not implemented
+  AddConstantToImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

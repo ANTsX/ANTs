@@ -39,8 +39,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 template <typename TListSample, typename TOutput, typename TCoordRep>
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~ManifoldParzenWindowsListSampleFunction()
-{
-}
+= default;
 
 template <typename TListSample, typename TOutput, typename TCoordRep>
 void

@@ -240,8 +240,8 @@ protected:
   }
 
 private:
-  ANTSCenteredAffine2DTransform(const Self &); // purposely not implemented
-  void operator=(const Self &);                // purposely not implemented
+  ANTSCenteredAffine2DTransform(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   TScalarType m_Angle;
   TScalarType m_S1;

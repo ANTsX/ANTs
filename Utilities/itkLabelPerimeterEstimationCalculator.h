@@ -115,12 +115,12 @@ public:
 
 protected:
   LabelPerimeterEstimationCalculator();
-  ~LabelPerimeterEstimationCalculator() override {}
+  ~LabelPerimeterEstimationCalculator() override = default;
   void PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  LabelPerimeterEstimationCalculator(const Self &); //purposely not implemented
-  void operator=(const Self &);                     //purposely not implemented
+  LabelPerimeterEstimationCalculator(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   bool m_FullyConnected;
 

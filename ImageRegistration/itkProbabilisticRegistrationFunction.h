@@ -318,9 +318,7 @@ public:
   float  m_TEMP;
 protected:
   ProbabilisticRegistrationFunction();
-  ~ProbabilisticRegistrationFunction() override
-  {
-  }
+  ~ProbabilisticRegistrationFunction() override = default;
 
   void PrintSelf(std::ostream& os, Indent indent) const override;
 
@@ -354,8 +352,8 @@ protected:
   }
 
 private:
-  ProbabilisticRegistrationFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);                    // purposely not implemented
+  ProbabilisticRegistrationFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** Cache fixed image information. */
   typename TFixedImage::SpacingType                  m_FixedImageSpacing;

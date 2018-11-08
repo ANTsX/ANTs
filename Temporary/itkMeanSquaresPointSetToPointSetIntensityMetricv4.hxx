@@ -41,8 +41,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::~MeanSquaresPointSetToPointSetIntensityMetricv4()
-{
-}
+= default;
 
 /** Initialize the metric */
 template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>

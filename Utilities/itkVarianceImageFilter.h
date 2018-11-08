@@ -90,7 +90,7 @@ public:
 
 protected:
   VarianceImageFilter();
-  ~VarianceImageFilter() override {}
+  ~VarianceImageFilter() override = default;
 
   /** VarianceImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -106,8 +106,8 @@ protected:
                             ThreadIdType threadId) override;
 
 private:
-  VarianceImageFilter(const Self &); //purposely not implemented
-  void operator=(const Self &);  //purposely not implemented
+  VarianceImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

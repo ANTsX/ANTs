@@ -53,13 +53,9 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(MultiplyByConstantImageFilter, MultiplyImageFilter);
 protected:
-  MultiplyByConstantImageFilter()
-  {
-  }
+  MultiplyByConstantImageFilter() = default;
 
-  ~MultiplyByConstantImageFilter() override
-  {
-  }
+  ~MultiplyByConstantImageFilter() override = default;
 };
 }
 #endif

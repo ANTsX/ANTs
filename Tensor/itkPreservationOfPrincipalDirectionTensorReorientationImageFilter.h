@@ -131,9 +131,7 @@ public:
   typedef typename OutputImageType::IndexType OutputIndexType;
 protected:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter();
-  ~PreservationOfPrincipalDirectionTensorReorientationImageFilter() override
-  {
-  }
+  ~PreservationOfPrincipalDirectionTensorReorientationImageFilter() override = default;
 
   void PrintSelf(std::ostream& os, Indent indent) const override;
 
@@ -169,8 +167,8 @@ protected:
   }
 
 private:
-  PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);                                                 // purposely not implemented
+  PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   AffineTransformPointer GetLocalDeformation(DisplacementFieldPointer, typename DisplacementFieldType::IndexType );
 

@@ -50,8 +50,7 @@ template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
 N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
                              TConfidenceImage>
 ::~N3BiasFieldScaleCostFunction()
-{
-}
+= default;
 
 template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
           typename TConfidenceImage>

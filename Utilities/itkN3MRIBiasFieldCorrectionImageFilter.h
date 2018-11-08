@@ -119,8 +119,8 @@ protected:
   N3BiasFieldScaleCostFunction();
   ~N3BiasFieldScaleCostFunction() override;
 private:
-  N3BiasFieldScaleCostFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);               // purposely not implemented
+  N3BiasFieldScaleCostFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   typename TInputImage::Pointer                  m_InputImage;
   typename TBiasFieldImage::Pointer              m_BiasFieldImage;
@@ -256,16 +256,14 @@ public:
   itkGetConstMacro( CurrentConvergenceMeasurement, RealType );
 protected:
   N3MRIBiasFieldCorrectionImageFilter();
-  ~N3MRIBiasFieldCorrectionImageFilter() override
-  {
-  };
+  ~N3MRIBiasFieldCorrectionImageFilter() override = default;
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData() override;
 
 private:
-  N3MRIBiasFieldCorrectionImageFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );                      // purposely not implemented
+  N3MRIBiasFieldCorrectionImageFilter( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
     SharpenImage( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage,

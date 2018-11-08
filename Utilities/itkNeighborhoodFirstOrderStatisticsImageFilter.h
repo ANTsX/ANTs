@@ -93,11 +93,11 @@ protected:
   }
 
 
-  ~NeighborhoodFirstOrderStatisticsImageFilter() override {}
+  ~NeighborhoodFirstOrderStatisticsImageFilter() override = default;
 private:
-  NeighborhoodFirstOrderStatisticsImageFilter(const Self &); //purposely not implemented
-  void operator=(const Self &);                  //purposely not implemented
-};                                               // end of class
+  NeighborhoodFirstOrderStatisticsImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
+};// end of class
 } // end namespace itk
 
 #endif

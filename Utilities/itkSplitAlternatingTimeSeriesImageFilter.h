@@ -102,8 +102,8 @@ protected:
                                     outputRegionForThread, ThreadIdType threadId) override;
 
 private:
-  SplitAlternatingTimeSeriesImageFilter(const Self &); //purposely not implemented
-  void operator=(const Self &);        //purposely not implemented
+  SplitAlternatingTimeSeriesImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** IndexValueType is used to switch among the inputs and
    * is used as the index value of the new dimension */

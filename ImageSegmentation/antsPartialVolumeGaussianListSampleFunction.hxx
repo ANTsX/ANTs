@@ -39,8 +39,7 @@ PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 template <typename TListSample, typename TOutput, typename TCoordRep>
 PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~PartialVolumeGaussianListSampleFunction()
-{
-}
+= default;
 
 template <typename TListSample, typename TOutput, typename TCoordRep>
 void

@@ -73,9 +73,7 @@ public:
   RealType EvaluateDeterminant( InputMatrixType & );
 
   DecomposeTensorFunction();
-  ~DecomposeTensorFunction() override
-  {
-  }
+  ~DecomposeTensorFunction() override = default;
 
 protected:
 
@@ -83,8 +81,8 @@ protected:
 
 private:
 
-  DecomposeTensorFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);          // purposely not implemented
+  DecomposeTensorFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

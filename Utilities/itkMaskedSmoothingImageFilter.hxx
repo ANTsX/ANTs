@@ -36,8 +36,7 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
 template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::~MaskedSmoothingImageFilter()
-{
-}
+= default;
 
 template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 void

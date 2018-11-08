@@ -154,15 +154,13 @@ public:
 
 protected:
   CommandLineParser();
-  ~CommandLineParser() override
-  {
-  }
+  ~CommandLineParser() override = default;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
-  CommandLineParser( const Self & ); // purposely not implemented
-  void operator=( const Self & );    // purposely not implemented
+  CommandLineParser( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   std::vector<std::string> RegroupCommandLineArguments( unsigned int, char * * );
 

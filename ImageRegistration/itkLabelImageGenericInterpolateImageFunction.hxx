@@ -10,8 +10,7 @@ namespace itk
 template<typename TInputImage, template<typename, typename> class TInterpolator , typename TCoordRep>
 LabelImageGenericInterpolateImageFunction<TInputImage, TInterpolator, TCoordRep>
 ::LabelImageGenericInterpolateImageFunction()
-{
-}
+= default;
 
 template<typename TInputImage, template<typename, typename> class TInterpolator , typename TCoordRep>
 void LabelImageGenericInterpolateImageFunction<TInputImage,TInterpolator, TCoordRep>

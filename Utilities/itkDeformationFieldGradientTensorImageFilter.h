@@ -111,7 +111,7 @@ public:
 
 protected:
   DeformationFieldGradientTensorImageFilter();
-  ~DeformationFieldGradientTensorImageFilter() override {}
+  ~DeformationFieldGradientTensorImageFilter() override = default;
 
   /** Do any necessary casting/copying of the input data.  Input pixel types
      whose value types are not real number types must be cast to real number
@@ -146,8 +146,8 @@ private:
 
   RealMatrixType EvaluateAtNeighborhood( const ConstNeighborhoodIteratorType & ) const;
 
-  DeformationFieldGradientTensorImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  DeformationFieldGradientTensorImageFilter(const Self&) = delete;
+  void operator=(const Self&) = delete;
 };
 
 } // end namespace itk

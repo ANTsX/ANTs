@@ -35,8 +35,7 @@ PassThroughListSampleFilter<TListSample>
 template <typename TListSample>
 PassThroughListSampleFilter<TListSample>
 ::~PassThroughListSampleFilter()
-{
-}
+= default;
 
 template <typename TListSample>
 void

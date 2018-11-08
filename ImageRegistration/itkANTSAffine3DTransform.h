@@ -133,9 +133,7 @@ protected:
 /*                            const OutputVectorType &offset); */
   ANTSAffine3DTransform(unsigned int outputDims, unsigned int paramDims);
   ANTSAffine3DTransform();
-  ~ANTSAffine3DTransform() override
-  {
-  };
+  ~ANTSAffine3DTransform() override = default;
 
   void ComputeMatrix() override;
 
@@ -151,8 +149,8 @@ protected:
   void PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ANTSAffine3DTransform(const Self &); // purposely not implemented
-  void operator=(const Self &);        // purposely not implemented
+  ANTSAffine3DTransform(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** Rotation of the transformation. */
   VnlQuaternionType m_Rotation;

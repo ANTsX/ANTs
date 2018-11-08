@@ -79,12 +79,12 @@ public:
 	}
 
 protected:
-  LabelSelectionImageAdaptor() {}
-  ~LabelSelectionImageAdaptor() override {}
+  LabelSelectionImageAdaptor() = default;
+  ~LabelSelectionImageAdaptor() override = default;
 
 private:
-  LabelSelectionImageAdaptor(const Self &); //purposely not implemented
-  void operator=(const Self &);  //purposely not implemented
+  LabelSelectionImageAdaptor(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

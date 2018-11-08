@@ -297,9 +297,7 @@ public:
   bool m_bFirstDeformNoInterp;
 protected:
   WarpImageMultiTransformFilter();
-  ~WarpImageMultiTransformFilter() override
-  {
-  };
+  ~WarpImageMultiTransformFilter() override = default;
   void PrintSelf(std::ostream& os, Indent indent) const override;
 
   /** WarpImageMultiTransformFilter is implemented as a multi-threaded filter.
@@ -322,8 +320,8 @@ protected:
 
   InputImagePointer m_CachedSmoothImage;
 private:
-  WarpImageMultiTransformFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);                // purposely not implemented
+  WarpImageMultiTransformFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

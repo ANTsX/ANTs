@@ -165,15 +165,13 @@ public:
   itkBooleanMacro( WriteComponentImages );
 protected:
   ANTSImageTransformation();
-  ~ANTSImageTransformation() override
-  {
-  }
+  ~ANTSImageTransformation() override = default;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
-  ANTSImageTransformation( const Self & ); // purposely not implemented
-  void operator=( const Self & );          // purposely not implemented
+  ANTSImageTransformation( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   AffineTransformPointer                m_AffineTransform;
   AffineTransformPointer                m_FixedImageAffineTransform;

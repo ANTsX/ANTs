@@ -31,8 +31,7 @@ namespace itk
 template <typename TInputImage, typename TOutputImage>
 LogTensorImageFilter<TInputImage, TOutputImage>
 ::LogTensorImageFilter()
-{
-}
+= default;
 
 template <typename TInputImage, typename TOutputImage>
 void

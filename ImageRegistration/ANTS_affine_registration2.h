@@ -72,9 +72,7 @@ public:
     ignore_void_orgin = true;
   };
 
-  ~OptAffine()
-  {
-  };
+  ~OptAffine() = default;
 
   AffineTransformPointerType transform_initial;
   MaskImagePointerType       mask_fixed;
@@ -266,12 +264,8 @@ public:
   typedef TMaskObjectType                       MaskObjectType;
   typedef typename MaskObjectType::Pointer      MaskObjectPointerType;
 
-  RunningAffineCache()
-  {
-  };
-  ~RunningAffineCache()
-  {
-  };
+  RunningAffineCache() = default;
+  ~RunningAffineCache() = default;
 
   MaskObjectPointerType   mask_fixed_object;
   ImagePyramidType        fixed_image_pyramid;

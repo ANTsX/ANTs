@@ -257,8 +257,8 @@ protected:
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
-  VectorFieldGradientImageFunction(const Self &); // purposely not implemented
-  MatrixType operator=(const Self &);             // purposely not implemented
+  VectorFieldGradientImageFunction(const Self &) = delete;
+  MatrixType operator=(const Self &) = delete;
 };
 } // end namespace itk
 

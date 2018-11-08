@@ -225,8 +225,8 @@ protected:
     double m_SumOfSquaredChange;
     };
 private:
-  SyNDemonsRegistrationFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);                // purposely not implemented
+  SyNDemonsRegistrationFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** Cache fixed image information. */
   SpacingType m_FixedImageSpacing;

@@ -303,9 +303,7 @@ public:
   }
 
   antsMatrixUtilities();
-  ~antsMatrixUtilities() override
-  {
-  }
+  ~antsMatrixUtilities() override = default;
 
   void PrintSelf( std::ostream& os, Indent indent ) const override
   {

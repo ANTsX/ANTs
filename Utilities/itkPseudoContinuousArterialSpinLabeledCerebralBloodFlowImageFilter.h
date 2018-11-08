@@ -129,8 +129,8 @@ protected:
                                     outputRegionForThread, ThreadIdType threadId);
 
 private:
-  PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);                                        // purposely not implemented
+  PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** IndexValueType is used to switch among the inputs and
    * is used as the index value of the new dimension */

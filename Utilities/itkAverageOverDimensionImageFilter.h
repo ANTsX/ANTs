@@ -229,7 +229,7 @@ public:
 
 protected:
   AverageOverDimensionImageFilter();
-  ~AverageOverDimensionImageFilter() override {}
+  ~AverageOverDimensionImageFilter() override = default;
   void PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** AverageOverDimensionImageFilter can produce an image which is a different
@@ -277,8 +277,8 @@ protected:
   OutputImageRegionType m_OutputImageRegion;
 
 private:
-  AverageOverDimensionImageFilter(const Self &); //purposely not implemented
-  void operator=(const Self &);     //purposely not implemented
+  AverageOverDimensionImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   DIRECTIONCOLLAPSESTRATEGY m_DirectionCollapseStrategy;
 };
