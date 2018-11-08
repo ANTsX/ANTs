@@ -100,7 +100,7 @@ public:
   typedef typename BinaryImageType::Pointer                    BinaryImagePointer;
 
   /** Inherit some enums from the superclass. */
-  itkStaticConstMacro(ImageDimension, unsigned int, Superclass::ImageDimension);
+  static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Inherit some enums from the superclass. */
   typedef typename Superclass::PixelType        PixelType;

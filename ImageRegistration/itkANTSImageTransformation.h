@@ -48,8 +48,8 @@ public:
   typedef double TComp;
   /** Run-time type information (and related methods). */
   itkTypeMacro( ANTSImageTransformation, Object );
-  itkStaticConstMacro( Dimension, unsigned int, TDimension );
-  itkStaticConstMacro( ImageDimension, unsigned int, TDimension );
+  static constexpr unsigned int Dimension = TDimension;
+  static constexpr unsigned int ImageDimension = TDimension;
 
   typedef TReal RealType;
   typedef Image<RealType,

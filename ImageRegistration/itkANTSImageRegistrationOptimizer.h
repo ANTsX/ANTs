@@ -68,8 +68,8 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( ANTSImageRegistrationOptimizer, Object );
-  itkStaticConstMacro( Dimension, unsigned int, TDimension );
-  itkStaticConstMacro( ImageDimension, unsigned int, TDimension );
+  static constexpr unsigned int Dimension = TDimension;
+  static constexpr unsigned int ImageDimension = TDimension;
 
   typedef double TComp;
   typedef TReal  RealType;

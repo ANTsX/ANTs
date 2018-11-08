@@ -29,7 +29,7 @@ public:
   typedef typename TFilter::MovingImageType MovingImageType;
 
   /** ImageDimension constants */
-  itkStaticConstMacro( VImageDimension, unsigned int, FixedImageType::ImageDimension );
+  static constexpr unsigned int VImageDimension = FixedImageType::ImageDimension;
 
   typedef typename TFilter::OutputTransformType                          OutputTransformType;
   typedef typename TFilter::OutputTransformType::ScalarType              RealType;

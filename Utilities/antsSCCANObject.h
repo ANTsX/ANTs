@@ -49,7 +49,7 @@ public:
   itkStaticConstMacro( ImageDimension, unsigned int,
                        TInputImage::ImageDimension );
 
-  itkStaticConstMacro( MatrixDimension, unsigned int, 2 );
+  static constexpr unsigned int MatrixDimension = 2;
 
   /** Typedef support of input types. */
   typedef TInputImage                   ImageType;

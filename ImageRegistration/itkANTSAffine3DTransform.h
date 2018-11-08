@@ -35,10 +35,10 @@ public:
   itkTypeMacro( ANTSAffine3DTransform, MatrixOffsetTransformBase );
 
   /** Dimension of parameters   */
-  itkStaticConstMacro(InputSpaceDimension, unsigned int, 3);
-  itkStaticConstMacro(OutputSpaceDimension, unsigned int, 3);
-  itkStaticConstMacro(SpaceDimension, unsigned int, 3);
-  itkStaticConstMacro(ParametersDimension, unsigned int, 13);
+  static constexpr unsigned int InputSpaceDimension = 3;
+  static constexpr unsigned int OutputSpaceDimension = 3;
+  static constexpr unsigned int SpaceDimension = 3;
+  static constexpr unsigned int ParametersDimension = 13;
 
   /** Parameters Type   */
   typedef typename Superclass::ParametersType      ParametersType;

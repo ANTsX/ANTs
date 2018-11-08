@@ -97,8 +97,8 @@ public:
   typedef typename DisplacementFieldType::PixelType VectorType;
 
   /** Inherit some enums from the superclass. */
-  itkStaticConstMacro(ImageDimension, unsigned  int, Superclass::ImageDimension);
-  itkStaticConstMacro(MeasurementDimension, unsigned  int, Superclass::ImageDimension);
+  static constexpr unsigned  int ImageDimension = Superclass::ImageDimension;
+  static constexpr unsigned  int MeasurementDimension = Superclass::ImageDimension;
 
   /** Inherit some enums from the superclass. */
   typedef typename Superclass::PixelType        PixelType;

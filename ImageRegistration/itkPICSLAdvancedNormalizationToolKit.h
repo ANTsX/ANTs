@@ -43,7 +43,7 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( PICSLAdvancedNormalizationToolKit, Object );
-  itkStaticConstMacro( Dimension, unsigned int, TDimension );
+  static constexpr unsigned int Dimension = TDimension;
   typedef double TComp;
   typedef TReal  RealType;
   typedef Image<RealType,

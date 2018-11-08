@@ -90,7 +90,7 @@ public:
   itkNewMacro(Self);
 
   /** Image dimension. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TImage::ImageDimension;
 
   /** Get the result mesh */
   vtkPolyData * GetMesh()

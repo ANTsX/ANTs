@@ -40,7 +40,7 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( ANTSSimilarityMetric, Object );
-  itkStaticConstMacro( Dimension, unsigned int, TDimension );
+  static constexpr unsigned int Dimension = TDimension;
 
   typedef TReal RealType;
   typedef Image<RealType,

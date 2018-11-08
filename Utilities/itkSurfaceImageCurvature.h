@@ -58,7 +58,7 @@ public:
   typedef typename ImageType::SizeType            SizeType;
   typedef ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
   /** Image dimension. */
-  itkStaticConstMacro(SurfaceDimension, unsigned int, TSurface::ImageDimension);
+  static constexpr unsigned int SurfaceDimension = TSurface::ImageDimension;
 
   typedef typename Superclass::RealType   RealType;
   typedef typename Superclass::PointType  VectorType;

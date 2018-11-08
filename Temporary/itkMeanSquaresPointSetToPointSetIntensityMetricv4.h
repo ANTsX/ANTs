@@ -72,7 +72,7 @@ public:
   /** Dimension type */
   typedef typename Superclass::DimensionType                  DimensionType;
 
-  itkStaticConstMacro( FixedPointDimension, DimensionType, Superclass::FixedDimension );
+  static constexpr DimensionType FixedPointDimension = Superclass::FixedDimension;
 
   /**  Type of the moving point set. */
   typedef TMovingPointSet                                  MovingPointSetType;
@@ -81,13 +81,13 @@ public:
   typedef typename TMovingPointSet::PointsContainer        MovingPointsContainer;
   typedef typename TMovingPointSet::PointDataContainer     MovingPointDataContainer;
 
-  itkStaticConstMacro( MovingPointDimension, DimensionType, Superclass::MovingDimension );
+  static constexpr DimensionType MovingPointDimension = Superclass::MovingDimension;
 
   /** Transform types from Superclass*/
   typedef typename Superclass::FixedTransformType            FixedTransformType;
   typedef typename Superclass::MovingTransformType           MovingTransformType;
 
-  itkStaticConstMacro( PointDimension, DimensionType, Superclass::PointDimension );
+  static constexpr DimensionType PointDimension = Superclass::PointDimension;
 
   /** Types transferred from the base class */
   typedef typename Superclass::MeasureType             MeasureType;
