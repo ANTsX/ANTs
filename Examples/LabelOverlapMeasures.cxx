@@ -69,16 +69,16 @@ int LabelOverlapMeasures( int argc, char * argv[] )
     {
     std::vector<std::string>   columnHeaders;
 
-    columnHeaders.push_back( std::string( "Label" ) );
-    columnHeaders.push_back( std::string( "Total/Target" ) );
-    columnHeaders.push_back( std::string( "Jaccard" ) );
-    columnHeaders.push_back( std::string( "Dice" ) );
-    columnHeaders.push_back( std::string( "VolumeSimilarity" ) );
-    columnHeaders.push_back( std::string( "FalseNegative" ) );
-    columnHeaders.push_back( std::string( "FalsePositive" ) );
+    columnHeaders.emplace_back( "Label" );
+    columnHeaders.emplace_back( "Total/Target" );
+    columnHeaders.emplace_back( "Jaccard" );
+    columnHeaders.emplace_back( "Dice" );
+    columnHeaders.emplace_back( "VolumeSimilarity" );
+    columnHeaders.emplace_back( "FalseNegative" );
+    columnHeaders.emplace_back( "FalsePositive" );
 
     std::vector<std::string>   rowHeaders;
-    rowHeaders.push_back( std::string( "All" ) );
+    rowHeaders.emplace_back( "All" );
 
     std::vector<int>::const_iterator itL = allLabels.begin();
     while( itL != allLabels.end() )

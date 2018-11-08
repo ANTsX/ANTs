@@ -102,7 +102,7 @@ private:
   std::vector<std::string> trainingImageFileNames;
   for( int n = 8; n < argc; n++ )
     {
-    trainingImageFileNames.push_back( std::string( argv[n] ) );
+    trainingImageFileNames.emplace_back( argv[n] );
     }
 
   // Get number of iterations

@@ -158,7 +158,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
         std::cerr << "Error reading RGB file " << rgbFileName << std::endl;
         return EXIT_FAILURE;
         }
-      functionalRgbImages.push_back( rgbReader->GetOutput() );
+      functionalRgbImages.emplace_back(rgbReader->GetOutput() );
 
       if( ! maskFileName.empty() )
         {
@@ -167,11 +167,11 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
         maskReader->SetFileName( maskFileName.c_str() );
         maskReader->Update();
 
-        functionalMaskImages.push_back( maskReader->GetOutput() );
+        functionalMaskImages.emplace_back(maskReader->GetOutput() );
         }
       else
         {
-        functionalMaskImages.push_back( nullptr );
+        functionalMaskImages.emplace_back(nullptr );
         }
       }
     }

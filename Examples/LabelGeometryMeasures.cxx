@@ -108,42 +108,42 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 
     std::vector<std::string>   columnHeaders;
 
-    columnHeaders.push_back( std::string( "Label" ) );
-    columnHeaders.push_back( std::string( "VolumeInVoxels" ) );
-    columnHeaders.push_back( std::string( "SurfaceAreaInMillimetersSquared" ) );
-    columnHeaders.push_back( std::string( "Eccentricity" ) );
-    columnHeaders.push_back( std::string( "Elongation" ) );
-    columnHeaders.push_back( std::string( "Orientation" ) );
-    columnHeaders.push_back( std::string( "Centroid_x" ) );
-    columnHeaders.push_back( std::string( "Centroid_y" ) );
+    columnHeaders.emplace_back( "Label" );
+    columnHeaders.emplace_back( "VolumeInVoxels" );
+    columnHeaders.emplace_back( "SurfaceAreaInMillimetersSquared" );
+    columnHeaders.emplace_back( "Eccentricity" );
+    columnHeaders.emplace_back( "Elongation" );
+    columnHeaders.emplace_back( "Orientation" );
+    columnHeaders.emplace_back( "Centroid_x" );
+    columnHeaders.emplace_back( "Centroid_y" );
     if( ImageDimension == 3 )
       {
-      columnHeaders.push_back( std::string( "Centroid_z" ) );
+      columnHeaders.emplace_back( "Centroid_z" );
       }
-    columnHeaders.push_back( std::string( "AxesLength_x" ) );
-    columnHeaders.push_back( std::string( "AxesLength_y" ) );
+    columnHeaders.emplace_back( "AxesLength_x" );
+    columnHeaders.emplace_back( "AxesLength_y" );
     if( ImageDimension == 3 )
       {
-      columnHeaders.push_back( std::string( "AxesLength_z" ) );
+      columnHeaders.emplace_back( "AxesLength_z" );
       }
-    columnHeaders.push_back( std::string( "BoundingBoxLower_x" ) );
-    columnHeaders.push_back( std::string( "BoundingBoxUpper_x" ) );
-    columnHeaders.push_back( std::string( "BoundingBoxLower_y" ) );
-    columnHeaders.push_back( std::string( "BoundingBoxUpper_y" ) );
+    columnHeaders.emplace_back( "BoundingBoxLower_x" );
+    columnHeaders.emplace_back( "BoundingBoxUpper_x" );
+    columnHeaders.emplace_back( "BoundingBoxLower_y" );
+    columnHeaders.emplace_back( "BoundingBoxUpper_y" );
     if( ImageDimension == 3 )
       {
-      columnHeaders.push_back( std::string( "BoundingBoxLower_z" ) );
-      columnHeaders.push_back( std::string( "BoundingBoxUpper_z" ) );
+      columnHeaders.emplace_back( "BoundingBoxLower_z" );
+      columnHeaders.emplace_back( "BoundingBoxUpper_z" );
       }
 
     if( filter->GetIntensityInput() )
       {
-      columnHeaders.push_back( std::string( "IntegratedIntensity" ) );
-      columnHeaders.push_back( std::string( "WeightedCentroid_x" ) );
-      columnHeaders.push_back( std::string( "WeightedCentroid_y" ) );
+      columnHeaders.emplace_back( "IntegratedIntensity" );
+      columnHeaders.emplace_back( "WeightedCentroid_x" );
+      columnHeaders.emplace_back( "WeightedCentroid_y" );
       if( ImageDimension == 3 )
         {
-        columnHeaders.push_back( std::string( "WeightedCentroid_z" ) );
+        columnHeaders.emplace_back( "WeightedCentroid_z" );
         }
       }
 

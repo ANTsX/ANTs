@@ -161,12 +161,12 @@ int ConvertImage( int argc, char *argv[] )
     ReadImage<InputImageType>( inputImage, argv[2] );
 
     std::vector<std::string> rescaleFileTypes;
-    rescaleFileTypes.push_back( ".png" );
-    rescaleFileTypes.push_back( ".jpeg" );
-    rescaleFileTypes.push_back( ".jpg" );
-    rescaleFileTypes.push_back( ".tiff" );
-    rescaleFileTypes.push_back( ".tif" );
-    rescaleFileTypes.push_back( ".bmp" );
+    rescaleFileTypes.emplace_back(".png" );
+    rescaleFileTypes.emplace_back(".jpeg" );
+    rescaleFileTypes.emplace_back(".jpg" );
+    rescaleFileTypes.emplace_back(".tiff" );
+    rescaleFileTypes.emplace_back(".tif" );
+    rescaleFileTypes.emplace_back(".bmp" );
 
     bool isRescaleType = false;
     for( unsigned int i = 0; i < rescaleFileTypes.size(); i++ )

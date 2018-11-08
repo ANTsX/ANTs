@@ -9527,9 +9527,9 @@ int DiceAndMinDistSum(      int argc, char *argv[])
     {
     vnl_matrix<double> OutputValues(NumberOfLabels, 2);
 
-    ColumnHeaders.push_back("Label Name");
-    ColumnHeaders.push_back("Min_Distance");
-    ColumnHeaders.push_back("Dice");
+    ColumnHeaders.emplace_back("Label Name");
+    ColumnHeaders.emplace_back("Min_Distance");
+    ColumnHeaders.emplace_back("Dice");
     for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
       {
       OutputValues(labct, 0) = distances[labct];
@@ -9562,11 +9562,11 @@ int DiceAndMinDistSum(      int argc, char *argv[])
   else
     {
     vnl_matrix<double> OutputValues(NumberOfLabels, 4);
-    ColumnHeaders.push_back("Label Name");
-    ColumnHeaders.push_back("Dice");
-    ColumnHeaders.push_back("RO");
-    ColumnHeaders.push_back("Percent_of_Region_1_In_Overlap");
-    ColumnHeaders.push_back("Percent_of_Region_2_In_Overlap");
+    ColumnHeaders.emplace_back("Label Name");
+    ColumnHeaders.emplace_back("Dice");
+    ColumnHeaders.emplace_back("RO");
+    ColumnHeaders.emplace_back("Percent_of_Region_1_In_Overlap");
+    ColumnHeaders.emplace_back("Percent_of_Region_2_In_Overlap");
     for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
       {
       OutputValues(labct, 0) = dicevals[labct];
@@ -11642,9 +11642,9 @@ int MajorityVoting( int argc, char *argv[] )
   if( ! doUsage1 )
     {
     std::vector<std::string> fileExtensions;
-    fileExtensions.push_back( ".nii" );
-    fileExtensions.push_back( ".mha" );
-    fileExtensions.push_back( ".nrrd" );
+    fileExtensions.emplace_back(".nii" );
+    fileExtensions.emplace_back(".mha" );
+    fileExtensions.emplace_back(".nrrd" );
 
     std::string outputMaskName;
     for( unsigned int i = 0; i < fileExtensions.size(); i++ )

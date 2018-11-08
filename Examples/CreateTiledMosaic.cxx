@@ -186,7 +186,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         std::cerr << "Error reading RGB file " << rgbFileName << std::endl;
         return EXIT_FAILURE;
         }
-      functionalRgbImages.push_back( rgbReader->GetOutput() );
+      functionalRgbImages.emplace_back(rgbReader->GetOutput() );
 
       // read mask
 
@@ -204,7 +204,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         std::cerr << "Error reading mask file " << maskFileName << std::endl;
         return EXIT_FAILURE;
         }
-      functionalMaskImages.push_back( maskReader->GetOutput() );
+      functionalMaskImages.emplace_back(maskReader->GetOutput() );
 
       if( functionalOverlayOption->GetFunction( n )->GetNumberOfParameters() > 2 )
         {

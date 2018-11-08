@@ -548,7 +548,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
         }
       else
         {
-        image_fn_list.push_back(std::string(filenm) );
+        image_fn_list.emplace_back(filenm );
         filecount++;
         }
       }
@@ -1003,7 +1003,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
         }
       else
         {
-        image_fn_list.push_back(std::string(filenm) );
+        image_fn_list.emplace_back(filenm );
         filecount++;
         }
       }
@@ -1027,7 +1027,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
         }
       else
         {
-        vec_fn_list.push_back(std::string(filenmVec) );
+        vec_fn_list.emplace_back(filenmVec );
         filecountVec++;
         }
       }

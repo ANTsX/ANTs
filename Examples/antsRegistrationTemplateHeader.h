@@ -1299,7 +1299,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::Linear )
           {
           // The output type must be Affine, not matrixoffset!  TransformTypeNames.push_back( "matrixoffset" );
-          TransformTypeNames.push_back( "genericaffine" );
+          TransformTypeNames.emplace_back("genericaffine" );
           }
         else if( transformToWrite->GetNthTransform( i )->GetTransformCategory() ==
           TransformType::DisplacementField )
@@ -1313,16 +1313,16 @@ DoRegistration(typename ParserType::Pointer & parser)
           // not.
           if( nthTransform && nthTransform->GetInverseDisplacementField() )
             {
-            TransformTypeNames.push_back( "syn" );
+            TransformTypeNames.emplace_back("syn" );
             }
           else
             {
-            TransformTypeNames.push_back( "gdf" );
+            TransformTypeNames.emplace_back("gdf" );
             }
           }
         else if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::BSpline )
           {
-          TransformTypeNames.push_back( "bspline" );
+          TransformTypeNames.emplace_back("bspline" );
           }
         }
       }
