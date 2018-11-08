@@ -231,7 +231,7 @@ public:
    * implemenation for GenerateOutputInformation() which set
    * the output information according the OutputSpacing, OutputOrigin
    * and the deformation field's LargestPossibleRegion. */
-  void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() override;
 
   /** It is difficult to compute in advance the input image region
    * required to compute the requested output region. Thus the safest
@@ -239,15 +239,15 @@ public:
    *
    * For the deformation field, the input requested region
    * set to be the same as that of the output requested region. */
-  void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
   /** This method is used to set the state of the filter before
    * multi-threading. */
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
   /** This method is used to set the state of the filter after
    * multi-threading. */
-  void AfterThreadedGenerateData() ITK_OVERRIDE;
+  void AfterThreadedGenerateData() override;
 
   /** precompute the smoothed image if necessary **/
   void SetSmoothScale(double scale);
@@ -297,15 +297,15 @@ public:
   bool m_bFirstDeformNoInterp;
 protected:
   WarpImageMultiTransformFilter();
-  virtual ~WarpImageMultiTransformFilter() ITK_OVERRIDE
+  virtual ~WarpImageMultiTransformFilter() override
   {
   };
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
   /** WarpImageMultiTransformFilter is implemented as a multi-threaded filter.
    * As such, it needs to provide and implementation for
    * ThreadedGenerateData(). */
-  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId ) ITK_OVERRIDE;
+  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId ) override;
 
   PointType     m_OutputOrigin;
   SpacingType   m_OutputSpacing;

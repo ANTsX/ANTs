@@ -57,20 +57,20 @@ public:
 
   typedef typename Superclass::PointType PointType;
 
-  void GenerateInputRequestedRegion() ITK_OVERRIDE
+  void GenerateInputRequestedRegion() override
   {
     Superclass::GenerateInputRequestedRegion();
   }
 
-  void BeforeThreadedGenerateData() ITK_OVERRIDE
+  void BeforeThreadedGenerateData() override
   {
   };
 
-  void AfterThreadedGenerateData() ITK_OVERRIDE
+  void AfterThreadedGenerateData() override
   {
   };
 
-  void GenerateOutputInformation() ITK_OVERRIDE
+  void GenerateOutputInformation() override
   {
     // call the superclass's implementation
     Superclass::GenerateOutputInformation();
@@ -83,10 +83,10 @@ protected:
     Superclass::m_EdgePaddingValue.Fill(kMaxDisp);
   }
 
-  virtual ~DisplacementFieldFromMultiTransformFilter() ITK_OVERRIDE
+  virtual ~DisplacementFieldFromMultiTransformFilter() override
   {
   };
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE
+  void PrintSelf(std::ostream& os, Indent indent) const override
   {
     Superclass::PrintSelf(os, indent);
   };
@@ -95,7 +95,7 @@ protected:
    * As such, it needs to provide and implementation for
    * ThreadedGenerateData(). */
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                            ThreadIdType threadId ) ITK_OVERRIDE
+                            ThreadIdType threadId ) override
   {
     OutputImagePointer outputPtr = this->GetOutput();
 

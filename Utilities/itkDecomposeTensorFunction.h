@@ -73,13 +73,13 @@ public:
   RealType EvaluateDeterminant( InputMatrixType & );
 
   DecomposeTensorFunction();
-  virtual ~DecomposeTensorFunction() ITK_OVERRIDE
+  virtual ~DecomposeTensorFunction() override
   {
   }
 
 protected:
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
 

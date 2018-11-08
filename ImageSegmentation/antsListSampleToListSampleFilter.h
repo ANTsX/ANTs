@@ -61,18 +61,18 @@ public:
   /** Get the list sample output of this object.  */
   OutputListSampleType * GetOutput();
 
-  void Update() ITK_OVERRIDE
+  void Update() override
   {
     this->GenerateData();
   }
 
 protected:
   ListSampleToListSampleFilter();
-  virtual ~ListSampleToListSampleFilter() ITK_OVERRIDE
+  virtual ~ListSampleToListSampleFilter() override
   {
   };
 
-  void GenerateData() ITK_OVERRIDE = 0;
+  void GenerateData() override = 0;
 
   void AllocateOutput();
 

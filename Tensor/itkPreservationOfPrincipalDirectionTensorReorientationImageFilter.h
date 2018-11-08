@@ -131,11 +131,11 @@ public:
   typedef typename OutputImageType::IndexType OutputIndexType;
 protected:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter();
-  virtual ~PreservationOfPrincipalDirectionTensorReorientationImageFilter() ITK_OVERRIDE
+  virtual ~PreservationOfPrincipalDirectionTensorReorientationImageFilter() override
   {
   }
 
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
   /** PreservationOfPrincipalDirectionTensorReorientationImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -147,7 +147,7 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
   typename DisplacementFieldType::PixelType TransformVectorByDirection( typename DisplacementFieldType::PixelType cpix )
   {

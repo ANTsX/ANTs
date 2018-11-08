@@ -112,11 +112,11 @@ public:
 protected:
 
   MaskedSmoothingImageFilter();
-  virtual ~MaskedSmoothingImageFilter() ITK_OVERRIDE;
+  virtual ~MaskedSmoothingImageFilter() override;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
 

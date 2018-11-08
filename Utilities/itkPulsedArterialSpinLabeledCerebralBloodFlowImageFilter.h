@@ -113,20 +113,20 @@ public:
 #endif
 protected:
   PulsedArterialSpinLabeledCerebralBloodFlowImageFilter();
-  virtual ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter() ITK_OVERRIDE
+  virtual ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter() override
   {
   }
 
   typename TInputImage::ConstPointer     GetDifferenceImage();
   typename TReferenceImage::ConstPointer GetReferenceImage();
 
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** PulsedArterialSpinLabeledCerebralBloodFlowImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
   void ThreadedGenerateData(const OutputImageRegionType &
-                                    outputRegionForThread, ThreadIdType threadId) ITK_OVERRIDE;
+                                    outputRegionForThread, ThreadIdType threadId) override;
 
 private:
   PulsedArterialSpinLabeledCerebralBloodFlowImageFilter(const Self &); // purposely not implemented

@@ -141,11 +141,11 @@ public:
 protected:
 
   NonLocalPatchBasedImageFilter();
-  virtual ~NonLocalPatchBasedImageFilter() ITK_OVERRIDE {}
+  virtual ~NonLocalPatchBasedImageFilter() override {}
 
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
-  void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream & os, Indent indent ) const override;
 
   RealType ComputeNeighborhoodPatchSimilarity( const InputImageList &, const IndexType, const InputImagePixelVectorType &, const bool );
 

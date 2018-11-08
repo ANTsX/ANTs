@@ -211,7 +211,7 @@ public:
   itkGetConstMacro( Beta, RealType );
 
   /** Set the requested region */
-  void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
   /**
    * Boolean for retaining the posterior images. This can have a negative effect
@@ -314,17 +314,17 @@ public:
 protected:
 
   WeightedVotingFusionImageFilter();
-  virtual ~WeightedVotingFusionImageFilter() ITK_OVERRIDE {}
+  virtual ~WeightedVotingFusionImageFilter() override {}
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void ThreadedGenerateData( const RegionType &, ThreadIdType ) ITK_OVERRIDE;
+  void ThreadedGenerateData( const RegionType &, ThreadIdType ) override;
 
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
-  void AfterThreadedGenerateData() ITK_OVERRIDE;
+  void AfterThreadedGenerateData() override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
 

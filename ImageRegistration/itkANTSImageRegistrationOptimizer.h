@@ -2091,11 +2091,11 @@ protected:
   }
 
   ANTSImageRegistrationOptimizer();
-  virtual ~ANTSImageRegistrationOptimizer() ITK_OVERRIDE
+  virtual ~ANTSImageRegistrationOptimizer() override
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
   ANTSImageRegistrationOptimizer( const Self & ); // purposely not implemented

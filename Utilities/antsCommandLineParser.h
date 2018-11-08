@@ -154,11 +154,11 @@ public:
 
 protected:
   CommandLineParser();
-  virtual ~CommandLineParser() ITK_OVERRIDE
+  virtual ~CommandLineParser() override
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
   CommandLineParser( const Self & ); // purposely not implemented

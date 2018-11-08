@@ -108,7 +108,7 @@ public:
     this->Modified();
   }
 
-  virtual /** Allows a user to ITK_OVERRIDE the internal boundary condition. Care should be
+  virtual /** Allows a user to override the internal boundary condition. Care should be
    * be taken to ensure that the overriding boundary condition is a persistent
    * object during the time it is referenced.  The overriding condition
    * can be of a different type than the default type as long as it is
@@ -126,7 +126,7 @@ public:
    *
    * \sa ProcessObject::GenerateInputRequestedRegion() */
   void GenerateInputRequestedRegion()
-    throw (InvalidRequestedRegionError) ITK_OVERRIDE;
+    throw (InvalidRequestedRegionError) override;
 
   void SetParameterImage( ParameterImagePointer I)
   {
@@ -140,7 +140,7 @@ protected:
     this->DynamicMultiThreadingOff();
   }
 
-  virtual ~VectorParameterizedNeighborhoodOperatorImageFilter() ITK_OVERRIDE
+  virtual ~VectorParameterizedNeighborhoodOperatorImageFilter() override
   {
   }
 
@@ -154,9 +154,9 @@ protected:
    * "outputRegionForThread"
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId ) ITK_OVERRIDE;
+  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId ) override;
 
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE
+  void PrintSelf(std::ostream& os, Indent indent) const override
   {
     Superclass::PrintSelf(os, indent);
   }

@@ -104,14 +104,14 @@ public:
 
 protected:
   LabeledPointSetFileReader();
-  virtual ~LabeledPointSetFileReader() ITK_OVERRIDE
+  virtual ~LabeledPointSetFileReader() override
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   /** Reads the file */
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
   bool m_ExtractBoundaryPoints;
 

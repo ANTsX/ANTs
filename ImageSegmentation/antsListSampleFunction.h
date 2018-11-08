@@ -103,15 +103,15 @@ public:
 
   /** Evaluate the function at specified Point position.
    * Subclasses must provide this method. */
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE = 0;
+  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override = 0;
 
 protected:
   ListSampleFunction();
-  virtual ~ListSampleFunction() ITK_OVERRIDE
+  virtual ~ListSampleFunction() override
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   /** Const pointer to the input image. */
   std::vector<typename InputListSampleType::ConstPointer> m_ListSamples;

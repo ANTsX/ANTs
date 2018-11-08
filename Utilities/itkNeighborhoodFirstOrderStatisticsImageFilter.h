@@ -74,7 +74,7 @@ protected:
   //this->m_Boundary = NumericTraits< PixelType >::max();
   }
 
-  void GenerateOutputInformation() ITK_OVERRIDE
+  void GenerateOutputInformation() override
   {
     // this methods is overloaded so that if the output image is a
     // VectorImage then the correct number of components are set.
@@ -93,7 +93,7 @@ protected:
   }
 
 
-  virtual ~NeighborhoodFirstOrderStatisticsImageFilter() ITK_OVERRIDE {}
+  virtual ~NeighborhoodFirstOrderStatisticsImageFilter() override {}
 private:
   NeighborhoodFirstOrderStatisticsImageFilter(const Self &); //purposely not implemented
   void operator=(const Self &);                  //purposely not implemented

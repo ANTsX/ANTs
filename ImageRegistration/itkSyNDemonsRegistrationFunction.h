@@ -131,14 +131,14 @@ public:
   }
 
   /** This class uses a constant timestep of 1. */
-  TimeStepType ComputeGlobalTimeStep(void * itkNotUsed(GlobalData) ) const ITK_OVERRIDE
+  TimeStepType ComputeGlobalTimeStep(void * itkNotUsed(GlobalData) ) const override
   {
     return m_TimeStep;
   }
 
   /** Return a pointer to a global data structure that is passed to
    * this object from the solver at each calculation.  */
-  void * GetGlobalDataPointer() const ITK_OVERRIDE
+  void * GetGlobalDataPointer() const override
   {
     GlobalDataStruct *global = new GlobalDataStruct();
 
@@ -149,20 +149,20 @@ public:
   }
 
   /** Release memory for global data structure. */
-  void ReleaseGlobalDataPointer( void *GlobalData ) const ITK_OVERRIDE;
+  void ReleaseGlobalDataPointer( void *GlobalData ) const override;
 
   /** Set the object's state before each iteration. */
-  void InitializeIteration() ITK_OVERRIDE;
+  void InitializeIteration() override;
 
   /** This method is called by a finite difference solver image filter at
    * each pixel that does not lie on a data set boundary */
   PixelType  ComputeUpdate(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset =
                                      FloatOffsetType(
-                                       0.0) ) ITK_OVERRIDE;
+                                       0.0) ) override;
 
   PixelType  ComputeUpdateInv(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset =
                                         FloatOffsetType(
-                                          0.0) ) ITK_OVERRIDE;
+                                          0.0) ) override;
 
   void SetUseSSD( bool b )
   {
@@ -206,11 +206,11 @@ public:
 
 protected:
   SyNDemonsRegistrationFunction();
-  virtual ~SyNDemonsRegistrationFunction() ITK_OVERRIDE
+  virtual ~SyNDemonsRegistrationFunction() override
   {
   }
 
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
   /** FixedImage image neighborhood iterator type. */
   typedef ConstNeighborhoodIterator<FixedImageType>

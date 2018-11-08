@@ -91,11 +91,11 @@ public:
   // itkGetConstReferenceMacro(Radius, InputSizeType);
 protected:
   LogTensorImageFilter();
-  virtual ~LogTensorImageFilter() ITK_OVERRIDE
+  virtual ~LogTensorImageFilter() override
   {
   }
 
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
   /** LogTensorImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -107,7 +107,7 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
   LogTensorImageFilter(const Self &); // purposely not implemented

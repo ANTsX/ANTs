@@ -165,11 +165,11 @@ public:
   itkBooleanMacro( WriteComponentImages );
 protected:
   ANTSImageTransformation();
-  virtual ~ANTSImageTransformation() ITK_OVERRIDE
+  virtual ~ANTSImageTransformation() override
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
   ANTSImageTransformation( const Self & ); // purposely not implemented

@@ -93,12 +93,12 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
     TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
@@ -265,12 +265,12 @@ protected:
   };
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
     TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 

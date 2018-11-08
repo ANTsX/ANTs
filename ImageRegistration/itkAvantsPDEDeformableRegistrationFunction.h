@@ -226,7 +226,7 @@ public:
 
   VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
                                    void * /* globalData */,
-                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) ITK_OVERRIDE
+                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) override
   {
     bool       m_Use1SidedDiff = false;
     VectorType update;
@@ -318,7 +318,7 @@ protected:
     this->m_RobustnessParameter = -1.e12;
   }
 
-  virtual ~AvantsPDEDeformableRegistrationFunction() ITK_OVERRIDE
+  virtual ~AvantsPDEDeformableRegistrationFunction() override
   {
   }
 

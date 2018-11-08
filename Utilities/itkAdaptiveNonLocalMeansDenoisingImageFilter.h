@@ -162,15 +162,15 @@ public:
 
 protected:
   AdaptiveNonLocalMeansDenoisingImageFilter();
-  virtual ~AdaptiveNonLocalMeansDenoisingImageFilter() ITK_OVERRIDE {}
+  virtual ~AdaptiveNonLocalMeansDenoisingImageFilter() override {}
 
-  void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream & os, Indent indent ) const override;
 
-  void ThreadedGenerateData( const RegionType &, ThreadIdType ) ITK_OVERRIDE;
+  void ThreadedGenerateData( const RegionType &, ThreadIdType ) override;
 
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
-  void AfterThreadedGenerateData() ITK_OVERRIDE;
+  void AfterThreadedGenerateData() override;
 
 private:
 

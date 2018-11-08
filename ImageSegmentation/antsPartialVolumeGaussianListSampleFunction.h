@@ -66,14 +66,14 @@ public:
   typedef TOutput RealType;
   typedef TOutput OutputType;
 
-  void SetIndexedInputListSample(unsigned int d, const InputListSampleType * ptr ) ITK_OVERRIDE;
+  void SetIndexedInputListSample(unsigned int d, const InputListSampleType * ptr ) override;
 
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE;
+  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override;
 
 protected:
   PartialVolumeGaussianListSampleFunction();
-  virtual ~PartialVolumeGaussianListSampleFunction() ITK_OVERRIDE;
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  virtual ~PartialVolumeGaussianListSampleFunction() override;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();
 

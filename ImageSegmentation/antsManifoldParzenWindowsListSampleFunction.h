@@ -86,14 +86,14 @@ public:
   itkSetMacro( KernelSigma, RealType );
   itkGetConstMacro( KernelSigma, RealType );
 
-  void SetInputListSample( const InputListSampleType * ptr ) ITK_OVERRIDE;
+  void SetInputListSample( const InputListSampleType * ptr ) override;
 
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE;
+  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override;
 
 protected:
   ManifoldParzenWindowsListSampleFunction();
-  virtual ~ManifoldParzenWindowsListSampleFunction() ITK_OVERRIDE;
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  virtual ~ManifoldParzenWindowsListSampleFunction() override;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();
 

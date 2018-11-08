@@ -101,11 +101,11 @@ public:
 
 protected:
   PICSLAdvancedNormalizationToolKit();
-  virtual ~PICSLAdvancedNormalizationToolKit() ITK_OVERRIDE
+  virtual ~PICSLAdvancedNormalizationToolKit() override
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
   PICSLAdvancedNormalizationToolKit( const Self & ); // purposely not implemented

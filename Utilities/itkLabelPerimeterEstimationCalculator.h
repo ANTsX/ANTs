@@ -115,8 +115,8 @@ public:
 
 protected:
   LabelPerimeterEstimationCalculator();
-  virtual ~LabelPerimeterEstimationCalculator() ITK_OVERRIDE {}
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+  virtual ~LabelPerimeterEstimationCalculator() override {}
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
   LabelPerimeterEstimationCalculator(const Self &); //purposely not implemented

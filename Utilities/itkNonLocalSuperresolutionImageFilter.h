@@ -195,25 +195,25 @@ public:
 
 protected:
   NonLocalSuperresolutionImageFilter();
-  virtual ~NonLocalSuperresolutionImageFilter() ITK_OVERRIDE {}
+  virtual ~NonLocalSuperresolutionImageFilter() override {}
 
-  void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream & os, Indent indent ) const override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
-  void ThreadedGenerateData( const RegionType &, ThreadIdType ) ITK_OVERRIDE;
+  void ThreadedGenerateData( const RegionType &, ThreadIdType ) override;
 
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
-  void AfterThreadedGenerateData() ITK_OVERRIDE;
+  void AfterThreadedGenerateData() override;
 
-  void AllocateOutputs() ITK_OVERRIDE;
+  void AllocateOutputs() override;
 
   void VerifyInputInformation();
 
-  void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() override;
 
-  void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
 private:
 

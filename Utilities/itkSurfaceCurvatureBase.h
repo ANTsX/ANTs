@@ -195,7 +195,7 @@ public:
 protected:
 
   SurfaceCurvatureBase();
-  virtual ~SurfaceCurvatureBase() ITK_OVERRIDE
+  virtual ~SurfaceCurvatureBase() override
   {
   };
 
