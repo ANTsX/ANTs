@@ -91,13 +91,13 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 
   typedef itk::LaplacianRecursiveGaussianImageFilter<InputImageType, RealImageType> LaplacianFilterType;
   typename LaplacianFilterType::Pointer laplacianFilter[3];
-  for( unsigned int i = 0; i < 3; ++i )
+  for(auto & i : laplacianFilter)
     {
-    laplacianFilter[i] = LaplacianFilterType::New();
+    i = LaplacianFilterType::New();
 //    laplacianFilter[i]->SetNumberOfThreads( this->GetNumberOfThreads() );
-    laplacianFilter[i]->SetInput( inputImage );
-    laplacianFilter[i]->SetNormalizeAcrossScale( true );
-    progress->RegisterInternalFilter( laplacianFilter[i],   1.0 / numberOfScales );
+    i->SetInput( inputImage );
+    i->SetNormalizeAcrossScale( true );
+    progress->RegisterInternalFilter( i,   1.0 / numberOfScales );
     }
 
   BlobHeapType blobs;

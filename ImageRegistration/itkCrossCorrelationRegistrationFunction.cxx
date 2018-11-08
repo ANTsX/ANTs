@@ -63,9 +63,9 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 
   m_MovingImageInterpolator = static_cast<InterpolatorType *>(
       interp.GetPointer() );
-  for( int i = 0; i < 5; i++ )
+  for(auto & finitediffimage : finitediffimages)
     {
-    finitediffimages[i] = nullptr;
+    finitediffimage = nullptr;
     }
 
   m_NumberOfHistogramBins = 32;

@@ -10365,9 +10365,9 @@ int LabelThickness(      int argc, char *argv[])
         }
       }
     }
-  for( unsigned int i = 0; i < surface.size(); i++ )
+  for(double i : surface)
     {
-    if( surface[i] > 0 )
+    if( i > 0 )
       {
       // std::cout << " S " << surface[i] << " V " << volume[i] << " T " << volume[i] / surface[i] * 2.0 <<  std::endl;
       }
@@ -11647,12 +11647,12 @@ int MajorityVoting( int argc, char *argv[] )
     fileExtensions.emplace_back(".nrrd" );
 
     std::string outputMaskName;
-    for( unsigned int i = 0; i < fileExtensions.size(); i++ )
+    for(auto & fileExtension : fileExtensions)
       {
-      if( outputName.find_last_of( fileExtensions[i] ) != std::string::npos )
+      if( outputName.find_last_of( fileExtension ) != std::string::npos )
         {
         outputMaskName = outputName.insert(
-          outputName.find_last_of( fileExtensions[i] ) - ( fileExtensions[i] ).length(), "_Mask" );
+          outputName.find_last_of( fileExtension ) - fileExtension.length(), "_Mask" );
         break;
         }
       }
@@ -13226,9 +13226,9 @@ void getBlobCorrespondenceMatrix( unsigned int radval, typename TImage::Pointer 
       weightsum += ( wt );
       }
     }
-  for( unsigned int ii = 0; ii < weights.size(); ii++ )
+  for(float & weight : weights)
     {
-    weights[ii] = weights[ii] / weightsum;
+    weight = weight / weightsum;
     }
   BlobPointer bestblob = nullptr;
   if( ( !blobs2.empty() ) && ( !blobs1.empty() ) )

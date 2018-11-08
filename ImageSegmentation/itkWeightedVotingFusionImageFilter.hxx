@@ -625,11 +625,11 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
         W = vnl_svd<RealType>( MxBar ).solve( ones );
         }
 
-      for( SizeValueType i = 0; i < W.size(); i++ )
+      for(double & i : W)
         {
-        if( W[i] < 0.0 )
+        if( i < 0.0 )
           {
-          W[i] = 0.0;
+          i = 0.0;
           }
         }
       }

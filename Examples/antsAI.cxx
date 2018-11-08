@@ -370,9 +370,9 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
       weightSum += ( weight );
       }
     }
-  for( unsigned int i = 0; i < weights.size(); i++ )
+  for(float & weight : weights)
     {
-    weights[i] /= weightSum;
+    weight /= weightSum;
     }
 
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> ScalarInterpolatorType;

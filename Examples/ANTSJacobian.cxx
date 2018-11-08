@@ -181,9 +181,9 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   if( projvec.length() > 2 )
     {
     antsjacobiansplit(projvec, 'x', v);
-    for( std::vector<std::string>::size_type i = 0; i < v.size(); ++i )
+    for(const auto & i : v)
       {
-      std::cout << v[i] << '\n';
+      std::cout << i << '\n';
       }
     }
 

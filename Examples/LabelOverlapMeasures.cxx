@@ -157,10 +157,8 @@ int LabelOverlapMeasures( int argc, char * argv[] )
               << std::setw( 17 ) << "False negative"
               << std::setw( 17 ) << "False positive"
               << std::endl;
-    for( unsigned int i = 0; i < allLabels.size(); i++ )
+    for(int label : allLabels)
       {
-      int label = allLabels[i];
-
       std::cout << std::setw( 10 ) << label;
       std::cout << std::setw( 17 ) << filter->GetTargetOverlap( label );
       std::cout << std::setw( 17 ) << filter->GetUnionOverlap( label );

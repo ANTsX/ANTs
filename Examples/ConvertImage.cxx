@@ -169,9 +169,9 @@ int ConvertImage( int argc, char *argv[] )
     rescaleFileTypes.emplace_back(".bmp" );
 
     bool isRescaleType = false;
-    for( unsigned int i = 0; i < rescaleFileTypes.size(); i++ )
+    for(auto & rescaleFileType : rescaleFileTypes)
       {
-      if( strstr( argv[3], rescaleFileTypes[i].c_str() ) != nullptr )
+      if( strstr( argv[3], rescaleFileType.c_str() ) != nullptr )
         {
         isRescaleType = true;
         break;

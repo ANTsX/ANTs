@@ -410,13 +410,13 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
     typename OutImageType::PixelType  fval = 0;
     typename ImageType::IndexType ind;
     typename OutImageType::IndexType spind = vfIter2.GetIndex();
-    for( unsigned int xx = 0; xx < timelist.size(); xx++ )
+    for(unsigned int & xx : timelist)
       {
       for( unsigned int yy = 0; yy < ImageDimension - 1; yy++ )
         {
         ind[yy] = spind[yy];
         }
-      ind[ImageDimension - 1] = timelist[xx];
+      ind[ImageDimension - 1] = xx;
       fval += image_in->GetPixel(ind);
       }
     fval /= (double)timelist.size();

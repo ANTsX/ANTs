@@ -550,9 +550,9 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     {
     polydegree.resize( nparams, polydegree[ 0 ] );
     }
-  for ( unsigned int pind = 0; pind < polydegree.size(); pind++ )
+  for (unsigned int & pind : polydegree)
     {
-    if ( polydegree[pind] > (timedims-2) ) polydegree[pind] = timedims-2;
+    if ( pind > (timedims-2) ) pind = timedims-2;
     }
 
     // the fixed image slice is a reference image in 2D while the moving is a 2D slice image

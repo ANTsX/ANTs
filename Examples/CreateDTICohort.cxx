@@ -604,9 +604,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     if( applyISV )
       {
       vnl_vector<RealType> R( ISV.cols() );
-      for( unsigned int d = 0; d < R.size(); d++ )
+      for(float & d : R)
         {
-        R[d] = randomizer->GetNormalVariate( 0.0, 1.0 );
+        d = randomizer->GetNormalVariate( 0.0, 1.0 );
         }
       eigenISVProjection = ISV * R;
       }

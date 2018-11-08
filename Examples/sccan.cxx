@@ -1039,13 +1039,13 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
   std::string   fnmp = outname + std::string(".csv");
   myfile.open(fnmp.c_str(), std::ios::out );
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  for( unsigned int j = 0; j < image_fn_list.size(); j++ )
+  for(auto & j : image_fn_list)
     {
     for( unsigned int k = 0; k < vec_fn_list.size(); k++ )
       {
       double proj = 0, dotSum = 0, dotCounter = 0, dotTotal = 0;
       typename ReaderType::Pointer reader1 = ReaderType::New();
-      reader1->SetFileName( image_fn_list[j] );
+      reader1->SetFileName( j );
       reader1->Update();
       typename ReaderType::Pointer reader2 = ReaderType::New();
       reader2->SetFileName( vec_fn_list[k] );

@@ -284,11 +284,11 @@ int PrintHeader(int argc, char *argv[])
         // For some weird reason, some of the strings returned by this method
         // contain '\0' characters. We will replace them by spaces
         std::ostringstream sout("");
-        for( unsigned int i = 0; i < v_string.length(); i++ )
+        for(char i : v_string)
           {
-          if( v_string[i] >= ' ' )
+          if( i >= ' ' )
             {
-            sout << v_string[i];
+            sout << i;
             }
           }
         v_string = sout.str();
