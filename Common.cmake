@@ -32,7 +32,7 @@ set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 # list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
 # if("${isSystemDir}" STREQUAL "-1")
 #   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-# endif("${isSystemDir}" STREQUAL "-1")
+# endif()
 #####################################################################################################
 
 set(USE_ITKv5 ON)
