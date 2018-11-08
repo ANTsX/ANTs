@@ -141,7 +141,6 @@ ANTSImageTransformation<TDimension, TReal>
     std::string fw_filename = filePrefix + extension;
     std::string bw_filename = filePrefix + "_inverse" + extension;
 
-    //using ITKv4 functionality to write transforms
     typedef itk::TransformFileWriterTemplate<TReal> TransformFileWriterFloat;
 
     typename TransformFileWriterFloat::Pointer fw_writer=TransformFileWriterFloat::New();
