@@ -189,7 +189,7 @@ void Display( vtkPolyData *vtkMesh,
 
 int antsImageToSurface( itk::ants::CommandLineParser *parser )
 {
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef float                                      RealType;
   typedef itk::Image<RealType, ImageDimension>       ImageType;

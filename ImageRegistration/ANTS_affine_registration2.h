@@ -587,7 +587,7 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
     {
     typedef itk::ANTSCenteredAffine2DTransform<double>   RunningAffineTransformType;
     typedef typename RunningAffineTransformType::Pointer RunningAffineTransformPointerType;
-    const unsigned int RunningImageDimension = 2;
+    constexpr unsigned int RunningImageDimension = 2;
 
     typedef typename itk::Image<PixelType, RunningImageDimension>   RunningImageType;
     typedef typename RunningImageType::Pointer                      RunningImagePointerType;
@@ -608,7 +608,7 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
     {
     typedef itk::ANTSAffine3DTransform<double>           RunningAffineTransformType;
     typedef typename RunningAffineTransformType::Pointer RunningAffineTransformPointerType;
-    const unsigned int RunningImageDimension = 3;
+    constexpr unsigned int RunningImageDimension = 3;
 
     typedef typename itk::Image<PixelType, RunningImageDimension>   RunningImageType;
     typedef typename RunningImageType::Pointer                      RunningImagePointerType;

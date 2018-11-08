@@ -72,7 +72,7 @@ inline void PostConversionInAffine(const typename RunningAffineTransformType::Po
 template <typename TransformA>
 void DumpTransformForANTS3D(const typename TransformA::Pointer & transform, const std::string & ANTS_prefix)
 {
-  const int ImageDimension = 3;
+  constexpr int ImageDimension = 3;
 
   // ANTS transform file type
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
@@ -113,7 +113,7 @@ template <typename PointContainerType, typename TransformType>
 void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
                                           typename TransformType::Pointer & transform)
 {
-  const int Dim = 3;
+  constexpr int Dim = 3;
   int       n = fixedLandmarks.size();
 
   vnl_matrix<double> y(Dim, n), x(Dim, n);
@@ -202,7 +202,7 @@ void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, Po
   TransformType::Pointer transform = TransformType::New();
 
   typedef  float PixelType;
-  const unsigned int Dimension = 3;
+  constexpr unsigned int Dimension = 3;
   typedef itk::Image<PixelType, Dimension> FixedImageType;
   typedef itk::Image<PixelType, Dimension> MovingImageType;
 
@@ -231,7 +231,7 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
                                                PointContainerType & movingLandmarks,
                                                typename itk::Image<float, 3>::Pointer maskimg)
 {
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef typename PointContainerType::value_type PointType;
 
@@ -319,7 +319,7 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
 
 int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
 {
-  const unsigned int Dim = 3;
+  constexpr unsigned int Dim = 3;
 
   typedef itk::Point<double, Dim> PointType;
   typedef itk::Image<float, Dim>  ImageType;
@@ -400,7 +400,7 @@ int DisplacementFieldBasedTransformInitializer2D(int, char * [])
 
   /*
 typedef  float PixelType;
-const unsigned int Dimension = 2;
+constexpr unsigned int Dimension = 2;
 typedef itk::Image< PixelType, Dimension >  FixedImageType;
 typedef itk::Image< PixelType, Dimension >  MovingImageType;
 typedef itk::Image< PixelType, Dimension >  ImageType;

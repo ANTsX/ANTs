@@ -316,7 +316,7 @@ private:
     thresh = atof(argv[3]);
     }
   typedef float PixelType;
-  const unsigned int ImageDimension = 3; // AvantsImageDimension;
+  constexpr unsigned int ImageDimension = 3; // AvantsImageDimension;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
   ImageType::Pointer image = ImageType::New();

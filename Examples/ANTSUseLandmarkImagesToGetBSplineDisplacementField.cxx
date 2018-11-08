@@ -254,7 +254,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   typename WeightsContainerType::Pointer weights = WeightsContainerType::New();
   weights->Initialize();
   const typename WeightsContainerType::Element boundaryWeight = 1.0e10;
-  const typename WeightsContainerType::Element weight = 1.0;
+  typename WeightsContainerType::Element weight = 1.0;
 
   typename DisplacementFieldPointSetType::Pointer fieldPoints = DisplacementFieldPointSetType::New();
   fieldPoints->Initialize();

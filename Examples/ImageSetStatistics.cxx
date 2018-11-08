@@ -168,7 +168,7 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
   typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
   Iterator outIter(image, image->GetLargestPossibleRegion() );
   typename TImage::SizeType imagesize = image->GetLargestPossibleRegion().GetSize();
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef itk::NeighborhoodIterator<TImage> iteratorType;
   typename iteratorType::RadiusType rad;
@@ -548,7 +548,7 @@ float trimmean(std::vector<float> vec)
 
   sort(vec.begin(), vec.end() );
 
-  const unsigned int lo = 0;
+  constexpr unsigned int lo = 0;
   const unsigned int hi = size;
   const unsigned int ct = hi - lo;
   float total = 0;
@@ -673,7 +673,7 @@ int ImageSetStatistics(int argc, char *argv[])
     }
 
   // now do the recursive average
-  const unsigned int maxChar = 512;
+  constexpr unsigned int maxChar = 512;
   char               lineBuffer[maxChar];
   char               filenm[maxChar];
   unsigned int       filecount1 = 0;

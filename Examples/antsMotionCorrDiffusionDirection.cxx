@@ -151,7 +151,7 @@ public:
 int ants_motion_directions( itk::ants::CommandLineParser *parser )
 {
 
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef double                                    RealType;
   typedef itk::Image<RealType, ImageDimension>      FixedImageType;

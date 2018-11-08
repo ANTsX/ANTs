@@ -862,7 +862,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
   if( initialTransformInitializedWithImages == false )
     {
-    const unsigned int minimumNumberOfBlobs = 3;  // should a different min number of blobs be expected?
+    constexpr unsigned int minimumNumberOfBlobs = 3;  // should a different min number of blobs be expected?
 
     unsigned int numberOfBlobsToExtract = 0;
     unsigned int numberOfBlobsToMatch = 0;

@@ -528,7 +528,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
     }
   std::vector<std::string> image_fn_list;
   // first, count the number of files
-  const unsigned int maxChar = 512;
+  constexpr unsigned int maxChar = 512;
   char               lineBuffer[maxChar];
   char               filenm[maxChar];
   unsigned int       filecount = 0;
@@ -653,7 +653,7 @@ int
 ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::string outname, double space_smoother,
                                 double time_smoother )
 {
-  const unsigned int ImageDimension = 4;
+  constexpr unsigned int ImageDimension = 4;
 
   typedef itk::Image<PixelType, ImageDimension>        ImageType;
   typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
@@ -899,7 +899,7 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
 {
   typedef PixelType             Scalar;
   typedef vnl_matrix<PixelType> vMatrix;
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   /** read the  images */
   typename ImageType::Pointer mask = ITK_NULLPTR;
@@ -983,7 +983,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
   std::vector<std::string> vec_fn_list;
 
   // first, count the number of files
-  const unsigned int maxChar = 512;
+  constexpr unsigned int maxChar = 512;
   char               lineBuffer[maxChar], lineBufferVec[maxChar];
   char               filenm[maxChar], filenmVec[maxChar];
   unsigned int       filecount = 0, filecountVec = 0;
@@ -2085,7 +2085,7 @@ int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
 int sccan( itk::ants::CommandLineParser *sccanparser )
 {
   // Define dimensionality
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
   typedef double                                matPixelType;
 
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =

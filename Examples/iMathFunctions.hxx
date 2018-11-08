@@ -197,8 +197,8 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )           
 
   const PixelType imageMax = itk::NumericTraits<PixelType>::max();
   const LabelType labelMax = itk::NumericTraits<LabelType>::max();
-  const PixelType objectMin = 0.5;
-  const PixelType distanceMin = 0.001;
+  PixelType objectMin = 0.5;
+  PixelType distanceMin = 0.001;
 
   typedef itk::CastImageFilter<MaskType,ImageType>            MaskToImage;
   typedef itk::BinaryThresholdImageFilter<ImageType,MaskType> ThresholdFilterType;

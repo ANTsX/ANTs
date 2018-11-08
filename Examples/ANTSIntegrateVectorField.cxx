@@ -284,7 +284,7 @@ int IntegrateVectorField(int argc, char *argv[])
   typedef itk::Image<PixelType, ImageDimension>  ImageType;
   typedef typename  ImageType::SpacingType       SpacingType;
 
-  const float deltaTime = 0.001;
+  constexpr float deltaTime = 0.001;
   float       gradstep = 1. / deltaTime; // atof(argv[3])*(-1.0);
   std::string vectorfn = std::string(argv[1]);
   std::string roifn = std::string(argv[2]);

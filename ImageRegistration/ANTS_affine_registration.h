@@ -391,12 +391,12 @@ void generate_search_seed_3d(SEARCH_LIST & search_list, ParaType & para)
 
   // ParaType para(13);
 
-  const double scale_upper = 1.5;
+  constexpr double scale_upper = 1.5;
   const double scale_lower = 1 / 1.5;
   const double skew_lower = -1.0;
-  const double skew_upper = 1.0;
-  const double dist2_thres = 0.3;
-  const double mypi = 3.1415926536;
+  constexpr double skew_upper = 1.0;
+  constexpr double dist2_thres = 0.3;
+  constexpr double mypi = 3.1415926536;
   const double rot_angle_upper = mypi * (0.5);
   const double rot_angle_lower = mypi * (-0.5);
 
@@ -464,14 +464,14 @@ void generate_search_seed_2d(SEARCH_LIST & search_list, ParaType & para)
   bool   b_found = 0;
   double r1, s1, s2, k = 0;
 
-  const double pi = 3.1415927;
+  constexpr double pi = 3.1415927;
   const double theta_upper = pi / 4;
   const double theta_lower = -pi / 4;
-  const double scale_upper = 1.5;
+  constexpr double scale_upper = 1.5;
   const double scale_lower = 1 / 1.5;
   const double skew_lower = -1.0;
-  const double skew_upper = 1.0;
-  const double dist2_thres = 0.1;
+  constexpr double skew_upper = 1.0;
+  constexpr double dist2_thres = 0.1;
 
   unsigned int iteration = 0;
   unsigned int maxiteration = 50;

@@ -2515,7 +2515,7 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
     std::string interp = argv[argct++];
     if( strcmp( "sinc", interp.c_str() ) == 0 )
       {
-      const unsigned int SincRadius = 4;
+      constexpr unsigned int SincRadius = 4;
       // std::cout << "Using sinc interpolation" << std::endl;
       SincInterpolatorPointerType labelInterp = SincInterpolatorType::New();
       SincInterpolatorPointerType controlInterp = SincInterpolatorType::New();
@@ -12973,7 +12973,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
   typedef double       PixelType;
   typedef unsigned int LabelType;
 
-  const unsigned int NumberOfLabels = 3;
+  constexpr unsigned int NumberOfLabels = 3;
 
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;

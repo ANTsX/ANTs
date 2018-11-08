@@ -529,7 +529,7 @@ private:
     }
 
   // Define the dimension of the images
-  const unsigned int Dimension = 3;
+  constexpr unsigned int Dimension = 3;
   typedef float PixelType;
   // Declare the types of the output images
   typedef itk::Image<PixelType, Dimension> ImageType;

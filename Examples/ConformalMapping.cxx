@@ -542,9 +542,9 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
 template <typename TImage>
 void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
 {
-    const unsigned int Dimension = 2;
-    const int splineOrder = 3;
-    const int component = 0;
+    constexpr unsigned int Dimension = 2;
+    constexpr int splineOrder = 3;
+    constexpr int component = 0;
     const char* dataname = "scalars";
     typedef TImage ImageType;
     typedef vtkPolyData MeshType;
@@ -615,7 +615,7 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
     ncps.Fill(  splineOrder + 1 );
 
     //const int numLevels = round((1/static_cast<double>(Dimension))*log(static_cast<double>(numVertices))/log(2.0));
-    const int numLevels = 13;
+    constexpr int numLevels = 13;
 
       typename BSplineFilterType::ArrayType close;
      close.Fill( false );
@@ -709,10 +709,10 @@ RemoveNaNs(typename TImage::Pointer image, float replaceval )
 template <typename TImage>
 void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::string outfn)
 {
-    const unsigned int Dimension = 2;
-    const int splineOrder = 3;
-    const int imagesize = 512;
-    const int component = 0;
+    constexpr unsigned int Dimension = 2;
+    constexpr int splineOrder = 3;
+    constexpr int imagesize = 512;
+    constexpr int component = 0;
     const char* dataname = "points";
     typedef TImage ImageType;
     typedef vtkPolyData MeshType;
@@ -794,7 +794,7 @@ void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::stri
 ncps.Fill(  splineOrder + 1 );
 
 //const int numLevels = round((1/static_cast<double>(Dimension))*log(static_cast<double>(numVertices))/log(2.0));
-const int numLevels = 13;
+constexpr int numLevels = 13;
 
   typename BSplineFilterType::ArrayType close;
  close.Fill( false );
@@ -908,7 +908,7 @@ private:
   // antscout->set_stream( out_stream );
 
   // Define the dimension of the images
-  const unsigned int Dimension = 3;
+  constexpr unsigned int Dimension = 3;
 
   typedef float PixelType;
   // Declare the types of the output images

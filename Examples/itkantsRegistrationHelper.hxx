@@ -3179,7 +3179,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         break;
       case BSpline:
         {
-        const unsigned int SplineOrder = 3;
+        constexpr unsigned int SplineOrder = 3;
         typedef itk::BSplineTransform<RealType, VImageDimension, SplineOrder> BSplineTransformType;
         typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineTransformType,
           ImageType, LabeledPointSetType> BSplineRegistrationType;

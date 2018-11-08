@@ -37,7 +37,7 @@ namespace ants
 int ants_motion_stats( itk::ants::CommandLineParser *parser )
 {
 
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef double                                    RealType;
 

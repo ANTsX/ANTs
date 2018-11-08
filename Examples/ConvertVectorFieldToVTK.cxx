@@ -82,7 +82,7 @@ private:
     }
 
   typedef float PixelType;
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Image<int, ImageDimension>       MaskImageType;

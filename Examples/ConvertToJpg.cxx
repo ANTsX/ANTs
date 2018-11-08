@@ -57,8 +57,8 @@ int ConvertType(int argc, char *argv[])
   typedef itk::RescaleIntensityImageFilter<IntermediateType, IntermediateType> FilterType;
   typename   FilterType::Pointer fixedrescalefilter = FilterType::New();
   fixedrescalefilter->SetInput(caster->GetOutput() );
-  const double desiredMinimum =  0.0;
-  const double desiredMaximum =  255.0;
+  constexpr double desiredMinimum = 0.0;
+  constexpr double desiredMaximum = 255.0;
   fixedrescalefilter->SetOutputMinimum( desiredMinimum );
   fixedrescalefilter->SetOutputMaximum( desiredMaximum );
   fixedrescalefilter->UpdateLargestPossibleRegion();

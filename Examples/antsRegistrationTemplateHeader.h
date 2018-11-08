@@ -529,7 +529,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         convergenceWindowSize = parser->Convert<unsigned int>( convergenceOption->GetFunction(
                                                                  currentStage )->GetParameter( 2 ) );
-        const unsigned int minAllowedconvergenceWindowSize = 2; // The BSplineScatteredDataPoints requires at least 2
+        constexpr unsigned int minAllowedconvergenceWindowSize = 2; // The BSplineScatteredDataPoints requires at least 2
                                                                 // points for interpolation.
         if( convergenceWindowSize < minAllowedconvergenceWindowSize )
           {

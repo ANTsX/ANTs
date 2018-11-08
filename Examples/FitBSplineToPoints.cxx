@@ -146,7 +146,7 @@ int FitBSplineWarpFieldToPoints( unsigned int argc, char *argv[] )
   std::vector<unsigned int> meshSize
     = ConvertVector<unsigned int>( std::string( argv[6] ) );
 
-  const unsigned int splineOrder = 3;
+  constexpr unsigned int splineOrder = 3;
 
   typename BSplineFilterType::ArrayType ncps;
   if ( meshSize.size() == 1 )

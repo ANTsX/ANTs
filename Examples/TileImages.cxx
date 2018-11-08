@@ -49,7 +49,7 @@ int CreateMosaic( unsigned int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef float                                   PixelType;
   typedef itk::Image<PixelType, ImageDimension>   ImageType;
