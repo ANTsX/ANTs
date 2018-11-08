@@ -8,6 +8,6 @@ set(CTEST_PROJECT_NAME "ANTS")
 set(CTEST_NIGHTLY_START_TIME "01:00:00 UTC")
 
 set(CTEST_DROP_METHOD "http")
-set(CTEST_DROP_SITE "testing.psychiatry.uiowa.edu")
+set(CTEST_DROP_SITE "my.cdash.org")
 set(CTEST_DROP_LOCATION "/CDash/submit.php?project=ANTS")
 set(CTEST_DROP_SITE_CDASH TRUE)
