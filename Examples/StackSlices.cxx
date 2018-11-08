@@ -15,7 +15,7 @@
 #include "antsAllocImage.h"
 #include <algorithm>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkExtractImageFilter.h"

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include "ReadWriteData.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkBoundingBox.h"
 #include "itkImage.h"

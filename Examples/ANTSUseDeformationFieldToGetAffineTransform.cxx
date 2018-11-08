@@ -3,14 +3,14 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include <stdio.h>
-#include <time.h>
+#include <cstdio>
+#include <ctime>
 
 #include "itkLandmarkBasedTransformInitializer.h"
 #include "itkImage.h"
 #include "itkImageIOBase.h"
 #include "itkImageIOFactory.h"
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include "ReadWriteData.h"
 #include "itkTransformFileWriter.h"

@@ -14,7 +14,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"

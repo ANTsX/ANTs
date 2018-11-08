@@ -25,7 +25,7 @@
 #include "itkByteSwapper.h"
 
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 
 namespace itk

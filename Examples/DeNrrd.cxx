@@ -33,7 +33,7 @@
 #include <sys/stat.h>
 
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 
 #include <cstring>
 #include <sstream>

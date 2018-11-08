@@ -7,8 +7,8 @@
 
 #include <string>
 
-#include <math.h>
-#include <time.h>
+#include <cmath>
+#include <ctime>
 #include "itkVTKPolyDataWriter.h"
 #include "vtkSTLWriter.h"
 #include "vtkXMLPolyDataWriter.h"

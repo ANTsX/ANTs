@@ -10,9 +10,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
-#include <math.h>
-#include <float.h>
-#include <assert.h>
+#include <cmath>
+#include <cfloat>
+#include <cassert>
 #include "ReadWriteData.h"
 
 #include <vnl/algo/vnl_symmetric_eigensystem.h>

@@ -3,7 +3,7 @@
 #include "antsAllocImage.h"
 #include <iostream>
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include "itkVector.h"
 #include "itkImage.h"
 #include "itkImageFileWriter.h"

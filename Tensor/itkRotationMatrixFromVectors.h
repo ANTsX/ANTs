@@ -11,7 +11,7 @@
 http://jgt.akpeters.com/papers/MollerHughes99/code.html
 */
 
-#include <math.h>
+#include <cmath>
 #include <itkVector.h>
 #include <itkMatrix.h>
 

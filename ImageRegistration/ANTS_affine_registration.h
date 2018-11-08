@@ -2,8 +2,8 @@
 #define ANTS_AFFINE_REGISTRATION_H_
 
 #include <vector>
-#include <stdlib.h>
-#include <time.h>
+#include <cstdlib>
+#include <ctime>
 #include "itkImage.h"
 #include "itkPoint.h"
 #include "itkCastImageFilter.h"

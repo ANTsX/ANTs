@@ -14,8 +14,8 @@
 #include <vector>
 #include <algorithm>
 
-#include <stdlib.h>
-#include <errno.h>
+#include <cstdlib>
+#include <cerrno>
 #include <cmath>
 #include <iostream>
 

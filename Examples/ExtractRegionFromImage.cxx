@@ -3,7 +3,7 @@
 #include "ReadWriteData.h"
 #include <algorithm>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkCastImageFilter.h"
 #include "itkImage.h"

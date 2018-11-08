@@ -17,8 +17,8 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <stdio.h>
-#include <limits.h>
+#include <cstdio>
+#include <climits>
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"

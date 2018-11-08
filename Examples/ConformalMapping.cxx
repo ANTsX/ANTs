@@ -17,8 +17,8 @@
 #include <algorithm>
 #include <string>
 
-#include <math.h>
-#include <time.h>
+#include <cmath>
+#include <ctime>
 
 #include "itkImage.h"
 

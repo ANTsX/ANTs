@@ -9,7 +9,7 @@
 
 #include "ReadWriteData.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <fstream>
 #include <string>

@@ -24,7 +24,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include "antsAllocImage.h"
 #include "itkImage.h"
 #include "itkImageFileWriter.h"

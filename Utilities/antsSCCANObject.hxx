@@ -24,7 +24,7 @@
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/algo/vnl_generalized_eigensystem.h>
 #include "antsSCCANObject.h"
-#include <time.h>
+#include <ctime>
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkCSVArray2DDataObject.h"
 #include "itkCSVArray2DFileReader.h"

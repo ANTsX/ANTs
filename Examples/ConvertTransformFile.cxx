@@ -21,7 +21,7 @@
 #include "itksys/SystemTools.hxx"
 
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkTransformFactory.h"
 #include "itkAffineTransform.h"
