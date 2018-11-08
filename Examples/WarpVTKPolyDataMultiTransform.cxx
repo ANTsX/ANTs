@@ -284,14 +284,13 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
       field_output->GetSpacing().GetVnlVector() );
 
   vnl_matrix_fixed<double, 4, 4> ras2ijk = vnl_inverse(ijk2ras);
-  vnl_matrix_fixed<double, 4, 4> ras2vtk = vnl_inverse(vtk2ras);
-  vnl_matrix_fixed<double, 4, 4> ras2lps = vnl_inverse(lps2ras);
+  //vnl_matrix_fixed<double, 4, 4> ras2vtk = vnl_inverse(vtk2ras);
+  //vnl_matrix_fixed<double, 4, 4> ras2lps = vnl_inverse(lps2ras);
   // Update the coordinates
   for( int k = 0; k < mesh->GetNumberOfPoints(); k++ )
     {
     // Get the point (in whatever format that it's stored)
-    vnl_vector_fixed<double, 4> x_mesh, x_ras, x_ijk, v_warp, v_ras;
-    vnl_vector_fixed<double, 4> y_ras, y_mesh;
+    vnl_vector_fixed<double, 4> x_mesh, x_ras, x_ijk;
     x_mesh[0] = mesh->GetPoint(k)[0]; x_mesh[1] = mesh->GetPoint(k)[1]; x_mesh[2] = mesh->GetPoint(k)[2];
     x_mesh[3] = 1.0;
 
