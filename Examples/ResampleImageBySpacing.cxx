@@ -105,7 +105,7 @@ private:
 
     std::cout <<  " spacing " << spacing << " dim " << 2 << std::endl;
 
-    bool dosmooth = 1;
+    bool dosmooth = true;
     if( argc > 4 )
       {
       spacing[0] = atof(argv[4]);
@@ -239,7 +239,7 @@ private:
 
     std::cout <<  " spacing " << spacing << " dim " << 3 << std::endl;
 
-    bool dosmooth = 1;
+    bool dosmooth = true;
     if( argc > 4 )
       {
       spacing[0] = atof(argv[4]);
@@ -372,7 +372,7 @@ for( int i = 0; i < 4; i++ )
 spacing[i] = inputSpacing[i];
 }
 std::cout << " spacing " << spacing << " dim " << 4 << std::endl;
-bool dosmooth = 1;
+bool dosmooth = true;
 if( argc > 4 )
 {
 spacing[0] = atof(argv[4]);

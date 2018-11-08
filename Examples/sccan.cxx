@@ -1084,7 +1084,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
                   unsigned int robustify, unsigned int p_cluster_thresh, unsigned int iterct,
                   unsigned int svd_option, PixelType usel1, PixelType row_sparseness, PixelType smoother,
                   unsigned int covering, bool verbosity,
-                  bool getSmall=0 )
+                  bool getSmall=false )
 {
   // std::cout << "SVD_One_View" << std::endl;
 
@@ -2212,7 +2212,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     priorWeight = sccanparser->Convert<matPixelType>( pwoption->GetFunction()->GetName() );
     }
 
-  bool                                      getSmall = 0;
+  bool                                      getSmall = false;
   itk::ants::CommandLineParser::OptionType::Pointer getsmallopt =
     sccanparser->GetOption( "get-small" );
   if( !getsmallopt || getsmallopt->GetNumberOfFunctions() == 0 )

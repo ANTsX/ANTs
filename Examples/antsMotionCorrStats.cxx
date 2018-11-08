@@ -166,7 +166,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     }
 
 
-  bool doFramewise = 0;
+  bool doFramewise = false;
   doFramewise = parser->Convert<bool>( parser->GetOption( "framewise" )->GetFunction()->GetName() );
   std::cout << "Framewise = " << doFramewise << std::endl;
 

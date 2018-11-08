@@ -33,7 +33,7 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
   typename ImageType::RegionType::SizeType size;
   typename ImageType::RegionType::IndexType index;
 
-  if( 0 )
+  if( false )
     {
     std::vector<int> minIndex;
     std::vector<int> maxIndex;
