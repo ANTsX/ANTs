@@ -478,7 +478,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
     currentColor[2] = static_cast<unsigned char>( currentBlue  * 255.0 );
     currentColor[3] = static_cast<unsigned char>( currentAlpha * 255.0 );
 
-    colors->InsertNextTypedTuple( currentColor );
+    colors->InsertNextTupleValue( currentColor );
     }
   vtkMesh->GetPointData()->SetScalars( colors );
 
