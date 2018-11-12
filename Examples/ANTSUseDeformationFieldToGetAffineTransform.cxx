@@ -3,14 +3,14 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include <stdio.h>
-#include <time.h>
+#include <cstdio>
+#include <ctime>
 
 #include "itkLandmarkBasedTransformInitializer.h"
 #include "itkImage.h"
 #include "itkImageIOBase.h"
 #include "itkImageIOFactory.h"
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include "ReadWriteData.h"
 #include "itkTransformFileWriter.h"
@@ -22,7 +22,7 @@
 
 namespace ants
 {
-template <class TransformType>
+template <typename TransformType>
 void WriteAffineTransformFile(typename TransformType::Pointer & transform,
                               const std::string & filename)
 {
@@ -52,7 +52,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
 
 // //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
-template <class RunningAffineTransformType, class AffineTransformType>
+template <typename RunningAffineTransformType, typename AffineTransformType>
 inline void PostConversionInAffine(const typename RunningAffineTransformType::Pointer & transform_running,
                                    typename AffineTransformType::Pointer & transform)
 {
@@ -69,10 +69,10 @@ inline void PostConversionInAffine(const typename RunningAffineTransformType::Po
   // std::cout << "transform" << transform << std::endl;
 }
 
-template <class TransformA>
+template <typename TransformA>
 void DumpTransformForANTS3D(const typename TransformA::Pointer & transform, const std::string & ANTS_prefix)
 {
-  const int ImageDimension = 3;
+  constexpr int ImageDimension = 3;
 
   // ANTS transform file type
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
@@ -109,11 +109,11 @@ void DumpTransformForANTS3D(const typename TransformA::Pointer & transform, cons
 //   assume PointContainerType is std::vector
 //   assume TrnasformPointerType is MatrixOffsetTransformBase
 
-template <class PointContainerType, class TransformType>
+template <typename PointContainerType, typename TransformType>
 void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
                                           typename TransformType::Pointer & transform)
 {
-  const int Dim = 3;
+  constexpr int Dim = 3;
   int       n = fixedLandmarks.size();
 
   vnl_matrix<double> y(Dim, n), x(Dim, n);
@@ -193,7 +193,7 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
   return;
 }
 
-template <class PointContainerType, class TTransform>
+template <typename PointContainerType, typename TTransform>
 void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
                                          typename TTransform::Pointer & aff)
 {
@@ -202,7 +202,7 @@ void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, Po
   TransformType::Pointer transform = TransformType::New();
 
   typedef  float PixelType;
-  const unsigned int Dimension = 3;
+  constexpr unsigned int Dimension = 3;
   typedef itk::Image<PixelType, Dimension> FixedImageType;
   typedef itk::Image<PixelType, Dimension> MovingImageType;
 
@@ -224,14 +224,14 @@ void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, Po
   PostConversionInAffine<TransformType, TTransform>(transform, aff);
 }
 
-template <class PointContainerType>
+template <typename PointContainerType>
 void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_field_file_name,
                                                float load_ratio,
                                                PointContainerType & fixedLandmarks,
                                                PointContainerType & movingLandmarks,
                                                typename itk::Image<float, 3>::Pointer maskimg)
 {
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef typename PointContainerType::value_type PointType;
 
@@ -255,7 +255,7 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
     }
 
   // float load_ratio = 0.01;
-  unsigned int nb_try_to_load = (unsigned int) ( (float) nb_voxels * load_ratio);
+  auto nb_try_to_load = (unsigned int) ( (float) nb_voxels * load_ratio);
 
   std::cout << "trying to load " << nb_try_to_load << " from " <<  nb_voxels << " points." << std::endl;
 
@@ -266,7 +266,7 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
 
   FieldIteratorType it(field, field->GetLargestPossibleRegion() );
 
-  srand( time(ITK_NULLPTR) );
+  srand( time(nullptr) );
 
   it.GoToBegin();
   unsigned int cnt = 0;
@@ -319,7 +319,7 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
 
 int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
 {
-  const unsigned int Dim = 3;
+  constexpr unsigned int Dim = 3;
 
   typedef itk::Point<double, Dim> PointType;
   typedef itk::Image<float, Dim>  ImageType;
@@ -341,7 +341,7 @@ int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
   typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransformType;
   AffineTransformType::Pointer aff = AffineTransformType::New();
 
-  ImageType::Pointer maskimg = ITK_NULLPTR;
+  ImageType::Pointer maskimg = nullptr;
   if( maskfn.length() > 4 )
     {
     ReadImage<ImageType>(maskimg, maskfn.c_str() );
@@ -400,7 +400,7 @@ int DisplacementFieldBasedTransformInitializer2D(int, char * [])
 
   /*
 typedef  float PixelType;
-const unsigned int Dimension = 2;
+constexpr unsigned int Dimension = 2;
 typedef itk::Image< PixelType, Dimension >  FixedImageType;
 typedef itk::Image< PixelType, Dimension >  MovingImageType;
 typedef itk::Image< PixelType, Dimension >  ImageType;
@@ -418,7 +418,7 @@ typedef itk::Rigid2DTransform< double > TransformType;
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -435,7 +435,7 @@ int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args, 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

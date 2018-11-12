@@ -8,7 +8,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
 ::GeneralToBSplineDisplacementFieldFilter()
 {
@@ -17,16 +17,16 @@ GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
   this->m_SplineOrder = 3;
   this->m_NumberOfControlPoints.Fill( this->m_SplineOrder + 1 );
 
-//  this->m_ConfidenceImage = ITK_NULLPTR;
+//  this->m_ConfidenceImage = nullptr;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
 ::~GeneralToBSplineDisplacementFieldFilter()
 {
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
 ::GenerateData()
@@ -96,7 +96,7 @@ GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent) const

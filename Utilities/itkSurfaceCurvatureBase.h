@@ -57,9 +57,9 @@ public:
   typedef TSurface SurfaceType;
 
   /** Image dimension. */
-//  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int, TDimension);
-  itkStaticConstMacro(SurfaceDimension, unsigned int, TDimension);
+//  static constexpr unsigned int ImageDimension = TImage::ImageDimension;
+  static constexpr unsigned int ImageDimension = TDimension;
+  static constexpr unsigned int SurfaceDimension = TDimension;
 
   typedef float                RealType;
   typedef vnl_vector<RealType> VectorType;
@@ -195,9 +195,7 @@ public:
 protected:
 
   SurfaceCurvatureBase();
-  virtual ~SurfaceCurvatureBase() ITK_OVERRIDE
-  {
-  };
+  ~SurfaceCurvatureBase() override = default;
 
   /** Holds the value of Pi. */
   double m_Pi;

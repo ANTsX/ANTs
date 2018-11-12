@@ -33,7 +33,7 @@ namespace itk
  * \sa AvantsPDEDeformableRegistrationFilter
  * \ingroup PDEDeformableRegistrationFunctions
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 class AvantsPDEDeformableRegistrationFunction :
   public         PDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
@@ -226,7 +226,7 @@ public:
 
   VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
                                    void * /* globalData */,
-                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) ITK_OVERRIDE
+                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) override
   {
     bool       m_Use1SidedDiff = false;
     VectorType update;
@@ -299,10 +299,10 @@ public:
 protected:
   AvantsPDEDeformableRegistrationFunction()
   {
-    this->m_MovingImage = ITK_NULLPTR;
-    m_MetricImage = ITK_NULLPTR;
-    this->m_FixedImage = ITK_NULLPTR;
-    this->m_DisplacementField = ITK_NULLPTR;
+    this->m_MovingImage = nullptr;
+    m_MetricImage = nullptr;
+    this->m_FixedImage = nullptr;
+    this->m_DisplacementField = nullptr;
     this->m_Energy = 0.0;
     m_BestEnergy = 0.0;
     this->m_NormalizeGradient = true;
@@ -312,15 +312,13 @@ protected:
     m_AvgCt = 0;
     m_Iterations = 0;
 
-    this->m_FixedPointSet = ITK_NULLPTR;
-    this->m_MovingPointSet = ITK_NULLPTR;
+    this->m_FixedPointSet = nullptr;
+    this->m_MovingPointSet = nullptr;
     this->m_IsPointSetMetric = false;
     this->m_RobustnessParameter = -1.e12;
   }
 
-  virtual ~AvantsPDEDeformableRegistrationFunction() ITK_OVERRIDE
-  {
-  }
+  ~AvantsPDEDeformableRegistrationFunction() override = default;
 
   mutable double m_BestEnergy;
   mutable double m_LastLastEnergy;
@@ -339,8 +337,8 @@ protected:
 
   float m_RobustnessParameter;
 private:
-  AvantsPDEDeformableRegistrationFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);                          // purposely not implemented
+  AvantsPDEDeformableRegistrationFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

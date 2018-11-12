@@ -29,7 +29,7 @@ namespace itk
 /*
  * ComposeDiffeomorphismsImageFilter class definitions
  */
-template <class InputImage, class TOutputImage>
+template <typename InputImage, typename TOutputImage>
 ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
 ::ComposeDiffeomorphismsImageFilter()
 {
@@ -42,13 +42,13 @@ ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
   this->m_Interpolator = interpolator;
 }
 
-template <class InputImage, class TOutputImage>
+template <typename InputImage, typename TOutputImage>
 ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
 ::~ComposeDiffeomorphismsImageFilter()
 {
 }
 
-template <class InputImage, class TOutputImage>
+template <typename InputImage, typename TOutputImage>
 void
 ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
 ::SetInterpolator( InterpolatorType *interpolator )
@@ -65,7 +65,7 @@ ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
     }
 }
 
-template <class InputImage, class TOutputImage>
+template <typename InputImage, typename TOutputImage>
 void
 ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
@@ -76,7 +76,7 @@ ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
   this->GetOutput()->FillBuffer( zeroVector );
 }
 
-template <class InputImage, class TOutputImage>
+template <typename InputImage, typename TOutputImage>
 void
 ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
 ::ThreadedGenerateData( const RegionType & region, ThreadIdType itkNotUsed( threadId ) )
@@ -110,7 +110,7 @@ ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
     }
 }
 
-template <class InputImage, class TOutputImage>
+template <typename InputImage, typename TOutputImage>
 void
 ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent ) const

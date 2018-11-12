@@ -37,16 +37,14 @@ namespace itk
  */
 namespace Functor
 {
-template <class TInput, class TConstant, class TOutput>
+template <typename TInput, typename TConstant, typename TOutput>
 class DivideByConstant
 {
 public:
   DivideByConstant() : m_Constant(NumericTraits<TConstant>::OneValue())
   {
   };
-  ~DivideByConstant()
-  {
-  };
+  ~DivideByConstant() = default;
   bool operator!=( const DivideByConstant & other ) const
   {
     return !(*this == other);
@@ -84,7 +82,7 @@ public:
 };
 }
 
-template <class TInputImage, class TConstant, class TOutputImage>
+template <typename TInputImage, typename TConstant, typename TOutputImage>
 class DivideByConstantImageFilter :
   public
   UnaryFunctorImageFilter<TInputImage, TOutputImage,
@@ -137,14 +135,10 @@ public:
   /** End concept checking */
 #endif
 protected:
-  DivideByConstantImageFilter()
-  {
-  };
-  virtual ~DivideByConstantImageFilter() ITK_OVERRIDE
-  {
-  };
+  DivideByConstantImageFilter() = default;
+  ~DivideByConstantImageFilter() override = default;
 
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE
+  void PrintSelf(std::ostream & os, Indent indent) const override
   {
     Superclass::PrintSelf(os, indent);
 
@@ -154,8 +148,8 @@ protected:
   }
 
 private:
-  DivideByConstantImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);              // purposely not implemented
+  DivideByConstantImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

@@ -92,7 +92,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
       {
       continue;
       }
-    typename std::vector<LabelType>::iterator it =
+    auto it =
       std::find( labels.begin(), labels.end(), label );
     if( it == labels.end() )
       {
@@ -146,7 +146,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
         }
       }
 
-    typename std::vector<LabelType>::iterator it2 =
+    auto it2 =
       std::find( labels.begin(), labels.end(), *it );
     unsigned long index = it2 - labels.begin();
 
@@ -197,7 +197,7 @@ int ImageIntensityStatistics( std::vector<std::string> args, std::ostream* itkNo
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -229,7 +229,7 @@ private:
     exit( 1 );
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       return ImageIntensityStatistics<2>( argc, argv );

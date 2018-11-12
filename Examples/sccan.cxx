@@ -33,7 +33,7 @@
 namespace ants
 {
 // namespace antssccan {
-template <class TComp>
+template <typename TComp>
 double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
 {
   double xysum = 0;
@@ -55,7 +55,7 @@ double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
   return numer / denom;
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vector<TComp> w_p,
                                 typename TImage::Pointer  mask )
 {
@@ -80,7 +80,7 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
   WriteImage<TImage>( weights, fn1.c_str() );
 }
 
-template <class T>
+template <typename T>
 inline std::string sccan_to_string(const T& t)
 {
   std::stringstream ss;
@@ -104,7 +104,7 @@ inline std::string sccan_to_string(const T& t)
   return stringout;
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, vnl_matrix<TComp> varmat,
                                         typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat, bool have_mask,
                                         vnl_vector<TComp> l_array,
@@ -231,7 +231,7 @@ void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, 
     }
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_matrix<TComp> varmat,
                                   typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat,
                                   bool have_mask, vnl_matrix<TComp> u_mat  )
@@ -337,7 +337,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     }
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 vnl_matrix<TComp>
 CopyImageToVnlMatrix( typename TImage::Pointer   p_img )
 {
@@ -359,7 +359,7 @@ CopyImageToVnlMatrix( typename TImage::Pointer   p_img )
   return p;
 }
 
-template <class TImage, class TComp>
+template <typename TImage, typename TComp>
 vnl_matrix<TComp>
 DeleteRow(vnl_matrix<TComp> p_in, unsigned int row)
 {
@@ -387,7 +387,7 @@ int sccanRandom(int n)
   return rand() % n;
 }
 
-template <class TComp>
+template <typename TComp>
 vnl_matrix<TComp>
 PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
 {
@@ -420,14 +420,14 @@ PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
   return q_perm;
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
-                     itk::ants::CommandLineParser::OptionType * /* outputOption */ = ITK_NULLPTR )
+                     itk::ants::CommandLineParser::OptionType * /* outputOption */ = nullptr )
 {
   std::string funcName = std::string("matrixOperation");
 
   typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typename ImageType::Pointer outputImage = ITK_NULLPTR;
+  typename ImageType::Pointer outputImage = nullptr;
 
   //   option->SetUsageOption( 2, "multires_matrix_invert[list.txt,maskhighres.nii.gz,masklowres.nii.gz,matrix.mhd]" );
 
@@ -444,7 +444,7 @@ int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
   return EXIT_SUCCESS;
 }
 
-template <class RealType>
+template <typename RealType>
 int
 CompareMatrixSizes(  vnl_matrix<RealType> & p,  vnl_matrix<RealType> & q )
 {
@@ -460,7 +460,7 @@ CompareMatrixSizes(  vnl_matrix<RealType> & p,  vnl_matrix<RealType> & q )
   return 0;
 }
 
-template <class PixelType>
+template <typename PixelType>
 void
 ReadMatrixFromCSVorImageSet( std::string matname, vnl_matrix<PixelType> & p )
 {
@@ -502,7 +502,7 @@ ReadMatrixFromCSVorImageSet( std::string matname, vnl_matrix<PixelType> & p )
   return;
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 itk::Array2D<double>
 ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string outname  )
 {
@@ -528,7 +528,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
     }
   std::vector<std::string> image_fn_list;
   // first, count the number of files
-  const unsigned int maxChar = 512;
+  constexpr unsigned int maxChar = 512;
   char               lineBuffer[maxChar];
   char               filenm[maxChar];
   unsigned int       filecount = 0;
@@ -548,7 +548,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
         }
       else
         {
-        image_fn_list.push_back(std::string(filenm) );
+        image_fn_list.emplace_back(filenm );
         filecount++;
         }
       }
@@ -648,12 +648,12 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
   return matrix;
 }
 
-template <class PixelType>
+template <typename PixelType>
 int
 ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::string outname, double space_smoother,
                                 double time_smoother )
 {
-  const unsigned int ImageDimension = 4;
+  constexpr unsigned int ImageDimension = 4;
 
   typedef itk::Image<PixelType, ImageDimension>        ImageType;
   typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
@@ -667,8 +667,8 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     // std::cerr << " must use .csv as output file extension " << std::endl;
     return EXIT_FAILURE;
     }
-  typename ImageType::Pointer image1 = ITK_NULLPTR;
-  typename OutImageType::Pointer mask = ITK_NULLPTR;
+  typename ImageType::Pointer image1 = nullptr;
+  typename OutImageType::Pointer mask = nullptr;
   // std::cerr << " imagefn " << imagefn << std::endl;
   if( imagefn.length() > 3 )
     {
@@ -740,7 +740,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     /** count the labels in the mask image */
     for( mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
       {
-      unsigned int label = static_cast<unsigned int>( mIter.Get() + 0.5 );
+      auto label = static_cast<unsigned int>( mIter.Get() + 0.5 );
       if( label > 0 )
         {
         if( find( myLabelSet1.begin(), myLabelSet1.end(), label )
@@ -804,7 +804,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
       OutIndexType ind = vfIter2.GetIndex();
-      unsigned int label = static_cast<unsigned int>( mask->GetPixel( ind ) + 0.5 );
+      auto label = static_cast<unsigned int>( mask->GetPixel( ind ) + 0.5 );
       if( label > 0 )
         {
         unsigned int vind = vectorindexMap[label];
@@ -893,18 +893,18 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
   return EXIT_SUCCESS;
 }
 
-template <class PixelType>
+template <typename PixelType>
 int
 ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outname, unsigned long rowOrCol )
 {
   typedef PixelType             Scalar;
   typedef vnl_matrix<PixelType> vMatrix;
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   /** read the  images */
-  typename ImageType::Pointer mask = ITK_NULLPTR;
+  typename ImageType::Pointer mask = nullptr;
   ReadImage<ImageType>(mask, maskfn.c_str() );
-  typename ImageType::Pointer outimage = ITK_NULLPTR;
+  typename ImageType::Pointer outimage = nullptr;
   ReadImage<ImageType>(outimage, maskfn.c_str() );
   outimage->FillBuffer(0);
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
@@ -972,7 +972,7 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
 }
 
 // p.d.
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 void ConvertImageVecListToProjection( std::string veclist, std::string imagelist, std::string outname, bool average  )
 {
   // typedef itk::Image<PixelType,ImageDimension> ImageType;
@@ -983,7 +983,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
   std::vector<std::string> vec_fn_list;
 
   // first, count the number of files
-  const unsigned int maxChar = 512;
+  constexpr unsigned int maxChar = 512;
   char               lineBuffer[maxChar], lineBufferVec[maxChar];
   char               filenm[maxChar], filenmVec[maxChar];
   unsigned int       filecount = 0, filecountVec = 0;
@@ -1003,7 +1003,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
         }
       else
         {
-        image_fn_list.push_back(std::string(filenm) );
+        image_fn_list.emplace_back(filenm );
         filecount++;
         }
       }
@@ -1027,7 +1027,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
         }
       else
         {
-        vec_fn_list.push_back(std::string(filenmVec) );
+        vec_fn_list.emplace_back(filenmVec );
         filecountVec++;
         }
       }
@@ -1039,13 +1039,13 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
   std::string   fnmp = outname + std::string(".csv");
   myfile.open(fnmp.c_str(), std::ios::out );
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  for( unsigned int j = 0; j < image_fn_list.size(); j++ )
+  for(auto & j : image_fn_list)
     {
     for( unsigned int k = 0; k < vec_fn_list.size(); k++ )
       {
       double proj = 0, dotSum = 0, dotCounter = 0, dotTotal = 0;
       typename ReaderType::Pointer reader1 = ReaderType::New();
-      reader1->SetFileName( image_fn_list[j] );
+      reader1->SetFileName( j );
       reader1->Update();
       typename ReaderType::Pointer reader2 = ReaderType::New();
       reader2->SetFileName( vec_fn_list[k] );
@@ -1079,12 +1079,12 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
   myfile.close();
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec,
                   unsigned int robustify, unsigned int p_cluster_thresh, unsigned int iterct,
                   unsigned int svd_option, PixelType usel1, PixelType row_sparseness, PixelType smoother,
                   unsigned int covering, bool verbosity,
-                  bool getSmall=0 )
+                  bool getSmall=false )
 {
   // std::cout << "SVD_One_View" << std::endl;
 
@@ -1172,10 +1172,10 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   std::string pmatname = std::string(option->GetFunction( 0 )->GetParameter( 0 ) );
   vMatrix     p;
   ReadMatrixFromCSVorImageSet<Scalar>(pmatname, p);
-  typename ImageType::Pointer mask1 = ITK_NULLPTR;
+  typename ImageType::Pointer mask1 = nullptr;
   bool have_p_mask = false;
   have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
-  double  FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
+  auto  FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
   vMatrix priorScaleMat;
   if( svd_option == 7 )
     {
@@ -1376,7 +1376,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   return EXIT_SUCCESS;
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
               PixelType usel1, PixelType uselong, PixelType row_sparseness, PixelType smoother, unsigned int covering,
@@ -1479,7 +1479,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     return EXIT_FAILURE;
     }
 
-  typename ImageType::Pointer mask1 = ITK_NULLPTR;
+  typename ImageType::Pointer mask1 = nullptr;
   std::string mask1fn = option->GetFunction( 0 )->GetParameter( 2 );
   bool have_p_mask = false;
   if ( mask1fn.length() > 5 )
@@ -1487,7 +1487,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     have_p_mask = ReadImage<ImageType>(mask1, mask1fn.c_str()  );
     }
 
-  typename ImageType::Pointer mask2 = ITK_NULLPTR;
+  typename ImageType::Pointer mask2 = nullptr;
   std::string mask2fn = option->GetFunction( 0 )->GetParameter( 3 );
   bool have_q_mask = false;
   if ( mask2fn.length() > 5 )
@@ -1496,13 +1496,13 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     }
 
   /** the penalties define the fraction of non-zero values for each view */
-  double FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
+  auto FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
     sccanobj->SetKeepPositiveP(false);  // true if P sparsity > 0
     }
-  double FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
+  auto FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
   if( FracNonZero2 < 0 )
     {
     FracNonZero2 = fabs(FracNonZero2);
@@ -1680,7 +1680,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
   return EXIT_SUCCESS;
 }
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
                unsigned int permct, bool run_partial_scca = false, unsigned int n_e_vecs = 3, unsigned int newimp = 0,
                unsigned int robustify = 0, unsigned int p_cluster_thresh = 100, unsigned int q_cluster_thresh = 1,
@@ -1734,26 +1734,26 @@ int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
     return EXIT_FAILURE;
     }
 
-  typename ImageType::Pointer mask1 = ITK_NULLPTR;
+  typename ImageType::Pointer mask1 = nullptr;
   bool have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
-  typename ImageType::Pointer mask2 = ITK_NULLPTR;
+  typename ImageType::Pointer mask2 = nullptr;
   bool have_q_mask = ReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 4 ).c_str() );
-  typename ImageType::Pointer mask3 = ITK_NULLPTR;
+  typename ImageType::Pointer mask3 = nullptr;
 
   /** the penalties define the fraction of non-zero values for each view */
-  double FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 6 ) );
+  auto FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 6 ) );
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
     sccanobj->SetKeepPositiveP(false);
     }
-  double FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 7 ) );
+  auto FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 7 ) );
   if( FracNonZero2 < 0 )
     {
     FracNonZero2 = fabs(FracNonZero2);
     sccanobj->SetKeepPositiveQ(false);
     }
-  double FracNonZero3 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 8 ) );
+  auto FracNonZero3 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 8 ) );
   if( FracNonZero3 < 0 )
     {
     FracNonZero3 = fabs(FracNonZero3);
@@ -2085,7 +2085,7 @@ int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
 int sccan( itk::ants::CommandLineParser *sccanparser )
 {
   // Define dimensionality
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
   typedef double                                matPixelType;
 
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
@@ -2212,7 +2212,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     priorWeight = sccanparser->Convert<matPixelType>( pwoption->GetFunction()->GetName() );
     }
 
-  bool                                      getSmall = 0;
+  bool                                      getSmall = false;
   itk::ants::CommandLineParser::OptionType::Pointer getsmallopt =
     sccanparser->GetOption( "get-small" );
   if( !getsmallopt || getsmallopt->GetNumberOfFunctions() == 0 )
@@ -2320,7 +2320,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     std::string   outname = outputOption->GetFunction( 0 )->GetName();
     std::string   csvfn = matrixOptionV2I->GetFunction( 0 )->GetParameter( 0 );
     std::string   maskfn = matrixOptionV2I->GetFunction( 0 )->GetParameter( 1 );
-    unsigned long rowOrCol = sccanparser->Convert<unsigned long>( matrixOptionV2I->GetFunction( 0 )->GetParameter( 2 ) );
+    auto rowOrCol = sccanparser->Convert<unsigned long>( matrixOptionV2I->GetFunction( 0 )->GetParameter( 2 ) );
     ConvertCSVVectorToImage<double>( csvfn,  maskfn, outname, rowOrCol );
     // std::cout << " V2I done " << outname << std::endl;
     return EXIT_SUCCESS;
@@ -2463,7 +2463,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int sccan( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int sccan( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -2482,7 +2482,7 @@ int sccan( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULL
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

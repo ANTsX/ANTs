@@ -107,7 +107,7 @@ int ANTSex(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTS( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR*/ )
+int ANTS( std::vector<std::string> args, std::ostream* /*out_stream = nullptr*/ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -124,7 +124,7 @@ int ANTS( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPT
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -159,7 +159,21 @@ private:
   int dim = 0;
   if( argc > 1 )
     {
-    dim = atoi( argv[1] );
+      try { 
+       dim = std::stoi( argv[1] );
+      }
+      catch(std::invalid_argument& e){
+         // if no conversion could be performed
+         // assume --help is requested
+      }
+      catch(std::out_of_range& e){
+       // if the converted value would fall out of the range of the result type 
+       // or if the underlying function (std::strtol or std::strtoull) sets errno 
+       // to ERANGE.
+      }
+      catch(...) {
+      // everything else
+      }
     }
 
 //   if( dim <= 1 || dim > 3 )
@@ -173,7 +187,7 @@ private:
   /**
    * Try the simple case of the call "ANTS fixedImage movingImage"
    */
-  if( argc == 3 && ( atoi( argv[1] ) != '-' || atoi( argv[1] ) != 2 || atoi( argv[1] ) != 3 ) )
+  if( argc == 3 && ( std::stoi( argv[1] ) != '-' || std::stoi( argv[1] ) != 2 || std::stoi( argv[1] ) != 3 ) )
     {
     itk::ImageIOBase::Pointer fixedImageIO
       = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::ReadMode );
@@ -279,7 +293,7 @@ private:
       pos = delimPos + 1;
       }
 
-    char * *     my_argv = ITK_NULLPTR;
+    char * *     my_argv = nullptr;
     if( my_argc > 0 )
       {
       unsigned int arg_count = 0;

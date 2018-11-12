@@ -42,7 +42,7 @@ iMathGetFlatStructuringElement( unsigned int shape,
 
 
 // Morphological Closing
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathMC(typename ImageType::Pointer image, unsigned long radius,                        /*1*/
         typename ImageType::PixelType closeValue, unsigned int shape,
@@ -52,7 +52,7 @@ iMathMC(typename ImageType::Pointer image, unsigned long radius,                
 #define iMathMCValue 1;
 
 // Morphological dilation
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathMD(typename ImageType::Pointer image, unsigned long radius,                        /*1*/
         typename ImageType::PixelType dilateValue, unsigned int shape,
@@ -62,7 +62,7 @@ iMathMD(typename ImageType::Pointer image, unsigned long radius,                
 #define iMathMDValue 1;
 
 // Morphological erosion
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathME(typename ImageType::Pointer image, unsigned long radius,                       /*1*/
         typename ImageType::PixelType erodeValue, unsigned int shape,
@@ -72,7 +72,7 @@ iMathME(typename ImageType::Pointer image, unsigned long radius,                
 #define iMathMEValue 1;
 
 // Morphological opening
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathMO(typename ImageType::Pointer image, unsigned long radius,                      /*1*/
         typename ImageType::PixelType openValue, unsigned int shape,
@@ -82,36 +82,36 @@ iMathMO(typename ImageType::Pointer image, unsigned long radius,                
 #define iMathMOValue 1;
 
 // Maurer distance - returns Euclidean distance to binary object
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathMaurerDistance(typename ImageType::Pointer image,                                 /*1*/
                     typename ImageType::PixelType foreground );
 #define iMathMaurerDistanceForeground 1;
 
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathLaplacian( typename ImageType::Pointer image, double sigma, bool normalize );            /*1*/
 #define iMathLaplacianSigma 0.5;
 #define iMathLaplacianNormalize false;
 
 // Normalize intensity values to lie in [0,1]
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathNormalize( typename ImageType::Pointer image );                                  /*1*/
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathPad( typename ImageType::Pointer image, int padding );                          /*1*/
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,      /*1*/
                   double conductance );
 #define iMathPeronaMalikConductance 0.25;
 #define iMathPeronaMalikNIterations 1;
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathPropagateLabelsThroughMask( typename ImageType::Pointer mask,                   /*1*/
                                  typename ImageType::Pointer lables,
@@ -120,11 +120,11 @@ iMathPropagateLabelsThroughMask( typename ImageType::Pointer mask,              
 #define iMathPropagateLabelsThroughMaskStoppingValue 100.0;
 #define iMathPropagateLabelsThroughMaskMethod 0;
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathSharpen( typename ImageType::Pointer image );                              /*1*/
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ,      /*1*/
                         double upperQ, int nBins,

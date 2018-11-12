@@ -23,7 +23,7 @@ namespace ants
 {
 int CreateMosaic( itk::ants::CommandLineParser *parser )
 {
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef float                                      RealType;
 
@@ -39,7 +39,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
   // Read in input image
 
-  ImageType::Pointer inputImage = ITK_NULLPTR;
+  ImageType::Pointer inputImage = nullptr;
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
@@ -57,7 +57,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
   // Read in optional mask image
 
-  ImageType::Pointer maskImage = ITK_NULLPTR;
+  ImageType::Pointer maskImage = nullptr;
   ImageType::RegionType maskRegion;
 
   itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
@@ -84,7 +84,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
   // Read in optional Rgb image
 
-  RgbImageType::Pointer rgbImage = ITK_NULLPTR;
+  RgbImageType::Pointer rgbImage = nullptr;
 
   itk::ants::CommandLineParser::OptionType::Pointer rgbImageOption =
     parser->GetOption( "rgb-image" );
@@ -186,7 +186,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         std::cerr << "Error reading RGB file " << rgbFileName << std::endl;
         return EXIT_FAILURE;
         }
-      functionalRgbImages.push_back( rgbReader->GetOutput() );
+      functionalRgbImages.emplace_back(rgbReader->GetOutput() );
 
       // read mask
 
@@ -204,11 +204,11 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         std::cerr << "Error reading mask file " << maskFileName << std::endl;
         return EXIT_FAILURE;
         }
-      functionalMaskImages.push_back( maskReader->GetOutput() );
+      functionalMaskImages.emplace_back(maskReader->GetOutput() );
 
       if( functionalOverlayOption->GetFunction( n )->GetNumberOfParameters() > 2 )
         {
-        RealType localAlpha = parser->Convert<RealType>(
+        auto localAlpha = parser->Convert<RealType>(
           functionalOverlayOption->GetFunction( n )->GetParameter( 2 ) );
         functionalAlphaValues.push_back( localAlpha );
         }
@@ -694,8 +694,8 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     extracter->SetExtractionRegion( region );
     extracter->SetDirectionCollapseToIdentity();
 
-    SliceType::Pointer outputSlice = ITK_NULLPTR;
-    SliceType::Pointer outputSlice2 = ITK_NULLPTR;
+    SliceType::Pointer outputSlice = nullptr;
+    SliceType::Pointer outputSlice2 = nullptr;
 
     if( paddingType == -1 )
       {
@@ -757,13 +757,13 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
     if( functionalRgbImages.size() > 0 )
       {
-      RgbSliceType::Pointer compositeRgbSlice = ITK_NULLPTR;
+      RgbSliceType::Pointer compositeRgbSlice = nullptr;
       RealType compositeAlpha = 1.0;
 
       for( unsigned int n = 0; n < functionalRgbImages.size(); n++ )
         {
-        SliceType::Pointer outputMaskSlice = ITK_NULLPTR;
-        SliceType::Pointer outputMaskSlice2 = ITK_NULLPTR;
+        SliceType::Pointer outputMaskSlice = nullptr;
+        SliceType::Pointer outputMaskSlice2 = nullptr;
 
         ExtracterType::Pointer maskExtracter = ExtracterType::New();
         maskExtracter->SetInput( functionalMaskImages[n] );
@@ -820,8 +820,8 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         rgbExtracter->SetExtractionRegion( region );
         rgbExtracter->SetDirectionCollapseToIdentity();
 
-        RgbSliceType::Pointer outputRgbSlice = ITK_NULLPTR;
-        RgbSliceType::Pointer outputRgbSlice2 = ITK_NULLPTR;
+        RgbSliceType::Pointer outputRgbSlice = nullptr;
+        RgbSliceType::Pointer outputRgbSlice2 = nullptr;
 
         if( paddingType == -1 )
           {
@@ -1199,7 +1199,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int CreateTiledMosaic( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int CreateTiledMosaic( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -1217,7 +1217,7 @@ int CreateTiledMosaic( std::vector<std::string> args, std::ostream* /*out_stream
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

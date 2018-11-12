@@ -33,28 +33,27 @@ namespace itk
 /**
  * N3BiasFieldScaleCostFunction class definitions
  */
-template <class TInputImage, class TBiasFieldImage, class TMaskImage,
-          class TConfidenceImage>
+template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
+          typename TConfidenceImage>
 N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
                              TConfidenceImage>
 ::N3BiasFieldScaleCostFunction()
 {
-  this->m_InputImage = ITK_NULLPTR;
-  this->m_BiasFieldImage = ITK_NULLPTR;
-  this->m_MaskImage = ITK_NULLPTR;
-  this->m_ConfidenceImage = ITK_NULLPTR;
+  this->m_InputImage = nullptr;
+  this->m_BiasFieldImage = nullptr;
+  this->m_MaskImage = nullptr;
+  this->m_ConfidenceImage = nullptr;
 }
 
-template <class TInputImage, class TBiasFieldImage, class TMaskImage,
-          class TConfidenceImage>
+template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
+          typename TConfidenceImage>
 N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
                              TConfidenceImage>
 ::~N3BiasFieldScaleCostFunction()
-{
-}
+= default;
 
-template <class TInputImage, class TBiasFieldImage, class TMaskImage,
-          class TConfidenceImage>
+template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
+          typename TConfidenceImage>
 typename N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
                                       TConfidenceImage>::MeasureType
 N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
@@ -99,8 +98,8 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
   return value;
 }
 
-template <class TInputImage, class TBiasFieldImage, class TMaskImage,
-          class TConfidenceImage>
+template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
+          typename TConfidenceImage>
 void
 N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
                              TConfidenceImage>
@@ -153,8 +152,8 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
   derivative( 0 ) = 2.0 * value / ( N - 1 );
 }
 
-template <class TInputImage, class TBiasFieldImage, class TMaskImage,
-          class TConfidenceImage>
+template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
+          typename TConfidenceImage>
 unsigned int
 N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
                              TConfidenceImage>
@@ -167,7 +166,7 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
  * N3MRIBiasFieldCorrectionImageFilter class definitions
  */
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::N3MRIBiasFieldCorrectionImageFilter()
 {
@@ -188,7 +187,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   this->m_BiasFieldScaling = 1.0;
 }
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::GenerateData()
@@ -308,7 +307,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   this->SetNthOutput( 0, divider->GetOutput() );
 }
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::SharpenImage( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage,
@@ -536,7 +535,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   return sharpenedImage;
 }
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 typename N3MRIBiasFieldCorrectionImageFilter
 <TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
@@ -630,7 +629,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   return smoothField;
 }
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 typename N3MRIBiasFieldCorrectionImageFilter
 <TInputImage, TMaskImage, TOutputImage>::RealType
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
@@ -678,7 +677,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   return sigma;
 }
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 typename N3MRIBiasFieldCorrectionImageFilter
 <TInputImage, TMaskImage, TOutputImage>::RealType
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
@@ -738,7 +737,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   return finalParameters[0];
 }
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::PrintSelf(std::ostream & os, Indent indent) const

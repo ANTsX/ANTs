@@ -30,7 +30,7 @@ namespace itk
  * \ingroup ITK-TextureAnalysis
  */
 
-template< class TInputImage, class TOutputImage, class TKernel >
+template< typename TInputImage, typename TOutputImage, typename TKernel >
 class ITK_EXPORT NeighborhoodFirstOrderStatisticsImageFilter:
   public MovingHistogramImageFilter< TInputImage,
                                      TOutputImage,
@@ -64,7 +64,7 @@ public:
   typedef typename TOutputImage::PixelType           OutputPixelType;
 
   /** Image related typedefs. */
-  itkStaticConstMacro( ImageDimension, unsigned int, TInputImage::ImageDimension );
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 protected:
 
   unsigned int GetNumberOfOutputComponents() { return 8; }
@@ -74,7 +74,7 @@ protected:
   //this->m_Boundary = NumericTraits< PixelType >::max();
   }
 
-  void GenerateOutputInformation() ITK_OVERRIDE
+  void GenerateOutputInformation() override
   {
     // this methods is overloaded so that if the output image is a
     // VectorImage then the correct number of components are set.
@@ -93,11 +93,11 @@ protected:
   }
 
 
-  virtual ~NeighborhoodFirstOrderStatisticsImageFilter() ITK_OVERRIDE {}
+  ~NeighborhoodFirstOrderStatisticsImageFilter() override = default;
 private:
-  NeighborhoodFirstOrderStatisticsImageFilter(const Self &); //purposely not implemented
-  void operator=(const Self &);                  //purposely not implemented
-};                                               // end of class
+  NeighborhoodFirstOrderStatisticsImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
+};// end of class
 } // end namespace itk
 
 #endif

@@ -28,14 +28,14 @@
 
 namespace itk
 {
-template< class TInputImage >
+template< typename TInputImage >
 LabelPerimeterEstimationCalculator< TInputImage >
 ::LabelPerimeterEstimationCalculator()
 {
   m_FullyConnected = false;
 }
 
-template< class TInputImage >
+template< typename TInputImage >
 void
 LabelPerimeterEstimationCalculator< TInputImage >
 ::Compute()
@@ -203,7 +203,7 @@ LabelPerimeterEstimationCalculator< TInputImage >
     }
 }
 
-template< class TInputImage >
+template< typename TInputImage >
 void
 LabelPerimeterEstimationCalculator< TInputImage >
 ::PrintSelf(std::ostream & os, Indent indent) const

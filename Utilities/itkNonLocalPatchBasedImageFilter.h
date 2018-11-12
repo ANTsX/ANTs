@@ -31,7 +31,7 @@ namespace itk {
  * \ingroup ITKFiltering
  */
 
-template<typename TInputImage, class TOutputImage = TInputImage>
+template<typename TInputImage, typename TOutputImage = TInputImage>
 class NonLocalPatchBasedImageFilter :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -141,11 +141,11 @@ public:
 protected:
 
   NonLocalPatchBasedImageFilter();
-  virtual ~NonLocalPatchBasedImageFilter() ITK_OVERRIDE {}
+  ~NonLocalPatchBasedImageFilter() override = default;
 
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
-  void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream & os, Indent indent ) const override;
 
   RealType ComputeNeighborhoodPatchSimilarity( const InputImageList &, const IndexType, const InputImagePixelVectorType &, const bool );
 
@@ -173,8 +173,8 @@ protected:
 
 private:
 
-  NonLocalPatchBasedImageFilter( const Self& ) ITK_DELETED_FUNCTION;
-  void operator=( const Self& ) ITK_DELETED_FUNCTION;
+  NonLocalPatchBasedImageFilter( const Self& ) = delete;
+  void operator=( const Self& ) = delete;
 
 };
 

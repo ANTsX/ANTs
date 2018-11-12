@@ -83,8 +83,8 @@ namespace itk
  * Class definition for N3BiasFieldScaleCostFunction
  */
 
-template <class TInputImage, class TBiasFieldImage, class TMaskImage,
-          class TConfidenceImage>
+template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
+          typename TConfidenceImage>
 class N3BiasFieldScaleCostFunction
   : public       SingleValuedCostFunction
 {
@@ -109,18 +109,18 @@ public:
   itkSetObjectMacro( MaskImage, TMaskImage );
   itkSetObjectMacro( ConfidenceImage, TConfidenceImage );
 
-  MeasureType GetValue( const ParametersType & parameters ) const ITK_OVERRIDE;
+  MeasureType GetValue( const ParametersType & parameters ) const override;
 
-  void GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const ITK_OVERRIDE;
+  void GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const override;
 
-  unsigned int GetNumberOfParameters() const ITK_OVERRIDE;
+  unsigned int GetNumberOfParameters() const override;
 
 protected:
   N3BiasFieldScaleCostFunction();
-  virtual ~N3BiasFieldScaleCostFunction() ITK_OVERRIDE;
+  ~N3BiasFieldScaleCostFunction() override;
 private:
-  N3BiasFieldScaleCostFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);               // purposely not implemented
+  N3BiasFieldScaleCostFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   typename TInputImage::Pointer                  m_InputImage;
   typename TBiasFieldImage::Pointer              m_BiasFieldImage;
@@ -131,7 +131,7 @@ private:
 /**
  * Class definition for N3MRIBiasFieldCorrectionImageFilter
  */
-template <class TInputImage, class TMaskImage = Image<unsigned char,
+template <typename TInputImage, typename TMaskImage = Image<unsigned char,
                                                       TInputImage::ImageDimension>,
           class TOutputImage = TInputImage>
 class N3MRIBiasFieldCorrectionImageFilter :
@@ -256,16 +256,14 @@ public:
   itkGetConstMacro( CurrentConvergenceMeasurement, RealType );
 protected:
   N3MRIBiasFieldCorrectionImageFilter();
-  virtual ~N3MRIBiasFieldCorrectionImageFilter() ITK_OVERRIDE
-  {
-  };
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  ~N3MRIBiasFieldCorrectionImageFilter() override = default;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
-  N3MRIBiasFieldCorrectionImageFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );                      // purposely not implemented
+  N3MRIBiasFieldCorrectionImageFilter( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
     SharpenImage( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage,

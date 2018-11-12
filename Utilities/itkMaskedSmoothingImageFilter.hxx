@@ -20,7 +20,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::MaskedSmoothingImageFilter() :
   m_SparseImageNeighborhoodRadius( 2 ),
@@ -33,13 +33,12 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
   this->m_TimePoints.clear();
 }
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::~MaskedSmoothingImageFilter()
-{
-}
+= default;
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::GenerateData()
@@ -221,7 +220,7 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
   this->SetNthOutput( 0, outputImage );
 }
 
-template <class TInputImage, class TMaskImage, class TOutputImage>
+template <typename TInputImage, typename TMaskImage, typename TOutputImage>
 void
 MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent) const

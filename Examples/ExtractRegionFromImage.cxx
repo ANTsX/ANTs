@@ -3,7 +3,7 @@
 #include "ReadWriteData.h"
 #include <algorithm>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkCastImageFilter.h"
 #include "itkImage.h"
@@ -63,11 +63,11 @@ int ExtractRegionFromImage( int argc, char *argv[] )
     stats->SetInput( caster->GetOutput() );
     stats->Update();
 
-    region = stats->GetRegion( atoi( argv[4] ) );
+    region = stats->GetRegion( std::stoi( argv[4] ) );
     }
   else
     {
-    typename ImageType::Pointer domainImage = ITK_NULLPTR;
+    typename ImageType::Pointer domainImage = nullptr;
     ReadImage<ImageType>( domainImage, argv[4] );
 
     if( domainImage.IsNotNull() )
@@ -130,7 +130,7 @@ int ExtractRegionFromImage( int argc, char *argv[] )
       stats->SetInput( caster->GetOutput() );
       stats->Update();
 
-      region = stats->GetRegion( atoi( argv[4] ) );
+      region = stats->GetRegion( std::stoi( argv[4] ) );
       }
     }
 
@@ -148,7 +148,7 @@ int ExtractRegionFromImage( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ExtractRegionFromImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ExtractRegionFromImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -166,7 +166,7 @@ int ExtractRegionFromImage( std::vector<std::string> args, std::ostream* /*out_s
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -210,7 +210,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {

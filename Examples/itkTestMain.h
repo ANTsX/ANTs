@@ -123,7 +123,7 @@ int main(int ac, char* av[] )
       {
       if( strcmp(av[1], "--with-threads") == 0 )
         {
-        int numThreads = atoi(av[2]);
+        int numThreads = std::stoi(av[2]);
         itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(numThreads);
         av += 2;
         ac -= 2;
@@ -142,13 +142,13 @@ int main(int ac, char* av[] )
         }
       else if( ac > 2 && strcmp(av[1], "--compareNumberOfPixelsTolerance") == 0 )
         {
-        numberOfPixelsTolerance = atoi( av[2] );
+        numberOfPixelsTolerance = std::stoi( av[2] );
         av += 2;
         ac -= 2;
         }
       else if( ac > 2 && strcmp(av[1], "--compareRadiusTolerance") == 0 )
         {
-        radiusTolerance = atoi( av[2] );
+        radiusTolerance = std::stoi( av[2] );
         av += 2;
         ac -= 2;
         }

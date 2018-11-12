@@ -27,7 +27,7 @@ namespace itk
  * Writes an itkMesh to a file in various txt file formats.
  *
  */
-template <class TInputMesh>
+template <typename TInputMesh>
 class LabeledPointSetFileWriter : public Object
 {
 public:
@@ -103,7 +103,7 @@ public:
   itkGetConstMacro( ImageDirection, ImageDirectionType );
 protected:
   LabeledPointSetFileWriter();
-  virtual ~LabeledPointSetFileWriter() ITK_OVERRIDE;
+  ~LabeledPointSetFileWriter() override;
 
   virtual void GenerateData();
 
@@ -121,11 +121,11 @@ protected:
   ImageOriginType    m_ImageOrigin;
   ImageDirectionType m_ImageDirection;
 
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
 private:
-  LabeledPointSetFileWriter(const Self &); // purposely not implemented
-  void operator=(const Self &);            // purposely not implemented
+  LabeledPointSetFileWriter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   void WritePointsToAvantsFile();
 

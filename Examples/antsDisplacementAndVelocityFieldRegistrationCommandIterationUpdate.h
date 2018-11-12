@@ -16,7 +16,7 @@ There are two types of registration that do not use generic "itkImageRegistratio
     * TimeVaryingBSplineVelocityField
 As these registration types have their own specific optimization processes, a different observer is needed to watch their internal optimization procedure.
 */
-template <class TFilter>
+template <typename TFilter>
 class antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate : public itk::Command
 {
 public:
@@ -29,7 +29,7 @@ public:
   typedef typename TFilter::MovingImageType MovingImageType;
 
   /** ImageDimension constants */
-  itkStaticConstMacro( VImageDimension, unsigned int, FixedImageType::ImageDimension );
+  static constexpr unsigned int VImageDimension = FixedImageType::ImageDimension;
 
   typedef typename TFilter::OutputTransformType                          OutputTransformType;
   typedef typename TFilter::OutputTransformType::ScalarType              RealType;
@@ -59,12 +59,12 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event ) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event ) override
   {
     TFilter const * const filter = dynamic_cast<const TFilter *>( object );
 

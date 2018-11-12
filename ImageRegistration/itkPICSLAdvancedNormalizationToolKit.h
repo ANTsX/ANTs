@@ -27,7 +27,7 @@
 
 namespace itk
 {
-template <unsigned int TDimension = 3, class TReal = float>
+template <unsigned int TDimension = 3, typename TReal = float>
 class PICSLAdvancedNormalizationToolKit
   : public       Object
 {
@@ -43,7 +43,7 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( PICSLAdvancedNormalizationToolKit, Object );
-  itkStaticConstMacro( Dimension, unsigned int, TDimension );
+  static constexpr unsigned int Dimension = TDimension;
   typedef double TComp;
   typedef TReal  RealType;
   typedef Image<RealType,
@@ -101,15 +101,13 @@ public:
 
 protected:
   PICSLAdvancedNormalizationToolKit();
-  virtual ~PICSLAdvancedNormalizationToolKit() ITK_OVERRIDE
-  {
-  }
+  ~PICSLAdvancedNormalizationToolKit() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
-  PICSLAdvancedNormalizationToolKit( const Self & ); // purposely not implemented
-  void operator=( const Self & );                    // purposely not implemented
+  PICSLAdvancedNormalizationToolKit( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   ImagePointer SubsampleImage( ImagePointer, RealType );
   ImagePointer PreprocessImage( ImagePointer );

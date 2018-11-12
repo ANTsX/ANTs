@@ -56,7 +56,7 @@ namespace ants
 {
 
 /*
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
               typename ImageType::Pointer itkNotUsed(image2),
@@ -81,7 +81,7 @@ BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
 */
 
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGE( typename ImageType::Pointer image, unsigned long radius)                /*3*/
 {
@@ -105,7 +105,7 @@ iMathGE( typename ImageType::Pointer image, unsigned long radius)               
   return filter->GetOutput();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGO( typename ImageType::Pointer image, unsigned long radius)               /*3*/
 {
@@ -129,7 +129,7 @@ iMathGO( typename ImageType::Pointer image, unsigned long radius)               
   return filter->GetOutput();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGetLargestComponent( typename ImageType::Pointer image,                         /*3*/
                      unsigned long smallest )
@@ -251,7 +251,7 @@ iMathGetLargestComponent( typename ImageType::Pointer image,                    
   return image;
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )      /*3*/ 
 {
@@ -277,7 +277,7 @@ iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )     
   return output;
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, double beta, unsigned int r )    /*3*/
 {
@@ -303,7 +303,7 @@ iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, dou
 
 //
 // shape (1=ball, 2=box, 3=cross, 4=annulus, 5=polygon)
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGD(typename ImageType::Pointer image, unsigned long radius)                   /*0*/      /*3*/
 {

@@ -27,7 +27,7 @@
 
 namespace itk
 {
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::FMarchingImageFilter()
   : m_TrialHeap()
@@ -47,9 +47,9 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   this->m_OutputDirection.SetIdentity();
   this->m_OverrideOutputInformation = false;
 
-  this->m_AlivePoints = ITK_NULLPTR;
-  this->m_TrialPoints = ITK_NULLPTR;
-  this->m_ProcessedPoints = ITK_NULLPTR;
+  this->m_AlivePoints = nullptr;
+  this->m_TrialPoints = nullptr;
+  this->m_ProcessedPoints = nullptr;
 
   this->m_SpeedConstant = 1.0;
   this->m_InverseSpeed = -1.0;
@@ -63,7 +63,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   this->m_TopologyCheck = None;
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 void
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
@@ -105,7 +105,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   os << indent << "OutputDirection: " << this->m_OutputDirection << std::endl;
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 void
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::GenerateOutputInformation()
@@ -114,7 +114,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   Superclass::GenerateOutputInformation();
 
   // use user-specified output information
-  if( this->GetInput() == ITK_NULLPTR || this->m_OverrideOutputInformation )
+  if( this->GetInput() == nullptr || this->m_OverrideOutputInformation )
     {
     LevelSetPointer output = this->GetOutput();
     output->SetLargestPossibleRegion( this->m_OutputRegion );
@@ -124,7 +124,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
     }
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 void
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::EnlargeOutputRequestedRegion(
@@ -149,7 +149,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
     }
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 void
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::Initialize( LevelSetImageType * output )
@@ -314,7 +314,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
     }
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 void
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::GenerateData()
@@ -504,7 +504,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
     }
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 void
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::UpdateNeighbors(
@@ -551,7 +551,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
     }
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 double
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::UpdateValue(
@@ -671,7 +671,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
 /**
  * Topology check functions
  */
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::DoesVoxelChangeViolateWellComposedness( IndexType idx )
@@ -690,7 +690,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   return !isChangeWellComposed;
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::DoesVoxelChangeViolateStrictTopology( IndexType idx )
@@ -727,7 +727,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   return false;
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsChangeWellComposed2D( IndexType idx )
@@ -790,7 +790,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   return true;
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC1Configuration2D( Array<short> neighborhood )
@@ -800,7 +800,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
          !neighborhood[8];
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC2Configuration2D( Array<short> neighborhood )
@@ -811,7 +811,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
          ( neighborhood[5] || neighborhood[7] );
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC3Configuration2D( Array<short> neighborhood )
@@ -822,7 +822,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
          !neighborhood[7] &&  neighborhood[8];
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC4Configuration2D( Array<short> neighborhood )
@@ -833,7 +833,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
          !neighborhood[7] &&  neighborhood[8];
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 void
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::InitializeIndices2D()
@@ -907,7 +907,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   this->m_ReflectionIndices[1][8] = 6;
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsChangeWellComposed3D( IndexType idx )
@@ -957,7 +957,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   return true;
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC1Configuration3D( Array<short> neighborhood )
@@ -968,7 +968,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
            neighborhood[2] &&  neighborhood[3] );
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 unsigned int
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC2Configuration3D( Array<short> neighborhood )
@@ -1005,7 +1005,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   return 0;
 }
 
-template <class TLevelSet, class TSpeedImage>
+template <typename TLevelSet, typename TSpeedImage>
 void
 FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::InitializeIndices3D()

@@ -86,7 +86,7 @@ namespace itk
  * \endwiki
  */
 
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 class AverageOverDimensionImageFilter:
   public InPlaceImageFilter< TInputImage, TOutputImage >
 {
@@ -229,8 +229,8 @@ public:
 
 protected:
   AverageOverDimensionImageFilter();
-  virtual ~AverageOverDimensionImageFilter() ITK_OVERRIDE {}
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+  ~AverageOverDimensionImageFilter() override = default;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** AverageOverDimensionImageFilter can produce an image which is a different
    * resolution than its input image.  As such, AverageOverDimensionImageFilter
@@ -240,7 +240,7 @@ protected:
    * below.
    *
    * \sa ProcessObject::GenerateOutputInformaton()  */
-  void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() override;
 
   /** This function calls the actual region copier to do the mapping from
    * output image space to input image space.  It uses a
@@ -253,7 +253,7 @@ protected:
    *
    * \sa ImageToImageFilter::CallCopyRegion() */
   void CallCopyOutputRegionToInputRegion(InputImageRegionType & destRegion,
-                                                 const OutputImageRegionType & srcRegion) ITK_OVERRIDE;
+                                                 const OutputImageRegionType & srcRegion) override;
 
   /** AverageOverDimensionImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -265,20 +265,20 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData()  */
   void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                            ThreadIdType threadId) ITK_OVERRIDE;
+                            ThreadIdType threadId) override;
 
   /** Overridden to check if there is no work to be done, before
    * calling superclass' implementation.
    */
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
   unsigned int m_AveragingDimension;
 
   OutputImageRegionType m_OutputImageRegion;
 
 private:
-  AverageOverDimensionImageFilter(const Self &); //purposely not implemented
-  void operator=(const Self &);     //purposely not implemented
+  AverageOverDimensionImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   DIRECTIONCOLLAPSESTRATEGY m_DirectionCollapseStrategy;
 };

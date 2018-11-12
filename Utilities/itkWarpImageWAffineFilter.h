@@ -74,10 +74,10 @@ namespace itk
  * \ingroup GeometricTransforms MultiThreaded
  */
 template <
-  class TInputImage,
-  class TOutputImage,
-  class TDisplacementField,
-  class TTransform
+  typename TInputImage,
+  typename TOutputImage,
+  typename TDisplacementField,
+  typename TTransform
   >
 class WarpImageWAffineFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
@@ -234,9 +234,7 @@ public:
 #endif
 protected:
   WarpImageWAffineFilter();
-  ~WarpImageWAffineFilter()
-  {
-  };
+  ~WarpImageWAffineFilter() = default;
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** WarpImageWAffineFilter is implemented as a multi-threaded filter.
@@ -245,8 +243,8 @@ protected:
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId );
 
 private:
-  WarpImageWAffineFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);         // purposely not implemented
+  WarpImageWAffineFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   PixelType          m_EdgePaddingValue;
   SpacingType        m_OutputSpacing;

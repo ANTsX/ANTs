@@ -16,7 +16,7 @@
 #pragma warning(disable: 4786)
 #endif
 
-#include <math.h>
+#include <cmath>
 #include "itkFEMElement3DC0LinearTriangularLaplaceBeltrami.h"
 
 namespace itk

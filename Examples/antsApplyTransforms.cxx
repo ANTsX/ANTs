@@ -135,7 +135,7 @@ bool isDiagonalElement(std::vector<unsigned int> diagElements, unsigned int ind)
   return false;
 }
 
-template <class T, unsigned int Dimension>
+template <typename T, unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
   typedef T                                      RealType;
@@ -163,10 +163,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   std::vector<unsigned int> tensorDiagIndices = tensorDiagonalArrayIndices<Dimension>();
 
-  typename TimeSeriesImageType::Pointer timeSeriesImage = ITK_NULLPTR;
-  typename TensorImageType::Pointer tensorImage = ITK_NULLPTR;
-  typename MultiChannelImageType::Pointer multiChannelImage = ITK_NULLPTR;
-  typename DisplacementFieldType::Pointer vectorImage = ITK_NULLPTR;
+  typename TimeSeriesImageType::Pointer timeSeriesImage = nullptr;
+  typename TensorImageType::Pointer tensorImage = nullptr;
+  typename MultiChannelImageType::Pointer multiChannelImage = nullptr;
+  typename DisplacementFieldType::Pointer vectorImage = nullptr;
 
   std::vector<typename ImageType::Pointer> inputImages;
   inputImages.clear();
@@ -935,7 +935,7 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsApplyTransforms( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int antsApplyTransforms( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -952,7 +952,7 @@ int antsApplyTransforms( std::vector<std::string> args, std::ostream * /*out_str
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

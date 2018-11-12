@@ -37,7 +37,7 @@ namespace ants
 
 int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 {
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef float                                      RealType;
   typedef itk::Image<RealType, ImageDimension>       ImageType;
@@ -53,7 +53,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 
   // Read in input image
 
-  ImageType::Pointer inputImage = ITK_NULLPTR;
+  ImageType::Pointer inputImage = nullptr;
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
@@ -79,7 +79,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
         }
       }
 
-    ImageType::Pointer readImage = ITK_NULLPTR;
+    ImageType::Pointer readImage = nullptr;
     ReadImage<ImageType>( readImage, inputFile.c_str() );
 
     typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
@@ -108,7 +108,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 
   // Read in input image
 
-  MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  MaskImageType::Pointer maskImage = nullptr;
 
   itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
     parser->GetOption( "mask-image" );
@@ -158,7 +158,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
         std::cerr << "Error reading RGB file " << rgbFileName << std::endl;
         return EXIT_FAILURE;
         }
-      functionalRgbImages.push_back( rgbReader->GetOutput() );
+      functionalRgbImages.emplace_back(rgbReader->GetOutput() );
 
       if( ! maskFileName.empty() )
         {
@@ -167,11 +167,11 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
         maskReader->SetFileName( maskFileName.c_str() );
         maskReader->Update();
 
-        functionalMaskImages.push_back( maskReader->GetOutput() );
+        functionalMaskImages.emplace_back(maskReader->GetOutput() );
         }
       else
         {
-        functionalMaskImages.push_back( ITK_NULLPTR );
+        functionalMaskImages.emplace_back(nullptr );
         }
       }
     }
@@ -366,7 +366,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
     {
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput( renderWindow );
-    windowToImageFilter->SetMagnification( magnificationFactor );
+    windowToImageFilter->SetScale( magnificationFactor );
     windowToImageFilter->SetInputBufferTypeToRGBA();
     windowToImageFilter->Update();
 
@@ -470,7 +470,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsVol( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int antsVol( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -488,7 +488,7 @@ int antsVol( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NUL
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

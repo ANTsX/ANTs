@@ -32,7 +32,7 @@ namespace Statistics
  * \brief point set filter.
  */
 
-template <class TListSample, class TOutput = double, class TCoordRep = double>
+template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
 class ManifoldParzenWindowsListSampleFunction
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
@@ -86,14 +86,14 @@ public:
   itkSetMacro( KernelSigma, RealType );
   itkGetConstMacro( KernelSigma, RealType );
 
-  void SetInputListSample( const InputListSampleType * ptr ) ITK_OVERRIDE;
+  void SetInputListSample( const InputListSampleType * ptr ) override;
 
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE;
+  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override;
 
 protected:
   ManifoldParzenWindowsListSampleFunction();
-  virtual ~ManifoldParzenWindowsListSampleFunction() ITK_OVERRIDE;
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  ~ManifoldParzenWindowsListSampleFunction() override;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();
 

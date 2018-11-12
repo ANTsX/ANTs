@@ -29,7 +29,7 @@ namespace itk
  *
  */
 
-template <class TInputImage,
+template <typename TInputImage,
   typename TMaskImage = Image<unsigned char, TInputImage::ImageDimension>,
   class TOutputImage = TInputImage>
 class MaskedSmoothingImageFilter :
@@ -46,7 +46,7 @@ public:
   itkNewMacro( Self );
 
   /** Extract dimension from input and output image. */
-  itkStaticConstMacro( ImageDimension, unsigned int, TInputImage::ImageDimension );
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Convenient typedefs for simplifying declarations. */
   using InputImageType = TInputImage;
@@ -112,11 +112,11 @@ public:
 protected:
 
   MaskedSmoothingImageFilter();
-  virtual ~MaskedSmoothingImageFilter() ITK_OVERRIDE;
+  ~MaskedSmoothingImageFilter() override;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
 

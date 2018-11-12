@@ -36,7 +36,7 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
   typedef itk::Image<InputPixelType,    Dimension> InputImageType;
   typedef itk::Image<OutputPixelType,   Dimension> OutputImageType;
 
-  typename InputImageType::Pointer inputImage = ITK_NULLPTR;
+  typename InputImageType::Pointer inputImage = nullptr;
   ReadImage<InputImageType>(inputImage, argv[1]);
 
   // Create a filter
@@ -58,54 +58,54 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
     {
     if( argc > 3 )
       {
-      upperFactors[0] = atoi(argv[3]);
+      upperFactors[0] = std::stoi(argv[3]);
       }
     if( argc > 4 )
       {
-      upperFactors[1] = atoi(argv[4]);
+      upperFactors[1] = std::stoi(argv[4]);
       }
     if( argc > 5 )
       {
-      lowerFactors[0] = atoi(argv[5]);
+      lowerFactors[0] = std::stoi(argv[5]);
       }
     if( argc > 6 )
       {
-      lowerFactors[1] = atoi(argv[6]);
+      lowerFactors[1] = std::stoi(argv[6]);
       }
     if( argc > 7 )
       {
-      flipaboutorigin = atoi(argv[7]);
+      flipaboutorigin = std::stoi(argv[7]);
       }
     }
   else if( Dimension == 3 )
     {
     if( argc > 3 )
       {
-      upperFactors[0] = atoi(argv[3]);
+      upperFactors[0] = std::stoi(argv[3]);
       }
     if( argc >  4 )
       {
-      upperFactors[1] = atoi(argv[4]);
+      upperFactors[1] = std::stoi(argv[4]);
       }
     if( argc > 5 )
       {
-      upperFactors[2] = atoi(argv[5]);
+      upperFactors[2] = std::stoi(argv[5]);
       }
     if( argc > 6 )
       {
-      lowerFactors[0] = atoi(argv[6]);
+      lowerFactors[0] = std::stoi(argv[6]);
       }
     if( argc > 7 )
       {
-      lowerFactors[1] = atoi(argv[7]);
+      lowerFactors[1] = std::stoi(argv[7]);
       }
     if( argc > 8  )
       {
-      lowerFactors[2] = atoi(argv[8]);
+      lowerFactors[2] = std::stoi(argv[8]);
       }
     if( argc > 9 )
       {
-      flipaboutorigin = atoi(argv[9]);
+      flipaboutorigin = std::stoi(argv[9]);
       }
     }
 
@@ -132,7 +132,7 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int PermuteFlipImageOrientationAxes( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int PermuteFlipImageOrientationAxes( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -150,7 +150,7 @@ int PermuteFlipImageOrientationAxes( std::vector<std::string> args, std::ostream
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -202,7 +202,7 @@ private:
     }
 
   // Get the image dimension
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

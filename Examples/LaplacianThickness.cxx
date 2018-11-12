@@ -20,7 +20,7 @@
 
 namespace ants
 {
-template <class TField, class TImage>
+template <typename TField, typename TImage>
 typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
@@ -41,7 +41,7 @@ GetVectorComponent(typename TField::Pointer field, unsigned int index)
   return sfield;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, float sig)
 {
@@ -68,7 +68,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   return out;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
 {
@@ -97,7 +97,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
   return;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input, float distthresh )
@@ -159,7 +159,7 @@ LabelSurface(typename TImage::PixelType foreground,
   return Image;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer  Morphological( typename TImage::Pointer input, float rad, bool option)
 {
   typedef TImage ImageType;
@@ -241,7 +241,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
   return temp;
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 FMMGrad(typename TImage::Pointer wm, typename TImage::Pointer gm )
 {
@@ -317,7 +317,7 @@ FMMGrad(typename TImage::Pointer wm, typename TImage::Pointer gm )
   return sfield;
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float sig, unsigned int numits, float tolerance)
 {
@@ -395,7 +395,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
   return filter->GetOutput();
 }
 
-template <class TImage, class TField, class TInterp, class TInterp2>
+template <typename TImage, typename TField, typename TInterp, typename TInterp2>
 float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::Pointer /* thickimage */,
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
                        float starttime, float /* finishtime */,
@@ -672,12 +672,12 @@ int LaplacianThickness(int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
   typename ImageType::Pointer wmb = BinaryThreshold<ImageType>(0.5, 1.e9, 1, wm);
-  typename DisplacementFieldType::Pointer lapgrad = ITK_NULLPTR;
-  typename DisplacementFieldType::Pointer lapgrad2 = ITK_NULLPTR;
+  typename DisplacementFieldType::Pointer lapgrad = nullptr;
+  typename DisplacementFieldType::Pointer lapgrad2 = nullptr;
   typename ImageType::Pointer gmb = BinaryThreshold<ImageType>(0.5, 1.e9, 1, gm);
 
 /** get sulcal priors */
-  typename ImageType::Pointer sulci = ITK_NULLPTR;
+  typename ImageType::Pointer sulci = nullptr;
   if( dosulc > 0 )
     {
     std::cout << "  using sulcal prior " << std::endl;
@@ -761,7 +761,7 @@ int LaplacianThickness(int argc, char *argv[])
   // std::cout << " MUCKING WITH START FINISH TIME " <<  finishtime <<  std::endl;
 
   typename DisplacementFieldType::IndexType velind;
-  typename ImageType::Pointer smooththick = ITK_NULLPTR;
+  typename ImageType::Pointer smooththick = nullptr;
   float timesign = 1.0;
   if( starttime  >  finishtime )
     {
@@ -769,7 +769,6 @@ int LaplacianThickness(int argc, char *argv[])
     }
   unsigned int m_NumberOfTimePoints = 2;
   typedef   DisplacementFieldType                                                        TimeVaryingVelocityFieldType;
-  typedef typename DisplacementFieldType::PointType                                      DPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float> DefaultInterpolatorType;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
@@ -781,11 +780,6 @@ int LaplacianThickness(int argc, char *argv[])
     }
   VectorType zero;
   zero.Fill(0);
-
-  DPointType pointIn1;
-  DPointType pointIn2;
-  typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
-  DPointType pointIn3;
 
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
   VIteratorType VIterator( lapgrad, lapgrad->GetLargestPossibleRegion().GetSize() );
@@ -942,7 +936,7 @@ int LaplacianThickness(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int LaplacianThickness( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int LaplacianThickness( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -960,7 +954,7 @@ int LaplacianThickness( std::vector<std::string> args, std::ostream* /*out_strea
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

@@ -20,7 +20,7 @@ static bool WarpTimeSeriesImageMultiTransform_ParseInput(int argc, char * *argv,
   opt_queue.clear();
   opt_queue.reserve(argc - 2);
 
-  misc_opt.reference_image_filename = ITK_NULLPTR;
+  misc_opt.reference_image_filename = nullptr;
   misc_opt.use_NN_interpolator = false;
   misc_opt.use_TightestBoundingBox = false;
   misc_opt.use_RotationHeader = false;
@@ -76,7 +76,7 @@ static bool WarpTimeSeriesImageMultiTransform_ParseInput(int argc, char * *argv,
       }
     else if( strcmp(argv[ind], "--reference-image-header") == 0 || strcmp(argv[ind], "-rh") == 0 )
       {
-      if( misc_opt.reference_image_filename == ITK_NULLPTR )
+      if( misc_opt.reference_image_filename == nullptr )
         {
         std::cout
           << "reference image filename is not given yet. Specify it with -R before --reference-image-header / -rh."
@@ -216,7 +216,7 @@ static bool WarpTimeSeriesImageMultiTransform_ParseInput(int argc, char * *argv,
   return true;
 }
 
-template <class AffineTransformPointer>
+template <typename AffineTransformPointer>
 void GetIdentityTransform(AffineTransformPointer & aff)
 {
   typedef typename AffineTransformPointer::ObjectType AffineTransform;
@@ -640,7 +640,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int WarpTimeSeriesImageMultiTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int WarpTimeSeriesImageMultiTransform( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -658,7 +658,7 @@ int WarpTimeSeriesImageMultiTransform( std::vector<std::string> args, std::ostre
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -740,12 +740,12 @@ private:
     }
 
   TRAN_OPT_QUEUE opt_queue;
-  char *         moving_image_filename = ITK_NULLPTR;
-  char *         output_image_filename = ITK_NULLPTR;
+  char *         moving_image_filename = nullptr;
+  char *         output_image_filename = nullptr;
 
   MISC_OPT misc_opt;
 
-  int  kImageDim = atoi(argv[1]);
+  int  kImageDim = std::stoi(argv[1]);
 
   const bool is_parsing_ok =
     WarpTimeSeriesImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename,

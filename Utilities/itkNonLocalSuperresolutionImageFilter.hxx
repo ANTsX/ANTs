@@ -57,9 +57,9 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 {
   this->SetNumberOfRequiredInputs( 2 );
 
-  this->m_WeightSumImage = ITK_NULLPTR;
+  this->m_WeightSumImage = nullptr;
 
-  this->m_InterpolatedLowResolutionInputImage = ITK_NULLPTR;
+  this->m_InterpolatedLowResolutionInputImage = nullptr;
 
   // Interpolator --- default to linear
   typedef LinearInterpolateImageFunction<InputImageType, RealType> LinearInterpolatorType;
@@ -71,7 +71,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 template<typename TInputImage, typename TOutputImage>
 void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation()
+::VerifyInputInformation() const
 {
 }
 
@@ -139,7 +139,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
   inputPtr->SetRequestedRegionToLargestPossibleRegion();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>
 ::GenerateData()

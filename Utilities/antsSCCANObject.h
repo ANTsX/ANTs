@@ -28,7 +28,7 @@ namespace itk
 {
 namespace ants
 {
-template <class TInputImage, class TRealType = double>
+template <typename TInputImage, typename TRealType = double>
 class antsSCCANObject :
   public ImageToImageFilter<TInputImage, TInputImage>
 {
@@ -49,7 +49,7 @@ public:
   itkStaticConstMacro( ImageDimension, unsigned int,
                        TInputImage::ImageDimension );
 
-  itkStaticConstMacro( MatrixDimension, unsigned int, 2 );
+  static constexpr unsigned int MatrixDimension = 2;
 
   /** Typedef support of input types. */
   typedef TInputImage                   ImageType;
@@ -155,8 +155,8 @@ public:
 
   RealType ReconstructionError( MatrixType, MatrixType );
 
-  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = ITK_NULLPTR,  MatrixType* projecterV =
-                             ITK_NULLPTR )
+  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = nullptr,  MatrixType* projecterV =
+                             nullptr )
   {
     if( ( !projecterM ) &&  ( !projecterV ) )
       {
@@ -817,7 +817,7 @@ protected:
       {
       keeppos = true;
       }
-    this->Sparsify( x_k1, fnp, keeppos, 0, ITK_NULLPTR );
+    this->Sparsify( x_k1, fnp, keeppos, 0, nullptr );
     this->m_UseL1 = usel1;
   }
 
@@ -1178,11 +1178,9 @@ protected:
   }
 
   antsSCCANObject();
-  virtual ~antsSCCANObject() ITK_OVERRIDE
-  {
-  }
+  ~antsSCCANObject() override = default;
 
-  void PrintSelf( std::ostream &, /* os */ Indent /* indent */) const ITK_OVERRIDE
+  void PrintSelf( std::ostream &, /* os */ Indent /* indent */) const override
   {
     if( this->m_MaskImageP && this->m_MaskImageQ && this->m_MaskImageR )
       {

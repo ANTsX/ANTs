@@ -28,20 +28,19 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::GaussianListSampleFunction()
 {
   this->m_Gaussian = GaussianType::New();
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~GaussianListSampleFunction()
-{
-}
+= default;
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
@@ -123,7 +122,7 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 TOutput
 GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
@@ -141,7 +140,7 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PrintSelf(

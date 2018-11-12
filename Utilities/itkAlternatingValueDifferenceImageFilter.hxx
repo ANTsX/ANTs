@@ -25,7 +25,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 ::AlternatingValueDifferenceImageFilter()
 {
@@ -36,7 +36,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
   m_IndexPadding = 1;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 ::PrintSelf(std::ostream & os, Indent indent) const
@@ -46,10 +46,10 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
   os << indent << "SubtractionDimension: " << m_SubtractionDimension << std::endl;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation()
+::VerifyInputInformation() const
 {
   Superclass::VerifyInputInformation();
 
@@ -86,7 +86,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 /**
  * \sa UnaryFunctorImageFilter::GenerateOutputInformation()
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 ::GenerateOutputInformation()
@@ -182,7 +182,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 }
 
 /*
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 ::GenerateInputRequestedRegion()
@@ -232,7 +232,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
  * InterpolatorType::SetInputImage is not thread-safe and hence
  * has to be set up before ThreadedGenerateData
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
@@ -322,7 +322,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
   //  }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,

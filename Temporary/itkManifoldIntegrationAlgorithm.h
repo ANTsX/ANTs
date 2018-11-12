@@ -43,7 +43,7 @@ namespace itk
  * \class ManifoldIntegrationAlgorithm
  * \brief General shortest path / greedy dynamic programming solver.
  */
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 class ManifoldIntegrationAlgorithm : public itk::LightObject
 {
 public:

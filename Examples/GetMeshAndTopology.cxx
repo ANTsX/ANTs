@@ -7,8 +7,8 @@
 
 #include <string>
 
-#include <math.h>
-#include <time.h>
+#include <cmath>
+#include <ctime>
 #include "itkVTKPolyDataWriter.h"
 #include "vtkSTLWriter.h"
 #include "vtkXMLPolyDataWriter.h"
@@ -200,7 +200,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
     vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput(renWin);
-    windowToImageFilter->SetMagnification( 4 );
+    windowToImageFilter->SetScale( 4 );
     windowToImageFilter->Update();
 
     vtkSmartPointer<vtkPNGWriter> writer =
@@ -304,7 +304,7 @@ float vtkComputeTopology(vtkPolyData* pd)
 #endif
 }
 
-template <class TImage>
+template <typename TImage>
 void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image2,  std::string outfn,
                   const char* paramname, float scaledata,
                   float aaParm, std::string offscreen , unsigned int inflate )
@@ -448,7 +448,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   return;
 }
 
-template <class TImage>
+template <typename TImage>
 float GetImageTopology(typename TImage::Pointer image)
 {
   typedef TImage      ImageType;
@@ -490,7 +490,7 @@ int GetMeshAndTopology( std::vector<std::string> args, std::ostream*  )
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -529,7 +529,7 @@ private:
     }
 
   // Define the dimension of the images
-  const unsigned int Dimension = 3;
+  constexpr unsigned int Dimension = 3;
   typedef float PixelType;
   // Declare the types of the output images
   typedef itk::Image<PixelType, Dimension> ImageType;
@@ -573,7 +573,7 @@ private:
   unsigned int inflate = 0;
   if( argc > 8 )
     {
-    inflate = atoi(argv[8]);
+    inflate = std::stoi(argv[8]);
     }
   GetValueMesh<ImageType>(image, image2, outfn, paramname, scaledata, aaParm, offscreen, inflate );
   //  GetImageTopology<ImageType>(image);

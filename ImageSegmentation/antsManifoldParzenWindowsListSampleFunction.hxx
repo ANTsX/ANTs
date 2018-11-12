@@ -23,11 +23,11 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::ManifoldParzenWindowsListSampleFunction()
 {
-  this->m_KdTreeGenerator = ITK_NULLPTR;
+  this->m_KdTreeGenerator = nullptr;
 
   this->m_EvaluationKNeighborhood = 50;
   this->m_RegularizationSigma = 1.0;
@@ -36,13 +36,12 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
   this->m_KernelSigma = 0.0;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~ManifoldParzenWindowsListSampleFunction()
-{
-}
+= default;
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
@@ -183,7 +182,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 TOutput
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
@@ -227,7 +226,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PrintSelf(

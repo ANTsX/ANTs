@@ -55,7 +55,7 @@ public:
  *
  * \ingroup IOFilters
  */
-template <class TVectorImage, class TImage>
+template <typename TVectorImage, typename TImage>
 class VectorImageFileWriter :
   public         ProcessObject
 {

@@ -50,12 +50,12 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 {
   this->SetNumberOfRequiredInputs( 1 );
 
-  this->m_MeanImage = ITK_NULLPTR;
-  this->m_VarianceImage = ITK_NULLPTR;
-  this->m_IntensitySquaredDistanceImage = ITK_NULLPTR;
-  this->m_ThreadContributionCountImage = ITK_NULLPTR;
+  this->m_MeanImage = nullptr;
+  this->m_VarianceImage = nullptr;
+  this->m_IntensitySquaredDistanceImage = nullptr;
+  this->m_ThreadContributionCountImage = nullptr;
 
-  this->m_RicianBiasImage = ITK_NULLPTR;
+  this->m_RicianBiasImage = nullptr;
 
   this->m_NeighborhoodRadiusForLocalMeanAndVariance.Fill( 1 );
   this->DynamicMultiThreadingOff();

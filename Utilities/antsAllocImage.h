@@ -4,7 +4,7 @@
 #include "itkImage.h"
 
 /** Allocate an image based only on region */
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 AllocImage(const typename ImageType::RegionType & region)
 {
@@ -15,7 +15,7 @@ AllocImage(const typename ImageType::RegionType & region)
 }
 
 /** Allocate an image based only on size */
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 AllocImage(const typename ImageType::SizeType & size)
 {
@@ -24,7 +24,7 @@ AllocImage(const typename ImageType::SizeType & size)
   return AllocImage<ImageType>(region);
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 AllocImage(const typename ImageType::RegionType & region,
            const typename ImageType::PixelType & init)
@@ -36,7 +36,7 @@ AllocImage(const typename ImageType::RegionType & region,
 }
 
 /** Allocate image based on region, spaciing, origin & directions */
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 AllocImage(const typename ImageType::RegionType & region,
            const typename ImageType::SpacingType & spacing,
@@ -53,7 +53,7 @@ AllocImage(const typename ImageType::RegionType & region,
 /** Allocate image based on region, spacing, origin & directions
 *   then initialize with initValue
 */
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 AllocImage(const typename ImageType::RegionType & region,
            const typename ImageType::SpacingType & spacing,
@@ -71,7 +71,7 @@ AllocImage(const typename ImageType::RegionType & region,
 }
 
 /** Allocate an image based on size, spacing, origin, directions */
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 AllocImage(const typename ImageType::SizeType & size,
            const typename ImageType::SpacingType & spacing,
@@ -89,7 +89,7 @@ AllocImage(const typename ImageType::SizeType & size,
 /** Allocate image based on size,spacing,origin&directions
  *   then initialize with initial Pixel.
  */
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 AllocImage(const typename ImageType::SizeType & size,
            const typename ImageType::SpacingType & spacing,
@@ -107,7 +107,7 @@ AllocImage(const typename ImageType::SizeType & size,
 }
 
 /** Allocate an image based on an exemplar image. */
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 AllocImage(const typename itk::ImageBase<ImageType::ImageDimension> *exemplar)
 {
@@ -129,7 +129,7 @@ AllocImage(const typename itk::ImageBase<ImageType::ImageDimension> *exemplar)
 /** Allocate an image based on an exemplar image, and then init all
  *  voxels to the suppled fillValue
  */
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 AllocImage(const typename itk::ImageBase<ImageType::ImageDimension> *exemplar,
            const typename ImageType::PixelType & fillValue)

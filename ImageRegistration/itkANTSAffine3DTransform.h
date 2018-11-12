@@ -13,7 +13,7 @@ namespace itk
  *
  * \ingroup Transforms
  */
-template <class TScalarType = double>
+template <typename TScalarType = double>
 // Data type for scalars (float or double)
 class ANTSAffine3DTransform :
   public         MatrixOffsetTransformBase<TScalarType, 3, 3>
@@ -35,10 +35,10 @@ public:
   itkTypeMacro( ANTSAffine3DTransform, MatrixOffsetTransformBase );
 
   /** Dimension of parameters   */
-  itkStaticConstMacro(InputSpaceDimension, unsigned int, 3);
-  itkStaticConstMacro(OutputSpaceDimension, unsigned int, 3);
-  itkStaticConstMacro(SpaceDimension, unsigned int, 3);
-  itkStaticConstMacro(ParametersDimension, unsigned int, 13);
+  static constexpr unsigned int InputSpaceDimension = 3;
+  static constexpr unsigned int OutputSpaceDimension = 3;
+  static constexpr unsigned int SpaceDimension = 3;
+  static constexpr unsigned int ParametersDimension = 13;
 
   /** Parameters Type   */
   typedef typename Superclass::ParametersType      ParametersType;
@@ -99,16 +99,16 @@ public:
   itkGetConstReferenceMacro( K3, TScalarType );
 
   /** Set the parameters to the IdentityTransform */
-  void SetIdentity() ITK_OVERRIDE;
+  void SetIdentity() override;
 
   /** Set the transformation from a container of parameters.
    * This is typically used by optimizers.
    * There are 7 parameters. The first four represents the
    * quaternion and the last three represents the
    * offset. */
-  void SetParameters( const ParametersType & parameters ) ITK_OVERRIDE;
+  void SetParameters( const ParametersType & parameters ) override;
 
-  const ParametersType & GetParameters() const ITK_OVERRIDE;
+  const ParametersType & GetParameters() const override;
 
 //  /** Compute the Jacobian of the transformation.
 //   * This method computes the Jacobian matrix of the transformation.
@@ -126,20 +126,18 @@ public:
  * Get local Jacobian for the given point
  * \c j will sized properly as needed.
  */
-  void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const ITK_OVERRIDE;
+  void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const override;
 
 protected:
 /*   ANTSAffine3DTransform(const MatrixType &matrix, */
 /*                            const OutputVectorType &offset); */
   ANTSAffine3DTransform(unsigned int outputDims, unsigned int paramDims);
   ANTSAffine3DTransform();
-  virtual ~ANTSAffine3DTransform() ITK_OVERRIDE
-  {
-  };
+  ~ANTSAffine3DTransform() override = default;
 
-  void ComputeMatrix() ITK_OVERRIDE;
+  void ComputeMatrix() override;
 
-  void ComputeMatrixParameters() ITK_OVERRIDE;
+  void ComputeMatrixParameters() override;
 
   void SetVarRotation(const VnlQuaternionType & rotation)
   {
@@ -148,11 +146,11 @@ protected:
 
 //  const InverseMatrixType & GetInverseMatrix() const;
 
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ANTSAffine3DTransform(const Self &); // purposely not implemented
-  void operator=(const Self &);        // purposely not implemented
+  ANTSAffine3DTransform(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** Rotation of the transformation. */
   VnlQuaternionType m_Rotation;

@@ -27,7 +27,7 @@ namespace itk
  * point-set type.
  *
  */
-template <class TPointSet>
+template <typename TPointSet>
 class JensenHavrdaCharvatTsallisLabeledPointSetMetric :
   public         PointSetToPointSetMetric<TPointSet, TPointSet>
 {
@@ -206,8 +206,8 @@ protected:
   void PrintSelf( std::ostream& os, Indent indent ) const;
 
 private:
-  JensenHavrdaCharvatTsallisLabeledPointSetMetric(const Self &); // purposely not implemented
-  void operator=(const Self &);                                  // purposely not implemented
+  JensenHavrdaCharvatTsallisLabeledPointSetMetric(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   bool m_UseRegularizationTerm;
   bool m_UseInputAsSamples;

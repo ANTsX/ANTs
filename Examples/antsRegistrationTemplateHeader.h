@@ -27,7 +27,7 @@ namespace ants
 
 extern const char * RegTypeToFileName( const std::string & type, bool & writeInverse, bool & writeVelocityField, bool minc );
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 int
 DoRegistration(typename ParserType::Pointer & parser)
 {
@@ -67,9 +67,9 @@ DoRegistration(typename ParserType::Pointer & parser)
   else
     {
     char* randomSeedEnv = getenv( "ANTS_RANDOM_SEED" );
-    if ( randomSeedEnv != NULL )
+    if ( randomSeedEnv != nullptr )
       {
-      regHelper->SetRegistrationRandomSeed( atoi( randomSeedEnv ) );
+      regHelper->SetRegistrationRandomSeed( std::stoi( randomSeedEnv ) );
       }
     else
       {
@@ -529,7 +529,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         convergenceWindowSize = parser->Convert<unsigned int>( convergenceOption->GetFunction(
                                                                  currentStage )->GetParameter( 2 ) );
-        const unsigned int minAllowedconvergenceWindowSize = 2; // The BSplineScatteredDataPoints requires at least 2
+        constexpr unsigned int minAllowedconvergenceWindowSize = 2; // The BSplineScatteredDataPoints requires at least 2
                                                                 // points for interpolation.
         if( convergenceWindowSize < minAllowedconvergenceWindowSize )
           {
@@ -979,12 +979,12 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     // Get the fixed and moving images or point sets
 
-    typename ImageType::Pointer fixedImage = ITK_NULLPTR;
-    typename ImageType::Pointer movingImage = ITK_NULLPTR;
-    typename LabeledPointSetType::Pointer fixedLabeledPointSet = ITK_NULLPTR;
-    typename LabeledPointSetType::Pointer movingLabeledPointSet = ITK_NULLPTR;
-    typename IntensityPointSetType::Pointer fixedIntensityPointSet = ITK_NULLPTR;
-    typename IntensityPointSetType::Pointer movingIntensityPointSet = ITK_NULLPTR;
+    typename ImageType::Pointer fixedImage = nullptr;
+    typename ImageType::Pointer movingImage = nullptr;
+    typename LabeledPointSetType::Pointer fixedLabeledPointSet = nullptr;
+    typename LabeledPointSetType::Pointer movingLabeledPointSet = nullptr;
+    typename IntensityPointSetType::Pointer fixedIntensityPointSet = nullptr;
+    typename IntensityPointSetType::Pointer movingIntensityPointSet = nullptr;
 
     float metricWeighting = 1.0;
     if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 2 )
@@ -1299,7 +1299,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::Linear )
           {
           // The output type must be Affine, not matrixoffset!  TransformTypeNames.push_back( "matrixoffset" );
-          TransformTypeNames.push_back( "genericaffine" );
+          TransformTypeNames.emplace_back("genericaffine" );
           }
         else if( transformToWrite->GetNthTransform( i )->GetTransformCategory() ==
           TransformType::DisplacementField )
@@ -1313,16 +1313,16 @@ DoRegistration(typename ParserType::Pointer & parser)
           // not.
           if( nthTransform && nthTransform->GetInverseDisplacementField() )
             {
-            TransformTypeNames.push_back( "syn" );
+            TransformTypeNames.emplace_back("syn" );
             }
           else
             {
-            TransformTypeNames.push_back( "gdf" );
+            TransformTypeNames.emplace_back("gdf" );
             }
           }
         else if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::BSpline )
           {
-          TransformTypeNames.push_back( "bspline" );
+          TransformTypeNames.emplace_back("bspline" );
           }
         }
       }

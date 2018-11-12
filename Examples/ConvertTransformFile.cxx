@@ -21,7 +21,7 @@
 #include "itksys/SystemTools.hxx"
 
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkTransformFactory.h"
 #include "itkAffineTransform.h"
@@ -74,7 +74,7 @@ bool FileExists(string strFilename)
 /*
  *
  */
-template <class TTransform>
+template <typename TTransform>
 bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransform::MatrixType & matrix,
                 bool outputRAS )
 {
@@ -157,7 +157,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
 /*
  *
  */
-template <class TTransform, class TMatrix>
+template <typename TTransform, typename TMatrix>
 bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatrix & hMatrix, bool outputRAS )
 {
   const unsigned int ImageDimension = TTransform::InputSpaceDimension;
@@ -447,7 +447,7 @@ int ConvertTransformFile(int argc, char* argv[])
 /*
  *
  */
-int ConvertTransformFile( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ConvertTransformFile( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -465,7 +465,7 @@ int ConvertTransformFile( std::vector<std::string> args, std::ostream* /*out_str
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -542,7 +542,7 @@ private:
     }
 
   // Get the image dimension
-  unsigned int dimension = atoi( argv[1] );
+  unsigned int dimension = std::stoi( argv[1] );
 
   switch( dimension )
     {

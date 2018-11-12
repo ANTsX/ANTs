@@ -44,7 +44,7 @@ namespace itk
  *
  */
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 class DiReCTImageFilter :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -303,15 +303,15 @@ public:
 protected:
 
   DiReCTImageFilter();
-  virtual ~DiReCTImageFilter() ITK_OVERRIDE;
+  ~DiReCTImageFilter() override;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void ThreadedGenerateData( const RegionType &, ThreadIdType ) ITK_OVERRIDE
+  void ThreadedGenerateData( const RegionType &, ThreadIdType ) override
   {
   };
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
 

@@ -29,7 +29,7 @@ namespace itk
 /**
  *
  */
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 ::AverageOverDimensionImageFilter():
 #ifdef ITKV3_COMPATIBILITY
@@ -44,7 +44,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 /**
  *
  */
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 void
 AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 ::PrintSelf(std::ostream & os, Indent indent) const
@@ -55,7 +55,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
   os << indent << "DirectionCollapseStrategy: " << m_DirectionCollapseStrategy << std::endl;
 }
 
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 void
 AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 ::CallCopyOutputRegionToInputRegion(InputImageRegionType & destRegion,
@@ -82,7 +82,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
   destRegion.SetIndex( inputIndex );
 }
 
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 void
 AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 ::SetAveragingDimension(unsigned int averagingDimension)
@@ -129,7 +129,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
  *
  * \sa ProcessObject::GenerateOutputInformaton()
  */
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 void
 AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 ::GenerateOutputInformation()
@@ -246,7 +246,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
     }
 }
 
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 void
 AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 ::GenerateData()
@@ -285,7 +285,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
  * \sa ImageToImageFilter::ThreadedGenerateData(),
  *     ImageToImageFilter::GenerateData()
  */
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 void
 AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 ::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,

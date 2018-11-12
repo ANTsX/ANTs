@@ -25,7 +25,7 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Image<float, ImageDimension> RealImageType;
 
-  typename ImageType::Pointer inputImage = ITK_NULLPTR;
+  typename ImageType::Pointer inputImage = nullptr;
   ReadImage<ImageType>( inputImage, argv[2] );
 
   // Output images:
@@ -144,7 +144,7 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int GetConnectedComponentsFeatureImages( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int GetConnectedComponentsFeatureImages( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -162,7 +162,7 @@ int GetConnectedComponentsFeatureImages( std::vector<std::string> args, std::ost
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -196,7 +196,7 @@ private:
     }
 
   int returnStatus=EXIT_FAILURE;
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
    {
    case 2:
      returnStatus = GetConnectedComponentsFeatureImages<2>( argc, argv );

@@ -53,7 +53,7 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
 
   const double convergenceThreshold = 1e-6;
   convergenceThresholdList.push_back(convergenceThreshold);
-  const unsigned int convergenceWindowSize = 10;
+  constexpr unsigned int convergenceWindowSize = 10;
   convergenceWindowSizeList.push_back(convergenceWindowSize);
 
   std::vector<unsigned int> factors(3);
@@ -65,9 +65,9 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
   smoothingSigmasList.push_back(sigmas);
   std::vector<bool> smoothingSigmasAreInPhysicalUnitsList;
   smoothingSigmasAreInPhysicalUnitsList.push_back(true);     // Historical behavior before 2012-10-07
-  const float                              samplingPercentage = 1.0;
+  constexpr float samplingPercentage = 1.0;
   RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
-  const unsigned int                       binOption = 200;
+  constexpr unsigned int binOption = 200;
   regHelper->AddMetric(curMetric, fixedImage, movingImage, 0, 1.0, samplingStrategy, binOption, 1, samplingPercentage);
 
   const float learningRate(0.25F);
@@ -91,11 +91,11 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
     return resultTransform;
     }
   std::cerr << "FATAL ERROR: REGISTRATION PROCESS WAS UNSUCCESSFUL" << std::endl;
-  CompositeTransformType::TransformTypePointer invalidTransform = ITK_NULLPTR;
+  CompositeTransformType::TransformTypePointer invalidTransform = nullptr;
   return invalidTransform;      // Return an empty registration type.
 }
 
-int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // the arguments coming in as 'args' is a replacement for the standard (argc,argv) format
   // Just notice that the argv[i] equals to args[i-1]

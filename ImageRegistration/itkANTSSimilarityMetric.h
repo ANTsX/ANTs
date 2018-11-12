@@ -24,7 +24,7 @@
 
 namespace itk
 {
-template <unsigned int TDimension = 3, class TReal = float>
+template <unsigned int TDimension = 3, typename TReal = float>
 class ANTSSimilarityMetric
   : public       Object
 {
@@ -40,7 +40,7 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( ANTSSimilarityMetric, Object );
-  itkStaticConstMacro( Dimension, unsigned int, TDimension );
+  static constexpr unsigned int Dimension = TDimension;
 
   typedef TReal RealType;
   typedef Image<RealType,

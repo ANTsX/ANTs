@@ -39,7 +39,7 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( ANTSLabeledPointSet, Object );
-  itkStaticConstMacro( Dimension, unsigned int, TDimension );
+  static constexpr unsigned int Dimension = TDimension;
 
   typedef float                                                  RealType;
   typedef Image<RealType,  itkGetStaticConstMacro( Dimension )>  ImageType;

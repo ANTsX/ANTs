@@ -31,7 +31,7 @@ template <typename TInputImage, typename TRealType, typename TOutputImage>
 GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
 ::GeometricJacobianDeterminantImageFilter()
 {
-  this->m_Interpolator = ITK_NULLPTR;
+  this->m_Interpolator = nullptr;
   this->m_UndisplacedVolume = 0.0;
   this->DynamicMultiThreadingOff();
 }
