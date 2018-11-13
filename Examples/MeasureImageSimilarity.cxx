@@ -26,7 +26,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
   typedef itk::ImageMaskSpatialObject<ImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                            MaskImageType;
 
-  typedef typename RegistrationHelperType::LabeledPointSetType            LabeledPointSetType; 
+  typedef typename RegistrationHelperType::LabeledPointSetType            LabeledPointSetType;
 
 
   bool verbose = false;
@@ -58,34 +58,34 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         ReadImage<MaskImageType>( maskImage, fname.c_str() );
         if( m == 0 )
           {
-          fixedImageMask = ImageMaskSpatialObjectType::New();
-          fixedImageMask->SetImage( maskImage );
-          if( verbose )
+          if( maskImage.IsNotNull() )
             {
-            if( maskImage.IsNotNull() )
+            fixedImageMask = ImageMaskSpatialObjectType::New();
+            fixedImageMask->SetImage( maskImage );
+            if( verbose )
               {
               std::cout << "      Fixed mask = " << fname.c_str() << std::endl;
               }
-            else
-              {
-              std::cout << "      No fixed mask" << std::endl;
-              }
+            }
+          else if( verbose )
+            {
+            std::cout << "      No fixed mask" << std::endl;
             }
           }
         else if( m == 1 )
           {
-          movingImageMask = ImageMaskSpatialObjectType::New();
-          movingImageMask->SetImage( maskImage );
-          if( verbose )
+          if( maskImage.IsNotNull() )
             {
-            if( maskImage.IsNotNull() )
+            movingImageMask = ImageMaskSpatialObjectType::New();
+            movingImageMask->SetImage( maskImage );
+            if( verbose )
               {
               std::cout << "      Moving mask = " << fname << std::endl;
               }
-            else
-              {
-              std::cout << "      No moving mask" << std::endl;
-              }
+            }
+          else if( verbose )
+            {
+            std::cout << "      No moving mask" << std::endl;
             }
           }
         }
@@ -140,8 +140,8 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       currentMetric == RegistrationHelperType::JHCT )
     {
     isImageMetric = false;
-    }    
-  
+    }
+
   if( isImageMetric )
     {
     std::string fixedImageName = metricOption->GetFunction( 0 )->GetParameter( 0 );
@@ -458,7 +458,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
 
     return EXIT_SUCCESS;
     }
-  else 
+  else
     {
     typename LabeledPointSetType::Pointer fixedLabeledPointSet = nullptr;
     typename LabeledPointSetType::Pointer movingLabeledPointSet = nullptr;
@@ -490,7 +490,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       {
       case RegistrationHelperType::ICP:
         {
-        if( verbose )  
+        if( verbose )
           {
           std::cout << "  using the ICP metric (weight = " << metricWeighting << ")" << std::endl;
           }
@@ -513,7 +513,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           kNeighborhood = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 4 ) );
           }
 
-        if( verbose )  
+        if( verbose )
           {
           std::cout << "  using the PSE metric (weight = " << metricWeighting << ")" << std::endl;
           }
@@ -548,7 +548,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           useAnisotropicCovariances = parser->Convert<bool>( metricOption->GetFunction( 0 )->GetParameter( 6 ) );
           }
 
-        if( verbose )  
+        if( verbose )
           {
           std::cout << "  using the JHCT metric (weight = " << metricWeighting << ")" << std::endl;
           }
@@ -583,10 +583,10 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       }
     std::cout << labeledPointSetMetric->GetValue() << std::endl;
 
-    return EXIT_SUCCESS;  
+    return EXIT_SUCCESS;
 
     }
-  return EXIT_FAILURE;   // should not ever get here  
+  return EXIT_FAILURE;   // should not ever get here
 }
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
