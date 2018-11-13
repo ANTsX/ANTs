@@ -95,18 +95,18 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       std::string fname = maskOption->GetFunction( 0 )->GetName();
       typename MaskImageType::Pointer maskImage;
       ReadImage<MaskImageType>( maskImage, fname.c_str() );
-      fixedImageMask = ImageMaskSpatialObjectType::New();
-      fixedImageMask->SetImage( maskImage );
-      if( verbose )
+      if( maskImage.IsNotNull() )
         {
-        if( maskImage.IsNotNull() )
+        fixedImageMask = ImageMaskSpatialObjectType::New();
+        fixedImageMask->SetImage( maskImage );
+        if( verbose )
           {
           std::cout << "      Fixed mask = " << fname << std::endl;
           }
-        else
-          {
-          std::cout << "      No fixed mask" << std::endl;
-          }
+        }
+      else if( verbose )
+        {
+        std::cout << "      No fixed mask" << std::endl;
         }
       }
     }
