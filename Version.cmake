@@ -7,13 +7,6 @@
 #
 
 # Version info
-
-set(${PROJECT_NAME}_VERSION_MAJOR 2)
-set(${PROJECT_NAME}_VERSION_MINOR 3)
-set(${PROJECT_NAME}_VERSION_PATCH 1)
-#set(${PROJECT_NAME}_VERSION_TWEAK "")
-
-
 include(ProjectSourceVersion)
 
 # pre-release codes are defined based on suffix of most recent tags.
