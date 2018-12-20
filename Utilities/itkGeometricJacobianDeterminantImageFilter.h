@@ -84,7 +84,7 @@ public:
    * pipeline execution model.
    *
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-  void GenerateInputRequestedRegion() throw( InvalidRequestedRegionError ) override;
+  void GenerateInputRequestedRegion() override;
 
   /** Get access to the input image casted as real pixel values */
   itkGetConstObjectMacro( RealValuedInputImage, RealVectorImageType );

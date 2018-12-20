@@ -89,7 +89,7 @@ public:
    * pipeline execution model.
    *
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-  void GenerateInputRequestedRegion() throw( InvalidRequestedRegionError ) override;
+  void GenerateInputRequestedRegion() override;
 
   itkSetClampMacro( Order, unsigned int, 1, 2 );
   itkGetConstReferenceMacro( Order, unsigned int );

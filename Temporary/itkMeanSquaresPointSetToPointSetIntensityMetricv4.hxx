@@ -47,7 +47,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
-::Initialize( void ) throw ( ExceptionObject )
+::Initialize( void )
 {
   Superclass::Initialize();
 
