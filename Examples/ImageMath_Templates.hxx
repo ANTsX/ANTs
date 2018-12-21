@@ -5961,13 +5961,23 @@ int TensorFunctions(int argc, char *argv[])
   unsigned int whichvec = ImageDimension - 1;
   if( argc > argct )
     {
+    // Might be a file or a number for whichvec
     fn2 = std::string(argv[argct]);
-    whichvec = std::stoi(fn2.c_str() );
+    try 
+      {
+      whichvec = std::stoi(fn2.c_str() );
+      }
+    catch(std::invalid_argument& e)
+      {
+      // arg is not whichvec
+      }
     argct++;
     }
+  
   if ( argc > argct )
     {
-    backgroundMD = atof( std::string(argv[argct]).c_str() );
+    // Throws exception if arg is not a valid float
+    backgroundMD = std::stof( std::string(argv[argct]).c_str() );
     argct++;
     }
 
