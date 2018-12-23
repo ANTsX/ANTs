@@ -984,11 +984,11 @@ private:
     {
     std::cout << "Usage:   " << argv[0]
              <<
-      " WM.nii GM.nii   Out.nii  {smoothparam=3} {priorthickval=5}  {dT=0.01}  use-sulcus-prior optional-laplacian-tolerance=0.001"
+      " WM.nii GM.nii   Out.nii  {smoothparam=1} {priorthickval=500} {dT=0.01} {sulcus-prior=0} {laplacian-tolerance=0.001}"
              << std::endl;
     std::cout
       <<
-      " a good value for use sulcus prior is 0.15 -- in a function :  1/(1.+exp(-0.1*(laplacian-img-value-sulcprob)/0.01)) "
+      " a good value for sulcus prior (if not 0, which disables its use) is 0.15 -- in a function :  1/(1.+exp(-0.1*(laplacian-img-value-sulcprob)/0.01)) "
       << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
