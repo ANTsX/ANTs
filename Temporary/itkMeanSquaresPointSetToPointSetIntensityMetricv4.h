@@ -133,7 +133,7 @@ public:
    /**
     * Initialize the metric by estimating the intensity and distance sigmas
     */
-  void Initialize( void ) throw ( ExceptionObject ) override;
+  void Initialize( void ) override;
 
   /**
    * Prepare point sets for use.

@@ -92,8 +92,7 @@ public:
 
   /** Initialize the Metric by making sure that all the components
    *  are present and plugged together correctly     */
-  virtual void Initialize( void )
-  throw ( ExceptionObject );
+  virtual void Initialize( void );
 
   /** Get the number of values */
   unsigned int GetNumberOfValues() const;

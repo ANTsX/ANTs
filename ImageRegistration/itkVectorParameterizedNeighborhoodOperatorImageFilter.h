@@ -125,8 +125,7 @@ public:
    * execution model.
    *
    * \sa ProcessObject::GenerateInputRequestedRegion() */
-  void GenerateInputRequestedRegion()
-    throw (InvalidRequestedRegionError) override;
+  void GenerateInputRequestedRegion() override;
 
   void SetParameterImage( ParameterImagePointer I)
   {
