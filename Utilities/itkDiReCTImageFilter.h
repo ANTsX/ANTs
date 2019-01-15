@@ -265,7 +265,11 @@ public:
   /**
    * Set/Get the temporal points values.  Default = no special value.
    */
-  itkSetMacro( TimePoints, std::vector<RealType>  );
+  void SetTimePoints( std::vector<RealType> timePoints )
+    {
+    this->m_TimePoints = timePoints;
+    this->Modified();
+    }
   itkGetConstMacro( TimePoints, std::vector<RealType>  );
 
   /**
