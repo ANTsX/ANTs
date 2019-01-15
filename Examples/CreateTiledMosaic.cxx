@@ -292,8 +292,8 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
   int paddingType = 0;
   RealType padValue = 0;
 
-  unsigned long lowerBound[ImageDimension];
-  unsigned long upperBound[ImageDimension];
+  itk::SizeValueType lowerBound[ImageDimension];
+  itk::SizeValueType upperBound[ImageDimension];
 
   SliceType::RegionType              croppedSliceRegion;
   SliceType::RegionType::SizeType    croppedSliceSize;

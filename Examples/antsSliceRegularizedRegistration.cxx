@@ -397,7 +397,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   typedef MovingImageType ImageType;
   typename ImageType::SpacingType
     cache_spacing_for_smoothing_sigmas(itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
-  unsigned int VImageDimension = ImageDimension - 1;
+  const unsigned int VImageDimension = ImageDimension - 1;
   #include "make_interpolator_snip.tmpl"
 
   typename OptionType::Pointer iterationsOption = parser->GetOption( "iterations" );
