@@ -2,7 +2,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkCastImageFilter.h"
 #include "itkImage.h"
@@ -33,7 +33,7 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
   typename ImageType::RegionType::SizeType size;
   typename ImageType::RegionType::IndexType index;
 
-  if( 0 )
+  if( false )
     {
     std::vector<int> minIndex;
     std::vector<int> maxIndex;
@@ -70,13 +70,13 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
     stats->SetInput(reader->GetOutput() );
     stats->Update();
 
-    const unsigned int label = (argc >= 6) ? atoi(argv[5]) : 1;
+    const unsigned int label = (argc >= 6) ? std::stoi(argv[5]) : 1;
     region = stats->GetRegion(label);
 
     std::cout << "bounding box of label=" << label
              << " : " << region << std::endl;
 
-    const unsigned int padWidth = (argc >= 7) ? atoi(argv[6]) : 0;
+    const unsigned int padWidth = (argc >= 7) ? std::stoi(argv[6]) : 0;
 
     region.PadByRadius(padWidth);
 
@@ -109,7 +109,7 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ExtractRegionFromImageByMask( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ExtractRegionFromImageByMask( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -127,7 +127,7 @@ int ExtractRegionFromImageByMask( std::vector<std::string> args, std::ostream* /
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -168,7 +168,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

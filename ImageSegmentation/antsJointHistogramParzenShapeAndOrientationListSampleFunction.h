@@ -30,7 +30,7 @@ namespace Statistics
  * \brief point set filter.
  */
 
-template <class TListSample, class TOutput = double, class TCoordRep = double>
+template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
 class JointHistogramParzenShapeAndOrientationListSampleFunction
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
@@ -73,7 +73,7 @@ public:
 
   /** Helper functions */
 
-  void SetInputListSample( const InputListSampleType * ptr ) ITK_OVERRIDE;
+  void SetInputListSample( const InputListSampleType * ptr ) override;
 
   itkSetMacro( ShapeSigma, RealType );
   itkGetConstMacro( ShapeSigma, RealType );
@@ -85,12 +85,12 @@ public:
   itkSetMacro( NumberOfOrientationJointHistogramBins, unsigned int );
   itkGetConstMacro( NumberOfOrientationJointHistogramBins, unsigned int );
 
-  TOutput Evaluate( const InputMeasurementVectorType & ) const ITK_OVERRIDE;
+  TOutput Evaluate( const InputMeasurementVectorType & ) const override;
 
 protected:
   JointHistogramParzenShapeAndOrientationListSampleFunction();
-  virtual ~JointHistogramParzenShapeAndOrientationListSampleFunction() ITK_OVERRIDE;
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  ~JointHistogramParzenShapeAndOrientationListSampleFunction() override;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();
 

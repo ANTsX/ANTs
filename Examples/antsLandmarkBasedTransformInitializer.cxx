@@ -21,7 +21,7 @@
 namespace ants
 {
 
-template<class ImageType, class PointSetType>
+template<typename ImageType, typename PointSetType>
 void ReadLabeledPointSetFromImage( typename ImageType::Pointer image, typename PointSetType::Pointer pointSet, std::vector<typename ImageType::PixelType> & labels )
 {
   labels.clear();
@@ -84,7 +84,7 @@ void ReadLabeledPointSetFromImage( typename ImageType::Pointer image, typename P
     }
 }
 
-template <unsigned int ImageDimension, class TransformType>
+template <unsigned int ImageDimension, typename TransformType>
 int InitializeLinearTransform( int itkNotUsed( argc ), char *argv[] )
 {
   typedef unsigned int                          LabelType;
@@ -337,7 +337,7 @@ int InitializeBSplineTransform( int argc, char *argv[] )
   typename WeightsContainerType::Pointer weights = WeightsContainerType::New();
   weights->Initialize();
   const typename WeightsContainerType::Element boundaryWeight = 1.0e10;
-  const typename WeightsContainerType::Element weight = 1.0;
+  typename WeightsContainerType::Element weight = 1.0;
 
   typename DisplacementFieldPointSetType::Pointer fieldPoints = DisplacementFieldPointSetType::New();
   fieldPoints->Initialize();
@@ -382,7 +382,7 @@ int InitializeBSplineTransform( int argc, char *argv[] )
 
         if( useWeights )
           {
-          std::vector<LabelType>::const_iterator it = std::find( userLabels.begin(), userLabels.end(), mItD.Value() );
+          auto it = std::find( userLabels.begin(), userLabels.end(), mItD.Value() );
           if( it != userLabels.end() )
             {
             weights->InsertElement( count, labelWeights[it - userLabels.begin()] );
@@ -413,7 +413,7 @@ int InitializeBSplineTransform( int argc, char *argv[] )
   bool enforceStationaryBoundary = true;
   if( argc > 9 )
     {
-    enforceStationaryBoundary = static_cast<bool>( atoi( argv[9] ) );
+    enforceStationaryBoundary = static_cast<bool>( std::stoi( argv[9] ) );
     }
   if( enforceStationaryBoundary )
     {
@@ -456,13 +456,13 @@ int InitializeBSplineTransform( int argc, char *argv[] )
   unsigned int numberOfLevels = 4;
   if( argc > 7 )
     {
-    numberOfLevels = atoi( argv[7] );
+    numberOfLevels = std::stoi( argv[7] );
     }
 
   unsigned int splineOrder = 3;
   if( argc > 8 )
     {
-    splineOrder = atoi( argv[8] );
+    splineOrder = std::stoi( argv[8] );
     }
 
 
@@ -513,7 +513,7 @@ int InitializeBSplineTransform( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsLandmarkBasedTransformInitializer( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int antsLandmarkBasedTransformInitializer( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -530,7 +530,7 @@ int antsLandmarkBasedTransformInitializer( std::vector<std::string> args, std::o
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -577,7 +577,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  const unsigned int dimension = static_cast<unsigned int>( atoi( argv[1] ) );
+  const unsigned int dimension = static_cast<unsigned int>( std::stoi( argv[1] ) );
 
   typedef itk::Rigid2DTransform<double>           Rigid2DTransformType;
   typedef itk::VersorRigid3DTransform<double>     Rigid3DTransformType;

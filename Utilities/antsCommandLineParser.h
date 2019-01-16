@@ -22,7 +22,7 @@
 
 #include <list>
 #include <sstream>
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -109,7 +109,7 @@ public:
   void AssignStages();
 
 
-  template <class TValue>
+  template <typename TValue>
   TValue Convert( std::string optionString ) const
     {
     //Strip whitespace at end
@@ -128,7 +128,7 @@ public:
     return value;
     }
 
-  template <class TValue>
+  template <typename TValue>
   std::vector<TValue> ConvertVector( std::string optionString ) const
   {
     //Strip whitespace at end
@@ -154,15 +154,13 @@ public:
 
 protected:
   CommandLineParser();
-  virtual ~CommandLineParser() ITK_OVERRIDE
-  {
-  }
+  ~CommandLineParser() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
-  CommandLineParser( const Self & ); // purposely not implemented
-  void operator=( const Self & );    // purposely not implemented
+  CommandLineParser( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   std::vector<std::string> RegroupCommandLineArguments( unsigned int, char * * );
 

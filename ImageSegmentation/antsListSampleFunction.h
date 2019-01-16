@@ -39,7 +39,7 @@ namespace Statistics
  *
  * \ingroup ListSampleFunctions
  */
-template <class TInputListSample, class TOutput, class TCoordRep = float>
+template <typename TInputListSample, typename TOutput, typename TCoordRep = float>
 class ListSampleFunction :
   public         FunctionBase<typename TInputListSample::MeasurementVectorType, TOutput>
 {
@@ -95,7 +95,7 @@ public:
   /** Clear the input list sample to free memory */
   virtual void ClearInputListSample( const unsigned int idx = 0 )
   {
-    this->SetIndexedInputListSample( idx, ITK_NULLPTR );
+    this->SetIndexedInputListSample( idx, nullptr );
   }
 
   /** Gets the weights array */
@@ -103,22 +103,20 @@ public:
 
   /** Evaluate the function at specified Point position.
    * Subclasses must provide this method. */
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE = 0;
+  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override = 0;
 
 protected:
   ListSampleFunction();
-  virtual ~ListSampleFunction() ITK_OVERRIDE
-  {
-  }
+  ~ListSampleFunction() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   /** Const pointer to the input image. */
   std::vector<typename InputListSampleType::ConstPointer> m_ListSamples;
   std::vector<ListSampleWeightArrayType *>                m_ListSampleWeights;
 private:
-  ListSampleFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);     // purposely not implemented
+  ListSampleFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end of namespace Statistics
 } // end of namespace ants

@@ -10,7 +10,7 @@ namespace ants
 {
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int SurfaceBasedSmoothing( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int SurfaceBasedSmoothing( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -28,7 +28,7 @@ int SurfaceBasedSmoothing( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -82,7 +82,7 @@ private:
   unsigned int numrepeats = 0;
   if( argc > 5 )
     {
-    numrepeats = atoi(argv[5]);
+    numrepeats = std::stoi(argv[5]);
     }
 
   ImageType::Pointer input;
@@ -116,8 +116,8 @@ private:
   // Parameterizer->PostProcessGeometry();
 
   //  double mn=0.0;
-  ImageType::Pointer      output = ITK_NULLPTR;
-  floatImageType::Pointer smooth = ITK_NULLPTR;
+  ImageType::Pointer      output = nullptr;
+  floatImageType::Pointer smooth = nullptr;
   smooth = Parameterizer->GetFunctionImage();
 
   std::string ofn = std::string(argv[4]);

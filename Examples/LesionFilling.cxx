@@ -67,7 +67,7 @@ namespace ants
       std::cout << "no T1 image that can be read" << std::endl;
       return 0;
       }
-    typename T1ImageType::Pointer outImage = ITK_NULLPTR ;
+    typename T1ImageType::Pointer outImage = nullptr ;
     outImage = T1Reader->GetOutput() ;
     typedef itk::ImageRegionIterator< T1ImageType> IteratorType;
     typedef itk::BinaryThresholdImageFilter <T1ImageType, T1ImageType>
@@ -129,7 +129,7 @@ namespace ants
        maskFilter->SetInput( outImage ) ;
        maskFilter->SetMaskImage( subtractFilter->GetOutput() );
        maskFilter->Update() ;
-       typename T1ImageType::Pointer LesionEdge= ITK_NULLPTR ;
+       typename T1ImageType::Pointer LesionEdge= nullptr ;
        LesionEdge = maskFilter->GetOutput() ;
 
        //calculating mean lesion intesity
@@ -230,7 +230,7 @@ namespace ants
       // place the null character in the end
       argv[i][args[i].length()] = '\0';
       }
-    argv[argc] = 0;
+    argv[argc] = nullptr;
     // class to automatically cleanup argv upon destruction
     class Cleanup_argv
     {
@@ -269,7 +269,7 @@ namespace ants
       return EXIT_FAILURE;
       }
 
-      switch( atoi( argv[1] ) )
+      switch( std::stoi( argv[1] ) )
         {
         case 2:
           {

@@ -23,7 +23,7 @@ namespace ants
 {
 
 
-template <class TFilter>
+template <typename TFilter>
 class CommandProgressUpdate : public itk::Command
 {
 public:
@@ -41,9 +41,9 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
     {
-    const TFilter * filter = dynamic_cast<const TFilter *>( caller );
+    const auto * filter = dynamic_cast<const TFilter *>( caller );
 
     if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
@@ -55,7 +55,7 @@ public:
       this->m_CurrentProgress = 0;
       }
 
-    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>( caller );
+    auto *po = dynamic_cast<itk::ProcessObject *>( caller );
     if (! po) return;
 //    std::cout << po->GetProgress() << std::endl;
     if( typeid( event ) == typeid ( itk::ProgressEvent )  )
@@ -75,9 +75,9 @@ public:
       }
     }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event) override
     {
-    const TFilter * filter = dynamic_cast<const TFilter *>( object );
+    const auto * filter = dynamic_cast<const TFilter *>( object );
 
     if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
@@ -89,7 +89,7 @@ public:
       this->m_CurrentProgress = 0;
       }
 
-    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>(
+    auto *po = dynamic_cast<itk::ProcessObject *>(
       const_cast<itk::Object *>( object ) );
     if (! po) return;
 
@@ -133,7 +133,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     }
 
   typedef itk::Image<RealType, ImageDimension> ImageType;
-  typename ImageType::Pointer inputImage = ITK_NULLPTR;
+  typename ImageType::Pointer inputImage = nullptr;
 
   typename OptionType::Pointer inputImageOption = parser->GetOption( "input-image" );
   if( inputImageOption && inputImageOption->GetNumberOfFunctions() )
@@ -150,9 +150,9 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
 
-  typename ImageType::Pointer referenceImage = ITK_NULLPTR;
+  typename ImageType::Pointer referenceImage = nullptr;
   typename OptionType::Pointer referenceImageOption = parser->GetOption( "reference-image" );
-  typename ImageType::Pointer interpolatedImage = ITK_NULLPTR;
+  typename ImageType::Pointer interpolatedImage = nullptr;
   typename OptionType::Pointer interpolatedImageOption = parser->GetOption( "interpolated-image" );
 
   if( referenceImageOption && referenceImageOption->GetNumberOfFunctions() )
@@ -579,7 +579,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int NonLocalSuperResolution( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int NonLocalSuperResolution( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -597,7 +597,7 @@ int NonLocalSuperResolution( std::vector<std::string> args, std::ostream* /*out_
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

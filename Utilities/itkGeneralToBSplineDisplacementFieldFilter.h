@@ -21,7 +21,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage = TInputImage>
+template <typename TInputImage, typename TOutputImage = TInputImage>
 class GeneralToBSplineDisplacementFieldFilter :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -78,11 +78,11 @@ public:
 protected:
 
   GeneralToBSplineDisplacementFieldFilter();
-  virtual ~GeneralToBSplineDisplacementFieldFilter() ITK_OVERRIDE;
+  ~GeneralToBSplineDisplacementFieldFilter() override;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
 //   typename RealImageType::Pointer              m_ConfidenceImage;

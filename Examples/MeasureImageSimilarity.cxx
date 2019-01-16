@@ -26,7 +26,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
   typedef itk::ImageMaskSpatialObject<ImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                            MaskImageType;
 
-  typedef typename RegistrationHelperType::LabeledPointSetType            LabeledPointSetType; 
+  typedef typename RegistrationHelperType::LabeledPointSetType            LabeledPointSetType;
 
 
   bool verbose = false;
@@ -36,11 +36,11 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
     verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
     }
 
-  typename ImageMaskSpatialObjectType::Pointer fixedImageMask = ITK_NULLPTR;
-  typename ImageMaskSpatialObjectType::Pointer movingImageMask = ITK_NULLPTR;
+  typename ImageMaskSpatialObjectType::Pointer fixedImageMask = nullptr;
+  typename ImageMaskSpatialObjectType::Pointer movingImageMask = nullptr;
 
-  typename ImageType::Pointer fixedImage = ITK_NULLPTR;
-  typename ImageType::Pointer movingImage = ITK_NULLPTR;
+  typename ImageType::Pointer fixedImage = nullptr;
+  typename ImageType::Pointer movingImage = nullptr;
 
   OptionType::Pointer maskOption = parser->GetOption( "masks" );
   if( maskOption && maskOption->GetNumberOfFunctions() )
@@ -58,34 +58,34 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         ReadImage<MaskImageType>( maskImage, fname.c_str() );
         if( m == 0 )
           {
-          fixedImageMask = ImageMaskSpatialObjectType::New();
-          fixedImageMask->SetImage( maskImage );
-          if( verbose )
+          if( maskImage.IsNotNull() )
             {
-            if( maskImage.IsNotNull() )
+            fixedImageMask = ImageMaskSpatialObjectType::New();
+            fixedImageMask->SetImage( maskImage );
+            if( verbose )
               {
               std::cout << "      Fixed mask = " << fname.c_str() << std::endl;
               }
-            else
-              {
-              std::cout << "      No fixed mask" << std::endl;
-              }
+            }
+          else if( verbose )
+            {
+            std::cout << "      No fixed mask" << std::endl;
             }
           }
         else if( m == 1 )
           {
-          movingImageMask = ImageMaskSpatialObjectType::New();
-          movingImageMask->SetImage( maskImage );
-          if( verbose )
+          if( maskImage.IsNotNull() )
             {
-            if( maskImage.IsNotNull() )
+            movingImageMask = ImageMaskSpatialObjectType::New();
+            movingImageMask->SetImage( maskImage );
+            if( verbose )
               {
               std::cout << "      Moving mask = " << fname << std::endl;
               }
-            else
-              {
-              std::cout << "      No moving mask" << std::endl;
-              }
+            }
+          else if( verbose )
+            {
+            std::cout << "      No moving mask" << std::endl;
             }
           }
         }
@@ -95,18 +95,18 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       std::string fname = maskOption->GetFunction( 0 )->GetName();
       typename MaskImageType::Pointer maskImage;
       ReadImage<MaskImageType>( maskImage, fname.c_str() );
-      fixedImageMask = ImageMaskSpatialObjectType::New();
-      fixedImageMask->SetImage( maskImage );
-      if( verbose )
+      if( maskImage.IsNotNull() )
         {
-        if( maskImage.IsNotNull() )
+        fixedImageMask = ImageMaskSpatialObjectType::New();
+        fixedImageMask->SetImage( maskImage );
+        if( verbose )
           {
           std::cout << "      Fixed mask = " << fname << std::endl;
           }
-        else
-          {
-          std::cout << "      No fixed mask" << std::endl;
-          }
+        }
+      else if( verbose )
+        {
+        std::cout << "      No fixed mask" << std::endl;
         }
       }
     }
@@ -140,8 +140,8 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       currentMetric == RegistrationHelperType::JHCT )
     {
     isImageMetric = false;
-    }    
-  
+    }
+
   if( isImageMetric )
     {
     std::string fixedImageName = metricOption->GetFunction( 0 )->GetParameter( 0 );
@@ -193,16 +193,16 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       samplingStrategy = RegistrationHelperType::none;
       }
 
-    typename ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
+    typename ImageMetricType::Pointer imageMetric = nullptr;
 
     typedef itk::LabeledPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, TComputeType> LabeledPointSetMetricType;
-    typename LabeledPointSetMetricType::Pointer labeledPointSetMetric = ITK_NULLPTR;
+    typename LabeledPointSetMetricType::Pointer labeledPointSetMetric = nullptr;
 
     switch( currentMetric )
       {
       case RegistrationHelperType::CC:
         {
-        const unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
+        const auto radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
         if( verbose )
           {
           std::cout << "  using the CC metric (radius = "
@@ -221,7 +221,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         break;
       case RegistrationHelperType::Mattes:
         {
-        const unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
+        const auto binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
         if( verbose )
           {
           std::cout << "  using the Mattes MI metric (number of bins = "
@@ -240,7 +240,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         break;
       case RegistrationHelperType::MI:
         {
-        const unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
+        const auto binOption = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 3 ) );
         if( verbose )
           {
           std::cout << "  using the joint histogram MI metric (number of bins = "
@@ -338,7 +338,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         {
         case RegistrationHelperType::regular:
           {
-          const unsigned long sampleCount = static_cast<unsigned long>( std::ceil( 1.0 / samplingPercentage ) );
+          const auto sampleCount = static_cast<unsigned long>( std::ceil( 1.0 / samplingPercentage ) );
           unsigned long count = sampleCount; //Start at sampleCount to keep behavior backwards identical, using first element.
           itk::ImageRegionConstIteratorWithIndex<ImageType> It( fixedImage, fixedImage->GetRequestedRegion() );
           for( It.GoToBegin(); !It.IsAtEnd(); ++It )
@@ -367,7 +367,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         case RegistrationHelperType::random:
           {
           const unsigned long totalVirtualDomainVoxels = fixedImage->GetRequestedRegion().GetNumberOfPixels();
-          const unsigned long sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
+          const auto sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
           itk::ImageRandomConstIteratorWithIndex<ImageType> ItR( fixedImage, fixedImage->GetRequestedRegion() );
           ItR.SetNumberOfSamples( sampleCount );
           for( ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR )
@@ -458,10 +458,10 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
 
     return EXIT_SUCCESS;
     }
-  else 
+  else
     {
-    typename LabeledPointSetType::Pointer fixedLabeledPointSet = ITK_NULLPTR;
-    typename LabeledPointSetType::Pointer movingLabeledPointSet = ITK_NULLPTR;
+    typename LabeledPointSetType::Pointer fixedLabeledPointSet = nullptr;
+    typename LabeledPointSetType::Pointer movingLabeledPointSet = nullptr;
 
     std::string fixedPointSetFileName = metricOption->GetFunction( 0 )->GetParameter( 0 );
     if( ! ReadLabeledPointSet<LabeledPointSetType>( fixedLabeledPointSet, fixedPointSetFileName.c_str(), false, 1.0 ) )
@@ -490,7 +490,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       {
       case RegistrationHelperType::ICP:
         {
-        if( verbose )  
+        if( verbose )
           {
           std::cout << "  using the ICP metric (weight = " << metricWeighting << ")" << std::endl;
           }
@@ -513,7 +513,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           kNeighborhood = parser->Convert<unsigned int>( metricOption->GetFunction( 0 )->GetParameter( 4 ) );
           }
 
-        if( verbose )  
+        if( verbose )
           {
           std::cout << "  using the PSE metric (weight = " << metricWeighting << ")" << std::endl;
           }
@@ -548,7 +548,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           useAnisotropicCovariances = parser->Convert<bool>( metricOption->GetFunction( 0 )->GetParameter( 6 ) );
           }
 
-        if( verbose )  
+        if( verbose )
           {
           std::cout << "  using the JHCT metric (weight = " << metricWeighting << ")" << std::endl;
           }
@@ -583,10 +583,10 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       }
     std::cout << labeledPointSetMetric->GetValue() << std::endl;
 
-    return EXIT_SUCCESS;  
+    return EXIT_SUCCESS;
 
     }
-  return EXIT_FAILURE;   // should not ever get here  
+  return EXIT_FAILURE;   // should not ever get here
 }
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
@@ -702,7 +702,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   }
 }
 
-int MeasureImageSimilarity( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int MeasureImageSimilarity( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
 
   // put the arguments coming in as 'args' into standard (argc,argv) format;
@@ -722,7 +722,7 @@ int MeasureImageSimilarity( std::vector<std::string> args, std::ostream* /*out_s
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
 
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv

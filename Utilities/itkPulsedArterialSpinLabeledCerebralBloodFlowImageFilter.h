@@ -46,7 +46,7 @@ namespace itk
  *
  * \ingroup ITKImageCompose
  */
-template <class TInputImage, class TReferenceImage, class TOutputImage>
+template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 class PulsedArterialSpinLabeledCerebralBloodFlowImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -113,24 +113,24 @@ public:
 #endif
 protected:
   PulsedArterialSpinLabeledCerebralBloodFlowImageFilter();
-  virtual ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter() ITK_OVERRIDE
+  ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter() override
   {
   }
 
   typename TInputImage::ConstPointer     GetDifferenceImage();
   typename TReferenceImage::ConstPointer GetReferenceImage();
 
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** PulsedArterialSpinLabeledCerebralBloodFlowImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
   void ThreadedGenerateData(const OutputImageRegionType &
-                                    outputRegionForThread, ThreadIdType threadId) ITK_OVERRIDE;
+                                    outputRegionForThread, ThreadIdType threadId) override;
 
 private:
-  PulsedArterialSpinLabeledCerebralBloodFlowImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);                                        // purposely not implemented
+  PulsedArterialSpinLabeledCerebralBloodFlowImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** IndexValueType is used to switch among the inputs and
    * is used as the index value of the new dimension */

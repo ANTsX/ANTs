@@ -37,7 +37,7 @@ namespace ants
 //      Transform traits to generalize the different linear transforms
 // ##########################################################################
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class RigidTransformTraits
 {
   // Don't worry about the fact that the default option is the
@@ -46,7 +46,7 @@ public:
 typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
 };
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class LandmarkRigidTransformTraits
 {
   // Don't worry about the fact that the default option is the
@@ -115,7 +115,7 @@ public:
 typedef itk::VersorRigid3DTransform<float> TransformType;
 };
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class SimilarityTransformTraits
 {
 // Don't worry about the fact that the default option is the
@@ -154,7 +154,7 @@ typedef itk::Similarity3DTransform<float> TransformType;
 
 // ##########################################################################
 // ##########################################################################
-template<class TImage, class TGradientImage, class TInterpolator, class TReal>
+template<typename TImage, typename TGradientImage, typename TInterpolator, typename TReal>
 TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
                         itk::NeighborhoodIterator<TImage> movingNeighborhood,
                         std::vector<unsigned int> activeIndex,
@@ -293,7 +293,7 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
     RealType movingSd = std::sqrt( movingSamples.squared_magnitude() );
     correlation = inner_product( fixedSamples, movingSamples ) / ( fixedSd * movingSd );
 
-    if( vnl_math_isnan( correlation ) || vnl_math_isinf( correlation )  )
+    if( std::isnan( correlation ) || std::isinf( correlation )  )
       {
       correlation = 0.0;
       }
@@ -302,7 +302,7 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
   return correlation;
 }
 
-template<class TImage, class TBlobFilter>
+template<typename TImage, typename TBlobFilter>
 void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename TImage::Pointer movingImage,
                                   typename TBlobFilter::BlobsListType fixedBlobs, typename TBlobFilter::BlobsListType movingBlobs,
                                   float sigma, unsigned int radiusValue,
@@ -359,20 +359,20 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
     RealType distance = 0.0;
     for( unsigned int j = 0; j < ImageDimension; j++ )
       {
-      distance += vnl_math_sqr( index[j] - zeroIndex[j] );
+      distance += itk::Math::sqr ( index[j] - zeroIndex[j] );
       }
     distance = std::sqrt( distance );
     if( distance <= radiusValue )
       {
       activeIndex.push_back( i );
-      RealType weight = std::exp( -1.0 * distance / vnl_math_sqr( radiusValue ) );
+      RealType weight = std::exp( -1.0 * distance / itk::Math::sqr ( radiusValue ) );
       weights.push_back( weight );
       weightSum += ( weight );
       }
     }
-  for( unsigned int i = 0; i < weights.size(); i++ )
+  for(float & weight : weights)
     {
-    weights[i] /= weightSum;
+    weight /= weightSum;
     }
 
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> ScalarInterpolatorType;
@@ -409,7 +409,7 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
   return;
 }
 
-template <class TImage, class TTransform>
+template <typename TImage, typename TTransform>
 typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::Pointer fixedImage,
   typename TImage::Pointer movingImage, unsigned int numberOfBlobsToExtract, unsigned int numberOfBlobsToMatch )
 {
@@ -464,7 +464,7 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
   if( movingImageBlobs.empty() || fixedImageBlobs.empty() )
     {
     std::cerr << "The moving image or fixed image blobs list is empty." << std::endl;
-    return ITK_NULLPTR;
+    return nullptr;
     }
 
   vnl_matrix<RealType> correspondenceMatrix;
@@ -486,14 +486,14 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
 
   std::vector<BlobPairType> blobPairs;
 
-  BlobPointer bestBlob = ITK_NULLPTR;
+  BlobPointer bestBlob = nullptr;
 
   unsigned int matchPoint = 1;
   unsigned int fixedCount = 0;
   while( ( matchPoint <= numberOfBlobsToMatch ) && ( fixedCount < fixedImageBlobs.size() ) )
     {
     unsigned int maxPair = correspondenceMatrix.arg_max();
-    unsigned int maxRow = static_cast<unsigned int>( maxPair / correspondenceMatrix.cols() );
+    auto maxRow = static_cast<unsigned int>( maxPair / correspondenceMatrix.cols() );
     unsigned int maxCol = maxPair - maxRow * correspondenceMatrix.cols();
     BlobPointer fixedBlob = fixedImageBlobs[maxRow];
     bestBlob = movingImageBlobs[maxCol];
@@ -734,7 +734,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   std::string transform = "";
   // std::string outputTransformTypeName = "";
   RealType learningRate = 0.1;
-  RealType searchFactor = 20.0 * vnl_math::pi / 180.0;
+  RealType searchFactor = 20.0 * itk::Math::pi / 180.0;
   RealType arcFraction = 1.0;
 
   itk::ants::CommandLineParser::OptionType::Pointer searchFactorOption = parser->GetOption( "search-factor" );
@@ -742,11 +742,11 @@ int antsAI( itk::ants::CommandLineParser *parser )
     {
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetName() ) * vnl_math::pi / 180.0;
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetName() ) * itk::Math::pi / 180.0;
       }
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter( 0 ) ) * vnl_math::pi / 180.0;
+      searchFactor = parser->Convert<RealType>( searchFactorOption->GetFunction( 0 )->GetParameter( 0 ) ) * itk::Math::pi / 180.0;
       }
     if( searchFactorOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
@@ -862,7 +862,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
   if( initialTransformInitializedWithImages == false )
     {
-    const unsigned int minimumNumberOfBlobs = 3;  // should a different min number of blobs be expected?
+    constexpr unsigned int minimumNumberOfBlobs = 3;  // should a different min number of blobs be expected?
 
     unsigned int numberOfBlobsToExtract = 0;
     unsigned int numberOfBlobsToMatch = 0;
@@ -1103,8 +1103,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
   typedef itk::ImageMaskSpatialObject<ImageDimension> ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType MaskImageType;
 
-  typename MaskImageType::Pointer fixedMask = ITK_NULLPTR;
-  typename MaskImageType::Pointer movingMask = ITK_NULLPTR;
+  typename MaskImageType::Pointer fixedMask = nullptr;
+  typename MaskImageType::Pointer movingMask = nullptr;
 
   itk::ants::CommandLineParser::OptionType::Pointer maskOption = parser->GetOption( "masks" );
   if( maskOption && maskOption->GetNumberOfFunctions() )
@@ -1124,14 +1124,14 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     }
 
-  typename ImageMaskSpatialObjectType::Pointer fixedMaskSpatialObject = ITK_NULLPTR;
+  typename ImageMaskSpatialObjectType::Pointer fixedMaskSpatialObject = nullptr;
   if( fixedMask.IsNotNull() )
     {
     fixedMaskSpatialObject = ImageMaskSpatialObjectType::New();
     fixedMaskSpatialObject->SetImage( const_cast<MaskImageType *>( fixedMask.GetPointer() ) );
     }
 
-  typename ImageMaskSpatialObjectType::Pointer movingMaskSpatialObject = ITK_NULLPTR;
+  typename ImageMaskSpatialObjectType::Pointer movingMaskSpatialObject = nullptr;
   if( movingMask.IsNotNull() )
     {
     movingMaskSpatialObject = ImageMaskSpatialObjectType::New();
@@ -1145,7 +1145,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   /////////////////////////////////////////////////////////////////
 
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType> ImageMetricType;
-  typename ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
+  typename ImageMetricType::Pointer imageMetric = nullptr;
 
   if( std::strcmp( metric.c_str(), "mattes" ) == 0 )
     {
@@ -1232,9 +1232,9 @@ int antsAI( itk::ants::CommandLineParser *parser )
       {
       char* envSeed = getenv( "ANTS_RANDOM_SEED" );
       
-      if ( envSeed != NULL )
+      if ( envSeed != nullptr )
 	{
-	antsRandomSeed = atoi( envSeed );
+	antsRandomSeed = std::stoi( envSeed );
 	}
       }
 
@@ -1249,7 +1249,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       {
       case REGULAR:
         {
-        const unsigned long sampleCount = static_cast<unsigned long>( std::ceil( 1.0 / samplingPercentage ) );
+        const auto sampleCount = static_cast<unsigned long>( std::ceil( 1.0 / samplingPercentage ) );
         unsigned long count = sampleCount; //Start at sampleCount to keep behavior backwards identical, using first element.
         itk::ImageRegionConstIteratorWithIndex<ImageType> It( fixedImage, fixedImage->GetRequestedRegion() );
         for( It.GoToBegin(); !It.IsAtEnd(); ++It )
@@ -1278,7 +1278,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       case RANDOM:
         {
         const unsigned long totalVirtualDomainVoxels = fixedImage->GetRequestedRegion().GetNumberOfPixels();
-        const unsigned long sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
+        const auto sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
         itk::ImageRandomConstIteratorWithIndex<ImageType> ItR( fixedImage, fixedImage->GetRequestedRegion() );
         ItR.SetNumberOfSamples( sampleCount );
         for( ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR )
@@ -1359,7 +1359,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   unsigned int trialCounter = 0;
 
   typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
-  for( RealType angle1 = ( vnl_math::pi * -arcFraction ); angle1 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle1 += searchFactor )
+  for( RealType angle1 = ( itk::Math::pi * -arcFraction ); angle1 <= ( itk::Math::pi * arcFraction + 0.000001 ); angle1 += searchFactor )
     {
     if( ImageDimension == 2 )
       {
@@ -1412,9 +1412,9 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     if( ImageDimension == 3 )
       {
-      for( RealType angle2 = ( vnl_math::pi * -arcFraction ); angle2 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle2 += searchFactor )
+      for( RealType angle2 = ( itk::Math::pi * -arcFraction ); angle2 <= ( itk::Math::pi * arcFraction + 0.000001 ); angle2 += searchFactor )
         {
-        for( RealType angle3 = ( vnl_math::pi * -arcFraction ); angle3 <= ( vnl_math::pi * arcFraction + 0.000001 ); angle3 += searchFactor )
+        for( RealType angle3 = ( itk::Math::pi * -arcFraction ); angle3 <= ( itk::Math::pi * arcFraction + 0.000001 ); angle3 += searchFactor )
           {
           for ( RealType translation1 = -1.0 * translationSearchGrid[0];
                 translation1 <= translationSearchGrid[0] + 0.000001; translation1 += translationSearchStepSize )
@@ -1718,7 +1718,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   }
 }
 
-int antsAI( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int antsAI( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
 
   // put the arguments coming in as 'args' into standard (argc,argv) format;
@@ -1738,7 +1738,7 @@ int antsAI( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULL
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
 
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv

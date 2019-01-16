@@ -254,7 +254,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   typename WeightsContainerType::Pointer weights = WeightsContainerType::New();
   weights->Initialize();
   const typename WeightsContainerType::Element boundaryWeight = 1.0e10;
-  const typename WeightsContainerType::Element weight = 1.0;
+  typename WeightsContainerType::Element weight = 1.0;
 
   typename DisplacementFieldPointSetType::Pointer fieldPoints = DisplacementFieldPointSetType::New();
   fieldPoints->Initialize();
@@ -299,7 +299,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 
         if( useWeights )
           {
-          std::vector<LabelType>::const_iterator it = std::find( userLabels.begin(), userLabels.end(), mItD.Value() );
+          auto it = std::find( userLabels.begin(), userLabels.end(), mItD.Value() );
           if( it != userLabels.end() )
             {
             weights->InsertElement( count, labelWeights[it - userLabels.begin()] );
@@ -330,7 +330,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   bool enforceStationaryBoundary = true;
   if( argc > 7 )
     {
-    enforceStationaryBoundary = static_cast<bool>( atoi( argv[7] ) );
+    enforceStationaryBoundary = static_cast<bool>( std::stoi( argv[7] ) );
     }
   if( enforceStationaryBoundary )
     {
@@ -370,12 +370,12 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 
   typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
 
-  unsigned int numberOfLevels = atoi( argv[5] );
+  unsigned int numberOfLevels = std::stoi( argv[5] );
 
   unsigned int splineOrder = 3;
   if( argc > 6 )
     {
-    splineOrder = atoi( argv[6] );
+    splineOrder = std::stoi( argv[6] );
     }
 
   std::vector<unsigned int> meshSize = ConvertVector<unsigned int>( std::string( argv[4] ) );
@@ -468,7 +468,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTSUseLandmarkImagesToGetBSplineDisplacementField( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int ANTSUseLandmarkImagesToGetBSplineDisplacementField( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -485,7 +485,7 @@ int ANTSUseLandmarkImagesToGetBSplineDisplacementField( std::vector<std::string>
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

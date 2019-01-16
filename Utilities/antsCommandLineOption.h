@@ -53,9 +53,7 @@ public:
     m_StageID( 0 )
   {
   };
-  virtual ~OptionFunction() ITK_OVERRIDE
-  {
-  };
+  ~OptionFunction() override = default;
 
   typedef OptionFunction     Self;
   typedef DataObject         Superclass;
@@ -148,7 +146,7 @@ public:
       }
     else
       {
-      return ITK_NULLPTR;
+      return nullptr;
       }
   }
 
@@ -194,9 +192,7 @@ public:
 
 protected:
   CommandLineOption();
-  virtual ~CommandLineOption() ITK_OVERRIDE
-  {
-  };
+  ~CommandLineOption() override = default;
 private:
   char                 m_ShortName;
   std::string          m_LongName;

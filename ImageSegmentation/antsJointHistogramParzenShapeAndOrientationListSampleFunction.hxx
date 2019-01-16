@@ -30,7 +30,7 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::JointHistogramParzenShapeAndOrientationListSampleFunction()
 {
@@ -45,18 +45,17 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   this->m_MinimumEigenvalue2 = 1;
   this->m_Interpolator = InterpolatorType::New();
   this->m_Interpolator->SetSplineOrder( 3 );
-  this->m_JointHistogramImages[0] = ITK_NULLPTR;
-  this->m_JointHistogramImages[1] = ITK_NULLPTR;
-  this->m_JointHistogramImages[2] = ITK_NULLPTR;
+  this->m_JointHistogramImages[0] = nullptr;
+  this->m_JointHistogramImages[1] = nullptr;
+  this->m_JointHistogramImages[2] = nullptr;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~JointHistogramParzenShapeAndOrientationListSampleFunction()
-{
-}
+= default;
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::IncrementJointHistogramForShape( RealType eigenvalue1, RealType eigenvalue2 )
@@ -125,17 +124,17 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     /** linear addition */
     shapeIdx[0] = static_cast<IndexValueType>( std::floor( shapeCidx[0] ) );
     shapeIdx[1] = static_cast<IndexValueType>( std::floor( shapeCidx[1] ) );
-    RealType distance1 = std::sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
-                                   + vnl_math_sqr( shapeCidx[1] - shapeIdx[1] ) );
+    RealType distance1 = std::sqrt( itk::Math::sqr ( shapeCidx[0] - shapeIdx[0] )
+                                   + itk::Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
     shapeIdx[0]++;
-    RealType distance2 = std::sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
-                                   + vnl_math_sqr( shapeCidx[1] - shapeIdx[1] ) );
+    RealType distance2 = std::sqrt( itk::Math::sqr ( shapeCidx[0] - shapeIdx[0] )
+                                   + itk::Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
     shapeIdx[1]++;
-    RealType distance3 = std::sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
-                                   + vnl_math_sqr( shapeCidx[1] - shapeIdx[1] ) );
+    RealType distance3 = std::sqrt( itk::Math::sqr ( shapeCidx[0] - shapeIdx[0] )
+                                   + itk::Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
     shapeIdx[0]--;
-    RealType distance4 = std::sqrt( vnl_math_sqr( shapeCidx[0] - shapeIdx[0] )
-                                   + vnl_math_sqr( shapeCidx[1] - shapeIdx[1] ) );
+    RealType distance4 = std::sqrt( itk::Math::sqr ( shapeCidx[0] - shapeIdx[0] )
+                                   + itk::Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
     RealType sumDistance = distance1 + distance2 + distance3 + distance4;
     distance1 /= sumDistance;
     distance2 /= sumDistance;
@@ -184,7 +183,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   return;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::IncrementJointHistogramForOrientation(
@@ -233,7 +232,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   // if x and y are 0.0 or very close, return phi == 0
   // we do this to eliminate redundancy in the distribution of orientations.
 
-  if( vnl_math_abs( x ) + vnl_math_abs( y ) < 1e-9 )
+  if( itk::Math::abs ( x ) + itk::Math::abs ( y ) < 1e-9 )
     {
     tp[1] = 0.0;
     }
@@ -247,7 +246,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
         }
       else
         {
-        tp[1] = vnl_math::pi;
+        tp[1] = itk::Math::pi;
         }
       }
     else if( x == 0.0 )
@@ -255,11 +254,11 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       // avoid div by zero
       if( y > 0 )
         {
-        tp[1] = vnl_math::pi_over_2;
+        tp[1] = itk::Math::pi_over_2;
         }
       else
         {
-        tp[1] = -vnl_math::pi_over_2;
+        tp[1] = -itk::Math::pi_over_2;
         }
       }
     else if( x > 0.0 && y > 0.0 )
@@ -268,11 +267,11 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       }
     else if( x < 0.0 && y > 0.0 )
       {     // second quadrant
-      tp[1] = vnl_math::pi + std::atan( y / x );
+      tp[1] = itk::Math::pi + std::atan( y / x );
       }
     else if( x < 0.0 && y < 0.0 )
       {     // third quadrant
-      tp[1] =  vnl_math::pi + atan( y / x );
+      tp[1] =  itk::Math::pi + atan( y / x );
       }
     else
       {     // fourth quadrant
@@ -284,9 +283,9 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 
 // note, if a point maps to 0 or 2*pi then it should contribute to both bins -- pretty much only difference between this
 // function and matlab code is the next 15 or so lines, as far as we see
-  orientPoint[0] = psi / (vnl_math::pi ) *
+  orientPoint[0] = psi / (itk::Math::pi ) *
     ( this->m_NumberOfOrientationJointHistogramBins - 1) + 1;
-  orientPoint[1] = ( theta + vnl_math::pi_over_2 ) / vnl_math::pi
+  orientPoint[1] = ( theta + itk::Math::pi_over_2 ) / itk::Math::pi
     * ( this->m_NumberOfOrientationJointHistogramBins - 1 );
 
   ContinuousIndex<double, 2> orientCidx;
@@ -316,17 +315,17 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     {
     orientIdx[0] = static_cast<IndexValueType>( std::floor( orientCidx[0] ) );
     orientIdx[1] = static_cast<IndexValueType>( std::floor( orientCidx[1] ) );
-    RealType distance1 = std::sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
-                                   + vnl_math_sqr( orientCidx[1] - orientIdx[1] ) );
+    RealType distance1 = std::sqrt( itk::Math::sqr ( orientCidx[0] - orientIdx[0] )
+                                   + itk::Math::sqr ( orientCidx[1] - orientIdx[1] ) );
     orientIdx[0]++;
-    RealType distance2 = std::sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
-                                   + vnl_math_sqr( orientCidx[1] - orientIdx[1] ) );
+    RealType distance2 = std::sqrt( itk::Math::sqr ( orientCidx[0] - orientIdx[0] )
+                                   + itk::Math::sqr ( orientCidx[1] - orientIdx[1] ) );
     orientIdx[1]++;
-    RealType distance3 = std::sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
-                                   + vnl_math_sqr( orientCidx[1] - orientIdx[1] ) );
+    RealType distance3 = std::sqrt( itk::Math::sqr ( orientCidx[0] - orientIdx[0] )
+                                   + itk::Math::sqr ( orientCidx[1] - orientIdx[1] ) );
     orientIdx[0]--;
-    RealType distance4 = std::sqrt( vnl_math_sqr( orientCidx[0] - orientIdx[0] )
-                                   + vnl_math_sqr( orientCidx[1] - orientIdx[1] ) );
+    RealType distance4 = std::sqrt( itk::Math::sqr ( orientCidx[0] - orientIdx[0] )
+                                   + itk::Math::sqr ( orientCidx[1] - orientIdx[1] ) );
     RealType sumDistance = distance1 + distance2 + distance3 + distance4;
     distance1 /= sumDistance;
     distance2 /= sumDistance;
@@ -402,7 +401,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   return;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
@@ -452,7 +451,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     }
   for( unsigned int d = 0; d < 3; d++ )
     {
-    this->m_JointHistogramImages[d] = ITK_NULLPTR;
+    this->m_JointHistogramImages[d] = nullptr;
     }
 
   RealType L = static_cast<RealType>(
@@ -619,7 +618,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 */
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 TOutput
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
@@ -653,7 +652,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 /**
  * Standard "PrintSelf" method
  */
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PrintSelf(

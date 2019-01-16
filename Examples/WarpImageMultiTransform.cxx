@@ -39,7 +39,7 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
   opt_queue.clear();
   opt_queue.reserve(argc - 2);
 
-  misc_opt.reference_image_filename = ITK_NULLPTR;
+  misc_opt.reference_image_filename = nullptr;
   misc_opt.use_BSpline_interpolator = false;
   misc_opt.use_TightestBoundingBox = false;
   misc_opt.use_RotationHeader = false;
@@ -94,7 +94,7 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
         {
         char *tok = strtok(s, "x");
         int i = 0;
-        while( tok!=ITK_NULLPTR && i<NDimensions )
+        while( tok!=nullptr && i<NDimensions )
           {
           double x = atof(tok);
           if( x < 0 )
@@ -102,10 +102,10 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
             std::cout << "Negative sigma specification:" << s << std::endl;
             }
           misc_opt.opt_ML.sigma[i] = x;
-          tok = strtok(ITK_NULLPTR, "x");
+          tok = strtok(nullptr, "x");
           ++i;
           }
-        if( i!=NDimensions || tok!=ITK_NULLPTR )
+        if( i!=NDimensions || tok!=nullptr )
           {
           std::cout << "Invalid sigma specification:" << s << std::endl;
           }
@@ -161,7 +161,7 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
       }
     else if( strcmp(argv[ind], "--reference-image-header") == 0 || strcmp(argv[ind], "-rh") == 0 )
       {
-      if( misc_opt.reference_image_filename == ITK_NULLPTR )
+      if( misc_opt.reference_image_filename == nullptr )
         {
         std::cout
           << "reference image filename is not given yet. Specify it with -R before --reference-image-header / -rh."
@@ -301,7 +301,7 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
   return true;
 }
 
-template <class AffineTransformPointer>
+template <typename AffineTransformPointer>
 void GetIdentityTransform(AffineTransformPointer & aff)
 {
   typedef typename AffineTransformPointer::ObjectType AffineTransform;
@@ -349,7 +349,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     img_ref = reader_img_ref->GetOutput();
     }
   // else
-  //    img_ref = ITK_NULLPTR;
+  //    img_ref = nullptr;
 
   typename WarperType::Pointer  warper = WarperType::New();
   warper->SetInput(img_mov);
@@ -627,7 +627,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int WarpImageMultiTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int WarpImageMultiTransform( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -645,7 +645,7 @@ int WarpImageMultiTransform( std::vector<std::string> args, std::ostream* /*out_
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -795,12 +795,12 @@ private:
     }
 
   TRAN_OPT_QUEUE opt_queue;
-  char *         moving_image_filename = ITK_NULLPTR;
-  char *         output_image_filename = ITK_NULLPTR;
+  char *         moving_image_filename = nullptr;
+  char *         output_image_filename = nullptr;
 
   MISC_OPT misc_opt;
 
-  const int  kImageDim = atoi(argv[1]);
+  const int  kImageDim = std::stoi(argv[1]);
   const bool is_parsing_ok = WarpImageMultiTransform_ParseInput(argc - 2, argv + 2,
                                                      moving_image_filename, output_image_filename,
                                                      opt_queue, misc_opt, kImageDim);

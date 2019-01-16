@@ -32,7 +32,7 @@
 
 namespace ants
 {
-template <class TensorType>
+template <typename TensorType>
 double CalculateFractionalAnisotropy( TensorType tensor )
 {
   typename TensorType::EigenValuesArrayType eigenvalues;
@@ -57,15 +57,15 @@ double CalculateFractionalAnisotropy( TensorType tensor )
   double denominator = 0.0;
   for( unsigned int d = 0; d < TensorType::Dimension; d++ )
     {
-    numerator += vnl_math_sqr( eigenvalues[d] - mean );
-    denominator += vnl_math_sqr( eigenvalues[d] );
+    numerator += itk::Math::sqr ( eigenvalues[d] - mean );
+    denominator += itk::Math::sqr ( eigenvalues[d] );
     }
   fa = std::sqrt( ( 3.0 * numerator ) / ( 2.0 * denominator ) );
 
   return fa;
 }
 
-template <class TensorType>
+template <typename TensorType>
 double CalculateMeanDiffusivity( TensorType tensor )
 {
   typename TensorType::EigenValuesArrayType eigenvalues;
@@ -99,10 +99,10 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
   typedef unsigned int                          LabelType;
   typedef itk::Image<LabelType, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  typename MaskImageType::Pointer maskImage = nullptr;
 
   typedef itk::Image<TensorType, ImageDimension> TensorImageType;
-  typename TensorImageType::Pointer inputAtlas = ITK_NULLPTR;
+  typename TensorImageType::Pointer inputAtlas = nullptr;
 
   typedef itk::ImageFileReader<TensorImageType> TensorReaderType;
   typename TensorReaderType::Pointer reader = TensorReaderType::New();
@@ -308,9 +308,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       {
       for( unsigned int n = 0; n < pathologyOption->GetNumberOfFunctions(); n++ )
         {
-        LabelType whichClass = parser->Convert<LabelType>( pathologyOption->GetFunction( n )->GetName() );
+        auto whichClass = parser->Convert<LabelType>( pathologyOption->GetFunction( n )->GetName() );
 
-        std::vector<LabelType>::const_iterator it = std::find( labels.begin(), labels.end(), whichClass );
+        auto it = std::find( labels.begin(), labels.end(), whichClass );
 
         if( it == labels.end() )
           {
@@ -459,7 +459,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   //
   // Get DWI parameters
   //
-  typename ImageType::Pointer b0Image = ITK_NULLPTR;
+  typename ImageType::Pointer b0Image = nullptr;
   unsigned int                       numberOfDirections = 0;
   std::vector<vnl_vector<RealType> > directions;
   std::vector<RealType>              bvalues;
@@ -604,9 +604,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     if( applyISV )
       {
       vnl_vector<RealType> R( ISV.cols() );
-      for( unsigned int d = 0; d < R.size(); d++ )
+      for(float & d : R)
         {
-        R[d] = randomizer->GetNormalVariate( 0.0, 1.0 );
+        d = randomizer->GetNormalVariate( 0.0, 1.0 );
         }
       eigenISVProjection = ISV * R;
       }
@@ -638,7 +638,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         eigenvalues[2] = eigenvalues[1];
         }
 
-      std::vector<LabelType>::const_iterator it = std::find( labels.begin(),
+      auto it = std::find( labels.begin(),
                                                              labels.end(), label );
       if( it == labels.end() )
         {
@@ -707,7 +707,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         }
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        if( vnl_math_isnan( newEigenvalues[d] ) )
+        if( std::isnan( newEigenvalues[d] ) )
           {
           newEigenvalues[d] = 0.0;
           }
@@ -836,7 +836,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           TensorType tensor = It.Get();
           for( unsigned int i = 0; i < tensor.GetNumberOfComponents(); i++ )
             {
-            if( vnl_math_isnan( tensor[i] ) )
+            if( std::isnan( tensor[i] ) )
               {
               tensor[i] = 0.0;
               }
@@ -861,9 +861,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           if( noiseSigma > 0.0 )
             {
             realNoise = randomizer->GetNormalVariate( 0.0,
-                                                      vnl_math_sqr( noiseSigma ) );
+                                                      itk::Math::sqr ( noiseSigma ) );
             imagNoise = randomizer->GetNormalVariate( 0.0,
-                                                      vnl_math_sqr( noiseSigma ) );
+                                                      itk::Math::sqr ( noiseSigma ) );
             }
           RealType realSignal = signal + realNoise;
           RealType imagSignal = imagNoise;
@@ -1064,7 +1064,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int CreateDTICohort( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int CreateDTICohort( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -1082,7 +1082,7 @@ int CreateDTICohort( std::vector<std::string> args, std::ostream* /*out_stream =
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

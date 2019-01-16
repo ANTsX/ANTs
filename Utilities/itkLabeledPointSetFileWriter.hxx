@@ -26,14 +26,14 @@ namespace itk
 //
 // Constructor
 //
-template <class TInputMesh>
+template <typename TInputMesh>
 LabeledPointSetFileWriter<TInputMesh>
 ::LabeledPointSetFileWriter()
 {
-  this->m_Input = ITK_NULLPTR;
+  this->m_Input = nullptr;
   this->m_FileName = "";
-  this->m_MultiComponentScalars = ITK_NULLPTR;
-  this->m_Lines = ITK_NULLPTR;
+  this->m_MultiComponentScalars = nullptr;
+  this->m_Lines = nullptr;
 
   this->m_ImageSize.Fill( 0 );
 }
@@ -41,16 +41,15 @@ LabeledPointSetFileWriter<TInputMesh>
 //
 // Destructor
 //
-template <class TInputMesh>
+template <typename TInputMesh>
 LabeledPointSetFileWriter<TInputMesh>
 ::~LabeledPointSetFileWriter()
-{
-}
+= default;
 
 //
 // Set the input mesh
 //
-template <class TInputMesh>
+template <typename TInputMesh>
 void
 LabeledPointSetFileWriter<TInputMesh>
 ::SetInput(InputMeshType * input)
@@ -61,7 +60,7 @@ LabeledPointSetFileWriter<TInputMesh>
 //
 // Write the input mesh to the output file
 //
-template <class TInputMesh>
+template <typename TInputMesh>
 void LabeledPointSetFileWriter<TInputMesh>
 ::Update()
 {
@@ -71,14 +70,14 @@ void LabeledPointSetFileWriter<TInputMesh>
 //
 // Write the input mesh to the output file
 //
-template <class TInputMesh>
+template <typename TInputMesh>
 void LabeledPointSetFileWriter<TInputMesh>
 ::Write()
 {
   this->GenerateData();
 }
 
-template <class TInputMesh>
+template <typename TInputMesh>
 void
 LabeledPointSetFileWriter<TInputMesh>
 ::GenerateData()
@@ -151,7 +150,7 @@ LabeledPointSetFileWriter<TInputMesh>
     }
 }
 
-template <class TInputMesh>
+template <typename TInputMesh>
 void
 LabeledPointSetFileWriter<TInputMesh>
 ::WriteVTKFile()
@@ -161,7 +160,7 @@ LabeledPointSetFileWriter<TInputMesh>
   this->WriteScalarsToVTKFile();
 }
 
-template <class TInputMesh>
+template <typename TInputMesh>
 void
 LabeledPointSetFileWriter<TInputMesh>
 ::WritePointsToVTKFile()
@@ -203,7 +202,7 @@ LabeledPointSetFileWriter<TInputMesh>
   outputFile.close();
 }
 
-template <class TInputMesh>
+template <typename TInputMesh>
 void
 LabeledPointSetFileWriter<TInputMesh>
 ::WriteScalarsToVTKFile()
@@ -275,7 +274,7 @@ LabeledPointSetFileWriter<TInputMesh>
   outputFile.close();
 }
 
-template <class TInputMesh>
+template <typename TInputMesh>
 void
 LabeledPointSetFileWriter<TInputMesh>
 ::WriteLinesToVTKFile()
@@ -319,7 +318,7 @@ LabeledPointSetFileWriter<TInputMesh>
     }
 }
 
-template <class TInputMesh>
+template <typename TInputMesh>
 void
 LabeledPointSetFileWriter<TInputMesh>
 ::WritePointsToAvantsFile()
@@ -364,7 +363,7 @@ LabeledPointSetFileWriter<TInputMesh>
   outputFile.close();
 }
 
-template <class TInputMesh>
+template <typename TInputMesh>
 void
 LabeledPointSetFileWriter<TInputMesh>
 ::WritePointsToImageFile()
@@ -412,7 +411,7 @@ LabeledPointSetFileWriter<TInputMesh>
   writer->Update();
 }
 
-template <class TInputMesh>
+template <typename TInputMesh>
 void
 LabeledPointSetFileWriter<TInputMesh>
 ::PrintSelf( std::ostream& os, Indent indent ) const

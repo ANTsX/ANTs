@@ -44,7 +44,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::DiReCTImageFilter() :
   m_ThicknessPriorEstimate( 10.0 ),
@@ -74,13 +74,12 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   this->m_TimePoints.clear();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::~DiReCTImageFilter()
-{
-}
+= default;
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
@@ -358,7 +357,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         if( ItSegmentationImage.Get() == grayMatterPixel )
           {
           RealType norm = ( ItGradientImage.Get() ).GetNorm();
-          if( norm > 1e-3 && !vnl_math_isnan( norm ) && !vnl_math_isinf( norm ) )
+          if( norm > 1e-3 && !std::isnan( norm ) && !std::isinf( norm ) )
             {
             ItGradientImage.Set( ItGradientImage.Get() / norm );
             }
@@ -367,10 +366,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             ItGradientImage.Set( zeroVector );
             }
           RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get() );
-          currentEnergy += vnl_math_abs( delta );
+          currentEnergy += itk::Math::abs ( delta );
           numberOfGrayMatterVoxels++;
           RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
-          if( vnl_math_isnan( speedValue ) || vnl_math_isinf( speedValue ) )
+          if( std::isnan( speedValue ) || std::isinf( speedValue ) )
             {
             speedValue = 0.0;
             }
@@ -584,7 +583,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           if( ! this->m_ThicknessPriorImage && ( thicknessValue > this->m_ThicknessPriorEstimate ) )
             {
             RealType fraction = this->m_ThicknessPriorEstimate / thicknessValue;
-            ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
+            ItVelocityField.Set( ItVelocityField.Get() * itk::Math::sqr ( fraction ) );
             }
           else if( this->m_ThicknessPriorImage )
             {
@@ -593,11 +592,11 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             if( ( thicknessPrior > NumericTraits<RealType>::ZeroValue() ) &&
                 ( thicknessValue > thicknessPrior ) )
               {
-              priorEnergy += vnl_math_abs( thicknessPrior - thicknessValue );
+              priorEnergy += itk::Math::abs ( thicknessPrior - thicknessValue );
               priorEnergyCount++;
 
               RealType fraction = thicknessPrior / thicknessValue;
-              ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
+              ItVelocityField.Set( ItVelocityField.Get() * itk::Math::sqr ( fraction ) );
               }
             }
           }
@@ -671,7 +670,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   this->SetNthOutput( 1, warpedWhiteMatterProbabilityImage );
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::InputImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::ExtractRegion( const InputImageType *segmentationImage,
@@ -693,7 +692,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return thresholdRegion;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::InputImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::ExtractRegionalContours( const InputImageType *segmentationImage,
@@ -718,7 +717,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 }
 
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::MakeThicknessImage( RealImagePointer hitImage, RealImagePointer totalImage,
@@ -782,7 +781,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::WarpImage( const RealImageType *inputImage,
@@ -804,7 +803,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return warpedImage;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::GaussianSmoothDisplacementField( const DisplacementFieldType *inputField,
@@ -890,7 +889,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return outputField;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::BSplineSmoothDisplacementField( const DisplacementFieldType *inputField,
@@ -924,7 +923,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return outputField;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::SmoothImage( const RealImageType *inputImage, const RealType variance )
@@ -946,7 +945,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent) const

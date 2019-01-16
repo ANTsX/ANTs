@@ -72,7 +72,7 @@
 namespace ants
 {
 
-template <class T>
+template <typename T>
 inline std::string ants_moco_to_string(const T& t)
 {
   std::stringstream ss;
@@ -80,7 +80,7 @@ inline std::string ants_moco_to_string(const T& t)
   return ss.str();
 }
 
-template <class T>
+template <typename T>
 struct ants_moco_index_cmp
   {
   ants_moco_index_cmp(const T _arr) : arr(_arr)
@@ -151,7 +151,7 @@ public:
 int ants_motion_directions( itk::ants::CommandLineParser *parser )
 {
 
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef double                                    RealType;
   typedef itk::Image<RealType, ImageDimension>      FixedImageType;
@@ -571,7 +571,7 @@ void antsMotionCorrDiffusionDirectionInitializeCommandLineOptions( itk::ants::Co
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsMotionCorrDiffusionDirection( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int antsMotionCorrDiffusionDirection( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -589,7 +589,7 @@ int antsMotionCorrDiffusionDirection( std::vector<std::string> args, std::ostrea
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

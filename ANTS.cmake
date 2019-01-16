@@ -38,17 +38,31 @@ if( NOT ${PROJECT_NAME}_BUILD_DISTRIBUTE AND NOT ${PROJECT_NAME}_VERSION_HASH ST
   set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}-g${${PROJECT_NAME}_VERSION_HASH}")
 endif()
 
+#-----------------------------------------------------------------------------
+# CPACK Version
+#
+set(CPACK_PACKAGE_NAME "ANTs")
+set(CPACK_PACKAGE_VENDOR "CMake.org")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - Advanced Normalization Tools")
+set(CPACK_PACKAGE_VERSION_MAJOR ${${PROJECT_NAME}_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${${PROJECT_NAME}_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${${PROJECT_NAME}_VERSION_PATCH})
+set(CPACK_PACKAGE_VERSION ${${PROJECT_NAME}_VERSION})
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "ANTS_Install")
+set(CPACK_BINARY_GENERATORS "DragNDrop TGZ TZ")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - robust image registration, segmentation and more")
+set(CPACK_RESOURCE_FILE_LICENSE  "${CMAKE_CURRENT_SOURCE_DIR}/ANTSCopyright.txt")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
+
 message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\"")
 
-
 # Set up ITK
-find_package(ITK 5 REQUIRED)
+find_package(ITK 5.0 REQUIRED)
 include(${ITK_USE_FILE})
-
 
 # Set up which ANTs apps to build
 option(BUILD_ALL_ANTS_APPS "Use All ANTs Apps" ON)
-
 
 # Set up VTK
 option(USE_VTK "Use VTK Libraries" OFF)
@@ -56,7 +70,7 @@ if(USE_VTK)
   find_package(VTK)
 
   if(VTK_VERSION_MAJOR GREATER 6)
-    find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL2
+    find_package(VTK 8.1.1 COMPONENTS vtkRenderingVolumeOpenGL2
    vtkCommonCore
    vtkCommonDataModel
    vtkIOGeometry
@@ -68,18 +82,6 @@ if(USE_VTK)
    vtkImagingGeneral
    vtkRenderingAnnotation
    )
-  else()
-     find_package(VTK COMPONENTS vtkRenderingVolumeOpenGL
-     vtkCommonCore
-     vtkCommonDataModel
-     vtkIOGeometry
-     vtkIOXML
-     vtkIOLegacy
-     vtkIOPLY
-     vtkFiltersModeling
-     vtkImagingStencil
-     vtkImagingGeneral
-     vtkRenderingAnnotation)
   endif()
 
   if(VTK_FOUND)

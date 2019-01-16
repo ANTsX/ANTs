@@ -27,19 +27,17 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::LogEuclideanGaussianListSampleFunction()
-{
-}
+= default;
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~LogEuclideanGaussianListSampleFunction()
-{
-}
+= default;
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
@@ -129,7 +127,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
         weight = ( *this->GetListSampleWeights() )[N++];
         }
 
-      this->m_Dispersion += ( weight * vnl_math_sqr( distance ) );
+      this->m_Dispersion += ( weight * itk::Math::sqr ( distance ) );
       ++It;
       }
 
@@ -142,7 +140,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 typename LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::TensorType
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
@@ -172,7 +170,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
   return logT;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 typename LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::TensorType
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
@@ -195,7 +193,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
   return expT;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 typename LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::RealType
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
@@ -212,7 +210,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
   return distance;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 TOutput
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
@@ -233,9 +231,9 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     }
   RealType distance = this->CalculateTensorDistance( T, this->m_MeanTensor );
   RealType preFactor = 1.0
-    / ( std::sqrt( 2.0 * vnl_math::pi * this->m_Dispersion ) );
+    / ( std::sqrt( 2.0 * itk::Math::pi * this->m_Dispersion ) );
   RealType probability = preFactor * std::exp( -0.5
-                                              * vnl_math_sqr( distance ) / this->m_Dispersion );
+                                              * itk::Math::sqr ( distance ) / this->m_Dispersion );
 
   return probability;
 }
@@ -243,7 +241,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PrintSelf(

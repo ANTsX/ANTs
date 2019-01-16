@@ -102,7 +102,7 @@ public:
     return static_cast<const MaskImageType*>( this->ProcessObject::GetInput( 1 ) );
     }
 
-  void Update() ITK_OVERRIDE;
+  void Update() override;
 
   /**
    * Set/Get sigma for the gradient recursive gaussian image filter
@@ -124,13 +124,11 @@ public:
 
 protected:
   ImageIntensityAndGradientToPointSetFilter();
-  virtual ~ImageIntensityAndGradientToPointSetFilter() ITK_OVERRIDE
-  {
-  }
+  ~ImageIntensityAndGradientToPointSetFilter() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
   double                    m_Sigma;
 

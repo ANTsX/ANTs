@@ -81,7 +81,7 @@ static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, cha
   input_vtk_filename = argv[0];
   output_vtk_filename = argv[1];
 
-  reference_image_filename = ITK_NULLPTR;
+  reference_image_filename = nullptr;
 
   int ind = 2;
   while( ind < argc )
@@ -126,7 +126,7 @@ static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, cha
     ind++;
     }
 
-//    if (reference_image_filename == ITK_NULLPTR) {
+//    if (reference_image_filename == nullptr) {
 //        std::cout << "the reference image file (-R) must be given!!!"
 //        << std::endl;
 //        return false;
@@ -284,14 +284,13 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
       field_output->GetSpacing().GetVnlVector() );
 
   vnl_matrix_fixed<double, 4, 4> ras2ijk = vnl_inverse(ijk2ras);
-  vnl_matrix_fixed<double, 4, 4> ras2vtk = vnl_inverse(vtk2ras);
-  vnl_matrix_fixed<double, 4, 4> ras2lps = vnl_inverse(lps2ras);
+  //vnl_matrix_fixed<double, 4, 4> ras2vtk = vnl_inverse(vtk2ras);
+  //vnl_matrix_fixed<double, 4, 4> ras2lps = vnl_inverse(lps2ras);
   // Update the coordinates
   for( int k = 0; k < mesh->GetNumberOfPoints(); k++ )
     {
     // Get the point (in whatever format that it's stored)
-    vnl_vector_fixed<double, 4> x_mesh, x_ras, x_ijk, v_warp, v_ras;
-    vnl_vector_fixed<double, 4> y_ras, y_mesh;
+    vnl_vector_fixed<double, 4> x_mesh, x_ras, x_ijk;
     x_mesh[0] = mesh->GetPoint(k)[0]; x_mesh[1] = mesh->GetPoint(k)[1]; x_mesh[2] = mesh->GetPoint(k)[2];
     x_mesh[3] = 1.0;
 
@@ -506,7 +505,7 @@ int WarpVTKPolyDataMultiTransform( std::vector<std::string> args, std::ostream* 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -543,12 +542,12 @@ private:
     }
 
   TRAN_OPT_QUEUE opt_queue;
-  //    char *moving_image_filename = ITK_NULLPTR;
-  char *input_vtk_filename = ITK_NULLPTR;
-  char *output_vtk_filename = ITK_NULLPTR;
-  char *reference_image_filename = ITK_NULLPTR;
+  //    char *moving_image_filename = nullptr;
+  char *input_vtk_filename = nullptr;
+  char *output_vtk_filename = nullptr;
+  char *reference_image_filename = nullptr;
 
-  int  kImageDim = atoi(argv[1]);
+  int  kImageDim = std::stoi(argv[1]);
 
   const bool is_parsing_ok = WarpVTKPolyDataMultiTransform_ParseInput(argc - 2, argv + 2, input_vtk_filename, output_vtk_filename,
                                                            reference_image_filename, opt_queue);
@@ -559,7 +558,7 @@ private:
       {
       case DEFORMATION_FILE:
         {
-        if( reference_image_filename == ITK_NULLPTR )
+        if( reference_image_filename == nullptr )
           {
           std::cout << "the reference image file (-R) must be given!!!"
                    << std::endl;

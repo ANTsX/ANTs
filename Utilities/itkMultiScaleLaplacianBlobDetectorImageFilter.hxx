@@ -37,7 +37,7 @@
 
 namespace itk
 {
-template <class TInputImage>
+template <typename TInputImage>
 MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 ::MultiScaleLaplacianBlobDetectorImageFilter( void )
 {
@@ -47,7 +47,7 @@ MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
   m_EndT = 128;
 }
 
-template <class TInputImage>
+template <typename TInputImage>
 void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 ::GenerateData( void )
 {
@@ -91,13 +91,13 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 
   typedef itk::LaplacianRecursiveGaussianImageFilter<InputImageType, RealImageType> LaplacianFilterType;
   typename LaplacianFilterType::Pointer laplacianFilter[3];
-  for( unsigned int i = 0; i < 3; ++i )
+  for(auto & i : laplacianFilter)
     {
-    laplacianFilter[i] = LaplacianFilterType::New();
+    i = LaplacianFilterType::New();
 //    laplacianFilter[i]->SetNumberOfThreads( this->GetNumberOfThreads() );
-    laplacianFilter[i]->SetInput( inputImage );
-    laplacianFilter[i]->SetNormalizeAcrossScale( true );
-    progress->RegisterInternalFilter( laplacianFilter[i],   1.0 / numberOfScales );
+    i->SetInput( inputImage );
+    i->SetNormalizeAcrossScale( true );
+    progress->RegisterInternalFilter( i,   1.0 / numberOfScales );
     }
 
   BlobHeapType blobs;
@@ -107,7 +107,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     // simga' = k^i * initial_sigma
     // t = sigma^2
     const double sigma = initial_sigma * std::pow( k, double( numberOfScales - i - 1 ) );
-    //    const double t = vnl_math_sqr( initial_sigma * std::pow( k, double( numberOfScales - i - 1 ) ) );
+    //    const double t = itk::Math::sqr ( initial_sigma * std::pow( k, double( numberOfScales - i - 1 ) ) );
 
     itkDebugMacro( << "i: " << i << " sigma: " << sigma << " k: " << k );
 
@@ -178,9 +178,9 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     }
 
   // clean up member variables
-  this->m_LaplacianImage[0] = ITK_NULLPTR;
-  this->m_LaplacianImage[1] = ITK_NULLPTR;
-  this->m_LaplacianImage[2] = ITK_NULLPTR;
+  this->m_LaplacianImage[0] = nullptr;
+  this->m_LaplacianImage[1] = nullptr;
+  this->m_LaplacianImage[2] = nullptr;
   this->m_BlobHeapPerThread.clear();
 
   m_BlobList.clear();
@@ -212,7 +212,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     }
 }
 
-template <class TInputImage>
+template <typename TInputImage>
 void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 ::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId )
 {

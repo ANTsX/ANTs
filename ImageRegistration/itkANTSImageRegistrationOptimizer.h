@@ -52,7 +52,7 @@
 
 namespace itk
 {
-template <unsigned int TDimension = 3, class TReal = float>
+template <unsigned int TDimension = 3, typename TReal = float>
 class ANTSImageRegistrationOptimizer
   : public       Object
 {
@@ -68,8 +68,8 @@ public:
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( ANTSImageRegistrationOptimizer, Object );
-  itkStaticConstMacro( Dimension, unsigned int, TDimension );
-  itkStaticConstMacro( ImageDimension, unsigned int, TDimension );
+  static constexpr unsigned int Dimension = TDimension;
+  static constexpr unsigned int ImageDimension = TDimension;
 
   typedef double TComp;
   typedef TReal  RealType;
@@ -329,7 +329,7 @@ public:
       }
   }
 
-  void SmoothDisplacementFieldGauss(DisplacementFieldPointer field = ITK_NULLPTR, TReal sig = 0.0, bool useparamimage = false,
+  void SmoothDisplacementFieldGauss(DisplacementFieldPointer field = nullptr, TReal sig = 0.0, bool useparamimage = false,
                                     unsigned int lodim = ImageDimension);
 
 //  TReal = smoothingparam, int = maxdim to smooth
@@ -340,13 +340,13 @@ public:
 
   DisplacementFieldPointer ComputeUpdateFieldAlternatingMin(DisplacementFieldPointer fixedwarp,
                                                             DisplacementFieldPointer movingwarp,
-                                                            PointSetPointer  fpoints = ITK_NULLPTR,  PointSetPointer wpoints =
-                                                              ITK_NULLPTR, DisplacementFieldPointer updateFieldInv = ITK_NULLPTR,
+                                                            PointSetPointer  fpoints = nullptr,  PointSetPointer wpoints =
+                                                              nullptr, DisplacementFieldPointer updateFieldInv = nullptr,
                                                             bool updateenergy = true);
 
   DisplacementFieldPointer ComputeUpdateField(DisplacementFieldPointer fixedwarp, DisplacementFieldPointer movingwarp,
-                                              PointSetPointer  fpoints = ITK_NULLPTR,  PointSetPointer wpoints = ITK_NULLPTR,
-                                              DisplacementFieldPointer updateFieldInv = ITK_NULLPTR, bool updateenergy = true);
+                                              PointSetPointer  fpoints = nullptr,  PointSetPointer wpoints = nullptr,
+                                              DisplacementFieldPointer updateFieldInv = nullptr, bool updateenergy = true);
 
   TimeVaryingVelocityFieldPointer ExpandVelocity()
   {
@@ -437,7 +437,7 @@ public:
 
   ImagePointer SubsampleImage( ImagePointer, RealType, typename ImageType::PointType outputOrigin,
                                typename ImageType::DirectionType outputDirection,
-                               AffineTransformPointer aff = ITK_NULLPTR);
+                               AffineTransformPointer aff = nullptr);
 
   DisplacementFieldPointer SubsampleField( DisplacementFieldPointer field, typename ImageType::SizeType
                                            targetSize, typename ImageType::SpacingType targetSpacing )
@@ -482,16 +482,16 @@ public:
   {
     if( !movingpoints )
       {
-      std::cout << " NULL POINTS " << std::endl;  return ITK_NULLPTR;
+      std::cout << " NULL POINTS " << std::endl;  return nullptr;
       }
 
-    AffineTransformPointer affinverse = ITK_NULLPTR;
+    AffineTransformPointer affinverse = nullptr;
     if( aff )
       {
       affinverse = AffineTransformType::New();
       aff->GetInverse(affinverse);
       }
-    AffineTransformPointer fixedaffinverse = ITK_NULLPTR;
+    AffineTransformPointer fixedaffinverse = nullptr;
     if( fixedaff )
       {
       fixedaffinverse = AffineTransformType::New();
@@ -611,13 +611,13 @@ public:
     DirectionType rdirection = referenceimage->GetDirection();
     DirectionType mdirection = movingImage->GetDirection();
 
-    AffineTransformPointer affinverse = ITK_NULLPTR;
+    AffineTransformPointer affinverse = nullptr;
     if( aff )
       {
       affinverse = AffineTransformType::New();
       aff->GetInverse(affinverse);
       }
-    AffineTransformPointer fixedaffinverse = ITK_NULLPTR;
+    AffineTransformPointer fixedaffinverse = nullptr;
     if( fixedaff )
       {
       fixedaffinverse = AffineTransformType::New();
@@ -721,7 +721,7 @@ public:
 //    RealType maximumSpacing = inputSpacing.GetVnlVector().max_value();
     for( unsigned int d = 0; d < Dimension; d++ )
       {
-      RealType scaling = vnl_math_min( scalingFactor * minimumSpacing / inputSpacing[d],
+      RealType scaling = std::min( scalingFactor * minimumSpacing / inputSpacing[d],
                                        static_cast<RealType>( inputSize[d] ) / 32.0 );
       outputSpacing[d] = inputSpacing[d] * scaling;
       outputSize[d] = static_cast<unsigned long>( inputSpacing[d]
@@ -751,7 +751,7 @@ public:
   {
     typedef DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
     typename SmootherType::Pointer smoother = SmootherType::New();
-    smoother->SetVariance( vnl_math_sqr( sigma ) );
+    smoother->SetVariance( itk::Math::sqr ( sigma ) );
     smoother->SetMaximumError( 0.01 );
     smoother->SetInput( image );
 
@@ -769,8 +769,8 @@ public:
 
   /** Base optimization functions */
   // AffineTransformPointer AffineOptimization(AffineTransformPointer &aff_init, OptAffine &affine_opt); // {return
-  // ITK_NULLPTR;}
-  AffineTransformPointer AffineOptimization(OptAffineType & affine_opt);  // {return ITK_NULLPTR;}
+  // nullptr;}
+  AffineTransformPointer AffineOptimization(OptAffineType & affine_opt);  // {return nullptr;}
 
   std::string GetTransformationModel()
   {
@@ -1079,7 +1079,7 @@ public:
 
       if( this->m_SubsamplingFactors.size() == 0 )
         {
-        scaling = vnl_math_min( this->m_ScaleFactor * minimumSpacing
+        scaling = std::min( this->m_ScaleFactor * minimumSpacing
                                 / this->m_FullDomainSpacing[d],
                                 static_cast<RealType>( this->m_FullDomainSize[d] ) / 32.0 );
         }
@@ -1156,10 +1156,9 @@ public:
 
   void DeformableOptimization()
   {
-    DisplacementFieldPointer updateField = ITK_NULLPTR;
+    DisplacementFieldPointer updateField = nullptr;
 
     this->SetUpParameters();
-    typename ImageType::SpacingType spacing;
     VectorType zero;
     zero.Fill(0);
     std::cout << " setting N-TimeSteps = "
@@ -1222,8 +1221,8 @@ public:
       }
     if( maxits == 0 )
       {
-      this->m_DisplacementField = ITK_NULLPTR;
-      this->m_InverseDisplacementField = ITK_NULLPTR;
+      this->m_DisplacementField = nullptr;
+      this->m_InverseDisplacementField = nullptr;
       //    this->ComputeMultiResolutionParameters(this->m_SimilarityMetrics[0]->GetFixedImage());
       return;
       }
@@ -1260,8 +1259,8 @@ public:
           }
         }
       }
-    this->m_SmoothFixedImages.resize(numberOfMetrics, ITK_NULLPTR);
-    this->m_SmoothMovingImages.resize(numberOfMetrics, ITK_NULLPTR);
+    this->m_SmoothFixedImages.resize(numberOfMetrics, nullptr);
+    this->m_SmoothMovingImages.resize(numberOfMetrics, nullptr);
     for( unsigned int currentLevel = 0; currentLevel < this->m_NumberOfLevels; currentLevel++ )
       {
       this->m_CurrentLevel = currentLevel;
@@ -1338,7 +1337,7 @@ public:
 
       if( this->GetTransformationModel() != std::string("SyN") )
         {
-        this->m_FixedImageAffineTransform = ITK_NULLPTR;
+        this->m_FixedImageAffineTransform = nullptr;
         }
       while( !converged )
         {
@@ -1644,7 +1643,7 @@ public:
       // -1.0/(TReal)this->m_NTimeSteps);
       this->m_InverseDisplacementField = invdiffmap;
       this->m_DisplacementField = diffmap;
-      AffineTransformPointer invaff = ITK_NULLPTR;
+      AffineTransformPointer invaff = nullptr;
       if( this->m_AffineTransform )
         {
         invaff = AffineTransformType::New();
@@ -1662,9 +1661,9 @@ public:
     else if( this->GetTransformationModel() == std::string("GreedyExp") )
       {
       DisplacementFieldPointer diffmap = this->m_DisplacementField;
-      this->m_InverseDisplacementField = ITK_NULLPTR;
+      this->m_InverseDisplacementField = nullptr;
       this->m_DisplacementField = diffmap;
-      AffineTransformPointer invaff = ITK_NULLPTR;
+      AffineTransformPointer invaff = nullptr;
       if( this->m_AffineTransform )
         {
         invaff = AffineTransformType::New();
@@ -1704,22 +1703,22 @@ public:
   }
 
   void DiffeomorphicExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints =
-                                            ITK_NULLPTR, PointSetPointer mpoints = ITK_NULLPTR);
+                                            nullptr, PointSetPointer mpoints = nullptr);
 
-  void GreedyExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
-                                   PointSetPointer mpoints = ITK_NULLPTR);
+  void GreedyExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = nullptr,
+                                   PointSetPointer mpoints = nullptr);
 
-  void SyNRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
-                             PointSetPointer mpoints = ITK_NULLPTR);
+  void SyNRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = nullptr,
+                             PointSetPointer mpoints = nullptr);
 
-  void SyNExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
-                                PointSetPointer mpoints = ITK_NULLPTR);
+  void SyNExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = nullptr,
+                                PointSetPointer mpoints = nullptr);
 
-  void SyNTVRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
-                               PointSetPointer mpoints = ITK_NULLPTR);
+  void SyNTVRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = nullptr,
+                               PointSetPointer mpoints = nullptr);
 
-  void DiReCTUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = ITK_NULLPTR,
-                    PointSetPointer mpoints = ITK_NULLPTR);
+  void DiReCTUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = nullptr,
+                    PointSetPointer mpoints = nullptr);
 
   /** allows one to copy or add a field to a time index within the velocity
 * field
@@ -1734,12 +1733,11 @@ public:
 
   void ElasticRegistrationUpdate(ImagePointer /* fixedImage */, ImagePointer /* xxxxmovingImage */)
   {
-    typename ImageType::SpacingType spacing;
     VectorType zero;
     zero.Fill(0);
     DisplacementFieldPointer updateField;
 
-    updateField = this->ComputeUpdateField(this->m_DisplacementField, ITK_NULLPTR, ITK_NULLPTR, ITK_NULLPTR, ITK_NULLPTR);
+    updateField = this->ComputeUpdateField(this->m_DisplacementField, nullptr, nullptr, nullptr, nullptr);
 
     typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
     Iterator dIter(this->m_DisplacementField, this->m_DisplacementField->GetLargestPossibleRegion() );
@@ -2091,15 +2089,13 @@ protected:
   }
 
   ANTSImageRegistrationOptimizer();
-  virtual ~ANTSImageRegistrationOptimizer() ITK_OVERRIDE
-  {
-  }
+  ~ANTSImageRegistrationOptimizer() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
-  ANTSImageRegistrationOptimizer( const Self & ); // purposely not implemented
-  void operator=( const Self & );                 // purposely not implemented
+  ANTSImageRegistrationOptimizer( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   typename VelocityFieldInterpolatorType::Pointer m_VelocityFieldInterpolator;
 

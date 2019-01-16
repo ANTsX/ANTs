@@ -36,7 +36,7 @@ namespace ants
 // iMathFillHolesHoleParam 2;
 
 // Return the largest connected component in a mask
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGetLargestComponent(typename ImageType::Pointer image,                                        /*3*/
                          unsigned long minSize );
@@ -44,31 +44,31 @@ iMathGetLargestComponent(typename ImageType::Pointer image,                     
 
 
 // Grayscale morphological erosion
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGE(typename ImageType::Pointer image, unsigned long radius);                      ///*3*/
 #define iMathGERadius 1;
 #define iMathGEValue 1;
 
 // Grayscale morphological opening
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGO(typename ImageType::Pointer image, unsigned long radius);                    /*3*/
 #define iMathGORadius 1;
 #define iMathGOValue 1;
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGrad( typename ImageType::Pointer image, double sigma, bool normalize );       /*3*/
 #define iMathGradSigma 0.5;
 #define iMathGradNormalize false;
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathHistogramEqualization( typename ImageType::Pointer image, double, double, unsigned int );     /*3*/
 
 // Grayscale morphological dilation
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathGD(typename ImageType::Pointer image, unsigned long radius);                            /*0*/   /*3*/
 #define iMathGDRadius 1;

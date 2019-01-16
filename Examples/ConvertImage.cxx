@@ -11,12 +11,12 @@
 
 namespace ants
 {
-template <class TPixel, unsigned int ImageDimension>
+template <typename TPixel, unsigned int ImageDimension>
 int ConvertImage( int argc, char *argv[] )
 {
   typedef TPixel OutputPixelType;
 
-  if( argc > 4 && atoi( argv[4] ) == 9 )
+  if( argc > 4 && std::stoi( argv[4] ) == 9 )
     {
     typedef itk::Vector<OutputPixelType, ImageDimension> VectorType;
     typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
@@ -69,7 +69,7 @@ int ConvertImage( int argc, char *argv[] )
       }
     WriteImage<DisplacementFieldType>( displacementField, argv[3] );
     }
-  else if( argc > 4 && atoi( argv[4] ) == 10 )
+  else if( argc > 4 && std::stoi( argv[4] ) == 10 )
     {
     typedef itk::Vector<OutputPixelType, ImageDimension> VectorType;
     typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
@@ -103,7 +103,7 @@ int ConvertImage( int argc, char *argv[] )
       }
 
     }
-  else if( argc > 4 && atoi( argv[4] ) == 11 )
+  else if( argc > 4 && std::stoi( argv[4] ) == 11 )
     {
     typedef itk::Vector<OutputPixelType, ImageDimension> VectorType;
     typedef itk::Image<VectorType, ImageDimension+1> VelocityFieldType;
@@ -141,7 +141,7 @@ int ConvertImage( int argc, char *argv[] )
       WriteImage<ComponentImageType>( selector->GetOutput(), filename.c_str() );
       }
     }
-  else if( argc > 4 && atoi( argv[4] ) == 12 )
+  else if( argc > 4 && std::stoi( argv[4] ) == 12 )
     {
     typedef itk::Vector<OutputPixelType, ImageDimension> VectorType;
     typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
@@ -151,7 +151,7 @@ int ConvertImage( int argc, char *argv[] )
 
     WriteImage<DisplacementFieldType>( displacementField, argv[3] );
     }
-  else if( argc == 4 || ( argc > 4 && atoi( argv[4] ) < 9 ) )
+  else if( argc == 4 || ( argc > 4 && std::stoi( argv[4] ) < 9 ) )
     {
     typedef typename itk::NumericTraits<OutputPixelType>::RealType RealType;
     typedef itk::Image<RealType, ImageDimension> InputImageType;
@@ -161,17 +161,17 @@ int ConvertImage( int argc, char *argv[] )
     ReadImage<InputImageType>( inputImage, argv[2] );
 
     std::vector<std::string> rescaleFileTypes;
-    rescaleFileTypes.push_back( ".png" );
-    rescaleFileTypes.push_back( ".jpeg" );
-    rescaleFileTypes.push_back( ".jpg" );
-    rescaleFileTypes.push_back( ".tiff" );
-    rescaleFileTypes.push_back( ".tif" );
-    rescaleFileTypes.push_back( ".bmp" );
+    rescaleFileTypes.emplace_back(".png" );
+    rescaleFileTypes.emplace_back(".jpeg" );
+    rescaleFileTypes.emplace_back(".jpg" );
+    rescaleFileTypes.emplace_back(".tiff" );
+    rescaleFileTypes.emplace_back(".tif" );
+    rescaleFileTypes.emplace_back(".bmp" );
 
     bool isRescaleType = false;
-    for( unsigned int i = 0; i < rescaleFileTypes.size(); i++ )
+    for(auto & rescaleFileType : rescaleFileTypes)
       {
-      if( strstr( argv[3], rescaleFileTypes[i].c_str() ) != ITK_NULLPTR )
+      if( strstr( argv[3], rescaleFileType.c_str() ) != nullptr )
         {
         isRescaleType = true;
         break;
@@ -203,7 +203,7 @@ int ConvertImage( int argc, char *argv[] )
   return EXIT_SUCCESS;
 }
 
-int ConvertImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ConvertImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -221,7 +221,7 @@ int ConvertImage( std::vector<std::string> args, std::ostream* /*out_stream = IT
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -268,38 +268,38 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
    {
    case 2:
-     if( argc > 4 && atoi( argv[4] ) == 1 )
+     if( argc > 4 && std::stoi( argv[4] ) == 1 )
        {
        ConvertImage<unsigned char, 2>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 2 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 2 )
        {
        ConvertImage<unsigned short, 2>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 3 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 3 )
        {
        ConvertImage<unsigned int, 2>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 4 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 4 )
        {
        ConvertImage<unsigned long, 2>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 5 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 5 )
        {
        ConvertImage<char, 2>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 6 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 6 )
        {
        ConvertImage<short, 2>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 7 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 7 )
        {
        ConvertImage<int, 2>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 8 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 8 )
        {
        ConvertImage<long, 2>( argc, argv );
        }
@@ -309,35 +309,35 @@ private:
        }
      break;
    case 3:
-     if( argc > 4 && atoi( argv[4] ) == 1 )
+     if( argc > 4 && std::stoi( argv[4] ) == 1 )
        {
        ConvertImage<unsigned char, 3>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 2 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 2 )
        {
        ConvertImage<unsigned short, 3>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 3 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 3 )
        {
        ConvertImage<unsigned int, 3>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 4 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 4 )
        {
        ConvertImage<unsigned long, 3>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 5 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 5 )
        {
        ConvertImage<char, 3>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 6 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 6 )
        {
        ConvertImage<short, 3>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 7 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 7 )
        {
        ConvertImage<int, 3>( argc, argv );
        }
-     else if( argc > 4 && atoi( argv[4] ) == 8 )
+     else if( argc > 4 && std::stoi( argv[4] ) == 8 )
        {
        ConvertImage<long, 3>( argc, argv );
        }

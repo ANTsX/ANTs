@@ -29,7 +29,7 @@ int SuperResolution( unsigned int argc, char *argv[] )
   typedef itk::BSplineScatteredDataPointSetToImageFilter
     <PointSetType, ScalarImageType>                        BSplineFilterType;
 
-  typename ImageType::Pointer domainImage = ITK_NULLPTR;
+  typename ImageType::Pointer domainImage = nullptr;
   ReadImage<ImageType>( domainImage, argv[3] );
 
   typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
@@ -101,7 +101,7 @@ int SuperResolution( unsigned int argc, char *argv[] )
   unsigned int N = 0;
   for( unsigned int n = 7; n < argc; n++ )
     {
-    typename ImageType::Pointer inputImage = ITK_NULLPTR;
+    typename ImageType::Pointer inputImage = nullptr;
     ReadImage<ImageType>( inputImage, argv[n] );
 
     itk::ImageRegionConstIteratorWithIndex<ImageType> It( inputImage, inputImage->GetRequestedRegion() );
@@ -159,10 +159,10 @@ int SuperResolution( unsigned int argc, char *argv[] )
   N = 0;
   for( unsigned int n = 7; n < argc; n++ )
     {
-    typename ImageType::Pointer inputImage = ITK_NULLPTR;
+    typename ImageType::Pointer inputImage = nullptr;
     ReadImage<ImageType>( inputImage, argv[n] );
 
-    typename ImageType::Pointer gradientImage = ITK_NULLPTR;
+    typename ImageType::Pointer gradientImage = nullptr;
     if( useGradientWeighting )
       {
       typedef itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType, ImageType> GradientFilterType;
@@ -278,7 +278,7 @@ int SuperResolution( unsigned int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int SuperResolution( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int SuperResolution( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -296,7 +296,7 @@ int SuperResolution( std::vector<std::string> args, std::ostream* /*out_stream =
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -338,7 +338,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  const int ImageDimension = static_cast<int>( atoi( argv[1] ) );
+  const int ImageDimension = static_cast<int>( std::stoi( argv[1] ) );
 
   switch( ImageDimension )
      {

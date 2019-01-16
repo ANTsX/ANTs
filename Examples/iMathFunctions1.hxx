@@ -56,7 +56,7 @@ namespace ants
 {
 
 /*
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
               typename ImageType::Pointer itkNotUsed(image2),
@@ -119,7 +119,7 @@ iMathGetFlatStructuringElement( unsigned int shape, unsigned long radius,
   return element;
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathLaplacian(typename ImageType::Pointer image, double sigma, bool normalize )                     /*1*/
 {
@@ -145,7 +145,7 @@ iMathLaplacian(typename ImageType::Pointer image, double sigma, bool normalize )
   return output;
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathMaurerDistance(typename ImageType::Pointer image,                                /*1*/
                     typename ImageType::PixelType foreground )
@@ -171,7 +171,7 @@ iMathMaurerDistance(typename ImageType::Pointer image,                          
 }
 
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathMC(typename ImageType::Pointer image, unsigned long radius,                          /*1*/
         typename ImageType::PixelType closeValue, unsigned int shape,
@@ -197,7 +197,7 @@ iMathMC(typename ImageType::Pointer image, unsigned long radius,                
 
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathMD(typename ImageType::Pointer image, unsigned long radius,                        /*1*/
         typename ImageType::PixelType dilateValue, unsigned int shape,
@@ -224,7 +224,7 @@ iMathMD(typename ImageType::Pointer image, unsigned long radius,                
 
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathME(typename ImageType::Pointer image, unsigned long radius,                     /*1*/
         typename ImageType::PixelType erodeValue, unsigned int shape,
@@ -249,7 +249,7 @@ iMathME(typename ImageType::Pointer image, unsigned long radius,                
   return filter->GetOutput();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathMO(typename ImageType::Pointer image, unsigned long radius,                   /*1*/
         typename ImageType::PixelType openValue, unsigned int shape,
@@ -274,7 +274,7 @@ iMathMO(typename ImageType::Pointer image, unsigned long radius,                
   return filter->GetOutput();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathNormalize( typename ImageType::Pointer image )                              /*1*/
 {
@@ -295,7 +295,7 @@ iMathNormalize( typename ImageType::Pointer image )                             
   return normFilter->GetOutput();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathPad( typename ImageType::Pointer image1, int padvalue )                    /*1*/
 {
@@ -373,7 +373,7 @@ return padimage;
 }
 
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations,  /*1*/
   double conductance )
@@ -415,7 +415,7 @@ iMathPeronaMalik( typename ImageType::Pointer image, unsigned long nIterations, 
   return filter->GetOutput();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathPropagateLabelsThroughMask( typename ImageType::Pointer speedimage,      /*1*/
                                  typename ImageType::Pointer labimage,
@@ -578,7 +578,7 @@ iMathPropagateLabelsThroughMask( typename ImageType::Pointer speedimage,      /*
 
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathSharpen( typename ImageType::Pointer image )                            /*1*/
 {
@@ -595,7 +595,7 @@ iMathSharpen( typename ImageType::Pointer image )                            /*1
   return sharpenFilter->GetOutput();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
 iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ, double upperQ, int nBins,    /*1*/
                         typename itk::Image<unsigned int, ImageType::ImageDimension>::Pointer mask )

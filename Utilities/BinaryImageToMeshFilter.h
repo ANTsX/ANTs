@@ -32,7 +32,7 @@
 
 using namespace std;
 
-template <class TImage>
+template <typename TImage>
 void ConnectITKToVTK(itk::VTKImageExport<TImage> *fltExport, vtkImageImport *fltImport)
 {
   fltImport->SetUpdateInformationCallback( fltExport->GetUpdateInformationCallback() );
@@ -76,7 +76,7 @@ private:
   float m_InsideValue;
 };
 
-template <class TImage>
+template <typename TImage>
 class BinaryImageToMeshFilter : public itk::ProcessObject
 {
 public:
@@ -90,7 +90,7 @@ public:
   itkNewMacro(Self);
 
   /** Image dimension. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TImage::ImageDimension;
 
   /** Get the result mesh */
   vtkPolyData * GetMesh()
@@ -128,7 +128,7 @@ public:
   }
 
   /** Update method (why?) */
-  void Update()
+  void Update() override
   {
     this->GenerateData();
   }
@@ -273,7 +273,7 @@ protected:
     m_DecimateFactor = 0.0f;
   }
 
-  ~BinaryImageToMeshFilter()
+  ~BinaryImageToMeshFilter() override
   {
     // CLean up
     fltMarching->Delete();
@@ -286,7 +286,7 @@ protected:
   }
 
   /** Generate Data */
-  virtual void GenerateData( void )
+  void GenerateData( void ) override
   {
     // Run the computation
     cout << "Computing mesh from binary image" << endl;

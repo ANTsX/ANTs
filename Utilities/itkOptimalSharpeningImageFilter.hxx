@@ -24,7 +24,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 OptimalSharpeningImageFilter<TInputImage, TOutputImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
@@ -34,11 +34,10 @@ OptimalSharpeningImageFilter<TInputImage, TOutputImage>
   os << indent << "UseImageSpacing = " << m_UseImageSpacing << std::endl;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 OptimalSharpeningImageFilter<TInputImage, TOutputImage>
 ::GenerateInputRequestedRegion()
-throw (InvalidRequestedRegionError)
 {
   // call the superclass' implementation of this method. this should
   // copy the output requested region to the input requested region
@@ -88,7 +87,7 @@ throw (InvalidRequestedRegionError)
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 OptimalSharpeningImageFilter<TInputImage, TOutputImage>
 ::GenerateData()

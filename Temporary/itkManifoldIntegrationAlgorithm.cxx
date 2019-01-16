@@ -16,10 +16,10 @@
 
 namespace itk
 {
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 ManifoldIntegrationAlgorithm<TGraphSearchNode>::ManifoldIntegrationAlgorithm()
 {
-  m_SurfaceMesh = ITK_NULLPTR;
+  m_SurfaceMesh = nullptr;
   m_QS = DijkstrasAlgorithmQueue<TGraphSearchNode>::New();
   m_MaxCost = vnl_huge_val(m_MaxCost);
   m_PureDist = false;
@@ -29,7 +29,7 @@ ManifoldIntegrationAlgorithm<TGraphSearchNode>::ManifoldIntegrationAlgorithm()
   this->m_LabelCostWeight = 0;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 float ManifoldIntegrationAlgorithm<TGraphSearchNode>::dstarUestimate(
   typename TGraphSearchNode::Pointer G)
 {
@@ -41,7 +41,7 @@ float ManifoldIntegrationAlgorithm<TGraphSearchNode>::dstarUestimate(
   return dsu;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
 {
   if( !m_SurfaceMesh )
@@ -110,7 +110,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
       loc[j] = pt[j];
       }
     G->SetLocation(loc);
-    G->SetPredecessor(ITK_NULLPTR);
+    G->SetPredecessor(nullptr);
     G->m_NumberOfNeighbors = 0;
     G->SetIdentity(i);
     m_GraphX[i] = G;
@@ -175,7 +175,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
 {
   if( !m_SurfaceMesh )
@@ -250,14 +250,14 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
       loc[j] = pt[j];
       }
     G->SetLocation(loc);
-    G->SetPredecessor(ITK_NULLPTR);
+    G->SetPredecessor(nullptr);
     G->m_NumberOfNeighbors = 0;
     m_GraphX[i] = G;
     }
 
   std::cout << " allocation of graph done ";
 
-  vtkIdType nPoints = 0; vtkIdType *xPoints = ITK_NULLPTR;
+  vtkIdType nPoints = 0; vtkIdType *xPoints = nullptr;
   for( unsigned int i = 0; i < nEdges; i++ )
     {
     // Get the next edge
@@ -296,7 +296,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
   m_SurfaceMesh = m_EdgePolys;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
 {
   if( !m_SurfaceMesh )
@@ -337,7 +337,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
       loc[j] = pt[j];
       }
     G->SetLocation(loc);
-    G->SetPredecessor(ITK_NULLPTR);
+    G->SetPredecessor(nullptr);
     G->m_NumberOfNeighbors = 0;
     m_GraphX[i] = G;
     }
@@ -345,7 +345,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
 
   std::cout << " begin edg iter ";
   vtkIdType  nPoints = 0;
-  vtkIdType *xPoints = ITK_NULLPTR;
+  vtkIdType *xPoints = nullptr;
   for( unsigned int i = 0; i < nedg; i++ )
     {
     // Get the next edge
@@ -379,13 +379,13 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
   return;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>
 ::ConvertGraphBackToMesh()
 {   // this is a sanity check
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeQueue()
 {
   int n = m_QS->m_SourceNodes.size();
@@ -407,7 +407,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeQueue()
   for( unsigned int i = 0; i < m_QS->m_SinkNodes.size(); i++ )
     {
     typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = m_QS->m_SinkNodes[i];
-    G->SetPredecessor(ITK_NULLPTR);
+    G->SetPredecessor(nullptr);
     loc = G->GetLocation();
 //      for (int d=0;d<GraphDimension;d++) m_GraphIndex[d]=(long)loc[d];
 //        m_Graph->SetPixel(m_GraphIndex,G);
@@ -419,13 +419,13 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeQueue()
 *  parameterize the boundary --- an estimate
 */
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
 ::ParameterizeBoundary( ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchNodePointer rootNode )
 {
   std::vector<SearchNodePointer> neighborlist;
   bool                           I_Am_A_Neighbor = false;
-  SearchNodePointer              neighbor = ITK_NULLPTR;
+  SearchNodePointer              neighbor = nullptr;
   SearchNodePointer              curNode = rootNode;
   //  unsigned int rootnn=rootNode>m_NumberOfNeighbors;
   unsigned int ct = 0;
@@ -477,7 +477,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
 /**
 *  Compute the local cost using Manhattan distance.
 */
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 typename ManifoldIntegrationAlgorithm<TGraphSearchNode>::
 PixelType ManifoldIntegrationAlgorithm<TGraphSearchNode>::MyLocalCost()
 {
@@ -508,7 +508,7 @@ PixelType ManifoldIntegrationAlgorithm<TGraphSearchNode>::MyLocalCost()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 bool ManifoldIntegrationAlgorithm<TGraphSearchNode>::TerminationCondition()
 {
   if( !m_QS->m_SinkNodes.empty() )
@@ -528,7 +528,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>::TerminationCondition()
   return m_SearchFinished;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchEdgeSet()
 {
   int i = 0; // ,j=0;
@@ -549,7 +549,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchEdgeSet()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::GetSearchBoundary()
 {
   unsigned int gsz = this->GetGraphSize();
@@ -568,7 +568,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::GetSearchBoundary()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::CheckNodeStatus()
 // checks a graph neighbor's status
 {
@@ -620,7 +620,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::CheckNodeStatus()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::FindPath()
 {
   if( m_QS->m_SourceNodes.empty() )

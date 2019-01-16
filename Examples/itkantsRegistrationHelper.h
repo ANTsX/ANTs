@@ -108,7 +108,7 @@ namespace ants
 typedef itk::ants::CommandLineParser ParserType;
 typedef ParserType::OptionType       OptionType;
 
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 class RegistrationHelper : public itk::Object
 {
 public:
@@ -453,7 +453,7 @@ public:
    * templated over image type (as opposed to being templated over pixel type
    * and dimension) when they need compile time access to the dimension of
    * the image. */
-  itkStaticConstMacro( ImageDimension, unsigned int, VImageDimension );
+  static constexpr unsigned int ImageDimension = VImageDimension;
 
   /**
    * add a metric, corresponding to the registration stage
@@ -491,8 +491,8 @@ public:
                   unsigned int radius,
                   RealType samplingPercentage )
     {
-    this->AddMetric( metricType, fixedImage, movingImage, ITK_NULLPTR, ITK_NULLPTR,
-      ITK_NULLPTR, ITK_NULLPTR,
+    this->AddMetric( metricType, fixedImage, movingImage, nullptr, nullptr,
+      nullptr, nullptr,
       stageID, weighting, samplingStrategy, numberOfBins, radius,
       false, 1.0, 50, 1.1, false, samplingPercentage, std::sqrt( 5 ), std::sqrt( 5 ) );
     }
@@ -768,7 +768,7 @@ public:
   /**
    *
    */
-  template<class TTransformType>
+  template<typename TTransformType>
   bool InitializeWithPreviousLinearTransform(const CompositeTransformType *,
                                              const std::string,
                                              typename TTransformType::Pointer &);
@@ -798,7 +798,7 @@ public:
 
 protected:
   RegistrationHelper();
-  virtual ~RegistrationHelper() ITK_OVERRIDE;
+  ~RegistrationHelper() override;
 private:
 
   typename itk::ImageBase<VImageDimension>::Pointer GetShrinkImageOutputInformation(const itk::ImageBase<VImageDimension> * inputImageInformation,
@@ -811,7 +811,7 @@ private:
     return *m_LogStream;
   }
 
-  template<class RegistrationMethodType>
+  template<typename RegistrationMethodType>
   typename RegistrationMethodType::Pointer PrepareRegistrationMethod(
     CompositeTransformType *compositeTransform, const unsigned int currentStageNumber,
     const unsigned int parametersDimensionSize,
@@ -930,7 +930,7 @@ private:
     return registrationMethod;
   }
 
-  template<class RegistrationMethodType>
+  template<typename RegistrationMethodType>
   int AddLinearTransformToCompositeTransform(
     CompositeTransformType *compositeTransform, const unsigned int currentStageNumber,
     const unsigned int parametersDimensionSize,
@@ -1034,7 +1034,7 @@ private:
 /**
  * Transform traits to generalize the rigid transform
  */
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class RigidTransformTraits
 {
   // Don't worry about the fact that the default option is the
@@ -1075,7 +1075,7 @@ public:
 typedef itk::Euler3DTransform<float> TransformType;
 };
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class SimilarityTransformTraits
 {
 // Don't worry about the fact that the default option is the
@@ -1112,7 +1112,7 @@ public:
 typedef itk::Similarity3DTransform<float> TransformType;
 };
 
-template <class TComputeType, unsigned int ImageDimension>
+template <typename TComputeType, unsigned int ImageDimension>
 class CompositeAffineTransformTraits
 {
 // Don't worry about the fact that the default option is the
@@ -1153,7 +1153,7 @@ typedef itk::ANTSAffine3DTransform<float> TransformType;
 // ##########################################################################
 
 // Provide common way of reading transforms.
-template <class TComputeType, unsigned VImageDimension>
+template <typename TComputeType, unsigned VImageDimension>
 typename ants::RegistrationHelper<TComputeType, VImageDimension>::CompositeTransformType::Pointer
 GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
                                        typename ParserType::OptionType::Pointer initialTransformOption,
@@ -1164,8 +1164,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
 
   typedef typename RegistrationHelperType::ImageType ImageType;
-  typename ImageType::Pointer fixedImage = ITK_NULLPTR;
-  typename ImageType::Pointer movingImage = ITK_NULLPTR;
+  typename ImageType::Pointer fixedImage = nullptr;
+  typename ImageType::Pointer movingImage = nullptr;
 
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
@@ -1314,7 +1314,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
           {
           std::cout << "Can't read initial transform " << initialTransformName << std::endl;
           }
-        return ITK_NULLPTR;
+        return nullptr;
         }
       if( useInverse )
         {
@@ -1325,7 +1325,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
             {
             std::cout << "Inverse does not exist for " << initialTransformName << std::endl;
             }
-          return ITK_NULLPTR;
+          return nullptr;
           }
         initialTransformName = std::string( "inverse of " ) + initialTransformName;
         }

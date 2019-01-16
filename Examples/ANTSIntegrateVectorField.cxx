@@ -23,7 +23,7 @@
 
 namespace ants
 {
-template <class TField, class TImage>
+template <typename TField, typename TImage>
 typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
@@ -43,7 +43,7 @@ GetVectorComponent(typename TField::Pointer field, unsigned int index)
   return sfield;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, float sig)
 {
@@ -53,7 +53,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     typename TImage::PixelType v1 = vfIter.Get();
-    if( vnl_math_isnan(v1) )
+    if( std::isnan(v1) )
       {
       vfIter.Set(0);
       }
@@ -70,7 +70,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   return out;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
 {
@@ -99,7 +99,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
   return;
 }
 
-template <class TImage, class TField, class TInterp, class TInterp2>
+template <typename TImage, typename TField, typename TInterp, typename TInterp2>
 float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointer /* thickimage */,
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
                        float starttime, const float deltaTime, typename TInterp::Pointer vinterp,
@@ -284,7 +284,7 @@ int IntegrateVectorField(int argc, char *argv[])
   typedef itk::Image<PixelType, ImageDimension>  ImageType;
   typedef typename  ImageType::SpacingType       SpacingType;
 
-  const float deltaTime = 0.001;
+  constexpr float deltaTime = 0.001;
   float       gradstep = 1. / deltaTime; // atof(argv[3])*(-1.0);
   std::string vectorfn = std::string(argv[1]);
   std::string roifn = std::string(argv[2]);
@@ -331,11 +331,6 @@ int IntegrateVectorField(int argc, char *argv[])
   typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
   VectorType zero;
   zero.Fill(0);
-
-  DPointType pointIn1;
-  DPointType pointIn2;
-  typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
-  DPointType pointIn3;
 
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
   VIteratorType VIterator( VECimage, VECimage->GetLargestPossibleRegion().GetSize() );
@@ -397,7 +392,7 @@ int IntegrateVectorField(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTSIntegrateVectorField( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR*/ )
+int ANTSIntegrateVectorField( std::vector<std::string> args, std::ostream* /*out_stream = nullptr*/ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -414,7 +409,7 @@ int ANTSIntegrateVectorField( std::vector<std::string> args, std::ostream* /*out
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

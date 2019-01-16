@@ -14,7 +14,7 @@
 
 namespace ants
 {
-template <class TFilter>
+template <typename TFilter>
 class CommandIterationUpdate : public itk::Command
 {
 public:
@@ -23,19 +23,17 @@ public:
   typedef itk::SmartPointer<Self> Pointer;
   itkNewMacro( Self );
 protected:
-  CommandIterationUpdate()
-  {
-  };
+  CommandIterationUpdate() = default;
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    const TFilter * filter =
+    const auto * filter =
       dynamic_cast<const TFilter *>( object );
 
     if( typeid( event ) != typeid( itk::IterationEvent ) )
@@ -67,7 +65,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
   shrinker->SetInput( image );
   shrinker->SetShrinkFactors( 1 );
 
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  typename MaskImageType::Pointer maskImage = nullptr;
 
   if( argc > 5 )
     {
@@ -93,8 +91,8 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
   if( argc > 4 )
     {
-    shrinker->SetShrinkFactors( atoi( argv[4] ) );
-    maskshrinker->SetShrinkFactors( atoi( argv[4] ) );
+    shrinker->SetShrinkFactors( std::stoi( argv[4] ) );
+    maskshrinker->SetShrinkFactors( std::stoi( argv[4] ) );
     }
   shrinker->Update();
   maskshrinker->Update();
@@ -107,17 +105,17 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
   if( argc > 6 )
     {
-    correcter->SetMaximumNumberOfIterations( atoi( argv[6] ) );
+    correcter->SetMaximumNumberOfIterations( std::stoi( argv[6] ) );
     }
   if( argc > 7 )
     {
-    correcter->SetNumberOfFittingLevels( atoi( argv[7] ) );
+    correcter->SetNumberOfFittingLevels( std::stoi( argv[7] ) );
     }
 
   bool verbose = false;
   if( argc > 7 )
     {
-    verbose = atoi( argv[8] );
+    verbose = std::stoi( argv[8] );
     }
 
   typedef CommandIterationUpdate<CorrecterType> CommandType;
@@ -199,7 +197,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int N3BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int N3BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -217,7 +215,7 @@ int N3BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -256,7 +254,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {

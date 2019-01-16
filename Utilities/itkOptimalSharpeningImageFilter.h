@@ -41,7 +41,7 @@ namespace itk
  * \sa LaplacianOperator
  *
  * \ingroup ImageFeatureExtraction */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 class OptimalSharpeningImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -83,8 +83,7 @@ public:
    * execution model.
    *
    * \sa ImageToImageFilter::GenerateInputRequestedRegion()  */
-  virtual void GenerateInputRequestedRegion()
-  throw (InvalidRequestedRegionError);
+  virtual void GenerateInputRequestedRegion();
 
   void SetSValue(float s)
   {
@@ -116,9 +115,7 @@ protected:
     m_SValue = 0.5;
   }
 
-  virtual ~OptimalSharpeningImageFilter()
-  {
-  }
+  virtual ~OptimalSharpeningImageFilter() = default;
 
   /** Standard pipeline method. While this class does not implement a
    * ThreadedGenerateData(), its GenerateData() delegates all
@@ -129,8 +126,8 @@ protected:
 
   void PrintSelf(std::ostream &, Indent) const;
 private:
-  OptimalSharpeningImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);               // purposely not implemented
+  OptimalSharpeningImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   bool  m_UseImageSpacing;
   float m_SValue;

@@ -162,7 +162,7 @@ protected:
    * GenerateData() computes the simulated displacement field.  Is overwritten
    * in derived classes.
    */
-  virtual void GenerateData() override {};
+  void GenerateData() override {};
 
 private:
 

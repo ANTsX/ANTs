@@ -67,7 +67,7 @@ public:
   /** The radius of the object if it is a solid hyper-sphere */
   double GetObjectRadius( void ) const
   {
-    return this->GetSigma() *  vnl_math::sqrt2;
+    return this->GetSigma() *  itk::Math::sqrt2;
   }
 
   /** The sigma of the laplacian where the extrema occoured */
@@ -102,7 +102,7 @@ private:
  *
  * \author Bradley Lowekamp
 */
-template <class TInputImage>
+template <typename TInputImage>
 class MultiScaleLaplacianBlobDetectorImageFilter
   : public       ImageToImageFilter<TInputImage, TInputImage>
 {
@@ -190,20 +190,18 @@ protected:
   // not defined or implemented as default works
   // virtual ~MultiScaleLaplacianBlobDetectorImageFilter( void ) {}
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
-  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId ) ITK_OVERRIDE;
+  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId ) override;
 
 private:
-  MultiScaleLaplacianBlobDetectorImageFilter( const Self &); // purposely not implemented
-  void operator=( const Self &);                             // purposely not implemented
+  MultiScaleLaplacianBlobDetectorImageFilter( const Self &) = delete;
+  void operator=( const Self &) = delete;
 
   class Blob
   {
 public:
-    Blob( void )
-    {
-    }
+    Blob( void ) = default;
 
     Blob( typename RealImageType::IndexType center, double sigma, RealPixelType value )
       : m_Center( center ),

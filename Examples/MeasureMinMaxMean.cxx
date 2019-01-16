@@ -25,8 +25,8 @@ int MeasureMinMaxMean(int argc, char *argv[])
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
-  typename ImageType::Pointer image = ITK_NULLPTR;
-  typename ImageType::Pointer mask = ITK_NULLPTR;
+  typename ImageType::Pointer image = nullptr;
+  typename ImageType::Pointer mask = nullptr;
   PixelType     mean;  mean.Fill(0);
   PixelType     max;   max.Fill(0);
   PixelType     min;   min.Fill(9.e9);
@@ -36,7 +36,7 @@ int MeasureMinMaxMean(int argc, char *argv[])
   bool takeabsval = false;
   if( argc > 4 )
     {
-    takeabsval = atoi(argv[4]);
+    takeabsval = std::stoi(argv[4]);
     }
   if( argc > 5 )
     {
@@ -129,7 +129,7 @@ int MeasureMinMaxMean(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int MeasureMinMaxMean( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int MeasureMinMaxMean( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -147,7 +147,7 @@ int MeasureMinMaxMean( std::vector<std::string> args, std::ostream* /*out_stream
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -185,7 +185,7 @@ private:
       }
     return EXIT_FAILURE;
     }
-  int                       dim = atoi( argv[1] );
+  int                       dim = std::stoi( argv[1] );
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(argv[2], itk::ImageIOFactory::ReadMode);
   imageIO->SetFileName(argv[2]);
@@ -195,7 +195,7 @@ private:
   int returnValue = EXIT_FAILURE;
 
   // Get the image dimension
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

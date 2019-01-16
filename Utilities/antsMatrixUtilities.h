@@ -21,7 +21,7 @@ namespace itk
 {
 namespace ants
 {
-template <class TInputImage, class TRealType = double>
+template <typename TInputImage, typename TRealType = double>
 class antsMatrixUtilities :
   public         ImageToImageFilter<TInputImage, TInputImage>
 {
@@ -42,7 +42,7 @@ public:
   itkStaticConstMacro( ImageDimension, unsigned int,
                        TInputImage::ImageDimension );
 
-  itkStaticConstMacro( MatrixDimension, unsigned int, 2 );
+  static constexpr unsigned int MatrixDimension = 2;
 
   /** Typedef support of input types. */
   typedef TInputImage                   ImageType;
@@ -75,8 +75,8 @@ public:
 
   MatrixType VNLPseudoInverse( MatrixType,  bool take_sqrt = false );
 
-  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = ITK_NULLPTR,  MatrixType* projecterV =
-                             ITK_NULLPTR )
+  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = nullptr,  MatrixType* projecterV =
+                             nullptr )
   {
     if( !projecterM && !projecterV )
       {
@@ -303,11 +303,9 @@ public:
   }
 
   antsMatrixUtilities();
-  virtual ~antsMatrixUtilities() ITK_OVERRIDE
-  {
-  }
+  ~antsMatrixUtilities() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE
+  void PrintSelf( std::ostream& os, Indent indent ) const override
   {
     os << indent;
   }

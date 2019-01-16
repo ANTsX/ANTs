@@ -26,7 +26,7 @@ namespace Statistics
 /**
  *
  */
-template <class TInputListSample, class TOutputListSample>
+template <typename TInputListSample, typename TOutputListSample>
 ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
 ::ListSampleToListSampleFilter()
 {
@@ -35,7 +35,7 @@ ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
   this->SetNumberOfRequiredOutputs( 1 );
 }
 
-template <class TInputListSample, class TOutputListSample>
+template <typename TInputListSample, typename TOutputListSample>
 void
 ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
 ::SetInputListSample( const TInputListSample *input )
@@ -46,7 +46,7 @@ ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
                                       const_cast<InputListSampleType *>( input ) ) );
 }
 
-template <class TInputListSample, class TOutputListSample>
+template <typename TInputListSample, typename TOutputListSample>
 void
 ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
 ::AllocateOutput()
@@ -65,7 +65,7 @@ ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
 /**
  *
  */
-template <class TInputListSample, class TOutputListSample>
+template <typename TInputListSample, typename TOutputListSample>
 typename ListSampleToListSampleFilter<TInputListSample, TOutputListSample>::InputListSampleType
 * ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
 ::GetInput()
@@ -74,14 +74,14 @@ typename ListSampleToListSampleFilter<TInputListSample, TOutputListSample>::Inpu
     this->ProcessObject::GetInput( 0 ) );
   }
 
-template <class TInputListSample, class TOutputListSample>
+template <typename TInputListSample, typename TOutputListSample>
 typename ListSampleToListSampleFilter<TInputListSample, TOutputListSample>::OutputListSampleType
 * ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
 ::GetOutput()
   {
   if( this->GetNumberOfOutputs() < 1 )
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
 
   // we assume that the first output is of the templated type

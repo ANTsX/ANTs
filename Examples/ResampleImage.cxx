@@ -2,7 +2,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -24,13 +24,13 @@
 namespace ants
 {
 
-template <unsigned int ImageDimension, class PixelType>
+template <unsigned int ImageDimension, typename PixelType>
 int ResampleImage( int argc, char *argv[] )
 {
   typedef double                                RealType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
-  typename ImageType::Pointer image = ITK_NULLPTR;
+  typename ImageType::Pointer image = nullptr;
   ReadImage<ImageType>( image, argv[2] );
 
   typedef itk::IdentityTransform<RealType, ImageDimension> TransformType;
@@ -93,7 +93,7 @@ typename ImageType::IndexType newStartIndex;
 
   std::vector<RealType> sp = ConvertVector<RealType>( std::string( argv[4] ) );
 
-  if( argc <= 5 || atoi( argv[5] ) == 0 )
+  if( argc <= 5 || std::stoi( argv[5] ) == 0 )
     {
     if( sp.size() == 1 )
       {
@@ -156,9 +156,9 @@ typename ImageType::IndexType newStartIndex;
 
   resampler->SetTransform( transform );
   resampler->SetInterpolator( interpolator );
-  if( argc > 6 && atoi( argv[6] ) )
+  if( argc > 6 && std::stoi( argv[6] ) )
     {
-    switch( atoi( argv[6] ) )
+    switch( std::stoi( argv[6] ) )
       {
       case 0: default:
         {
@@ -229,9 +229,9 @@ typename ImageType::IndexType newStartIndex;
         }
       case 4:
         {
-        if( argc > 7 && atoi( argv[7] ) >= 0 && atoi( argv[7] ) <= 5 )
+        if( argc > 7 && std::stoi( argv[7] ) >= 0 && std::stoi( argv[7] ) <= 5 )
           {
-          bs_interpolator->SetSplineOrder( atoi( argv[7] ) );
+          bs_interpolator->SetSplineOrder( std::stoi( argv[7] ) );
           }
         else
           {
@@ -260,7 +260,7 @@ typename ImageType::IndexType newStartIndex;
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ResampleImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ResampleImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -278,7 +278,7 @@ int ResampleImage( std::vector<std::string> args, std::ostream* /*out_stream = I
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -334,13 +334,13 @@ private:
   unsigned int typeoption = 6;
   if( argc > 7 )
     {
-    typeoption = atoi(argv[7]);
+    typeoption = std::stoi(argv[7]);
     }
 
   switch ( typeoption )
     {
     case 0:
-      switch( atoi( argv[1] ) )
+      switch( std::stoi( argv[1] ) )
         {
         case 2:
           {
@@ -363,7 +363,7 @@ private:
         }
         break;
     case 1:
-      switch( atoi( argv[1] ) )
+      switch( std::stoi( argv[1] ) )
         {
         case 2:
           {
@@ -386,7 +386,7 @@ private:
         }
         break;
     case 2:
-      switch( atoi( argv[1] ) )
+      switch( std::stoi( argv[1] ) )
         {
         case 2:
           {
@@ -408,7 +408,7 @@ private:
           return EXIT_FAILURE;
         }
     case 3:
-      switch( atoi( argv[1] ) )
+      switch( std::stoi( argv[1] ) )
         {
         case 2:
           {
@@ -430,7 +430,7 @@ private:
           return EXIT_FAILURE;
         }
     case 4:
-      switch( atoi( argv[1] ) )
+      switch( std::stoi( argv[1] ) )
         {
         case 2:
           {
@@ -452,7 +452,7 @@ private:
           return EXIT_FAILURE;
         }
     case 5:
-      switch( atoi( argv[1] ) )
+      switch( std::stoi( argv[1] ) )
         {
         case 2:
           {
@@ -474,7 +474,7 @@ private:
           return EXIT_FAILURE;
         }
     case 6:
-      switch( atoi( argv[1] ) )
+      switch( std::stoi( argv[1] ) )
         {
         case 2:
           {
@@ -496,7 +496,7 @@ private:
           return EXIT_FAILURE;
           }
     case 7:
-      switch( atoi( argv[1] ) )
+      switch( std::stoi( argv[1] ) )
         {
         case 2:
          {

@@ -533,7 +533,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
 
-int antsRegistration( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int antsRegistration( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   try
     {
@@ -552,7 +552,7 @@ int antsRegistration( std::vector<std::string> args, std::ostream * /*out_stream
       // place the null character in the end
       argv[i][args[i].length()] = '\0';
       }
-    argv[argc] = ITK_NULLPTR;
+    argv[argc] = nullptr;
     // class to automatically cleanup argv upon destruction
     class Cleanup_argv
     {
@@ -583,7 +583,7 @@ private:
     parser->SetCommand( argv[0] );
 
     std::string commandDescription = std::string( "This program is a user-level " )
-      + std::string( "registration application meant to utilize ITKv4-only classes. The user can specify " )
+      + std::string( "registration application meant to utilize classes in ITK v4.0 and later. The user can specify " )
       + std::string( "any number of \"stages\" where a stage consists of a transform; an image metric; " )
       + std::string( "and iterations, shrink factors, and smoothing sigmas for each level.  " )
       + std::string( "Note that explicitly setting the dimensionality, metric, transform, output, " )

@@ -20,7 +20,7 @@ namespace itk
 {
 namespace fem
 {
-template <class TBaseClass>
+template <typename TBaseClass>
 Element3DMembrane1DOF<TBaseClass>
 ::Element3DMembrane1DOF() : Superclass(), m_mat(0)
 {
@@ -31,14 +31,14 @@ Element3DMembrane1DOF<TBaseClass>
  * Methods related to the physics of the problem.
  */
 
-template <class TBaseClass>
+template <typename TBaseClass>
 void
 Element3DMembrane1DOF<TBaseClass>
 ::GetStrainDisplacementMatrix(MatrixType& B, const MatrixType& shapeDgl) const
 {
 }
 
-template <class TBaseClass>
+template <typename TBaseClass>
 void
 Element3DMembrane1DOF<TBaseClass>
 ::GetMassMatrix(MatrixType& Me) const
@@ -51,7 +51,7 @@ Element3DMembrane1DOF<TBaseClass>
   Me = Me * m_mat->RhoC;
 }
 
-template <class TBaseClass>
+template <typename TBaseClass>
 void
 Element3DMembrane1DOF<TBaseClass>
 ::GetMaterialMatrix(MatrixType& D) const
@@ -71,13 +71,13 @@ Element3DMembrane1DOF<TBaseClass>
     }
 }
 
-template <class TBaseClass>
+template <typename TBaseClass>
 void Element3DMembrane1DOF<TBaseClass>::GetStiffnessMatrix(MatrixType& Ke) const
 {
   Superclass::GetStiffnessMatrix(Ke);
 }
 
-template <class TBaseClass>
+template <typename TBaseClass>
 void
 Element3DMembrane1DOF<TBaseClass>
 ::Read( std::istream& f, void* info )
@@ -124,7 +124,7 @@ out:
 /*
  * Write the element to the output stream.
  */
-template <class TBaseClass>
+template <typename TBaseClass>
 void
 Element3DMembrane1DOF<TBaseClass>
 ::Write( std::ostream& f ) const

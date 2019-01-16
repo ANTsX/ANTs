@@ -31,7 +31,7 @@ template <typename TInputImage, typename TRealType, typename TOutputImage>
 GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
 ::GeometricJacobianDeterminantImageFilter()
 {
-  this->m_Interpolator = ITK_NULLPTR;
+  this->m_Interpolator = nullptr;
   this->m_UndisplacedVolume = 0.0;
   this->DynamicMultiThreadingOff();
 }
@@ -39,7 +39,7 @@ GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
 template <typename TInputImage, typename TRealType, typename TOutputImage>
 void
 GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
-::GenerateInputRequestedRegion() throw( InvalidRequestedRegionError )
+::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
   Superclass::GenerateInputRequestedRegion();
@@ -325,7 +325,7 @@ GeometricJacobianDeterminantImageFilter< TInputImage, TRealType, TOutputImage >
   vnl_vector<double> bd = ( b - d ).GetVnlVector();
   vnl_vector<double> cd = ( c - d ).GetVnlVector();
   vnl_vector<double> bdxcd = vnl_cross_3d( bd, cd );
-  RealType volume = vnl_math_abs( ad[0] * bdxcd[0] +  ad[1] * bdxcd[1] + ad[2] * bdxcd[2] ) / 6.0;
+  RealType volume = itk::Math::abs ( ad[0] * bdxcd[0] +  ad[1] * bdxcd[1] + ad[2] * bdxcd[2] ) / 6.0;
   return volume;
 }
 
@@ -338,7 +338,7 @@ GeometricJacobianDeterminantImageFilter< TInputImage, TRealType, TOutputImage >
   RealVectorType ab = ( a - b );
   RealVectorType ac = ( a - c );
 
-  RealType area = 0.5 * vnl_math_abs( ab[0] * ac[1] - ac[0] * ab[1] );
+  RealType area = 0.5 * itk::Math::abs ( ab[0] * ac[1] - ac[0] * ab[1] );
 
   return area;
 }

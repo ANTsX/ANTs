@@ -31,7 +31,7 @@ namespace Statistics
  * \brief point set filter.
  */
 
-template <class TListSample, class TOutput = double, class TCoordRep = double>
+template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
 class HistogramParzenWindowsListSampleFunction
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
@@ -74,14 +74,14 @@ public:
   itkSetMacro( NumberOfHistogramBins, unsigned int );
   itkGetConstMacro( NumberOfHistogramBins, unsigned int );
 
-  void SetInputListSample( const InputListSampleType * ptr ) ITK_OVERRIDE;
+  void SetInputListSample( const InputListSampleType * ptr ) override;
 
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const ITK_OVERRIDE;
+  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override;
 
 protected:
   HistogramParzenWindowsListSampleFunction();
-  virtual ~HistogramParzenWindowsListSampleFunction() ITK_OVERRIDE;
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  ~HistogramParzenWindowsListSampleFunction() override;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   void GenerateData();
 

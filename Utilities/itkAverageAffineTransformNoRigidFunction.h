@@ -34,7 +34,7 @@ struct Dispatcher
   {
   };
 
-template <class TAffine>
+template <typename TAffine>
 struct HelperCommonType
   {
   typedef TAffine InternalAffineTransformType;
@@ -54,7 +54,7 @@ struct HelperCommonType
                                               unsigned int iEnd);
   };
 
-template <class T>
+template <typename T>
 class HelperType;
 
 // {
@@ -116,24 +116,22 @@ public:
 };
 }
 
-template <class TTransform>
+template <typename TTransform>
 class AverageAffineTransformNoRigidFunction
 {
 public:
 
   typedef TTransform GenericAffineTransformType;
 
-  itkStaticConstMacro(InputSpaceDimension, unsigned int, GenericAffineTransformType::InputSpaceDimension);
-  itkStaticConstMacro(OutputSpaceDimension, unsigned int, GenericAffineTransformType::OutputSpaceDimension);
-  itkStaticConstMacro(SpaceDimension, unsigned int, InputSpaceDimension);
+  static constexpr unsigned int InputSpaceDimension = GenericAffineTransformType::InputSpaceDimension;
+  static constexpr unsigned int OutputSpaceDimension = GenericAffineTransformType::OutputSpaceDimension;
+  static constexpr unsigned int SpaceDimension = InputSpaceDimension;
 
   typedef double                                    InternalScalarType;
   typedef Point<InternalScalarType, SpaceDimension> PointType;
 
   AverageAffineTransformNoRigidFunction();
-  ~AverageAffineTransformNoRigidFunction()
-  {
-  }
+  ~AverageAffineTransformNoRigidFunction() = default;
 
   ;
 

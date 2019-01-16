@@ -7,7 +7,7 @@
 namespace itk
 {
 // Constructor with default arguments
-template <class TScalarType>
+template <typename TScalarType>
 ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform() :
   Superclass(ParametersDimension)
 {
@@ -21,7 +21,7 @@ ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform() :
 }
 
 // Constructor with default arguments
-template <class TScalarType>
+template <typename TScalarType>
 ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform(unsigned int outputSpaceDimension,
                                                           unsigned int parametersDimension) :
   Superclass(outputSpaceDimension, parametersDimension)
@@ -36,7 +36,7 @@ ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform(unsigned int outputSpa
 }
 
 // // Constructor with explicit arguments
-// template<class TScalarType>
+// template<typename TScalarType>
 // ANTSAffine3DTransform<TScalarType>::
 // ANTSAffine3DTransform( const MatrixType & matrix,
 //                           const OutputVectorType & offset ) :
@@ -46,7 +46,7 @@ ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform(unsigned int outputSpa
 // }
 
 // Print self
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::PrintSelf(std::ostream & os,
                                                    Indent indent) const
 {
@@ -60,7 +60,7 @@ void ANTSAffine3DTransform<TScalarType>::PrintSelf(std::ostream & os,
 }
 
 // Set rotation
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetRotation(
   const VnlQuaternionType & rotation)
 {
@@ -73,7 +73,7 @@ void ANTSAffine3DTransform<TScalarType>::SetRotation(
   return;
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetS1(const TScalarType S1)
 {
   m_S1 = S1;
@@ -85,7 +85,7 @@ void ANTSAffine3DTransform<TScalarType>::SetS1(const TScalarType S1)
   return;
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetS2(const TScalarType S2)
 {
   m_S2 = S2;
@@ -97,7 +97,7 @@ void ANTSAffine3DTransform<TScalarType>::SetS2(const TScalarType S2)
   return;
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetS3(const TScalarType S3)
 {
   m_S3 = S3;
@@ -109,7 +109,7 @@ void ANTSAffine3DTransform<TScalarType>::SetS3(const TScalarType S3)
   return;
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetK1(const TScalarType K1)
 {
   m_K1 = K1;
@@ -121,7 +121,7 @@ void ANTSAffine3DTransform<TScalarType>::SetK1(const TScalarType K1)
   return;
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetK2(const TScalarType K2)
 {
   m_K2 = K2;
@@ -133,7 +133,7 @@ void ANTSAffine3DTransform<TScalarType>::SetK2(const TScalarType K2)
   return;
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetK3(const TScalarType K3)
 {
   m_K3 = K3;
@@ -146,7 +146,7 @@ void ANTSAffine3DTransform<TScalarType>::SetK3(const TScalarType K3)
 }
 
 // Set the parameters in order to fit an Identity transform
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetIdentity(void)
 {
   m_Rotation = VnlQuaternionType(0, 0, 0, 1);
@@ -160,7 +160,7 @@ void ANTSAffine3DTransform<TScalarType>::SetIdentity(void)
 }
 
 // Set Parameters
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::SetParameters(
   const ParametersType & parameters)
 {
@@ -199,7 +199,7 @@ void ANTSAffine3DTransform<TScalarType>::SetParameters(
 }
 
 // Set Parameters
-template <class TScalarType>
+template <typename TScalarType>
 const typename ANTSAffine3DTransform<TScalarType>::ParametersType
 & ANTSAffine3DTransform<TScalarType>::GetParameters() const {
   VnlQuaternionType quaternion = this->GetRotation();
@@ -230,7 +230,7 @@ const typename ANTSAffine3DTransform<TScalarType>::ParametersType
   }
 
 // // Get parameters
-// template<class TScalarType>
+// template<typename TScalarType>
 // const typename ANTSAffine3DTransform<TScalarType>::JacobianType &
 // ANTSAffine3DTransform<TScalarType>::GetJacobian(
 //        const InputPointType & p) const {
@@ -381,7 +381,7 @@ const typename ANTSAffine3DTransform<TScalarType>::ParametersType
 //
 // }
 
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>
 ::ComputeJacobianWithRespectToParameters(
   const InputPointType  & p,
@@ -532,7 +532,7 @@ void ANTSAffine3DTransform<TScalarType>
   //   return j;
 }
 
-// template<class TScalarType>
+// template<typename TScalarType>
 // const typename ANTSAffine3DTransform< TScalarType >::InverseMatrixType &
 // ANTSAffine3DTransform<TScalarType>::
 // GetInverseMatrix() const
@@ -549,7 +549,7 @@ void ANTSAffine3DTransform<TScalarType>
 //   return this->GetVarInverseMatrix();
 // }
 
-template <class TScalarType>
+template <typename TScalarType>
 typename ANTSAffine3DTransform<TScalarType>::MatrixType ANTSAffine3DTransform<
   TScalarType>::ComputeMyRotationMatrix()
 {
@@ -562,7 +562,7 @@ typename ANTSAffine3DTransform<TScalarType>::MatrixType ANTSAffine3DTransform<
   return R;
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::ComputeMatrix()
 {
   VnlQuaternionType conjugateRotation = m_Rotation.conjugate();
@@ -594,7 +594,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrix()
   this->SetVarMatrix(newMatrix);
 }
 
-template <class TScalarType>
+template <typename TScalarType>
 void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 {
 //   VnlQuaternionType quat(this->GetMatrix().GetVnlMatrix());

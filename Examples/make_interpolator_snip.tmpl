@@ -13,7 +13,7 @@
  * Interpolation option
  */
 typedef itk::InterpolateImageFunction<ImageType, RealType> InterpolatorType;
-typename InterpolatorType::Pointer interpolator = ITK_NULLPTR;
+typename InterpolatorType::Pointer interpolator = nullptr;
 
   if( !std::strcmp( whichInterpolator.c_str(), "linear" ) )
     {
@@ -117,7 +117,7 @@ typename InterpolatorType::Pointer interpolator = ITK_NULLPTR;
     }
   else if( !std::strcmp( whichInterpolator.c_str(), "multilabel" ) )
     {
-    const unsigned int NVectorComponents = 1;
+    constexpr unsigned int NVectorComponents = 1;
     typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
     typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, RealType,
 	    CompareType> MultiLabelInterpolatorType;

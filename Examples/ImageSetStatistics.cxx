@@ -41,7 +41,7 @@
 
 namespace ants
 {
-template <class TImageType>
+template <typename TImageType>
 void ReadImage(itk::SmartPointer<TImageType> & target, const char *file, bool copy)
 {
   //  std::cout << " reading b " << std::string(file) << std::endl;
@@ -117,7 +117,7 @@ double TProb(double t, int df)
   return 1 - (0.5 * (1 + (t1 * (1 - a * (df % 2) ) ) ) );
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, float sig)
 {
@@ -131,7 +131,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   return filter->GetOutput();
 }
 
-template <class TInputImage>
+template <typename TInputImage>
 // typename TInputImage::Pointer
 void
 HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInputImage::Pointer m_InputMovingImage)
@@ -159,7 +159,7 @@ HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInput
   return;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::Pointer meanimage )
 {
@@ -168,7 +168,7 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
   typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
   Iterator outIter(image, image->GetLargestPossibleRegion() );
   typename TImage::SizeType imagesize = image->GetLargestPossibleRegion().GetSize();
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef itk::NeighborhoodIterator<TImage> iteratorType;
   typename iteratorType::RadiusType rad;
@@ -238,7 +238,7 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
   return; // localmean;
 }
 
-template <class TImage>
+template <typename TImage>
 // std::vector<unsigned int>
 float
 GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int minSize, unsigned int whichstat,
@@ -269,7 +269,7 @@ GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int mi
   filter->SetInput(threshold->GetOutput() );
   // if (argc > 5)
     {
-    int fullyConnected = 1;  // atoi( argv[5] );
+    int fullyConnected = 1;  // std::stoi( argv[5] );
     filter->SetFullyConnected( fullyConnected );
     }
   relabel->SetInput( filter->GetOutput() );
@@ -464,7 +464,7 @@ float npdf(std::vector<float> vec, bool opt,  float www)
       {
       min = val;
       }
-    float n = (float) (i + 1);
+    auto n = (float) (i + 1);
     float wt1 = 1.0 / (float)n;
     float wt2 = 1.0 - wt1;
     mean = mean * wt2 + val * wt1;
@@ -548,7 +548,7 @@ float trimmean(std::vector<float> vec)
 
   sort(vec.begin(), vec.end() );
 
-  const unsigned int lo = 0;
+  constexpr unsigned int lo = 0;
   const unsigned int hi = size;
   const unsigned int ct = hi - lo;
   float total = 0;
@@ -631,7 +631,7 @@ int ImageSetStatistics(int argc, char *argv[])
   int          argct = 2;
   std::string  fn1 = std::string(argv[argct]); argct++;
   std::string  outfn = std::string(argv[argct]); argct++;
-  unsigned int whichstat = atoi(argv[argct]); argct++;
+  unsigned int whichstat = std::stoi(argv[argct]); argct++;
   std::string  roifn = "";
   if( argc > argct )
     {
@@ -651,8 +651,8 @@ int ImageSetStatistics(int argc, char *argv[])
 
   //  std::cout <<" roifn " << roifn << " fn1 " << fn1 << " whichstat " << whichstat << std::endl;
 
-  typename ImageType::Pointer outimage = ITK_NULLPTR;
-  typename ImageType::Pointer ROIimg = ITK_NULLPTR;
+  typename ImageType::Pointer outimage = nullptr;
+  typename ImageType::Pointer ROIimg = nullptr;
 
   if( roifn.length() > 4 )
     {
@@ -666,14 +666,14 @@ int ImageSetStatistics(int argc, char *argv[])
       }
     catch( ... )
       {
-      ROIimg = ITK_NULLPTR;
+      ROIimg = nullptr;
       std::cout << " Error reading ROI image " << std::endl;
       //  return 0;
       }
     }
 
   // now do the recursive average
-  const unsigned int maxChar = 512;
+  constexpr unsigned int maxChar = 512;
   char               lineBuffer[maxChar];
   char               filenm[maxChar];
   unsigned int       filecount1 = 0;
@@ -744,7 +744,7 @@ int ImageSetStatistics(int argc, char *argv[])
   typename ImageType::Pointer meanimage;
   std::vector<typename ImageType::Pointer> imagestack;
   imagestack.resize(filecount1);
-  //  imagestack.fill(ITK_NULLPTR);
+  //  imagestack.fill(nullptr);
   std::vector<std::string> filenames(filecount1);
   typename ImageType::Pointer StatImage;
   unsigned int  ct = 0;
@@ -959,7 +959,7 @@ int ImageSetStatistics(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ImageSetStatistics( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ImageSetStatistics( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -977,7 +977,7 @@ int ImageSetStatistics( std::vector<std::string> args, std::ostream* /*out_strea
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -1029,7 +1029,7 @@ private:
 
   // Get the image dimension
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

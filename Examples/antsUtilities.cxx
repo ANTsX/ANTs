@@ -4,8 +4,8 @@
 #include <deque>
 #include <string>
 #include <vector>
-#include <stdio.h>
-#include <math.h>
+#include <cstdio>
+#include <cmath>
 #include <iostream>
 #include <fstream>
 

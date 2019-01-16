@@ -34,7 +34,7 @@
 
 namespace ants
 {
-template <class TField, class TImage>
+template <typename TField, typename TImage>
 typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
@@ -54,7 +54,7 @@ GetVectorComponent(typename TField::Pointer field, unsigned int index)
   return sfield;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 MaurerDistanceMap(
   typename TImage::PixelType pixlo,
@@ -80,7 +80,7 @@ MaurerDistanceMap(
   return filter->GetOutput();
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, double sig)
 {
@@ -90,7 +90,7 @@ SmoothImage(typename TImage::Pointer image, double sig)
   for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     typename TImage::PixelType v1 = vfIter.Get();
-    if( vnl_math_isnan(v1) )
+    if( std::isnan(v1) )
       {
       vfIter.Set(0);
       }
@@ -107,7 +107,7 @@ SmoothImage(typename TImage::Pointer image, double sig)
   return out;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 SmoothDeformation(typename TImage::Pointer vectorimage, double sig)
 {
@@ -140,7 +140,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, double sig)
 
 // this has to have never been called because it doesn't actually
 // copy anything
-template <class TImage, class TDisplacementField>
+template <typename TImage, typename TDisplacementField>
 typename TImage::Pointer
 CopyImage(TDisplacementField* field )
 {
@@ -151,13 +151,13 @@ CopyImage(TDisplacementField* field )
   typedef itk::Image<PixelType, ImageDimension> RealImageType;
   typename RealImageType::RegionType m_JacobianRegion;
 
-  typename RealImageType::Pointer m_RealImage = ITK_NULLPTR;
+  typename RealImageType::Pointer m_RealImage = nullptr;
   m_RealImage = AllocImage<RealImageType>(field, 0);
 
   return m_RealImage;
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input, double distthresh )
@@ -218,7 +218,7 @@ LabelSurface(typename TImage::PixelType foreground,
   return Image;
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double sig)
 {
@@ -279,7 +279,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double s
   return filter->GetOutput();
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 ExpDiffMap(typename TField::Pointer velofield,  typename TImage::Pointer wm,  double sign, unsigned int numtimepoints )
 {
@@ -321,7 +321,7 @@ ExpDiffMap(typename TField::Pointer velofield,  typename TImage::Pointer wm,  do
   return warper->GetOutput();
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 DiReCTCompose(typename TField::Pointer velofield, typename TField::Pointer diffmap )
 {
@@ -342,7 +342,7 @@ DiReCTCompose(typename TField::Pointer velofield, typename TField::Pointer diffm
   return warper->GetOutput();
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 void
 InvertField( typename TField::Pointer field,
              typename TField::Pointer inverseFieldIN, double weight = 1.0,
@@ -520,7 +520,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   unsigned int alltheits = 50;
   if( argc > argct )
     {
-    alltheits = atoi(argv[argct]);
+    alltheits = std::stoi(argv[argct]);
     }
   argct++;
   RealType thickprior = 6.0;
@@ -532,7 +532,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   // bool useCurvaturePrior = false;
   // if( argc > argct )
   //   {
-  //   useCurvaturePrior = atoi(argv[argct]);
+  //   useCurvaturePrior = std::stoi(argv[argct]);
   //   }
   argct++;
   RealType smoothingsigma = 1.5;
@@ -544,7 +544,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   // bool useEuclidean = true;
   // if( argc > argct )
   //   {
-  //   useEuclidean = atoi(argv[argct]);
+  //   useEuclidean = std::stoi(argv[argct]);
   //   }
   argct++;
   std::cout << " smooth " << smoothingsigma << " thp " << thickprior << " gs " << gradstep << std::endl;
@@ -605,7 +605,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   RealType distthresh = 1.5;
   typename ImageType::Pointer wmgrow = Morphological<ImageType>(wmb, 0, 1, 1);
   typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh); // or wmb ?
-  typename ImageType::Pointer speedprior = ITK_NULLPTR;
+  typename ImageType::Pointer speedprior = nullptr;
   WriteImage<ImageType>(bsurf, "surf.nii.gz");
   //    typename RealTypeImageType::Pointer distfromboundary =
   //  typename ImageType::Pointer surf=MaurerDistanceMap<ImageType>(0.5,1.e9,bsurf);
@@ -620,7 +620,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
   typedef   DisplacementFieldType
     TimeVaryingVelocityFieldType;
-  typedef typename DisplacementFieldType::PointType                                         DPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, RealType> DefaultInterpolatorType;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   vinterp->SetInputImage(lapgrad);
@@ -629,11 +628,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   typename ScalarInterpolatorType::Pointer winterp =  ScalarInterpolatorType::New();
   winterp->SetInputImage(wm);
   ginterp->SetInputImage(gm);
-
-  DPointType pointIn1;
-  DPointType pointIn2;
-  typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
-  DPointType pointIn3;
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType>             IteratorType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
@@ -703,18 +697,18 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     thickerrct = 1;
     bool debug = false;
     bool spatprior = false;
-    typename ImageType::Pointer priorim = ITK_NULLPTR;
+    typename ImageType::Pointer priorim = nullptr;
     if( speedprior )
       {
       spatprior = true;
       priorim = speedprior;
       }
-    typename ImageType::Pointer wpriorim = ITK_NULLPTR;
+    typename ImageType::Pointer wpriorim = nullptr;
     RealType origthickprior = thickprior;
 
     while( ttiter < numtimepoints )    // N time integration points
       {
-      //      m_MFR->Compose(incrinvfield,invfield,ITK_NULLPTR);
+      //      m_MFR->Compose(incrinvfield,invfield,nullptr);
       m_MFR->ComposeDiffs(invfield, incrinvfield, invfield, 1);
 
       if( debug )
@@ -781,7 +775,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           wmag = sqrt(wmag);
           if( checknans )
             {
-            if( vnl_math_isnan(wmag) || vnl_math_isinf(wmag) || wmag == 0 )
+            if( std::isnan(wmag) || std::isinf(wmag) || wmag == 0 )
               {
               wgradval.Fill(0);
               lapgrad2->SetPixel(speedindex, wgradval);
@@ -802,7 +796,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           dd *= gm->GetPixel(speedindex);
           if( checknans )
             {
-            if( vnl_math_isnan(dd) || vnl_math_isinf(dd) )
+            if( std::isnan(dd) || std::isinf(dd) )
               {
               dd = 0;
               }
@@ -864,11 +858,11 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           RealType bval = bsurf->GetPixel(velind);
           if( checknans )
             {
-            if( vnl_math_isnan(dmag) || vnl_math_isinf(dmag) )
+            if( std::isnan(dmag) || std::isinf(dmag) )
               {
               dmag = 0;
               }
-            if( vnl_math_isnan(bval) || vnl_math_isinf(bval) )
+            if( std::isnan(bval) || std::isinf(bval) )
               {
               bval = 0;
               }
@@ -1035,7 +1029,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int KellySlater( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int KellySlater( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -1053,7 +1047,7 @@ int KellySlater( std::vector<std::string> args, std::ostream* /*out_stream = ITK
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -1097,7 +1091,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  unsigned int dim = atoi(argv[1]);
+  unsigned int dim = std::stoi(argv[1]);
   std::cout << " dim " << dim << std::endl;
 
   switch( dim )

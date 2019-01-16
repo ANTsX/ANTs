@@ -50,12 +50,12 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 {
   this->SetNumberOfRequiredInputs( 1 );
 
-  this->m_MeanImage = ITK_NULLPTR;
-  this->m_VarianceImage = ITK_NULLPTR;
-  this->m_IntensitySquaredDistanceImage = ITK_NULLPTR;
-  this->m_ThreadContributionCountImage = ITK_NULLPTR;
+  this->m_MeanImage = nullptr;
+  this->m_VarianceImage = nullptr;
+  this->m_IntensitySquaredDistanceImage = nullptr;
+  this->m_ThreadContributionCountImage = nullptr;
 
-  this->m_RicianBiasImage = ITK_NULLPTR;
+  this->m_RicianBiasImage = nullptr;
 
   this->m_NeighborhoodRadiusForLocalMeanAndVariance.Fill( 1 );
   this->DynamicMultiThreadingOff();
@@ -210,12 +210,12 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
               }
             RealType neighborhoodInputImagePixel = static_cast<RealType>( inputImage->GetPixel( neighborhoodPatchIndex ) );
             RealType neighborhoodMeanImagePixel = this->m_MeanImage->GetPixel( neighborhoodPatchIndex );
-            averageDistance += vnl_math_sqr( neighborhoodInputImagePixel - neighborhoodMeanImagePixel );
+            averageDistance += itk::Math::sqr ( neighborhoodInputImagePixel - neighborhoodMeanImagePixel );
 
             count += 1.0;
             }
           averageDistance /= count;
-          minimumDistance = vnl_math_min( averageDistance, minimumDistance );
+          minimumDistance = std::min( averageDistance, minimumDistance );
           }
         }
 
@@ -296,7 +296,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
                                  this->m_MeanImage->GetPixel( searchNeighborhoodPatchIndex );
             RealType distance2 = inputImage->GetPixel( centerNeighborhoodPatchIndex ) -
                                  this->m_MeanImage->GetPixel( centerNeighborhoodPatchIndex );
-            averageDistance += vnl_math_sqr( distance1 - distance2 );
+            averageDistance += itk::Math::sqr ( distance1 - distance2 );
             count += 1.0;
             }
           averageDistance /= count;
@@ -322,7 +322,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
                 }
               if( this->m_UseRicianNoiseModel )
                 {
-                weightedAverageIntensities[n] += weight * vnl_math_sqr( inputImage->GetPixel( neighborhoodPatchIndex ) );
+                weightedAverageIntensities[n] += weight * itk::Math::sqr ( inputImage->GetPixel( neighborhoodPatchIndex ) );
                 }
               else
                 {
@@ -353,7 +353,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
         }
       if( this->m_UseRicianNoiseModel )
         {
-        weightedAverageIntensities[n] += maxWeight * vnl_math_sqr( inputImage->GetPixel( neighborhoodPatchIndex ) );
+        weightedAverageIntensities[n] += maxWeight * itk::Math::sqr ( inputImage->GetPixel( neighborhoodPatchIndex ) );
         }
       else
         {
@@ -418,7 +418,7 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 
         RealType bias = 2.0 * ItS.Get() / this->CalculateCorrectionFactor( snr );
 
-        if( vnl_math_isnan( bias ) || vnl_math_isinf( bias ) )
+        if( std::isnan( bias ) || std::isinf( bias ) )
           {
           bias = 0.0;
           }
@@ -468,10 +468,10 @@ typename AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TM
 AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 ::CalculateCorrectionFactor( RealType snr )
 {
-   const RealType snrSquared = vnl_math_sqr( snr );
+   const RealType snrSquared = itk::Math::sqr ( snr );
 
    RealType value = 2.0 + snrSquared - 0.125 * Math::pi * std::exp( -0.5 * snrSquared ) *
-     vnl_math_sqr( ( 2.0 + snrSquared ) * this->m_ModifiedBesselCalculator.ModifiedBesselI0( 0.25 * snrSquared ) +
+     itk::Math::sqr ( ( 2.0 + snrSquared ) * this->m_ModifiedBesselCalculator.ModifiedBesselI0( 0.25 * snrSquared ) +
      snrSquared * this->m_ModifiedBesselCalculator.ModifiedBesselI1( 0.25 * snrSquared ) );
 
    if( value < 0.001 || value > 10.0 )

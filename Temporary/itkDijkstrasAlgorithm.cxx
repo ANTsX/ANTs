@@ -9,7 +9,7 @@
 #include "itkDijkstrasAlgorithm.h"
 namespace itk
 {
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 DijkstrasAlgorithm<TGraphSearchNode>::DijkstrasAlgorithm()
 {
   m_Graph = GraphType::New();
@@ -18,7 +18,7 @@ DijkstrasAlgorithm<TGraphSearchNode>::DijkstrasAlgorithm()
   this->m_TotalCost = 0;
 };
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::SetGraphSize(GraphSizeType Sz)
 {
   for( int i = 0; i < GraphDimension; i++ )
@@ -27,7 +27,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::SetGraphSize(GraphSizeType Sz)
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::InitializeGraph()
 {
   m_GraphRegion.SetSize( m_GraphSize );
@@ -40,7 +40,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeGraph()
   NodeLocationType loc;
   while(  !GraphIterator.IsAtEnd()  )
     {
-    typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = ITK_NULLPTR;
+    typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = nullptr;
     GraphIterator.Set(G);
     ++GraphIterator;
     /*
@@ -52,15 +52,15 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeGraph()
     G->SetTotalCost(m_MaxCost);
     for (int i=0; i<GraphDimension; i++) loc[i]=m_GraphIndex[i];
     G->SetLocation(loc);
-    G->SetPredecessor(ITK_NULLPTR);
+    G->SetPredecessor(nullptr);
     m_Graph->SetPixel(m_GraphIndex,G);*/
-    m_Graph->SetPixel( GraphIterator.GetIndex(), ITK_NULLPTR);  // USE IF POINTER IMAGE defines visited
+    m_Graph->SetPixel( GraphIterator.GetIndex(), nullptr);  // USE IF POINTER IMAGE defines visited
     }
 
   m_SearchFinished = false;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::InitializeQueue()
 {
   int               n = m_QS->m_SourceNodes.size();
@@ -86,7 +86,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeQueue()
   for( int i = 0; i < m_QS->m_SinkNodes.size(); i++ )
     {
     typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = m_QS->m_SinkNodes[i];
-    G->SetPredecessor(ITK_NULLPTR);
+    G->SetPredecessor(nullptr);
     loc = G->GetLocation();
     for( int d = 0; d < GraphDimension; d++ )
       {
@@ -101,7 +101,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeQueue()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::InitializeEdgeTemplate
   (vector<unsigned int> UserEdgeTemplate, unsigned int R)
 {
@@ -113,7 +113,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeEdgeTemplate
   m_EdgeTemplate = UserEdgeTemplate;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::InitializeEdgeTemplate()
 {
   int MaxIndex = 1;
@@ -138,14 +138,14 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeEdgeTemplate()
 /**
 *  Compute the local cost using Manhattan distance.
 */
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 typename DijkstrasAlgorithm<TGraphSearchNode>::
 PixelType DijkstrasAlgorithm<TGraphSearchNode>::LocalCost()
 {
   return 1.0; // manhattan distance
 };
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 bool DijkstrasAlgorithm<TGraphSearchNode>::TerminationCondition()
 {
   if( !m_QS->m_SinkNodes.empty() )
@@ -163,7 +163,7 @@ bool DijkstrasAlgorithm<TGraphSearchNode>::TerminationCondition()
   return m_SearchFinished;
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::SearchEdgeSet()
 {
   // std::cout << " SES 0 " << std::endl;
@@ -222,7 +222,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::SearchEdgeSet()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::CheckNodeStatus()
 // checks a graph neighbor's status
 {
@@ -242,7 +242,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::CheckNodeStatus()
     }
 }
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::FindPath()
 {
   if( m_QS->m_SourceNodes.empty() )

@@ -76,10 +76,10 @@ namespace itk
  * \ingroup GeometricTransforms MultiThreaded
  */
 template <
-  class TInputImage,
-  class TOutputImage,
-  class TDisplacementField,
-  class TTransform
+  typename TInputImage,
+  typename TOutputImage,
+  typename TDisplacementField,
+  typename TTransform
   >
 class WarpTensorImageMultiTransformFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>

@@ -25,7 +25,7 @@
 #include "itkByteSwapper.h"
 
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 
 namespace itk
@@ -33,15 +33,15 @@ namespace itk
 //
 // Constructor
 //
-template <class TOutputMesh>
+template <typename TOutputMesh>
 LabeledPointSetFileReader<TOutputMesh>
 ::LabeledPointSetFileReader():
   m_ExtractBoundaryPoints( false ),
   m_FileName(),
   m_RandomPercentage(1.0),
   m_LabelSet(),
-  m_MultiComponentScalars(ITK_NULLPTR),
-  m_Lines(ITK_NULLPTR)
+  m_MultiComponentScalars(nullptr),
+  m_Lines(nullptr)
 {
   //
   // Create the output
@@ -51,7 +51,7 @@ LabeledPointSetFileReader<TOutputMesh>
   this->ProcessObject::SetNthOutput( 0, output.GetPointer() );
 }
 
-template <class TOutputMesh>
+template <typename TOutputMesh>
 void
 LabeledPointSetFileReader<TOutputMesh>
 ::GenerateData()
@@ -171,7 +171,7 @@ LabeledPointSetFileReader<TOutputMesh>
     }
 }
 
-template <class TOutputMesh>
+template <typename TOutputMesh>
 void
 LabeledPointSetFileReader<TOutputMesh>
 ::ReadPointsFromAvantsFile()
@@ -207,7 +207,7 @@ LabeledPointSetFileReader<TOutputMesh>
   inputFile.close();
 }
 
-template <class TOutputMesh>
+template <typename TOutputMesh>
 void
 LabeledPointSetFileReader<TOutputMesh>
 ::ReadVTKFile()
@@ -217,7 +217,7 @@ LabeledPointSetFileReader<TOutputMesh>
   this->ReadLinesFromVTKFile();
 }
 
-template <class TOutputMesh>
+template <typename TOutputMesh>
 void
 LabeledPointSetFileReader<TOutputMesh>
 ::ReadPointsFromVTKFile()
@@ -313,7 +313,7 @@ LabeledPointSetFileReader<TOutputMesh>
   inputFile.close();
 }
 
-template <class TOutputMesh>
+template <typename TOutputMesh>
 void
 LabeledPointSetFileReader<TOutputMesh>
 ::ReadScalarsFromVTKFile()
@@ -425,7 +425,7 @@ LabeledPointSetFileReader<TOutputMesh>
   inputFile.close();
 }
 
-template <class TOutputMesh>
+template <typename TOutputMesh>
 void
 LabeledPointSetFileReader<TOutputMesh>
 ::ReadLinesFromVTKFile()
@@ -519,7 +519,7 @@ LabeledPointSetFileReader<TOutputMesh>
   inputFile.close();
 }
 
-template <class TOutputMesh>
+template <typename TOutputMesh>
 void
 LabeledPointSetFileReader<TOutputMesh>
 ::ReadPointsFromImageFile()
@@ -596,7 +596,7 @@ LabeledPointSetFileReader<TOutputMesh>
     }
 }
 
-template <class TOutputMesh>
+template <typename TOutputMesh>
 void
 LabeledPointSetFileReader<TOutputMesh>
 ::PrintSelf( std::ostream& os, Indent indent ) const

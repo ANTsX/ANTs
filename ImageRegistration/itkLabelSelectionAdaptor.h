@@ -18,7 +18,7 @@ namespace Accessor
  * \ingroup ImageAdaptors
  * \ingroup ITKImageAdaptors
  */
-template< class TInternalType, class TExternalType >
+template< typename TInternalType, typename TExternalType >
 class ITK_EXPORT LabelSelectionPixelAccessor
 {
 public:
@@ -51,7 +51,7 @@ protected:
  * \ingroup ImageAdaptors
  * \ingroup ITKImageAdaptors
  */
-template< class TImage, class TOutputPixelType >
+template< typename TImage, typename TOutputPixelType >
 class ITK_EXPORT LabelSelectionImageAdaptor:public
   ImageAdaptor< TImage,
                 Accessor::LabelSelectionPixelAccessor<
@@ -79,12 +79,12 @@ public:
 	}
 
 protected:
-  LabelSelectionImageAdaptor() {}
-  virtual ~LabelSelectionImageAdaptor() ITK_OVERRIDE {}
+  LabelSelectionImageAdaptor() = default;
+  ~LabelSelectionImageAdaptor() override = default;
 
 private:
-  LabelSelectionImageAdaptor(const Self &); //purposely not implemented
-  void operator=(const Self &);  //purposely not implemented
+  LabelSelectionImageAdaptor(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

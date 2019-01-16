@@ -19,7 +19,7 @@ namespace itk
  * * \ingroup ITKImageFunction
  */
 
-template <typename TInputImage,template<class, typename> class TInterpolator, typename TCoordRep=double >
+template <typename TInputImage,template<typename, typename> class TInterpolator, typename TCoordRep=double >
 class LabelImageGenericInterpolateImageFunction :
   public InterpolateImageFunction<TInputImage, TCoordRep>
 {
@@ -38,7 +38,7 @@ public:
   itkNewMacro( Self );
 
   /** ImageDimension constant */
-  itkStaticConstMacro( ImageDimension, unsigned int, TInputImage::ImageDimension );
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** OutputType typedef support. */
   typedef typename Superclass::OutputType OutputType;
@@ -64,16 +64,16 @@ public:
    * Evaluate at the given index
    */
   OutputType EvaluateAtContinuousIndex(
-    const ContinuousIndexType & cindex ) const ITK_OVERRIDE
+    const ContinuousIndexType & cindex ) const override
     {
-    return this->EvaluateAtContinuousIndex( cindex, ITK_NULLPTR );
+    return this->EvaluateAtContinuousIndex( cindex, nullptr );
     }
 
-  void SetInputImage( const TInputImage *image ) ITK_OVERRIDE;
+  void SetInputImage( const TInputImage *image ) override;
 
 protected:
   LabelImageGenericInterpolateImageFunction();
-  virtual ~LabelImageGenericInterpolateImageFunction() ITK_OVERRIDE{};
+  ~LabelImageGenericInterpolateImageFunction() override= default;
 
 	std::vector<typename InternalInterpolatorType::Pointer> m_InternalInterpolators;
 	std::vector<typename LabelSelectionAdaptorType::Pointer> m_LabelSelectionAdaptors;
@@ -81,8 +81,8 @@ protected:
 	LabelSetType m_Labels;
 
 private:
-  LabelImageGenericInterpolateImageFunction( const Self& ); //purposely not implemented
-  void operator=( const Self& ); //purposely not implemented
+  LabelImageGenericInterpolateImageFunction( const Self& ) = delete;
+  void operator=( const Self& ) = delete;
 
   /**
    * Evaluate function value at the given index

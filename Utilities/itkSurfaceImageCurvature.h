@@ -58,7 +58,7 @@ public:
   typedef typename ImageType::SizeType            SizeType;
   typedef ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
   /** Image dimension. */
-  itkStaticConstMacro(SurfaceDimension, unsigned int, TSurface::ImageDimension);
+  static constexpr unsigned int SurfaceDimension = TSurface::ImageDimension;
 
   typedef typename Superclass::RealType   RealType;
   typedef typename Superclass::PointType  VectorType;
@@ -95,7 +95,7 @@ public:
     * The argument gives the number of times to apply the
     * mean shift algorithm to find the best neighborhood.
     */
-  void FindNeighborhood(unsigned int numMeanShifts = 0) ITK_OVERRIDE;
+  void FindNeighborhood(unsigned int numMeanShifts = 0) override;
 
   void  FindEuclideanNeighborhood(PointType p);
 
@@ -103,7 +103,7 @@ public:
 
   /** This applies one of the algorithms for finding the local curvature
       and frame.  The default is joshi. */
-  void ComputeFrameOverDomain(unsigned int which = 0) ITK_OVERRIDE;
+  void ComputeFrameOverDomain(unsigned int which = 0) override;
 
   ImageType * GetInput();
 
@@ -135,7 +135,7 @@ public:
   /** Implemented version of virtual function from parent class.
       Here, we just sum the computed function, held in CurvatureImage,
       over a neighborhood */
-  RealType IntegrateFunctionOverNeighborhood(bool norm = false) ITK_OVERRIDE;
+  RealType IntegrateFunctionOverNeighborhood(bool norm = false) override;
 
   /** Get the neighborhood integral for every surface point.*/
   RealType IntegrateFunctionOverSurface(bool norm = false);
@@ -240,9 +240,7 @@ public:
 protected:
 
   SurfaceImageCurvature();
-  virtual ~SurfaceImageCurvature() ITK_OVERRIDE
-  {
-  };
+  ~SurfaceImageCurvature() override = default;
 
   void CopyImageToFunctionImage( OutputImagePointer, OutputImagePointer);
 

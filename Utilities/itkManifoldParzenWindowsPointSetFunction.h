@@ -34,7 +34,7 @@ namespace itk
  * \brief point set filter.
  */
 
-template <class TPointSet, class TOutput = double, class TCoordRep = double>
+template <typename TPointSet, typename TOutput = double, typename TCoordRep = double>
 class ManifoldParzenWindowsPointSetFunction
   : public       PointSetFunction<TPointSet, TOutput, TCoordRep>
 {

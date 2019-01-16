@@ -29,8 +29,8 @@ int SmoothImage(int argc, char *argv[])
 
   std::vector<float> sigmaVector = ConvertVector<float>( argv[3] );
 
-  typename ImageType::Pointer image1 = ITK_NULLPTR;
-  typename ImageType::Pointer varimage = ITK_NULLPTR;
+  typename ImageType::Pointer image1 = nullptr;
+  typename ImageType::Pointer varimage = nullptr;
   ReadImage<ImageType>(image1, argv[2]);
 
   typedef itk::SmoothingRecursiveGaussianImageFilter<ImageType, ImageType> rgf;
@@ -42,12 +42,12 @@ int SmoothImage(int argc, char *argv[])
   bool usespacing = false;
   if( argc  >  5 )
     {
-    usespacing = atoi(argv[5]);
+    usespacing = std::stoi(argv[5]);
     }
   bool usemedian = false;
   if( argc  >  6 )
     {
-    usemedian = atoi(argv[6]);
+    usemedian = std::stoi(argv[6]);
     }
 
   if( !usemedian )
@@ -109,7 +109,7 @@ int SmoothImage(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int SmoothImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int SmoothImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -127,7 +127,7 @@ int SmoothImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -170,7 +170,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

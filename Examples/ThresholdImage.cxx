@@ -40,7 +40,7 @@
 
 namespace ants
 {
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 MultiplyImage(typename TImage::Pointer image1, typename TImage::Pointer image2)
 {
@@ -60,7 +60,7 @@ MultiplyImage(typename TImage::Pointer image1, typename TImage::Pointer image2)
   // if the dist is g.t. D then speed = 1
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   typename TImage::PixelType low,
   typename TImage::PixelType high,
@@ -90,7 +90,7 @@ typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   return inputThresholder->GetOutput();
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input)
@@ -151,7 +151,7 @@ LabelSurface(typename TImage::PixelType foreground,
   return Image;
 }
 
-template <class TImage, class TMaskImage>
+template <typename TImage, typename TMaskImage>
 typename TImage::Pointer OtsuThreshold(
   int NumberOfThresholds, typename TImage::Pointer input, typename TMaskImage::Pointer maskImage )
 {
@@ -271,7 +271,7 @@ typename TImage::Pointer OtsuThreshold(
 
 }
 
-template <class TImage, class TMaskImage>
+template <typename TImage, typename TMaskImage>
 typename TImage::Pointer KmeansThreshold(
   int NumberOfThresholds, typename TImage::Pointer input, typename TMaskImage::Pointer maskImage )
 {
@@ -443,7 +443,7 @@ int ThresholdImage( int argc, char * argv[] )
   typename FixedImageType::Pointer fixed;
   ReadImage<FixedImageType>( fixed, argv[2] );
 
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  typename MaskImageType::Pointer maskImage = nullptr;
   if( argc > 6 )
     {
     ReadImage<MaskImageType>( maskImage, argv[6] );
@@ -453,11 +453,11 @@ int ThresholdImage( int argc, char * argv[] )
   std::string threshtype = std::string(argv[4]);
   if( strcmp(threshtype.c_str(), "Otsu") == 0 )
     {
-    thresh = OtsuThreshold<FixedImageType, MaskImageType>( atoi( argv[5] ), fixed, maskImage );
+    thresh = OtsuThreshold<FixedImageType, MaskImageType>( std::stoi( argv[5] ), fixed, maskImage );
     }
   else if( strcmp(threshtype.c_str(), "Kmeans") == 0 )
     {
-    thresh = KmeansThreshold<FixedImageType, MaskImageType>( atoi( argv[5] ), fixed, maskImage );
+    thresh = KmeansThreshold<FixedImageType, MaskImageType>( std::stoi( argv[5] ), fixed, maskImage );
     }
   else
     {
@@ -483,7 +483,7 @@ int ThresholdImage( int argc, char * argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ThresholdImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ThresholdImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -501,7 +501,7 @@ int ThresholdImage( std::vector<std::string> args, std::ostream* /*out_stream = 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -546,7 +546,7 @@ private:
 
   // Get the image dimension
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

@@ -49,7 +49,7 @@ int CreateMosaic( unsigned int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef float                                   PixelType;
   typedef itk::Image<PixelType, ImageDimension>   ImageType;
@@ -89,8 +89,8 @@ int CreateMosaic( unsigned int argc, char *argv[] )
 
   unsigned long numberOfSlices = size[layout[0]];
 
-  int numberOfRows = vnl_math_min( static_cast<int>( layout[1] ), static_cast<int>( numberOfSlices ) );
-  int numberOfColumns = vnl_math_min( static_cast<int>( layout[2] ), static_cast<int>( numberOfSlices ) );
+  int numberOfRows = std::min( static_cast<int>( layout[1] ), static_cast<int>( numberOfSlices ) );
+  int numberOfColumns = std::min( static_cast<int>( layout[2] ), static_cast<int>( numberOfSlices ) );
 
   if( numberOfRows <= 0 && numberOfColumns > 0 )
     {
@@ -148,7 +148,7 @@ int CreateMosaic( unsigned int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int TileImages( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int TileImages( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -166,7 +166,7 @@ int TileImages( std::vector<std::string> args, std::ostream* /*out_stream = ITK_
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -229,7 +229,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  const int ImageDimension = static_cast<int>( atoi( argv[1] ) );
+  const int ImageDimension = static_cast<int>( std::stoi( argv[1] ) );
 
   if( ImageDimension == 3 && argc == 5 )
     {

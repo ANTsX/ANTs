@@ -75,8 +75,8 @@ public:
  * \ingroup IOFilters
  *
  */
-template <class TImage, class TVectorImage,
-          class ConvertPixelTraits = DefaultConvertPixelTraits<
+template <typename TImage, typename TVectorImage,
+          typename ConvertPixelTraits = DefaultConvertPixelTraits<
               ITK_TYPENAME TImage::IOPixelType> >
 class VectorImageFileReader : public ImageSource<TVectorImage>
 {

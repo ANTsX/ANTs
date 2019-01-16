@@ -50,7 +50,7 @@ namespace itk
  * \ingroup ImageSegmentation
  */
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 class WeightedVotingFusionImageFilter
 : public NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 {
@@ -67,7 +67,7 @@ public:
   itkNewMacro( Self );
 
   /** ImageDimension constants */
-  itkStaticConstMacro( ImageDimension, unsigned int, TInputImage::ImageDimension );
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
 
   /** Some convenient typedefs. */
@@ -131,7 +131,7 @@ public:
   /**
    * Add an atlas (multi-modal image + segmentation)
    */
-  void AddAtlas( InputImageList imageList, LabelImageType *segmentation = ITK_NULLPTR )
+  void AddAtlas( InputImageList imageList, LabelImageType *segmentation = nullptr )
     {
     for( unsigned int i = 0; i < imageList.size(); i++ )
       {
@@ -148,7 +148,7 @@ public:
       }
     this->m_NumberOfAtlases++;
 
-    if( segmentation != ITK_NULLPTR )
+    if( segmentation != nullptr )
       {
       this->m_AtlasSegmentations.push_back( segmentation );
       this->m_NumberOfAtlasSegmentations++;
@@ -211,7 +211,7 @@ public:
   itkGetConstMacro( Beta, RealType );
 
   /** Set the requested region */
-  void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
   /**
    * Boolean for retaining the posterior images. This can have a negative effect
@@ -261,13 +261,13 @@ public:
       else
         {
         itkDebugMacro( "Not returning a label posterior probability image.  Requested label not found." );
-        return ITK_NULLPTR;
+        return nullptr;
         }
       }
     else
       {
       itkDebugMacro( "Not returning a label posterior probability image.  These images were not saved." );
-      return ITK_NULLPTR;
+      return nullptr;
       }
     }
 
@@ -285,13 +285,13 @@ public:
       else
         {
         itkDebugMacro( "Not returning a voting weight image.  Requested index is greater than the number of atlases." );
-        return ITK_NULLPTR;
+        return nullptr;
         }
       }
     else
       {
       itkDebugMacro( "Not returning a voting weight image.  These images were not saved." );
-      return ITK_NULLPTR;
+      return nullptr;
       }
     }
 
@@ -307,24 +307,24 @@ public:
     else
       {
       itkDebugMacro( "Not returning a joint intensity fusion image.  Requested index is greater than the number of modalities." );
-      return ITK_NULLPTR;
+      return nullptr;
       }
     }
 
 protected:
 
   WeightedVotingFusionImageFilter();
-  virtual ~WeightedVotingFusionImageFilter() ITK_OVERRIDE {}
+  ~WeightedVotingFusionImageFilter() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void ThreadedGenerateData( const RegionType &, ThreadIdType ) ITK_OVERRIDE;
+  void ThreadedGenerateData( const RegionType &, ThreadIdType ) override;
 
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
-  void AfterThreadedGenerateData() ITK_OVERRIDE;
+  void AfterThreadedGenerateData() override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
 

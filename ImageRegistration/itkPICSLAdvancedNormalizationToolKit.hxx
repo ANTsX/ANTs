@@ -42,20 +42,20 @@
 
 // #include "itkJensenTsallisBSplineRegistrationFunction.h"
 
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 #include "ANTS_affine_registration2.h"
 
 namespace itk
 {
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::PICSLAdvancedNormalizationToolKit()
 {
   this->InitializeCommandLineOptions();
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::ParseCommandLine( int argc, char * *argv )
@@ -103,7 +103,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     }
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::InitializeTransformAndOptimizer()
@@ -123,7 +123,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   this->m_RegistrationOptimizer->SetSimilarityMetrics( this->m_SimilarityMetrics );
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::RunRegistration()
@@ -309,7 +309,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   this->m_TransformationModel->SetInverseDisplacementField(this->m_RegistrationOptimizer->GetInverseDisplacementField() );
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename PICSLAdvancedNormalizationToolKit<TDimension, TReal>::ImagePointer
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::PreprocessImage( ImagePointer image )
@@ -318,7 +318,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   return image;
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 typename PICSLAdvancedNormalizationToolKit<TDimension, TReal>::ImagePointer
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::ReplaceProblematicPixelValues( ImagePointer image, PixelType value)
@@ -327,7 +327,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
     PixelType pixel = It.Get();
-    if( vnl_math_isinf( pixel ) || vnl_math_isnan( pixel ) )
+    if( std::isinf( pixel ) || std::isnan( pixel ) )
       {
       It.Set( value );
       }
@@ -360,7 +360,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   for( It2.GoToBegin(); !It2.IsAtEnd(); ++It2 )
     {
     PixelType pixel = It2.Get();
-    if( vnl_math_isinf( pixel ) || vnl_math_isnan( pixel ) )
+    if( std::isinf( pixel ) || std::isnan( pixel ) )
       {
       It2.Set( value );
       }
@@ -372,7 +372,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 /**
  * Standard "PrintSelf" method
  */
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::PrintSelf( std::ostream& os, Indent indent) const
@@ -380,7 +380,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   Superclass::PrintSelf( os, indent );
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::ReadImagesAndMetrics()
@@ -676,8 +676,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         std::cout << "  Moving image file: "
                          << movingImageFileReader->GetFileName() << std::endl;
 
-        similarityMetric->SetFixedPointSet( ITK_NULLPTR);
-        similarityMetric->SetMovingPointSet( ITK_NULLPTR );
+        similarityMetric->SetFixedPointSet( nullptr);
+        similarityMetric->SetMovingPointSet( nullptr );
 
         if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {
@@ -920,7 +920,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     }
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::InitializeCommandLineOptions()

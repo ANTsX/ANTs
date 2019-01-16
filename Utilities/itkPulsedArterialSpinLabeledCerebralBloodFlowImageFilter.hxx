@@ -24,7 +24,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TReferenceImage, class TOutputImage>
+template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::PulsedArterialSpinLabeledCerebralBloodFlowImageFilter()
 {
@@ -39,7 +39,7 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
 
 }
 
-template <class TInputImage, class TReferenceImage, class TOutputImage>
+template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::PrintSelf(std::ostream & os, Indent indent) const
@@ -47,7 +47,7 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
   Superclass::PrintSelf(os, indent);
 }
 
-template <class TInputImage, class TReferenceImage, class TOutputImage>
+template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::SetDifferenceImage(const TInputImage* img)
@@ -55,7 +55,7 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
   this->SetNthInput(0, const_cast<TInputImage*>(img));
 }
 
-template <class TInputImage, class TReferenceImage, class TOutputImage>
+template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 typename TInputImage::ConstPointer
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::GetDifferenceImage()
@@ -64,7 +64,7 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
          ( this->ProcessObject::GetInput(0) );
 }
 
-template <class TInputImage, class TReferenceImage, class TOutputImage>
+template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::SetReferenceImage(const TReferenceImage* ref)
@@ -72,7 +72,7 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
   this->SetNthInput(1, const_cast<TReferenceImage*>(ref));
 }
 
-template <class TInputImage, class TReferenceImage, class TOutputImage>
+template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 typename TReferenceImage::ConstPointer
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::GetReferenceImage()
@@ -81,7 +81,7 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
          ( this->ProcessObject::GetInput(1) );
 }
 
-template <class TInputImage, class TReferenceImage, class TOutputImage>
+template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,

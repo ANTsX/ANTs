@@ -41,7 +41,7 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>
 template <typename TInputImage, typename TRealType, typename TOutputImage>
 void
 DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>
-::GenerateInputRequestedRegion() throw( InvalidRequestedRegionError )
+::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
   Superclass::GenerateInputRequestedRegion();

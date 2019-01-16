@@ -46,7 +46,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
   itk::SizeValueType numberOfRandomPoints = 1000;
   if( argc > 5 )
     {
-    numberOfRandomPoints = static_cast<itk::SizeValueType>( atoi( argv[5] ) );
+    numberOfRandomPoints = static_cast<itk::SizeValueType>( std::stoi( argv[5] ) );
     }
 
   RealType standardDeviationDisplacementField = 10.0;
@@ -58,7 +58,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
   bool enforceStationaryBoundary = true;
   if( argc > 7 )
     {
-    enforceStationaryBoundary = static_cast<bool>( atoi( argv[7] ) );
+    enforceStationaryBoundary = static_cast<bool>( std::stoi( argv[7] ) );
     }
 
   if( strcmp( argv[2], "BSpline" ) == 0 || strcmp( argv[2], "bspline" ) == 0 )
@@ -68,7 +68,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
     itk::SizeValueType numberOfFittingLevels = 4;
     if( argc > 8 )
       {
-      numberOfFittingLevels = static_cast<itk::SizeValueType>( atoi( argv[8] ) );
+      numberOfFittingLevels = static_cast<itk::SizeValueType>( std::stoi( argv[8] ) );
       }
 
     typename BSplineSimulatorType::ArrayType numberOfControlPoints;
@@ -113,7 +113,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
     RealType standardDeviationSmoothing = 10.0;
     if( argc > 8 )
       {
-      standardDeviationSmoothing = static_cast<RealType>( atoi( argv[8] ) );
+      standardDeviationSmoothing = static_cast<RealType>( std::stoi( argv[8] ) );
       }
 
     typedef itk::SimulatedExponentialDisplacementFieldSource<DisplacementFieldType> ExponentialSimulatorType;
@@ -137,7 +137,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int SimulateDisplacementField( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int SimulateDisplacementField( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -155,7 +155,7 @@ int SimulateDisplacementField( std::vector<std::string> args, std::ostream* /*ou
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -191,7 +191,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
    {
    case 2:
      return SimulateDisplacementField<2>( argc, argv );

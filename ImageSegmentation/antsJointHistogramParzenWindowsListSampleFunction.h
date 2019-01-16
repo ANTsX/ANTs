@@ -29,7 +29,7 @@ namespace Statistics
  * \brief
  */
 
-template <class TListSample, class TOutput = double, class TCoordRep = double>
+template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
 class JointHistogramParzenWindowsListSampleFunction
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {

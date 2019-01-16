@@ -22,7 +22,7 @@ static bool AverageAffineTransformNoRigid_ParseInput(int argc, char * *argv, cha
 
   output_transform_filename = argv[0];
 
-  reference_transform_filename = ITK_NULLPTR;
+  reference_transform_filename = nullptr;
 
   int ind = 1;
   while( ind < argc )
@@ -96,7 +96,7 @@ static bool AverageAffineTransformNoRigid_ParseInput(int argc, char * *argv, cha
     ind++;
     }
 
-//    if (reference_image_filename == ITK_NULLPTR) {
+//    if (reference_image_filename == nullptr) {
 //        std::cout << "the reference image file (-R) must be given!!!"
 //        << std::endl;
 //        return false;
@@ -228,7 +228,7 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int AverageAffineTransformNoRigid( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int AverageAffineTransformNoRigid( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -245,7 +245,7 @@ int AverageAffineTransformNoRigid( std::vector<std::string> args, std::ostream* 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -307,10 +307,10 @@ private:
 
   TRAN_OPT_QUEUE opt_queue;
 
-  char *output_transform_filename = ITK_NULLPTR;
-  char *reference_transform_filename = ITK_NULLPTR;
+  char *output_transform_filename = nullptr;
+  char *reference_transform_filename = nullptr;
 
-  int  kImageDim = atoi(argv[1]);
+  int  kImageDim = std::stoi(argv[1]);
 
   const bool is_parsing_ok = AverageAffineTransformNoRigid_ParseInput(argc - 2, argv + 2, output_transform_filename,
                                                            reference_transform_filename, opt_queue);

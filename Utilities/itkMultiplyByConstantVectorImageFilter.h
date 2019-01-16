@@ -34,7 +34,7 @@ namespace itk
  */
 namespace Functor
 {
-template <class TInput, class TConstantVector, class TOutput>
+template <typename TInput, typename TConstantVector, typename TOutput>
 class MultiplyByConstantVector
 {
 public:
@@ -84,7 +84,7 @@ public:
 };
 }
 
-template <class TInputImage, class TConstantVector, class TOutputImage>
+template <typename TInputImage, typename TConstantVector, typename TOutputImage>
 class MultiplyByConstantVectorImageFilter :
   public
   UnaryFunctorImageFilter<TInputImage, TOutputImage,

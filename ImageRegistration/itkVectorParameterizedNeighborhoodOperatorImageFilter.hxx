@@ -23,11 +23,10 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage, class TParamImage>
+template <typename TInputImage, typename TOutputImage, typename TParamImage>
 void
 VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TParamImage>
 ::GenerateInputRequestedRegion()
-throw (InvalidRequestedRegionError)
 {
   // call the superclass' implementation of this method. this should
   // copy the output requested region to the input requested region
@@ -76,7 +75,7 @@ throw (InvalidRequestedRegionError)
     }
 }
 
-template <class TInputImage, class TOutputImage, class TParamImage>
+template <typename TInputImage, typename TOutputImage, typename TParamImage>
 void
 VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TParamImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,

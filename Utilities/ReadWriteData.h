@@ -3,7 +3,7 @@
 #include "antsAllocImage.h"
 #include <iostream>
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include "itkVector.h"
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
@@ -34,13 +34,13 @@ extern bool ANTSFileExists(const std::string & strFilename);
 // the function below should be modified/eliminated.
 
 #if 1                           // currrently unimplemented
-template <class TImageType>
+template <typename TImageType>
 void NiftiDTICheck(itk::SmartPointer<TImageType> &, const char *, bool )
 {
 }
 
 #else
-template <class TImageType>
+template <typename TImageType>
 void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, bool makeLower)
 {
   typedef typename TImageType::PixelType PixType;
@@ -144,7 +144,7 @@ void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, boo
 
 #endif
 
-template <class TImageType>
+template <typename TImageType>
 void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, bool takelog = true)
 {
   if( !ANTSFileExists(std::string(file) ) )
@@ -208,7 +208,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
 
 }
 
-template <class TImageType>
+template <typename TImageType>
 // void ReadImage(typename TImageType::Pointer target, const char *file)
 bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
 {
@@ -271,7 +271,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
   return true;
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer ReadImage(char* fn )
 {
   // Read the image files begin
@@ -301,7 +301,7 @@ typename ImageType::Pointer ReadImage(char* fn )
   return target;
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
 {
   // Read the image files begin
@@ -336,7 +336,7 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
   return target;
 }
 
-template <class TPointSet>
+template <typename TPointSet>
 // void ReadImage(typename TPointSet::Pointer target, const char *file)
 bool ReadLabeledPointSet( itk::SmartPointer<TPointSet> & target, const char *file,
   bool boundaryPointsOnly = false, float samplingPercentage = 1.0 )
@@ -375,7 +375,7 @@ bool ReadLabeledPointSet( itk::SmartPointer<TPointSet> & target, const char *fil
   return true;
 }
 
-template <class TImage, class TMask, class TPointSet>
+template <typename TImage, typename TMask, typename TPointSet>
 bool ReadImageIntensityPointSet( itk::SmartPointer<TPointSet> & target, const char *imageFile,
   const char *maskFile, std::vector<unsigned int> neighborhoodRadius, double sigma )
 {
@@ -437,7 +437,7 @@ bool ReadImageIntensityPointSet( itk::SmartPointer<TPointSet> & target, const ch
   return true;
 }
 
-template <class TPointSet>
+template <typename TPointSet>
 typename TPointSet::Pointer ReadLabeledPointSet( char* fn )
 {
   if( !ANTSFileExists( std::string( fn ) ) )
@@ -466,7 +466,7 @@ typename TPointSet::Pointer ReadLabeledPointSet( char* fn )
   return target;
 }
 
-template <class TPointSet>
+template <typename TPointSet>
 bool WritePointSet( itk::SmartPointer<TPointSet> pointSet, const char *file )
 {
   if( std::string(file).length() < 3 )
@@ -488,7 +488,7 @@ bool WritePointSet( itk::SmartPointer<TPointSet> pointSet, const char *file )
   return true;
 }
 
-template <class TImageType>
+template <typename TImageType>
 bool WriteImage(const itk::SmartPointer<TImageType> image, const char *file)
 {
   if( std::string(file).length() < 3 )
@@ -527,7 +527,7 @@ bool WriteImage(const itk::SmartPointer<TImageType> image, const char *file)
   return true;
 }
 
-template <class TImageType>
+template <typename TImageType>
 void WriteTensorImage(itk::SmartPointer<TImageType> image, const char *file, bool takeexp = true)
 {
   typedef itk::ExpTensorImageFilter<TImageType, TImageType> ExpFilterType;
@@ -563,7 +563,7 @@ void WriteTensorImage(itk::SmartPointer<TImageType> image, const char *file, boo
     }
 }
 
-template <class TImage, class TField>
+template <typename TImage, typename TField>
 typename TField::Pointer
 ReadWarpFromFile( std::string warpfn, std::string ext)
 {
@@ -627,7 +627,7 @@ ReadWarpFromFile( std::string warpfn, std::string ext)
 
 
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 MakeNewImage(typename TImage::Pointer image1, typename TImage::PixelType initval )
 {
@@ -649,7 +649,7 @@ MakeNewImage(typename TImage::Pointer image1, typename TImage::PixelType initval
   return varimage;
 }
 
-template <class TField>
+template <typename TField>
 void
 WriteDisplacementField(TField* field, std::string filename)
 {
@@ -683,7 +683,7 @@ WriteDisplacementField(TField* field, std::string filename)
   return;
 }
 
-template <class TField>
+template <typename TField>
 void
 WriteDisplacementField2(TField* field, std::string filename, std::string app)
 {
@@ -716,7 +716,7 @@ WriteDisplacementField2(TField* field, std::string filename, std::string app)
   return;
 }
 
-template<class TTimeSeriesImageType, class MultiChannelImageType>
+template<typename TTimeSeriesImageType, typename MultiChannelImageType>
 typename MultiChannelImageType::Pointer
 ConvertTimeSeriesImageToMultiChannelImage( TTimeSeriesImageType *timeSeriesImage ) 
 {
@@ -781,7 +781,7 @@ ConvertTimeSeriesImageToMultiChannelImage( TTimeSeriesImageType *timeSeriesImage
   return multiChannelImage;
 }
 
-template<class MultiChannelImageType, class TimeSeriesImageType>
+template<typename MultiChannelImageType, typename TimeSeriesImageType>
 typename TimeSeriesImageType::Pointer
 ConvertMultiChannelImageToTimeSeriesImage( MultiChannelImageType *multiChannelImage ) 
 {
@@ -850,12 +850,12 @@ class nullBuf
 : public std::streambuf
 {
 public:
-  virtual std::streamsize xsputn( const char * itkNotUsed( s ), std::streamsize n )
+  std::streamsize xsputn( const char * itkNotUsed( s ), std::streamsize n ) override
     {
     return n;
     }
 
-  virtual int overflow( int itkNotUsed( c ) )
+  int overflow( int itkNotUsed( c ) ) override
     {
     return 1;
     }

@@ -60,9 +60,9 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
   float       minSize = clusterthresh;
   float       valuethresh = atof(argv[6]);
   //  std::cout << " Cth " << clusterthresh << " Vth " << valuethresh << std::endl;
-  typename ImageType::Pointer valimage = ITK_NULLPTR;
-  typename ImageType::Pointer roiimage = ITK_NULLPTR;
-  typename ImageType::Pointer labelimage = ITK_NULLPTR;
+  typename ImageType::Pointer valimage = nullptr;
+  typename ImageType::Pointer roiimage = nullptr;
+  typename ImageType::Pointer labelimage = nullptr;
 
   ReadImage<ImageType>(roiimage, roimaskfn.c_str() );
   ReadImage<ImageType>(labelimage, labelimagefn.c_str() );
@@ -107,7 +107,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     typename RelabelType::Pointer relabel = RelabelType::New();
 
     filter->SetInput( thresh );
-    int fullyConnected = 0; // atoi( argv[5] );
+    int fullyConnected = 0; // std::stoi( argv[5] );
     filter->SetFullyConnected( fullyConnected );
     relabel->SetInput( filter->GetOutput() );
     relabel->SetMinimumObjectSize( (unsigned int) minSize );
@@ -282,7 +282,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ClusterImageStatistics( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int ClusterImageStatistics( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -299,7 +299,7 @@ int ClusterImageStatistics( std::vector<std::string> args, std::ostream* /*out_s
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -347,7 +347,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

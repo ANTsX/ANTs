@@ -48,9 +48,9 @@ namespace itk
  * \ingroup PointSetFunctions
  */
 template <
-  class TInputPointSet,
-  class TOutput,
-  class TCoordRep = float
+  typename TInputPointSet,
+  typename TOutput,
+  typename TCoordRep = float
   >
 class PointSetFunction :
   public         FunctionBase<typename TInputPointSet::PointType, TOutput>
@@ -113,8 +113,8 @@ protected:
   /** Const pointer to the input image. */
   InputPointSetConstPointer m_PointSet;
 private:
-  PointSetFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);   // purposely not implemented
+  PointSetFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 
