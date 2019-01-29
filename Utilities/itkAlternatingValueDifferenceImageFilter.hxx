@@ -34,6 +34,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
   m_LabelInterpolator = dynamic_cast< InterpolatorType * >
                    ( DefaultInterpolatorType::New().GetPointer() );
   m_IndexPadding = 1;
+  this->DynamicMultiThreadingOff();
 }
 
 template <typename TInputImage, typename TOutputImage>

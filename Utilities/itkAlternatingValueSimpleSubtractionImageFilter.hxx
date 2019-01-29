@@ -29,6 +29,7 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 ::AlternatingValueSimpleSubtractionImageFilter()
 {
   m_SubtractionDimension = InputImageDimension - 1;
+  this->DynamicMultiThreadingOff();
 }
 
 template <typename TInputImage, typename TOutputImage>
