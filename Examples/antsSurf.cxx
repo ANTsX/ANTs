@@ -176,7 +176,7 @@ void Display( vtkPolyData *vtkMesh,
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
     vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput( renderWindow );
-    windowToImageFilter->SetMagnification( 5 );
+    windowToImageFilter->SetScale( 5 );
     windowToImageFilter->Update();
 
     vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
