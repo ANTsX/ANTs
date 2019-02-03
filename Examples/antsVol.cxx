@@ -366,7 +366,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
     {
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput( renderWindow );
-    windowToImageFilter->SetMagnification( magnificationFactor );
+    windowToImageFilter->SetScale( magnificationFactor );
     windowToImageFilter->SetInputBufferTypeToRGBA();
     windowToImageFilter->Update();
 
