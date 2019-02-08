@@ -257,14 +257,21 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
         parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
       {
-      if( verbose )
-        {
-        std::cerr << "An input image is required." << std::endl;
+      // Here we have no input image, valid usage is
+      // -o [warp.nii.gz, 1] or -o Linear[affine.mat, 0]  
+      // Exit failure with -o [outputImage.nii.gz,0] but no input to warp
+      std::string outputOptionName = outputOption->GetFunction( 0 )->GetName();
+      ConvertToLowerCase( outputOptionName );
+      if( std::strcmp( outputOptionName.c_str(), "linear" ) )
+        {      
+        if( verbose )
+          {
+          std::cerr << "An input image is required." << std::endl;
+          }
+        return EXIT_FAILURE;
         }
-      return EXIT_FAILURE;
       }
     }
-
   /**
    * Reference image option
    */
