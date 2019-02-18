@@ -5963,7 +5963,7 @@ int TensorFunctions(int argc, char *argv[])
     {
     // Might be a file or a number for whichvec
     fn2 = std::string(argv[argct]);
-    try 
+    try
       {
       whichvec = std::stoi(fn2.c_str() );
       }
@@ -5973,7 +5973,7 @@ int TensorFunctions(int argc, char *argv[])
       }
     argct++;
     }
-  
+
   if ( argc > argct )
     {
     // Throws exception if arg is not a valid float
@@ -10931,7 +10931,8 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
   int argct = 2;
   if( argc < 5 )
     {
-    // std::cout << " need more args -- see usage   " << std::endl;  throw std::exception();
+    // std::cout << " need more args -- see usage   " << std::endl;
+    throw std::exception();
     }
   const std::string outname = std::string(argv[argct]);
   std::string       ext = itksys::SystemTools::GetFilenameExtension( outname );
@@ -10977,11 +10978,15 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
   unsigned long xx1 = 0, yy1 = 0;
   if( rowcoloption == 0 )
     {
-    // std::cout << " row option " << std::endl;  xx1 = voxct;  yy1 = numberofimages;
+    // std::cout << " row option " << std::endl;
+    xx1 = voxct;
+    yy1 = numberofimages;
     }
   if( rowcoloption == 1 )
     {
-    // std::cout << " col option " << std::endl;  yy1 = voxct;  xx1 = numberofimages;
+    // std::cout << " col option " << std::endl;
+    yy1 = voxct;
+    xx1 = numberofimages;
     }
   unsigned long xsize = xx1;
   unsigned long ysize = yy1;
@@ -11036,7 +11041,14 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( outname );
     writer->SetInput( &matrix );
-    writer->SetColumnHeaders( ColumnHeaders );
+    if( rowcoloption == 0 )
+      {
+      writer->SetRowHeaders( ColumnHeaders );
+      }
+    if( rowcoloption == 1 )
+      {
+      writer->SetColumnHeaders( ColumnHeaders );
+      }
     try
       {
       writer->Write();
