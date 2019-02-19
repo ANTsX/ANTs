@@ -1,4 +1,5 @@
 #!/bin/bash
+set -f
 usage=" $0 -d 3 -f symmetric_template.nii.gz -m moving.nii.gz -o output_prefix "
 :<<supercalifragilisticexpialidocious
 

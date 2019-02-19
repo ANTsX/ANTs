@@ -2,6 +2,8 @@
 
 VERSION="0.0"
 
+set -f
+
 if [[ ! -s ${ANTSPATH}/N4BiasFieldCorrection ]]; then
   echo we cant find the N4 program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
   exit

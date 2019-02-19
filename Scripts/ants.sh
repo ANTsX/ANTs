@@ -1,4 +1,5 @@
 #!/bin/bash
+set -f
 
 NUMPARAMS=$#
 

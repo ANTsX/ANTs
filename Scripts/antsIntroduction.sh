@@ -5,6 +5,8 @@ VERSION="0.0.8 dev"
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
 
+set -f
+
 function setPath {
     cat <<SETPATH
 
@@ -728,6 +730,7 @@ ${ANTSPATH}/ImageMath $DIM ${OUTPUTNAME}dicestats.txt DiceAndMinDistSum  ${OUTPU
 fi
 
 # save output in starting dir - remove inputs, then remove tempdir
+set +f
 rm `basename ${FIXED}`
 rm `basename ${MOVING}`
 cp * ../

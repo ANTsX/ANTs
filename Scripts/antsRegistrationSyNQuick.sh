@@ -5,6 +5,8 @@ VERSION="0.0.0 test"
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
 
+set -f
+
 function setPath {
     cat <<SETPATH
 
