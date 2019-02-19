@@ -65,6 +65,13 @@ if [[ $fle_error = 1 ]];
     exit 1
   fi
 
+if [[ `echo ?` != '?' ]];
+  then
+    echo "*** The following file(s) were found in the current directory ($PWD): `echo ?`"
+    echo "The presence of files named with a single character may cause failures later."
+    echo "Aborting for safety."
+    exit 1;
+  fi
 
 #assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
 

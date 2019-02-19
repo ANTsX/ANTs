@@ -210,6 +210,14 @@ function logCmd() {
   return $cmdExit
 }
 
+if [[ `echo ?` != '?' ]];
+  then
+    echo "*** The following file(s) were found in the current directory ($PWD): `echo ?`"
+    echo "The presence of files named with a single character may cause failures later."
+    echo "Aborting for safety."
+    exit 1;
+  fi
+
 ################################################################################
 #
 # Main routine
