@@ -231,7 +231,7 @@ if [[ ! -d $OUTPUT_DIR ]];
 
 
 ANTS_MAX_ITERATIONS="50x50x0"
-ANTS_TRANSFORMATION="SyN[0.1,3,0]"
+ANTS_TRANSFORMATION="SyN[ 0.1,3,0]"
 ANTS_LINEAR_METRIC="MI"
 ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
 ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x0,1e-7,5]"
@@ -242,18 +242,18 @@ ANTS_TRANS2=""
 
 if [ ${TRANSFORM_TYPE} -eq 0 ];
 then
-    ANTS_TRANS1="Rigid[0.1]"
+    ANTS_TRANS1="Rigid[ 0.1]"
 elif [ ${TRANSFORM_TYPE} -eq 1 ];
 then
-   ANTS_TRANS1="Affine[0.1]"
+   ANTS_TRANS1="Affine[ 0.1]"
 elif [ ${TRANSFORM_TYPE} -eq 2 ];
 then
-    ANTS_TRANS1="Rigid[0.1]"
-    ANTS_TRANS2="SyN[0.1,3,0]"
+    ANTS_TRANS1="Rigid[ 0.1]"
+    ANTS_TRANS2="SyN[ 0.1,3,0]"
 elif [ ${TRANSFORM_TYPE} -eq 3 ];
 then
-   ANTS_TRANS1="Affine[0.1]"
-   ANTS_TRANS2="SyN[0.1,3,0]"
+   ANTS_TRANS1="Affine[ 0.1]"
+   ANTS_TRANS2="SyN[ 0.1,3,0]"
 fi
 
 echoParameters >&2
