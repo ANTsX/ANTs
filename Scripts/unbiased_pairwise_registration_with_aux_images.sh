@@ -135,10 +135,10 @@ initB=${prefix}_initB
 if [[ ! -s ${nm}1Warp.nii.gz ]]  ; then
 $reg -d $dim -r [ $A, $B, 1 ]   \
                         -m mattes[  $A, $B , $metparams ] $aff -z 1 \
-                       -o [${initA}]
+                       -o [ ${initA}]
 $reg -d $dim -r [ $B, $A, 1 ] \
                         -m mattes[  $B, $A , $metparams  ] $aff -z 1 \
-                       -o [${initB}]
+                       -o [ ${initB}]
 # get the identity map
 ComposeMultiTransform $dim ${initA}_id.mat -R ${initA}0GenericAffine.mat  ${initA}0GenericAffine.mat -i ${initA}0GenericAffine.mat
 # invert the 2nd affine registration map
@@ -154,11 +154,11 @@ antsApplyTransforms -d $dim -i $B -o ${prefix}_mid.nii.gz -t  ${prefix}_mid.mat 
 # compute the map from A to midpoint(B,A) --- "fair" interpolation
 $reg -d $dim  \
                         -m mattes[  ${prefix}_mid.nii.gz, $A, $metparams  ] $aff \
-                       -o [${nmA},${nmA}_aff.nii.gz]
+                       -o [ ${nmA},${nmA}_aff.nii.gz]
 # compute the map from B to midpoint(B,A) --- "fair" interpolation
 $reg -d $dim  \
                         -m mattes[  ${nmA}_aff.nii.gz, $B, $metparams ] $aff \
-                       -o [${nmB},${nmB}_aff.nii.gz]
+                       -o [ ${nmB},${nmB}_aff.nii.gz]
 
 # now we can do a symmetric deformable mapping
 N3BiasFieldCorrection $dim $A ${nm}_n3_a.nii.gz 4 
@@ -170,19 +170,19 @@ N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
     $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
                          -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
-                         -c [${synits},1.e-8,10]  \
+                         -c [ ${synits},1.e-8,10]  \
                         -s 1x0 \
                         -f 2x1 \
                        -u $uval -b 0 -z 1 \
-                       -o [${nm},${nm}_diff_symm.nii.gz]
+                       -o [ ${nm},${nm}_diff_symm.nii.gz]
 #    $reg -d $dim  --initial-fixed-transform $initBmat  --initial-moving-transform $initAmat \
 #                         -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
 #                         -t syn[ 0.25, 3, 0.5 ] \
-#                         -c [${synits},1.e-8,10]  \
+#                         -c [ ${synits},1.e-8,10]  \
 #                        -s 1x0 \
 #                        -f 2x1 \
 #                       -u $uval -b 0 -z 1 \
-#                       -o [${nminv},${nminv}_diff_symm.nii.gz]
+#                       -o [ ${nminv},${nminv}_diff_symm.nii.gz]
   else
     echo  $initBmat and $initAmat DO NOT exist
     exit
@@ -198,19 +198,19 @@ rm ${nm}tempWarp.nii.gz
     $reg -d $dim  --initial-moving-transform $initBmat \
                          -m mattes[  ${nm}_avg.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
-                         -c [${synits},1.e-8,10]  \
+                         -c [ ${synits},1.e-8,10]  \
                         -s 1x0 \
                         -f 2x1 \
                        -u $uval -b 0 -z 1 \
-                       -o [${nm}_B,${nm}_B_symm.nii.gz]
+                       -o [ ${nm}_B,${nm}_B_symm.nii.gz]
     $reg -d $dim  --initial-moving-transform $initAmat \
                          -m mattes[  ${nm}_avg.nii.gz, ${nm}_n3_a.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
-                         -c [${synits},1.e-8,10]  \
+                         -c [ ${synits},1.e-8,10]  \
                         -s 1x0 \
                         -f 2x1 \
                        -u $uval -b 0 -z 1 \
-                       -o [${nm}_A,${nm}_A_symm.nii.gz]
+                       -o [ ${nm}_A,${nm}_A_symm.nii.gz]
   else 
     echo  $initBmat and $initAmat DO NOT exist 
     exit
@@ -234,10 +234,10 @@ if [[ -s $template ]] && [[ ! -s  ${nm}_gt_0GenericAffine.mat ]] ; then
                         -f 4x2x1 -l 1 \
                         -m cc[  $imgs , 1 , 4 ] \
                          -t syn[ .2, 3, 0.0 ] \
-                         -c [100x50x20,1.e-8,20]  \
+                         -c [ 100x50x20,1.e-8,20]  \
                         -s 2x1x0vox  \
                         -f 4x2x1 -l 1 -u 0 -z 1 \
-                       -o [${nm}_gt_,${nm}_gt.nii.gz]
+                       -o [ ${nm}_gt_,${nm}_gt.nii.gz]
 
   # map brain mask to subject space T1
   trans=" -t [ $initAmat, 1 ] -t ${nm}_A1InverseWarp.nii.gz -t [ ${nm}_gt_0GenericAffine.mat, 1] -t  ${nm}_gt_1InverseWarp.nii.gz "
@@ -271,11 +271,11 @@ MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
     $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
                          -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
-                         -c [${synits},1.e-8,10]  \
+                         -c [ ${synits},1.e-8,10]  \
                         -s 1x0 \
                         -f 2x1 \
                        -u $uval -b 0 -z 1 \
-                       -o [${nm},${nm}_diff_symm.nii.gz]
+                       -o [ ${nm},${nm}_diff_symm.nii.gz]
   else
     echo  $initBmat and $initAmat DO NOT exist
     exit
@@ -294,40 +294,40 @@ if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then
   $reg -d $dim  \
                         -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t rigid[ 0.1 ] \
-                         -c [1000x1000x5,1.e-7,20]  \
-                        -s 4x2x1mm  -x [${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x1000x5,1.e-7,20]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t affine[ 0.1 ] \
-                         -c [1000x25,1.e-7,20]  \
-                        -s 2x1mm  -x [${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x25,1.e-7,20]  \
+                        -s 2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
                         -f 2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [$synits,1.e-7,20]  \
-                        -s 4x2x1mm -x [${nm}_bm_A.nii.gz] \
+                         -c [ $synits,1.e-7,20]  \
+                        -s 4x2x1mm -x [ ${nm}_bm_A.nii.gz] \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
-                       -o [${nm}_ffa,${nm}_ffa_distcorr.nii.gz]
+                       -o [ ${nm}_ffa,${nm}_ffa_distcorr.nii.gz]
   imgs=" ${nm}_B_brain.nii.gz, $mfa "
   $reg -d $dim  \
                          -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t rigid[ 0.1 ] \
-                         -c [1000x1000x5,1.e-7,20]  \
-                        -s 4x2x1mm  -x [${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x1000x5,1.e-7,20]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                         -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t affine[ 0.1 ] \
-                         -c [1000x25,1.e-7,20]  \
-                        -s 2x1mm  -x [${nm}_bm_B.nii.gz]  \
+                         -c [ 1000x25,1.e-7,20]  \
+                        -s 2x1mm  -x [ ${nm}_bm_B.nii.gz]  \
                         -f 2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [$synits,1.e-7,20]  \
-                        -s 4x2x1mm  -x [${nm}_bm_B.nii.gz] \
+                         -c [ $synits,1.e-7,20]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_B.nii.gz] \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
-                        -o [${nm}_mfa,${nm}_mfa_distcorr.nii.gz]
+                        -o [ ${nm}_mfa,${nm}_mfa_distcorr.nii.gz]
 #
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat -t ${nm}_A1Warp.nii.gz -t  $initAmat -t ${nm}_ffa1Warp.nii.gz -t ${nm}_ffa0GenericAffine.mat "
 antsApplyTransforms -d $dim -i $ffa -o  ${nm}_ffanorm.nii.gz  -r $template $trans
@@ -353,40 +353,40 @@ if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then
   $reg -d $dim  \
                         -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t rigid[ 0.1 ] \
-                         -c [1000x1000x5,1.e-7,20]  \
-                        -s 4x2x1mm  -x [${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x1000x5,1.e-7,20]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t affine[ 0.1 ] \
-                         -c [1000x25,1.e-7,20]  \
-                        -s 2x1mm  -x [${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x25,1.e-7,20]  \
+                        -s 2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
                         -f 2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [$synits,1.e-7,20]  \
-                        -s 4x2x1mm -x [${nm}_bm_A.nii.gz] \
+                         -c [ $synits,1.e-7,20]  \
+                        -s 4x2x1mm -x [ ${nm}_bm_A.nii.gz] \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
-                       -o [${nm}_fcbf,${nm}_fcbf_distcorr.nii.gz]
+                       -o [ ${nm}_fcbf,${nm}_fcbf_distcorr.nii.gz]
   imgs=" ${nm}_B_brain.nii.gz, $mcbf "
   $reg -d $dim  \
                          -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t rigid[ 0.1 ] \
-                         -c [1000x1000x5,1.e-7,20]  \
-                        -s 4x2x1mm  -x [${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x1000x5,1.e-7,20]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                         -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t affine[ 0.1 ] \
-                         -c [1000x25,1.e-7,20]  \
-                        -s 2x1mm  -x [${nm}_bm_B.nii.gz]  \
+                         -c [ 1000x25,1.e-7,20]  \
+                        -s 2x1mm  -x [ ${nm}_bm_B.nii.gz]  \
                         -f 2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [$synits,1.e-7,20]  \
-                        -s 4x2x1mm  -x [${nm}_bm_B.nii.gz] \
+                         -c [ $synits,1.e-7,20]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_B.nii.gz] \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
-                        -o [${nm}_mcbf,${nm}_mcbf_distcorr.nii.gz]
+                        -o [ ${nm}_mcbf,${nm}_mcbf_distcorr.nii.gz]
 #
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat -t ${nm}_A1Warp.nii.gz  -t  $initAmat -t ${nm}_fcbf1Warp.nii.gz -t ${nm}_fcbf0GenericAffine.mat "
 exe1="antsApplyTransforms -d $dim -i $fcbf -o  ${nm}_fcbfnorm.nii.gz  -r $template $trans"
@@ -405,9 +405,9 @@ echo done with 2nd aux images --- now get final jacobians
 # get final jacobian values 
 # trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat  -t ${nm}_A1Warp.nii.gz  -t  $initAmat"
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat                       -t  $initAmat"
-antsApplyTransforms -d $dim -i ${nm}_A_brain.nii.gz -o  [${nm}_A_fullWarp.nii.gz, 1 ]  -r $template $trans
+antsApplyTransforms -d $dim -i ${nm}_A_brain.nii.gz -o  [ ${nm}_A_fullWarp.nii.gz, 1 ]  -r $template $trans
 ANTSJacobian $dim ${nm}_A_fullWarp.nii.gz ${nm}_A_full 1 no 0
 #
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat -t ${nm}_B1Warp.nii.gz  -t  $initBmat"
-antsApplyTransforms -d $dim -i ${nm}_B_brain.nii.gz -o  [${nm}_B_fullWarp.nii.gz, 1 ]  -r $template $trans
+antsApplyTransforms -d $dim -i ${nm}_B_brain.nii.gz -o  [ ${nm}_B_fullWarp.nii.gz, 1 ]  -r $template $trans
 ANTSJacobian $dim ${nm}_B_fullWarp.nii.gz ${nm}_B_full 1 no 0

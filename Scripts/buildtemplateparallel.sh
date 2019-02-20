@@ -958,7 +958,7 @@ if [ "$RIGID" -eq 1 ] ;
 
       BASENAME=` echo ${IMG} | cut -d '.' -f 1 `
 
-      exe=" ${ANTSPATH}/ANTS $DIM -m MI[${TEMPLATE},${IMG},1,32] -o rigid_${IMG} -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 $RIGIDTYPE"
+      exe=" ${ANTSPATH}/ANTS $DIM -m MI[ ${TEMPLATE},${IMG},1,32] -o rigid_${IMG} -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 $RIGIDTYPE"
       exe2="${ANTSPATH}/WarpImageMultiTransform $DIM ${IMG} rigid_${IMG} rigid_${BASENAME}Affine${afftype} -R ${TEMPLATE}"
       pexe=" $exe >> job_${count}_metriclog.txt "
 

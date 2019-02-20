@@ -90,12 +90,12 @@ then
 fi
 
 # Mapping Parameters
-  TRANSFORMATION=SyN[0.25]
+  TRANSFORMATION=SyN[ 0.25]
   ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
   NUMLEVELS=${#ITERATLEVEL[@]}
   echo $NUMLEVELS
-  REGULARIZATION=Gauss[3,0]
-  METRIC=CC[
+  REGULARIZATION=Gauss[ 3,0]
+  METRIC="CC[ "
     METRICPARAMS=1,4]
 # echo " $METRICPARAMS  &  $METRIC "
 # exit
@@ -116,7 +116,7 @@ echo " "
 
 
 if [[ ! -s ${OUTPUTNAME}repaired.nii.gz ]] ; then
-${ANTSPATH}/N4BiasFieldCorrection -d $DIM -i $MOVING -o ${OUTPUTNAME}repaired.nii.gz -s 2 -c [50x50x50x50,0.000001] -b [200]
+${ANTSPATH}/N4BiasFieldCorrection -d $DIM -i $MOVING -o ${OUTPUTNAME}repaired.nii.gz -s 2 -c [ 50x50x50x50,0.000001] -b [ 200]
 # ${ANTSPATH}/N3BiasFieldCorrection $DIM $MOVING   ${OUTPUTNAME}repaired.nii.gz  4
 fi
 exe=" ${ANTSPATH}/ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii.gz,${METRICPARAMS}  -t $TRANSFORMATION  -r $REGULARIZATION -o ${OUTPUTNAME}   -i $MAXITERATIONS   --use-Histogram-Matching  --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000  "
