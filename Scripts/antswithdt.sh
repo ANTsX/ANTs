@@ -97,12 +97,12 @@ fi
 
 
 # Mapping Parameters
-  TRANSFORMATION=SyN[0.25]
+  TRANSFORMATION=SyN[ 0.25]
   ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
   NUMLEVELS=${#ITERATLEVEL[@]}
   echo $NUMLEVELS
-  REGULARIZATION=Gauss[3,0]
-  METRIC=CC[
+  REGULARIZATION=Gauss[ 3,0]
+  METRIC="CC[ "
   METRICPARAMS=1,2]
 #echo " $METRICPARAMS  &  $METRIC "
 #exit
@@ -124,7 +124,7 @@ echo " "
 
 # first, do distortion correction of MOVINGDT to MOVING
 # use the B0 image
-${ANTSPATH}/ANTS 3 -m CC[${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[3,0] -t SyN[0.25]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
+${ANTSPATH}/ANTS 3 -m CC[ ${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[ 3,0] -t SyN[ 0.25]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
 
 ${ANTSPATH}/WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii.gz ${OUTPUTNAME}distcorrWarp.nii.gz ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
 #exit

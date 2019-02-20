@@ -129,14 +129,14 @@ Optional arguments:
 
                                                 Intuitively, smaller lambda values will increase the spatial capture
                                                 range of the distance prior.  To apply to all label values, simply omit
-                                                specifying the label, i.e. -l [lambda,boundaryProbability].
+                                                specifying the label, i.e. -l [ lambda,boundaryProbability].
      -c                                         Add prior combination to combined gray and white matters.  For example,
                                                 when calling KK for normal subjects, we combine the deep gray matter
                                                 segmentation/posteriors with the white matter segmentation/posteriors.
                                                 An additional example would be performing cortical thickness in the presence
                                                 of white matter lesions.  We can accommodate this by specifying a lesion mask
                                                 posterior as an additional posterior (suppose label '7'), and then combine
-                                                this with white matter by specifying '-c WM[7]' or '-c 3[7]'.
+                                                this with white matter by specifying '-c WM[ 7]' or '-c 3[ 7]'.
      -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
                                                 during brain extraction, brain segmentation, and (optional) normalization
                                                 to a template.  Otherwise use antsRegistrationSyN.sh (default = 0).
@@ -328,33 +328,33 @@ ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.25
 
 ANTS=${ANTSPATH}/antsRegistration
 ANTS_MAX_ITERATIONS="100x100x70x20"
-ANTS_TRANSFORMATION="SyN[0.1,3,0]"
+ANTS_TRANSFORMATION="SyN[ 0.1,3,0]"
 ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
-ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
+ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x100,1e-8,10]"
 ANTS_METRIC="CC"
 ANTS_METRIC_PARAMS="1,4"
 
 WARP=${ANTSPATH}/antsApplyTransforms
 
 N4=${ANTSPATH}/N4BiasFieldCorrection
-N4_CONVERGENCE_1="[50x50x50x50,0.0000001]"
-N4_CONVERGENCE_2="[50x50x50x50,0.0000001]"
+N4_CONVERGENCE_1="[ 50x50x50x50,0.0000001]"
+N4_CONVERGENCE_2="[ 50x50x50x50,0.0000001]"
 N4_SHRINK_FACTOR_1=4
 N4_SHRINK_FACTOR_2=2
-N4_BSPLINE_PARAMS="[200]"
+N4_BSPLINE_PARAMS="[ 200]"
 
 ATROPOS=${ANTSPATH}/Atropos
 
 ATROPOS_SEGMENTATION_INITIALIZATION="PriorProbabilityImages"
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
-ATROPOS_SEGMENTATION_CONVERGENCE="[5,0.0]"
-ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[1]"
+ATROPOS_SEGMENTATION_CONVERGENCE="[ 5,0.0]"
+ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[ 1]"
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=3
 ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=5 # to be backward compatible but i like 25
 ATROPOS_SEGMENTATION_LABEL_PROPAGATION=()
 
 DIRECT=${ANTSPATH}/KellyKapowski
-DIRECT_CONVERGENCE="[45,0.0,10]"
+DIRECT_CONVERGENCE="[ 45,0.0,10]"
 DIRECT_THICKNESS_PRIOR="10"
 DIRECT_GRAD_STEP_SIZE="0.025"
 DIRECT_SMOOTHING_PARAMETER="1.5"
@@ -467,7 +467,7 @@ fi
 
 if [[ $USE_BSPLINE_SMOOTHING -ne 0 ]];
   then
-    ANTS_TRANSFORMATION="BSplineSyN[0.1,26,0,3]"
+    ANTS_TRANSFORMATION="BSplineSyN[ 0.1,26,0,3]"
     DIRECT_SMOOTHING_PARAMETER="5.75"
   fi
 
@@ -482,14 +482,14 @@ if [[ $DEBUG_MODE -gt 0 ]];
     # certain things are hard coded elsewhere, eg number of levels
 
     ANTS_MAX_ITERATIONS="40x40x20x0"
-    ANTS_LINEAR_CONVERGENCE="[100x100x50x0,1e-8,10]"
+    ANTS_LINEAR_CONVERGENCE="[ 100x100x50x0,1e-8,10]"
     ANTS_METRIC_PARAMS="1,2"
 
     # I think this is the number of times we run the whole N4 / Atropos thing, at the cost of about 10 minutes a time
     ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=1
     ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=5 # internal to atropos
 
-    DIRECT_CONVERGENCE="[5,0.0,10]"
+    DIRECT_CONVERGENCE="[ 5,0.0,10]"
 
     # Fix random seed to replicate exact results on each run
     USE_RANDOM_SEEDING=0
@@ -830,17 +830,17 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
                     basecall="${basecall} -p f"
                   fi
             else
-              basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.0,0.999] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
+              basecall="${ANTS} -d ${DIMENSION} -u 1 -w [ 0.0,0.999] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
               IMAGES="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
               if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
                 then
-                  basecall="${basecall} -r [${EXTRACTION_GENERIC_AFFINE},1]"
+                  basecall="${basecall} -r [ ${EXTRACTION_GENERIC_AFFINE},1]"
                 else
-                  basecall="${basecall} -r [${IMAGES},1]"
+                  basecall="${basecall} -r [ ${IMAGES},1]"
                 fi
-              basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
-              stage1="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
-              stage2="-m CC[${IMAGES},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+              basecall="${basecall} -x [ ${SEGMENTATION_MASK_DILATED}]"
+              stage1="-m MI[ ${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[ 0.1] -f 8x4x2x1 -s 4x2x1x0"
+              stage2="-m CC[ ${IMAGES},1,4] -c [ ${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
 
               basecall="${basecall} ${stage1} ${stage2}"
             fi
@@ -1068,10 +1068,10 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
           fi
       else
         IMAGES="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE}"
-        basecall="${ANTS} -d ${DIMENSION} -v 1 -u 1 -w [0.0,0.999] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${IMAGES},1] --float ${USE_FLOAT_PRECISION}"
-        stage1="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
-        stage2="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
-        stage3="-m CC[${IMAGES},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+        basecall="${ANTS} -d ${DIMENSION} -v 1 -u 1 -w [ 0.0,0.999] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [ ${IMAGES},1] --float ${USE_FLOAT_PRECISION}"
+        stage1="-m MI[ ${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[ 0.1] -f 8x4x2x1 -s 3x2x1x0"
+        stage2="-m MI[ ${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[ 0.1] -f 8x4x2x1 -s 3x2x1x0"
+        stage3="-m CC[ ${IMAGES},1,4] -c [ ${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
         basecall="${basecall} ${stage1} ${stage2} ${stage3}"
       fi
     exe_template_registration_1="${basecall}"
@@ -1104,7 +1104,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
       echo "The transform file ${REGISTRATION_SUBJECT_WARP} does not exist."
       exit 1
     fi
-    logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -o Linear[$REGISTRATION_SUBJECT_GENERIC_AFFINE,1] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE --verbose 1
+    logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -o Linear[ $REGISTRATION_SUBJECT_GENERIC_AFFINE,1] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE --verbose 1
 
     time_end_template_registration=`date +%s`
     time_elapsed_template_registration=$((time_end_template_registration - time_start_template_registration))
@@ -1225,7 +1225,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 
     TMP_FILES=( $CORTICAL_THICKNESS_GM $CORTICAL_THICKNESS_WM $CORTICAL_THICKNESS_SEGMENTATION )
 
-    exe_direct="${DIRECT} -d ${DIMENSION} -s [${CORTICAL_THICKNESS_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}] --verbose 1"
+    exe_direct="${DIRECT} -d ${DIMENSION} -s [ ${CORTICAL_THICKNESS_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}] --verbose 1"
     exe_direct="${exe_direct} -g ${CORTICAL_THICKNESS_GM} -w ${CORTICAL_THICKNESS_WM} -o ${CORTICAL_THICKNESS_IMAGE}"
     exe_direct="${exe_direct} -c ${DIRECT_CONVERGENCE} -r ${DIRECT_GRAD_STEP_SIZE}"
     exe_direct="${exe_direct} -m ${DIRECT_SMOOTHING_PARAMETER} -n ${DIRECT_NUMBER_OF_DIFF_COMPOSITIONS} -b ${USE_BSPLINE_SMOOTHING}"
@@ -1397,7 +1397,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
 
     mosaic="${ANTSPATH}/CreateTiledMosaic -i ${HEAD_N4_IMAGE_RESAMPLED} -r ${CORTICAL_THICKNESS_IMAGE_RGB}"
     mosaic="${mosaic} -o ${CORTICAL_THICKNESS_MOSAIC} -a 1.0 -t -1x-1 -d z -p mask"
-    mosaic="${mosaic} -s [2,mask,mask] -x ${CORTICAL_THICKNESS_MASK}"
+    mosaic="${mosaic} -s [ 2,mask,mask] -x ${CORTICAL_THICKNESS_MASK}"
     logCmd $mosaic
 
     # Segmentation
@@ -1412,7 +1412,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
 
     mosaic="${ANTSPATH}/CreateTiledMosaic -i ${HEAD_N4_IMAGE_RESAMPLED} -r ${BRAIN_SEGMENTATION_IMAGE_RGB}"
     mosaic="${mosaic} -o ${BRAIN_SEGMENTATION_MOSAIC} -a 0.3 -t -1x-1 -d 2 -p mask"
-    mosaic="${mosaic} -s [2,mask,mask] -x ${BRAIN_EXTRACTION_MASK_RESAMPLED}"
+    mosaic="${mosaic} -s [ 2,mask,mask] -x ${BRAIN_EXTRACTION_MASK_RESAMPLED}"
     logCmd $mosaic
 
 

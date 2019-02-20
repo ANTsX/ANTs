@@ -66,19 +66,19 @@ echo " Blending values:   $BLENDINGA and $BLENDINGB"
   done
 
 ITS=100x100x10
-TRAN=SyN[0.5]
-REG=Gauss[3,1]
+TRAN=SyN[ 0.5]
+REG=Gauss[ 3,1]
 RADIUS=6
 
 if [ $NUMPARAMS -le 5 ]
 then
 if [ $USEAFF -eq 0 ]
 then
-${ANTSPATH}/ANTS 2 -m PR[$TEMPLATE,$TARGET,1,${RADIUS}]   -t $TRAN -r $REG -o $OUTNAME   -i $ITS    --number-of-affine-iterations 0    -x $MASK
+${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATE,$TARGET,1,${RADIUS}]   -t $TRAN -r $REG -o $OUTNAME   -i $ITS    --number-of-affine-iterations 0    -x $MASK
 fi
 if [ $USEAFF -ne 0 ]
 then
-${ANTSPATH}/ANTS 2 -m PR[$TEMPLATE,$TARGET,1,${RADIUS}]   -t  $TRAN -r $REG -o $OUTNAME   -i $ITS     -x  $MASK  #--MI-option 16x2000
+${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATE,$TARGET,1,${RADIUS}]   -t  $TRAN -r $REG -o $OUTNAME   -i $ITS     -x  $MASK  #--MI-option 16x2000
 fi
 ${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii  -R $TEMPLATE ${OUTNAME}Warp.nii ${OUTNAME}Affine.txt
 ${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii  -R $TARGET -i ${OUTNAME}Affine.txt ${OUTNAME}InverseWarp.nii
@@ -90,8 +90,8 @@ if [ $USEAFF -eq 0 ]
 then
 #echo "  Pseudo-Morphing "
 #echo " method 1 "
-${ANTSPATH}/ANTS 2 -m PR[$TEMPLATEB,$TARGET,1,${RADIUS}]   -t $TRAN -r $REG -o ${OUTNAME}B  -i $ITS    --number-of-affine-iterations 0    -x $MASK
-${ANTSPATH}/ANTS 2 -m PR[$TEMPLATE,$TEMPLATEB,1,${RADIUS}]   -t  $TRAN -r $REG -o ${OUTNAME}A   -i $ITS  --number-of-affine-iterations 0    -x $MASK
+${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATEB,$TARGET,1,${RADIUS}]   -t $TRAN -r $REG -o ${OUTNAME}B  -i $ITS    --number-of-affine-iterations 0    -x $MASK
+${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATE,$TEMPLATEB,1,${RADIUS}]   -t  $TRAN -r $REG -o ${OUTNAME}A   -i $ITS  --number-of-affine-iterations 0    -x $MASK
 ${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AWarp.nii  -R $TEMPLATE  ${OUTNAME}AWarp.nii ${OUTNAME}AAffine.txt
 ${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AInverseWarp.nii  -R $TEMPLATEB -i ${OUTNAME}AAffine.txt ${OUTNAME}AInverseWarp.nii
 ${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BWarp.nii  -R $TEMPLATEB  ${OUTNAME}BWarp.nii ${OUTNAME}BAffine.txt
@@ -108,8 +108,8 @@ if [ $USEAFF -ne 0 ]
 then
 #echo "  Pseudo-Morphing "
 #echo " method 1 "
-${ANTSPATH}/ANTS 2 -m PR[$TEMPLATEB,$TARGET,1,${RADIUS}]   -t $TRAN -r $REG -o ${OUTNAME}B  -i $ITS    -x $MASK
-${ANTSPATH}/ANTS 2 -m PR[$TEMPLATE,$TEMPLATEB,1,${RADIUS}]   -t  $TRAN -r $REG -o ${OUTNAME}A   -i $ITS     -x $MASK
+${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATEB,$TARGET,1,${RADIUS}]   -t $TRAN -r $REG -o ${OUTNAME}B  -i $ITS    -x $MASK
+${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATE,$TEMPLATEB,1,${RADIUS}]   -t  $TRAN -r $REG -o ${OUTNAME}A   -i $ITS     -x $MASK
 ${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AWarp.nii  -R $TEMPLATE  ${OUTNAME}AWarp.nii ${OUTNAME}AAffine.txt
 ${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AInverseWarp.nii  -R $TEMPLATEB -i ${OUTNAME}AAffine.txt ${OUTNAME}AInverseWarp.nii
 ${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BWarp.nii  -R $TEMPLATEB  ${OUTNAME}BWarp.nii ${OUTNAME}BAffine.txt

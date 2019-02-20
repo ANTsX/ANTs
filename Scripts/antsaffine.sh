@@ -75,7 +75,7 @@ echo  " ANTSPATH  is $ANTSPATH     "
  #below, some affine options
   #--MI-option 16x8000 #-a InitAffine.txt --continue-affine 0
 
-exe=" ${ANTSPATH}/ANTS $DIM -m  MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000  $RIGID   "
+exe=" ${ANTSPATH}/ANTS $DIM -m  MI[ ${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000  $RIGID   "
 
  echo " $exe "
 
