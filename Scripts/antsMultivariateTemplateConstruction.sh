@@ -599,7 +599,7 @@ if [[ ${NINFILES} -eq 0 ]];
             done
          done < $IMAGESFILE
     else
-        range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d "]" -f 1 `
+        range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d " ]" -f 1 `
         if [[ ${range} -eq 1 && ${TDIM} -ne 4 ]];
             then
             echo "Please provide at least 2 filenames for the template."
@@ -792,7 +792,7 @@ if [[ "$RIGID" -eq 1 ]];
             do
             k=0
             let k=$i+$j
-            IMAGEMETRICSET="$IMAGEMETRICSET -m MI[ ${TEMPLATES[$j]},${IMAGESETARRAY[$k]},${MODALITYWEIGHTS[$j]},32]"
+            IMAGEMETRICSET="$IMAGEMETRICSET -m MI[ ${TEMPLATES[$j]},${IMAGESETARRAY[$k]},${MODALITYWEIGHTS[$j]},32 ]"
         done
 
         qscript="${outdir}/job_${count}_qsub.sh"
@@ -1027,19 +1027,19 @@ REGULARIZATION=''
 if [[ "${TRANSFORMATIONTYPE}" == "EL" ]];
     then
     # Mapping Parameters
-    TRANSFORMATION=Elast[ 1]
-    REGULARIZATION=Gauss[ 3,0.5]
-    # Gauss[3,x] is usually the best option.    x is usually 0 for SyN --- if you want to reduce flexibility/increase mapping smoothness, the set x > 0.
+    TRANSFORMATION="Elast[ 1 ]"
+    REGULARIZATION="Gauss[ 3,0.5 ]"
+    # Gauss[3,x ] is usually the best option.    x is usually 0 for SyN --- if you want to reduce flexibility/increase mapping smoothness, the set x > 0.
     # We did a large scale evaluation of SyN gradient parameters in normal brains and found 0.25 => 0.5 to perform best when
-    # combined with default Gauss[3,0] regularization.    You would increase the gradient step in some cases, though, to make
+    # combined with default Gauss[3,0 ] regularization.    You would increase the gradient step in some cases, though, to make
     # the registration converge faster --- though oscillations occur if the step is too high and other instability might happen too.
 elif [[ "${TRANSFORMATIONTYPE}" == "S2"  ]];
     then
     # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
     # increasing IntegrationTimeStep increases accuracy in the diffeomorphism integration and takes more computation time.
     # NTimeDiscretizationPoints is set to 2 here
-    TRANSFORMATION=SyN[ 1,2,0.05]
-    REGULARIZATION=Gauss[ 3,0.]
+    TRANSFORMATION="SyN[ 1,2,0.05 ]"
+    REGULARIZATION="Gauss[ 3,0. ]"
 elif [[ "${TRANSFORMATIONTYPE}" == "SY"  ]];
     then
     # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
@@ -1047,8 +1047,8 @@ elif [[ "${TRANSFORMATIONTYPE}" == "SY"  ]];
     # NTimeDiscretizationPoints is the number of spatial indices in the time dimension (the 4th dim when doing 3D registration)
     # increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
     # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
-    TRANSFORMATION=" SyN[1,2,0.05] --geodesic 2 "
-    REGULARIZATION=Gauss[ 3,0.]
+    TRANSFORMATION="SyN[ 1,2,0.05 ] --geodesic 2"
+    REGULARIZATION="Gauss[ 3,0. ]"
 elif [[ "${TRANSFORMATIONTYPE}" == "LDDMM"  ]];
    then
    # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
@@ -1056,30 +1056,30 @@ elif [[ "${TRANSFORMATIONTYPE}" == "LDDMM"  ]];
    # NTimeDiscretizationPoints is the number of spatial indices in the time dimension (the 4th dim when doing 3D registration)
    # increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
    # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
-   TRANSFORMATION=" SyN[1,2,0.05] --geodesic 1 "
-   REGULARIZATION=Gauss[ 3,0.]
+   TRANSFORMATION="SyN[1,2,0.05 ] --geodesic 1"
+   REGULARIZATION="Gauss[ 3,0. ]"
 elif [[ "${TRANSFORMATIONTYPE}" == "GR" ]];
     then
     # Mapping Parameters for the greedy gradient descent (fast) version of SyN -- only needs GradientStepLength
-    TRANSFORMATION=SyN[ 0.25]
-    REGULARIZATION=Gauss[ 3,0]
+    TRANSFORMATION="SyN[ 0.25 ]"
+    REGULARIZATION="Gauss[ 3,0 ]"
 elif [[ "${TRANSFORMATIONTYPE}" == "GR_Constrained" ]];
     then
     # Mapping Parameters for the greedy gradient descent (fast) version of SyN -- only needs GradientStepLength
-    TRANSFORMATION=SyN[ 0.25]
-    REGULARIZATION=Gauss[ 3,0.5]
+    TRANSFORMATION="SyN[ 0.25 ]"
+    REGULARIZATION="Gauss[ 3,0.5 ]"
 
 elif [[ "${TRANSFORMATIONTYPE}" == "EX" ]];
     then
     # Mapping Parameters
-    TRANSFORMATION=Exp[ 0.5,10]
-    REGULARIZATION=Gauss[ 3,0.5]
+    TRANSFORMATION="Exp[ 0.5,10 ]"
+    REGULARIZATION="Gauss[ 3,0.5 ]"
 elif [[ "${TRANSFORMATIONTYPE}" == "DD" ]];
     then
     # Mapping Parameters for diffemorphic demons style optimization Exp[GradientStepLength,NTimePointsInIntegration]
     #  NTimePointsInIntegration controls the number of compositions in the transformation update , see the DD paper
-    TRANSFORMATION=GreedyExp[ 0.5,10]
-    REGULARIZATION=Gauss[ 3,0.5]
+    TRANSFORMATION="GreedyExp[ 0.5,10 ]"
+    REGULARIZATION="Gauss[ 3,0.5 ]"
 else
     echo "Invalid transformation metric. Use EL, SY, S2, GR , DD or EX or type bash `basename $0` -h."
     exit 1
@@ -1133,22 +1133,22 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 then
                 # Mapping Parameters
                 METRIC="PR[ "
-                METRICPARAMS="${MODALITYWEIGHTS[$k]},4]"
-            elif [[ "${METRICTYPE[$k]}" == "CC"  ]];
+                METRICPARAMS="${MODALITYWEIGHTS[$k]},4 ]"
+            elif [[ "${METRICTYPE[$k]}" == "CC" ]];
                 then
                 # Mapping Parameters
                 METRIC="CC[ "
-                METRICPARAMS="${MODALITYWEIGHTS[$k]},5]"
+                METRICPARAMS="${MODALITYWEIGHTS[$k]},5 ]"
             elif [[ "${METRICTYPE[$k]}" == "MI" ]];
                 then
                 # Mapping Parameters
                 METRIC="MI[ "
-                METRICPARAMS="${MODALITYWEIGHTS[$k]},32]"
+                METRICPARAMS="${MODALITYWEIGHTS[$k]},32 ]"
             elif [[ "${METRICTYPE[$k]}" == "MSQ" ]];
                 then
                 # Mapping Parameters
                 METRIC="MSQ[ "
-                METRICPARAMS="${MODALITYWEIGHTS[$k]},0]"
+                METRICPARAMS="${MODALITYWEIGHTS[$k]},0 ]"
             else
                 echo "Invalid similarity metric. Use CC, MI, MSQ or PR or type bash `basename $0` -h."
                 exit 1
@@ -1174,8 +1174,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             if [[ $N4CORRECT -eq 1 ]];
               then
                 REPAIRED="${outdir}/${OUTFN}Repaired.nii.gz"
-                exe=" $exe $N4 -d ${DIM} -b [ 200] -c [ 50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2\n"
-                pexe=" $pexe $N4 -d ${DIM} -b [ 200] -c [ 50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2  >> ${outdir}/job_${count}_metriclog.txt\n"
+                exe=" $exe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2\n"
+                pexe=" $pexe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2  >> ${outdir}/job_${count}_metriclog.txt\n"
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${REPAIRED},${METRICPARAMS}"
                 warpexe=" $warpexe ${WARP} ${DIM} ${REPAIRED} ${DEFORMED} -R ${TEMPLATES[$k]} ${outdir}/${OUTWARPFN}Warp.nii.gz ${outdir}/${OUTWARPFN}Affine.txt\n"
                 warppexe=" $warppexe ${WARP} ${DIM} ${REPAIRED} ${DEFORMED} -R ${TEMPLATES[$k]} ${outdir}/${OUTWARPFN}Warp.nii.gz ${outdir}/${OUTWARPFN}Affine.txt >> ${outdir}/job_${count}_metriclog.txt\n"

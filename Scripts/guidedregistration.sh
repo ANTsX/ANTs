@@ -63,7 +63,7 @@ INTENSITY=CC[ $FIX,${MOV},${INTWT},4]
 
 #  == Important Parameters end? ==
 
- ${ANTSPATH}ANTS $DIM -o $OUT  -i $ITS -t SyN[ 0.25]  -r Gauss[ 3,0] -m $INTENSITY   -m   $LM
+ ${ANTSPATH}ANTS $DIM -o $OUT  -i $ITS -t SyN[ 0.25 ]  -r Gauss[ 3,0 ] -m $INTENSITY   -m   $LM
 
  ${ANTSPATH}WarpImageMultiTransform $DIM $MOV ${OUT}toTemplate.nii.gz ${OUT}Warp.nii.gz ${OUT}Affine.txt  -R $FIX
 

@@ -7,7 +7,7 @@ function Usage {
 
 Usage:
 
-`basename $0` [-h] [-r] [-j nb_jobs] command arg_list
+`basename $0` [-h ] [-r ] [-j nb_jobs ] command arg_list
 
 Optional arguments:
 
@@ -40,7 +40,7 @@ Mac (Darwin) and Linux (CentOS 5).
 
 Usage:
 
-`basename $0` [-h] [-r] [-j nb_jobs] command arg_list
+`basename $0` [-h ] [-r ] [-j nb_jobs ] command arg_list
 
 Optional arguments:
 

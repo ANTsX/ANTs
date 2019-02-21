@@ -124,7 +124,7 @@ echo " "
 
 # first, do distortion correction of MOVINGDT to MOVING
 # use the B0 image
-${ANTSPATH}/ANTS 3 -m CC[ ${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[ 3,0] -t SyN[ 0.25]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
+${ANTSPATH}/ANTS 3 -m CC[ ${MOVINGBZ},${MOVING},1,2 ]  -o ${OUTPUTNAME}distcorr  -r Gauss[ 3,0 ] -t SyN[ 0.25 ]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
 
 ${ANTSPATH}/WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii.gz ${OUTPUTNAME}distcorrWarp.nii.gz ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
 #exit

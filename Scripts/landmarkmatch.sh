@@ -80,9 +80,9 @@ STEPL=0.25
 INTENSITY=PR[ $FIX,${MOV},${INTWT},4]
 if [ $LMWT -le 0  ]
 then
-exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0]   -m $INTENSITY   "
+exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0 ]   -m $INTENSITY   "
 else
-exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0]   -m   $LM  -m $INTENSITY    "
+exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0 ]   -m   $LM  -m $INTENSITY    "
 fi
 echo " $exe "
 

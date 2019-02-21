@@ -29,20 +29,20 @@ else
 fi
 echo affine $m $f outname is $nm am using setting $mysetting
 nm=${D}${nm1}_fixed_${nm2}_moving_setting_is_${mysetting}   # construct output prefix
-$reg -d $dim -r [ $f, $m ,1]  \
+$reg -d $dim -r [ $f, $m ,1 ]  \
                         -m mattes[  $f, $m , 1 , 32, regular, $percentage ] \
                          -t translation[ 0.1 ] \
-                         -c [ $its,1.e-8,20]  \
+                         -c [ $its,1.e-8,20 ]  \
                         -s 4x2x1vox  \
                         -f 6x4x2 -l 1 \
                         -m mattes[  $f, $m , 1 , 32, regular, $percentage ] \
                          -t rigid[ 0.1 ] \
-                         -c [ $its,1.e-8,20]  \
+                         -c [ $its,1.e-8,20 ]  \
                         -s 4x2x1vox  \
                         -f 3x2x1 -l 1 \
                         -m mattes[  $f, $m , 1 , 32, regular, $percentage ] \
                          -t affine[ 0.1 ] \
-                         -c [ $its,1.e-8,20]  \
+                         -c [ $its,1.e-8,20 ]  \
                         -s 4x2x1vox  \
                         -f 3x2x1 -l 1 \
                         -m mattes[  $f, $m , 0.5 , 32 ] \

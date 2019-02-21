@@ -434,9 +434,9 @@ then
 # Mapping Parameters
 TRANSFORMATION=Elast[ 1]
 REGULARIZATION=Gauss[ 3,0.5]
-# Gauss[3,x] is usually the best option.    x is usually 0 for SyN --- if you want to reduce flexibility/increase mapping smoothness, the set x > 0.
+# Gauss[3,x ] is usually the best option.    x is usually 0 for SyN --- if you want to reduce flexibility/increase mapping smoothness, the set x > 0.
 # We did a large scale evaluation of SyN gradient parameters in normal brains and found 0.25 => 0.5 to perform best when
-# combined with default Gauss[3,0] regularization.    You would increase the gradient step in some cases, though, to make
+# combined with default Gauss[3,0 ] regularization.    You would increase the gradient step in some cases, though, to make
 # the registration converge faster --- though oscillations occur if the step is too high and other instability might happen too.
 
 elif [ "${TRANSFORMATIONTYPE}" == "S2"  ]
@@ -454,7 +454,7 @@ then
 # NTimeDiscretizationPoints is the number of spatial indices in the time dimension (the 4th dim when doing 3D registration)
 # increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
 # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
-TRANSFORMATION=" SyN[1,2,0.05] --geodesic 2 "
+TRANSFORMATION=" SyN[1,2,0.05 ] --geodesic 2 "
 REGULARIZATION=Gauss[ 3,0.]
 
 elif [ "${TRANSFORMATIONTYPE}" == "LDDMM"  ]
@@ -464,7 +464,7 @@ then
 # NTimeDiscretizationPoints is the number of spatial indices in the time dimension (the 4th dim when doing 3D registration)
 # increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
 # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
-TRANSFORMATION=" SyN[1,2,0.05] --geodesic 1 "
+TRANSFORMATION=" SyN[1,2,0.05 ] --geodesic 1 "
 REGULARIZATION=Gauss[ 3,0.]
 
 elif [ "${TRANSFORMATIONTYPE}" == "GR" ]
@@ -601,7 +601,7 @@ then
 # Apply N4BiasFieldCorrection
 #Uncomment/comment below to switch between N3 and N4 bias field correction binaries
 #exe="${ANTSPATH}/N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz 4"
-exe="${ANTSPATH}/N4BiasFieldCorrection -d $DIM -i $MOVING -o ${OUTPUTNAME}.nii.gz -b [ 200] -s 3 -c [ 50x50x30x20,1e-6]"
+exe="${ANTSPATH}/N4BiasFieldCorrection -d $DIM -i $MOVING -o ${OUTPUTNAME}.nii.gz -b [ 200 ] -s 3 -c [ 50x50x30x20,1e-6 ]"
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "N4BiasFieldCorrection command:"
@@ -668,7 +668,7 @@ then
 # Apply N4BiasFieldCorrection
 #Uncomment/comment below to switch between N3 and N4 bias field correction binaries
 #exe="${ANTSPATH}/N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz 4"
-exe="${ANTSPATH}/N4BiasFieldCorrection -d $DIM -i $MOVING -o ${OUTPUTNAME}.nii.gz -b [ 200] -s 3 -c [ 50x50x30x20,1e-6]"
+exe="${ANTSPATH}/N4BiasFieldCorrection -d $DIM -i $MOVING -o ${OUTPUTNAME}.nii.gz -b [ 200 ] -s 3 -c [ 50x50x30x20,1e-6 ]"
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "N4BiasFieldCorrection command:"
@@ -677,7 +677,7 @@ echo "--------------------------------------------------------------------------
 $exe
 echo "execN4=$exe" >> ${MOVINGBASE}.cfg
 
-exe=" ${ANTSPATH}/ANTS $DIM -m MI[ ${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations $AFFINEITERATIONS --MI-option 32x16000 ${RIGIDTRANSF} "
+exe=" ${ANTSPATH}/ANTS $DIM -m MI[ ${FIXED},${MOVING},1,32 ] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations $AFFINEITERATIONS --MI-option 32x16000 ${RIGIDTRANSF} "
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "ANTS command:"

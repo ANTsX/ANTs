@@ -96,7 +96,7 @@ if [[ ! -s $A ]] || [[  ! -s $B ]]  ; then echo inputs: $A $B $prefix ; echo $us
 reg=antsRegistration
 uval=0
 affits=999x550x20
-aff=" -t affine[ 0.2 ]  -c [ $affits ,1.e-7,20]  -s 3x2x0 -f 4x2x1 -u $uval -l 0 "
+aff=" -t affine[ 0.2 ]  -c [ $affits ,1.e-7,20 ]  -s 3x2x0 -f 4x2x1 -u $uval -l 0 "
 metparams=" 1 , 32, random , 0.25 "
 synits=100x50  #BA 
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2
@@ -170,7 +170,7 @@ N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
     $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
                          -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
-                         -c [ ${synits},1.e-8,10]  \
+                         -c [ ${synits},1.e-8,10 ]  \
                         -s 1x0 \
                         -f 2x1 \
                        -u $uval -b 0 -z 1 \
@@ -178,7 +178,7 @@ N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
 #    $reg -d $dim  --initial-fixed-transform $initBmat  --initial-moving-transform $initAmat \
 #                         -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
 #                         -t syn[ 0.25, 3, 0.5 ] \
-#                         -c [ ${synits},1.e-8,10]  \
+#                         -c [ ${synits},1.e-8,10 ]  \
 #                        -s 1x0 \
 #                        -f 2x1 \
 #                       -u $uval -b 0 -z 1 \
@@ -198,7 +198,7 @@ rm ${nm}tempWarp.nii.gz
     $reg -d $dim  --initial-moving-transform $initBmat \
                          -m mattes[  ${nm}_avg.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
-                         -c [ ${synits},1.e-8,10]  \
+                         -c [ ${synits},1.e-8,10 ]  \
                         -s 1x0 \
                         -f 2x1 \
                        -u $uval -b 0 -z 1 \
@@ -206,7 +206,7 @@ rm ${nm}tempWarp.nii.gz
     $reg -d $dim  --initial-moving-transform $initAmat \
                          -m mattes[  ${nm}_avg.nii.gz, ${nm}_n3_a.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
-                         -c [ ${synits},1.e-8,10]  \
+                         -c [ ${synits},1.e-8,10 ]  \
                         -s 1x0 \
                         -f 2x1 \
                        -u $uval -b 0 -z 1 \
@@ -229,20 +229,20 @@ if [[ -s $template ]] && [[ ! -s  ${nm}_gt_0GenericAffine.mat ]] ; then
   $reg -d $dim  -r $initafffn  \
                         -m mattes[  $imgs , 1 , 32, regular, 0.25 ] \
                          -t affine[ 0.1 ] \
-                         -c [ $affits ,1.e-7,20]  \
+                         -c [ $affits ,1.e-7,20 ]  \
                         -s 4x2x1vox  \
                         -f 4x2x1 -l 1 \
                         -m cc[  $imgs , 1 , 4 ] \
                          -t syn[ .2, 3, 0.0 ] \
-                         -c [ 100x50x20,1.e-8,20]  \
+                         -c [ 100x50x20,1.e-8,20 ]  \
                         -s 2x1x0vox  \
                         -f 4x2x1 -l 1 -u 0 -z 1 \
                        -o [ ${nm}_gt_,${nm}_gt.nii.gz]
 
   # map brain mask to subject space T1
-  trans=" -t [ $initAmat, 1 ] -t ${nm}_A1InverseWarp.nii.gz -t [ ${nm}_gt_0GenericAffine.mat, 1] -t  ${nm}_gt_1InverseWarp.nii.gz "
+  trans=" -t [ $initAmat, 1 ] -t ${nm}_A1InverseWarp.nii.gz -t [ ${nm}_gt_0GenericAffine.mat, 1 ] -t  ${nm}_gt_1InverseWarp.nii.gz "
   antsApplyTransforms -d $dim -i $templatebm -o  ${nm}_bm_A.nii.gz -n NearestNeighbor -r $A $trans
-  trans=" -t [ $initBmat, 1 ] -t ${nm}_B1InverseWarp.nii.gz -t [ ${nm}_gt_0GenericAffine.mat, 1] -t  ${nm}_gt_1InverseWarp.nii.gz "
+  trans=" -t [ $initBmat, 1 ] -t ${nm}_B1InverseWarp.nii.gz -t [ ${nm}_gt_0GenericAffine.mat, 1 ] -t  ${nm}_gt_1InverseWarp.nii.gz "
   antsApplyTransforms -d $dim -i $templatebm -o  ${nm}_bm_B.nii.gz -n NearestNeighbor -r $B $trans
   MultiplyImages $dim  ${nm}_bm_A.nii.gz $A  ${nm}_A_brain.nii.gz
   MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
@@ -251,9 +251,9 @@ echo done with brain extraction
 
 if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then 
 # map brain mask to subject space T1
-trans=" -t [ $initAmat, 1 ] -t [ ${nm}_gt_0GenericAffine.mat, 1] -t  ${nm}_gt_1InverseWarp.nii.gz "
+trans=" -t [ $initAmat, 1 ] -t [ ${nm}_gt_0GenericAffine.mat, 1 ] -t  ${nm}_gt_1InverseWarp.nii.gz "
 antsApplyTransforms -d $dim -i $templatebm -o  ${nm}_bm_A.nii.gz -n NearestNeighbor -r $A $trans
-trans=" -t [ $initBmat, 1 ] -t ${nm}1InverseWarp.nii.gz -t [ ${nm}_gt_0GenericAffine.mat, 1] -t  ${nm}_gt_1InverseWarp.nii.gz "
+trans=" -t [ $initBmat, 1 ] -t ${nm}1InverseWarp.nii.gz -t [ ${nm}_gt_0GenericAffine.mat, 1 ] -t  ${nm}_gt_1InverseWarp.nii.gz "
 antsApplyTransforms -d $dim -i $templatebm -o  ${nm}_bm_B.nii.gz -n NearestNeighbor -r $B $trans
 MultiplyImages $dim  ${nm}_bm_A.nii.gz $A  ${nm}_A_brain.nii.gz
 MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
@@ -271,7 +271,7 @@ MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
     $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
                          -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
-                         -c [ ${synits},1.e-8,10]  \
+                         -c [ ${synits},1.e-8,10 ]  \
                         -s 1x0 \
                         -f 2x1 \
                        -u $uval -b 0 -z 1 \
@@ -294,38 +294,38 @@ if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then
   $reg -d $dim  \
                         -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t rigid[ 0.1 ] \
-                         -c [ 1000x1000x5,1.e-7,20]  \
-                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x1000x5,1.e-7,20 ]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz ]  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t affine[ 0.1 ] \
-                         -c [ 1000x25,1.e-7,20]  \
-                        -s 2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x25,1.e-7,20 ]  \
+                        -s 2x1mm  -x [ ${nm}_bm_A.nii.gz ]  \
                         -f 2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [ $synits,1.e-7,20]  \
-                        -s 4x2x1mm -x [ ${nm}_bm_A.nii.gz] \
+                         -c [ $synits,1.e-7,20 ]  \
+                        -s 4x2x1mm -x [ ${nm}_bm_A.nii.gz ] \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                        -o [ ${nm}_ffa,${nm}_ffa_distcorr.nii.gz]
   imgs=" ${nm}_B_brain.nii.gz, $mfa "
   $reg -d $dim  \
                          -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t rigid[ 0.1 ] \
-                         -c [ 1000x1000x5,1.e-7,20]  \
-                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x1000x5,1.e-7,20 ]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz ]  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                         -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t affine[ 0.1 ] \
-                         -c [ 1000x25,1.e-7,20]  \
-                        -s 2x1mm  -x [ ${nm}_bm_B.nii.gz]  \
+                         -c [ 1000x25,1.e-7,20 ]  \
+                        -s 2x1mm  -x [ ${nm}_bm_B.nii.gz ]  \
                         -f 2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [ $synits,1.e-7,20]  \
-                        -s 4x2x1mm  -x [ ${nm}_bm_B.nii.gz] \
+                         -c [ $synits,1.e-7,20 ]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_B.nii.gz ] \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                         -o [ ${nm}_mfa,${nm}_mfa_distcorr.nii.gz]
 #
@@ -353,38 +353,38 @@ if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then
   $reg -d $dim  \
                         -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t rigid[ 0.1 ] \
-                         -c [ 1000x1000x5,1.e-7,20]  \
-                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x1000x5,1.e-7,20 ]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz ]  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t affine[ 0.1 ] \
-                         -c [ 1000x25,1.e-7,20]  \
-                        -s 2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x25,1.e-7,20 ]  \
+                        -s 2x1mm  -x [ ${nm}_bm_A.nii.gz ]  \
                         -f 2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [ $synits,1.e-7,20]  \
-                        -s 4x2x1mm -x [ ${nm}_bm_A.nii.gz] \
+                         -c [ $synits,1.e-7,20 ]  \
+                        -s 4x2x1mm -x [ ${nm}_bm_A.nii.gz ] \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                        -o [ ${nm}_fcbf,${nm}_fcbf_distcorr.nii.gz]
   imgs=" ${nm}_B_brain.nii.gz, $mcbf "
   $reg -d $dim  \
                          -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t rigid[ 0.1 ] \
-                         -c [ 1000x1000x5,1.e-7,20]  \
-                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz]  \
+                         -c [ 1000x1000x5,1.e-7,20 ]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_A.nii.gz ]  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                         -m mattes[  $imgs , 1 , 32, regular, 0.2 ] \
                          -t affine[ 0.1 ] \
-                         -c [ 1000x25,1.e-7,20]  \
-                        -s 2x1mm  -x [ ${nm}_bm_B.nii.gz]  \
+                         -c [ 1000x25,1.e-7,20 ]  \
+                        -s 2x1mm  -x [ ${nm}_bm_B.nii.gz ]  \
                         -f 2x1 -l 1 -u 1 -z 1 \
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [ $synits,1.e-7,20]  \
-                        -s 4x2x1mm  -x [ ${nm}_bm_B.nii.gz] \
+                         -c [ $synits,1.e-7,20 ]  \
+                        -s 4x2x1mm  -x [ ${nm}_bm_B.nii.gz ] \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                         -o [ ${nm}_mcbf,${nm}_mcbf_distcorr.nii.gz]
 #
