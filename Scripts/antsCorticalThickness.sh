@@ -683,7 +683,7 @@ EXTRACTED_SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFI
 EXTRACTION_GENERIC_AFFINE=${OUTPUT_PREFIX}BrainExtractionPrior0GenericAffine.mat
 EXTRACTED_BRAIN_TEMPLATE=${OUTPUT_PREFIX}ExtractedTemplateBrain.${OUTPUT_SUFFIX}
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 1  ]] ; then # BAStages bxt
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 1 ]] ; then # BAStages bxt
 if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
   then
 
@@ -761,7 +761,7 @@ SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
 
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
    [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then
-  if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 2  ]] ; then # BAStages reg
+  if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 2 ]] ; then # BAStages reg
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " Brain segmentation using the following steps:"
@@ -908,7 +908,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]] ; then
-  if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 3  ]] ; then # BAStages seg
+  if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 3 ]] ; then # BAStages seg
     time_start_brain_segmentation=`date +%s`
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
     for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
@@ -1155,7 +1155,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage5Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]] ; then
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 5  ]] ; then # BAStages thk
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 5 ]] ; then # BAStages thk
 if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
   then
 
@@ -1289,7 +1289,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage6Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]] && \
    [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]] ; then
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 6  ]] ; then # BAStages qc
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -eq 6 ]] ; then # BAStages qc
 echo "--------------------------------------------------------------------------------------"
 echo "Compute summary measurements"
 echo "--------------------------------------------------------------------------------------"
@@ -1438,7 +1438,7 @@ fi # check completion
 #
 ################################################################################
 
-if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -ge 5  ]] ; then
+if [[ ${ACT_STAGE} -eq 0 ]] || [[ ${ACT_STAGE} -ge 5 ]] ; then
   logCmd checkOutputExists
 fi
 

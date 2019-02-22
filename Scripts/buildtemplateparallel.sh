@@ -51,7 +51,7 @@ SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 fle_error=0
 for FLE in $ANTSSCRIPTNAME $PEXEC $SGE $XGRID $SLURM
   do
-  if [ ! -x $FLE  ] ;
+  if [ ! -x $FLE ] ;
       then
       echo
       echo "--------------------------------------------------------------------------------------"
@@ -403,9 +403,9 @@ function shapeupdatetotemplate {
     echo "--------------------------------------------------------------------------------------"
 
     # Averaging and inversion code --- both are 1st order estimates.
-#    if [ ${dim} -eq 2   ] ; then
+#    if [ ${dim} -eq 2  ] ; then
 #      ANTSAverage2DAffine ${templatename}Affine${afftype} ${outputname}*Affine${afftype}
-#    elif [ ${dim} -eq 3  ] ; then
+#    elif [ ${dim} -eq 3 ] ; then
 #      ANTSAverage3DAffine ${templatename}Affine${afftype} ${outputname}*Affine${afftype}
 #    fi
 
@@ -837,7 +837,7 @@ elif [[ ${NINFILES} -eq 1 ]]
         # if there are more than 32 volumes in the time-series (in case they are smaller
 	nfmribins=2
 	let
-	if [ ${range} -gt 31  ]  ; then
+	if [ ${range} -gt 31 ]  ; then
 		BINSIZE=$((${range} / ${nfmribins}))
 		j=1 # initialize counter j
 		for ((i = 0; i < ${nfmribins} ; i++))
@@ -881,7 +881,7 @@ elif [[ ${NINFILES} -eq 1 ]]
 			let j++
 		done
 
-	elif [ ${range} -gt ${nfmribins}  ] && [ ${range} -lt 32  ]
+	elif [ ${range} -gt ${nfmribins} ] && [ ${range} -lt 32 ]
 		then
 
 			for ((i = 0; i < ${nfmribins} ; i++))
@@ -900,7 +900,7 @@ elif [[ ${NINFILES} -eq 1 ]]
 				fi
 			done
 
-	elif [ ${range} -le ${nfmribins}  ]
+	elif [ ${range} -le ${nfmribins} ]
 		then
 
 		${ANTSPATH}/ImageMath selection/$TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}

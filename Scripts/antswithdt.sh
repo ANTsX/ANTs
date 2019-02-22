@@ -4,7 +4,7 @@ NUMPARAMS=$#
 
 MAXITERATIONS=30x90x20
 export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
-if [ $NUMPARAMS -lt 3  ]
+if [ $NUMPARAMS -lt 3 ]
 then
 echo " USAGE ::  "
 echo "  sh   ants.sh  ImageDimension  fixed.ext  moving.ext Subject/Moving-DT-To-Deform-To-Fixed-Image  OPTIONAL-Subject/Moving-BZero-To-DistortionCorrect-To-Moving-T1-Image "
@@ -65,7 +65,7 @@ OUTPUTNAME=${MOVING%.*}
 fi
 
 MOVINGDT=0
-if [ $NUMPARAMS -gt 3  ]
+if [ $NUMPARAMS -gt 3 ]
 then
  MOVINGDT=$4
 if [ ! -f $MOVINGDT ]
@@ -76,7 +76,7 @@ fi
 fi
 
 MOVINGBZ=0
-if [ $NUMPARAMS -gt 4  ]
+if [ $NUMPARAMS -gt 4 ]
 then
  MOVINGBZ=$5
 if [ ! -f $MOVINGBZ ]
@@ -97,13 +97,13 @@ fi
 
 
 # Mapping Parameters
-  TRANSFORMATION=SyN[ 0.25]
+  TRANSFORMATION="SyN[ 0.25 ]"
   ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
   NUMLEVELS=${#ITERATLEVEL[@]}
   echo $NUMLEVELS
-  REGULARIZATION=Gauss[ 3,0]
+  REGULARIZATION="Gauss[ 3,0 ]"
   METRIC="CC[ "
-  METRICPARAMS=1,2]
+  METRICPARAMS="1,2 ]"
 #echo " $METRICPARAMS  &  $METRIC "
 #exit
 
@@ -133,7 +133,7 @@ if [[ ! -s ${OUTPUTNAME}Affine.txt ]] ; then
   sh ${ANTSPATH}/ants.sh $DIM $FIXED $MOVING ${OUTPUTNAME}
 fi
 
-if  [[ -s ${MOVINGDT}  ]] &&  [[  -s ${OUTPUTNAME}Affine.txt ]] ; then
+if  [[ -s ${MOVINGDT} ]] &&  [[  -s ${OUTPUTNAME}Affine.txt ]] ; then
     DTDEF=${OUTPUTNAME}DTdeformed.nii.gz
     FIXEDSUB=${OUTPUTNAME}fixedsub.nii.gz
 #    ${ANTSPATH}/ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2

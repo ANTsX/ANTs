@@ -638,7 +638,7 @@ if [[ ${NINFILES} -eq 0 ]];
              # if there are more than 32 volumes in the time-series (in case they are smaller
 
              nfmribins=16
-            if [[ ${range} -gt 31  ]];
+            if [[ ${range} -gt 31 ]];
                 then
                 BINSIZE=$((${range} / ${nfmribins}))
                 j=1 # initialize counter j
@@ -680,7 +680,7 @@ if [[ ${NINFILES} -eq 0 ]];
                     let j++
                 done
             fi
-        elif [[ ${range} -gt ${nfmribins} && ${range} -lt 32  ]];
+        elif [[ ${range} -gt ${nfmribins} && ${range} -lt 32 ]];
             then
             for ((i = 0; i < ${nfmribins} ; i++))
                 do
@@ -1033,14 +1033,14 @@ if [[ "${TRANSFORMATIONTYPE}" == "EL" ]];
     # We did a large scale evaluation of SyN gradient parameters in normal brains and found 0.25 => 0.5 to perform best when
     # combined with default Gauss[3,0 ] regularization.    You would increase the gradient step in some cases, though, to make
     # the registration converge faster --- though oscillations occur if the step is too high and other instability might happen too.
-elif [[ "${TRANSFORMATIONTYPE}" == "S2"  ]];
+elif [[ "${TRANSFORMATIONTYPE}" == "S2" ]];
     then
     # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
     # increasing IntegrationTimeStep increases accuracy in the diffeomorphism integration and takes more computation time.
     # NTimeDiscretizationPoints is set to 2 here
     TRANSFORMATION="SyN[ 1,2,0.05 ]"
     REGULARIZATION="Gauss[ 3,0. ]"
-elif [[ "${TRANSFORMATIONTYPE}" == "SY"  ]];
+elif [[ "${TRANSFORMATIONTYPE}" == "SY" ]];
     then
     # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
     # increasing IntegrationTimeStep increases accuracy in the diffeomorphism integration and takes more computation time.
@@ -1049,7 +1049,7 @@ elif [[ "${TRANSFORMATIONTYPE}" == "SY"  ]];
     # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
     TRANSFORMATION="SyN[ 1,2,0.05 ] --geodesic 2"
     REGULARIZATION="Gauss[ 3,0. ]"
-elif [[ "${TRANSFORMATIONTYPE}" == "LDDMM"  ]];
+elif [[ "${TRANSFORMATIONTYPE}" == "LDDMM" ]];
    then
    # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
    # increasing IntegrationTimeStep increases accuracy in the diffeomorphism integration and takes more computation time.

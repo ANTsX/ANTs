@@ -171,7 +171,7 @@ function shapeupdatetotemplate() {
     #echo "    ${ANTSPATH}/ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
-    if [[ ${#imagelist[@]} -eq 0  ]] ; then
+    if [[ ${#imagelist[@]} -eq 0 ]] ; then
       echo ERROR shapeupdatedtotemplate - imagelist length is 0
       exit 1
     fi

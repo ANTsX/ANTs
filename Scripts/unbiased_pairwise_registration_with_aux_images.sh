@@ -137,7 +137,7 @@ $reg -d $dim -r [ $A, $B, 1 ]   \
                         -m mattes[  $A, $B , $metparams ] $aff -z 1 \
                        -o [ ${initA}]
 $reg -d $dim -r [ $B, $A, 1 ] \
-                        -m mattes[  $B, $A , $metparams  ] $aff -z 1 \
+                        -m mattes[  $B, $A , $metparams ] $aff -z 1 \
                        -o [ ${initB}]
 # get the identity map
 ComposeMultiTransform $dim ${initA}_id.mat -R ${initA}0GenericAffine.mat  ${initA}0GenericAffine.mat -i ${initA}0GenericAffine.mat
@@ -153,7 +153,7 @@ ImageMath $dim  ${prefix}_mid.nii.gz PadImage $A 10
 antsApplyTransforms -d $dim -i $B -o ${prefix}_mid.nii.gz -t  ${prefix}_mid.mat  -r  $A
 # compute the map from A to midpoint(B,A) --- "fair" interpolation
 $reg -d $dim  \
-                        -m mattes[  ${prefix}_mid.nii.gz, $A, $metparams  ] $aff \
+                        -m mattes[  ${prefix}_mid.nii.gz, $A, $metparams ] $aff \
                        -o [ ${nmA},${nmA}_aff.nii.gz]
 # compute the map from B to midpoint(B,A) --- "fair" interpolation
 $reg -d $dim  \
@@ -166,7 +166,7 @@ N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2
 N3BiasFieldCorrection $dim $B ${nm}_n3_b.nii.gz 4 
 N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2 
   echo now do deformable expecting $initB and $initA to exist
-  if [[ -s $initAmat  ]] && [[ -s $initBmat ]] ; then
+  if [[ -s $initAmat ]] && [[ -s $initBmat ]] ; then
     $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
                          -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
@@ -194,7 +194,7 @@ antsApplyTransforms -d $dim -i ${nm}_avg.nii.gz -o ${nm}_avg.nii.gz -t ${nm}temp
 rm ${nm}tempWarp.nii.gz 
 
 # recompute the mappings 
-  if [[ -s $initAmat  ]] && [[ -s $initBmat ]] ; then
+  if [[ -s $initAmat ]] && [[ -s $initBmat ]] ; then
     $reg -d $dim  --initial-moving-transform $initBmat \
                          -m mattes[  ${nm}_avg.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
@@ -249,7 +249,7 @@ if [[ -s $template ]] && [[ ! -s  ${nm}_gt_0GenericAffine.mat ]] ; then
 fi 
 echo done with brain extraction 
 
-if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then 
+if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz ]] ; then 
 # map brain mask to subject space T1
 trans=" -t [ $initAmat, 1 ] -t [ ${nm}_gt_0GenericAffine.mat, 1 ] -t  ${nm}_gt_1InverseWarp.nii.gz "
 antsApplyTransforms -d $dim -i $templatebm -o  ${nm}_bm_A.nii.gz -n NearestNeighbor -r $A $trans
@@ -267,7 +267,7 @@ MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
   N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
   N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
   echo now do deformable expecting $initB and $initA to exist
-  if [[ -s $initAmat  ]] && [[ -s $initBmat ]] ; then
+  if [[ -s $initAmat ]] && [[ -s $initBmat ]] ; then
     $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
                          -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
@@ -283,7 +283,7 @@ MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
   antsApplyTransforms -d $dim -i $B -o ${nm}_diff.nii.gz -t [ $initAmat, 1 ] -t ${nm}1Warp.nii.gz -t  $initBmat -r $A
   ANTSJacobian $dim ${nm}1Warp.nii.gz ${nm} 1 no 0
 fi
-if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then
+if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz ]] ; then
   echo deal with auxiliary images ... here DTI
   ffa=${nm}_ffa.nii.gz
   mfa=${nm}_mfa.nii.gz
@@ -340,9 +340,9 @@ echo done with aux images --- now get final jacobians
 
  
 
-if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then 
+if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz ]] ; then 
   echo deal with auxiliary images ... here a scalar image pair 
-# if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then
+# if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz ]] ; then
 #  echo deal with auxiliary images ... here DTI
   fcbf=${nm}_fcbf.nii.gz
   mcbf=${nm}_mcbf.nii.gz

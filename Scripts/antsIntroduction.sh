@@ -432,14 +432,14 @@ RIGIDTRANSF=" --rigid-affine true "
 elif [ "${TRANSFORMATIONTYPE}" == "EL" ]
 then
 # Mapping Parameters
-TRANSFORMATION=Elast[ 1]
-REGULARIZATION=Gauss[ 3,0.5]
+TRANSFORMATION="Elast[ 1 ]"
+REGULARIZATION="Gauss[ 3,0.5 ]"
 # Gauss[3,x ] is usually the best option.    x is usually 0 for SyN --- if you want to reduce flexibility/increase mapping smoothness, the set x > 0.
 # We did a large scale evaluation of SyN gradient parameters in normal brains and found 0.25 => 0.5 to perform best when
 # combined with default Gauss[3,0 ] regularization.    You would increase the gradient step in some cases, though, to make
 # the registration converge faster --- though oscillations occur if the step is too high and other instability might happen too.
 
-elif [ "${TRANSFORMATIONTYPE}" == "S2"  ]
+elif [ "${TRANSFORMATIONTYPE}" == "S2" ]
 then
 # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
 # increasing IntegrationTimeStep increases accuracy in the diffeomorphism integration and takes more computation time.
@@ -447,7 +447,7 @@ then
 TRANSFORMATION=SyN[ 1,2,0.05]
 REGULARIZATION=Gauss[ 3,0.]
 
-elif [ "${TRANSFORMATIONTYPE}" == "SY"  ]
+elif [ "${TRANSFORMATIONTYPE}" == "SY" ]
 then
 # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
 # increasing IntegrationTimeStep increases accuracy in the diffeomorphism integration and takes more computation time.
@@ -455,42 +455,42 @@ then
 # increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
 # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
 TRANSFORMATION=" SyN[1,2,0.05 ] --geodesic 2 "
-REGULARIZATION=Gauss[ 3,0.]
+REGULARIZATION="Gauss[ 3,0. ]"
 
-elif [ "${TRANSFORMATIONTYPE}" == "LDDMM"  ]
+elif [ "${TRANSFORMATIONTYPE}" == "LDDMM" ]
 then
 # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
 # increasing IntegrationTimeStep increases accuracy in the diffeomorphism integration and takes more computation time.
 # NTimeDiscretizationPoints is the number of spatial indices in the time dimension (the 4th dim when doing 3D registration)
 # increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
 # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
-TRANSFORMATION=" SyN[1,2,0.05 ] --geodesic 1 "
-REGULARIZATION=Gauss[ 3,0.]
+TRANSFORMATION=" SyN[ 1,2,0.05 ] --geodesic 1 "
+REGULARIZATION="Gauss[ 3,0. ]"
 
 elif [ "${TRANSFORMATIONTYPE}" == "GR" ]
 then
 # Mapping Parameters for the greedy gradient descent (fast) version of SyN -- only needs GradientStepLength
-TRANSFORMATION=SyN[ 0.25]
-REGULARIZATION=Gauss[ 3,0]
+TRANSFORMATION="SyN[ 0.25 ]"
+REGULARIZATION="Gauss[ 3,0 ]"
 
 elif [ "${TRANSFORMATIONTYPE}" == "GR_Constrained" ]
 then
 # Mapping Parameters for the greedy gradient descent (fast) version of SyN -- only needs GradientStepLength
-TRANSFORMATION=SyN[ 0.25]
-REGULARIZATION=Gauss[ 3,0.5]
+TRANSFORMATION="SyN[ 0.25 ]"
+REGULARIZATION="Gauss[ 3,0.5 ]"
 
 elif [ "${TRANSFORMATIONTYPE}" == "EX" ]
 then
 # Mapping Parameters
-TRANSFORMATION=Exp[ 0.5,10]
-REGULARIZATION=Gauss[ 3,0.5]
+TRANSFORMATION="Exp[ 0.5,10 ]"
+REGULARIZATION="Gauss[ 3,0.5 ]"
 
 elif [ "${TRANSFORMATIONTYPE}" == "DD" ]
 then
 # Mapping Parameters for diffemorphic demons style optimization Exp[GradientStepLength,NTimePointsInIntegration]
 #  NTimePointsInIntegration controls the number of compositions in the transformation update , see the DD paper
-TRANSFORMATION=GreedyExp[ 0.5,10]
-REGULARIZATION=Gauss[ 3,0.5]
+TRANSFORMATION="GreedyExp[ 0.5,10 ]"
+REGULARIZATION="Gauss[ 3,0.5 ]"
 
 else
 echo "Invalid transformation metric. Use RI, RA, EL, SY, S2, GR , DD or EX or type bash `basename $0` -h."
@@ -502,25 +502,25 @@ if [ "${METRICTYPE}" == "PR" ]
 then
 # Mapping Parameters
 METRIC="PR[ "
-METRICPARAMS=1,4]
+METRICPARAMS="1,4 ]"
 
-elif [ "${METRICTYPE}" == "CC"  ]
+elif [ "${METRICTYPE}" == "CC" ]
 then
 # Mapping Parameters
 METRIC="CC[ "
-METRICPARAMS=1,5]
+METRICPARAMS="1,5 ]"
 
 elif [ "${METRICTYPE}" == "MI" ]
 then
 # Mapping Parameters
 METRIC="MI[ "
-METRICPARAMS=1,32]
+METRICPARAMS="1,32 ]"
 
 elif [ "${METRICTYPE}" == "MSQ" ]
 then
 # Mapping Parameters
 METRIC="MSQ[ "
-METRICPARAMS=1,0]
+METRICPARAMS="1,0 ]"
 
 else
 echo "Invalid similarity metric. Use CC, MI, MSQ or PR or type bash`basename $0` -h."
@@ -533,7 +533,7 @@ reportMappingParameters
 
 MOVINGBASE=` echo ${MOVING} | cut -d '.' -f 1 `
 
-if [ -f ${MOVINGBASE}.cfg  ] ;
+if [ -f ${MOVINGBASE}.cfg ] ;
 then
 rm -f ${MOVINGBASE}.cfg
 fi

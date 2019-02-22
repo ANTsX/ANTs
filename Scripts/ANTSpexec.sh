@@ -85,7 +85,7 @@ function regeneratequeuelinux {
     NUM=0
     for PID in $OLDREQUEUE
     do
-        if [ -d /proc/$PID  ] ; then
+        if [ -d /proc/$PID ] ; then
             QUEUE="$QUEUE $PID"
             NUM=$(($NUM+1))
         fi

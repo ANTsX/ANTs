@@ -3,7 +3,7 @@
 NUMPARAMS=$#
 MAXITERATIONS=30x90x20
 
-if [ $NUMPARAMS -lt 2  ]
+if [ $NUMPARAMS -lt 2 ]
 then
 echo " USAGE ::  "
 echo "  sh   $0 ImageDimension  image.ext   "

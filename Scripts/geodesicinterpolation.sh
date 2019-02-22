@@ -2,7 +2,7 @@
 NUMPARAMS=$#
 
 
-if [ $NUMPARAMS -lt 2  ]
+if [ $NUMPARAMS -lt 2 ]
 then
 echo " USAGE ::  "
 echo "  sh   geodesicinterpolation.sh image1  image2  N-interpolation-points  N-step-size Use-Affine-Initialization?  Mask-Image Auxiliary-Template "
@@ -25,11 +25,11 @@ TARGET=$2
 NUMSTEPS=10
 STEP=1
 OUTNAME=ANTSMORPH
-if [ $NUMPARAMS -gt 2  ]
+if [ $NUMPARAMS -gt 2 ]
 then
 NUMSTEPS=$3
 fi
-if [ $NUMPARAMS -gt 3  ]
+if [ $NUMPARAMS -gt 3 ]
 then
 STEP=$4
 fi

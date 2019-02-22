@@ -487,7 +487,7 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
   tx=Translation
 fi
 
-RIGIDSTAGE="--transform ${tx}[0.1 ] \
+RIGIDSTAGE="--transform ${tx}[ 0.1 ] \
             --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \

@@ -325,7 +325,7 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
 
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
-    if [[ ${#imagelist[@]} -eq 0  ]] ; then
+    if [[ ${#imagelist[@]} -eq 0 ]] ; then
       echo ERROR shapeupdatedtotemplate - imagelist length is 0
       exit 1
     fi
@@ -852,7 +852,7 @@ elif [[ ${NINFILES} -eq 1 ]];
              # if there are more than 32 volumes in the time-series (in case they are smaller
 
              nfmribins=16
-            if [[ ${range} -gt 31  ]];
+            if [[ ${range} -gt 31 ]];
               then
                 BINSIZE=$((${range} / ${nfmribins}))
                 j=1 # initialize counter j
@@ -894,7 +894,7 @@ elif [[ ${NINFILES} -eq 1 ]];
                     let j++
                 done
             fi
-        elif [[ ${range} -gt ${nfmribins} && ${range} -lt 32  ]];
+        elif [[ ${range} -gt ${nfmribins} && ${range} -lt 32 ]];
             then
             for ((i = 0; i < ${nfmribins} ; i++))
                 do

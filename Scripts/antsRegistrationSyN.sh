@@ -487,7 +487,7 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
   tx=Translation
 fi
 
-RIGIDSTAGE="--transform ${tx}[0.1 ] \
+RIGIDSTAGE="--transform ${tx}[ 0.1 ] \
             --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
@@ -502,7 +502,7 @@ AFFINESTAGE="--transform Affine[ 0.1 ] \
 SYNMETRICS=''
 for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
   do
-    SYNMETRICS="$SYNMETRICS --metric CC[ ${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${CCRADIUS}]"
+    SYNMETRICS="$SYNMETRICS --metric CC[ ${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${CCRADIUS} ]"
   done
 
 SYNSTAGE="${SYNMETRICS} \

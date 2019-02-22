@@ -278,11 +278,11 @@ time_start=`date +%s`
 #
 ################################################################################
 
-stage1="-m ${ANTS_LINEAR_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t ${ANTS_TRANS1} -f 8x4x2x1 -s 4x2x1x0 -u 1"
+stage1="-m ${ANTS_LINEAR_METRIC}[ ${ANATOMICAL_BRAIN},${BRAIN},${ANTS_LINEAR_METRIC_PARAMS} ] -c ${ANTS_LINEAR_CONVERGENCE} -t ${ANTS_TRANS1} -f 8x4x2x1 -s 4x2x1x0 -u 1"
 
 stage2=""
 if [[ ${TRANSFORM_TYPE} -gt 1 ]] ; then
-    stage2="-m ${ANTS_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS}] -c [ ${ANTS_MAX_ITERATIONS},1e-7,5 ] -t ${ANTS_TRANS2} -f 4x2x1 -s 2x1x0mm -u 1"
+    stage2="-m ${ANTS_METRIC}[ ${ANATOMICAL_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS} ] -c [ ${ANTS_MAX_ITERATIONS},1e-7,5 ] -t ${ANTS_TRANS2} -f 4x2x1 -s 2x1x0mm -u 1"
 fi
 globalparams=" -z 1 --winsorize-image-intensities [ 0.005, 0.995 ] "
 
