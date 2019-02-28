@@ -121,7 +121,7 @@ Optional arguments:
      -v:  use b-spline smoothing                Use B-spline SyN for registrations and B-spline exponential mapping in DiReCT.
      -r:  cortical label image                  Cortical ROI labels to use as a prior for ATITH.
      -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
-                                                of the form 'label[lambda,boundaryProbability]' where label is a value
+                                                of the form 'label[ lambda,boundaryProbability ]' where label is a value
                                                 of 1,2,3,... denoting label ID.  The label probability for anything
                                                 outside the current label
 
@@ -129,14 +129,14 @@ Optional arguments:
 
                                                 Intuitively, smaller lambda values will increase the spatial capture
                                                 range of the distance prior.  To apply to all label values, simply omit
-                                                specifying the label, i.e. -l [ lambda,boundaryProbability ].
+                                                specifying the label, i.e. '-l "[ lambda,boundaryProbability ]"'.
      -c                                         Add prior combination to combined gray and white matters.  For example,
                                                 when calling KK for normal subjects, we combine the deep gray matter
                                                 segmentation/posteriors with the white matter segmentation/posteriors.
                                                 An additional example would be performing cortical thickness in the presence
                                                 of white matter lesions.  We can accommodate this by specifying a lesion mask
                                                 posterior as an additional posterior (suppose label '7'), and then combine
-                                                this with white matter by specifying '-c WM[ 7 ]' or '-c 3[ 7 ]'.
+                                                this with white matter by specifying '-c "WM[ 7 ]"' or '-c "3[ 7 ]"'.
      -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
                                                 during brain extraction, brain segmentation, and (optional) normalization
                                                 to a template.  Otherwise use antsRegistrationSyN.sh (default = 0).
@@ -255,10 +255,11 @@ DEBUG_MODE=0
 ACT_STAGE=0 # run all stages
 
 function logCmd() {
-  cmd="$*"
+  cmd="$@"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  $cmd
+  # Preserve quoted parameters by running "$@" instead of $cmd
+  ( "$@" )
 
   cmdExit=$?
 
@@ -613,7 +614,7 @@ CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS=()
 for(( j=0; j < ${#PRIOR_COMBINATIONS[@]}; j++ ))
   do
     echo ${PRIOR_COMBINATIONS[$j]}
-    COMBINATION=( $( echo ${PRIOR_COMBINATIONS[$j]} | tr "[]," "\n" ) )
+    COMBINATION=( $( echo ${PRIOR_COMBINATIONS[$j]} | tr -d ' ' | tr '[],' '\n' ) )
 
     echo ${COMBINATION[@]}
 
@@ -932,7 +933,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
 
     logCmd ${ANTSPATH}/antsAtroposN4.sh \
       -d ${DIMENSION} \
-      -b ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION} \
+      -b "${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}" \
       ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
       ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \
@@ -958,7 +959,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
     ## Don't de-noise a second time
     logCmd ${ANTSPATH}/antsAtroposN4.sh \
       -d ${DIMENSION} \
-      -b ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION} \
+      -b "${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}" \
       ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
       ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \

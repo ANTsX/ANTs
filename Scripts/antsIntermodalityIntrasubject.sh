@@ -70,10 +70,10 @@ PARAMETERS
 
 # Echos a command to both stdout and stderr, then runs it
 function logCmd() {
-  cmd="$*"
+  cmd="$@"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  $cmd
+  ( "$@" )
   echo "END   <<<<<<<<<<<<<<<<<<<<"
   echo
   echo

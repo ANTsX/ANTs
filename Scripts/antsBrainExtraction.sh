@@ -115,10 +115,10 @@ PARAMETERS
 DEBUG_MODE=0
 
 function logCmd() {
-  cmd="$*"
+  cmd="$@"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  $cmd
+  ( "$@" )
 
   cmdExit=$?
 

@@ -59,7 +59,7 @@ Optional arguments:
                                                 want use the distance priors (see also the -l option for label propagation
                                                 control).
      -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
-                                                of the form 'label[lambda,boundaryProbability]' where label is a value
+                                                of the form 'label[ lambda,boundaryProbability ]' where label is a value
                                                 of 1,2,3,... denoting label ID.  The label probability for anything
                                                 outside the current label
 
@@ -117,12 +117,12 @@ PARAMETERS
 DEBUG_MODE=0
 
 function logCmd() {
-  cmd="$*"
+  cmd="$@"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
 
   exec 5>&1
-  logCmdOutput=$( $cmd | tee >(cat - >&5) )
+  logCmdOutput=$( "$@" | tee >(cat - >&5) )
 
   cmdExit=${PIPESTATUS[0]}
 
@@ -311,7 +311,7 @@ FORMAT=${FORMAT%%d*}
 
 REPCHARACTER=''
 TOTAL_LENGTH=0
-if [ ${#FORMAT} -eq 2 ]
+if [[ ${#FORMAT} -eq 2 ]]
   then
     REPCHARACTER=${FORMAT:0:1}
     TOTAL_LENGTH=${FORMAT:1:1}
@@ -483,9 +483,9 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
       then
         if [[ $i -eq 0 ]];
           then
-            INITIALIZATION="kmeans[ ${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES}]"
+            INITIALIZATION="kmeans[ ${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES} ]"
           else
-            INITIALIZATION="PriorProbabilityImages[ ${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES},${ATROPOS_SEGMENTATION_POSTERIORS},${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}]"
+            INITIALIZATION="PriorProbabilityImages[ ${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES},${ATROPOS_SEGMENTATION_POSTERIORS},${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} ]"
           fi
       fi
 
@@ -496,7 +496,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
       done
 
     exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} --verbose 1"
-    exe_segmentation="${exe_segmentation} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [ ${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}] -r ${USE_RANDOM_SEEDING}"
+    exe_segmentation="${exe_segmentation} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [ ${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS} ] -r ${USE_RANDOM_SEEDING}"
 
     if [[ $i -eq 0 ]];
       then
