@@ -444,8 +444,8 @@ then
 # Mapping Parameters for the LDDMM style SyN --- the params are SyN[ GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
 # increasing IntegrationTimeStep increases accuracy in the diffeomorphism integration and takes more computation time.
 # NTimeDiscretizationPoints is set to 2 here
-TRANSFORMATION=SyN[ 1,2,0.05]
-REGULARIZATION=Gauss[ 3,0.]
+TRANSFORMATION="SyN[ 1,2,0.05 ]"
+REGULARIZATION="Gauss[ 3,0. ]"
 
 elif [ "${TRANSFORMATIONTYPE}" == "SY" ]
 then
@@ -454,7 +454,7 @@ then
 # NTimeDiscretizationPoints is the number of spatial indices in the time dimension (the 4th dim when doing 3D registration)
 # increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
 # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
-TRANSFORMATION=" SyN[1,2,0.05 ] --geodesic 2 "
+TRANSFORMATION=" SyN[ 1,2,0.05 ] --geodesic 2 "
 REGULARIZATION="Gauss[ 3,0. ]"
 
 elif [ "${TRANSFORMATIONTYPE}" == "LDDMM" ]

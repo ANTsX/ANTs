@@ -29,7 +29,7 @@ SETPATH
 # export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 
 #ANTSPATH=YOURANTSPATH
-if [  ${#ANTSPATH} -le 3 ]
+if [ ${#ANTSPATH} -le 3 ]
     then
     setPath >&2
 fi
@@ -568,7 +568,7 @@ function ANTSAverage3DAffine {
 function jobfnamepadding {
 
     files=`ls job*.sh`
-    BASENAME1=`echo $files[1 ] | cut -d 'b' -f 1`
+    BASENAME1=`echo $files[1] | cut -d 'b' -f 1`
 
     for file in ${files}
       do
@@ -759,7 +759,7 @@ fi
 
 if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]] ; then
   qq=`which  qsub`
-  if [  ${#qq} -lt 1 ] ; then
+  if [ ${#qq} -lt 1 ] ; then
     echo do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ...
     exit
   fi
