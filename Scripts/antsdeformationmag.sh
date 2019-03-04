@@ -1,6 +1,6 @@
 #!/bin/bash
 NUMPARAMS=$#
-if [ $NUMPARAMS -lt 4  ]
+if [ $NUMPARAMS -lt 4 ]
 then
 echo " USAGE ::  "
 echo " $0   inWarp WhichTypeOfMagnitude outputmagnitudeimage.nii  ANTSPATH "

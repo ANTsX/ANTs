@@ -381,7 +381,7 @@ if [[ ${#MASKIMAGES[@]} -gt 0 ]];
   then
     for (( i = 0; i < ${#MASKIMAGES[@]}; i++ ))
       do
-        MASKCALL="${MASKCALL} -x [${MASKIMAGES[$i]}, NULL]"
+        MASKCALL="${MASKCALL} -x [ ${MASKIMAGES[$i]}, NULL ]"
       done
   fi
 
@@ -444,34 +444,34 @@ for (( i=0; i<${#SIZE[@]}; i++ ))
 #
 ##############################
 
-RIGIDCONVERGENCE="[1000x500x250x100,1e-6,10]"
+RIGIDCONVERGENCE="[ 1000x500x250x100,1e-6,10 ]"
 RIGIDSHRINKFACTORS="8x4x2x1"
 RIGIDSMOOTHINGSIGMAS="3x2x1x0vox"
 
-AFFINECONVERGENCE="[1000x500x250x100,1e-6,10]"
+AFFINECONVERGENCE="[ 1000x500x250x100,1e-6,10 ]"
 AFFINESHRINKFACTORS="8x4x2x1"
 AFFINESMOOTHINGSIGMAS="3x2x1x0vox"
 
-SYNCONVERGENCE="[100x70x50x20,1e-6,10]"
+SYNCONVERGENCE="[ 100x70x50x20,1e-6,10 ]"
 SYNSHRINKFACTORS="8x4x2x1"
 SYNSMOOTHINGSIGMAS="3x2x1x0vox"
 
 if [[ $ISLARGEIMAGE -eq 1 ]];
   then
-    RIGIDCONVERGENCE="[1000x500x250x100,1e-6,10]"
+    RIGIDCONVERGENCE="[ 1000x500x250x100,1e-6,10 ]"
     RIGIDSHRINKFACTORS="12x8x4x2"
     RIGIDSMOOTHINGSIGMAS="4x3x2x1vox"
 
-    AFFINECONVERGENCE="[1000x500x250x100,1e-6,10]"
+    AFFINECONVERGENCE="[ 1000x500x250x100,1e-6,10 ]"
     AFFINESHRINKFACTORS="12x8x4x2"
     AFFINESMOOTHINGSIGMAS="4x3x2x1vox"
 
-    SYNCONVERGENCE="[100x100x70x50x20,1e-6,10]"
+    SYNCONVERGENCE="[ 100x100x70x50x20,1e-6,10 ]"
     SYNSHRINKFACTORS="10x6x4x2x1"
     SYNSMOOTHINGSIGMAS="5x3x2x1x0vox"
   fi
 
-INITIALSTAGE="--initial-moving-transform [${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1]"
+INITIALSTAGE="--initial-moving-transform [ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1 ]"
 
 if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
   then
@@ -487,14 +487,14 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
   tx=Translation
 fi
 
-RIGIDSTAGE="--transform ${tx}[0.1] \
-            --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
+RIGIDSTAGE="--transform ${tx}[ 0.1 ] \
+            --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
             --smoothing-sigmas $RIGIDSMOOTHINGSIGMAS"
 
-AFFINESTAGE="--transform Affine[0.1] \
-             --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
+AFFINESTAGE="--transform Affine[ 0.1 ] \
+             --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
              --convergence $AFFINECONVERGENCE \
              --shrink-factors $AFFINESHRINKFACTORS \
              --smoothing-sigmas $AFFINESMOOTHINGSIGMAS"
@@ -502,7 +502,7 @@ AFFINESTAGE="--transform Affine[0.1] \
 SYNMETRICS=''
 for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
   do
-    SYNMETRICS="$SYNMETRICS --metric CC[${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${CCRADIUS}]"
+    SYNMETRICS="$SYNMETRICS --metric CC[ ${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${CCRADIUS} ]"
   done
 
 SYNSTAGE="${SYNMETRICS} \
@@ -512,7 +512,7 @@ SYNSTAGE="${SYNMETRICS} \
 
 if [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'br' ]];
   then
-    SYNCONVERGENCE="[50x0,1e-6,10]"
+    SYNCONVERGENCE="[ 50x0,1e-6,10 ]"
     SYNSHRINKFACTORS="2x1"
     SYNSMOOTHINGSIGMAS="1x0vox"
           SYNSTAGE="${SYNMETRICS} \
@@ -523,13 +523,13 @@ if [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'br' ]];
 
 if [[ $TRANSFORMTYPE == 'b' ]] || [[ $TRANSFORMTYPE == 'br' ]] || [[ $TRANSFORMTYPE == 'bo' ]];
   then
-    SYNSTAGE="--transform BSplineSyN[0.1,${SPLINEDISTANCE},0,3] \
+    SYNSTAGE="--transform BSplineSyN[ 0.1,${SPLINEDISTANCE},0,3 ] \
              $SYNSTAGE"
   fi
 
 if [[ $TRANSFORMTYPE == 's' ]] || [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'so' ]];
   then
-    SYNSTAGE="--transform SyN[0.1,3,0] \
+    SYNSTAGE="--transform SyN[ 0.1,3,0 ] \
              $SYNSTAGE"
   fi
 
@@ -591,10 +591,10 @@ fi
 COMMAND="${ANTS} --verbose 1 $RANDOMOPT \
                  --dimensionality $DIM $PRECISION \
                  --collapse-output-transforms $COLLAPSEOUTPUTTRANSFORMS \
-                 --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \
+                 --output [ $OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz ] \
                  --interpolation Linear \
                  --use-histogram-matching ${USEHISTOGRAMMATCHING} \
-                 --winsorize-image-intensities [0.005,0.995] \
+                 --winsorize-image-intensities [ 0.005,0.995 ] \
                  $MASKCALL \
                  $STAGES"
 

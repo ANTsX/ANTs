@@ -4,7 +4,7 @@ NUMPARAMS=$#
 
 MAXITERATIONS=30x90x20
 export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
-if [ $NUMPARAMS -lt 3  ]
+if [ $NUMPARAMS -lt 3 ]
 then
 echo " USAGE ::  "
 echo "  sh   ants.sh  ImageDimension  fixed.ext  moving.ext Subject/Moving-DT-To-Deform-To-Fixed-Image  OPTIONAL-Subject/Moving-BZero-To-DistortionCorrect-To-Moving-T1-Image "
@@ -65,7 +65,7 @@ OUTPUTNAME=${MOVING%.*}
 fi
 
 MOVINGDT=0
-if [ $NUMPARAMS -gt 3  ]
+if [ $NUMPARAMS -gt 3 ]
 then
  MOVINGDT=$4
 if [ ! -f $MOVINGDT ]
@@ -76,7 +76,7 @@ fi
 fi
 
 MOVINGBZ=0
-if [ $NUMPARAMS -gt 4  ]
+if [ $NUMPARAMS -gt 4 ]
 then
  MOVINGBZ=$5
 if [ ! -f $MOVINGBZ ]
@@ -97,13 +97,13 @@ fi
 
 
 # Mapping Parameters
-  TRANSFORMATION=SyN[0.25]
+  TRANSFORMATION="SyN[ 0.25 ]"
   ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
   NUMLEVELS=${#ITERATLEVEL[@]}
   echo $NUMLEVELS
-  REGULARIZATION=Gauss[3,0]
-  METRIC=CC[
-  METRICPARAMS=1,2]
+  REGULARIZATION="Gauss[ 3,0 ]"
+  METRIC="CC[ "
+  METRICPARAMS="1,2 ]"
 #echo " $METRICPARAMS  &  $METRIC "
 #exit
 
@@ -124,7 +124,7 @@ echo " "
 
 # first, do distortion correction of MOVINGDT to MOVING
 # use the B0 image
-${ANTSPATH}/ANTS 3 -m CC[${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[3,0] -t SyN[0.25]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
+${ANTSPATH}/ANTS 3 -m CC[ ${MOVINGBZ},${MOVING},1,2 ]  -o ${OUTPUTNAME}distcorr  -r Gauss[ 3,0 ] -t SyN[ 0.25 ]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
 
 ${ANTSPATH}/WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii.gz ${OUTPUTNAME}distcorrWarp.nii.gz ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
 #exit
@@ -133,7 +133,7 @@ if [[ ! -s ${OUTPUTNAME}Affine.txt ]] ; then
   sh ${ANTSPATH}/ants.sh $DIM $FIXED $MOVING ${OUTPUTNAME}
 fi
 
-if  [[ -s ${MOVINGDT}  ]] &&  [[  -s ${OUTPUTNAME}Affine.txt ]] ; then
+if  [[ -s ${MOVINGDT} ]] &&  [[  -s ${OUTPUTNAME}Affine.txt ]] ; then
     DTDEF=${OUTPUTNAME}DTdeformed.nii.gz
     FIXEDSUB=${OUTPUTNAME}fixedsub.nii.gz
 #    ${ANTSPATH}/ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2

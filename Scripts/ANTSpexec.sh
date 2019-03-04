@@ -7,7 +7,7 @@ function Usage {
 
 Usage:
 
-`basename $0` [-h] [-r] [-j nb_jobs] command arg_list
+`basename $0` [-h ] [-r ] [-j nb_jobs ] command arg_list
 
 Optional arguments:
 
@@ -40,7 +40,7 @@ Mac (Darwin) and Linux (CentOS 5).
 
 Usage:
 
-`basename $0` [-h] [-r] [-j nb_jobs] command arg_list
+`basename $0` [-h ] [-r ] [-j nb_jobs ] command arg_list
 
 Optional arguments:
 
@@ -85,7 +85,7 @@ function regeneratequeuelinux {
     NUM=0
     for PID in $OLDREQUEUE
     do
-        if [ -d /proc/$PID  ] ; then
+        if [ -d /proc/$PID ] ; then
             QUEUE="$QUEUE $PID"
             NUM=$(($NUM+1))
         fi
