@@ -574,7 +574,12 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
           done
 
    
-    logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_BRAIN}
+        logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_BRAIN}
+
+        # Copy header information from original image into output
+        logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_BRAIN} ${EXTRACTION_BRAIN} 1 1 1 0
+        logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_MASK} 1 1 1 0
+        
 
     if [[ ! -f ${EXTRACTION_MASK} ]];
       then
