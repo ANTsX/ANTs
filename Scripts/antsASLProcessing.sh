@@ -315,7 +315,7 @@ logCmd ${ANTSPATH}/antsApplyTransforms -d 3 \
     -n MultiLabel \
     -t ${TRANSFORM_PREFIX}TemplateToSubject0Warp.nii.gz \
     -t ${TRANSFORM_PREFIX}TemplateToSubject1GenericAffine.mat \
-    -t [${OUTNAME}0GenericAffine.mat,1] \
+    -t [ ${OUTNAME}0GenericAffine.mat,1 ] \
     -t ${OUTNAME}1InverseWarp.nii.gz
 
 logCmd ${ANTSPATH}/antsApplyTransforms -d 3 \
@@ -331,7 +331,7 @@ logCmd ${ANTSPATH}/antsApplyTransforms -d 3 \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}SegmentationWarpedToPCASL.nii.gz \
   -n MultiLabel \
-  -t [${OUTNAME}0GenericAffine.mat,1] \
+  -t [ ${OUTNAME}0GenericAffine.mat,1 ] \
   -t ${OUTNAME}1InverseWarp.nii.gz \
 
 if ! $KEEP_TMP_FILES

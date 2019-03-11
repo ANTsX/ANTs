@@ -41,16 +41,16 @@ fi
 ITS=" -i 100x100x30 " # 3 optimization levels
 
 # different transformation models you can choose
-TSYNWITHTIME=" -t SyN[0.25,5,0.01] -r DMFFD[10x10,0,3] " # spatiotemporal (full) diffeomorphism
-GGREEDYSYN=" -t SyN[0.15]  -r Gauss[3,0] " # fast symmetric normalization gaussian regularization
-BGREEDYSYN=" -t SyN[0.15]  -r DMFFD[4x4,0,3] " # fast symmetric normalization dmffd regularization
-TELAST=" -t Elast[1] -r Gauss[0.5,3] "             # elastic
-TEXP=" -t Exp[0.001,100] -r DMFFD[3,0] "            # exponential
+TSYNWITHTIME=" -t SyN[ 0.25,5,0.01 ] -r DMFFD[ 10x10,0,3 ] " # spatiotemporal (full) diffeomorphism
+GGREEDYSYN=" -t SyN[ 0.15 ]  -r Gauss[ 3,0 ] " # fast symmetric normalization gaussian regularization
+BGREEDYSYN=" -t SyN[ 0.15 ]  -r DMFFD[ 4x4,0,3 ] " # fast symmetric normalization dmffd regularization
+TELAST=" -t Elast[ 1 ] -r Gauss[ 0.5,3 ] "             # elastic
+TEXP=" -t Exp[ 0.001,100 ] -r DMFFD[ 3,0 ] "            # exponential
 
 # different metric choices for the user
-INTMSQ=" -m MSQ[${II},${JJ},1,0] "
-INTMI=" -m MI[${II},${JJ},1,16] "
-INTCC=" -m CC[${II},${JJ},1,4] "
+INTMSQ=" -m MSQ[ ${II},${JJ},1,0 ] "
+INTMI=" -m MI[ ${II},${JJ},1,16 ] "
+INTCC=" -m CC[ ${II},${JJ},1,4 ] "
 #
 #
 # these are the forward and backward warps.
@@ -80,11 +80,11 @@ JJSEG=${OUTPUTNAME}B_seg.nii.gz
 #
 ${ANTSPATH}/ThresholdImage $DIM $II $IISEG 1 1.e9
 ${ANTSPATH}/ThresholdImage $DIM $JJ $JJSEG 1 1.e9
-AtroposParams=" -d $DIM -m [0.1,1x1] -c [5,0] -i kmeans[3] "
+AtroposParams=" -d $DIM -m [ 0.1,1x1 ] -c [ 5,0 ] -i kmeans[ 3 ] "
 ${ANTSPATH}/Atropos $AtroposParams -a $II -o $IISEG  -x $IISEG
 ${ANTSPATH}/Atropos $AtroposParams -a $JJ -o $JJSEG  -x $JJSEG
 # compute some segmentations and use them in labelguided mapping
-LABELGUIDED=" -m PSE[${II},${JJ},${IISEG},${JJSEG},0.75,0.1,25,0,10] "
+LABELGUIDED=" -m PSE[ ${II},${JJ},${IISEG},${JJSEG},0.75,0.1,25,0,10 ] "
 #
 ${ANTSPATH}/ANTS $DIM -o ${OUTPUTNAME} $ITS $TRAN $INT $LABELGUIDED
 ${ANTSPATH}/WarpImageMultiTransform $DIM ${II} ${OUTPUTNAME}IItoJJ.nii.gz -R ${JJ} $INVW
@@ -106,11 +106,11 @@ JJSEG=${OUTPUTNAME}B_seg.nii.gz
 #
 ${ANTSPATH}/ThresholdImage $DIM $II $IISEG 1 1.e9
 ${ANTSPATH}/ThresholdImage $DIM $JJ $JJSEG 1 1.e9
-AtroposParams=" -d $DIM -m [0.1,1x1] -c [5,0] -i kmeans[3] "
+AtroposParams=" -d $DIM -m [ 0.1,1x1 ] -c [ 5,0 ] -i kmeans[ 3 ] "
 ${ANTSPATH}/Atropos $AtroposParams -a $II -o $IISEG  -x $IISEG
 ${ANTSPATH}/Atropos $AtroposParams -a $JJ -o $JJSEG  -x $JJSEG
 # compute some segmentations and use them in labelguided mapping
-LABELGUIDED=" -m MSQ[${IISEG},${JJSEG},0.75] "
+LABELGUIDED=" -m MSQ[ ${IISEG},${JJSEG},0.75 ] "
 #
 ${ANTSPATH}/ANTS $DIM -o ${OUTPUTNAME} $ITS $TRAN $INT $LABELGUIDED
 ${ANTSPATH}/WarpImageMultiTransform $DIM ${II} ${OUTPUTNAME}IItoJJ.nii.gz -R ${JJ} $INVW

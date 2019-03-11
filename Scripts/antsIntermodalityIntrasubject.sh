@@ -70,10 +70,10 @@ PARAMETERS
 
 # Echos a command to both stdout and stderr, then runs it
 function logCmd() {
-  cmd="$*"
+  cmd="$@"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  $cmd
+  ( "$@" )
   echo "END   <<<<<<<<<<<<<<<<<<<<"
   echo
   echo
@@ -231,10 +231,10 @@ if [[ ! -d $OUTPUT_DIR ]];
 
 
 ANTS_MAX_ITERATIONS="50x50x0"
-ANTS_TRANSFORMATION="SyN[0.1,3,0]"
+ANTS_TRANSFORMATION="SyN[ 0.1,3,0 ]"
 ANTS_LINEAR_METRIC="MI"
 ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
-ANTS_LINEAR_CONVERGENCE="[1000x500x250x0,1e-7,5]"
+ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x0,1e-7,5 ]"
 ANTS_METRIC="mattes"
 ANTS_METRIC_PARAMS="1,32"
 ANTS_TRANS1=""
@@ -242,18 +242,18 @@ ANTS_TRANS2=""
 
 if [ ${TRANSFORM_TYPE} -eq 0 ];
 then
-    ANTS_TRANS1="Rigid[0.1]"
+    ANTS_TRANS1="Rigid[ 0.1 ]"
 elif [ ${TRANSFORM_TYPE} -eq 1 ];
 then
-   ANTS_TRANS1="Affine[0.1]"
+   ANTS_TRANS1="Affine[ 0.1 ]"
 elif [ ${TRANSFORM_TYPE} -eq 2 ];
 then
-    ANTS_TRANS1="Rigid[0.1]"
-    ANTS_TRANS2="SyN[0.1,3,0]"
+    ANTS_TRANS1="Rigid[ 0.1 ]"
+    ANTS_TRANS2="SyN[ 0.1,3,0 ]"
 elif [ ${TRANSFORM_TYPE} -eq 3 ];
 then
-   ANTS_TRANS1="Affine[0.1]"
-   ANTS_TRANS2="SyN[0.1,3,0]"
+   ANTS_TRANS1="Affine[ 0.1 ]"
+   ANTS_TRANS2="SyN[ 0.1,3,0 ]"
 fi
 
 echoParameters >&2
@@ -278,13 +278,13 @@ time_start=`date +%s`
 #
 ################################################################################
 
-stage1="-m ${ANTS_LINEAR_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t ${ANTS_TRANS1} -f 8x4x2x1 -s 4x2x1x0 -u 1"
+stage1="-m ${ANTS_LINEAR_METRIC}[ ${ANATOMICAL_BRAIN},${BRAIN},${ANTS_LINEAR_METRIC_PARAMS} ] -c ${ANTS_LINEAR_CONVERGENCE} -t ${ANTS_TRANS1} -f 8x4x2x1 -s 4x2x1x0 -u 1"
 
 stage2=""
 if [[ ${TRANSFORM_TYPE} -gt 1 ]] ; then
-    stage2="-m ${ANTS_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS}] -c [${ANTS_MAX_ITERATIONS},1e-7,5] -t ${ANTS_TRANS2} -f 4x2x1 -s 2x1x0mm -u 1"
+    stage2="-m ${ANTS_METRIC}[ ${ANATOMICAL_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS} ] -c [ ${ANTS_MAX_ITERATIONS},1e-7,5 ] -t ${ANTS_TRANS2} -f 4x2x1 -s 2x1x0mm -u 1"
 fi
-globalparams=" -z 1 --winsorize-image-intensities [0.005, 0.995] "
+globalparams=" -z 1 --winsorize-image-intensities [ 0.005, 0.995 ] "
 
 cmd="${ANTSPATH}/antsRegistration -d $DIMENSION $stage1 $stage2 $globalparams -o ${OUTPUT_PREFIX}"
 echo $cmd
@@ -340,7 +340,7 @@ fi
 if [[ -f $TEMPLATE_MASK ]]; then
     ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_MASK -o ${OUTPUT_PREFIX}brainmask.nii.gz \
 	-r $BRAIN  -n NearestNeighbor \
-	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1]       \
+	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1 ]       \
 	$iwarp
 fi
 
@@ -348,7 +348,7 @@ fi
 if [[ -f $TEMPLATE_LABELS ]]; then
     ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_LABELS -o ${OUTPUT_PREFIX}labels.nii.gz \
 	-r $BRAIN  -n NearestNeighbor \
-	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1]       \
+	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1 ]       \
 	$iwarp           \
 	-t   ${TEMPLATE_TRANSFORM}1Warp.nii.gz \
 	-t   ${TEMPLATE_TRANSFORM}0GenericAffine.mat

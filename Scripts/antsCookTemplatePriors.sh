@@ -167,10 +167,10 @@ PARAMETERS
 DEBUG_MODE=0
 
 function logCmd() {
-  cmd="$*"
+  cmd="$@"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  $cmd
+  ( "$@" )
 
   cmdExit=$?
 
@@ -331,7 +331,7 @@ FORMAT=${FORMAT%%d*}
 
 REPCHARACTER=''
 TOTAL_LENGTH=0
-if [ ${#FORMAT} -eq 2 ]
+if [[ ${#FORMAT} -eq 2 ]]
   then
     REPCHARACTER=${FORMAT:0:1}
     TOTAL_LENGTH=${FORMAT:1:1}

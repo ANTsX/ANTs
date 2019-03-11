@@ -115,10 +115,10 @@ PARAMETERS
 DEBUG_MODE=0
 
 function logCmd() {
-  cmd="$*"
+  cmd="$@"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  $cmd
+  ( "$@" )
 
   cmdExit=$?
 
@@ -178,26 +178,26 @@ ATROPOS_CSF_CLASS_LABEL=1
 ATROPOS_GM_CLASS_LABEL=2
 ATROPOS_WM_CLASS_LABEL=3
 
-ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[${ATROPOS_NUM_CLASSES}]"
+ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[ ${ATROPOS_NUM_CLASSES} ]"
 ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD="Gaussian"
-ATROPOS_BRAIN_EXTRACTION_CONVERGENCE="[3,0.0]"
+ATROPOS_BRAIN_EXTRACTION_CONVERGENCE="[ 3,0.0 ]"
 
 ANTS=${ANTSPATH}/antsRegistration
 ANTS_MAX_ITERATIONS="100x100x70x20"
-ANTS_TRANSFORMATION="SyN[0.1,3,0]"
+ANTS_TRANSFORMATION="SyN[ 0.1,3,0 ]"
 ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
-ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
+ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x100,1e-8,10 ]"
 ANTS_METRIC="CC"
 ANTS_METRIC_PARAMS="1,4"
 
 WARP=${ANTSPATH}/antsApplyTransforms
 
 N4=${ANTSPATH}/N4BiasFieldCorrection
-N4_CONVERGENCE_1="[50x50x50x50,0.0000001]"
-N4_CONVERGENCE_2="[50x50x50x50,0.0000001]"
+N4_CONVERGENCE_1="[ 50x50x50x50,0.0000001 ]"
+N4_CONVERGENCE_2="[ 50x50x50x50,0.0000001 ]"
 N4_SHRINK_FACTOR_1=4
 N4_SHRINK_FACTOR_2=2
-N4_BSPLINE_PARAMS="[200]"
+N4_BSPLINE_PARAMS="[ 200 ]"
 
 USE_FLOAT_PRECISION=0
 
@@ -226,18 +226,18 @@ else
           c) #k-means segmentation params
        # Check conventional ANTs vector designation (i.e.,  'x')
        kmeansParamsArr=(${OPTARG//x/ })  
-       if [ ${#kmeansParamsArr[@]} -ne 4 ];
+       if [[ ${#kmeansParamsArr[@]} -ne 4 ]];
          then
            # Check alternative form
            kmeansParamsArr=(${OPTARG//,/ })  
-           if [ ${#kmeansParamsArr[@]} -ne 4 ];
+           if [[ ${#kmeansParamsArr[@]} -ne 4 ]];
              then
                echo "ERROR:  unrecognized kmeans option (-c)."
                exit 1
              fi
          fi
        ATROPOS_NUM_CLASSES=${kmeansParamsArr[0]}
-       ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[${ATROPOS_NUM_CLASSES}]"
+       ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[ ${ATROPOS_NUM_CLASSES} ]"
        ATROPOS_CSF_CLASS_LABEL=${kmeansParamsArr[1]}
        ATROPOS_GM_CLASS_LABEL=${kmeansParamsArr[2]} 
        ATROPOS_WM_CLASS_LABEL=${kmeansParamsArr[3]}
@@ -277,18 +277,18 @@ else
   done
 fi
 
-ATROPOS_BRAIN_EXTRACTION_MRF="[0.1,1x1x1]"
+ATROPOS_BRAIN_EXTRACTION_MRF="[ 0.1,1x1x1 ]"
 if [[ $DIMENSION -eq 2 ]];
   then
-    ATROPOS_BRAIN_EXTRACTION_MRF="[0.1,1x1]"
+    ATROPOS_BRAIN_EXTRACTION_MRF="[ 0.1,1x1 ]"
   fi
 
 if [[ -z "$ATROPOS_SEGMENTATION_MRF" ]];
   then
-    ATROPOS_SEGMENTATION_MRF="[0.1,1x1x1]";
+    ATROPOS_SEGMENTATION_MRF="[ 0.1,1x1x1 ]";
     if [[ $DIMENSION -eq 2 ]];
       then
-        ATROPOS_SEGMENTATION_MRF="[0.1,1x1]"
+        ATROPOS_SEGMENTATION_MRF="[ 0.1,1x1 ]"
       fi
   fi
 
@@ -329,7 +329,7 @@ if [[ $DEBUG_MODE -gt 0 ]];
    # certain things are hard coded elsewhere, eg number of levels
 
    ANTS_MAX_ITERATIONS="40x40x20x0"
-   ANTS_LINEAR_CONVERGENCE="[100x100x50x10,1e-8,10]"
+   ANTS_LINEAR_CONVERGENCE="[ 100x100x50x10,1e-8,10 ]"
 
    # Leave N4 / Atropos alone because they're pretty fast
 
@@ -462,10 +462,10 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
 #             exe_initial_align="${ANTSPATH}/antsAffineInitializer ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} ${EXTRACTION_INITIAL_AFFINE_MOVING} ${EXTRACTION_INITIAL_AFFINE} 15 0.1 0 10"
           exe_initial_align="${ANTSPATH}/antsAI -d ${DIMENSION} -v 1"
-          exe_initial_align="${exe_initial_align} -m Mattes[${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2]"
-          exe_initial_align="${exe_initial_align} -t Affine[0.1]"
-          exe_initial_align="${exe_initial_align} -s [20,0.12]"
-          exe_initial_align="${exe_initial_align} -g [40,0x40x40]"
+          exe_initial_align="${exe_initial_align} -m Mattes[ ${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2 ]"
+          exe_initial_align="${exe_initial_align} -t Affine[ 0.1 ]"
+          exe_initial_align="${exe_initial_align} -s [ 20,0.12 ]"
+          exe_initial_align="${exe_initial_align} -g [ 40,0x40x40 ]"
           exe_initial_align="${exe_initial_align} -p 0"
           exe_initial_align="${exe_initial_align} -c 10"
           exe_initial_align="${exe_initial_align} -o ${EXTRACTION_INITIAL_AFFINE}"
@@ -478,14 +478,14 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
           logCmd $exe_initial_align
 
-          basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${EXTRACTION_WARP_OUTPUT_PREFIX} -r ${EXTRACTION_INITIAL_AFFINE} -z 1 --float ${USE_FLOAT_PRECISION} --verbose 1"
+          basecall="${ANTS} -d ${DIMENSION} -u 1 -w [ 0.025,0.975 ] -o ${EXTRACTION_WARP_OUTPUT_PREFIX} -r ${EXTRACTION_INITIAL_AFFINE} -z 1 --float ${USE_FLOAT_PRECISION} --verbose 1"
           if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
             then
-              basecall="${basecall} -x [${EXTRACTION_REGISTRATION_MASK}]"
+              basecall="${basecall} -x [ ${EXTRACTION_REGISTRATION_MASK} ]"
             fi
-          stage1="-m MI[${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 4x2x1x0"
-          stage2="-m MI[${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
-          stage3="-m CC[${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},0.5,4] -m CC[${EXTRACTION_TEMPLATE_LAPLACIAN},${EXTRACTION_LAPLACIAN},0.5,4] -c [50x10x0,1e-9,15] -t ${ANTS_TRANSFORMATION} -f 4x2x1 -s 2x1x0"
+          stage1="-m MI[ ${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS} ] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[ 0.1 ] -f 8x4x2x1 -s 4x2x1x0"
+          stage2="-m MI[ ${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS} ] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[ 0.1 ] -f 8x4x2x1 -s 4x2x1x0"
+          stage3="-m CC[ ${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},0.5,4 ] -m CC[ ${EXTRACTION_TEMPLATE_LAPLACIAN},${EXTRACTION_LAPLACIAN},0.5,4 ] -c [ 50x10x0,1e-9,15 ] -t ${ANTS_TRANSFORMATION} -f 4x2x1 -s 2x1x0"
 
           exe_brain_extraction_1="${basecall} ${stage1} ${stage2} ${stage3}"
 
@@ -513,7 +513,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
         ## Step 2 ##
 
-        exe_brain_extraction_2="${WARP} -d ${DIMENSION} -i ${EXTRACTION_PRIOR} -o ${EXTRACTION_MASK_PRIOR_WARPED} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian -t [${EXTRACTION_GENERIC_AFFINE},1] -t ${EXTRACTION_INVERSE_WARP} --float ${USE_FLOAT_PRECISION} --verbose 1"
+        exe_brain_extraction_2="${WARP} -d ${DIMENSION} -i ${EXTRACTION_PRIOR} -o ${EXTRACTION_MASK_PRIOR_WARPED} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian -t [ ${EXTRACTION_GENERIC_AFFINE},1 ] -t ${EXTRACTION_INVERSE_WARP} --float ${USE_FLOAT_PRECISION} --verbose 1"
         logCmd $exe_brain_extraction_2
 
         ## superstep 1b ##
@@ -574,7 +574,12 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
           done
 
    
-    logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_BRAIN}
+        logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_BRAIN}
+
+        # Copy header information from original image into output
+        logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_BRAIN} ${EXTRACTION_BRAIN} 1 1 1 0
+        logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_MASK} 1 1 1 0
+        
 
     if [[ ! -f ${EXTRACTION_MASK} ]];
       then

@@ -8,9 +8,9 @@ for x in  phantomAwmgm.jpg phantomBwmgm.jpg phantomCwmgm.jpg phantomDwmgm.jpg ph
 do
     count=`expr $count + 1`					# Increment the counter
    echo " count is $count  and file is $x "
-    ${ANTSPATH}/ANTS 2 -m PR[phantomtemplate.jpg,$x,1,4]   -i 20x161x161x161  -o TEST{$count}  -t SyN[2] -r Gauss[3,0.]
+    ${ANTSPATH}/ANTS 2 -m PR[ phantomtemplate.jpg,$x,1,4 ]   -i 20x161x161x161  -o TEST{$count}  -t SyN[ 2 ] -r Gauss[ 3,0.]
 #
-#  -t SyN[1,2,0.05] -r Gauss[3,0.25]
+#  -t SyN[ 1,2,0.05 ] -r Gauss[ 3,0.25]
     ${ANTSPATH}/WarpImageMultiTransform 2  $x  TEST{$count}registered.nii  TEST{$count}Warp.nii TEST{$count}Affine.txt
 done
 

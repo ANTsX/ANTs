@@ -138,7 +138,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
     if( USE_VTK STREQUAL "ON" )
       list(APPEND ${proj}_CMAKE_OPTIONS -DModule_ITKVtkGlue:BOOL=ON)
       if( USE_SYSTEM_VTK STREQUAL "OFF" )
-        list(APPEND ${proj}_CMAKE_OPTIONS -DVTK_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/VTK-install/lib/cmake/vtk-6.2 )
+        list(APPEND ${proj}_CMAKE_OPTIONS -DVTK_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/VTK-install/lib64/cmake/vtk-8.2 )
       endif()
       list(APPEND ${proj}_DEPENDENCIES VTK)
     else()
@@ -149,7 +149,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   ### --- End Project specific additions
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
   set(${proj}_REPOSITORY ${git_protocol}://github.com/muschellij2/ITK.git)
-  set(${proj}_GIT_TAG 77156ea1f25e9d5524dc176a7e334a110b11f1a8 ) # eigen3 and VNL
+  set(${proj}_GIT_TAG ad567b01828cc9610fd601c1f15cfb315a41c1ad ) # eigen3 and VNL
   set(ITK_VERSION_ID ITK-5.0) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}

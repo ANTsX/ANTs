@@ -3,7 +3,7 @@
 NUMPARAMS=$#
 MAXITERATIONS=30x90x20
 
-if [ $NUMPARAMS -lt 2  ]
+if [ $NUMPARAMS -lt 2 ]
 then
 echo " USAGE ::  "
 echo "  sh   $0 ImageDimension  image.ext   "
@@ -49,7 +49,7 @@ ${ANTSPATH}/ThresholdImage $DIM  ${OUTPUTNAME}repaired.nii.gz ${OUTPUTNAME}mask.
 
 WM=${OUTPUTNAME}seg.nii.gz
 if [[ ! -s $WM ]] ; then
-  ${ANTSPATH}/Apocrita $DIM -x ${OUTPUTNAME}mask.nii.gz  -m [0.5,1,0,0] -o [${OUTPUTNAME}seg.nii.gz] -i Otsu[${OUTPUTNAME}repaired.nii.gz,3] -h 0
+  ${ANTSPATH}/Apocrita $DIM -x ${OUTPUTNAME}mask.nii.gz  -m [ 0.5,1,0,0 ] -o [ ${OUTPUTNAME}seg.nii.gz ] -i Otsu[ ${OUTPUTNAME}repaired.nii.gz,3 ] -h 0
   ${ANTSPATH}/ThresholdImage $DIM $WM $WM 3 3
   ${ANTSPATH}/ImageMath $DIM $WM GetLargestComponent $WM
 fi
