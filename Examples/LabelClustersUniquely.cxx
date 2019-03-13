@@ -44,12 +44,13 @@ int  LabelUniquely(int argc, char *argv[])
 
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
 
-  typedef int                                              ULPixelType;
+  typedef unsigned int                                     ULPixelType;
   typedef itk::Image<ULPixelType, ImageDimension>          labelimagetype;
   typedef itk::CastImageFilter<ImageType, labelimagetype>  CastFilterType;
   typedef itk::CastImageFilter< labelimagetype, ImageType> CastFilterType2;
 
-  typedef itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype> FilterType;
+  typedef itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype,
+    labelimagetype > FilterType;
   typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype>   RelabelType;
 
   // want the average value in each cluster as defined by the mask and the value thresh and the clust thresh
@@ -89,6 +90,8 @@ int  LabelUniquely(int argc, char *argv[])
 
   filter->SetInput( castInput->GetOutput() );
   filter->SetFullyConnected( fullyConnected ); // old default was false
+  filter->SetBackgroundValue( 0 );
+  filter->SetMaskImage(  castInput->GetOutput() );
   relabel->SetInput( filter->GetOutput() );
   relabel->SetMinimumObjectSize( (unsigned int) clusterthresh );
 
