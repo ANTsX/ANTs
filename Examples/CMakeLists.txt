@@ -2,7 +2,6 @@
 ## Directly into the other libraries.
 add_library(antsUtilities STATIC antsUtilities.cxx
             antsRegistrationTemplateHeader.cxx
-            antsRegistration.cxx
             antsRegistration2DDouble.cxx antsRegistration2DFloat.cxx
             antsRegistration3DDouble.cxx antsRegistration3DFloat.cxx
             antsRegistration4DDouble.cxx antsRegistration4DFloat.cxx
