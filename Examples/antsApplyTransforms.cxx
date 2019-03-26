@@ -711,7 +711,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           }
         else // inputImageType == 4
           {
-          multiChannelImage = ConvertTimeSeriesImageToMultiChannelImage<TimeSeriesImageType, MultiChannelImageType>( timeSeriesImage );
+          multiChannelImage = ConvertTimeSeriesImageToMultiChannelImage<TimeSeriesImageType, MultiChannelImageType>( outputTimeSeriesImage );
           WriteImage<MultiChannelImageType>( multiChannelImage, ( outputFileName ).c_str() );
           }
         }
