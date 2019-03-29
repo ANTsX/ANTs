@@ -951,7 +951,7 @@ RegistrationHelper<TComputeType, VImageDimension>
                          << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
           typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MutualInformationMetricType;
           typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-          mutualInformationMetric = mutualInformationMetric;
+          // mutualInformationMetric = mutualInformationMetric;
           mutualInformationMetric->SetNumberOfHistogramBins( binOption );
           mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
@@ -969,7 +969,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType,
                                                                            TComputeType> MutualInformationMetricType;
           typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-          mutualInformationMetric = mutualInformationMetric;
+          //mutualInformationMetric = mutualInformationMetric;
           mutualInformationMetric->SetNumberOfHistogramBins( binOption );
           mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
@@ -986,7 +986,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
           typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MeanSquaresMetricType;
           typename MeanSquaresMetricType::Pointer meanSquaresMetric = MeanSquaresMetricType::New();
-          meanSquaresMetric = meanSquaresMetric;
+          //meanSquaresMetric = meanSquaresMetric;
 
           imageMetric = meanSquaresMetric;
           }

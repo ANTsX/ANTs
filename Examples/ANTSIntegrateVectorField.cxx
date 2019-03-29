@@ -325,7 +325,7 @@ int IntegrateVectorField(int argc, char *argv[])
     timesign = -1.0;
     }
   typedef   DisplacementFieldType                                                        TimeVaryingVelocityFieldType;
-  typedef typename DisplacementFieldType::PointType                                      DPointType;
+  //UNUSED: typedef typename DisplacementFieldType::PointType                                      DPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float> DefaultInterpolatorType;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
