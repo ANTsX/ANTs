@@ -1155,7 +1155,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, RealType> MutualInformationMetricType;
     typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-    mutualInformationMetric = mutualInformationMetric;
+    //mutualInformationMetric = mutualInformationMetric;
     mutualInformationMetric->SetNumberOfHistogramBins( numberOfBins );
     mutualInformationMetric->SetUseMovingImageGradientFilter( true );
     mutualInformationMetric->SetUseFixedImageGradientFilter( true );
@@ -1171,7 +1171,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
     typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType,
                                                                      RealType> MutualInformationMetricType;
     typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-    mutualInformationMetric = mutualInformationMetric;
+    //mutualInformationMetric = mutualInformationMetric;
     mutualInformationMetric->SetNumberOfHistogramBins( numberOfBins );
     mutualInformationMetric->SetUseMovingImageGradientFilter( true );
     mutualInformationMetric->SetUseFixedImageGradientFilter( true );
