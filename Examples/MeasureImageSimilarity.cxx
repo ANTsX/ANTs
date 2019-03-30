@@ -353,7 +353,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
                 {
                 point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
                 }
-              if( !fixedImageMask || fixedImageMask->IsInside( point ) )
+              if( !fixedImageMask || fixedImageMask->IsInsideInWorldSpace( point ) )
                 {
                 samplePointSet->SetPoint( index, point );
                 ++index;
@@ -379,7 +379,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
               {
               point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
               }
-            if( !fixedImageMask || fixedImageMask->IsInside( point ) )
+            if( !fixedImageMask || fixedImageMask->IsInsideInWorldSpace( point ) )
               {
               samplePointSet->SetPoint( index, point );
               ++index;
