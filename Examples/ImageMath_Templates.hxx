@@ -13640,12 +13640,12 @@ int MatchBlobs( int argc, char *argv[] )
       typename BlobType::PointType centerPoint;
       image->TransformIndexToPhysicalPoint(  cIter.GetIndex(), centerPoint );
       BlobPointer blob = BlobType::New();
-      blob->SetSigma( 1 );
+      blob->SetSigmaInObjectSpace( 1 );
       blob->SetScaleSpaceValue( val );
       blob->SetCenter(  cIter.GetIndex() );
       const typename BlobType::VectorType centerVector = centerPoint - zeroPoint;
-      blob->GetObjectToParentTransform()->SetOffset(centerVector);
-      blob->ComputeBoundingBox();
+      blob->GetModifiableObjectToParentTransform()->SetOffset(centerVector);
+      blob->Update();
       blobs1.push_back( blob );
       }
     }
@@ -13662,12 +13662,12 @@ int MatchBlobs( int argc, char *argv[] )
     typename BlobType::PointType centerPoint;
     image2->TransformIndexToPhysicalPoint(  mIter.GetIndex(), centerPoint );
     BlobPointer blob = BlobType::New();
-    blob->SetSigma( 1 );
+    blob->SetSigmaInObjectSpace( 1 );
     blob->SetScaleSpaceValue( image2->GetPixel( mIter.GetIndex() ) );
     blob->SetCenter(  mIter.GetIndex() );
     const typename BlobType::VectorType centerVector = centerPoint - zeroPoint;
-    blob->GetObjectToParentTransform()->SetOffset(centerVector);
-    blob->ComputeBoundingBox();
+    blob->GetModifiableObjectToParentTransform()->SetOffset(centerVector);
+    blob->Update();
     blobs2.push_back( blob );
     }
 

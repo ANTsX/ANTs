@@ -1265,7 +1265,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
               {
               point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
               }
-            if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInside( point ) )
+            if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInsideInWorldSpace( point ) )
               {
               samplePointSet->SetPoint( index, point );
               ++index;
@@ -1291,7 +1291,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
             {
             point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
             }
-          if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInside( point ) )
+          if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInsideInWorldSpace( point ) )
             {
             samplePointSet->SetPoint( index, point );
             ++index;
