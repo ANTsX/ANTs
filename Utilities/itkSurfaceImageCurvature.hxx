@@ -630,12 +630,12 @@ void  SurfaceImageCurvature<TSurface>
     D(j, 2) = u2; // (1   , 0)
     D(j, 1) = u1; // (0   , 1)
     D(j, 0) = 1.0;
-    RealType dfuv_u = 0;
-    RealType dfuv_v = 0;
-    if ( ( itk::Math::abs (u1) > 0 ) && ( itk::Math::abs (u2) < 1.e-6 ) )
-      dfuv_u = itk::Math::abs ( f_uv - 1.0 ) / itk::Math::abs (u1) * 100.0;
-    if ( ( itk::Math::abs (u2) > 0 ) && ( itk::Math::abs (u1) < 1.e-6 ) )
-      dfuv_v = itk::Math::abs ( f_uv - 1.0 ) / itk::Math::abs (u2) * 100.0;
+    //NOT USED: RealType dfuv_u = 0;
+    //NOT USED: RealType dfuv_v = 0;
+    //NOT USED: if ( ( itk::Math::abs (u1) > 0 ) && ( itk::Math::abs (u2) < 1.e-6 ) )
+    //NOT USED:  dfuv_u = itk::Math::abs ( f_uv - 1.0 ) / itk::Math::abs (u1) * 100.0;
+    //NOT USED:if ( ( itk::Math::abs (u2) > 0 ) && ( itk::Math::abs (u1) < 1.e-6 ) )
+    //NOT USED:  dfuv_v = itk::Math::abs ( f_uv - 1.0 ) / itk::Math::abs (u2) * 100.0;
     // this->m_Area += sqrt( 1.0 + dfuv_u*dfuv_u + dfuv_v*dfuv_v );
     this->m_Area += itk::Math::abs ( f_uv - 1.0 );
     }
