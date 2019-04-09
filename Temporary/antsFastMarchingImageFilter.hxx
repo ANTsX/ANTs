@@ -89,12 +89,17 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
       {
       os << "None" << std::endl;
       }
+      break;
     case NoHandles:
       {
       os << "No handles" << std::endl;
       }
+      break;
     case Strict:
       os << "Strict" << std::endl;
+      break;
+    default:
+      os << "Invalid" << std::endl;
     }
   os << indent << "Collect points: " << this->m_CollectPoints << std::endl;
   os << indent << "OverrideOutputInformation: ";

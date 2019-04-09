@@ -169,7 +169,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   RealType     searchfactor = 10;                // in degrees, passed by user
   unsigned int mibins = 32;                      // for mattes MI metric
   RealType     degtorad = 0.0174532925;          // to convert degrees to radians
-  unsigned int localoptimizeriterations = 20;    // for local search via conjgrad
+  //NOT USED: unsigned int localoptimizeriterations = 20;    // for local search via conjgrad
   // piover4 is (+/-) for cross-section of the sphere to multi-start search in increments
   // of searchfactor ( converted from degrees to radians ).
   // the search is centered +/- from the principal axis alignment of the images.
@@ -216,7 +216,8 @@ int antsAffineInitializerImp(int argc, char *argv[])
     }
   if(  argc > argct )
     {
-    localoptimizeriterations = std::stoi( argv[argct] );   argct++;
+    //NOT USED: localoptimizeriterations = std::stoi( argv[argct] );
+    argct++;
     }
   typename ImageType::Pointer image1 = nullptr;
   typename ImageType::Pointer image2 = nullptr;

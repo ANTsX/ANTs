@@ -608,8 +608,8 @@ public:
                                    AffineTransformPointer  fixedaff  )
   {
     typedef typename ImageType::DirectionType DirectionType;
-    DirectionType rdirection = referenceimage->GetDirection();
-    DirectionType mdirection = movingImage->GetDirection();
+    //NOT USED: DirectionType rdirection = referenceimage->GetDirection();
+    //NOT USED: DirectionType mdirection = movingImage->GetDirection();
 
     AffineTransformPointer affinverse = nullptr;
     if( aff )

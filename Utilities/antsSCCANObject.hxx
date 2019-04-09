@@ -4430,7 +4430,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     VectorType   original_b =  matrixR.get_column( 0 );
     unsigned int colind = extra_cols;
-    RealType     minerr1;
+    //NOT USED: RealType     minerr1;
     bool         addcol = false;
     matrixP = this->NormalizeMatrix( matrixP );
     while(  colind < this->m_VariatesP.cols()  )
@@ -4470,7 +4470,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         //	randv.fill( 0 );
         // minerr1 = this->RidgeRegression(  matrixP ,  randv, bp, 1.e4 , 100 , false );/** biased but ok */
         // minerr1 = this->ConjGrad(  matrixP ,  randv, matrixP * bp , 0, 10000 );      this->SparsifyP( randv );
-        minerr1 = this->IHTRegression(  matrixP,  randv, bp, 0, 500, 0, true, true ); /** good */
+        //NOT USED: minerr1 =
+        this->IHTRegression(  matrixP,  randv, bp, 0, 500, 0, true, true ); /** good */
         if( cl < this->m_VariatesP.cols() )
           {
           this->m_VariatesP.set_column( cl, randv );
@@ -5510,7 +5511,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   unsigned int       innerloop = 1;
   unsigned int       loop = 0;
   RealType           energy = 0;
-  RealType           lastenergy = 0;
+  //NOT USED: RealType           lastenergy = 0;
   VectorType gradstepsp( n_vecs , basegradstep );
   VectorType gradstepsq( n_vecs , basegradstep );
   if ( this->m_Covering == 0 || this->m_Covering == 2 )
@@ -5533,7 +5534,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     // Arnoldi Iteration SCCA
     bool normbycov = true;
     bool changedgrad = this->CCAUpdate( n_vecs_in, true , normbycov, k );
-    lastenergy = energy;
+    //NOT USED: lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
     if( this->m_GradStep < 1.e-12 ) // || ( itk::Math::abs ( energy - lastenergy ) < this->m_Epsilon  && !changedgrad ) )
       {
