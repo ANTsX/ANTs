@@ -883,7 +883,7 @@ protected:
       RealType     mid = low + 0.5 * ( high - low );
       unsigned int its = 0;
       RealType     fnm = 0;
-      RealType     lastfnm = 1;
+      //NOT USED: RealType     lastfnm = 1;
       while( ( ( eng > (fnp*0.1) )  &&
                ( itk::Math::abs ( high - low ) > this->m_Epsilon )  &&
                ( its < 20 ) ) || its < 3  )
@@ -896,7 +896,7 @@ protected:
         searcherm = this->SpatiallySmoothVector( searcherm, mask );
         //      if ( its > 10 & fnm > 0.99 ) std::cout << " C " << searcherm << std::endl;
         //      if ( its > 10 & fnm > 0.99 ) exit(1);
-        lastfnm = fnm;
+        //NOT USED: lastfnm = fnm;
         fnm = this->CountNonZero( searcherm );
         if( fnm > fnp )
           {

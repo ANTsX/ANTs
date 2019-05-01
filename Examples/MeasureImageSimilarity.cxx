@@ -229,7 +229,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           }
         typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MutualInformationMetricType;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-        mutualInformationMetric = mutualInformationMetric;
+        //mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
         mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
         mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
@@ -249,7 +249,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType,
                                                                         TComputeType> MutualInformationMetricType;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-        mutualInformationMetric = mutualInformationMetric;
+        //mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
         mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
         mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
@@ -268,8 +268,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
 
         typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MeanSquaresMetricType;
         typename MeanSquaresMetricType::Pointer meanSquaresMetric = MeanSquaresMetricType::New();
-        meanSquaresMetric = meanSquaresMetric;
-
+        //meanSquaresMetric = meanSquaresMetric;
         imageMetric = meanSquaresMetric;
         }
         break;
@@ -354,7 +353,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
                 {
                 point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
                 }
-              if( !fixedImageMask || fixedImageMask->IsInside( point ) )
+              if( !fixedImageMask || fixedImageMask->IsInsideInWorldSpace( point ) )
                 {
                 samplePointSet->SetPoint( index, point );
                 ++index;
@@ -380,7 +379,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
               {
               point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
               }
-            if( !fixedImageMask || fixedImageMask->IsInside( point ) )
+            if( !fixedImageMask || fixedImageMask->IsInsideInWorldSpace( point ) )
               {
               samplePointSet->SetPoint( index, point );
               ++index;

@@ -198,15 +198,15 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     inputImage->TransformIndexToPhysicalPoint( i->m_Center, centerPoint );
 
     BlobPointer blob = BlobType::New();
-    blob->SetSigma( sigma );
+    blob->SetSigmaInObjectSpace( sigma );
     blob->SetScaleSpaceValue( i->m_Value );
     blob->SetCenter( i->m_Center );
 
     this->m_BlobRadiusImage->SetPixel( i->m_Center, ( int ) ( 0.5 + i->m_Sigma ) );
     const typename BlobType::VectorType centerVector = centerPoint - zeroPoint;
 
-    blob->GetObjectToParentTransform()->SetOffset(centerVector);
-    blob->ComputeBoundingBox();
+    blob->GetModifiableObjectToParentTransform()->SetOffset(centerVector);
+    blob->Update();
 
     m_BlobList.push_back( blob );
     }

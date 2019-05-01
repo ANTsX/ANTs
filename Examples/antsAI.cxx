@@ -1155,7 +1155,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       }
     typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, RealType> MutualInformationMetricType;
     typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-    mutualInformationMetric = mutualInformationMetric;
+    //mutualInformationMetric = mutualInformationMetric;
     mutualInformationMetric->SetNumberOfHistogramBins( numberOfBins );
     mutualInformationMetric->SetUseMovingImageGradientFilter( true );
     mutualInformationMetric->SetUseFixedImageGradientFilter( true );
@@ -1171,7 +1171,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
     typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType,
                                                                      RealType> MutualInformationMetricType;
     typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-    mutualInformationMetric = mutualInformationMetric;
+    //mutualInformationMetric = mutualInformationMetric;
     mutualInformationMetric->SetNumberOfHistogramBins( numberOfBins );
     mutualInformationMetric->SetUseMovingImageGradientFilter( true );
     mutualInformationMetric->SetUseFixedImageGradientFilter( true );
@@ -1265,7 +1265,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
               {
               point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
               }
-            if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInside( point ) )
+            if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInsideInWorldSpace( point ) )
               {
               samplePointSet->SetPoint( index, point );
               ++index;
@@ -1291,7 +1291,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
             {
             point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
             }
-          if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInside( point ) )
+          if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInsideInWorldSpace( point ) )
             {
             samplePointSet->SetPoint( index, point );
             ++index;
