@@ -128,6 +128,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DITK_WRAPPING:BOOL=OFF #${BUILD_SHARED_LIBS} ## HACK:  QUICK CHANGE
       -DModule_MGHIO:BOOL=ON
       -DModule_ITKReview:BOOL=ON
+      -DModule_GenericLabelInterpolator:BOOL=ON
       ${${proj}_DCMTK_ARGS}
       ${${proj}_WRAP_ARGS}
       ${${proj}_FFTWF_ARGS}
