@@ -201,7 +201,7 @@ Learning about ANTs (examples, etc.)
 
 * **antsRegistration** [bash example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
 
-* **antsRegistration with mask** [(bash and R examples)](https://github.com/ntustison/antsRegistrationWithMaskExample)
+* **antsRegistration with mask** [(bash and ANTsR examples)](https://github.com/ntustison/antsRegistrationWithMaskExample)
 
 * **ANTs and ITK** [paper](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4009425/)
 
