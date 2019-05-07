@@ -207,7 +207,7 @@ Learning about ANTs (examples, etc.)
 
 * **Large deformation** [(bash and ANTsR examples)](http://stnava.github.io/C/)
 
-* **Automobile** [example](http://stnava.github.io/cars/)
+* **Automobile** [(bash and ANTsR examples)](http://stnava.github.io/cars/)
 
 * **Asymmetry** [example](http://stnava.github.io/asymmetry/)
 
