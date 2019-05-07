@@ -151,7 +151,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
-  set(${proj}_GIT_TAG a1a092c0612e00e94518a851ebd259c72e119474 ) ## 20190408 SpatialObjeects updates for new ITKv5 API
+  set(${proj}_GIT_TAG 1041cefe65d68eed96dfa5a8a12cb865df6eaba6 ) ## 20190428
   set(ITK_VERSION_ID ITK-5.0) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
