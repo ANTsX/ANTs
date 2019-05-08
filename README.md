@@ -231,7 +231,7 @@ Learning about ANTs (examples, etc.)
 
 ### Neuro
 
-* **Basic Brain Mapping** [example](http://stnava.github.io/BasicBrainMapping/)
+* **Basic Brain Mapping** [(bash and ANTsR examples)](http://stnava.github.io/BasicBrainMapping/)
 
 * **Template construction** [example](http://ntustison.github.io/TemplateBuildingExample/)
 
@@ -239,9 +239,9 @@ Learning about ANTs (examples, etc.)
 
 * **Pre-built ANTs templates with spatial priors** [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436)
 
-* **Brain extraction** [example](https://github.com/ntustison/antsBrainExtractionExample)
+* **Brain extraction** [(bash and ANTsR examples)](https://github.com/ntustison/antsBrainExtractionExample)
 
-* **N4 bias correction <-> segmentation** [example](https://github.com/ntustison/antsAtroposN4Example)
+* **N4 bias correction <-> segmentation** [(bash and ANTsR examples)](https://github.com/ntustison/antsAtroposN4Example)
 
 * **Cortical thickness** [example](https://github.com/ntustison/antsCorticalThicknessExample)
 
