@@ -233,7 +233,7 @@ Learning about ANTs (examples, etc.)
 
 * **Basic Brain Mapping** [(bash and ANTsR examples)](http://stnava.github.io/BasicBrainMapping/)
 
-* **Template construction** [example](http://ntustison.github.io/TemplateBuildingExample/)
+* **Template construction** [(bash and ANTsR examples)](http://ntustison.github.io/TemplateBuildingExample/)
 
 * **Single subject template construction** [example](https://github.com/ntustison/SingleSubjectTemplateExample)
 
@@ -271,7 +271,7 @@ Learning about ANTs (examples, etc.)
 
 ### Lung
 
-* **CT lung registration** [example](https://github.com/ntustison/antsCtLungRegistrationExample)
+* **CT lung registration** [(bash and ANTsR examples)](https://github.com/ntustison/antsCtLungRegistrationExample)
 
 * **Lung mask registration** [example](https://github.com/ntustison/ProtonCtLungMaskRegistration)
 
