@@ -205,7 +205,7 @@ Learning about ANTs (examples, etc.)
 
 * **ANTs and ITK** [paper](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4009425/)
 
-* **Large deformation** [(bash and ANTsR examples)](http://stnava.github.io/C/)
+* **Large deformation** [(bash, ANTsR and ANTsPy examples)](http://stnava.github.io/C/)
 
 * **Automobile** [(bash and ANTsR examples)](http://stnava.github.io/cars/)
 
