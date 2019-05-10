@@ -241,7 +241,7 @@ Learning about ANTs (examples, etc.)
 
 * **Brain extraction** [(bash and ANTsR examples)](https://github.com/ntustison/antsBrainExtractionExample)
 
-* **N4 bias correction <-> segmentation** [(bash, ANTsR, and ANTsPy examples)](https://github.com/ntustison/antsAtroposN4Example)
+* **N4 bias correction <-> segmentation** [(bash, ANTsR and ANTsPy examples)](https://github.com/ntustison/antsAtroposN4Example)
 
 * **Cortical thickness** [example](https://github.com/ntustison/antsCorticalThicknessExample)
 
