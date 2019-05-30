@@ -237,7 +237,7 @@ Learning about ANTs (examples, etc.)
 
 * **Single subject template construction** [example](https://github.com/ntustison/SingleSubjectTemplateExample)
 
-* **Pre-built ANTs templates with spatial priors** [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436)
+* **Pre-built ANTs templates with spatial priors** [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436) including an [MNI version](https://figshare.com/articles/ANTs_files_for_mni_icbm152_nlin_sym_09a/8061914).
 
 * **Brain extraction** [(bash and ANTsR examples)](https://github.com/ntustison/antsBrainExtractionExample)
 
