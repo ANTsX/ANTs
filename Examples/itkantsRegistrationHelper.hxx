@@ -55,12 +55,10 @@ RegistrationHelper<TComputeType, VImageDimension>
   m_LowerQuantile( 0.0 ),
   m_UpperQuantile( 1.0 ),
   m_LogStream( &std::cout ),
-  m_ApplyLinearTransformsToFixedImageHeader( true ),
   m_PrintSimilarityMeasureInterval( 0 ),
   m_WriteIntervalVolumes( 0 ),
   m_InitializeTransformsPerStage( false ),
-  m_AllPreviousTransformsAreLinear( true ),
-  m_CompositeLinearTransformForFixedImageHeader( nullptr )
+  m_AllPreviousTransformsAreLinear( true )
 {
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
   typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
@@ -808,10 +806,6 @@ RegistrationHelper<TComputeType, VImageDimension>
     {
     this->m_CompositeTransform = CompositeTransformType::New();
     }
-  if( this->m_CompositeLinearTransformForFixedImageHeader.IsNull() )
-    {
-    this->m_CompositeLinearTransformForFixedImageHeader = CompositeTransformType::New();
-    }
   if( this->m_FixedInitialTransform.IsNull() )
     {
     this->m_FixedInitialTransform = CompositeTransformType::New();
@@ -1125,21 +1119,6 @@ RegistrationHelper<TComputeType, VImageDimension>
                                         preprocessFixedImage.GetPointer() );
           }
         preprocessedMovingImagesPerStage.push_back( preprocessMovingImage.GetPointer() );
-
-        if( this->m_ApplyLinearTransformsToFixedImageHeader )
-          {
-          this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
-                                                            dynamic_cast<ImageBaseType *>( preprocessFixedImage.
-                                                                                           GetPointer() ), false );
-
-          if( useFixedImageMaskForThisStage )
-            {
-            this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
-                                                              dynamic_cast<ImageBaseType *>( const_cast<MaskImageType *>(
-                                                                                               this->m_FixedImageMasks[fixedMaskIndex]->
-                                                                                               GetImage() ) ), false );
-            }
-          }
 
         this->Logger() << outputPreprocessingString << std::flush;
 
@@ -1828,7 +1807,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 	  {
 	  displacementFieldRegistration->MetricSamplingReinitializeSeed( this->m_RegistrationRandomSeed );
 	  }
-	
+
         if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
           if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
@@ -3278,13 +3257,6 @@ RegistrationHelper<TComputeType, VImageDimension>
                    << std::endl;
     }
 
-  if( this->m_ApplyLinearTransformsToFixedImageHeader &&
-      this->m_CompositeLinearTransformForFixedImageHeader->GetNumberOfTransforms() > 0 )
-    {
-    this->m_CompositeTransform->PrependTransform( this->m_CompositeLinearTransformForFixedImageHeader );
-    this->m_CompositeTransform->FlattenTransformQueue();
-    }
-
   totalTimer.Stop();
   this->Logger() << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
 
@@ -3331,30 +3303,17 @@ RegistrationHelper<TComputeType, VImageDimension>
     {
     compToAdd = compXfrm->Clone();
 
-    if( this->m_ApplyLinearTransformsToFixedImageHeader && compXfrm->IsLinear() )
-      {
-      this->m_CompositeLinearTransformForFixedImageHeader = compToAdd;
-      }
-    else
-      {
-      this->m_FixedInitialTransform = compToAdd;
-      this->m_AllPreviousTransformsAreLinear = false;
-      }
+    this->m_FixedInitialTransform = compToAdd;
+    this->m_AllPreviousTransformsAreLinear = false;
     }
   else
     {
     compToAdd = CompositeTransformType::New();
     typename TransformType::Pointer xfrm = initialTransform->Clone();
     compToAdd->AddTransform( xfrm );
-    if( this->m_ApplyLinearTransformsToFixedImageHeader && initialTransform->IsLinear() )
-      {
-      this->m_CompositeLinearTransformForFixedImageHeader = compToAdd;
-      }
-    else
-      {
-      this->m_FixedInitialTransform = compToAdd;
-      this->m_AllPreviousTransformsAreLinear = false;
-      }
+
+    this->m_FixedInitialTransform = compToAdd;
+    this->m_AllPreviousTransformsAreLinear = false;
     }
 }
 
