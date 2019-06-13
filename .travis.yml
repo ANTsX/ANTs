@@ -3,7 +3,6 @@ sudo: false
 
 os:
   - linux
-    dist: xenial
   - osx
 
 language: cpp
