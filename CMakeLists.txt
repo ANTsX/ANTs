@@ -29,15 +29,6 @@ foreach(p
   endif()
 endforeach()
 
-option(ANTS_BUILD_WITH_CCACHE "Build ${LOCAL_PROJECT_NAME} using ccache if available." ON)
-mark_as_advanced(ANTS_BUILD_WITH_CCACHE)
-if(ANTS_BUILD_WITH_CCACHE)
-  find_program(CCACHE_PROGRAM ccache)
-  if(CCACHE_PROGRAM)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
-  endif()
-endif()
-
 set(LIBRARY_SOVERSION_INFO 3)
 set(LIBRARY_VERSION_INFO 3.0.0)
 
