@@ -672,14 +672,6 @@ public:
   itkBooleanMacro( DoEstimateLearningRateAtEachIteration );
 
   /**
-   * turn on the option that pushes initial linear transforms to the fixed
-   * image header for faster processing.
-   */
-  itkSetMacro( ApplyLinearTransformsToFixedImageHeader, bool );
-  itkGetConstMacro( ApplyLinearTransformsToFixedImageHeader, bool );
-  itkBooleanMacro( ApplyLinearTransformsToFixedImageHeader );
-
-  /**
    * turn on the option that prints the CC similarity measure
    * between the full-size fixed and moving input images at each iteraton.
    */
@@ -977,16 +969,8 @@ private:
       return EXIT_FAILURE;
       }
 
-    // Add calculated transform to the composite transform or add it to the composite transform
-    // which is incorporated into the fixed image header.
-    if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
-      {
-      this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( registrationMethod->GetModifiableTransform() );
-      }
-    else
-      {
-      compositeTransform->AddTransform( registrationMethod->GetModifiableTransform() );
-      }
+
+    compositeTransform->AddTransform( registrationMethod->GetModifiableTransform() );
 
     return EXIT_SUCCESS;
   }
@@ -1020,12 +1004,10 @@ private:
 
   int m_RegistrationRandomSeed;
 
-  bool         m_ApplyLinearTransformsToFixedImageHeader;
   unsigned int m_PrintSimilarityMeasureInterval;
   unsigned int m_WriteIntervalVolumes;
   bool         m_InitializeTransformsPerStage;
   bool         m_AllPreviousTransformsAreLinear;
-  typename CompositeTransformType::Pointer m_CompositeLinearTransformForFixedImageHeader;
 };
 
 // ##########################################################################

@@ -168,21 +168,6 @@ DoRegistration(typename ParserType::Pointer & parser)
     regHelper->SetInitializeTransformsPerStage( false );
     }
 
-  /*
-   * This option is currently disabled, so commenting it's usage out here
-   *
-   * OptionType::Pointer collapseLinearTransforms =
-   * parser->GetOption( "collapse-linear-transforms-to-fixed-image-header" );
-   * if( collapseLinearTransforms && parser->Convert<bool>( collapseLinearTransforms->GetFunction( 0 )->GetName() ) )
-   * {
-   * regHelper->SetApplyLinearTransformsToFixedImageHeader( true );
-   * }
-   * else
-   */
-    {
-    regHelper->SetApplyLinearTransformsToFixedImageHeader( false );
-    }
-
   OptionType::Pointer printSimilarityMeasureInterval = parser->GetOption( "print-similarity-measure-interval" );
   if( printSimilarityMeasureInterval && printSimilarityMeasureInterval->GetNumberOfFunctions() )
     {

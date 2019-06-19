@@ -19,7 +19,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkProgressReporter.h"
-#include "itkVectorCastImageFilter.h"
+#include "itkCastImageFilter.h"
 #include "itkZeroFluxNeumannBoundaryCondition.h"
 
 #include "vnl/vnl_cross.h"
@@ -97,8 +97,8 @@ GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
       image.  Otherwise just point to the input image. */
   if ( typeid( typename InputImageType::PixelType ) != typeid( RealVectorType ) )
     {
-    typename VectorCastImageFilter<TInputImage, RealVectorImageType>::Pointer
-      caster = VectorCastImageFilter<TInputImage, RealVectorImageType>::New();
+    typename CastImageFilter<TInputImage, RealVectorImageType>::Pointer
+      caster = CastImageFilter<TInputImage, RealVectorImageType>::New();
     caster->SetInput( this->GetInput() );
     caster->Update();
     this->m_RealValuedInputImage = caster->GetOutput();
