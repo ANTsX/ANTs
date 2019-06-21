@@ -20,6 +20,12 @@ include(CMakeDependentOption)
 # Build option(s)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
+option(ANTS_BUILD_WITH_CCACHE "Build ${LOCAL_PROJECT_NAME} using ccache if available." ON)
+mark_as_advanced(ANTS_BUILD_WITH_CCACHE)
+if(ANTS_BUILD_WITH_CCACHE)
+  include(CCache)
+endif()
+
 option(BUILD_SHARED_LIBS "Build ITK with shared libraries." OFF)
 set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
