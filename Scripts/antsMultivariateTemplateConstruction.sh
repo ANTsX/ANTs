@@ -970,7 +970,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo "--------------------------------------------------------------------------------------"
 
         mkdir ${outdir}/rigid
-        mv ${outdir}/rigid*.nii.gz ${outdir}/*GenericAffine.mat ${outdir}/rigid/
+        mv ${outdir}/rigid*.nii.gz ${outdir}/*Affine.txt ${outdir}/*GenericAffine.mat ${outdir}/rigid/
         # backup logs
         if [[ $DOQSUB -eq 1 ]];
           then
@@ -1327,7 +1327,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Backing up results from iteration $itdisplay"
         echo "--------------------------------------------------------------------------------------"
         mkdir ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
-        cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${OUTPUTNAME}*.nii.gz ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}/
+        cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${outdir}/*Affine.txt ${OUTPUTNAME}*.nii.gz ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}/
         # backup logs
         if [[ $DOQSUB -eq 1 ]];
             then
