@@ -118,17 +118,64 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DITK_LEGACY_REMOVE:BOOL=ON
       -DITK_FUTURE_LEGACY_REMOVE:BOOL=ON
       -DITKV3_COMPATIBILITY:BOOL=OFF
-      -DITK_BUILD_DEFAULT_MODULES:BOOL=ON
-#      -DITK_MODULE_Core:BOOL=ON
-#      -DITK_MODULE_IO:BOOL=ON
-#      -DITK_MODULE_Filtering:BOOL=ON
-#      -DITK_MODULE_Registration:BOOL=ON
-      #-DITK_INSTALL_NO_DEVELOPMENT:BOOL=ON
+      -DITK_BUILD_DEFAULT_MODULES:BOOL=OFF
+      -DITKGroup_Core:BOOL=OFF
       -DKWSYS_USE_MD5:BOOL=ON # Required by SlicerExecutionModel
       -DITK_WRAPPING:BOOL=OFF #${BUILD_SHARED_LIBS} ## HACK:  QUICK CHANGE
       -DModule_MGHIO:BOOL=ON
-      -DModule_ITKReview:BOOL=ON
       -DModule_GenericLabelInterpolator:BOOL=ON
+      -DModule_ITKAnisotropicSmoothing:BOOL=ON
+      -DModule_ITKAntiAlias:BOOL=ON
+      -DModule_ITKBiasCorrection:BOOL=ON
+      -DModule_ITKBinaryMathematicalMorphology:BOOL=ON
+      -DModule_ITKClassifiers:BOOL=ON
+      -DModule_ITKColormap:BOOL=ON
+      -DModule_ITKCommon:BOOL=ON
+      -DModule_ITKConnectedComponents:BOOL=ON
+      -DModule_ITKConvolution:BOOL=ON
+      -DModule_ITKDisplacementField:BOOL=ON
+      -DModule_ITKDistanceMap:BOOL=ON
+      -DModule_ITKFEM:BOOL=ON
+      -DModule_ITKFastMarching:BOOL=ON
+      -DModule_ITKFiniteDifference:BOOL=ON
+      -DModule_ITKIOCSV:BOOL=ON
+      -DModule_ITKIOGDCM:BOOL=ON
+      -DModule_ITKIOImageBase:BOOL=ON
+      -DModule_ITKIONRRD:BOOL=ON
+      -DModule_ITKIOTransformBase:BOOL=ON
+      -DModule_ITKImageAdaptors:BOOL=ON
+      -DModule_ITKImageCompare:BOOL=ON
+      -DModule_ITKImageFeature:BOOL=ON
+      -DModule_ITKImageFilterBase:BOOL=ON
+      -DModule_ITKImageFunction:BOOL=ON
+      -DModule_ITKImageGradient:BOOL=ON
+      -DModule_ITKImageGrid:BOOL=ON
+      -DModule_ITKImageIntensity:BOOL=ON
+      -DModule_ITKImageLabel:BOOL=ON
+      -DModule_ITKImageSources:BOOL=ON
+      -DModule_ITKImageStatistics:BOOL=ON
+      -DModule_ITKLabelMap:BOOL=ON
+      -DModule_ITKMarkovRandomFieldsClassifiers:BOOL=ON
+      -DModule_ITKMathematicalMorphology:BOOL=ON
+      -DModule_ITKMesh:BOOL=ON
+      -DModule_ITKMetricsv4:BOOL=ON
+      -DModule_ITKOptimizers:BOOL=ON
+      -DModule_ITKOptimizersv4:BOOL=ON
+      -DModule_ITKPDEDeformableRegistration:BOOL=ON
+      -DModule_ITKPolynomials:BOOL=ON
+      -DModule_ITKRegistrationCommon:BOOL=ON
+      -DModule_ITKRegistrationMethodsv4:BOOL=ON
+      -DModule_ITKReview:BOOL=ON
+      -DModule_ITKSmoothing:BOOL=ON
+      -DModule_ITKSpatialObjects:BOOL=ON
+      -DModule_ITKStatistics:BOOL=ON
+      -DModule_ITKTestKernel:BOOL=ON
+      -DModule_ITKThresholding:BOOL=ON
+      -DModule_ITKTransform:BOOL=ON
+      -DModule_ITKTransformFactory:BOOL=ON
+      -DModule_ITKImageIO:BOOL=ON
+      -DModule_ITKTransformIO:BOOL=ON
+      -DITKGroup_IO:BOOL=ON
       ${${proj}_DCMTK_ARGS}
       ${${proj}_WRAP_ARGS}
       ${${proj}_FFTWF_ARGS}
@@ -138,6 +185,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
     if( USE_VTK STREQUAL "ON" )
       list(APPEND ${proj}_CMAKE_OPTIONS -DModule_ITKVtkGlue:BOOL=ON)
+      list(APPEND ${proj}_CMAKE_OPTIONS -DModule_ITKVTK:BOOL=ON)
       if( USE_SYSTEM_VTK STREQUAL "OFF" )
         list(INSERT CMAKE_PREFIX_PATH 0 ${CMAKE_BINARY_DIR}/staging)
         list(APPEND ${proj}_CMAKE_OPTIONS -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH})
@@ -145,6 +193,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       list(APPEND ${proj}_DEPENDENCIES VTK)
     else()
       list(APPEND ${proj}_CMAKE_OPTIONS -DModule_ITKVtkGlue:BOOL=OFF)
+      list(APPEND ${proj}_CMAKE_OPTIONS -DModule_ITKVTK:BOOL=OFF)
     endif()
 
 
