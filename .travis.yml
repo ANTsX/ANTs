@@ -279,12 +279,6 @@ matrix:
       osx_image: xcode7.3
       env:
         - MATRIX_EVAL="brew update && brew upgrade gcc@4.9 && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
-    - os: osx
-      osx_image: xcode6.4
-      env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
-
-
 
 before_install:
     - eval "${MATRIX_EVAL}"
