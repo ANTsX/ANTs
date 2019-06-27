@@ -11,6 +11,7 @@ matrix:
 #          sources:
 #            - ubuntu-toolchain-r-test
 #          packages:
+#            - ninja-build
 #            - cmake
 #            - cmake-data
 #            - g++-4.9
@@ -25,6 +26,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - g++-5
@@ -39,6 +41,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - g++-6
@@ -53,6 +56,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - g++-7
@@ -67,6 +71,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - g++-8
@@ -81,6 +86,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - g++-9
@@ -97,6 +103,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-xenial-3.6
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - clang-3.6
@@ -111,6 +118,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-xenial-3.7
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - clang-3.7
@@ -125,6 +133,7 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-xenial-3.8
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - clang-3.8
@@ -138,6 +147,7 @@ matrix:
           sources:
             - llvm-toolchain-xenial-3.9
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - clang-3.9
@@ -151,6 +161,7 @@ matrix:
           sources:
             - llvm-toolchain-xenial-4.0
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - clang-4.0
@@ -164,6 +175,7 @@ matrix:
           sources:
             - llvm-toolchain-xenial-5.0
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - clang-5.0
@@ -177,6 +189,7 @@ matrix:
           sources:
             - llvm-toolchain-xenial-6.0
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - clang-6.0
@@ -190,6 +203,7 @@ matrix:
           sources:
             - llvm-toolchain-xenial-7
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - clang-7
@@ -203,6 +217,7 @@ matrix:
           sources:
             - llvm-toolchain-xenial-8
           packages:
+            - ninja-build
             - cmake
             - cmake-data
             - clang-8
@@ -213,72 +228,72 @@ matrix:
 #    - os: osx
 #      osx_image: xcode10.2
 #      env:
-#        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@4.9 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-4.9 && export CXX=g++-4.9"
+#        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@4.9 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-4.9 && export CXX=g++-4.9"
 #    - os: osx
 #      osx_image: xcode10.2
 #      env:
-#        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@5 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-5 && export CXX=g++-5"
+#        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@5 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-5 && export CXX=g++-5"
     - os: osx
       osx_image: xcode10.2
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@6 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-6 && export CXX=g++-6"
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@6 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-6 && export CXX=g++-6"
     - os: osx
       osx_image: xcode10.2
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@7 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-7 && export CXX=g++-7"
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@7 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-7 && export CXX=g++-7"
     - os: osx
       osx_image: xcode10.2
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@8 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-8 && export CXX=g++-8"
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@8 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-8 && export CXX=g++-8"
     - os: osx
       osx_image: xcode10.2
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@9 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-9 && export CXX=g++-9"
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@9 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-9 && export CXX=g++-9"
 #OSX clang starts here
     - os: osx
       osx_image: xcode10.2
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode10.1
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode10
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode9.4
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode9.3
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode9.2
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode9.1
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode9
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode8.3
       env:
-        - MATRIX_EVAL="brew update && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode8
       env:
-        - MATRIX_EVAL="brew update && brew upgrade gcc@4.9 && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew upgrade gcc@4.9 && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
     - os: osx
       osx_image: xcode7.3
       env:
-        - MATRIX_EVAL="brew update && brew upgrade gcc@4.9 && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL="brew update && brew install ninja && brew upgrade gcc@4.9 && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
 
 before_install:
     - eval "${MATRIX_EVAL}"
@@ -286,6 +301,6 @@ before_install:
 script:
   - mkdir -p build
   - cd build
-  - cmake -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON ..
-  - make -j2
-  - cd ANTS-build && make test
+  - cmake -GNinja -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON ..
+  - travis_wait 90 ninja -v
+  - cd ANTS-build && ctest
