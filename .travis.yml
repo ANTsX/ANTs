@@ -1,5 +1,8 @@
 language: cpp
-cache: ccache
+cache:
+  - ccache
+  - directories:
+    - externalobjects
 dist: xenial
 
 addons:
@@ -275,7 +278,8 @@ before_install:
     - eval "${MATRIX_EVAL}"
 
 script:
-  - mkdir -p build && cd build
+  - mkdir -p build externalobjects && cd build
+  - export ExternalData_OBJECT_STORES=${TRAVIS_BUILD_DIR}/externalobjects
   - "export PATH=\"$(echo ${PATH} | awk -v RS=: -v ORS=: '/ccache/ {next} {print}')\""
   - cmake -GNinja -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON ..
   - travis_wait 80 ninja -v
