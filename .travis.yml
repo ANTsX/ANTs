@@ -1,306 +1,282 @@
-sudo: false
-language: c
+language: cpp
 cache: ccache
+dist: xenial
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-xenial-3.6
+      - llvm-toolchain-xenial-3.7
+      - llvm-toolchain-xenial-3.8
+      - llvm-toolchain-xenial-3.9
+      - llvm-toolchain-xenial-4.0
+      - llvm-toolchain-xenial-5.0
+      - llvm-toolchain-xenial-6.0
+      - llvm-toolchain-xenial-7
+      - llvm-toolchain-xenial-8
+      - sourceline: 'ppa:jonathonf/meson'
+      - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
+        key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
+    packages:
+      - cmake
+      - ninja-build
+      - g++-5
+      - g++-6
+      - g++-7
+      - g++-8
+      - g++-9
+      - gcc-5
+      - gcc-6
+      - gcc-7
+      - gcc-8
+      - gcc-9
+      - clang-3.6
+      - clang-3.7
+      - clang-3.8
+      - clang-3.9
+      - clang-4.0
+      - clang-5.0
+      - clang-6.0
+      - clang-7
+      - clang-8
 
 matrix:
   include:
-#    - os: linux
-#      dist: xenial
-#      addons:
-#        apt:
-#          sources:
-#            - ubuntu-toolchain-r-test
-#          packages:
-#            - ninja-build
-#            - cmake
-#            - cmake-data
-#            - g++-4.9
-#            - gcc-4.9
-#            - libgl1-mesa-dev
-#      env:
-#         - MATRIX_EVAL="export CC=gcc-4.9 && export CXX=g++-4.9"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - g++-5
-            - gcc-5
-            - libgl1-mesa-dev
       env:
-         - MATRIX_EVAL="export CC=gcc-5 && export CXX=g++-5"
+         - MATRIX_EVAL="export CC=gcc-5 CXX=g++-5"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - g++-6
-            - gcc-6
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=gcc-6 && export CXX=g++-6"
+        - MATRIX_EVAL="export CC=gcc-6 CXX=g++-6"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - g++-7
-            - gcc-7
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=gcc-7 && export CXX=g++-7"
+        - MATRIX_EVAL="export CC=gcc-7 CXX=g++-7"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - g++-8
-            - gcc-8
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=gcc-8 && export CXX=g++-8"
+        - MATRIX_EVAL="export CC=gcc-8 CXX=g++-8"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - g++-9
-            - gcc-9
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=gcc-9 && export CXX=g++-9"
+        - MATRIX_EVAL="export CC=gcc-9 CXX=g++-9"
 #Linux Clang Starts Here
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.6
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - clang-3.6
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=clang-3.6 && export CXX=clang++-3.6"
+        - MATRIX_EVAL="export CC=clang-3.6 CXX=clang++-3.6"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.7
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - clang-3.7
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=clang-3.7 && export CXX=clang++-3.7"
+        - MATRIX_EVAL="export CC=clang-3.7 CXX=clang++-3.7"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-xenial-3.8
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - clang-3.8
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=clang-3.8 && export CXX=clang++-3.8"
+        - MATRIX_EVAL="export CC=clang-3.8 CXX=clang++-3.8"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-xenial-3.9
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - clang-3.9
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=clang-3.9 && export CXX=clang++-3.9"
+        - MATRIX_EVAL="export CC=clang-3.9 CXX=clang++-3.9"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-xenial-4.0
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - clang-4.0
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=clang-4.0 && export CXX=clang++-4.0"
+        - MATRIX_EVAL="export CC=clang-4.0 CXX=clang++-4.0"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-xenial-5.0
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - clang-5.0
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=clang-5.0 && export CXX=clang++-5.0"
+        - MATRIX_EVAL="export CC=clang-5.0 CXX=clang++-5.0"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-xenial-6.0
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - clang-6.0
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=clang-6.0 && export CXX=clang++-6.0"
+        - MATRIX_EVAL="export CC=clang-6.0 CXX=clang++-6.0"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-xenial-7
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - clang-7
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=clang-7 && export CXX=clang++-7"
+        - MATRIX_EVAL="export CC=clang-7 CXX=clang++-7"
     - os: linux
-      dist: xenial
-      addons:
-        apt:
-          sources:
-            - llvm-toolchain-xenial-8
-          packages:
-            - ninja-build
-            - cmake
-            - cmake-data
-            - clang-8
-            - libgl1-mesa-dev
       env:
-        - MATRIX_EVAL="export CC=clang-8 && export CXX=clang++-8"
+        - MATRIX_EVAL="export CC=clang-8 CXX=clang++-8"
 #OSX GCC Starts here
 #    - os: osx
-#      osx_image: xcode10.2
+#      osx_image: xcode10.1
 #      env:
-#        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@4.9 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-4.9 && export CXX=g++-4.9"
-#    - os: osx
-#      osx_image: xcode10.2
-#      env:
-#        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@5 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-5 && export CXX=g++-5"
+#        - MATRIX_EVAL="export CC=gcc-5 CXX=g++-5"
+#      addons:
+#        homebrew:
+#          packages:
+#            - cmake
+#            - ccache
+#            - ninja
+#            - gcc@5
+#          update: yes
     - os: osx
-      osx_image: xcode10.2
+      osx_image: xcode10.1
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@6 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-6 && export CXX=g++-6"
+        - MATRIX_EVAL="export CC=gcc-6 CXX=g++-6"
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+            - gcc@6
+          update: yes
     - os: osx
-      osx_image: xcode10.2
+      osx_image: xcode10.1
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@7 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-7 && export CXX=g++-7"
+        - MATRIX_EVAL="export CC=gcc-7 CXX=g++-7"
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+            - gcc@7
+          update: yes
     - os: osx
-      osx_image: xcode10.2
+      osx_image: xcode10.1
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@8 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-8 && export CXX=g++-8"
+        - MATRIX_EVAL="export CC=gcc-8 CXX=g++-8"
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+            - gcc@8
+          update: yes
     - os: osx
-      osx_image: xcode10.2
+      osx_image: xcode10.1
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && brew reinstall gcc@9 && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\" && export CC=gcc-9 && export CXX=g++-9"
+        - MATRIX_EVAL="export CC=gcc-9 CXX=g++-9"
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+            - gcc@9
+          update: yes
 #OSX clang starts here
     - os: osx
       osx_image: xcode10.2
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode10.1
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode10
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode9.4
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode9.3
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode9.2
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode9.1
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode9
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode8.3
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode8
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew upgrade gcc@4.9 && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode7.3
       env:
-        - MATRIX_EVAL="brew update && brew install ninja && brew upgrade gcc@4.9 && brew install ccache && (brew upgrade cmake || true) && export PATH=\"/usr/local/opt/ccache/libexec:$PATH\""
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
 
 before_install:
+    - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then wget https://launchpad.net/ubuntu/+source/ccache/3.7.1-1/+build/16720092/+files/ccache_3.7.1-1_amd64.deb && sudo dpkg -i ccache_3.7.1-1_amd64.deb; fi
     - eval "${MATRIX_EVAL}"
 
 script:
-  - mkdir -p build
-  - cd build
+  - mkdir -p build && cd build
+  - "export PATH=\"$(echo ${PATH} | awk -v RS=: -v ORS=: '/ccache/ {next} {print}')\""
   - cmake -GNinja -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON ..
-  - travis_wait 90 ninja -v
+  - travis_wait 80 ninja -v
   - cd ANTS-build && ctest
