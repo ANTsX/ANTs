@@ -3,7 +3,11 @@ cache:
   - ccache
   - directories:
     - externalobjects
+    - $HOME/Library/Caches/Homebrew
 dist: xenial
+
+before_cache:
+  - brew cleanup
 
 addons:
   apt:
