@@ -15,7 +15,7 @@
 #define _itkExpectationBasedPointSetRegistrationFunction_hxx_
 
 #include "itkExpectationBasedPointSetRegistrationFunction.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "itkMath.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
