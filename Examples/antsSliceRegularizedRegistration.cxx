@@ -686,7 +686,6 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         typedef itk::MattesMutualInformationImageToImageMetricv4<FixedImageType,
                                                                  FixedImageType> MutualInformationMetricType;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-        mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
         mutualInformationMetric->SetUseMovingImageGradientFilter( false );
         mutualInformationMetric->SetUseFixedImageGradientFilter( false );
@@ -696,7 +695,6 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         {
         typedef itk::MeanSquaresImageToImageMetricv4<FixedImageType, FixedImageType> MSQMetricType;
         typename MSQMetricType::Pointer demonsMetric = MSQMetricType::New();
-        demonsMetric = demonsMetric;
         metric = demonsMetric;
         }
       else if( std::strcmp( whichMetric.c_str(), "gc" ) == 0 )
