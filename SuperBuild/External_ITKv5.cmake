@@ -152,7 +152,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
   set(${proj}_GIT_TAG 683ba61ad9a95e9bbab9dd30e53c1fda3a37519b ) ## 20190703 Fix warning
-  set(ITK_VERSION_ID ITK-5.0) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
+  set(ITK_VERSION_ID ITK-5.1) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}

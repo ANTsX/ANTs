@@ -58,7 +58,7 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
 message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\"")
 
 # Set up ITK
-find_package(ITK 5.0 REQUIRED)
+find_package(ITK ${ITK_VERSION_ID} REQUIRED)
 include(${ITK_USE_FILE})
 
 # Set up which ANTs apps to build
