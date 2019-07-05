@@ -58,44 +58,6 @@ std::string ants_to_string(T t)
   return istream.str();
 }
 
-std::string ANTSOptionName(const char *str)
-{
-  std::string            filename = str;
-  std::string::size_type pos = filename.rfind( "=" );
-  std::string            name = std::string( filename, 0, pos );
-
-  return name;
-}
-
-std::string ANTSOptionValue(const char *str)
-{
-  std::string            filename = str;
-  std::string::size_type pos = filename.rfind( "=" );
-  std::string            value = std::string( filename, pos + 1, filename.length() );
-
-  return value;
-}
-
-std::string ANTSGetFilePrefix(const char *str)
-{
-  const std::string      filename = str;
-  std::string::size_type pos = filename.rfind( "." );
-  std::string            filepre = std::string( filename, 0, pos );
-
-#if 0 // HACK:  This does nothing useful
-  if( pos != std::string::npos )
-    {
-    std::string extension = std::string( filename, pos, filename.length() - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind( "." );
-      // extension = std::string( filepre, pos, filepre.length() - 1 );
-      }
-    }
-#endif
-  return filepre;
-}
-
 //
 // iMath was a gigantic switch statement that had 3 duplicated
 // lists of 'if (operation == <op>)' clauses for 2d, 3d, and 4d. I
