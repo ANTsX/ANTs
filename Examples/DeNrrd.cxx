@@ -18,7 +18,7 @@
 #include <itkImageSeriesReader.h>
 #include <itkGDCMImageIO.h>
 #include <itkGDCMSeriesFileNames.h>
-#include <itkExceptionObject.h>
+#include <itkMacro.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageFileWriter.h>
 #include <itkImageFileReader.h>
