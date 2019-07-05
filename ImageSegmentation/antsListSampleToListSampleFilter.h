@@ -35,7 +35,7 @@ namespace Statistics
  * \ingroup ListSampleFilters
  *
  */
-template <class TInputListSample, class TOutputListSample = TInputListSample>
+template <typename TInputListSample, typename TOutputListSample = TInputListSample>
 class ListSampleToListSampleFilter : public ProcessObject
 {
 public:
@@ -61,24 +61,22 @@ public:
   /** Get the list sample output of this object.  */
   OutputListSampleType * GetOutput();
 
-  void Update() ITK_OVERRIDE
+  void Update() override
   {
     this->GenerateData();
   }
 
 protected:
   ListSampleToListSampleFilter();
-  virtual ~ListSampleToListSampleFilter() ITK_OVERRIDE
-  {
-  };
+  ~ListSampleToListSampleFilter() override = default;
 
-  void GenerateData() ITK_OVERRIDE = 0;
+  void GenerateData() override = 0;
 
   void AllocateOutput();
 
 private:
-  ListSampleToListSampleFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );               // purposely not implemented
+  ListSampleToListSampleFilter( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
 //   typename InputListSampleType::ConstPointer              m_InputListSample;
 //   typename OutputListSampleType::Pointer                  m_OutputListSample;

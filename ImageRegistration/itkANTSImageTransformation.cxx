@@ -31,31 +31,31 @@
 #include "itkTransformFileWriter.h"
 #include "itkDisplacementFieldTransform.h"
 
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 namespace itk
 {
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 ANTSImageTransformation<TDimension, TReal>
 ::ANTSImageTransformation()
 {
-  this->m_DisplacementField = ITK_NULLPTR;
-  this->m_InverseDisplacementField = ITK_NULLPTR;
-  this->m_AffineTransform = ITK_NULLPTR;
+  this->m_DisplacementField = nullptr;
+  this->m_InverseDisplacementField = nullptr;
+  this->m_AffineTransform = nullptr;
   this->m_WriteComponentImages = false;
   m_DeformationRegionOfInterestSize.Fill(0);
   m_DeformationRegionSpacing.Fill(1);
   m_DeformationRegionOfInterestCenter.Fill(0);
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageTransformation<TDimension, TReal>
 ::Compose()
 {
 }
 
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageTransformation<TDimension, TReal>
 ::Write()
@@ -141,7 +141,6 @@ ANTSImageTransformation<TDimension, TReal>
     std::string fw_filename = filePrefix + extension;
     std::string bw_filename = filePrefix + "_inverse" + extension;
 
-    //using ITKv4 functionality to write transforms
     typedef itk::TransformFileWriterTemplate<TReal> TransformFileWriterFloat;
 
     typename TransformFileWriterFloat::Pointer fw_writer=TransformFileWriterFloat::New();
@@ -245,7 +244,7 @@ ANTSImageTransformation<TDimension, TReal>
 /**
  * Standard "PrintSelf" method
  */
-template <unsigned int TDimension, class TReal>
+template <unsigned int TDimension, typename TReal>
 void
 ANTSImageTransformation<TDimension, TReal>
 ::PrintSelf( std::ostream& os, Indent indent) const

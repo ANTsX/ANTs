@@ -33,7 +33,7 @@
 #include "itkTransform.h"
 #include "itkInterpolateImageFunction.h"
 #include "itkSingleValuedCostFunction.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkSpatialObject.h"
 #include "itkConstNeighborhoodIterator.h"
@@ -117,7 +117,7 @@ namespace itk
  * \ingroup RegistrationMetrics
  * \ingroup ThreadUnSafe
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 class AvantsMutualInformationRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
@@ -154,7 +154,7 @@ public:
     DisplacementFieldTypePointer;
 
   /** Inherit some enums from the superclass. */
-  itkStaticConstMacro(ImageDimension, unsigned int, Superclass::ImageDimension);
+  static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Inherit some enums from the superclass. */
   typedef typename Superclass::PixelType        PixelType;
@@ -194,14 +194,14 @@ public:
   }
 
   /** This class uses a constant timestep of 1. */
-  TimeStepType ComputeGlobalTimeStep(void *itkNotUsed(GlobalData) ) const ITK_OVERRIDE
+  TimeStepType ComputeGlobalTimeStep(void *itkNotUsed(GlobalData) ) const override
   {
     return 1;
   }
 
   /** Return a pointer to a global data structure that is passed to
    * this object from the solver at each calculation.  */
-  void * GetGlobalDataPointer() const ITK_OVERRIDE
+  void * GetGlobalDataPointer() const override
   {
     GlobalDataStruct *global = new GlobalDataStruct();
 
@@ -212,13 +212,13 @@ public:
   }
 
   /** Release memory for global data structure. */
-  void ReleaseGlobalDataPointer( void *GlobalData ) const ITK_OVERRIDE
+  void ReleaseGlobalDataPointer( void *GlobalData ) const override
   {
     delete (GlobalDataStruct *) GlobalData;
   }
 
   /** Set the object's state before each iteration. */
-  void InitializeIteration() ITK_OVERRIDE;
+  void InitializeIteration() override;
 
   typedef double CoordinateRepresentationType;
 
@@ -496,7 +496,7 @@ public:
 
   VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
                                       void * /* globalData */,
-                                      const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) ITK_OVERRIDE
+                                      const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) override
   {
     VectorType update;
 
@@ -586,7 +586,7 @@ public:
 
   VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
                                    void * /* globalData */,
-                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) ITK_OVERRIDE
+                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) override
   {
     VectorType update;
 
@@ -688,15 +688,13 @@ public:
 protected:
 
   AvantsMutualInformationRegistrationFunction();
-  virtual ~AvantsMutualInformationRegistrationFunction() ITK_OVERRIDE
-  {
-  };
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
+  ~AvantsMutualInformationRegistrationFunction() override = default;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
 private:
 
-  AvantsMutualInformationRegistrationFunction(const Self &); // purposely not implemented
-  void operator=(const Self &);                              // purposely not implemented
+  AvantsMutualInformationRegistrationFunction(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   typename JointPDFDerivativesType::Pointer m_JointPDFDerivatives;
 

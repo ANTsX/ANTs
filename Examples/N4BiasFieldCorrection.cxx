@@ -24,7 +24,7 @@
 
 namespace ants
 {
-template <class TFilter>
+template <typename TFilter>
 class CommandIterationUpdate : public itk::Command
 {
 public:
@@ -33,19 +33,17 @@ public:
   typedef itk::SmartPointer<Self> Pointer;
   itkNewMacro( Self );
 protected:
-  CommandIterationUpdate()
-  {
-  };
+  CommandIterationUpdate() = default;
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    const TFilter * filter =
+    const auto * filter =
       dynamic_cast<const TFilter *>( object );
 
     if( typeid( event ) != typeid( itk::IterationEvent ) )
@@ -74,10 +72,10 @@ int N4( itk::ants::CommandLineParser *parser )
   typedef float RealType;
 
   typedef itk::Image<RealType, ImageDimension> ImageType;
-  typename ImageType::Pointer inputImage = ITK_NULLPTR;
+  typename ImageType::Pointer inputImage = nullptr;
 
   typedef itk::Image<RealType, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  typename MaskImageType::Pointer maskImage = nullptr;
 
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
@@ -140,7 +138,7 @@ int N4( itk::ants::CommandLineParser *parser )
     maskImage->FillBuffer( itk::NumericTraits<typename MaskImageType::PixelType>::OneValue() );
     }
 
-  typename ImageType::Pointer weightImage = ITK_NULLPTR;
+  typename ImageType::Pointer weightImage = nullptr;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer weightImageOption =
     parser->GetOption( "weight-image" );
@@ -230,9 +228,9 @@ int N4( itk::ants::CommandLineParser *parser )
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
           float domain = static_cast<RealType>( originalImageSize[d] - 1 ) * inputImage->GetSpacing()[d];
-          unsigned int numberOfSpans = static_cast<unsigned int>(
+          auto numberOfSpans = static_cast<unsigned int>(
               std::ceil( domain / splineDistance ) );
-          unsigned long extraPadding = static_cast<unsigned long>( ( numberOfSpans
+          auto extraPadding = static_cast<unsigned long>( ( numberOfSpans
                                                                      * splineDistance
                                                                      - domain ) / inputImage->GetSpacing()[d] + 0.5 );
           lowerBound[d] = static_cast<unsigned long>( 0.5 * extraPadding );
@@ -782,7 +780,7 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int N4BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int N4BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -800,7 +798,7 @@ int N4BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

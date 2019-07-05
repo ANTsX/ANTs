@@ -3,11 +3,11 @@
 
 #include <iostream>
 #include "itkMatrixOffsetTransformBase.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 
 namespace itk
 {
-template <class TScalarType = double>
+template <typename TScalarType = double>
 // Data type for scalars (float or double)
 // class Rigid2DTransform :
 class ANTSCenteredAffine2DTransform :
@@ -29,10 +29,10 @@ public:
   itkNewMacro( Self );
 
   /** Dimension of the space. */
-  itkStaticConstMacro(InputSpaceDimension, unsigned int, 2);
-  itkStaticConstMacro(OutputSpaceDimension, unsigned int, 2);
-  // itkStaticConstMacro(ParametersDimension, unsigned int, 3);
-  itkStaticConstMacro(ParametersDimension, unsigned int, 8);
+  static constexpr unsigned int InputSpaceDimension = 2;
+  static constexpr unsigned int OutputSpaceDimension = 2;
+  // static constexpr unsigned int ParametersDimension = 3;
+  static constexpr unsigned int ParametersDimension = 8;
 
   /** Scalar type. */
   typedef typename Superclass::ScalarType ScalarType;
@@ -147,7 +147,7 @@ public:
    *
    * \sa Transform::SetParameters()
    * \sa Transform::SetFixedParameters() */
-  void SetParameters( const ParametersType & parameters ) ITK_OVERRIDE;
+  void SetParameters( const ParametersType & parameters ) override;
 
   /** Get the parameters that uniquely define the transform
    * This is typically used by optimizers.
@@ -157,7 +157,7 @@ public:
    *
    * \sa Transform::GetParameters()
    * \sa Transform::GetFixedParameters() */
-  const ParametersType & GetParameters() const ITK_OVERRIDE;
+  const ParametersType & GetParameters() const override;
 
   /** This method computes the Jacobian matrix of the transformation
    * at a given input point.
@@ -174,7 +174,7 @@ public:
    * Get local Jacobian for the given point
    * \c j will sized properly as needed.
    */
-  void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const ITK_OVERRIDE;
+  void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const override;
 
   /**
    * This method creates and returns a new ANTSCenteredAffine2DTransform object
@@ -189,7 +189,7 @@ public:
   void CloneTo( Pointer & clone ) const;
 
   /** Reset the parameters to create and identity transform. */
-  void SetIdentity() ITK_OVERRIDE;
+  void SetIdentity() override;
 
 protected:
   // Rigid2DTransform();
@@ -200,23 +200,23 @@ protected:
   ANTSCenteredAffine2DTransform( unsigned int outputSpaceDimension, unsigned int parametersDimension);
 
   //  ~Rigid2DTransform();
-  virtual ~ANTSCenteredAffine2DTransform() ITK_OVERRIDE;
+  ~ANTSCenteredAffine2DTransform() override;
 
   /**
     * Print contents of an ANTSCenteredAffine2DTransform
     **/
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Compute the matrix from angle. This is used in Set methods
    * to update the underlying matrix whenever a transform parameter
    * is changed. */
-  void ComputeMatrix() ITK_OVERRIDE;
+  void ComputeMatrix() override;
 
   /** Compute the angle from the matrix. This is used to compute
    * transform parameters from a given matrix. This is used in
    * MatrixOffsetTransformBase::Compose() and
    * MatrixOffsetTransformBase::GetInverse(). */
-  void ComputeMatrixParameters() ITK_OVERRIDE;
+  void ComputeMatrixParameters() override;
 
   /** Update angle without recomputation of other internal variables. */
   void SetVarAngle( TScalarType angle )
@@ -240,8 +240,8 @@ protected:
   }
 
 private:
-  ANTSCenteredAffine2DTransform(const Self &); // purposely not implemented
-  void operator=(const Self &);                // purposely not implemented
+  ANTSCenteredAffine2DTransform(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   TScalarType m_Angle;
   TScalarType m_S1;

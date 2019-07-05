@@ -64,7 +64,7 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>
 
   // Calculate gradient image
 
-  typename GradientImageType::Pointer gradientImage = ITK_NULLPTR;
+  typename GradientImageType::Pointer gradientImage = nullptr;
   if( this->m_UseCentralDifferenceFunction )
     {
     GradientPixelType zeroVector;

@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ $# -lt 7  ]
+if [ $# -lt 7 ]
 then
 echo " USAGE \n  sh command.sh  fixed.nii fixedhipp.nii  moving.nii movinghipp.nii outputname  iterations DIM "
 echo " the template = fixed.nii   ,   the individual = moving.nii "
@@ -57,13 +57,13 @@ INTWT=$8   # weight on intensity --  twice the landmarks
 # more iterations leads to more symmetry in the matching  - 0 iterations means full asymmetry
 PCT=0.1 # percent of labeled voxels to use
 PARZ=100 # PARZEN sigma
-LM=PSE[${FIX},${MOV},$FIXH,$MOVH,${LMWT},${PCT},${PARZ},0,25,100]
+LM=PSE[ ${FIX},${MOV},$FIXH,$MOVH,${LMWT},${PCT},${PARZ},0,25,100]
 
-INTENSITY=CC[$FIX,${MOV},${INTWT},4]
+INTENSITY=CC[ $FIX,${MOV},${INTWT},4]
 
 #  == Important Parameters end? ==
 
- ${ANTSPATH}ANTS $DIM -o $OUT  -i $ITS -t SyN[0.25]  -r Gauss[3,0] -m $INTENSITY   -m   $LM
+ ${ANTSPATH}ANTS $DIM -o $OUT  -i $ITS -t SyN[ 0.25 ]  -r Gauss[ 3,0 ] -m $INTENSITY   -m   $LM
 
  ${ANTSPATH}WarpImageMultiTransform $DIM $MOV ${OUT}toTemplate.nii.gz ${OUT}Warp.nii.gz ${OUT}Affine.txt  -R $FIX
 

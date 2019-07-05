@@ -100,6 +100,7 @@ set(MORE_ANTS_APPS
     AverageTensorImages
     ImageSetStatistics
     MultiplyImages
+    SimulateDisplacementField
     SmoothDisplacementField
     SmoothImage
     ClusterImageStatistics

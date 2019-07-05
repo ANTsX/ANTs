@@ -44,12 +44,13 @@ int  LabelUniquely(int argc, char *argv[])
 
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
 
-  typedef int                                              ULPixelType;
+  typedef unsigned int                                     ULPixelType;
   typedef itk::Image<ULPixelType, ImageDimension>          labelimagetype;
   typedef itk::CastImageFilter<ImageType, labelimagetype>  CastFilterType;
   typedef itk::CastImageFilter< labelimagetype, ImageType> CastFilterType2;
 
-  typedef itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype> FilterType;
+  typedef itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype,
+    labelimagetype > FilterType;
   typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype>   RelabelType;
 
   // want the average value in each cluster as defined by the mask and the value thresh and the clust thresh
@@ -72,12 +73,12 @@ int  LabelUniquely(int argc, char *argv[])
   bool fullyConnected = false;
   if( argc > 5 )
     {
-    fullyConnected = static_cast< bool >( atoi( argv[4] ) );
+    fullyConnected = static_cast< bool >( std::stoi( argv[4] ) );
     }
   std::string fn1 = std::string(argv[1]);
   float       clusterthresh = atof(argv[3]);
 
-  typename ImageType::Pointer image1 = ITK_NULLPTR;
+  typename ImageType::Pointer image1 = nullptr;
 
   ReadImage<ImageType>(image1, fn1.c_str() );
 
@@ -89,6 +90,8 @@ int  LabelUniquely(int argc, char *argv[])
 
   filter->SetInput( castInput->GetOutput() );
   filter->SetFullyConnected( fullyConnected ); // old default was false
+  filter->SetBackgroundValue( 0 );
+  filter->SetMaskImage(  castInput->GetOutput() );
   relabel->SetInput( filter->GetOutput() );
   relabel->SetMinimumObjectSize( (unsigned int) clusterthresh );
 
@@ -113,7 +116,7 @@ int  LabelUniquely(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int LabelClustersUniquely( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int LabelClustersUniquely( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -131,7 +134,7 @@ int LabelClustersUniquely( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -169,7 +172,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {
@@ -179,6 +182,11 @@ private:
     case 3:
       {
       return LabelUniquely<3>(argc, argv + 1);
+      }
+      break;
+    case 4:
+      {
+      return LabelUniquely<4>(argc, argv + 1);
       }
       break;
     default:

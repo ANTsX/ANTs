@@ -11,11 +11,11 @@
 http://jgt.akpeters.com/papers/MollerHughes99/code.html
 */
 
-#include <math.h>
+#include <cmath>
 #include <itkVector.h>
 #include <itkMatrix.h>
 
-template <class VectorType, class MatrixType>
+template <typename VectorType, typename MatrixType>
 MatrixType RotationMatrixFromVectors(VectorType from, VectorType to)
 {
   double EPSILON = 0.000001;

@@ -17,8 +17,8 @@
 #include <algorithm>
 #include <string>
 
-#include <math.h>
-#include <time.h>
+#include <cmath>
+#include <ctime>
 
 #include "itkImage.h"
 
@@ -172,7 +172,7 @@ void vtkCompositeManagerExitInteractor(vtkObject *vtkNotUsed(o),
     }
 }
 
-template <class TImage>
+template <typename TImage>
 void MapToSphere(typename TImage::Pointer image, int fixdir, float e)
 {
   typedef TImage                                           ImageType;
@@ -232,7 +232,7 @@ void MapToSphere(typename TImage::Pointer image, int fixdir, float e)
     }
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 SmoothImage( typename TImage::Pointer input, double var)
 {
@@ -309,7 +309,7 @@ float vtkComputeTopology(vtkPolyData* pd)
   return g;
 }
 
-template <class TImage>
+template <typename TImage>
 void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* filename)
 {
   typedef TImage      ImageType;
@@ -432,7 +432,7 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
   return;
 }
 
-template <class TImage>
+template <typename TImage>
 float GetImageTopology(typename TImage::Pointer image, float e, const char* filename)
 {
   typedef TImage      ImageType;
@@ -455,7 +455,7 @@ float GetImageTopology(typename TImage::Pointer image, float e, const char* file
   return genus;
 }
 
-template <class TImage>
+template <typename TImage>
 void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
 {
   typedef TImage                                        ImageType;
@@ -539,12 +539,12 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
 }
 
 /*
-template <class TImage>
+template <typename TImage>
 void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
 {
-    const unsigned int Dimension = 2;
-    const int splineOrder = 3;
-    const int component = 0;
+    constexpr unsigned int Dimension = 2;
+    constexpr int splineOrder = 3;
+    constexpr int component = 0;
     const char* dataname = "scalars";
     typedef TImage ImageType;
     typedef vtkPolyData MeshType;
@@ -615,7 +615,7 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
     ncps.Fill(  splineOrder + 1 );
 
     //const int numLevels = round((1/static_cast<double>(Dimension))*log(static_cast<double>(numVertices))/log(2.0));
-    const int numLevels = 13;
+    constexpr int numLevels = 13;
 
       typename BSplineFilterType::ArrayType close;
      close.Fill( false );
@@ -688,7 +688,7 @@ vtkwriter->Write();
 
 // }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer
 RemoveNaNs(typename TImage::Pointer image, float replaceval )
 {
@@ -697,7 +697,7 @@ RemoveNaNs(typename TImage::Pointer image, float replaceval )
   for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     typename TImage::PixelType v1 = vfIter.Get();
-    if( vnl_math_isnan(v1) )
+    if( std::isnan(v1) )
       {
       vfIter.Set(replaceval);
       }
@@ -706,13 +706,13 @@ RemoveNaNs(typename TImage::Pointer image, float replaceval )
 }
 
 /*
-template <class TImage>
+template <typename TImage>
 void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::string outfn)
 {
-    const unsigned int Dimension = 2;
-    const int splineOrder = 3;
-    const int imagesize = 512;
-    const int component = 0;
+    constexpr unsigned int Dimension = 2;
+    constexpr int splineOrder = 3;
+    constexpr int imagesize = 512;
+    constexpr int component = 0;
     const char* dataname = "points";
     typedef TImage ImageType;
     typedef vtkPolyData MeshType;
@@ -794,7 +794,7 @@ void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::stri
 ncps.Fill(  splineOrder + 1 );
 
 //const int numLevels = round((1/static_cast<double>(Dimension))*log(static_cast<double>(numVertices))/log(2.0));
-const int numLevels = 13;
+constexpr int numLevels = 13;
 
   typename BSplineFilterType::ArrayType close;
  close.Fill( false );
@@ -864,7 +864,7 @@ vtkwriter->Write();
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ConformalMapping( std::vector<std::string> args, std::ostream* out_stream = ITK_NULLPTR )
+int ConformalMapping( std::vector<std::string> args, std::ostream* out_stream = nullptr )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -908,7 +908,7 @@ private:
   // antscout->set_stream( out_stream );
 
   // Define the dimension of the images
-  const unsigned int Dimension = 3;
+  constexpr unsigned int Dimension = 3;
 
   typedef float PixelType;
   // Declare the types of the output images
@@ -946,7 +946,7 @@ private:
     loth = atof(argv[2]);
     hith = atof(argv[3]);
     param = atof(argv[4]);
-    fixdir = atoi(argv[5]);
+    fixdir = std::stoi(argv[5]);
     outfn = std::string(argv[6]);
     }
   else

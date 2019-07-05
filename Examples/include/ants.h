@@ -193,6 +193,8 @@
 
 #include "SetSpacing.h"
 
+#include "SimulateDisplacementField.h"
+
 #include "SmoothImage.h"
 
 #include "SmoothDisplacementField.h"

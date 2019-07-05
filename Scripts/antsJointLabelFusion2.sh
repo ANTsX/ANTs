@@ -40,10 +40,10 @@ JLF=${ANTSPATH}/antsJointFusion
 ANTS=${ANTSPATH}/antsRegistration
 WARP=${ANTSPATH}/antsApplyTransforms
 SMOOTH=${ANTSPATH}/SmoothDisplacementField
-PEXEC=${ANTSPATH}ANTSpexec.sh
-SGE=${ANTSPATH}waitForSGEQJobs.pl
-PBS=${ANTSPATH}waitForPBSQJobs.pl
-XGRID=${ANTSPATH}waitForXGridJobs.pl
+PEXEC=${ANTSPATH}/ANTSpexec.sh
+SGE=${ANTSPATH}/waitForSGEQJobs.pl
+PBS=${ANTSPATH}/waitForPBSQJobs.pl
+XGRID=${ANTSPATH}/waitForXGridJobs.pl
 SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 
 fle_error=0
@@ -833,10 +833,10 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
 
         INIT_OUTPUT_PREFIX=${OUTPUT_PREFIX}${BASENAME}_${i}_Init
 
-        registrationCallInit="${ANTSPATH}/antsRegistration -d 3 -v 1 -o $INIT_OUTPUT_PREFIX -r [${ATLAS_IMAGES[$i]},${TARGET_IMAGE},0]"
-        registrationCallInit="$registrationCallInit -t Rigid[0.15] -m MI[${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25] -c [100x40x10,1e-6,10] -f 6x4x3 -s 3x2x1"
-        registrationCallInit="$registrationCallInit -t Similarity[0.15] -m MI[${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25] -c [100x40x10,1e-6,10] -f 6x4x3 -s 3x2x1"
-        registrationCallInit="$registrationCallInit -t Affine[0.15] -m MI[${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25] -c [100x40x10,1e-6,10] -f 6x4x3 -s 3x2x1  >> $logFile"
+        registrationCallInit="${ANTSPATH}/antsRegistration -d 3 -v 1 -o $INIT_OUTPUT_PREFIX -r [ ${ATLAS_IMAGES[$i]},${TARGET_IMAGE},0 ]"
+        registrationCallInit="$registrationCallInit -t Rigid[ 0.15 ] -m MI[ ${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25 ] -c [ 100x40x10,1e-6,10 ] -f 6x4x3 -s 3x2x1"
+        registrationCallInit="$registrationCallInit -t Similarity[ 0.15 ] -m MI[ ${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25 ] -c [ 100x40x10,1e-6,10 ] -f 6x4x3 -s 3x2x1"
+        registrationCallInit="$registrationCallInit -t Affine[ 0.15 ] -m MI[ ${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25 ] -c [ 100x40x10,1e-6,10 ] -f 6x4x3 -s 3x2x1  >> $logFile"
 
         echo "$registrationCallInit" >> $qscript
 
@@ -865,17 +865,17 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
             PIECEWISE_OUTPUT_PREFIX=${OUTPUT_PREFIX}${BASENAME}_${i}_PiecewiseLabel${PIECEWISE_LABELS[$j]}_
 
             registrationCallPiecewise="${ANTSPATH}/antsRegistration -d 3 -v 1 -z 0 -o $PIECEWISE_OUTPUT_PREFIX -r ${INIT_OUTPUT_PREFIX}0GenericAffine.mat -x ${PIECEWISE_DILATED_MASKS[$j]}"
-            registrationCallPiecewise="$registrationCallPiecewise -t Rigid[0.15] -m MI[${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25] -c [100x100x50,1e-6,10] -f 6x4x3 -s 3x2x1"
-            registrationCallPiecewise="$registrationCallPiecewise -t Similarity[0.15] -m MI[${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25] -c [100x100x50,1e-6,10] -f 6x4x3 -s 3x2x1"
-            registrationCallPiecewise="$registrationCallPiecewise -t Affine[0.15] -m MI[${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25] -c [100x100x50,1e-6,10] -f 6x4x3 -s 3x2x1"
-            registrationCallPiecewise="$registrationCallPiecewise -t BSplineSyN[0.15,40,0] -m MI[${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25] -c [100x40x0,1e-6,10] -f 6x4x1 -s 3x2x0  >> $logFile"
+            registrationCallPiecewise="$registrationCallPiecewise -t Rigid[ 0.15 ] -m MI[ ${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25 ] -c [ 100x100x50,1e-6,10 ] -f 6x4x3 -s 3x2x1"
+            registrationCallPiecewise="$registrationCallPiecewise -t Similarity[ 0.15 ] -m MI[ ${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25 ] -c [ 100x100x50,1e-6,10 ] -f 6x4x3 -s 3x2x1"
+            registrationCallPiecewise="$registrationCallPiecewise -t Affine[ 0.15 ] -m MI[ ${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25 ] -c [ 100x100x50,1e-6,10 ] -f 6x4x3 -s 3x2x1"
+            registrationCallPiecewise="$registrationCallPiecewise -t BSplineSyN[ 0.15,40,0 ] -m MI[ ${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,32,Regular,0.25 ] -c [ 100x40x0,1e-6,10 ] -f 6x4x1 -s 3x2x0  >> $logFile"
 
             echo "$registrationCallPiecewise" >> $qscript
 
             composeCallPiecewise="$WARP \
                                  -d ${DIM} \
                                  -v 1 \
-                                 -o [${PIECEWISE_OUTPUT_PREFIX}TotalWarp.nii.gz,1] \
+                                 -o [ ${PIECEWISE_OUTPUT_PREFIX}TotalWarp.nii.gz,1 ] \
                                  -r ${ATLAS_IMAGES[$i]} \
                                  -t ${PIECEWISE_OUTPUT_PREFIX}4Warp.nii.gz \
                                  -t ${PIECEWISE_OUTPUT_PREFIX}3Affine.mat \
@@ -918,7 +918,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
         # Compose all the piecewise warps
 
         composeCall="${WARP} -d ${DIM} -v 1 \
-                         -o [${OUTPUT_PREFIX}${BASENAME}_${i}_TotalWarp.nii.gz,1] \
+                         -o [ ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalWarp.nii.gz,1 ] \
                          -r ${SUBSET_CONFIDENCE_MASK} \
                          ${PIECEWISE_TRANSFORM_WARPS} >> $logFile"
         echo "$composeCall" >> $qscript
@@ -933,13 +933,13 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
         # Resample to the full size
 
         xfrmForwardCall="${WARP} -d ${DIM} -v 1 \
-                         -o [${OUTPUT_PREFIX}${BASENAME}_${i}_TotalWarp.nii.gz,1] \
+                         -o [ ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalWarp.nii.gz,1 ] \
                          -r ${ATLAS_IMAGES[$i]} \
                          -t ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalWarp.nii.gz >> $logFile"
         echo "$xfrmForwardCall" >> $qscript
 
         xfrmInverseCall="${WARP} -d ${DIM} -v 1 \
-                         -o [${OUTPUT_PREFIX}${BASENAME}_${i}_TotalInverseWarp.nii.gz,1] \
+                         -o [ ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalInverseWarp.nii.gz,1 ] \
                          -r ${ATLAS_IMAGES[$i]} \
                          -t ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalInverseWarp.nii.gz >> $logFile"
         echo "$xfrmInverseCall" >> $qscript
@@ -947,7 +947,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
         # Now do a more refined registration
 
         registrationCallRefined="${ANTSPATH}/antsRegistration -d 3 -v 1 -z 0 -o ${OUTPUT_PREFIX}${BASENAME}_${i}_ -r ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalWarp.nii.gz -r ${INIT_OUTPUT_PREFIX}0GenericAffine.mat -x ${CONFIDENCE_DILATED_MASK}"
-        registrationCallRefined="$registrationCallRefined -t BSplineSyN[0.15,40,0] -m CC[${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,2] -c [100x40x0,1e-6,10] -f 6x4x1 -s 2x1x0 >> $logFile"
+        registrationCallRefined="$registrationCallRefined -t BSplineSyN[ 0.15,40,0 ] -m CC[ ${ATLAS_IMAGES[$i]},${TARGET_IMAGE},1,2 ] -c [ 100x40x0,1e-6,10 ] -f 6x4x1 -s 2x1x0 >> $logFile"
 
         echo "$registrationCallRefined" >> $qscript
 
@@ -958,7 +958,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                               -r ${TARGET_IMAGE} \
                               -o ${OUTPUT_PREFIX}${BASENAME}_${i}_Warped.nii.gz \
                               -n Linear \
-                              -t [${INIT_OUTPUT_PREFIX}0GenericAffine.mat,1] \
+                              -t [ ${INIT_OUTPUT_PREFIX}0GenericAffine.mat,1 ] \
                               -t ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalInverseWarp.nii.gz \
                               -t ${OUTPUT_PREFIX}${BASENAME}_${i}_2InverseWarp.nii.gz >> ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
         echo "$atlasXfrmCall" >> $qscript
@@ -970,7 +970,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                               -r ${TARGET_IMAGE} \
                               -o ${OUTPUT_PREFIX}${BASENAME}_${i}_WarpedLabels.nii.gz \
                               -n GenericLabel \
-                              -t [${INIT_OUTPUT_PREFIX}0GenericAffine.mat,1] \
+                              -t [ ${INIT_OUTPUT_PREFIX}0GenericAffine.mat,1 ] \
                               -t ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalInverseWarp.nii.gz \
                               -t ${OUTPUT_PREFIX}${BASENAME}_${i}_2InverseWarp.nii.gz >> ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
         echo "$labelXfrmCall" >> $qscript
@@ -1083,9 +1083,9 @@ if [[ $DOQSUB -eq 0 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT} ]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1185,9 +1185,9 @@ if [[ $DOQSUB -eq 1 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1286,9 +1286,9 @@ if [[ $DOQSUB -eq 4 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1374,9 +1374,9 @@ if [[ $DOQSUB -eq 2 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1474,9 +1474,9 @@ if [[ $DOQSUB -eq 3 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1577,9 +1577,9 @@ if [[ $DOQSUB -eq 5 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT} ]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];

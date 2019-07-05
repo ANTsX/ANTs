@@ -15,7 +15,7 @@
 #include "antsAllocImage.h"
 #include <algorithm>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkExtractImageFilter.h"
@@ -35,7 +35,7 @@ namespace ants
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int StackSlices( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int StackSlices( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -53,7 +53,7 @@ int StackSlices( std::vector<std::string> args, std::ostream* /*out_stream = ITK
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -113,9 +113,9 @@ private:
 
   char * stackName = argv[1];
   int    dimVars[3];
-  dimVars[0] = atoi( argv[2] );
-  dimVars[1] = atoi( argv[3] );
-  dimVars[2] = atoi( argv[4] );
+  dimVars[0] = std::stoi( argv[2] );
+  dimVars[1] = std::stoi( argv[3] );
+  dimVars[2] = std::stoi( argv[4] );
 
   int dim = -1;
   int slice = -1;
@@ -139,7 +139,7 @@ private:
 
   ImageType::RegionType region3D;
 
-  ImageSeriesType::Pointer imageSeries = ITK_NULLPTR;
+  ImageSeriesType::Pointer imageSeries = nullptr;
 
   unsigned long nSlices = 0;
 
@@ -237,7 +237,7 @@ private:
 
   for( unsigned int i = 0; i < nSlices; i++ )
     {
-    SliceType::Pointer stackSlice = ITK_NULLPTR;
+    SliceType::Pointer stackSlice = nullptr;
 
     if( !inputIsA4DImage )
       {
@@ -329,9 +329,9 @@ private:
 
   // Input parameters
 //   char * inputName  = argv[1];
-//   unsigned int flip_x = atoi( argv[2] );
-//   unsigned int flip_y = atoi( argv[3] );
-//   unsigned int flip_z = atoi( argv[4] );
+//   unsigned int flip_x = std::stoi( argv[2] );
+//   unsigned int flip_y = std::stoi( argv[3] );
+//   unsigned int flip_z = std::stoi( argv[4] );
 //   char * outputName = argv[5];
 
 //   ReaderType::Pointer reader = ReaderType::New();

@@ -26,7 +26,7 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PartialVolumeGaussianListSampleFunction()
 {
@@ -36,13 +36,12 @@ PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
   this->m_IsCalculated[1] = false;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~PartialVolumeGaussianListSampleFunction()
-{
-}
+= default;
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetIndexedInputListSample( const unsigned int d, const InputListSampleType * ptr )
@@ -72,7 +71,7 @@ PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::CalculateGaussianParametersFromListSample( const InputListSampleType *listSample,
@@ -126,7 +125,7 @@ PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::CalculateGaussianParameters()
@@ -145,16 +144,16 @@ PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
   for( unsigned int d = 0; d < mean.Size(); d++ )
     {
     mean[d] = 0.5 * ( this->m_Mean[0][d] + this->m_Mean[1][d] );
-    covariance( d, d ) = 1.0 / 12.0 * vnl_math_sqr( this->m_Mean[0][d] )
+    covariance( d, d ) = 1.0 / 12.0 * itk::Math::sqr ( this->m_Mean[0][d] )
       + -1.0 / 6.0 * this->m_Mean[0][d] * this->m_Mean[1][d]
-      + 1.0 / 12.0 * vnl_math_sqr( this->m_Mean[1][d] );
+      + 1.0 / 12.0 * itk::Math::sqr ( this->m_Mean[1][d] );
     }
 
   this->m_Gaussian->SetMean( mean );
   this->m_Gaussian->SetCovariance( covariance );
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 TOutput
 PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
@@ -179,7 +178,7 @@ PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PrintSelf( std::ostream& os, Indent indent) const

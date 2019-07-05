@@ -15,8 +15,8 @@
 #define _itkExpectationBasedPointSetRegistrationFunction_hxx_
 
 #include "itkExpectationBasedPointSetRegistrationFunction.h"
-#include "itkExceptionObject.h"
-#include "vnl/vnl_math.h"
+#include "itkMacro.h"
+#include "itkMath.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkPointSet.h"
@@ -26,7 +26,7 @@ namespace itk
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ExpectationBasedPointSetRegistrationFunction()
 {
@@ -42,8 +42,8 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_TimeStep = 1.0;
   m_DenominatorThreshold = 1e-9;
   m_EuclideanDistanceThreshold = 0.01;
-  this->SetMovingImage(ITK_NULLPTR);
-  this->SetFixedImage(ITK_NULLPTR);
+  this->SetMovingImage(nullptr);
+  this->SetFixedImage(nullptr);
   m_FixedImageSpacing.Fill( 1.0 );
   m_FixedImageOrigin.Fill( 0.0 );
   m_Normalizer = 1.0;
@@ -59,10 +59,10 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_MovingImageGradientCalculator = MovingImageGradientCalculatorType::New();
   m_UseMovingImageGradient = false;
 
-  this->m_FixedPointSet = ITK_NULLPTR;
-  this->m_MovingPointSet = ITK_NULLPTR;
-  this->m_DerivativeFixedField = ITK_NULLPTR;
-  this->m_DerivativeMovingField = ITK_NULLPTR;
+  this->m_FixedPointSet = nullptr;
+  this->m_MovingPointSet = nullptr;
+  this->m_DerivativeFixedField = nullptr;
+  this->m_DerivativeMovingField = nullptr;
   this->m_IsPointSetMetric = true;
   this->m_UseSymmetricMatching = 100000;
   this->m_Iterations = 0;
@@ -71,7 +71,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::PrintSelf(std::ostream& os, Indent indent) const
@@ -82,7 +82,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /**
  *
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::SetEuclideanDistanceThreshold(double threshold)
@@ -93,7 +93,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /**
  *
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 double
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::GetEuclideanDistanceThreshold() const
@@ -104,7 +104,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ExpectationLandmarkField(float weight, bool whichdirection)
@@ -379,7 +379,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::InitializeIteration()
@@ -473,7 +473,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Compute update at a specify neighbourhood
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 typename ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::PixelType
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
@@ -493,7 +493,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Compute update at a specify neighbourhood
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 typename ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::PixelType
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
@@ -508,7 +508,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Update the metric and release the per-thread-global data.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ReleaseGlobalDataPointer( void *gd ) const
@@ -533,7 +533,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
  * Set the function state values before each iteration
  */
 
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>::SetUpKDTrees(
   long whichlabel)
@@ -609,7 +609,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
 void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::FastExpectationLandmarkField(float weight, bool whichdirection, long /* whichlabel */, bool dobspline)
@@ -698,7 +698,6 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
       double probtotal = 0.0;
       for( unsigned int dd = 0;   dd < KNeighbors; dd++ )
         {
-        PointType             movingpoint;
         unsigned long         wpt = neighbors[dd];
         MeasurementVectorType npt = mkdtree->GetOutput()->GetMeasurementVector(wpt);
         float                 _mag = 0;
@@ -719,7 +718,6 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         {
         for( unsigned int dd = 0;   dd < KNeighbors; dd++ )
           {
-          PointType             movingpoint;
           unsigned long         wpt = neighbors[dd];
           MeasurementVectorType npt = mkdtree->GetOutput()->GetMeasurementVector(wpt);
           double                pp = probabilities(dd) / probtotal;
@@ -826,7 +824,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         RealType distance = 0.0;
         for( unsigned int d = 0; d < PointDimension; d++ )
           {
-          distance += vnl_math_sqr( ItM.Value()[d] + vector[d]
+          distance += itk::Math::sqr ( ItM.Value()[d] + vector[d]
             - ItF.Value()[d] );
           }
         this->m_Energy += ItW.Value() * std::sqrt( distance );

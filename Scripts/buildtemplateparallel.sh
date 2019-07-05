@@ -29,7 +29,7 @@ SETPATH
 # export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 
 #ANTSPATH=YOURANTSPATH
-if [  ${#ANTSPATH} -le 3 ]
+if [ ${#ANTSPATH} -le 3 ]
     then
     setPath >&2
 fi
@@ -51,7 +51,7 @@ SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 fle_error=0
 for FLE in $ANTSSCRIPTNAME $PEXEC $SGE $XGRID $SLURM
   do
-  if [ ! -x $FLE  ] ;
+  if [ ! -x $FLE ] ;
       then
       echo
       echo "--------------------------------------------------------------------------------------"
@@ -403,9 +403,9 @@ function shapeupdatetotemplate {
     echo "--------------------------------------------------------------------------------------"
 
     # Averaging and inversion code --- both are 1st order estimates.
-#    if [ ${dim} -eq 2   ] ; then
+#    if [ ${dim} -eq 2  ] ; then
 #      ANTSAverage2DAffine ${templatename}Affine${afftype} ${outputname}*Affine${afftype}
-#    elif [ ${dim} -eq 3  ] ; then
+#    elif [ ${dim} -eq 3 ] ; then
 #      ANTSAverage3DAffine ${templatename}Affine${afftype} ${outputname}*Affine${afftype}
 #    fi
 
@@ -759,7 +759,7 @@ fi
 
 if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]] ; then
   qq=`which  qsub`
-  if [  ${#qq} -lt 1 ] ; then
+  if [ ${#qq} -lt 1 ] ; then
     echo do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ...
     exit
   fi
@@ -797,7 +797,7 @@ if [ ${NINFILES} -eq 0 ]
 elif [[ ${NINFILES} -eq 1 ]]
     then
 
-    range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d "]" -f 1 `
+    range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d " ]" -f 1 `
 
     if [ ${range} -eq 1 ] && [ ${TDIM} -ne 4 ]
 	then
@@ -837,7 +837,7 @@ elif [[ ${NINFILES} -eq 1 ]]
         # if there are more than 32 volumes in the time-series (in case they are smaller
 	nfmribins=2
 	let
-	if [ ${range} -gt 31  ]  ; then
+	if [ ${range} -gt 31 ]  ; then
 		BINSIZE=$((${range} / ${nfmribins}))
 		j=1 # initialize counter j
 		for ((i = 0; i < ${nfmribins} ; i++))
@@ -881,7 +881,7 @@ elif [[ ${NINFILES} -eq 1 ]]
 			let j++
 		done
 
-	elif [ ${range} -gt ${nfmribins}  ] && [ ${range} -lt 32  ]
+	elif [ ${range} -gt ${nfmribins} ] && [ ${range} -lt 32 ]
 		then
 
 			for ((i = 0; i < ${nfmribins} ; i++))
@@ -900,7 +900,7 @@ elif [[ ${NINFILES} -eq 1 ]]
 				fi
 			done
 
-	elif [ ${range} -le ${nfmribins}  ]
+	elif [ ${range} -le ${nfmribins} ]
 		then
 
 		${ANTSPATH}/ImageMath selection/$TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
@@ -958,7 +958,7 @@ if [ "$RIGID" -eq 1 ] ;
 
       BASENAME=` echo ${IMG} | cut -d '.' -f 1 `
 
-      exe=" ${ANTSPATH}/ANTS $DIM -m MI[${TEMPLATE},${IMG},1,32] -o rigid_${IMG} -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 $RIGIDTYPE"
+      exe=" ${ANTSPATH}/ANTS $DIM -m MI[ ${TEMPLATE},${IMG},1,32 ] -o rigid_${IMG} -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 $RIGIDTYPE"
       exe2="${ANTSPATH}/WarpImageMultiTransform $DIM ${IMG} rigid_${IMG} rigid_${BASENAME}Affine${afftype} -R ${TEMPLATE}"
       pexe=" $exe >> job_${count}_metriclog.txt "
 

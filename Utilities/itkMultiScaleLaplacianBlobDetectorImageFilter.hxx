@@ -37,7 +37,7 @@
 
 namespace itk
 {
-template <class TInputImage>
+template <typename TInputImage>
 MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 ::MultiScaleLaplacianBlobDetectorImageFilter( void )
 {
@@ -47,7 +47,7 @@ MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
   m_EndT = 128;
 }
 
-template <class TInputImage>
+template <typename TInputImage>
 void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 ::GenerateData( void )
 {
@@ -65,7 +65,6 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 
   typedef itk::CastImageFilter<InputImageType, InputImageType> CasterFilterType;
   typename CasterFilterType::Pointer caster = CasterFilterType::New();
-  caster->SetNumberOfThreads( this->GetNumberOfThreads() );
   caster->InPlaceOff();
   caster->SetInput( inputImage );
 
@@ -78,7 +77,10 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
   progress->SetMiniPipelineFilter(this);
 
   // prepare one time threaded data
-  this->m_BlobHeapPerThread.resize( this->GetNumberOfThreads() );
+//  this->m_BlobHeapPerThread.resize( this->GetNumberOfThreads() );
+// FIXME - setting to 2 threads
+  this->m_BlobHeapPerThread.resize(
+    this->GetMultiThreader()->GetGlobalDefaultNumberOfThreads() );
 
   // we wish to add an additional laplacian before and after the user
   // defined range to check for maximums
@@ -89,13 +91,13 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 
   typedef itk::LaplacianRecursiveGaussianImageFilter<InputImageType, RealImageType> LaplacianFilterType;
   typename LaplacianFilterType::Pointer laplacianFilter[3];
-  for( unsigned int i = 0; i < 3; ++i )
+  for(auto & i : laplacianFilter)
     {
-    laplacianFilter[i] = LaplacianFilterType::New();
-    laplacianFilter[i]->SetNumberOfThreads( this->GetNumberOfThreads() );
-    laplacianFilter[i]->SetInput( inputImage );
-    laplacianFilter[i]->SetNormalizeAcrossScale( true );
-    progress->RegisterInternalFilter( laplacianFilter[i],   1.0 / numberOfScales );
+    i = LaplacianFilterType::New();
+//    laplacianFilter[i]->SetNumberOfThreads( this->GetNumberOfThreads() );
+    i->SetInput( inputImage );
+    i->SetNormalizeAcrossScale( true );
+    progress->RegisterInternalFilter( i,   1.0 / numberOfScales );
     }
 
   BlobHeapType blobs;
@@ -105,7 +107,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     // simga' = k^i * initial_sigma
     // t = sigma^2
     const double sigma = initial_sigma * std::pow( k, double( numberOfScales - i - 1 ) );
-    //    const double t = vnl_math_sqr( initial_sigma * std::pow( k, double( numberOfScales - i - 1 ) ) );
+    //    const double t = itk::Math::sqr ( initial_sigma * std::pow( k, double( numberOfScales - i - 1 ) ) );
 
     itkDebugMacro( << "i: " << i << " sigma: " << sigma << " k: " << k );
 
@@ -127,7 +129,7 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
       typename Superclass::ThreadStruct str;
       str.Filter = this;
 
-      this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
+//      this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
       this->GetMultiThreader()->SetSingleMethod( Self::ThreaderCallback, &str );
 
       // multithread the execution
@@ -176,9 +178,9 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     }
 
   // clean up member variables
-  this->m_LaplacianImage[0] = ITK_NULLPTR;
-  this->m_LaplacianImage[1] = ITK_NULLPTR;
-  this->m_LaplacianImage[2] = ITK_NULLPTR;
+  this->m_LaplacianImage[0] = nullptr;
+  this->m_LaplacianImage[1] = nullptr;
+  this->m_LaplacianImage[2] = nullptr;
   this->m_BlobHeapPerThread.clear();
 
   m_BlobList.clear();
@@ -196,21 +198,21 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     inputImage->TransformIndexToPhysicalPoint( i->m_Center, centerPoint );
 
     BlobPointer blob = BlobType::New();
-    blob->SetSigma( sigma );
+    blob->SetSigmaInObjectSpace( sigma );
     blob->SetScaleSpaceValue( i->m_Value );
     blob->SetCenter( i->m_Center );
 
     this->m_BlobRadiusImage->SetPixel( i->m_Center, ( int ) ( 0.5 + i->m_Sigma ) );
     const typename BlobType::VectorType centerVector = centerPoint - zeroPoint;
 
-    blob->GetObjectToParentTransform()->SetOffset(centerVector);
-    blob->ComputeBoundingBox();
+    blob->GetModifiableObjectToParentTransform()->SetOffset(centerVector);
+    blob->Update();
 
     m_BlobList.push_back( blob );
     }
 }
 
-template <class TInputImage>
+template <typename TInputImage>
 void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 ::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId )
 {

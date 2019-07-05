@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ $# -lt 6  ]
+if [ $# -lt 6 ]
 then
 echo " USAGE \n  sh $0  fixed.nii fixedhipp.nii  moving.nii movinghipp.nii  ITERATIONS LandmarkWeight "
 echo " you should set LandmarkWeight yourself --- the intensity weight is 1.  so the landmark weight should be in that range (e.g. 0.5 => 1 ) "
@@ -68,21 +68,21 @@ fi
 KNN=10
 PERCENTtoUSE=0.5
 PARZSIG=10
-LM=PSE[${FIX},${MOV},${FIXHMOD},${MOVHMOD},${LMWT},${PERCENTtoUSE},${PARZSIG},0,${KNN}]
+LM=PSE[ ${FIX},${MOV},${FIXHMOD},${MOVHMOD},${LMWT},${PERCENTtoUSE},${PARZSIG},0,${KNN}]
 echo $LM
 
-if [ $# -gt 6  ]
+if [ $# -gt 6 ]
 then
 OUT=$7
 fi
 
 STEPL=0.25
-INTENSITY=PR[$FIX,${MOV},${INTWT},4]
-if [ $LMWT -le 0  ]
+INTENSITY=PR[ $FIX,${MOV},${INTWT},4]
+if [ $LMWT -le 0 ]
 then
-exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[${STEPL}]  -r Gauss[3,0]   -m $INTENSITY   "
+exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0 ]   -m $INTENSITY   "
 else
-exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[${STEPL}]  -r Gauss[3,0]   -m   $LM  -m $INTENSITY    "
+exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0 ]   -m   $LM  -m $INTENSITY    "
 fi
 echo " $exe "
 

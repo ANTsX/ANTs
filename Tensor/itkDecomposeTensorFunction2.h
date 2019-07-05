@@ -61,9 +61,7 @@ public:
   RealType EvaluateDeterminant( InputMatrixType & );
 
   DecomposeTensorFunction2();
-  virtual ~DecomposeTensorFunction2()
-  {
-  }
+  virtual ~DecomposeTensorFunction2() = default;
 
 protected:
 
@@ -71,8 +69,8 @@ protected:
 
 private:
 
-  DecomposeTensorFunction2(const Self &); // purposely not implemented
-  void operator=(const Self &);           // purposely not implemented
+  DecomposeTensorFunction2(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

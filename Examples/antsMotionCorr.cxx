@@ -76,7 +76,7 @@ namespace ants
 /** \class antsRegistrationCommandIterationUpdate
  *  \brief change parameters between iterations of registration
  */
-template <class TFilter>
+template <typename TFilter>
 class antsRegistrationCommandIterationUpdate : public itk::Command
 {
 public:
@@ -92,14 +92,14 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
+    auto * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
     unsigned int currentLevel = 0;
 
@@ -123,7 +123,7 @@ public:
                      << std::endl;
 
       typedef itk::ConjugateGradientLineSearchOptimizerv4 GradientDescentOptimizerType;
-      GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>( filter->GetModifiableOptimizer() );
+      auto * optimizer = reinterpret_cast<GradientDescentOptimizerType *>( filter->GetModifiableOptimizer() );
       optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
       optimizer->SetMinimumConvergenceValue( 1.e-7 );
       optimizer->SetConvergenceWindowSize( 10 );
@@ -153,7 +153,7 @@ private:
   std::ostream *            m_LogStream;
 };
 
-template <class T>
+template <typename T>
 inline std::string ants_moco_to_string(const T& t)
 {
   std::stringstream ss;
@@ -162,12 +162,12 @@ inline std::string ants_moco_to_string(const T& t)
   return ss.str();
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
                                              typename ImageType::PixelType lowerScaleFunction,
                                              typename ImageType::PixelType upperScaleFunction,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
-                                             ImageType *histogramMatchSourceImage = ITK_NULLPTR )
+                                             ImageType *histogramMatchSourceImage = nullptr )
 {
   bool verbose = false;
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
@@ -199,7 +199,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
   windowingFilter->SetOutputMaximum( upperScaleFunction );
   windowingFilter->Update();
 
-  typename ImageType::Pointer outputImage = ITK_NULLPTR;
+  typename ImageType::Pointer outputImage = nullptr;
   if( histogramMatchSourceImage )
     {
     typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> HistogramMatchingFilterType;
@@ -220,7 +220,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
     calc->SetImage( inputImage );
     calc->ComputeMaximum();
     calc->ComputeMinimum();
-    if( vnl_math_abs( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
+    if( itk::Math::abs ( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
       {
       if ( verbose ) std::cout << "Warning: bad time point - too little intensity variation" << std::endl;
       return histogramMatchSourceImage;
@@ -235,7 +235,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
   return outputImage;
 }
 
-template <class T>
+template <typename T>
 struct ants_moco_index_cmp
   {
   ants_moco_index_cmp(const T _arr) : arr(_arr)
@@ -250,7 +250,7 @@ struct ants_moco_index_cmp
   const T arr;
   };
 
-template <class TFilter>
+template <typename TFilter>
 class CommandIterationUpdate : public itk::Command
 {
 public:
@@ -259,20 +259,18 @@ public:
   typedef itk::SmartPointer<Self> Pointer;
   itkNewMacro( Self );
 protected:
-  CommandIterationUpdate()
-  {
-  };
+  CommandIterationUpdate() = default;
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event) override
   {
     bool verbose = false;
-    TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
+    auto * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
     if( typeid( event ) != typeid( itk::IterationEvent ) )
       {
@@ -294,7 +292,7 @@ public:
               << std::endl;
 
     typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
-    OptimizerType * optimizer = reinterpret_cast<OptimizerType *>( filter->GetModifiableOptimizer() );
+    auto * optimizer = reinterpret_cast<OptimizerType *>( filter->GetModifiableOptimizer() );
     optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
     optimizer->SetMinimumConvergenceValue( 1.e-7 );
     optimizer->SetConvergenceWindowSize( 10 );
@@ -386,7 +384,7 @@ public:
 };
 */
 
-template <class TImageIn, class TImageOut>
+template <typename TImageIn, typename TImageOut>
 void
 AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Pointer image_avg,
                    std::vector<unsigned int> timelist )
@@ -412,13 +410,13 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
     typename OutImageType::PixelType  fval = 0;
     typename ImageType::IndexType ind;
     typename OutImageType::IndexType spind = vfIter2.GetIndex();
-    for( unsigned int xx = 0; xx < timelist.size(); xx++ )
+    for(unsigned int & xx : timelist)
       {
       for( unsigned int yy = 0; yy < ImageDimension - 1; yy++ )
         {
         ind[yy] = spind[yy];
         }
-      ind[ImageDimension - 1] = timelist[xx];
+      ind[ImageDimension - 1] = xx;
       fval += image_in->GetPixel(ind);
       }
     fval /= (double)timelist.size();
@@ -592,7 +590,25 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     }
 
-
+  // Zero seed means use default behavior: registration randomizer seeds from system time
+  // and does not re-seed iterator
+  int antsRandomSeed = 0;
+  
+  itk::ants::CommandLineParser::OptionType::Pointer randomSeedOption = parser->GetOption( "random-seed" );
+  if( randomSeedOption && randomSeedOption->GetNumberOfFunctions() )
+    {
+    antsRandomSeed = parser->Convert<int>( randomSeedOption->GetFunction(0)->GetName() );
+    }
+  else
+    {
+    char* envSeed = getenv( "ANTS_RANDOM_SEED" );
+    
+    if ( envSeed != nullptr )
+      {
+      antsRandomSeed = std::stoi( envSeed );
+      }
+    }
+  
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
   totalTimer.Start();
@@ -601,8 +617,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   typedef itk::AffineTransform<RealType, ImageDimension>                                      AffineTransformType;
   typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType, AffineTransformType> AffineRegistrationType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
-  typename DisplacementIOFieldType::Pointer displacementout = ITK_NULLPTR;
-  typename DisplacementIOFieldType::Pointer displacementinv = ITK_NULLPTR;
+  typename DisplacementIOFieldType::Pointer displacementout = nullptr;
+  typename DisplacementIOFieldType::Pointer displacementinv = nullptr;
 
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
@@ -616,8 +632,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter(  1 );
     if ( verbose ) std::cout << "  fixed image: " << fixedImageFileName << std::endl;
     if ( verbose ) std::cout << "  moving image: " << movingImageFileName << std::endl;
-    typename FixedImageType::Pointer fixed_time_slice = ITK_NULLPTR;
-    typename FixedImageType::Pointer moving_time_slice = ITK_NULLPTR;
+    typename FixedImageType::Pointer fixed_time_slice = nullptr;
+    typename FixedImageType::Pointer moving_time_slice = nullptr;
     typename FixedIOImageType::Pointer fixedInImage;
     ReadImage<FixedIOImageType>( fixedInImage, fixedImageFileName.c_str() );
     fixedInImage->Update();
@@ -760,7 +776,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
-      typename CompositeTransformType::Pointer compositeTransform = ITK_NULLPTR;
+      typename CompositeTransformType::Pointer compositeTransform = nullptr;
       if( currentStage == static_cast<int>(numberOfStages) - 1 )
         {
         compositeTransform = CompositeTransformType::New();
@@ -843,9 +859,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       typename FixedImageType::Pointer preprocessFixedImage =
         PreprocessImage<FixedImageType>( fixed_time_slice, 0,
                                          1, 0.001, 0.999,
-                                         ITK_NULLPTR );
+                                         nullptr );
 
-      typename FixedImageType::Pointer histogramMatchRef = ITK_NULLPTR;
+      typename FixedImageType::Pointer histogramMatchRef = nullptr;
 
       if ( doHistogramMatch )
 	{
@@ -898,7 +914,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
       if( std::strcmp( whichMetric.c_str(), "cc" ) == 0 )
         {
-        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
+        auto radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
 
         if( timedim == 0 )
           {
@@ -917,7 +933,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else if( std::strcmp( whichMetric.c_str(), "mi" ) == 0 )
         {
-        unsigned int binOption =
+        auto binOption =
           parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter(  3 ) );
 
         if( timedim == 0 )
@@ -927,7 +943,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::MattesMutualInformationImageToImageMetricv4<FixedImageType,
                                                                  FixedImageType> MutualInformationMetricType;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-        mutualInformationMetric = mutualInformationMetric;
+        //mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
         mutualInformationMetric->SetUseMovingImageGradientFilter( false );
         mutualInformationMetric->SetUseFixedImageGradientFilter( false );
@@ -941,7 +957,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         typedef itk::MeanSquaresImageToImageMetricv4<FixedImageType, FixedImageType> DemonsMetricType;
         typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
-        demonsMetric = demonsMetric;
+        //demonsMetric = demonsMetric;
         metric = demonsMetric;
         }
       else if( std::strcmp( whichMetric.c_str(), "gc" ) == 0 )
@@ -967,7 +983,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       scalesEstimator->SetMetric( metric );
       scalesEstimator->SetTransformForward( true );
 
-      float learningRate = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter(  0 ) );
+      auto learningRate = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter(  0 ) );
 
       typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
       OptimizerType::Pointer optimizer = OptimizerType::New();
@@ -1048,6 +1064,10 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       if( std::strcmp( whichTransform.c_str(), "affine" ) == 0 )
         {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
+        if ( antsRandomSeed != 0 )
+          {
+          affineRegistration->MetricSamplingReinitializeSeed( antsRandomSeed );
+          }
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetIdentity();
         affineTransform->SetOffset( trans );
@@ -1126,6 +1146,10 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
                                                RigidTransformType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+        if ( antsRandomSeed != 0 )
+          {
+          rigidRegistration->MetricSamplingReinitializeSeed( antsRandomSeed );
+          }
         metric->SetFixedImage( preprocessFixedImage );
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
         metric->SetMovingImage( preprocessMovingImage );
@@ -1198,9 +1222,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         RealType sigmaForTotalField = parser->Convert<float>( transformOption->GetFunction(
                                                                 currentStage )->GetParameter(  2 ) );
         const unsigned int VImageDimension = ImageDimension;
-        typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
         // ORIENTATION ALERT: Original code set image size to
         // fixedImage buffered region, & if fixedImage BufferedRegion
         // != LargestPossibleRegion, this code would be wrong.
@@ -1284,9 +1306,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         RealType sigmaForTotalField = parser->Convert<float>( transformOption->GetFunction(
                                                                 currentStage )->GetParameter(  2 ) );
         const unsigned int VImageDimension = ImageDimension;
-        typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
 
         typename DisplacementFieldType::Pointer displacementField = AllocImage<DisplacementFieldType>(
             preprocessFixedImage, zeroVector );
@@ -1484,7 +1504,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         converter2->SetTransform( compositeTransform->GetInverseTransform() );
         converter2->Update();
         /** Here, we put the 3d tx into a 4d displacement field */
-        typedef itk::ImageRegionIteratorWithIndex<FixedImageType> Iterator;
         Iterator vfIterInv(  moving_time_slice,
           moving_time_slice->GetLargestPossibleRegion() );
         for(  vfIterInv.GoToBegin(); !vfIterInv.IsAtEnd(); ++vfIterInv )
@@ -1797,6 +1816,18 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
   }
 
   {
+  std::string description = std::string( "Use a fixed seed for random number generation. " ) 
+    + std::string( "By default, the system clock is used to initialize the seeding. " )
+    + std::string( "The fixed seed can be any nonzero int value." );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "random-seed" );
+  option->SetUsageOption( 0, "seedValue" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+
+  {
   std::string description = std::string( "Verbose output." );
 
   OptionType::Pointer option = OptionType::New();
@@ -1830,7 +1861,7 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -1848,7 +1879,7 @@ int antsMotionCorr( std::vector<std::string> args, std::ostream * /*out_stream =
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -1879,7 +1910,7 @@ private:
   parser->SetCommand( argv[0] );
 
   std::string commandDescription = std::string( "antsMotionCorr = motion correction.  This program is a user-level " )
-    + std::string( "registration application meant to utilize ITKv4-only classes. The user can specify " )
+    + std::string( "registration application meant to utilize classes in ITK v4.0 or greater. The user can specify " )
     + std::string( "any number of \"stages\" where a stage consists of a transform; an image metric; " )
     + std::string( " and iterations, shrink factors, and smoothing sigmas for each level. " )
     + std::string(

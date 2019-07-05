@@ -1,5 +1,7 @@
 #!/bin/bash
 
+shopt -s extglob
+
 VERSION="0.0.0"
 
 # trap keyboard interrupt (control-c)
@@ -156,7 +158,7 @@ Optional arguments:
             MSQ = mean square difference
             DEMONS = demon's metric
           A similarity metric per modality can be specified.  If the CC metric is chosen,
-          one can also specify the radius in brackets, e.g. '-m CC[4]'.
+          one can also specify the radius in brackets, e.g. '-m CC[ 4 ]'.
 
      -t:  Type of transformation model used for registration (default = SyN):  Options are
             SyN = Greedy SyN
@@ -323,7 +325,7 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
 
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
-    if [[ ${#imagelist[@]} -eq 0  ]] ; then
+    if [[ ${#imagelist[@]} -eq 0 ]] ; then
       echo ERROR shapeupdatedtotemplate - imagelist length is 0
       exit 1
     fi
@@ -362,28 +364,28 @@ function shapeupdatetotemplate() {
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
         echo "   ${ANTSPATH}/${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
-        echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template} --verbose 1"
+        echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template} --verbose 1"
         echo "--------------------------------------------------------------------------------------"
 
         ${ANTSPATH}/${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
 
         if [[ $NWARPS -ne 0 ]];
           then
-            ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template} --verbose 1
+            ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template} --verbose 1
             ${ANTSPATH}/MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
           fi
       fi
 
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---warp each template by the resulting transforms"
-    echo "   ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
+    echo "   ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [ ${templatename}0GenericAffine.mat,1 ] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
     echo "--------------------------------------------------------------------------------------"
 
-    if [ -f "${templatename}0warp.nii.gz" ];
+    if [[ -f "${templatename}0warp.nii.gz" ]];
       then
-        ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
+        ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [ ${templatename}0GenericAffine.mat,1 ] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
       else
-        ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -r ${template}
+        ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template}
       fi
 
 }
@@ -640,7 +642,7 @@ if [[ ! -d $OUTPUT_DIR ]];
 if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
   then
     qq=`which  qsub`
-    if [[  ${#qq} -lt 1 ]];
+    if [[ ${#qq} -lt 1 ]];
       then
         echo "do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ..."
         exit
@@ -697,14 +699,16 @@ if [[ ! -n "$MODALITYWEIGHTSTRING" ]];
 
 
 TRANSFORMATION=''
-
+# Allow SyN[step] or SyN[ step ]
+# Users should use the latter to avoid glob problems, but but don't want force that
+#
 if [[ $TRANSFORMATIONTYPE == "BSplineSyN"* ]];
   then
     if [[ $TRANSFORMATIONTYPE == "BSplineSyN["*"]" ]]
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
       else
-        TRANSFORMATION=BSplineSyN[0.1,26,0,3]
+        TRANSFORMATION="BSplineSyN[ 0.1,26,0,3 ]"
     fi
 elif [[ $TRANSFORMATIONTYPE == "SyN"* ]];
   then
@@ -712,7 +716,7 @@ elif [[ $TRANSFORMATIONTYPE == "SyN"* ]];
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
       else
-        TRANSFORMATION=SyN[0.1,3,0]
+        TRANSFORMATION="SyN[ 0.1,3,0 ]"
     fi
 elif [[ $TRANSFORMATIONTYPE == "TimeVaryingVelocityField"* ]];
   then
@@ -720,7 +724,7 @@ elif [[ $TRANSFORMATIONTYPE == "TimeVaryingVelocityField"* ]];
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
       else
-        TRANSFORMATION=TimeVaryingVelocityField[0.5,4,3,0,0,0]
+        TRANSFORMATION="TimeVaryingVelocityField[ 0.5,4,3,0,0,0 ]"
     fi
 elif [[ $TRANSFORMATIONTYPE == "TimeVaryingBSplineVelocityField"* ]];
   then
@@ -728,7 +732,7 @@ elif [[ $TRANSFORMATIONTYPE == "TimeVaryingBSplineVelocityField"* ]];
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
       else
-        TRANSFORMATION=TimeVaryingVelocityField[0.5,12x12x12x2,4,3]
+        TRANSFORMATION="TimeVaryingVelocityField[ 0.5,12x12x12x2,4,3 ]"
     fi
 elif [[ $TRANSFORMATIONTYPE == "Affine"* ]];
   then
@@ -738,7 +742,7 @@ elif [[ $TRANSFORMATIONTYPE == "Affine"* ]];
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
       else
-        TRANSFORMATION=Affine[0.1]
+        TRANSFORMATION="Affine[ 0.1 ]"
     fi
 elif [[ $TRANSFORMATIONTYPE == "Rigid"* ]];
   then
@@ -748,7 +752,7 @@ elif [[ $TRANSFORMATIONTYPE == "Rigid"* ]];
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
       else
-        TRANSFORMATION=Rigid[0.1]
+        TRANSFORMATION="Rigid[ 0.1 ]"
     fi
 else
   echo "Invalid transformation. See `basename $0` -h for help menu."
@@ -809,7 +813,7 @@ elif [[ ${NINFILES} -eq 1 ]];
             done
          done < $IMAGESFILE
     else
-        range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d "]" -f 1 `
+        range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d " ]" -f 1 `
         if [[ ${range} -eq 1 && ${TDIM} -ne 4 ]];
           then
             echo "Please provide at least 2 filenames for the template."
@@ -848,7 +852,7 @@ elif [[ ${NINFILES} -eq 1 ]];
              # if there are more than 32 volumes in the time-series (in case they are smaller
 
              nfmribins=16
-            if [[ ${range} -gt 31  ]];
+            if [[ ${range} -gt 31 ]];
               then
                 BINSIZE=$((${range} / ${nfmribins}))
                 j=1 # initialize counter j
@@ -890,7 +894,7 @@ elif [[ ${NINFILES} -eq 1 ]];
                     let j++
                 done
             fi
-        elif [[ ${range} -gt ${nfmribins} && ${range} -lt 32  ]];
+        elif [[ ${range} -gt ${nfmribins} && ${range} -lt 32 ]];
             then
             for ((i = 0; i < ${nfmribins} ; i++))
                 do
@@ -974,7 +978,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
       then
-        echo "Your initial template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
+        echo "Your initial template : $TEMPLATES[$i ] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
         exit 1
       fi
 done
@@ -1001,18 +1005,18 @@ if [[ "$RIGID" -eq 1 ]];
     for (( i = 0; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
       do
 
-        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1 -u 1 -w [0.01,0.99] -z 1 -r [${TEMPLATES[0]},${IMAGESETARRAY[$i]},1]"
+        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1 -u 1 -w [ 0.01,0.99 ] -z 1 -r [ ${TEMPLATES[0]},${IMAGESETARRAY[$i]},1 ]"
 
         IMAGEMETRICSET=""
         for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
           do
             k=0
             let k=$i+$j
-            IMAGEMETRICSET="$IMAGEMETRICSET -m MI[${TEMPLATES[$j]},${IMAGESETARRAY[$k]},${MODALITYWEIGHTS[$j]},32,Regular,0.25]"
+            IMAGEMETRICSET="$IMAGEMETRICSET -m MI[ ${TEMPLATES[$j]},${IMAGESETARRAY[$k]},${MODALITYWEIGHTS[$j]},32,Regular,0.25 ]"
           done
 
-        stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [1000x500x250x0,1e-6,10] -f 6x4x2x1 -s 3x2x1x0 -o ${outdir}/rigid${i}_"
-        #stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
+        stage1="-t Rigid[ 0.1 ] ${IMAGEMETRICSET} -c [ 1000x500x250x0,1e-6,10 ] -f 6x4x2x1 -s 3x2x1x0 -o ${outdir}/rigid${i}_"
+        #stage1="-t Rigid[ 0.1 ] ${IMAGEMETRICSET} -c [ 10x10x10x10,1e-8,10 ] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
         exe="${basecall} ${stage1}"
 
         qscript="${outdir}/job_${count}_qsub.sh"
@@ -1272,7 +1276,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
     for (( j = 0; j < ${#IMAGESETARRAY[@]}; j+=$NUMBEROFMODALITIES ))
       do
-        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1 -u 1 -w [0.01,0.99] -z 1"
+        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1 -u 1 -w [ 0.01,0.99 ] -z 1"
 
         IMAGEMETRICLINEARSET=''
         IMAGEMETRICSET=''
@@ -1289,28 +1293,28 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             if [[ "${METRICTYPE[$k]}" == "DEMONS" ]];
               then
                 # Mapping Parameters
-                METRIC=Demons[
-                METRICPARAMS="${MODALITYWEIGHTS[$k]},4]"
-            elif [[ "${METRICTYPE[$k]}" == CC*  ]];
+                METRIC="Demons[ "
+                METRICPARAMS="${MODALITYWEIGHTS[$k]},4 ]"
+            elif [[ "${METRICTYPE[$k]}" == CC* ]];
               then
-                METRIC=CC[
+                METRIC="CC[ "
                 RADIUS=4
                 if [[ "${METRICTYPE[$k]}" == CC[* ]]
                   then
                     RADIUS=${METRICTYPE[$k]%]*}
                     RADIUS=${RADIUS##*[}
                   fi
-                METRICPARAMS="${MODALITYWEIGHTS[$k]},${RADIUS}]"
+                METRICPARAMS="${MODALITYWEIGHTS[$k]},${RADIUS} ]"
             elif [[ "${METRICTYPE[$k]}" == "MI" ]];
               then
                 # Mapping Parameters
-                METRIC=MI[
-                METRICPARAMS="${MODALITYWEIGHTS[$k]},32]"
+                METRIC="MI[ "
+                METRICPARAMS="${MODALITYWEIGHTS[$k]},32 ]"
             elif [[ "${METRICTYPE[$k]}" == "MSQ" ]];
               then
                 # Mapping Parameters
-                METRIC=MeanSquares[
-                METRICPARAMS="${MODALITYWEIGHTS[$k]},0]"
+                METRIC="MeanSquares[ "
+                METRICPARAMS="${MODALITYWEIGHTS[$k]},0 ]"
             else
               echo "Invalid similarity metric. Use CC, MI, MSQ, DEMONS or type bash `basename $0` -h."
               exit 1
@@ -1322,16 +1326,16 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 indir=`pwd`
               fi
             IMGbase=`basename ${IMAGESETARRAY[$l]}`
-            OUTFN=${OUTPUTNAME}template${k}${IMGbase%%.*}
+            OUTFN=${OUTPUTNAME}template${k}${IMGbase/%?(.nii.gz|.nii)}
             OUTFN=`basename ${OUTFN}`
             DEFORMED="${outdir}/${OUTFN}${l}WarpedToTemplate.nii.gz"
 
             IMGbase=`basename ${IMAGESETARRAY[$j]}`
-            OUTWARPFN=${OUTPUTNAME}${IMGbase%%.*}
+            OUTWARPFN=${OUTPUTNAME}${IMGbase/%?(.nii.gz|.nii)}
             OUTWARPFN=`basename ${OUTWARPFN}`
             OUTWARPFN="${OUTWARPFN}${j}"
 
-            if [ $NOWARP -eq 0 ];
+            if [[ $NOWARP -eq 0 ]];
               then
                 OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat"
               else
@@ -1341,17 +1345,17 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             if [[ $N4CORRECT -eq 1 ]];
               then
                 REPAIRED="${outdir}/${OUTFN}Repaired.nii.gz"
-                exe=" $exe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1\n"
-                pexe=" $pexe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1  >> ${outdir}/job_${count}_metriclog.txt >> ${outdir}/job_${count}_metriclog.txt\n"
+                exe=" $exe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1\n"
+                pexe=" $pexe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1  >> ${outdir}/job_${count}_metriclog.txt >> ${outdir}/job_${count}_metriclog.txt\n"
 
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${REPAIRED},${METRICPARAMS}"
-                IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${REPAIRED},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
+                IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[ ${TEMPLATES[$k]},${REPAIRED},${MODALITYWEIGHTS[$k]},32,Regular,0.25 ]"
 
                 warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
                 warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
               else
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${METRICPARAMS}"
-                IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
+                IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[ ${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${MODALITYWEIGHTS[$k]},32,Regular,0.25 ]"
 
                 warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
                 warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
@@ -1360,17 +1364,17 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         done
 
         IMGbase=`basename ${IMAGESETARRAY[$j]}`
-        OUTWARPFN=${OUTPUTNAME}${IMGbase%%.*}
+        OUTWARPFN=${OUTPUTNAME}${IMGbase/%?(.nii.gz|.nii)}
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
-        stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[$j]},1]"
-        stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x0,1e-6,10] -f 6x4x2x1 -s 4x2x1x0"
-        stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x0,1e-6,10] -f 6x4x2x1 -s 4x2x1x0"
-        #stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
-        #stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
-        stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [${MAXITERATIONS},1e-9,10] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
+        stage0="-r [ ${TEMPLATES[0]},${IMAGESETARRAY[$j]},1 ]"
+        stage1="-t Rigid[ 0.1 ] ${IMAGEMETRICLINEARSET} -c [ 1000x500x250x0,1e-6,10 ] -f 6x4x2x1 -s 4x2x1x0"
+        stage2="-t Affine[ 0.1 ] ${IMAGEMETRICLINEARSET} -c [ 1000x500x250x0,1e-6,10 ] -f 6x4x2x1 -s 4x2x1x0"
+        #stage1="-t Rigid[ 0.1 ] ${IMAGEMETRICLINEARSET} -c [ 10x10x10x10,1e-8,10 ] -f 8x4x2x1 -s 4x2x1x0"
+        #stage2="-t Affine[ 0.1 ] ${IMAGEMETRICLINEARSET} -c [ 10x10x10x10,1e-8,10 ] -f 8x4x2x1 -s 4x2x1x0"
+        stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [ ${MAXITERATIONS},1e-9,10 ] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
 
-        stageId="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [0,1e-8,10] -f 1 -s 0"
+        stageId="-t Rigid[ 0.1 ] ${IMAGEMETRICLINEARSET} -c [ 0,1e-8,10 ] -f 1 -s 0"
         exebase=$exe
         pexebase=$pexe
 

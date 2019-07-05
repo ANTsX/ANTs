@@ -31,7 +31,7 @@ namespace itk
  *
  * \ingroup ImageFunctions ImageInterpolators
  */
-template <class TInputImage, class TCoordRep = double>
+template <typename TInputImage, typename TCoordRep = double>
 class VectorGaussianInterpolateImageFunction :
   public         InterpolateImageFunction<TInputImage, TCoordRep>
 {
@@ -60,7 +60,7 @@ public:
   typedef typename Superclass::RealType RealType;
 
   /** Dimension underlying input image. */
-  itkStaticConstMacro(VDim, unsigned int, Superclass::ImageDimension);
+  static constexpr unsigned int VDim = Superclass::ImageDimension;
 
   /** Index typedef support. */
   typedef typename Superclass::IndexType IndexType;
@@ -73,7 +73,7 @@ public:
   {
     const TInputImage *img = this->GetInputImage();
 
-    if( img == ITK_NULLPTR )
+    if( img == nullptr )
       {
       return;
       }
@@ -128,7 +128,7 @@ public:
   virtual OutputType EvaluateAtContinuousIndex(
     const ContinuousIndexType & index ) const
   {
-    return EvaluateAtContinuousIndex(index, ITK_NULLPTR);
+    return EvaluateAtContinuousIndex(index, nullptr);
   }
 
   virtual OutputType EvaluateAtContinuousIndex(
@@ -145,13 +145,13 @@ public:
     //      std::cout << " index " << index << " VD " << VDim << std::endl;
     for( size_t d = 0; d < VDim; d++ )
       {
-      if( index[d] <= 0 || index[d] >= this->m_ImageSize[d] - 1  || vnl_math_isnan(index[d]) ||
-          vnl_math_isinf(index[d]) )
+      if( index[d] <= 0 || index[d] >= this->m_ImageSize[d] - 1  || std::isnan(index[d]) ||
+          std::isinf(index[d]) )
         {
         return Vout;
         }
       double *pdx = const_cast<double *>(dx[d].data_block() );
-      double *pgx = grad ?  const_cast<double *>(gx[d].data_block() ) : ITK_NULLPTR;
+      double *pgx = grad ?  const_cast<double *>(gx[d].data_block() ) : nullptr;
       compute_erf_array(pdx, i0[d], i1[d], bb_start[d], nt[d], cut[d], index[d], sf[d], pgx);
       }
     // Get a pointer to the output value
@@ -217,7 +217,7 @@ public:
           grad[q] /= -1.4142135623730951 * this->sigma[q];
           }
         }
-      if( vnl_math_isnan(rc) )
+      if( std::isnan(rc) )
         {
         rc = 0;
         }
@@ -230,21 +230,17 @@ public:
   }
 
 protected:
-  VectorGaussianInterpolateImageFunction()
-  {
-  }
+  VectorGaussianInterpolateImageFunction() = default;
 
-  ~VectorGaussianInterpolateImageFunction()
-  {
-  };
+  ~VectorGaussianInterpolateImageFunction() = default;
   void PrintSelf(std::ostream& os, Indent indent) const
   {
     this->Superclass::PrintSelf(os, indent);
   }
 
 private:
-  VectorGaussianInterpolateImageFunction( const Self & ); // purposely not implemented
-  void operator=( const Self & );                         // purposely not implemented
+  VectorGaussianInterpolateImageFunction( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   /** Number of neighbors used in the interpolation */
   static const unsigned long m_Neighbors;
@@ -262,7 +258,7 @@ private:
     double Cut,                   // The distance at which to cut off
     double p,                     // the value p
     double sfac,                  // scaling factor 1 / (Sqrt[2] sigma)
-    double *gx_erf = ITK_NULLPTR         // Output derivative/erf array (optional)
+    double *gx_erf = nullptr         // Output derivative/erf array (optional)
     ) const
   {
     // Determine the range of voxels along the line where to evaluate erf

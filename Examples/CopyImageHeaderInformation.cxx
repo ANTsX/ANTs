@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
@@ -46,7 +46,7 @@ int CopyImageHeaderInformation(int argc, char *argv[])
   bool istensor = false;
   if( argc > 7 )
     {
-    if( atoi(argv[7]) )
+    if( std::stoi(argv[7]) )
       {
       istensor = true;
       }
@@ -60,21 +60,21 @@ int CopyImageHeaderInformation(int argc, char *argv[])
     //      std::cout<< " tim dir " << timage->GetDirection() << std::endl;
     if( argc > 6 )
       {
-      if( atoi(argv[6]) )
+      if( std::stoi(argv[6]) )
         {
         timage->SetSpacing(  reader->GetOutput()->GetSpacing()  );
         }
       }
     if( argc > 5 )
       {
-      if( atoi(argv[5]) )
+      if( std::stoi(argv[5]) )
         {
         timage->SetOrigin(  reader->GetOutput()->GetOrigin()  );
         }
       }
     if( argc > 4 )
       {
-      if( atoi(argv[4]) )
+      if( std::stoi(argv[4]) )
         {
         timage->SetDirection(  reader->GetOutput()->GetDirection()  );
         }
@@ -95,21 +95,21 @@ int CopyImageHeaderInformation(int argc, char *argv[])
 
   if( argc > 6 )
     {
-    if( atoi(argv[6]) )
+    if( std::stoi(argv[6]) )
       {
       newimage->SetSpacing(  reader->GetOutput()->GetSpacing()  );
       }
     }
   if( argc > 5 )
     {
-    if( atoi(argv[5]) )
+    if( std::stoi(argv[5]) )
       {
       newimage->SetOrigin(  reader->GetOutput()->GetOrigin()  );
       }
     }
   if( argc > 4 )
     {
-    if( atoi(argv[4]) )
+    if( std::stoi(argv[4]) )
       {
       newimage->SetDirection(  reader->GetOutput()->GetDirection()  );
       }
@@ -122,7 +122,7 @@ int CopyImageHeaderInformation(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int CopyImageHeaderInformation( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int CopyImageHeaderInformation( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -140,7 +140,7 @@ int CopyImageHeaderInformation( std::vector<std::string> args, std::ostream* /*o
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

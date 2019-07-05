@@ -36,7 +36,7 @@ namespace itk
  * \ingroup ITKDeprecated
  * \sa MultiplyImageFilter
  */
-template <class TInputImage, class TConstant, class TOutputImage>
+template <typename TInputImage, typename TConstant, typename TOutputImage>
 class MultiplyByConstantImageFilter :
   public
   MultiplyImageFilter<TInputImage, Image<TConstant, TInputImage::ImageDimension>, TOutputImage>
@@ -53,13 +53,9 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(MultiplyByConstantImageFilter, MultiplyImageFilter);
 protected:
-  MultiplyByConstantImageFilter()
-  {
-  }
+  MultiplyByConstantImageFilter() = default;
 
-  virtual ~MultiplyByConstantImageFilter() ITK_OVERRIDE
-  {
-  }
+  ~MultiplyByConstantImageFilter() override = default;
 };
 }
 #endif

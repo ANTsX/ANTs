@@ -1,18 +1,15 @@
-#include "antsUtilities.h"
-#include <algorithm>
-
 #include "itkCSVArray2DDataObject.h"
 #include "itkCSVArray2DFileReader.h"
 #include "itkCSVNumericObjectFileWriter.h"
-#include "itkHausdorffDistanceImageFilter.h"
 #include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
-#include "itkSignedMaurerDistanceMapImageFilter.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <vector>
+
+#include "antsUtilities.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {
@@ -40,16 +37,15 @@ int LabelOverlapMeasures( int argc, char * argv[] )
   typedef unsigned int                          PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
-  typedef itk::ImageFileReader<ImageType> ReaderType;
-  typename ReaderType::Pointer reader1 = ReaderType::New();
-  reader1->SetFileName( argv[2] );
-  typename ReaderType::Pointer reader2 = ReaderType::New();
-  reader2->SetFileName( argv[3] );
+  typename ImageType::Pointer sourceImage = ImageType::New();
+  ReadImage<ImageType>( sourceImage, argv[2] );
+  typename ImageType::Pointer targetImage = ImageType::New();
+  ReadImage<ImageType>( targetImage, argv[3] );
 
   typedef itk::LabelOverlapMeasuresImageFilter<ImageType> FilterType;
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetSourceImage( reader1->GetOutput() );
-  filter->SetTargetImage( reader2->GetOutput() );
+  filter->SetSourceImage( sourceImage );
+  filter->SetTargetImage( targetImage );
   filter->Update();
 
   typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
@@ -73,16 +69,16 @@ int LabelOverlapMeasures( int argc, char * argv[] )
     {
     std::vector<std::string>   columnHeaders;
 
-    columnHeaders.push_back( std::string( "Label" ) );
-    columnHeaders.push_back( std::string( "Total/Target" ) );
-    columnHeaders.push_back( std::string( "Jaccard" ) );
-    columnHeaders.push_back( std::string( "Dice" ) );
-    columnHeaders.push_back( std::string( "VolumeSimilarity" ) );
-    columnHeaders.push_back( std::string( "FalseNegative" ) );
-    columnHeaders.push_back( std::string( "FalsePositive" ) );
+    columnHeaders.emplace_back( "Label" );
+    columnHeaders.emplace_back( "Total/Target" );
+    columnHeaders.emplace_back( "Jaccard" );
+    columnHeaders.emplace_back( "Dice" );
+    columnHeaders.emplace_back( "VolumeSimilarity" );
+    columnHeaders.emplace_back( "FalseNegative" );
+    columnHeaders.emplace_back( "FalsePositive" );
 
     std::vector<std::string>   rowHeaders;
-    rowHeaders.push_back( std::string( "All" ) );
+    rowHeaders.emplace_back( "All" );
 
     std::vector<int>::const_iterator itL = allLabels.begin();
     while( itL != allLabels.end() )
@@ -161,10 +157,8 @@ int LabelOverlapMeasures( int argc, char * argv[] )
               << std::setw( 17 ) << "False negative"
               << std::setw( 17 ) << "False positive"
               << std::endl;
-    for( unsigned int i = 0; i < allLabels.size(); i++ )
+    for(int label : allLabels)
       {
-      int label = allLabels[i];
-
       std::cout << std::setw( 10 ) << label;
       std::cout << std::setw( 17 ) << filter->GetTargetOverlap( label );
       std::cout << std::setw( 17 ) << filter->GetUnionOverlap( label );
@@ -181,7 +175,7 @@ int LabelOverlapMeasures( int argc, char * argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int LabelOverlapMeasures( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int LabelOverlapMeasures( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -199,7 +193,7 @@ int LabelOverlapMeasures( std::vector<std::string> args, std::ostream * /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -237,7 +231,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {

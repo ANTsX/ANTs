@@ -34,7 +34,7 @@ namespace itk
  *
  * \sa
  */
-template< class TInputImage >
+template< typename TInputImage >
 class ITK_EXPORT LabelPerimeterEstimationCalculator:
   public Object
 {
@@ -59,7 +59,7 @@ public:
   typedef typename std::map< InputImagePixelType, double > PerimetersType;
 
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Standard New method. */
   itkNewMacro(Self);
@@ -115,12 +115,12 @@ public:
 
 protected:
   LabelPerimeterEstimationCalculator();
-  virtual ~LabelPerimeterEstimationCalculator() ITK_OVERRIDE {}
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+  ~LabelPerimeterEstimationCalculator() override = default;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  LabelPerimeterEstimationCalculator(const Self &); //purposely not implemented
-  void operator=(const Self &);                     //purposely not implemented
+  LabelPerimeterEstimationCalculator(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   bool m_FullyConnected;
 

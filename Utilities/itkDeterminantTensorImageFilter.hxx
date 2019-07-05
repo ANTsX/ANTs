@@ -26,7 +26,10 @@ namespace itk
 
 template <typename TInputImage, typename TRealType, typename TOutputImage>
 DeterminantTensorImageFilter<TInputImage, TRealType, TOutputImage>
-::DeterminantTensorImageFilter(){}
+::DeterminantTensorImageFilter()
+{
+  this->DynamicMultiThreadingOff();
+}
 
 template< typename TInputImage, typename TRealType, typename TOutputImage >
 void

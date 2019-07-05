@@ -23,7 +23,7 @@
 
 namespace ants
 {
-template <unsigned int Dimension, class RealType>
+template <unsigned int Dimension, typename RealType>
 int antsApplyTransformsToPoints(
   itk::ants::CommandLineParser::Pointer & parser )
 {
@@ -35,7 +35,7 @@ int antsApplyTransformsToPoints(
   typedef itk::CSVArray2DDataObject<RealType>              DataFrameObjectType;
   typedef typename DataFrameObjectType::StringVectorType StringVectorType;
   StringVectorType colheadernames;
-  typename ImageType::Pointer pointimage = ITK_NULLPTR;
+  typename ImageType::Pointer pointimage = nullptr;
 
   itk::ants::CommandLineParser::OptionType::Pointer antsrOption =
     parser->GetOption( "forantsr" );
@@ -380,7 +380,7 @@ static void antsApplyTransformsToPointsInitializeCommandLineOptions( itk::ants::
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -397,7 +397,7 @@ int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream * /
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

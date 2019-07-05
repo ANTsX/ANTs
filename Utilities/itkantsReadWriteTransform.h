@@ -14,7 +14,7 @@ namespace itk
 {
 namespace ants
 {
-template <class T, unsigned VImageDimension>
+template <typename T, unsigned VImageDimension>
 typename itk::Transform<T, VImageDimension, VImageDimension>::Pointer
 ReadTransform(const std::string & filename,
               const bool useStaticCastForR = false) // This parameter changes to true by the programs that use R, so this code
@@ -25,7 +25,7 @@ ReadTransform(const std::string & filename,
   if( !itksys::SystemTools::FileExists( filename.c_str() ) )
     {
     std::cerr << "Transform file does not exist: " << filename << std::endl;
-    return ITK_NULLPTR;
+    return nullptr;
     }
 
   bool hasTransformBeenRead = false;
@@ -37,9 +37,9 @@ ReadTransform(const std::string & filename,
   typename DisplacementFieldReaderType::Pointer fieldReader = DisplacementFieldReaderType::New();
   typedef typename itk::CompositeTransform<T, VImageDimension> CompositeTransformType;
 
-  // There are known tranform type extentions that should not be considered as imaging files
+  // There are known transform type extentions that should not be considered as imaging files
   // That would be used as deformatino feilds
-  // If file is an hdf5 file, assume it is a tranform instead of an image.
+  // If file is an hdf5 file, assume it is a transform instead of an image.
   bool recognizedExtension = false;
   recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".h5" );
   recognizedExtension |= ( itksys::SystemTools::GetFilenameLastExtension(filename) == ".hdf5" );
@@ -129,7 +129,7 @@ ReadTransform(const std::string & filename,
   return transform;
 }
 
-template <class T, unsigned int VImageDimension>
+template <typename T, unsigned int VImageDimension>
 int
 WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Pointer & xfrm,
                const std::string & filename)
@@ -146,7 +146,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
   // if it's a displacement field transform or output file indicates it should be a transform
   try
     {
-    if(  dispXfrm != ITK_NULLPTR 
+    if(  dispXfrm != nullptr 
       && filename.find(".mat") == std::string::npos
       && filename.find(".txt") == std::string::npos
       )
@@ -185,7 +185,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
         
       CompositeTransformType *comp_xfm =
         dynamic_cast<CompositeTransformType *>(xfrm.GetPointer() );        
-      if( comp_xfm != ITK_NULLPTR )
+      if( comp_xfm != nullptr )
         { //this is a composite transform, make sure it doesn't contain wiered stuff
         CompositeTransformPointer tmp_comp_xfm=CompositeTransformType::New();
       
@@ -196,7 +196,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
             DisplacementFieldTransformType *_dispXfrm =
               dynamic_cast<DisplacementFieldTransformType *>(_xfm );
               
-            if ( _dispXfrm != ITK_NULLPTR )
+            if ( _dispXfrm != nullptr )
               { //assume that we have to make it DisplacementFieldTransform 
                 typename DisplacementFieldTransformType::Pointer _xfm_disp=DisplacementFieldTransformType::New();
                 _xfm_disp->SetDisplacementField(_dispXfrm->GetModifiableDisplacementField());
@@ -228,7 +228,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
   return EXIT_SUCCESS;
 }
 
-template <class T, unsigned int VImageDimension>
+template <typename T, unsigned int VImageDimension>
 int
 WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimension>::Pointer & xfrm,
                const std::string & filename)

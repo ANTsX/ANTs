@@ -25,7 +25,7 @@ namespace ants
 {
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int RebaseTensorImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int RebaseTensorImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -43,7 +43,7 @@ int RebaseTensorImage( std::vector<std::string> args, std::ostream* /*out_stream
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -81,7 +81,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  const int dim = atoi(argv[1]);
+  const int dim = std::stoi(argv[1]);
   const char * const moving_image_filename = argv[2];
   const char * const output_image_filename = argv[3];
 
@@ -123,7 +123,8 @@ private:
     std::cout << " -> " << convert << " space";
     ImageType::Pointer target;
     ReadImage<ImageType>( target, convert );
-    direction =  img_mov->GetDirection().GetTranspose() * target->GetDirection().GetVnlMatrix();
+    // converting from LOCAL to a reference LOCAL space
+    direction = target->GetDirection().GetTranspose() * img_mov->GetDirection().GetVnlMatrix();
     }
 
   // direction = direction.transpose(); // to accomodate for how

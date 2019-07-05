@@ -15,8 +15,8 @@
 #define _itkCrossCorrelationRegistrationFunction_hxx_
 
 #include "itkCrossCorrelationRegistrationFunction.h"
-#include "itkExceptionObject.h"
-#include "vnl/vnl_math.h"
+#include "itkMacro.h"
+#include "itkMath.h"
 #include "itkImageFileWriter.h"
 #include "itkImageLinearConstIteratorWithIndex.h"
 #include "itkDiscreteGaussianImageFilter.h"
@@ -31,7 +31,7 @@ namespace itk
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::CrossCorrelationRegistrationFunction()
 {
@@ -48,13 +48,13 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   m_TimeStep = 1.0;
   m_DenominatorThreshold = 1e-9;
   m_IntensityDifferenceThreshold = 0.001;
-  Superclass::m_MovingImage = ITK_NULLPTR;
-  m_MetricGradientImage = ITK_NULLPTR;
-  Superclass::m_FixedImage = ITK_NULLPTR;
+  Superclass::m_MovingImage = nullptr;
+  m_MetricGradientImage = nullptr;
+  Superclass::m_FixedImage = nullptr;
   m_FixedImageSpacing.Fill( 1.0 );
   m_FixedImageOrigin.Fill( 0.0 );
   m_FixedImageGradientCalculator = GradientCalculatorType::New();
-  binaryimage = ITK_NULLPTR;
+  binaryimage = nullptr;
   m_FullyRobust = false;
   m_MovingImageGradientCalculator = GradientCalculatorType::New();
 
@@ -63,21 +63,21 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 
   m_MovingImageInterpolator = static_cast<InterpolatorType *>(
       interp.GetPointer() );
-  for( int i = 0; i < 5; i++ )
+  for(auto & finitediffimage : finitediffimages)
     {
-    finitediffimages[i] = ITK_NULLPTR;
+    finitediffimage = nullptr;
     }
 
   m_NumberOfHistogramBins = 32;
 
-  m_FixedImageMask = ITK_NULLPTR;
-  m_MovingImageMask = ITK_NULLPTR;
+  m_FixedImageMask = nullptr;
+  m_MovingImageMask = nullptr;
 }
 
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PrintSelf(std::ostream& os, Indent indent) const
@@ -98,7 +98,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
@@ -379,7 +379,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ComputeMetricAtPairB(IndexType oindex, typename TDisplacementField::PixelType /* vec */)
@@ -391,8 +391,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   double sfm = 0.0;
 //  double fixedValue;
 //  double movingValue;
-  PointType           mappedPoint;
-  CovariantVectorType gradI, gradJ;
+  CovariantVectorType gradI;
   if( this->m_FixedImageMask )
     {
     if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )
@@ -441,7 +440,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ComputeMetricAtPairC(IndexType oindex, typename TDisplacementField::PixelType /* vec */)
@@ -451,8 +450,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   double sff = 0.0;
   double smm = 0.0;
   double sfm = 0.0;
-  PointType           mappedPoint;
-  CovariantVectorType gradI, gradJ;
+  CovariantVectorType gradJ;
   if( this->m_FixedImageMask )
     {
     if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )

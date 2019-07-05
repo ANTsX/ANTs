@@ -27,7 +27,7 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TScalarListSample>
+template <typename TScalarListSample>
 BoxPlotQuantileListSampleFilter<TScalarListSample>
 ::BoxPlotQuantileListSampleFilter()
 {
@@ -40,13 +40,12 @@ BoxPlotQuantileListSampleFilter<TScalarListSample>
   this->m_UpperPercentile = 0.75;
 }
 
-template <class TScalarListSample>
+template <typename TScalarListSample>
 BoxPlotQuantileListSampleFilter<TScalarListSample>
 ::~BoxPlotQuantileListSampleFilter()
-{
-}
+= default;
 
-template <class TScalarListSample>
+template <typename TScalarListSample>
 void
 BoxPlotQuantileListSampleFilter<TScalarListSample>
 ::GenerateData()
@@ -157,7 +156,7 @@ BoxPlotQuantileListSampleFilter<TScalarListSample>
     }
 }
 
-template <class TScalarListSample>
+template <typename TScalarListSample>
 void
 BoxPlotQuantileListSampleFilter<TScalarListSample>
 ::PrintSelf( std::ostream& os, Indent indent ) const

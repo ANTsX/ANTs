@@ -39,10 +39,10 @@ if [[ ${#ANTSPATH} -le 3 ]];
 ANTS=${ANTSPATH}/antsRegistration
 WARP=${ANTSPATH}/antsApplyTransforms
 JLF=${ANTSPATH}/antsJointFusion
-PEXEC=${ANTSPATH}ANTSpexec.sh
-SGE=${ANTSPATH}waitForSGEQJobs.pl
-PBS=${ANTSPATH}waitForPBSQJobs.pl
-XGRID=${ANTSPATH}waitForXGridJobs.pl
+PEXEC=${ANTSPATH}/ANTSpexec.sh
+SGE=${ANTSPATH}/waitForSGEQJobs.pl
+PBS=${ANTSPATH}/waitForPBSQJobs.pl
+XGRID=${ANTSPATH}/waitForXGridJobs.pl
 SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 
 fle_error=0
@@ -690,9 +690,9 @@ if [[ $DOQSUB -eq 0 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall}  -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall}  -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -768,7 +768,7 @@ if [[ $DOQSUB -eq 0 ]];
             exit 1
           fi
 
-        jlfTimeCall="${ANTSPATH}/antsJointFusion -d ${DIM} -t $tImg -x $tMask -o [${OUTPUT_PREFIX}${j}_Labels.nii.gz,${OUTPUT_PREFIX}${j}_Intensity.nii.gz] --verbose 1 "
+        jlfTimeCall="${ANTSPATH}/antsJointFusion -d ${DIM} -t $tImg -x $tMask -o [ ${OUTPUT_PREFIX}${j}_Labels.nii.gz,${OUTPUT_PREFIX}${j}_Intensity.nii.gz ] --verbose 1 "
 
         for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
           do
@@ -882,9 +882,9 @@ if [[ $DOQSUB -eq 1 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall}  -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall}  -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1054,9 +1054,9 @@ if [[ $DOQSUB -eq 4 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall}  -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall}  -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1130,9 +1130,9 @@ if [[ $DOQSUB -eq 2 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall}  -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall}  -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1218,9 +1218,9 @@ if [[ $DOQSUB -eq 3 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall}  -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall}  -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1309,9 +1309,9 @@ if [[ $DOQSUB -eq 5 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall}  -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall}  -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];

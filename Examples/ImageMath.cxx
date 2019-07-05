@@ -167,7 +167,7 @@ int ImageMath( std::vector<std::string> args, std::ostream * itkNotUsed( out_str
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -635,6 +635,9 @@ private:
     std::cout << "\n  Sharpen   : " << std::endl;
     std::cout << "      Usage        : Sharpen ImageIn" << std::endl;
 
+    std::cout << "\n  CoordinateComponentImages   : " << std::endl;
+    std::cout << "      Usage        : CoordinateComponentImages domainImage" << std::endl;
+
     std::cout << "\n  CenterImage2inImage1        : " << std::endl;
     std::cout << "      Usage       : ReferenceImageSpace ImageToCenter " << std::endl;
 
@@ -729,7 +732,7 @@ private:
 
   std::string operation = std::string(argv[3]);
 
-  unsigned int imageDimension = atoi(argv[1]);
+  unsigned int imageDimension = std::stoi(argv[1]);
 
   switch( imageDimension )
     {

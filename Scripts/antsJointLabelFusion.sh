@@ -39,10 +39,10 @@ if [[ ${#ANTSPATH} -le 3 ]];
 ANTS=${ANTSPATH}/antsRegistration
 WARP=${ANTSPATH}/antsApplyTransforms
 JLF=${ANTSPATH}/antsJointFusion
-PEXEC=${ANTSPATH}ANTSpexec.sh
-SGE=${ANTSPATH}waitForSGEQJobs.pl
-PBS=${ANTSPATH}waitForPBSQJobs.pl
-XGRID=${ANTSPATH}waitForXGridJobs.pl
+PEXEC=${ANTSPATH}/ANTSpexec.sh
+SGE=${ANTSPATH}/waitForSGEQJobs.pl
+PBS=${ANTSPATH}/waitForPBSQJobs.pl
+XGRID=${ANTSPATH}/waitForXGridJobs.pl
 SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 
 fle_error=0
@@ -68,6 +68,28 @@ if [[ $fle_error = 1 ]];
 
 #assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
 
+# Initialize variables with defaults, referred to in usage
+DIM=3
+KEEP_ALL_IMAGES=0
+DOQSUB=0
+CORES=2
+PRECISION=1
+
+XGRID_OPTS=""
+SCRIPT_PREPEND=""
+QSUB_OPTS=""
+TARGET_MASK_IMAGE="majorityvoting"
+
+REGISTRATION_WALLTIME="20:00:00"
+REGISTRATION_MEMORY="8gb"
+JLF_WALLTIME="20:00:00"
+JLF_MEMORY="8gb"
+
+MAJORITYVOTE=0
+RUNQUICK=1
+TRANSFORM_TYPE="s"
+
+
 function Usage {
     cat <<USAGE
 
@@ -89,37 +111,37 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
 
 Optional arguments:
 
-     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = 0).
+     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = ${MAJORITYVOTE}).
 
-     -k:  Keep files:     Keep warped atlas and label files (default = 0).
+     -k:  Keep files:     Keep warped atlas and label files (default = ${KEEP_ALL_IMAGES}).
 
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM.
 
-     -j:  Number of cpu cores to use (default 2; -- requires "-c 2").
+     -j:  Number of cpu cores to use (default ${CORES}; -- requires "-c 2").
 
      -r:  qsub options
 
-     -q:  Use quick registration parameters:  Either 0 or 1 (default = 1).
+     -q:  Use quick registration parameters:  Either 0 or 1 (default = ${RUNQUICK}).
 
      -p:  Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
                            Need to specify output directory.
 
-     -f:  Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
+     -f:  Float precision: Use float precision (default = ${PRECISION}) -- 0 == double, 1 == float.
 
-     -u:  Registration walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
+     -u:  Registration walltime (default = ${REGISTRATION_WALLTIME}):  Option for PBS/SLURM qsub specifying requested time
           per pairwise registration.
 
-     -v:  Registration memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
+     -v:  Registration memory limit (default = ${REGISTRATION_MEMORY}):  Option for PBS/SLURM qsub specifying requested memory
           per pairwise registration.
 
-     -w:  JLF walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
+     -w:  JLF walltime (default = ${JLF_WALLTIME}):  Option for PBS/SLURM qsub specifying requested time
           for the joint label fusion call.
 
-     -z:  JLF Memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
+     -z:  JLF Memory limit (default = ${JLF_MEMORY}):  Option for PBS/SLURM qsub specifying requested memory
           for the joint label fusion call.
 
-     -y:  transform type (default = 's')
+     -y:  transform type (default = \'${TRANSFORM_TYPE}\')
         t: translation
         r: rigid
         a: rigid + affine
@@ -130,7 +152,7 @@ Optional arguments:
         br: rigid + deformable b-spline syn
         bo: deformable b-spline syn only
 
-     -x:  Target mask image (default = 'majorityvoting')
+     -x:  Target mask image (default = \'${TARGET_MASK_IMAGE}\')
         otsu: use otsu thresholding to define foreground/background
         or: 'or' all the warped atlas images to defined foreground/background
         majorityvoting: perform a voxelwise label voting.  If >= 80% of the warped atlases agree at that
@@ -141,10 +163,10 @@ Optional arguments:
 
 Example:
 
-`basename $0` -d 3 -t target.nii.gz -o malf \
-              -p malfPosteriors%04d.nii.gz \
-              -g atlas1.nii.gz -l labels1.nii.gz \
-              -g atlas2.nii.gz -l labels2.nii.gz \
+`basename $0` -d 3 -t target.nii.gz -o malf \\
+              -p malfPosteriors%04d.nii.gz \\
+              -g atlas1.nii.gz -l labels1.nii.gz \\
+              -g atlas2.nii.gz -l labels2.nii.gz \\
               -g atlas3.nii.gz -l labels3.nii.gz
 
 --------------------------------------------------------------------------------------
@@ -200,36 +222,38 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
      -l:  Labels:         Labels corresponding to atlas (cf -g).
 
 Optional arguments:
+  
+     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = ${MAJORITYVOTE}).
 
-     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = 0).
-
-     -k:  Keep files:     Keep warped atlas and label files (default = 0).
+     -k:  Keep files:     Keep warped atlas and label files (default = ${KEEP_ALL_IMAGES}).
 
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM.
 
-     -j:  Number of cpu cores to use (default 2; -- requires "-c 2").
+     -j:  Number of cpu cores to use (default ${CORES}; -- requires "-c 2").
 
-     -q:  Use quick registration parameters:  Either 0 or 1 (default = 1).
+     -r:  qsub options
+
+     -q:  Use quick registration parameters:  Either 0 or 1 (default = ${RUNQUICK}).
 
      -p:  Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
                            Need to specify output directory.
 
-     -f:  Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
+     -f:  Float precision: Use float precision (default = ${PRECISION}) -- 0 == double, 1 == float.
 
-     -u:  Registration walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
+     -u:  Registration walltime (default = ${REGISTRATION_WALLTIME}):  Option for PBS/SLURM qsub specifying requested time
           per pairwise registration.
 
-     -v:  Registration memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
+     -v:  Registration memory limit (default = ${REGISTRATION_MEMORY}):  Option for PBS/SLURM qsub specifying requested memory
           per pairwise registration.
 
-     -w:  JLF walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
+     -w:  JLF walltime (default = ${JLF_WALLTIME}):  Option for PBS/SLURM qsub specifying requested time
           for the joint label fusion call.
 
-     -z:  JLF Memory limit (default = 8gb):  Option for PBS/SLURM qsub specifying requested memory
+     -z:  JLF Memory limit (default = ${JLF_MEMORY}):  Option for PBS/SLURM qsub specifying requested memory
           for the joint label fusion call.
 
-     -y:  Transform type (default = 's')
+     -y:  transform type (default = \'${TRANSFORM_TYPE}\')
         t: translation
         r: rigid
         a: rigid + affine
@@ -240,7 +264,7 @@ Optional arguments:
         br: rigid + deformable b-spline syn
         bo: deformable b-spline syn only
 
-     -x:  Target mask image (default = 'majorityvoting')
+     -x:  Target mask image (default = \'${TARGET_MASK_IMAGE}\')
         otsu: use otsu thresholding to define foreground/background
         or: 'or' all the warped atlas images to defined foreground/background
         majorityvoting: perform a voxelwise label voting.  If >= 80% of the warped atlases agree at that
@@ -343,8 +367,6 @@ control_c()
 time_start=`date +%s`
 CURRENT_DIR=`pwd`/
 
-DIM=3
-
 OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
 OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
 OUTPUT_SUFFIX="nii.gz"
@@ -355,20 +377,6 @@ ATLAS_IMAGES=()
 ATLAS_LABELS=()
 TRANSFORM='s'
 
-KEEP_ALL_IMAGES=0
-DOQSUB=0
-CORES=1
-PRECISION=0
-
-XGRID_OPTS=""
-SCRIPT_PREPEND=""
-QSUB_OPTS=""
-TARGET_MASK_IMAGE="majorityvoting"
-
-REGISTRATION_WALLTIME="20:00:00"
-REGISTRATION_MEMORY="8gb"
-JLF_WALLTIME="20:00:00"
-JLF_MEMORY="8gb"
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -383,13 +391,18 @@ if [[ ${OSTYPE:0:6} == 'darwin' ]];
   fi
 
 # Provide output for Help
+if [[ $# -eq 0 ]];
+  then
+    Usage >&2
+  fi
+
+
+# Provide output for Help
 if [[ "$1" == "-h" ]];
   then
     Help >&2
   fi
-MAJORITYVOTE=0
-RUNQUICK=1
-TRANSFORM_TYPE="s"
+
 # reading command line arguments
 while getopts "c:d:f:g:h:j:k:l:m:o:p:q:r:t:u:v:w:x:y:z:" OPT
   do
@@ -684,9 +697,9 @@ if [[ $DOQSUB -eq 0 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT} ]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -786,9 +799,9 @@ if [[ $DOQSUB -eq 1 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -882,9 +895,9 @@ if [[ $DOQSUB -eq 4 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT} ]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -970,9 +983,9 @@ if [[ $DOQSUB -eq 2 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1070,9 +1083,9 @@ if [[ $DOQSUB -eq 3 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];
@@ -1173,9 +1186,9 @@ if [[ $DOQSUB -eq 5 ]];
 
         if [[ -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
           then
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz ]"
           else
-            jlfCall="${jlfCall} -o [${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT}]"
+            jlfCall="${jlfCall} -o [ ${OUTPUT_PREFIX}Labels.nii.gz,${OUTPUT_PREFIX}Intensity.nii.gz,${OUTPUT_POSTERIORS_FORMAT} ]"
           fi
 
         if [[ ${TARGET_MASK_IMAGE} == 'otsu' ]];

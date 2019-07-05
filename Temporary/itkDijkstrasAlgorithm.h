@@ -45,7 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <queue>
 #include <map>
 
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 // #include "vnl/vnl_matrix_fixed.h"
 // #include "vnl/vnl_vector_fixed.h"
 #include "itkImage.h"
@@ -68,9 +68,9 @@ namespace itk
 *   One way to do this is to include a list of pointers which define
 *   the neighbors of this node, similar to how the predecessor is defined.
 */
-template <class TPixelType, typename TCoordRep = unsigned int,
+template <typename TPixelType, typename TCoordRep = unsigned int,
           unsigned int NGraphDimension = 2>
-class GraphSearchNode : public itk::LightObject
+typename GraphSearchNode : public itk::LightObject
 {
 public:
 
@@ -318,8 +318,8 @@ protected:
     m_Value2 = 0.0;
     m_Value3 = 0.0;
     m_Value4 = 0.0;
-    m_PredecessorAddress = ITK_NULLPTR;
-    m_AncestorAddress = ITK_NULLPTR;
+    m_PredecessorAddress = nullptr;
+    m_AncestorAddress = nullptr;
     m_State = UnVisitedState;
     m_NumberOfNeighbors = 0;
     m_Identity = 0;
@@ -346,10 +346,10 @@ private:
 };
 
 // Forward declaration of DijkstrasAlgorithm so it can be declared a friend
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 class DijkstrasAlgorithm;
 
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 class DijkstrasAlgorithmQueue : public itk::LightObject
 /** \class DijkstrasAlgorithmQueue
 the class containing the priority queue and associated data.
@@ -357,8 +357,8 @@ the class containing the priority queue and associated data.
 {
 private:
 
-  template <class G>
-  class GraphSearchNodePriority /* defines the comparison operator for the prioritiy queue */
+  template <typename G>
+  typename GraphSearchNodePriority /* defines the comparison operator for the prioritiy queue */
   {
 public:
     bool operator()( typename G::Pointer N1,
@@ -476,7 +476,7 @@ private:
  *  Another improvement would be to make the LocalCost function a pointer
  *  to a function which could be set.
  */
-template <class TGraphSearchNode>
+template <typename TGraphSearchNode>
 class DijkstrasAlgorithm : public itk::LightObject
 {
 public:

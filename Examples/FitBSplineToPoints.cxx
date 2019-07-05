@@ -9,12 +9,12 @@
 
 #include "ReadWriteData.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <fstream>
 #include <string>
 
-template<class TValue>
+template<typename TValue>
 std::vector<TValue> ConvertDelimitedArray( std::string optionString )
 {
   std::vector<TValue> values;
@@ -134,7 +134,7 @@ int FitBSplineWarpFieldToPoints( unsigned int argc, char *argv[] )
 
   typedef itk::Image<RealType, PointDimension> ImageType;
 
-  typename ImageType::Pointer domainImage = ITK_NULLPTR;
+  typename ImageType::Pointer domainImage = nullptr;
 
   ReadImage<ImageType>( domainImage, argv[4] );
   if( ! domainImage )
@@ -146,7 +146,7 @@ int FitBSplineWarpFieldToPoints( unsigned int argc, char *argv[] )
   std::vector<unsigned int> meshSize
     = ConvertVector<unsigned int>( std::string( argv[6] ) );
 
-  const unsigned int splineOrder = 3;
+  constexpr unsigned int splineOrder = 3;
 
   typename BSplineFilterType::ArrayType ncps;
   if ( meshSize.size() == 1 )
@@ -280,28 +280,28 @@ int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
   order[0] = 3;
   if ( argc > 3 )
     {
-    order[0] = atoi( argv[3] );
+    order[0] = std::stoi( argv[3] );
     }
   filter->SetSplineOrder( order );
   typename FilterType::ArrayType ncps;
   ncps[0] = order[0] + 1;
   if ( argc > 5 )
     {
-    ncps[0] = atoi( argv[5] );
+    ncps[0] = std::stoi( argv[5] );
     }
   filter->SetNumberOfControlPoints( ncps );
   typename FilterType::ArrayType nlevels;
   nlevels[0] = 5;
   if ( argc > 4 )
     {
-    nlevels[0] = atoi( argv[4] );
+    nlevels[0] = std::stoi( argv[4] );
     }
   filter->SetNumberOfLevels( nlevels );
   typename FilterType::ArrayType close;
   close[0] = false;
   if ( argc > 7 )
     {
-    close[0] = atoi( argv[7] );
+    close[0] = std::stoi( argv[7] );
     }
   filter->SetCloseDimension( close );
 
@@ -340,7 +340,7 @@ int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int FitBSplineToPoints( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int FitBSplineToPoints( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -358,7 +358,7 @@ int FitBSplineToPoints( std::vector<std::string> args, std::ostream* /*out_strea
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -401,7 +401,7 @@ private:
     {
     if( imageDimensionString[1] == 'w' )
       {
-      switch( atoi( &imageDimensionString[0] ) )
+      switch( std::stoi( &imageDimensionString[0] ) )
        {
        case 2:
          return FitBSplineWarpFieldToPoints<2>( argc, argv );
@@ -422,7 +422,7 @@ private:
     }
   else
     {
-    switch( atoi( argv[1] ) )
+    switch( std::stoi( argv[1] ) )
      {
      case 1:
        return FitBSplineCurveToPoints<2>( argc, argv );

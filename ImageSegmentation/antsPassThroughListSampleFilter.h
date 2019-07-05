@@ -28,7 +28,7 @@ namespace Statistics
  *
  */
 
-template <class TListSample>
+template <typename TListSample>
 class PassThroughListSampleFilter
   : public       ListSampleToListSampleFilter<TListSample, TListSample>
 {
@@ -68,8 +68,8 @@ protected:
   virtual void GenerateData();
 
 private:
-  PassThroughListSampleFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );              // purposely not implemented
+  PassThroughListSampleFilter( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 };                                             // end of class
 } // end of namespace Statistics
 } // end of namespace ants

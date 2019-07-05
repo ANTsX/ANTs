@@ -51,15 +51,15 @@ Optional arguments:
      -n:  max. Atropos iterations               Maximum number of (inner loop) iterations in Atropos.
      -p:  segmentation priors                   Prior probability images initializing the segmentation.
                                                 Specified using c-style formatting, e.g. -p labelsPriors%02d.nii.gz.
-     -r:  mrf                                   Specifies MRF prior (of the form '[weight,neighborhood]', e.g.
-                                                '[0.1,1x1x1]' which is default).
+     -r:  mrf                                   Specifies MRF prior (of the form '[ weight,neighborhood ]', e.g.
+                                                '[ 0.1,1x1x1 ]' which is default).
      -g:  denoise anatomical images             Denoise anatomical images (default = 0).
      -b:  posterior formulation                 Posterior formulation and whether or not to use mixture model proportions.
-                                                e.g 'Socrates[1]' (default) or 'Aristotle[1]'.  Choose the latter if you
+                                                e.g 'Socrates[ 1 ]' (default) or 'Aristotle[ 1 ]'.  Choose the latter if you
                                                 want use the distance priors (see also the -l option for label propagation
                                                 control).
      -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
-                                                of the form 'label[lambda,boundaryProbability]' where label is a value
+                                                of the form 'label[ lambda,boundaryProbability ]' where label is a value
                                                 of 1,2,3,... denoting label ID.  The label probability for anything
                                                 outside the current label
 
@@ -67,7 +67,7 @@ Optional arguments:
 
                                                 Intuitively, smaller lambda values will increase the spatial capture
                                                 range of the distance prior.  To apply to all label values, simply omit
-                                                specifying the label, i.e. -l [lambda,boundaryProbability].
+                                                specifying the label, i.e. -l [ lambda,boundaryProbability ].
      -y:  posterior label for N4 weight mask    Which posterior probability image should be used to define the
                                                 N4 weight mask.  Can also specify multiple posteriors in which
                                                 case the chosen posteriors are combined.
@@ -117,12 +117,12 @@ PARAMETERS
 DEBUG_MODE=0
 
 function logCmd() {
-  cmd="$*"
+  cmd="$@"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
 
   exec 5>&1
-  logCmdOutput=$( $cmd | tee >(cat - >&5) )
+  logCmdOutput=$( "$@" | tee >(cat - >&5) )
 
   cmdExit=${PIPESTATUS[0]}
 
@@ -179,15 +179,15 @@ ATROPOS_SEGMENTATION_PRIORS=""
 N4_ATROPOS_NUMBER_OF_ITERATIONS=15
 
 N4=${ANTSPATH}/N4BiasFieldCorrection
-N4_CONVERGENCE="[50x50x50x50,0.0000000001]"
+N4_CONVERGENCE="[ 50x50x50x50,0.0000000001 ]"
 N4_SHRINK_FACTOR=2
-N4_BSPLINE_PARAMS="[200]"
+N4_BSPLINE_PARAMS="[ 200 ]"
 N4_WEIGHT_MASK_POSTERIOR_LABELS=()
 
 ATROPOS=${ANTSPATH}/Atropos
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
-ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[1]"
+ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[ 1 ]"
 ATROPOS_SEGMENTATION_MASK=''
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
 ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES=3
@@ -277,14 +277,14 @@ fi
 
 if [[ -z "$ATROPOS_SEGMENTATION_MRF" ]];
   then
-    ATROPOS_SEGMENTATION_MRF="[0.1,1x1x1]";
+    ATROPOS_SEGMENTATION_MRF="[ 0.1,1x1x1 ]";
     if [[ DIMENSION -eq 2 ]];
       then
-        ATROPOS_SEGMENTATION_MRF="[0.1,1x1]"
+        ATROPOS_SEGMENTATION_MRF="[ 0.1,1x1 ]"
       fi
   fi
 
-ATROPOS_SEGMENTATION_CONVERGENCE="[${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS},0.0]"
+ATROPOS_SEGMENTATION_CONVERGENCE="[ ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS},0.0 ]"
 
 ################################################################################
 #
@@ -311,7 +311,7 @@ FORMAT=${FORMAT%%d*}
 
 REPCHARACTER=''
 TOTAL_LENGTH=0
-if [ ${#FORMAT} -eq 2 ]
+if [[ ${#FORMAT} -eq 2 ]]
   then
     REPCHARACTER=${FORMAT:0:1}
     TOTAL_LENGTH=${FORMAT:1:1}
@@ -478,14 +478,14 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
         ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${SEGMENTATION_N4_IMAGES[$j]}"
       done
 
-    INITIALIZATION="PriorProbabilityImages[${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES},${ATROPOS_SEGMENTATION_PRIORS},${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}]"
+    INITIALIZATION="PriorProbabilityImages[ ${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES},${ATROPOS_SEGMENTATION_PRIORS},${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}]"
     if [[ INITIALIZE_WITH_KMEANS -eq 1 ]];
       then
         if [[ $i -eq 0 ]];
           then
-            INITIALIZATION="kmeans[${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES}]"
+            INITIALIZATION="kmeans[ ${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES} ]"
           else
-            INITIALIZATION="PriorProbabilityImages[${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES},${ATROPOS_SEGMENTATION_POSTERIORS},${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}]"
+            INITIALIZATION="PriorProbabilityImages[ ${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES},${ATROPOS_SEGMENTATION_POSTERIORS},${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} ]"
           fi
       fi
 
@@ -496,11 +496,11 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
       done
 
     exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} --verbose 1"
-    exe_segmentation="${exe_segmentation} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}] -r ${USE_RANDOM_SEEDING}"
+    exe_segmentation="${exe_segmentation} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [ ${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS} ] -r ${USE_RANDOM_SEEDING}"
 
     if [[ $i -eq 0 ]];
       then
-        exe_segmentation="${exe_segmentation} -p Socrates[0]"
+        exe_segmentation="${exe_segmentation} -p Socrates[ 0 ]"
       else
         exe_segmentation="${exe_segmentation} -p ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}"
 

@@ -1,16 +1,17 @@
 #!/bin/bash
-if [ ${#ANTSPATH} -le 3 ] ; then
-  echo we guess at your ants path
-  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+
+if [[ -z ${ANTSPATH} ]] ; then
+  echo "Environment variable ANTSPATH must be defined"
+  exit 1
 fi
-if [ ! -s ${ANTSPATH}/ANTS ] ; then
-  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
+if [[ ! -f "${ANTSPATH}/ANTS" ]] ; then
+  echo "Cannot find the ANTS program. Please \(re\)define \$ANTSPATH in your environment."
+  exit 1
 fi
 
 NUMPARAMS=$#
 
-if [ $NUMPARAMS -lt 3  ]
+if [ $NUMPARAMS -lt 3 ]
 then
 echo " USAGE ::  "
 echo "  sh   antsaffine.sh  ImageDimension  fixed.ext  moving.ext  OPTIONAL-OUTPREFIX   PURELY-RIGID  "
@@ -59,7 +60,7 @@ fi
 
 OUTPUTNAME=` echo $MOVING | cut -d '.' -f 1 `
 
-if [ $NUMPARAMS -gt 3  ]
+if [ $NUMPARAMS -gt 3 ]
 then
   OUTPUTNAME=${4}
 fi
@@ -75,7 +76,7 @@ echo  " ANTSPATH  is $ANTSPATH     "
  #below, some affine options
   #--MI-option 16x8000 #-a InitAffine.txt --continue-affine 0
 
-exe=" ${ANTSPATH}/ANTS $DIM -m  MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000  $RIGID   "
+exe=" ${ANTSPATH}/ANTS $DIM -m  MI[ ${FIXED},${MOVING},1,32 ] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000  $RIGID   "
 
  echo " $exe "
 

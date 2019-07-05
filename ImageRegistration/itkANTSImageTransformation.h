@@ -31,7 +31,7 @@
 #include "itkTransformFileWriter.h"
 namespace itk
 {
-template <unsigned int TDimension = 3, class TReal = float>
+template <unsigned int TDimension = 3, typename TReal = float>
 class ANTSImageTransformation
   : public       Object
 {
@@ -48,8 +48,8 @@ public:
   typedef double TComp;
   /** Run-time type information (and related methods). */
   itkTypeMacro( ANTSImageTransformation, Object );
-  itkStaticConstMacro( Dimension, unsigned int, TDimension );
-  itkStaticConstMacro( ImageDimension, unsigned int, TDimension );
+  static constexpr unsigned int Dimension = TDimension;
+  static constexpr unsigned int ImageDimension = TDimension;
 
   typedef TReal RealType;
   typedef Image<RealType,
@@ -165,15 +165,13 @@ public:
   itkBooleanMacro( WriteComponentImages );
 protected:
   ANTSImageTransformation();
-  virtual ~ANTSImageTransformation() ITK_OVERRIDE
-  {
-  }
+  ~ANTSImageTransformation() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
-  ANTSImageTransformation( const Self & ); // purposely not implemented
-  void operator=( const Self & );          // purposely not implemented
+  ANTSImageTransformation( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   AffineTransformPointer                m_AffineTransform;
   AffineTransformPointer                m_FixedImageAffineTransform;

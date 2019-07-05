@@ -25,7 +25,7 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
 ::SliceTimingCorrectionImageFilter()
 {
@@ -38,7 +38,7 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
   m_ExtrapolateEdges = true;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
 ::PrintSelf(std::ostream & os, Indent indent) const
@@ -48,10 +48,10 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
   os << indent << "TimeDimension: " << m_TimeDimension << std::endl;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation()
+::VerifyInputInformation() const
 {
   Superclass::VerifyInputInformation();
 
@@ -90,7 +90,7 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
 /**
  * \sa UnaryFunctorImageFilter::GenerateOutputInformation()
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
 ::GenerateOutputInformation()
@@ -225,7 +225,7 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
  * InterpolatorType::SetInputImage is not thread-safe and hence
  * has to be set up before ThreadedGenerateData
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
@@ -246,7 +246,7 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
   //  }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,

@@ -16,7 +16,7 @@
 #include <algorithm>
 
 #include "itkMedianImageFilter.h"
-#include "itkDiscreteGaussianImageFilter.h"
+#include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "ReadWriteData.h"
 
 namespace ants
@@ -29,64 +29,55 @@ int SmoothImage(int argc, char *argv[])
 
   std::vector<float> sigmaVector = ConvertVector<float>( argv[3] );
 
-  typename ImageType::Pointer image1 = ITK_NULLPTR;
-  typename ImageType::Pointer varimage = ITK_NULLPTR;
+  typename ImageType::Pointer image1 = nullptr;
+  typename ImageType::Pointer varimage = nullptr;
   ReadImage<ImageType>(image1, argv[2]);
 
-  typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
+  typedef itk::SmoothingRecursiveGaussianImageFilter<ImageType, ImageType> rgf;
   typedef itk::MedianImageFilter<ImageType, ImageType>           medf;
-  typename dgf::Pointer filter = dgf::New();
+  typename rgf::Pointer filter = rgf::New();
   typename medf::Pointer filter2 = medf::New();
-  bool usespacing = false;
-  float gaussianmaxerror = 0.01;
-  int gaussianmaxkernelwidth = 32;
+  typename rgf::SigmaArrayType sigmaArray;
+  auto & spacing  = image1->GetSpacing();
+  // If true, sigma is in spacing units (usually mm), not voxels
+  // The recursive filter wants a sigma in mm so we convert if given voxels 
+  bool sigmaInSpacingUnits = false;
   if( argc  >  5 )
     {
-    usespacing = atoi(argv[5]);
+    sigmaInSpacingUnits = std::stoi(argv[5]);
     }
   bool usemedian = false;
   if( argc  >  6 )
     {
-    usemedian = atoi(argv[6]);
-    }
-  if( argc  >  7 )
-    {
-    gaussianmaxerror = atof(argv[7]);
-    }
-  if( argc  >  8 )
-    {
-    gaussianmaxkernelwidth = atoi(argv[8]);
-    }
-  if( !usespacing )
-    {
-    filter->SetUseImageSpacingOff();
-    }
-  else
-    {
-    filter->SetUseImageSpacingOn();
+    usemedian = std::stoi(argv[6]);
     }
 
   if( !usemedian )
     {
-    if( sigmaVector.size() == 1 )
+    if( (sigmaVector.size() == ImageDimension) || (sigmaVector.size() == 1) )
       {
-      filter->SetVariance( vnl_math_sqr( sigmaVector[0] ) );
-      }
-    else if( sigmaVector.size() == ImageDimension )
-      {
-      typename dgf::ArrayType varianceArray;
+
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        varianceArray[d] = vnl_math_sqr( sigmaVector[d] );
+        if ( sigmaVector.size() == 1 ) {
+          if ( sigmaInSpacingUnits ) {
+            sigmaArray[d] = sigmaVector[0];
+          } else {
+            sigmaArray[d] = sigmaVector[0] * spacing[d];
+          }
+        } else
+          if ( sigmaInSpacingUnits ) {
+            sigmaArray[d] = sigmaVector[d];
+          } else {
+            sigmaArray[d] = sigmaVector[d] * spacing[d];
+          }
         }
-      filter->SetVariance( varianceArray );
+      filter->SetSigmaArray( sigmaArray );
       }
     else
       {
       std::cerr << "Incorrect sigma vector size.  Must either be of size 1 or ImageDimension." << std::endl;
       }
-    filter->SetMaximumError( gaussianmaxerror );
-    filter->SetMaximumKernelWidth( gaussianmaxkernelwidth );
     filter->SetInput( image1 );
     filter->Update();
     varimage = filter->GetOutput();
@@ -120,7 +111,7 @@ int SmoothImage(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int SmoothImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int SmoothImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -138,7 +129,7 @@ int SmoothImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -169,9 +160,9 @@ private:
     std::cout << "Usage:  " << std::endl;
     std::cout << argv[0]
              <<
-      " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-coordinates-0/1} {medianfilter-0/1} {GaussianSetMaximumError=0.01} {GaussianSetMaximumKernelWidth=32}"
+      " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-units-(0)/1} {medianfilter-(0)/1}"
              << std::endl;
-    std::cout << " if median, then sigma means radius of filtering " << std::endl;
+    std::cout << " If using median filter, sigma is the radius of filtering, in voxels " << std::endl;
     std::cout << " A separate sigma can be specified for each dimension, e.g., 1.5x1x2 " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -181,7 +172,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

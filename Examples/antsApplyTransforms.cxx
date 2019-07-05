@@ -7,6 +7,7 @@
 #include "itkImageFileWriter.h"
 #include "itkExtractImageFilter.h"
 #include "itkResampleImageFilter.h"
+#include "itkVectorImage.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
 #include "itkAffineTransform.h"
@@ -35,8 +36,10 @@ CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * re
 {
   typedef typename TensorImageType::DirectionType    DirectionType;
   typedef typename DirectionType::InternalMatrixType MatrixType;
-  MatrixType direction =
-    movingTensorImage->GetDirection().GetTranspose() * referenceImage->GetDirection().GetVnlMatrix();
+
+  // Assume tensors start in moving voxel space, we want to put them in fixed voxel space
+
+  MatrixType direction = referenceImage->GetDirection().GetTranspose() * movingTensorImage->GetDirection().GetVnlMatrix();
 
   if( !direction.is_identity( 0.00001 ) )
     {
@@ -66,8 +69,9 @@ CorrectImageVectorDirection( DisplacementFieldType * movingVectorImage, ImageTyp
 {
   typedef typename DisplacementFieldType::DirectionType DirectionType;
 
+  // Assume vectors are initially described in the voxel space of the moving image, like tensors
   typename DirectionType::InternalMatrixType direction =
-    movingVectorImage->GetDirection().GetTranspose() * referenceImage->GetDirection().GetVnlMatrix();
+    referenceImage->GetDirection().GetTranspose() * movingVectorImage->GetDirection().GetVnlMatrix();
 
   typedef typename DisplacementFieldType::PixelType VectorType;
 
@@ -134,35 +138,38 @@ bool isDiagonalElement(std::vector<unsigned int> diagElements, unsigned int ind)
   return false;
 }
 
-template <class T, unsigned int Dimension>
+template <typename T, unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
-  typedef T                                RealType;
-  typedef T                                PixelType;
-  typedef itk::Vector<RealType, Dimension> VectorType;
+  typedef T                                      RealType;
+  typedef T                                      PixelType;
+  typedef itk::Vector<RealType, Dimension>       VectorType;
+
+  typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
 
   // typedef unsigned int                     LabelPixelType;
   // typedef itk::Image<PixelType, Dimension> LabelImageType;
 
-  typedef itk::Image<PixelType, Dimension>     ImageType;
-  typedef itk::Image<PixelType, Dimension + 1> TimeSeriesImageType;
-  typedef itk::Image<VectorType, Dimension>    DisplacementFieldType;
-  typedef ImageType                            ReferenceImageType;
+  typedef itk::Image<PixelType, Dimension>           ImageType;
+  typedef ImageType                                  ReferenceImageType;
+
+  typedef itk::Image<PixelType, Dimension + 1>       TimeSeriesImageType;
+  typedef itk::Image<VectorType, Dimension>          DisplacementFieldType;
+  typedef itk::VectorImage<PixelType, Dimension>     MultiChannelImageType;
+  typedef itk::Image<TensorPixelType, Dimension>     TensorImageType;
 
   typedef typename ants::RegistrationHelper<T, Dimension>         RegistrationHelperType;
   typedef typename RegistrationHelperType::AffineTransformType    AffineTransformType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
 
-  typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
-  typedef itk::Image<TensorPixelType, Dimension>              TensorImageType;
-
   const unsigned int NumberOfTensorElements = numTensorElements<Dimension>();
 
   std::vector<unsigned int> tensorDiagIndices = tensorDiagonalArrayIndices<Dimension>();
 
-  typename TimeSeriesImageType::Pointer timeSeriesImage = ITK_NULLPTR;
-  typename TensorImageType::Pointer tensorImage = ITK_NULLPTR;
-  typename DisplacementFieldType::Pointer vectorImage = ITK_NULLPTR;
+  typename TimeSeriesImageType::Pointer timeSeriesImage = nullptr;
+  typename TensorImageType::Pointer tensorImage = nullptr;
+  typename MultiChannelImageType::Pointer multiChannelImage = nullptr;
+  typename DisplacementFieldType::Pointer vectorImage = nullptr;
 
   std::vector<typename ImageType::Pointer> inputImages;
   inputImages.clear();
@@ -184,7 +191,16 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption( "input" );
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
 
-  if( inputImageType == 3 && inputOption && inputOption->GetNumberOfFunctions() )
+  if( inputImageType == 4 && inputOption && inputOption->GetNumberOfFunctions() )
+    {
+    if( verbose )
+      {
+      std::cout << "Input multichannel image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+      }
+    ReadImage<MultiChannelImageType>( multiChannelImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str() );
+    timeSeriesImage = ConvertMultiChannelImageToTimeSeriesImage<MultiChannelImageType, TimeSeriesImageType>( multiChannelImage );
+    }
+  else if( inputImageType == 3 && inputOption && inputOption->GetNumberOfFunctions() )
     {
     if( verbose )
       {
@@ -241,14 +257,21 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
         parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
       {
-      if( verbose )
-        {
-        std::cerr << "An input image is required." << std::endl;
+      // Here we have no input image, valid usage is
+      // -o [warp.nii.gz, 1] or -o Linear[affine.mat, 0]  
+      // Exit failure with -o [outputImage.nii.gz,0] but no input to warp
+      std::string outputOptionName = outputOption->GetFunction( 0 )->GetName();
+      ConvertToLowerCase( outputOptionName );
+      if( std::strcmp( outputOptionName.c_str(), "linear" ) )
+        {      
+        if( verbose )
+          {
+          std::cerr << "An input image is required." << std::endl;
+          }
+        return EXIT_FAILURE;
         }
-      return EXIT_FAILURE;
       }
     }
-
   /**
    * Reference image option
    */
@@ -314,7 +337,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       inputImages.push_back( selector->GetOutput() );
       }
     }
-  else if( inputImageType == 3 )
+  else if( inputImageType == 3 || inputImageType == 4 )
     {
     typename TimeSeriesImageType::RegionType extractRegion = timeSeriesImage->GetLargestPossibleRegion();
     unsigned int numberOfTimePoints = extractRegion.GetSize()[Dimension];
@@ -451,6 +474,13 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       if( verbose )
         {
         std::cout << "  Applying transform(s) to time point " << n << " (out of " << inputImages.size() << ")." << std::endl;
+        }
+      }
+    else if( inputImageType == 4 )
+      {
+      if( verbose )
+        {
+        std::cout << "  Applying transform(s) to channel " << n << " (out of " << inputImages.size() << ")." << std::endl;
         }
       }
     resampleFilter->Update();
@@ -615,7 +645,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           }
         WriteTensorImage<TensorImageType>( outputTensorImage, ( outputFileName ).c_str(), true );
         }
-      else if( inputImageType == 3 )
+      else if( inputImageType == 3 || inputImageType == 4 )
         {
         unsigned int numberOfTimePoints = timeSeriesImage->GetLargestPossibleRegion().GetSize()[Dimension];
 
@@ -623,7 +653,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           {
           if( verbose )
             {
-            std::cerr << "The number of output images does not match the number of image time points." << std::endl;
+            std::cerr << "The number of output images does not match the number of image time/channel points." << std::endl;
             }
           return EXIT_FAILURE;
           }
@@ -675,7 +705,15 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
             }
           It.Set( outputImages[timeImageIndex[Dimension] - startTimeIndex]->GetPixel( referenceIndex ) );
           }
-        WriteImage<TimeSeriesImageType>( outputTimeSeriesImage, ( outputFileName ).c_str() );
+        if( inputImageType == 3 )  
+          {
+          WriteImage<TimeSeriesImageType>( outputTimeSeriesImage, ( outputFileName ).c_str() );
+          }
+        else // inputImageType == 4
+          {
+          multiChannelImage = ConvertTimeSeriesImageToMultiChannelImage<TimeSeriesImageType, MultiChannelImageType>( outputTimeSeriesImage );
+          WriteImage<MultiChannelImageType>( multiChannelImage, ( outputFileName ).c_str() );
+          }
         }
       else
         {
@@ -728,13 +766,16 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
   {
   std::string description =
     std::string( "Option specifying the input image type of scalar (default), " )
-    + std::string( "vector, tensor, or time series." );
+    + std::string( "vector, tensor, time series, or multi-channel.  A time series " ) 
+    + std::string( "image is a scalar image defined by an additional dimension " ) 
+    + std::string( "for the time component whereas a multi-channel image is a ")
+    + std::string( "vector image with only spatial dimensions.");
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "input-image-type" );
   option->SetShortName( 'e' );
-  option->SetUsageOption( 0, "0/1/2/3 " );
-  option->SetUsageOption( 1, "scalar/vector/tensor/time-series " );
+  option->SetUsageOption( 0, "0/1/2/3/4 " );
+  option->SetUsageOption( 1, "scalar/vector/tensor/time-series/multichannel " );
   option->AddFunction( std::string( "0" ) );
   option->SetDescription( description );
   parser->AddOption( option );
@@ -774,7 +815,7 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
     + std::string( "is set, one can print out the displacement field based on the " )
     + std::string( "composite transform and the reference image.  A third option " )
     + std::string( "is to compose all affine transforms and (if boolean is set) " )
-    + std::string( "calculate its inverse which is then written to an ITK file ");
+    + std::string( "calculate its inverse which is then written to an ITK file. ");
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "output" );
@@ -904,7 +945,7 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsApplyTransforms( std::vector<std::string> args, std::ostream * /*out_stream = ITK_NULLPTR */ )
+int antsApplyTransforms( std::vector<std::string> args, std::ostream * /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -921,7 +962,7 @@ int antsApplyTransforms( std::vector<std::string> args, std::ostream * /*out_str
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -1039,7 +1080,8 @@ private:
     SCALAR = 0,
     VECTOR,
     TENSOR,
-    TIME_SERIES
+    TIME_SERIES,
+    MULTICHANNEL
     };
 
   InputImageType imageType = SCALAR;
@@ -1061,6 +1103,10 @@ private:
     else if( !std::strcmp( inputImageType.c_str(), "time-series" ) || !std::strcmp( inputImageType.c_str(), "3" ) )
       {
       imageType = TIME_SERIES;
+      }
+    else if( !std::strcmp( inputImageType.c_str(), "multichannel" ) || !std::strcmp( inputImageType.c_str(), "4" ) )
+      {
+      imageType = MULTICHANNEL;
       }
     else
       {

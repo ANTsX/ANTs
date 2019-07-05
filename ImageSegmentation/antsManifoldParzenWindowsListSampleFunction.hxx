@@ -23,11 +23,11 @@ namespace ants
 {
 namespace Statistics
 {
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::ManifoldParzenWindowsListSampleFunction()
 {
-  this->m_KdTreeGenerator = ITK_NULLPTR;
+  this->m_KdTreeGenerator = nullptr;
 
   this->m_EvaluationKNeighborhood = 50;
   this->m_RegularizationSigma = 1.0;
@@ -36,13 +36,12 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
   this->m_KernelSigma = 0.0;
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::~ManifoldParzenWindowsListSampleFunction()
-{
-}
+= default;
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
@@ -105,7 +104,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 
       typename TreeGeneratorType::KdTreeType
       ::InstanceIdentifierVectorType neighbors;
-      unsigned int numberOfNeighbors = vnl_math_min(
+      unsigned int numberOfNeighbors = std::min(
           this->m_CovarianceKNeighborhood, static_cast<unsigned int>(
             this->GetInputListSample()->Size() ) );
       this->m_KdTreeGenerator->GetOutput()->Search(
@@ -183,14 +182,14 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 }
 
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 TOutput
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
 {
   try
     {
-    unsigned int numberOfNeighbors = vnl_math_min(
+    unsigned int numberOfNeighbors = std::min(
         this->m_EvaluationKNeighborhood,
         static_cast<unsigned int>( this->m_Gaussians.size() ) );
 
@@ -227,7 +226,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TListSample, class TOutput, class TCoordRep>
+template <typename TListSample, typename TOutput, typename TCoordRep>
 void
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::PrintSelf(

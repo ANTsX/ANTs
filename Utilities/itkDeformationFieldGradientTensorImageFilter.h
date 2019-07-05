@@ -89,7 +89,7 @@ public:
    * pipeline execution model.
    *
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-  void GenerateInputRequestedRegion() throw( InvalidRequestedRegionError ) ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
   itkSetClampMacro( Order, unsigned int, 1, 2 );
   itkGetConstReferenceMacro( Order, unsigned int );
@@ -111,12 +111,12 @@ public:
 
 protected:
   DeformationFieldGradientTensorImageFilter();
-  virtual ~DeformationFieldGradientTensorImageFilter() ITK_OVERRIDE {}
+  ~DeformationFieldGradientTensorImageFilter() override = default;
 
   /** Do any necessary casting/copying of the input data.  Input pixel types
      whose value types are not real number types must be cast to real number
      types.*/
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
   /** DeformationFieldGradientTensorImageFilter can be implemented as a
    * multithreaded filter (we're only using vnl_det(), which is trivially
@@ -131,9 +131,9 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
   void ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
-                             ThreadIdType threadId ) ITK_OVERRIDE;
+                             ThreadIdType threadId ) override;
 
-  void PrintSelf ( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf ( std::ostream& os, Indent indent ) const override;
 
 private:
   bool                                          m_UseImageSpacing;
@@ -146,8 +146,8 @@ private:
 
   RealMatrixType EvaluateAtNeighborhood( const ConstNeighborhoodIteratorType & ) const;
 
-  DeformationFieldGradientTensorImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  DeformationFieldGradientTensorImageFilter(const Self&) = delete;
+  void operator=(const Self&) = delete;
 };
 
 } // end namespace itk

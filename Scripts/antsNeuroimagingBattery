@@ -338,13 +338,13 @@ for my $paslfile ( @$paslfiles ) {
       my $m0Moco1 = "${ANTSPATH}/antsMotionCorr -d 3 -a $m0file -o $meanM0";
       system($m0Moco1);
 
-      my $m0Moco2 = "${ANTSPATH}/antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}m0, $M0, $meanM0 ] -u 1 -m mi[ $meanM0, $m0file, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0";
+      my $m0Moco2 = "${ANTSPATH}/antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}m0, $M0, $meanM0 ] -u 1 -m mi[ $meanM0, $m0file, 1, 32, Regular, 0.1 ] -t Affine[ 0.2 ] -i 25 -e 1 -f 1 -s 0 -l 0";
       print( "$m0Moco2\n");
       system( $m0Moco2 );
 
     #my $pasl = "${outdir}${dirname}${outname}${outid}pasl.nii.gz";
     #my $meanpasl = "${outdir}${dirname}${outname}${outid}meanpasl.nii.gz";
-    #my $paslMoco = "antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}pasl, $pasl, $meanpasl ] -u 1 -m mi[ $meanM0, $paslfile, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0";
+    #my $paslMoco = "antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}pasl, $pasl, $meanpasl ] -u 1 -m mi[ $meanM0, $paslfile, 1, 32, Regular, 0.1 ] -t Affine[ 0.2 ] -i 25 -e 1 -f 1 -s 0 -l 0";
     #print("$paslMoco\n");
     #system($paslMoco);
 
@@ -440,7 +440,7 @@ for my $rsboldfile ( @$rsboldfiles ) {
   # Motion correction
   system("${ANTSPATH}/antsMotionCorr -d 3 -a $rsboldfile -o $meanbold");
   print("${ANTSPATH}/antsMotionCorr -d 3 -o [ ${obase}, $bold, $meanbold ] -u 1 -m mi[ $meanbold, $rsboldfile, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0 -u 1 \n");
-  system("${ANTSPATH}/antsMotionCorr -d 3 -o [ ${obase}, $bold, $meanbold ] -m mi[ $meanbold, $rsboldfile, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0 -u 1");
+  system("${ANTSPATH}/antsMotionCorr -d 3 -o [ ${obase}, $bold, $meanbold ] -m mi[ $meanbold, $rsboldfile, 1, 32, Regular, 0.1 ] -t Affine[ 0.2 ] -i 25 -e 1 -f 1 -s 0 -l 0 -u 1");
 
 
   system("${ANTSPATH}/ImageMath 3 $ref m $anat $mask" );

@@ -36,7 +36,7 @@ namespace itk
  *
  * \ingroup IntensityImageFilters
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 class LogTensorImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -91,11 +91,9 @@ public:
   // itkGetConstReferenceMacro(Radius, InputSizeType);
 protected:
   LogTensorImageFilter();
-  virtual ~LogTensorImageFilter() ITK_OVERRIDE
-  {
-  }
+  ~LogTensorImageFilter() override = default;
 
-  void PrintSelf(std::ostream& os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
   /** LogTensorImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -107,11 +105,11 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
-  LogTensorImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);       // purposely not implemented
+  LogTensorImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

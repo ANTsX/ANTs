@@ -12,6 +12,8 @@
 
 =========================================================================*/
 #include "iMathFunctions.h"
+#include "iMathFunctions1.h"
+#include "iMathFunctions2.h"
 #include "ReadWriteData.h"
 #include "antsUtilities.h"
 
@@ -31,7 +33,7 @@ void WIP(int argc, char **argv)
   exit(1);
 }
 
-template <class T>
+template <typename T>
 bool from_string(T& t,
                  const std::string& s,
                  std::ios_base & (*f)(std::ios_base &) )
@@ -49,7 +51,7 @@ bool from_string(T& t,
   return true;
 }
 
-template <class T>
+template <typename T>
 std::string ants_to_string(T t)
 {
   std::stringstream istream;
@@ -128,8 +130,8 @@ iMathHelperAll(int argc, char **argv)
   if( operation == "BlobDetector" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     if ( argc < 6 )
     {
@@ -137,7 +139,7 @@ iMathHelperAll(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-    unsigned int nBlobs = atoi( argv[5] );
+    unsigned int nBlobs = std::stoi( argv[5] );
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -162,8 +164,8 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "Canny" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     if ( argc < 8 )
     {
@@ -199,14 +201,14 @@ iMathHelperAll(int argc, char **argv)
     {
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     bool useSpacing = iMathDistanceMapUseSpacing;
 
     if ( argc >= 6 )
       {
-      useSpacing = atoi(argv[5]);
+      useSpacing = std::stoi(argv[5]);
       }
 
     ReadImage<ImageType>( input, inName.c_str() );
@@ -233,8 +235,8 @@ iMathHelperAll(int argc, char **argv)
     {
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     double holeType = iMathFillHolesHoleParam;
 
@@ -269,12 +271,12 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -302,12 +304,12 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -335,12 +337,12 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -368,12 +370,12 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -400,12 +402,12 @@ iMathHelperAll(int argc, char **argv)
     unsigned long minSize = iMathGetLargestComponentMinSize;
     if ( argc > 5)
     {
-      minSize = atoi( argv[5] );
+      minSize = std::stoi( argv[5] );
     }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -438,12 +440,12 @@ iMathHelperAll(int argc, char **argv)
       }
     if ( argc >= 7 )
       {
-      normalize = (bool) atoi(argv[6]);
+      normalize = (bool) std::stoi(argv[6]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -468,8 +470,8 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "HistogramEqualization" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
     float alpha = 0;
     float beta  = 1;
     if ( argc >= 6 )
@@ -513,12 +515,12 @@ iMathHelperAll(int argc, char **argv)
       }
     if ( argc >= 7 )
       {
-      normalize = (bool) atoi(argv[6]);
+      normalize = (bool) std::stoi(argv[6]);
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -553,7 +555,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -562,31 +564,31 @@ iMathHelperAll(int argc, char **argv)
     if ( argc >= 8 )
       {
       shape = morph_shape_flag( argv[7] );
-      //shape = atoi(argv[7]);
+      //shape = std::stoi(argv[7]);
       }
     if ( argc >= 9 )
       {
       if (shape==5)
         {
-        lines = atoi(argv[8]);
+        lines = std::stoi(argv[8]);
         }
       else
         {
-        parametric = ( atoi(argv[8])==1 );
+        parametric = ( std::stoi(argv[8])==1 );
         }
       }
     if ( argc >= 10 ) //shape = 4 (annulus) only
       {
-      thickness = atoi(argv[9]);
+      thickness = std::stoi(argv[9]);
       }
     if ( argc >= 11 )
       {
-      includeCenter = ( atoi(argv[10])==1 );
+      includeCenter = ( std::stoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -622,7 +624,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -636,25 +638,25 @@ iMathHelperAll(int argc, char **argv)
       {
       if (shape==5)
         {
-        lines = atoi(argv[8]);
+        lines = std::stoi(argv[8]);
         }
       else
         {
-        parametric = ( atoi(argv[8])==1 );
+        parametric = ( std::stoi(argv[8])==1 );
         }
       }
     if ( argc >= 10 ) //shape = 4 (annulus) only
       {
-      thickness = atoi(argv[9]);
+      thickness = std::stoi(argv[9]);
       }
     if ( argc >= 11 )
       {
-      includeCenter = ( atoi(argv[10])==1 );
+      includeCenter = ( std::stoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -689,7 +691,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -703,25 +705,25 @@ iMathHelperAll(int argc, char **argv)
       {
       if (shape==5)
         {
-        lines = atoi(argv[8]);
+        lines = std::stoi(argv[8]);
         }
       else
         {
-        parametric = ( atoi(argv[8])==1 );
+        parametric = ( std::stoi(argv[8])==1 );
         }
       }
     if ( argc >= 10 ) //shape = 4 (annulus) only
       {
-      thickness = atoi(argv[9]);
+      thickness = std::stoi(argv[9]);
       }
     if ( argc >= 11 )
       {
-      includeCenter = ( atoi(argv[10])==1 );
+      includeCenter = ( std::stoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -756,7 +758,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      radius = atoi(argv[5]);
+      radius = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -770,25 +772,25 @@ iMathHelperAll(int argc, char **argv)
       {
       if (shape==5)
         {
-        lines = atoi(argv[8]);
+        lines = std::stoi(argv[8]);
         }
       else
         {
-        parametric = ( atoi(argv[8])==1 );
+        parametric = ( std::stoi(argv[8])==1 );
         }
       }
     if ( argc >= 10 ) //shape = 4 (annulus) only
       {
-      thickness = atoi(argv[9]);
+      thickness = std::stoi(argv[9]);
       }
     if ( argc >= 11 )
       {
-      includeCenter = ( atoi(argv[10])==1 );
+      includeCenter = ( std::stoi(argv[10])==1 );
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -821,8 +823,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -847,8 +849,8 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "Normalize" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -873,11 +875,11 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "Pad" )
     {
 
-    int padding = atoi(argv[5]);
+    int padding = std::stoi(argv[5]);
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -906,7 +908,7 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 6 )
       {
-      nIterations = atoi(argv[5]);
+      nIterations = std::stoi(argv[5]);
       }
     if ( argc >= 7 )
       {
@@ -914,8 +916,8 @@ iMathHelperAll(int argc, char **argv)
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -940,8 +942,8 @@ iMathHelperAll(int argc, char **argv)
   else if( operation == "Sharpen" )
     {
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -972,8 +974,8 @@ iMathHelperAll(int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-    typename ImageType::Pointer mask = ITK_NULLPTR;
-    typename ImageType::Pointer labels = ITK_NULLPTR;
+    typename ImageType::Pointer mask = nullptr;
+    typename ImageType::Pointer labels = nullptr;
 
     ReadImage<ImageType>( mask, inName.c_str() );
     ReadImage<ImageType>( labels, argv[5] );
@@ -987,7 +989,7 @@ iMathHelperAll(int argc, char **argv)
       }
     if ( argc > 7)
       {
-      propagationMethod = atoi(argv[7]);
+      propagationMethod = std::stoi(argv[7]);
       }
 
     if ( propagationMethod > 2 )
@@ -1008,9 +1010,7 @@ iMathHelperAll(int argc, char **argv)
     {
     typedef itk::Image<float,DIM>         ImageType;
     typedef itk::Image<unsigned int,DIM>           MaskType;
-
     int nBins = iMathTruncateIntensityNBins;
-
     if ( argc < 7 )
       {
       std::cerr << "TruncateIntensity needs a lower and upper quantile" << std::endl;
@@ -1022,18 +1022,18 @@ iMathHelperAll(int argc, char **argv)
 
     if ( argc >= 8 )
       {
-      nBins= atoi(argv[7]);
+      nBins= std::stoi(argv[7]);
       }
 
-    typename MaskType::Pointer mask = ITK_NULLPTR;
+    typename MaskType::Pointer mask = nullptr;
     if ( argc >= 9 )
       {
       ReadImage<MaskType>( mask, argv[8] );
       }
 
     typedef itk::Image<float,DIM> ImageType;
-    typename ImageType::Pointer input = ITK_NULLPTR;
-    typename ImageType::Pointer output = ITK_NULLPTR;
+    typename ImageType::Pointer input = nullptr;
+    typename ImageType::Pointer output = nullptr;
 
     ReadImage<ImageType>( input, inName.c_str() );
     if ( input.IsNull() )
@@ -1138,7 +1138,7 @@ int iMath( std::vector<std::string> args, std::ostream * itkNotUsed( out_stream 
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -1209,7 +1209,7 @@ private:
 
   std::string operation = std::string(argv[3]);
 
-  unsigned int imageDimension = atoi(argv[1]);
+  unsigned int imageDimension = std::stoi(argv[1]);
 
   switch( imageDimension )
     {

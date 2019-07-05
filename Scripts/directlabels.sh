@@ -301,7 +301,7 @@ SGE=${ANTSPATH}/waitForSGEQJobs.pl
 
 for FLE in $PEXEC $SGE
   do
-  if [ ! -x $FLE  ] ;
+  if [ ! -x $FLE ] ;
       then
       echo
       echo "--------------------------------------------------------------------------------------"
@@ -396,7 +396,7 @@ for LABEL in ${LABELS[@]}
   gmLabelImage=${TMPDIR}gm_${LABEL}.nii.gz
   wmLabelImage=${TMPDIR}wm_${LABEL}.nii.gz
 
-  exe="${DIRECT} -d ${DIMENSION} -c [$ITERATION_LIMIT,0.000001,10] -t ${LABEL_THICKNESSES[$count]} -r $GRADIENT_STEP -m $SMOOTHING_SIGMA -s $segLabelImage -o ${TMPDIR}direct_${LABEL}.nii.gz"
+  exe="${DIRECT} -d ${DIMENSION} -c [ $ITERATION_LIMIT,0.000001,10 ] -t ${LABEL_THICKNESSES[$count]} -r $GRADIENT_STEP -m $SMOOTHING_SIGMA -s $segLabelImage -o ${TMPDIR}direct_${LABEL}.nii.gz"
   if [[ -f "$gmLabelImage" ]]; then
     exe=${exe}" -g $gmLabelImage"
   fi

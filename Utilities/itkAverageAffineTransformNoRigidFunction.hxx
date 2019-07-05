@@ -23,12 +23,11 @@ namespace itk
 /**
  * Default constructor.
  */
-template <class TTransform>
+template <typename TTransform>
 AverageAffineTransformNoRigidFunction<TTransform>::AverageAffineTransformNoRigidFunction()
-{
-}
+= default;
 
-template <class TTransform>
+template <typename TTransform>
 void AverageAffineTransformNoRigidFunction<TTransform>::PrintTransformList()
 {
   std::cout << "transform list: " << std::endl;
@@ -44,7 +43,7 @@ void AverageAffineTransformNoRigidFunction<TTransform>::PrintTransformList()
 // /**
 // * Standard PrintSelf method.
 // */
-// template <class TInputImage,class TOutputImage,class TDisplacementField, class TTransform>
+// template <typename TInputImage,typename TOutputImage,typename TDisplacementField, typename TTransform>
 // void
 // WarpImageMultiTransformFilter<TInputImage,TOutputImage,TDisplacementField, TTransform>
 // ::PrintSelf(std::ostream& os, Indent indent) const
@@ -53,7 +52,7 @@ void AverageAffineTransformNoRigidFunction<TTransform>::PrintTransformList()
 //    Superclass::PrintSelf(os, indent);
 // }
 
-template <class TTransform>
+template <typename TTransform>
 void AverageAffineTransformNoRigidFunction<TTransform>::PushBackAffineTransform(
   const GenericAffineTransformType* t, double weight)
 {
@@ -66,7 +65,7 @@ void AverageAffineTransformNoRigidFunction<TTransform>::PushBackAffineTransform(
     }
 }
 
-template <class TTransform>
+template <typename TTransform>
 void AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTransform(
   const PointType & reference_center,
   GenericAffineTransformPointerType & affine_output)
@@ -123,7 +122,7 @@ void AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTra
   return;
 }
 
-template <class TTransform>
+template <typename TTransform>
 void AverageAffineTransformNoRigidFunction<TTransform>::ConvertGenericAffineToInternalAffineByFixingCenter(
   GenericAffineTransformPointerType & aff,
   InternalAffineTransformPointerType & iaff, const PointType & center)
@@ -135,7 +134,7 @@ void AverageAffineTransformNoRigidFunction<TTransform>::ConvertGenericAffineToIn
   return;
 }
 
-template <class TTransform>
+template <typename TTransform>
 void AverageAffineTransformNoRigidFunction<TTransform>::ConvertInternalAffineToGenericAffine(
   InternalAffineTransformPointerType & iaff,
   GenericAffineTransformPointerType & aff)
@@ -149,7 +148,7 @@ void AverageAffineTransformNoRigidFunction<TTransform>::ConvertInternalAffineToG
 
 namespace AverageAffineTransformNoRigidFunctionHelperNameSpace
 {
-template <class TAffine>
+template <typename TAffine>
 void HelperCommonType<TAffine>::ComputeAveragePartialParameters(
   InternalTransformListType & transform_list,
   ParametersType & average_parameters, unsigned int istart,

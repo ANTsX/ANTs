@@ -1,24 +1,36 @@
-if(CMAKE_CXX_STANDARD)
-  #if CMAKE_CXX_STANDARD is requested, then require
-  #new version of cmake to force C++11 that can
-  #improve support of C++11 features.
-  cmake_minimum_required(VERSION 3.8.2 FATAL_ERROR)
-else()
-  cmake_minimum_required(VERSION 2.8.9)
-  cmake_policy(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.10.2...3.14.2)
+cmake_policy(VERSION 3.10.2...3.14.2)
+
+if(CMAKE_CXX_STANDARD EQUAL "98" )
+   message(FATAL_ERROR "CMAKE_CXX_STANDARD:STRING=98 is not supported in ITK version 5 and greater.")
 endif()
 
-option(ANTS_BUILD_WITH_CCACHE "Build ${LOCAL_PROJECT_NAME} using ccache if available." ON)
-mark_as_advanced(ANTS_BUILD_WITH_CCACHE)
-if(ANTS_BUILD_WITH_CCACHE)
-  find_program(CCACHE_PROGRAM ccache)
-  if(CCACHE_PROGRAM)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+#####
+##  Set the default target properties for ITK
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11) # Supported values are ``11``, ``14``, and ``17``.
+endif()
+if(NOT CMAKE_CXX_STANDARD_REQUIRED)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
+if(NOT CMAKE_CXX_EXTENSIONS)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
+
+foreach(p
+    ## Only policies introduced after the cmake_minimum_required
+    ## version need to explicitly be set to NEW.
+    CMP0070 #3.10.0 Define ``file(GENERATE)`` behavior for relative paths.
+    CMP0071 #3.10.0 Let ``AUTOMOC`` and ``AUTOUIC`` process ``GENERATED`` files.
+    CMP0074 #3.12.0 `find_package()`` uses ``<PackageName>_ROOT`` variables.
+    )
+  if(POLICY ${p})
+    cmake_policy(SET ${p} NEW)
   endif()
-endif()
+endforeach()
 
-set(LIBRARY_SOVERSION_INFO 2)
-set(LIBRARY_VERSION_INFO 2.2.0)
+set(LIBRARY_SOVERSION_INFO 3)
+set(LIBRARY_VERSION_INFO 3.0.0)
 
 set(LOCAL_PROJECT_NAME ANTS)
 include(InstallRequiredSystemLibraries)
@@ -50,19 +62,6 @@ mark_as_advanced(${LOCAL_PROJECT_NAME}_INSTALL_DEVELOPMENT)
 option(COPY_SCRIPT_FILES_TO_BIN_DIR "Copy the script files to the ANTS bin directory." OFF)
 mark_as_advanced(COPY_SCRIPT_FILES_TO_BIN_DIR)
 
-set(CPACK_PACKAGE_NAME "ANTs")
-set(CPACK_PACKAGE_VENDOR "CMake.org")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - Advanced Normalization Tools")
-set(CPACK_PACKAGE_VERSION 2.2.0)
-set(CPACK_PACKAGE_VERSION_MAJOR 2)
-set(CPACK_PACKAGE_VERSION_MINOR 2)
-set(CPACK_PACKAGE_VERSION_PATCH 0)
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "ANTS_Install")
-set(CPACK_BINARY_GENERATORS "DragNDrop TGZ TZ")
-set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - robust image registration, segmentation and more")
-set(CPACK_RESOURCE_FILE_LICENSE  "${CMAKE_CURRENT_SOURCE_DIR}/ANTSCopyright.txt")
-set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
 #-----------------------------------------------------------------------------
 # Superbuild script
 #-----------------------------------------------------------------------------
@@ -72,7 +71,10 @@ if(${LOCAL_PROJECT_NAME}_SUPERBUILD)
   include(CPack)   # This must always be last!
   return()
 else()
-  project(${LOCAL_PROJECT_NAME})
+  project(${LOCAL_PROJECT_NAME}
+    VERSION 3.0.0.0
+    DESCRIPTION "Advanced Normalization Tools (ANTs)"
+    LANGUAGES CXX C)
   include("${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_PROJECT_NAME}.cmake")
   include(CPack)   # This must always be last!
   return()

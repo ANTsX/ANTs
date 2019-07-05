@@ -29,7 +29,7 @@ namespace Function
  *
  *
  */
-template< class TInputPixel, class TOutputPixel >
+template< typename TInputPixel, typename TOutputPixel >
 class TextureHistogram
 {
 public:

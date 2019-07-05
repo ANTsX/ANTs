@@ -17,7 +17,7 @@
 
 namespace itk
 {
-template <class TPointSet>
+template <typename TPointSet>
 JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 ::JensenHavrdaCharvatTsallisPointSetMetric()
 {
@@ -48,7 +48,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 }
 
 /** Initialize the metric */
-template <class TPointSet>
+template <typename TPointSet>
 void
 JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 ::Initialize( void )
@@ -114,7 +114,7 @@ throw ( ExceptionObject )
 }
 
 /** Return the number of values, i.e the number of points in the moving set */
-template <class TPointSet>
+template <typename TPointSet>
 unsigned int
 JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 ::GetNumberOfValues() const
@@ -138,7 +138,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 }
 
 /** Get the match Measure */
-template <class TPointSet>
+template <typename TPointSet>
 typename JensenHavrdaCharvatTsallisPointSetMetric
 <TPointSet>::MeasureType
 JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
@@ -305,7 +305,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 }
 
 /** Get the Derivative Measure */
-template <class TPointSet>
+template <typename TPointSet>
 void
 JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 ::GetDerivative( const TransformParametersType & parameters,
@@ -441,7 +441,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
         }
       else
         {
-        mean /= vnl_math_sqr(
+        mean /= itk::Math::sqr (
             densityFunctions[1]->GetGaussian( neighbors[n] )->GetSigma() );
         }
 
@@ -515,7 +515,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
           }
         else
           {
-          mean /= vnl_math_sqr(
+          mean /= itk::Math::sqr (
               densityFunctions[1]->GetGaussian( neighbors[i] )->GetSigma() );
           }
 
@@ -531,7 +531,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 }
 
 /** Get both the match Measure and theDerivative Measure  */
-template <class TPointSet>
+template <typename TPointSet>
 void
 JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 ::GetValueAndDerivative( const TransformParametersType & parameters,
@@ -689,7 +689,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
         }
       else
         {
-        mean /= vnl_math_sqr(
+        mean /= itk::Math::sqr (
             densityFunctions[1]->GetGaussian( neighbors[n] )->GetSigma() );
         }
 
@@ -787,7 +787,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
           }
         else
           {
-          mean /= vnl_math_sqr(
+          mean /= itk::Math::sqr (
               densityFunctions[1]->GetGaussian( neighbors[i] )->GetSigma() );
           }
 
@@ -810,7 +810,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
   value[0] = energyTerm1 - energyTerm2;
 }
 
-template <class TPointSet>
+template <typename TPointSet>
 void
 JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 ::PrintSelf( std::ostream& os, Indent indent ) const

@@ -84,17 +84,17 @@ public:
   /**
    * Evaluate Jacobian
    */
-  MatrixType Evaluate( const PointType & point ) const ITK_OVERRIDE
+  MatrixType Evaluate( const PointType & point ) const override
   {
     return this->EvaluateJacobian( point );
   }
 
-  MatrixType EvaluateAtIndex( const IndexType & idx ) const ITK_OVERRIDE
+  MatrixType EvaluateAtIndex( const IndexType & idx ) const override
   {
     return this->EvaluateJacobianAtIndex( idx );
   }
 
-  MatrixType EvaluateAtContinuousIndex( const ContinuousIndexType & idx ) const ITK_OVERRIDE
+  MatrixType EvaluateAtContinuousIndex( const ContinuousIndexType & idx ) const override
   {
     return this->EvaluateJacobianAtContinuousIndex( idx );
   }
@@ -250,15 +250,15 @@ public:
 
 protected:
   VectorFieldGradientImageFunction();
-  virtual ~VectorFieldGradientImageFunction() ITK_OVERRIDE
+  virtual ~VectorFieldGradientImageFunction() override
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
 private:
-  VectorFieldGradientImageFunction(const Self &); // purposely not implemented
-  MatrixType operator=(const Self &);             // purposely not implemented
+  VectorFieldGradientImageFunction(const Self &) = delete;
+  MatrixType operator=(const Self &) = delete;
 };
 } // end namespace itk
 

@@ -59,7 +59,7 @@ namespace ants
  *
  */
 
-template <class TInputImage, class TMaskImage
+template <typename TInputImage, typename TMaskImage
             = Image<unsigned char, TInputImage::ImageDimension>,
           class TClassifiedImage = TMaskImage>
 class AtroposSegmentationImageFilter :
@@ -470,8 +470,8 @@ public:
    */
   void SetAdaptiveSmoothingWeight( unsigned int idx, RealType weight )
   {
-    RealType clampedWeight = vnl_math_min( NumericTraits<RealType>::OneValue(),
-                                           vnl_math_max( NumericTraits<RealType>::ZeroValue(), weight ) );
+    RealType clampedWeight = std::min( NumericTraits<RealType>::OneValue(),
+                                           std::max( NumericTraits<RealType>::ZeroValue(), weight ) );
 
     if( idx >= this->m_AdaptiveSmoothingWeights.size() )
       {
@@ -518,7 +518,7 @@ public:
   /**
    * Get the prior label parameters.
    */
-  void GetPriorLabelParameterMap()
+  LabelParameterMapType GetPriorLabelParameterMap()
   {
     return this->m_PriorLabelParameterMap;
   }
@@ -608,7 +608,7 @@ public:
   /**
    * Set the outlier handling filter.  This takes the intensity samples from the
    * input images and modifies the sample such that the outlier effects of the
-   * sample points are removed.  Default = ITK_NULLPTR.
+   * sample points are removed.  Default = nullptr.
    */
   itkSetObjectMacro( OutlierHandlingFilter, OutlierHandlingFilterType );
 
@@ -649,7 +649,7 @@ public:
       }
     else
       {
-      return ITK_NULLPTR;
+      return nullptr;
       }
   }
 
@@ -737,15 +737,15 @@ public:
 #endif
 protected:
   AtroposSegmentationImageFilter();
-  virtual ~AtroposSegmentationImageFilter() ITK_OVERRIDE;
+  ~AtroposSegmentationImageFilter() override;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
-  AtroposSegmentationImageFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );                 // purposely not implemented
+  AtroposSegmentationImageFilter( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   /**
    * Initialize the segmentation labeling.

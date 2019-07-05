@@ -16,7 +16,7 @@ There are two types of registration that do not use generic "itkImageRegistratio
     * TimeVaryingBSplineVelocityField
 As these registration types have their own specific optimization processes, a different observer is needed to watch their internal optimization procedure.
 */
-template <class TFilter>
+template <typename TFilter>
 class antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate : public itk::Command
 {
 public:
@@ -29,7 +29,7 @@ public:
   typedef typename TFilter::MovingImageType MovingImageType;
 
   /** ImageDimension constants */
-  itkStaticConstMacro( VImageDimension, unsigned int, FixedImageType::ImageDimension );
+  static constexpr unsigned int VImageDimension = FixedImageType::ImageDimension;
 
   typedef typename TFilter::OutputTransformType                          OutputTransformType;
   typedef typename TFilter::OutputTransformType::ScalarType              RealType;
@@ -59,12 +59,12 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event ) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event ) override
   {
     TFilter const * const filter = dynamic_cast<const TFilter *>( object );
 
@@ -269,8 +269,8 @@ public:
                                                          GetInverseDisplacementField() );
       FixedInverseDisplacementDuplicator->Update();
 
-      myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetModifiableOutput() );
-      myFixedToMiddleTransform->SetInverseDisplacementField( FixedInverseDisplacementDuplicator->GetModifiableOutput() );
+      myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetOutput() );
+      myFixedToMiddleTransform->SetInverseDisplacementField( FixedInverseDisplacementDuplicator->GetOutput() );
 
       // copy MovingToMiddleTransform
       typename DisplacementFieldDuplicatorType::Pointer MovingDisplacementDuplicator =
@@ -288,8 +288,8 @@ public:
                                                           GetInverseDisplacementField() );
       MovingInverseDisplacementDuplicator->Update();
 
-      myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetModifiableOutput() );
-      myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetModifiableOutput() );
+      myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetOutput() );
+      myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetOutput() );
 
       // Based on SyN Registration implementation, fixed composite and moving composite transforms are generated to
       // compute the metric value at each iteration.
@@ -413,8 +413,8 @@ public:
     disInverseDuplicator->Update();
 
     typename DisplacementFieldTransformType::Pointer outputTransformReadyToUse = DisplacementFieldTransformType::New();
-    outputTransformReadyToUse->SetDisplacementField( disDuplicator->GetModifiableOutput() );
-    outputTransformReadyToUse->SetInverseDisplacementField( disInverseDuplicator->GetModifiableOutput() );
+    outputTransformReadyToUse->SetDisplacementField( disDuplicator->GetOutput() );
+    outputTransformReadyToUse->SetInverseDisplacementField( disInverseDuplicator->GetOutput() );
 
     // Now add this updated transform to the composite transform including the initial trnasform
     typedef typename TFilter::InitialTransformType InitialTransformType;

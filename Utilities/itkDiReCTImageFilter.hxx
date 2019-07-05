@@ -29,11 +29,11 @@
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkVectorMagnitudeImageFilter.h"
 #include "itkImageDuplicator.h"
-#include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImportImageFilter.h"
 #include "itkInvertDisplacementFieldImageFilter.h"
 #include "itkIterationReporter.h"
+#include "itkMaskedSmoothingImageFilter.h"
 #include "itkMaximumImageFilter.h"
 #include "itkMultiplyByConstantImageFilter.h"
 #include "itkStatisticsImageFilter.h"
@@ -42,11 +42,9 @@
 #include "itkWarpImageFilter.h"
 #include "itkWindowConvergenceMonitoringFunction.h"
 
-#include "ReadWriteData.h"
-
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::DiReCTImageFilter() :
   m_ThicknessPriorEstimate( 10.0 ),
@@ -56,6 +54,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_InitialGradientStep( 0.025 ),
   m_CurrentGradientStep( 0.025 ),
   m_NumberOfIntegrationPoints( 10 ),
+  m_SparseImageNeighborhoodRadius( 2 ),
   m_GrayMatterLabel( 2 ),
   m_WhiteMatterLabel( 3 ),
   m_MaximumNumberOfIterations( 50 ),
@@ -63,19 +62,24 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_CurrentEnergy( NumericTraits<RealType>::max() ),
   m_ConvergenceThreshold( 0.001 ),
   m_ConvergenceWindowSize( 10 ),
-  m_UseBSplineSmoothing( false )
+  m_UseBSplineSmoothing( false ),
+  m_UseMaskedSmoothing( false ),
+  m_RestrictDeformation( false ),
+  m_TimeSmoothingVariance( 1.0 )
 {
-  this->m_ThicknessPriorImage = ITK_NULLPTR;
+  this->m_ThicknessPriorImage = nullptr;
+  this->m_SparseMatrixIndexImage = nullptr;
   this->SetNumberOfRequiredInputs( 3 );
+
+  this->m_TimePoints.clear();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::~DiReCTImageFilter()
-{
-}
+= default;
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
@@ -96,7 +100,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   typename InputImageType::DirectionType identity;
   identity.SetIdentity();
 
-  typedef ImportImageFilter<InputPixelType, ImageDimension> SegmentationImageImporterType;
+  using SegmentationImageImporterType = ImportImageFilter<InputPixelType, ImageDimension>;
   typename SegmentationImageImporterType::Pointer segmentationImageImporter = SegmentationImageImporterType::New();
   segmentationImageImporter->SetImportPointer( const_cast<InputPixelType *>(
                                                  this->GetSegmentationImage()->GetBufferPointer() ),
@@ -111,7 +115,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   segmentationImage->Update();
   segmentationImage->DisconnectPipeline();
 
-  typedef ImportImageFilter<RealType, ImageDimension> ProbablilityImageImporterType;
+  using ProbablilityImageImporterType = ImportImageFilter<RealType, ImageDimension>;
 
   typename ProbablilityImageImporterType::Pointer grayMatterProbabilityImageImporter = ProbablilityImageImporterType::New();
   grayMatterProbabilityImageImporter->SetImportPointer( const_cast<RealType *>(
@@ -147,7 +151,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   InputImagePointer grayMatter = this->ExtractRegion( segmentationImage, this->m_GrayMatterLabel );
   InputImagePointer whiteMatter = this->ExtractRegion( segmentationImage, this->m_WhiteMatterLabel );
 
-  typedef AddImageFilter<InputImageType, InputImageType, InputImageType> AdderType;
+  using AdderType = AddImageFilter<InputImageType, InputImageType, InputImageType>;
   typename AdderType::Pointer adder = AdderType::New();
   adder->SetInput1( grayMatter );
   adder->SetInput2( whiteMatter );
@@ -160,14 +164,13 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   InputImagePointer matterContours = this->ExtractRegionalContours( thresholdedRegion, 1 );
   InputImagePointer whiteMatterContoursTmp = this->ExtractRegionalContours( segmentationImage, this->m_WhiteMatterLabel );
 
-  typedef CastImageFilter<InputImageType, RealImageType> CasterType;
+  using CasterType = CastImageFilter<InputImageType, RealImageType>;
   typename CasterType::Pointer caster = CasterType::New();
   caster->SetInput( whiteMatterContoursTmp );
   caster->Update();
   RealImagePointer whiteMatterContours = caster->GetOutput();
 
   // Initialize fields and images.
-
   VectorType zeroVector( 0.0 );
 
   RealImagePointer corticalThicknessImage = RealImageType::New();
@@ -260,7 +263,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     whiteMatterContours->GetRequestedRegion() );
 
   // Monitor the convergence
-  typedef Function::WindowConvergenceMonitoringFunction<double> ConvergenceMonitoringType;
+  using ConvergenceMonitoringType = typename Function::WindowConvergenceMonitoringFunction<double>;
   ConvergenceMonitoringType::Pointer convergenceMonitoring = ConvergenceMonitoringType::New();
   convergenceMonitoring->SetWindowSize( this->m_ConvergenceWindowSize );
 
@@ -295,7 +298,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     unsigned int integrationPoint = 0;
     while( integrationPoint++ < this->m_NumberOfIntegrationPoints )
       {
-      typedef ComposeDisplacementFieldsImageFilter<DisplacementFieldType> ComposerType;
+      using ComposerType = ComposeDisplacementFieldsImageFilter<DisplacementFieldType>;
       typename ComposerType::Pointer composer = ComposerType::New();
       composer->SetDisplacementField( inverseIncrementalField );
       composer->SetWarpingField( inverseField );
@@ -308,8 +311,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       RealImagePointer warpedWhiteMatterContours = this->WarpImage( whiteMatterContours, inverseField );
       RealImagePointer warpedThicknessImage = this->WarpImage( thicknessImage, inverseField );
 
-      typedef GradientRecursiveGaussianImageFilter<RealImageType, DisplacementFieldType>
-        GradientImageFilterType;
+      using GradientImageFilterType = GradientRecursiveGaussianImageFilter<RealImageType, DisplacementFieldType>;
       typename GradientImageFilterType::Pointer gradientFilter =
         GradientImageFilterType::New();
       gradientFilter->SetInput( warpedWhiteMatterProbabilityImage );
@@ -355,7 +357,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         if( ItSegmentationImage.Get() == grayMatterPixel )
           {
           RealType norm = ( ItGradientImage.Get() ).GetNorm();
-          if( norm > 1e-3 && !vnl_math_isnan( norm ) && !vnl_math_isinf( norm ) )
+          if( norm > 1e-3 && !std::isnan( norm ) && !std::isinf( norm ) )
             {
             ItGradientImage.Set( ItGradientImage.Get() / norm );
             }
@@ -364,10 +366,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             ItGradientImage.Set( zeroVector );
             }
           RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get() );
-          currentEnergy += vnl_math_abs( delta );
+          currentEnergy += itk::Math::abs ( delta );
           numberOfGrayMatterVoxels++;
           RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
-          if( vnl_math_isnan( speedValue ) || vnl_math_isinf( speedValue ) )
+          if( std::isnan( speedValue ) || std::isinf( speedValue ) )
             {
             speedValue = 0.0;
             }
@@ -471,7 +473,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         integratedField->FillBuffer( zeroVector );
         }
 
-      typedef InvertDisplacementFieldImageFilter<DisplacementFieldType> InverterType;
+      using InverterType = InvertDisplacementFieldImageFilter<DisplacementFieldType>;
 
       typename InverterType::Pointer inverter1 = InverterType::New();
       inverter1->SetInput( inverseField );
@@ -479,6 +481,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       inverter1->SetMaximumNumberOfIterations( this->m_MaximumNumberOfInvertDisplacementFieldIterations );
       inverter1->SetMeanErrorToleranceThreshold( 0.001 );
       inverter1->SetMaxErrorToleranceThreshold( 0.1 );
+      if ( this->m_UseMaskedSmoothing )
+        {
+        inverter1->SetEnforceBoundaryCondition( false );
+        }
       inverter1->Update();
 
       integratedField = inverter1->GetOutput();
@@ -490,6 +496,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       inverter2->SetMaximumNumberOfIterations( this->m_MaximumNumberOfInvertDisplacementFieldIterations );
       inverter2->SetMeanErrorToleranceThreshold( 0.001 );
       inverter2->SetMaxErrorToleranceThreshold( 0.1 );
+      if ( this->m_UseMaskedSmoothing )
+        {
+        inverter2->SetEnforceBoundaryCondition( false );
+        }
       inverter2->Update();
 
       inverseField = inverter2->GetOutput();
@@ -573,7 +583,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           if( ! this->m_ThicknessPriorImage && ( thicknessValue > this->m_ThicknessPriorEstimate ) )
             {
             RealType fraction = this->m_ThicknessPriorEstimate / thicknessValue;
-            ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
+            ItVelocityField.Set( ItVelocityField.Get() * itk::Math::sqr ( fraction ) );
             }
           else if( this->m_ThicknessPriorImage )
             {
@@ -582,11 +592,11 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             if( ( thicknessPrior > NumericTraits<RealType>::ZeroValue() ) &&
                 ( thicknessValue > thicknessPrior ) )
               {
-              priorEnergy += vnl_math_abs( thicknessPrior - thicknessValue );
+              priorEnergy += itk::Math::abs ( thicknessPrior - thicknessValue );
               priorEnergyCount++;
 
               RealType fraction = thicknessPrior / thicknessValue;
-              ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
+              ItVelocityField.Set( ItVelocityField.Get() * itk::Math::sqr ( fraction ) );
               }
             }
           }
@@ -606,10 +616,27 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       velocityField = this->BSplineSmoothDisplacementField( velocityField,
                                                    this->m_BSplineSmoothingIsotropicMeshSpacing );
       }
+    else if ( this->m_UseMaskedSmoothing )
+      {
+      using MaskedSmootherType = MaskedSmoothingImageFilter<DisplacementFieldType, InputImageType>;
+      typename MaskedSmootherType::Pointer maskedSmoother = MaskedSmootherType::New();
+      maskedSmoother->SetInput( velocityField );
+      maskedSmoother->SetMaskImage( thresholdedRegion );
+      maskedSmoother->SetSmoothingVariance( this->m_SmoothingVariance );
+      maskedSmoother->SetSparseImageNeighborhoodRadius( this->m_SparseImageNeighborhoodRadius );
+      if( this->m_TimePoints.size() > 0 )
+        {
+        maskedSmoother->SetTimeSmoothingVariance( this->m_TimeSmoothingVariance );
+        maskedSmoother->SetTimePoints( this->m_TimePoints );
+        }
+      maskedSmoother->Update();
+
+      velocityField = maskedSmoother->GetOutput();
+      }
     else
       {
-      velocityField = this->GaussianSmoothDisplacementField( velocityField,
-                                                   this->m_SmoothingVelocityFieldVariance );
+      velocityField = this->GaussianSmoothDisplacementField(
+        velocityField, this->m_SmoothingVelocityFieldVariance );
       }
 
     // Calculate current energy and current convergence measurement
@@ -643,14 +670,13 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   this->SetNthOutput( 1, warpedWhiteMatterProbabilityImage );
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::InputImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::ExtractRegion( const InputImageType *segmentationImage,
                  typename DiReCTImageFilter<TInputImage, TOutputImage>::LabelType whichRegion )
 {
-  typedef BinaryThresholdImageFilter<InputImageType, InputImageType>
-    ThresholderType;
+  using ThresholderType = BinaryThresholdImageFilter<InputImageType, InputImageType>;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
   thresholder->SetInput( segmentationImage );
   thresholder->SetLowerThreshold( whichRegion );
@@ -666,17 +692,16 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return thresholdRegion;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::InputImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::ExtractRegionalContours( const InputImageType *segmentationImage,
                            typename DiReCTImageFilter<TInputImage, TOutputImage>::LabelType whichRegion )
 {
   InputImagePointer thresholdedRegion = this->ExtractRegion(
-      segmentationImage, whichRegion );
+    segmentationImage, whichRegion );
 
-  typedef BinaryContourImageFilter<InputImageType, InputImageType>
-    ContourFilterType;
+  using ContourFilterType = BinaryContourImageFilter<InputImageType, InputImageType>;
   typename ContourFilterType::Pointer contourFilter = ContourFilterType::New();
   contourFilter->SetInput( thresholdedRegion );
   contourFilter->SetFullyConnected( true );
@@ -692,24 +717,24 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 }
 
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::MakeThicknessImage( RealImagePointer hitImage, RealImagePointer totalImage,
   InputImagePointer segmentationImage, RealImagePointer corticalThicknessImage )
 {
-		RealImagePointer smoothHitImage;
-		RealImagePointer smoothTotalImage;
-		if( this->m_SmoothingVariance > 0.0 )
-				{
-				smoothHitImage = this->SmoothImage( hitImage, this->m_SmoothingVariance );
-				smoothTotalImage = this->SmoothImage( totalImage, this->m_SmoothingVariance );
-				}
-		else
-				{
-				smoothHitImage = hitImage;
-				smoothTotalImage = totalImage;
-				}
+  RealImagePointer smoothHitImage;
+  RealImagePointer smoothTotalImage;
+  if( this->m_SmoothingVariance > 0.0 )
+    {
+    smoothHitImage = this->SmoothImage( hitImage, this->m_SmoothingVariance );
+    smoothTotalImage = this->SmoothImage( totalImage, this->m_SmoothingVariance );
+    }
+  else
+    {
+    smoothHitImage = hitImage;
+    smoothTotalImage = totalImage;
+    }
 
   ImageRegionIterator<RealImageType> ItCorticalThicknessImage(
     corticalThicknessImage,
@@ -718,51 +743,51 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     segmentationImage,
     segmentationImage->GetRequestedRegion() );
 
-		ImageRegionConstIterator<RealImageType> ItSmoothHitImage( smoothHitImage,
-				smoothHitImage->GetRequestedRegion() );
-		ImageRegionConstIterator<RealImageType> ItSmoothTotalImage( smoothTotalImage,
-				smoothTotalImage->GetRequestedRegion() );
+  ImageRegionConstIterator<RealImageType> ItSmoothHitImage( smoothHitImage,
+    smoothHitImage->GetRequestedRegion() );
+  ImageRegionConstIterator<RealImageType> ItSmoothTotalImage( smoothTotalImage,
+    smoothTotalImage->GetRequestedRegion() );
 
-		ItCorticalThicknessImage.GoToBegin();
-		ItSegmentationImage.GoToBegin();
-		ItSmoothHitImage.GoToBegin();
-		ItSmoothTotalImage.GoToBegin();
+  ItCorticalThicknessImage.GoToBegin();
+  ItSegmentationImage.GoToBegin();
+  ItSmoothHitImage.GoToBegin();
+  ItSmoothTotalImage.GoToBegin();
 
-		RealType meanThickness = 0;
-		unsigned long count = 0;
-		while( !ItSegmentationImage.IsAtEnd() )
-				{
-				const typename InputImageType::PixelType grayMatterPixel =
-						static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
-				if(  ItSegmentationImage.Get() == grayMatterPixel )
-						{
-						RealType thicknessValue = 0.0;
-						if( ItSmoothHitImage.Get() > 0.001 )
-								{
-								thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
-       	meanThickness += thicknessValue;
-	       count++;
-								if( thicknessValue < 0.0 )
-										{
-										thicknessValue = 0.0;
-										}
-								}
-						ItCorticalThicknessImage.Set( thicknessValue );
-						}
-				++ItCorticalThicknessImage;
-				++ItSmoothHitImage;
-				++ItSegmentationImage;
-				++ItSmoothTotalImage;
-				}
+  RealType meanThickness = 0;
+  unsigned long count = 0;
+  while( !ItSegmentationImage.IsAtEnd() )
+    {
+    const typename InputImageType::PixelType grayMatterPixel =
+      static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
+    if( ItSegmentationImage.Get() == grayMatterPixel )
+      {
+      RealType thicknessValue = 0.0;
+      if( ItSmoothHitImage.Get() > 0.001 )
+        {
+        thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
+        meanThickness += thicknessValue;
+        count++;
+        if( thicknessValue < 0.0 )
+          {
+          thicknessValue = 0.0;
+          }
+        }
+        ItCorticalThicknessImage.Set( thicknessValue );
+      }
+    ++ItCorticalThicknessImage;
+    ++ItSmoothHitImage;
+    ++ItSegmentationImage;
+    ++ItSmoothTotalImage;
+    }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::WarpImage( const RealImageType *inputImage,
              const DisplacementFieldType *displacementField )
 {
-  typedef WarpImageFilter<RealImageType, RealImageType, DisplacementFieldType> WarperType;
+  using WarperType = WarpImageFilter<RealImageType, RealImageType, DisplacementFieldType>;
   typename WarperType::Pointer warper = WarperType::New();
   warper->SetInput( inputImage );
   warper->SetDisplacementField( displacementField );
@@ -778,23 +803,22 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return warpedImage;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::GaussianSmoothDisplacementField( const DisplacementFieldType *inputField,
-                           const RealType variance )
+                                   const RealType variance )
 {
-  typedef ImageDuplicator<DisplacementFieldType> DuplicatorType;
+  using DuplicatorType = ImageDuplicator<DisplacementFieldType>;
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
   duplicator->SetInputImage( inputField );
   duplicator->Update();
-  DisplacementFieldPointer outputField = duplicator->GetModifiableOutput();
+  DisplacementFieldPointer outputField = duplicator->GetOutput();
 
-  typedef VectorNeighborhoodOperatorImageFilter<DisplacementFieldType,
-                                                DisplacementFieldType> SmootherType;
+  using SmootherType = VectorNeighborhoodOperatorImageFilter<DisplacementFieldType, DisplacementFieldType>;
   typename SmootherType::Pointer smoother = SmootherType::New();
 
-  typedef GaussianOperator<VectorValueType, ImageDimension> GaussianType;
+  using GaussianType = GaussianOperator<VectorValueType, ImageDimension>;
   GaussianType gaussian;
   gaussian.SetVariance( variance );
   gaussian.SetMaximumError( 0.001 );
@@ -822,8 +846,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     }
   RealType weight2 = 1.0 - weight1;
 
-  typedef MultiplyByConstantImageFilter<DisplacementFieldType, RealType,
-                                        DisplacementFieldType> MultiplierType;
+  using MultiplierType =
+    MultiplyByConstantImageFilter<DisplacementFieldType, RealType, DisplacementFieldType>;
 
   typename MultiplierType::Pointer multiplier1 = MultiplierType::New();
   multiplier1->SetConstant2( weight1 );
@@ -833,7 +857,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   multiplier2->SetConstant2( weight2 );
   multiplier2->SetInput1( inputField );
 
-  typedef AddImageFilter<DisplacementFieldType, DisplacementFieldType, DisplacementFieldType> AdderType;
+  using AdderType = AddImageFilter<DisplacementFieldType, DisplacementFieldType, DisplacementFieldType>;
   typename AdderType::Pointer adder = AdderType::New();
   adder->SetInput1( multiplier1->GetOutput() );
   adder->SetInput2( multiplier2->GetOutput() );
@@ -865,13 +889,13 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return outputField;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::BSplineSmoothDisplacementField( const DisplacementFieldType *inputField,
                            const RealType isotropicMeshSpacing )
 {
-  typedef itk::DisplacementFieldToBSplineImageFilter<DisplacementFieldType> BSplineFilterType;
+  using BSplineFilterType = DisplacementFieldToBSplineImageFilter<DisplacementFieldType>;
 
   // calculate the number of control points based on the isotropic mesh spacing
 
@@ -899,12 +923,12 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return outputField;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::SmoothImage( const RealImageType *inputImage, const RealType variance )
 {
-  typedef DiscreteGaussianImageFilter<RealImageType, RealImageType> SmootherType;
+  using SmootherType = DiscreteGaussianImageFilter<RealImageType, RealImageType>;
   typename SmootherType::Pointer smoother = SmootherType::New();
   smoother->SetVariance( variance );
   smoother->SetUseImageSpacingOff();
@@ -921,7 +945,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent) const
@@ -936,7 +960,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
                    << this->m_MaximumNumberOfIterations << std::endl;
   os << indent << "Thickness prior estimate = "
                    << this->m_ThicknessPriorEstimate << std::endl;
-  os << indent << "Smoothing sigma = "
+  os << indent << "Smoothing variance = "
                    << this->m_SmoothingVariance << std::endl;
   if( this->m_UseBSplineSmoothing )
     {
@@ -945,7 +969,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     }
   else
     {
-    os << indent << "Smoothing velocity field sigma = "
+    os << indent << "Smoothing velocity field variance = "
                      << this->m_SmoothingVelocityFieldVariance << std::endl;
     }
   os << indent << "Number of integration points = "
@@ -960,6 +984,11 @@ DiReCTImageFilter<TInputImage, TOutputImage>
                    << this->m_ConvergenceThreshold << std::endl;
   os << indent << "Convergence window size = "
                    << this->m_ConvergenceWindowSize << std::endl;
+
+  os << indent << "Time smoothing variance = "
+                   << this->m_TimeSmoothingVariance << std::endl;
+
+
 }
 } // end namespace itk
 

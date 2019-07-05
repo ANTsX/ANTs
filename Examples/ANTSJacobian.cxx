@@ -24,7 +24,7 @@
 
 namespace ants
 {
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer VectorAniDiff(typename TImage::Pointer img, unsigned int iters)
 {
   double timeStep = 0.065;
@@ -43,7 +43,7 @@ typename TImage::Pointer VectorAniDiff(typename TImage::Pointer img, unsigned in
   return filter->GetOutput();
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer GenerateGridImage(TImage* img, unsigned int gridsize)
 {
   typedef TImage ImageType;
@@ -98,7 +98,7 @@ typename TImage::Pointer GenerateGridImage(TImage* img, unsigned int gridsize)
   return img;
 }
 
-template <class ImageType>
+template <typename ImageType>
 typename ImageType::Pointer ReadAnImage(char* fn)
 {
   // Read the image files begin
@@ -111,12 +111,12 @@ typename ImageType::Pointer ReadAnImage(char* fn)
     }
   catch( ... )
     {
-    return ITK_NULLPTR;
+    return nullptr;
     }
   return reffilter->GetOutput();
 }
 
-template <class TImage, class TDisplacementField>
+template <typename TImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 TransformVector(TDisplacementField* field, typename TImage::IndexType index )
 {
@@ -135,7 +135,7 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
   return newvec;
 }
 
-template <class TImage, class TDisplacementField>
+template <typename TImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 ProjectVector(typename TDisplacementField::PixelType invec, typename TDisplacementField::PixelType projvec )
 {
@@ -171,7 +171,7 @@ void antsjacobiansplit(const std::string& s, char c,
     }
 }
 
-template <class TImage, class TDisplacementField>
+template <typename TImage, typename TDisplacementField>
 void
 ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog = false, bool norm = false,
                 std::string projvec = "")
@@ -181,9 +181,9 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   if( projvec.length() > 2 )
     {
     antsjacobiansplit(projvec, 'x', v);
-    for( std::vector<std::string>::size_type i = 0; i < v.size(); ++i )
+    for(const auto & i : v)
       {
-      std::cout << v[i] << '\n';
+      std::cout << i << '\n';
       }
     }
 
@@ -192,7 +192,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   enum { ImageDimension = TImage::ImageDimension };
   typedef itk::Image<float, ImageDimension> FloatImageType;
   typename FloatImageType::RegionType m_JacobianRegion;
-  typename FloatImageType::Pointer mask = ITK_NULLPTR;
+  typename FloatImageType::Pointer mask = nullptr;
   typename FieldType::PixelType pvec;
   if( !v.empty() )
     {
@@ -220,7 +220,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>             TransformType;
     typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, FieldType, TransformType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
-    warper->SetInput(ITK_NULLPTR);
+    warper->SetInput(nullptr);
     warper->SetEdgePaddingValue( 0);
     warper->SetSmoothScale(1);
     warper->PushBackDisplacementFieldTransform(field);
@@ -231,7 +231,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     typename writertype::Pointer writer = writertype::New();
     std::string fng = std::string(fnm) + "grid.nii.gz";
     writer->SetFileName(fng.c_str() );
-    writer->SetInput(ITK_NULLPTR);
+    writer->SetInput(nullptr);
     writer->Write();
     std::cout << " Grid done ";
     }
@@ -265,9 +265,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
 
   typename FieldType::PixelType dPix;
   typename FieldType::PixelType lpix;
-  typename FieldType::PixelType llpix;
   typename FieldType::PixelType rpix;
-  typename FieldType::PixelType rrpix;
   typename FieldType::PixelType cpix;
 
   //   double totaljac=0.0;
@@ -534,7 +532,7 @@ int Jacobian(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTSJacobian( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int ANTSJacobian( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -551,7 +549,7 @@ int ANTSJacobian( std::vector<std::string> args, std::ostream* /*out_stream = IT
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -598,7 +596,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {

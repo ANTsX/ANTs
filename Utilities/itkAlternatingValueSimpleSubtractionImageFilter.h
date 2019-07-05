@@ -36,7 +36,7 @@ namespace itk
  * \author Jeffrey Duda
  *
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 class AlternatingValueSimpleSubtractionImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -83,23 +83,21 @@ public:
 #endif
 protected:
   AlternatingValueSimpleSubtractionImageFilter();
-  virtual ~AlternatingValueSimpleSubtractionImageFilter() ITK_OVERRIDE
-  {
-  }
+  ~AlternatingValueSimpleSubtractionImageFilter() override = default;
 
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Override VeriyInputInformation() to add the additional check
    * that all inputs have the same number of components.
    *
    * \sa ProcessObject::VerifyInputInformation
    */
-  void VerifyInputInformation() ITK_OVERRIDE;
+  void VerifyInputInformation() const override;
 
   /** Overrides GenerateOutputInformation() in order to produce
    * an image which has a different information than the first input.
    * \sa ProcessObject::GenerateOutputInformaton() */
-  void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() override;
 
   /** Overrides GenerateInputRequestedRegion() in order to inform
    * the pipeline execution model of different input requested regions
@@ -111,11 +109,11 @@ protected:
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
   void ThreadedGenerateData(const OutputImageRegionType &
-                                    outputRegionForThread, ThreadIdType threadId) ITK_OVERRIDE;
+                                    outputRegionForThread, ThreadIdType threadId) override;
 
 private:
-  AlternatingValueSimpleSubtractionImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);                         // purposely not implemented
+  AlternatingValueSimpleSubtractionImageFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   /** IndexValueType is used to switch among the inputs and
    * is used as the index value of the new dimension */

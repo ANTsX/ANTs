@@ -30,7 +30,7 @@ namespace itk
  * Reads a file and creates an itkMesh.
  *
  */
-template <class TOutputMesh>
+template <typename TOutputMesh>
 class LabeledPointSetFileReader
   : public MeshSource<TOutputMesh>
 {
@@ -104,14 +104,12 @@ public:
 
 protected:
   LabeledPointSetFileReader();
-  virtual ~LabeledPointSetFileReader() ITK_OVERRIDE
-  {
-  }
+  ~LabeledPointSetFileReader() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   /** Reads the file */
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
   bool m_ExtractBoundaryPoints;
 
@@ -121,8 +119,8 @@ protected:
   typename MultiComponentScalarSetType::Pointer   m_MultiComponentScalars;
   typename LineSetType::Pointer                   m_Lines;
 private:
-  LabeledPointSetFileReader( const Self & ); // purposely not implemented
-  void operator=( const Self & );            // purposely not implemented
+  LabeledPointSetFileReader( const Self & ) = delete;
+  void operator=( const Self & ) = delete;
 
   void ReadPointsFromImageFile();
 

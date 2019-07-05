@@ -31,8 +31,7 @@ namespace itk
 template <typename TInput, typename TRealType, typename TOutput>
 DecomposeTensorFunction<TInput, TRealType, TOutput>
 ::DecomposeTensorFunction()
-{
-}
+= default;
 
 template <typename TInput, typename TRealType, typename TOutput>
 void

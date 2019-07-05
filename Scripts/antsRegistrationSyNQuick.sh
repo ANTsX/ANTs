@@ -61,7 +61,7 @@ Compulsory arguments:
 
 Optional arguments:
 
-     -n:  Number of threads (default = 1)
+     -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
 
      -i:  initial transform(s) --- order specified on the command line matters
 
@@ -141,7 +141,7 @@ Compulsory arguments:
 
 Optional arguments:
 
-     -n:  Number of threads (default = 1)
+     -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
 
      -i:  initial transform(s) --- order specified on the command line matters
 
@@ -174,6 +174,8 @@ Optional arguments:
         1: true
 
      -z:  collapse output transforms (default = 1)
+
+     -e:  Fix random seed to an int value (default = system time)
 
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
@@ -274,7 +276,7 @@ FIXEDIMAGES=()
 MOVINGIMAGES=()
 INITIALTRANSFORMS=()
 OUTPUTNAME=output
-NUMBEROFTHREADS=1
+NUMBEROFTHREADS=0
 SPLINEDISTANCE=26
 TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
@@ -282,9 +284,10 @@ NUMBEROFBINS=32
 MASKIMAGES=()
 USEHISTOGRAMMATCHING=0
 COLLAPSEOUTPUTTRANSFORMS=1
+RANDOMSEED=0
 
 # reading command line arguments
-while getopts "d:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
+while getopts "d:e:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
   do
   case $OPT in
       h) #help
@@ -293,6 +296,9 @@ while getopts "d:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
    ;;
       d)  # dimensions
    DIM=$OPTARG
+   ;;
+      e)  # seed
+   RANDOMSEED=$OPTARG
    ;;
       x)  # inclusive mask
    MASKIMAGES[${#MASKIMAGES[@]}]=$OPTARG
@@ -375,7 +381,7 @@ if [[ ${#MASKIMAGES[@]} -gt 0 ]];
   then
     for (( i = 0; i < ${#MASKIMAGES[@]}; i++ ))
       do
-        MASKCALL="${MASKCALL} -x [${MASKIMAGES[$i]}, NULL]"
+        MASKCALL="${MASKCALL} -x [ ${MASKIMAGES[$i]}, NULL ]"
       done
   fi
 
@@ -386,6 +392,19 @@ if [[ ${#MASKIMAGES[@]} -gt 0 ]];
 ###############################
 
 ORIGINALNUMBEROFTHREADS=${ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS}
+
+# NUMBEROFTHREADS is > 0 if the option has been set to a positive value
+if [[ $NUMBEROFTHREADS -lt 1 ]]
+  then
+    # Number of threads not set on the command line, try ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
+    if [[ $ORIGINALNUMBEROFTHREADS -gt 0 ]]
+      then
+	NUMBEROFTHREADS=$ORIGINALNUMBEROFTHREADS
+    else
+	NUMBEROFTHREADS=1
+    fi
+  fi
+
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$NUMBEROFTHREADS
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 
@@ -425,34 +444,34 @@ for (( i=0; i<${#SIZE[@]}; i++ ))
 #
 ##############################
 
-RIGIDCONVERGENCE="[1000x500x250x0,1e-6,10]"
+RIGIDCONVERGENCE="[ 1000x500x250x0,1e-6,10 ]"
 RIGIDSHRINKFACTORS="8x4x2x1"
 RIGIDSMOOTHINGSIGMAS="3x2x1x0vox"
 
-AFFINECONVERGENCE="[1000x500x250x0,1e-6,10]"
+AFFINECONVERGENCE="[ 1000x500x250x0,1e-6,10 ]"
 AFFINESHRINKFACTORS="8x4x2x1"
 AFFINESMOOTHINGSIGMAS="3x2x1x0vox"
 
-SYNCONVERGENCE="[100x70x50x0,1e-6,10]"
+SYNCONVERGENCE="[ 100x70x50x0,1e-6,10 ]"
 SYNSHRINKFACTORS="8x4x2x1"
 SYNSMOOTHINGSIGMAS="3x2x1x0vox"
 
 if [[ $ISLARGEIMAGE -eq 1 ]];
   then
-    RIGIDCONVERGENCE="[1000x500x250x0,1e-6,10]"
+    RIGIDCONVERGENCE="[ 1000x500x250x0,1e-6,10 ]"
     RIGIDSHRINKFACTORS="12x8x4x2"
     RIGIDSMOOTHINGSIGMAS="4x3x2x1vox"
 
-    AFFINECONVERGENCE="[1000x500x250x0,1e-6,10]"
+    AFFINECONVERGENCE="[ 1000x500x250x0,1e-6,10 ]"
     AFFINESHRINKFACTORS="12x8x4x2"
     AFFINESMOOTHINGSIGMAS="4x3x2x1vox"
 
-    SYNCONVERGENCE="[100x100x70x50x0,1e-6,10]"
+    SYNCONVERGENCE="[ 100x100x70x50x0,1e-6,10 ]"
     SYNSHRINKFACTORS="10x6x4x2x1"
     SYNSMOOTHINGSIGMAS="5x3x2x1x0vox"
   fi
 
-INITIALSTAGE="--initial-moving-transform [${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1]"
+INITIALSTAGE="--initial-moving-transform [ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1 ]"
 
 if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
   then
@@ -468,14 +487,14 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
   tx=Translation
 fi
 
-RIGIDSTAGE="--transform ${tx}[0.1] \
-            --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
+RIGIDSTAGE="--transform ${tx}[ 0.1 ] \
+            --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
             --smoothing-sigmas $RIGIDSMOOTHINGSIGMAS"
 
-AFFINESTAGE="--transform Affine[0.1] \
-             --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
+AFFINESTAGE="--transform Affine[ 0.1 ] \
+             --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
              --convergence $AFFINECONVERGENCE \
              --shrink-factors $AFFINESHRINKFACTORS \
              --smoothing-sigmas $AFFINESMOOTHINGSIGMAS"
@@ -483,7 +502,7 @@ AFFINESTAGE="--transform Affine[0.1] \
 SYNMETRICS=''
 for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
   do
-    SYNMETRICS="$SYNMETRICS --metric MI[${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${NUMBEROFBINS}]"
+    SYNMETRICS="$SYNMETRICS --metric MI[ ${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${NUMBEROFBINS}]"
   done
 
 SYNSTAGE="${SYNMETRICS} \
@@ -493,7 +512,7 @@ SYNSTAGE="${SYNMETRICS} \
 
 if [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'br' ]];
   then
-    SYNCONVERGENCE="[50x0,1e-6,10]"
+    SYNCONVERGENCE="[ 50x0,1e-6,10 ]"
     SYNSHRINKFACTORS="2x1"
     SYNSMOOTHINGSIGMAS="1x0vox"
           SYNSTAGE="${SYNMETRICS} \
@@ -504,13 +523,13 @@ if [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'br' ]];
 
 if [[ $TRANSFORMTYPE == 'b' ]] || [[ $TRANSFORMTYPE == 'br' ]] || [[ $TRANSFORMTYPE == 'bo' ]];
   then
-    SYNSTAGE="--transform BSplineSyN[0.1,${SPLINEDISTANCE},0,3] \
+    SYNSTAGE="--transform BSplineSyN[ 0.1,${SPLINEDISTANCE},0,3 ] \
              $SYNSTAGE"
   fi
 
 if [[ $TRANSFORMTYPE == 's' ]] || [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'so' ]];
   then
-    SYNSTAGE="--transform SyN[0.1,3,0] \
+    SYNSTAGE="--transform SyN[ 0.1,3,0 ] \
              $SYNSTAGE"
   fi
 
@@ -563,13 +582,19 @@ case "$PRECISIONTYPE" in
   ;;
 esac
 
-COMMAND="${ANTS} --verbose 1 \
+RANDOMOPT=""
+
+if [[ ! $RANDOMSEED -eq 0 ]]; then
+    RANDOMOPT=" --random-seed $RANDOMSEED "
+fi
+
+COMMAND="${ANTS} --verbose 1 $RANDOMOPT \
                  --dimensionality $DIM $PRECISION \
                  --collapse-output-transforms $COLLAPSEOUTPUTTRANSFORMS \
-                 --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \
+                 --output [ $OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz ] \
                  --interpolation Linear \
                  --use-histogram-matching ${USEHISTOGRAMMATCHING} \
-                 --winsorize-image-intensities [0.005,0.995] \
+                 --winsorize-image-intensities [ 0.005,0.995 ] \
                  $MASKCALL \
                  $STAGES"
 

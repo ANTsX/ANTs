@@ -15,15 +15,15 @@
 #define _itkSyNDemonsRegistrationFunction_hxx_
 
 #include "itkSyNDemonsRegistrationFunction.h"
-#include "itkExceptionObject.h"
-#include "vnl/vnl_math.h"
+#include "itkMacro.h"
+#include "itkMath.h"
 
 namespace itk
 {
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::SyNDemonsRegistrationFunction()
 {
@@ -39,8 +39,8 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   m_TimeStep = 1.0;
   m_DenominatorThreshold = 1e-9;
   m_IntensityDifferenceThreshold = 0.001;
-  this->SetMovingImage(ITK_NULLPTR);
-  this->SetFixedImage(ITK_NULLPTR);
+  this->SetMovingImage(nullptr);
+  this->SetFixedImage(nullptr);
   m_FixedImageSpacing.Fill( 1.0 );
   m_FixedImageOrigin.Fill( 0.0 );
   m_Normalizer = 1.0;
@@ -66,7 +66,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PrintSelf(std::ostream& os, Indent indent) const
@@ -100,7 +100,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /**
  *
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::SetIntensityDifferenceThreshold(double threshold)
@@ -111,7 +111,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /**
  *
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 double
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::GetIntensityDifferenceThreshold() const
@@ -122,7 +122,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
@@ -162,7 +162,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Compute update at a specify neighbourhood
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PixelType
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
@@ -196,7 +196,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
       {
       gradient[j] = gradient[j] + mgradient[j];
       }
-    gradientSquaredMagnitude += vnl_math_sqr( gradient[j] );
+    gradientSquaredMagnitude += itk::Math::sqr ( gradient[j] );
     }
 
   /**
@@ -220,18 +220,18 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
   if( globalData )
     {
-    globalData->m_SumOfSquaredDifference += vnl_math_sqr( speedValue );
+    globalData->m_SumOfSquaredDifference += itk::Math::sqr ( speedValue );
     globalData->m_NumberOfPixelsProcessed += 1;
     }
 
-  double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
+  double denominator = itk::Math::sqr ( speedValue ) / m_Normalizer
     + gradientSquaredMagnitude;
   this->m_Energy += speedValue * speedValue;
   if( m_UseSSD )
     {
     denominator = 1;
     }
-  if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
+  if( itk::Math::abs (speedValue) < m_IntensityDifferenceThreshold ||
       denominator < m_DenominatorThreshold )
     {
     for( j = 0; j < ImageDimension; j++ )
@@ -245,7 +245,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     update[j] = speedValue * gradient[j] / denominator;
     if( globalData )
       {
-      globalData->m_SumOfSquaredChange += vnl_math_sqr( update[j] );
+      globalData->m_SumOfSquaredChange += itk::Math::sqr ( update[j] );
       }
     }
 
@@ -255,7 +255,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Compute update at a specify neighbourhood
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PixelType
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
@@ -284,7 +284,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   gradient = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
   for( j = 0; j < ImageDimension; j++ )
     {
-    gradientSquaredMagnitude += vnl_math_sqr( gradient[j] );
+    gradientSquaredMagnitude += itk::Math::sqr ( gradient[j] );
     }
 
   /**
@@ -308,14 +308,14 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
   if( globalData )
     {
-    globalData->m_SumOfSquaredDifference += vnl_math_sqr( speedValue );
+    globalData->m_SumOfSquaredDifference += itk::Math::sqr ( speedValue );
     globalData->m_NumberOfPixelsProcessed += 1;
     }
 
-  double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
+  double denominator = itk::Math::sqr ( speedValue ) / m_Normalizer
     + gradientSquaredMagnitude;
 
-  if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
+  if( itk::Math::abs (speedValue) < m_IntensityDifferenceThreshold ||
       denominator < m_DenominatorThreshold )
     {
     for( j = 0; j < ImageDimension; j++ )
@@ -329,7 +329,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     update[j] = speedValue * gradient[j] / denominator;
     if( globalData )
       {
-      globalData->m_SumOfSquaredChange += vnl_math_sqr( update[j] );
+      globalData->m_SumOfSquaredChange += itk::Math::sqr ( update[j] );
       }
     }
 
@@ -339,7 +339,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Update the metric and release the per-thread-global data.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ReleaseGlobalDataPointer( void *gd ) const

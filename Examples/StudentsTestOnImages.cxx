@@ -10,9 +10,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
-#include <math.h>
-#include <float.h>
-#include <assert.h>
+#include <cmath>
+#include <cfloat>
+#include <cassert>
 #include "ReadWriteData.h"
 
 #include <vnl/algo/vnl_symmetric_eigensystem.h>
@@ -22,7 +22,7 @@
 #include <itkImageRegionIteratorWithIndex.h>
 
 #include "itkTDistribution.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 #include "vnl/vnl_erf.h"
 
 namespace ants
@@ -55,7 +55,7 @@ int smallerStatElem(StatElement * elem1, StatElement * elem2)
     }
 }
 
-template <class TImageType>
+template <typename TImageType>
 void ReadImage(itk::SmartPointer<TImageType> & target, const char *file, bool copy)
 {
   //  std::cout << " reading b " << std::string(file) << std::endl;
@@ -106,7 +106,7 @@ void generatePermGroup(int * groupID, int lengthGroupA, int lengthGroupB,
 
   if( !first )
     {
-    first = 1; srand(time(ITK_NULLPTR) );
+    first = 1; srand(time(nullptr) );
     // cout << "generatePermGroup called" << endl;
     }
   int * newPerm = new int[numSubjects];
@@ -123,7 +123,7 @@ void generatePerm(int length, int * genPerm)
 {
   if( !first )
     {
-    first = 1; srand(time(ITK_NULLPTR) );
+    first = 1; srand(time(nullptr) );
     // cout << "generatePerm called" << endl;
     }
   PermElement * newPerm = new PermElement[length];
@@ -169,7 +169,7 @@ double computeQuantile(int numObs, double * stat, double quantile)
   if( !first )
     {
     first = 1;
-    srand(time(ITK_NULLPTR) );
+    srand(time(nullptr) );
     }
 
   StatElement * sortStat = new StatElement[numObs];
@@ -212,7 +212,7 @@ void computePermStatPval(int numFeatures, int numPerms,
   if( !first )
     {
     first = 1;
-    srand(time(ITK_NULLPTR) );
+    srand(time(nullptr) );
     }
 
   int feat;
@@ -427,11 +427,11 @@ int StudentsTestOnImages(int argc, char *argv[])
   typedef float                                 PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
-  typename ImageType::Pointer mask = ITK_NULLPTR;
+  typename ImageType::Pointer mask = nullptr;
 //  ReadImage<ImageType>(mask, argv[1], false);
 
-  unsigned int numSubjectsA = atoi(argv[3]);
-  unsigned int numSubjectsB = atoi(argv[4]);
+  unsigned int numSubjectsA = std::stoi(argv[3]);
+  unsigned int numSubjectsB = std::stoi(argv[4]);
   unsigned int numSubjects = numSubjectsA + numSubjectsB;
   std::string  outname = std::string(argv[2]);
   unsigned int numvals = numSubjects;
@@ -561,7 +561,7 @@ int StudentsTestOnImages(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int StudentsTestOnImages( std::vector<std::string> args, std::ostream* out_stream = ITK_NULLPTR )
+int StudentsTestOnImages( std::vector<std::string> args, std::ostream* out_stream = nullptr )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -633,7 +633,7 @@ private:
     return 1;
     }
 
-  switch( atoi(argv[1]) )
+  switch( std::stoi(argv[1]) )
     {
     case 2:
       {

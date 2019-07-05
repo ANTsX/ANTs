@@ -43,7 +43,7 @@
 #include "vtkTextProperty.h"
 #include "vtkWindowToImageFilter.h"
 
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 #include <vector>
 #include <string>
@@ -57,9 +57,9 @@ float CalculateGenus( vtkPolyData *mesh, bool verbose )
   extractEdges->SetInputData( mesh );
   extractEdges->Update();
 
-  float numberOfEdges = static_cast<float>( extractEdges->GetOutput()->GetNumberOfLines() );
-  float numberOfVertices = static_cast<float>( mesh->GetNumberOfPoints() );
-  float numberOfFaces = static_cast<float>( mesh->GetNumberOfPolys() );
+  auto numberOfEdges = static_cast<float>( extractEdges->GetOutput()->GetNumberOfLines() );
+  auto numberOfVertices = static_cast<float>( mesh->GetNumberOfPoints() );
+  auto numberOfFaces = static_cast<float>( mesh->GetNumberOfPolys() );
 
   float genus = 0.5 * ( 2.0 - numberOfVertices + numberOfEdges - numberOfFaces );
 
@@ -79,7 +79,7 @@ void Display( vtkPolyData *vtkMesh,
               const std::vector<float> backgroundColor,
               const std::string screenCaptureFileName,
               const bool renderScalarBar = false,
-              vtkLookupTable *scalarBarLookupTable = ITK_NULLPTR,
+              vtkLookupTable *scalarBarLookupTable = nullptr,
               const std::string scalarBarTitle = std::string( "" ),
               unsigned int scalarBarNumberOfLabels = 5,
               unsigned int scalarBarWidthInPixels = 0,
@@ -176,7 +176,7 @@ void Display( vtkPolyData *vtkMesh,
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
     vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput( renderWindow );
-    windowToImageFilter->SetMagnification( 5 );
+    windowToImageFilter->SetScale( 5 );
     windowToImageFilter->Update();
 
     vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
@@ -189,7 +189,7 @@ void Display( vtkPolyData *vtkMesh,
 
 int antsImageToSurface( itk::ants::CommandLineParser *parser )
 {
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef float                                      RealType;
   typedef itk::Image<RealType, ImageDimension>       ImageType;
@@ -204,7 +204,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
   // Read in input surface image
 
-  ImageType::Pointer inputImage = ITK_NULLPTR;
+  ImageType::Pointer inputImage = nullptr;
 
   RealType defaultColorRed = 255.0;
   RealType defaultColorGreen = 255.0;
@@ -370,7 +370,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
         std::cerr << "Error reading RGB file " << rgbFileName << std::endl;
         return EXIT_FAILURE;
         }
-      functionalRgbImages.push_back( rgbReader->GetOutput() );
+      functionalRgbImages.emplace_back(rgbReader->GetOutput() );
 
       // read mask
 
@@ -389,11 +389,11 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
         std::cerr << "Error reading mask file " << maskFileName << std::endl;
         return EXIT_FAILURE;
         }
-      functionalMaskImages.push_back( maskReader->GetOutput() );
+      functionalMaskImages.emplace_back(maskReader->GetOutput() );
 
       if( functionalOverlayOption->GetFunction( n )->GetNumberOfParameters() > 2 )
         {
-        RealType alpha = parser->Convert<RealType>(
+        auto alpha = parser->Convert<RealType>(
           functionalOverlayOption->GetFunction( n )->GetParameter( 2 ) );
         functionalAlphaValues.push_back( alpha );
         }
@@ -478,7 +478,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
     currentColor[2] = static_cast<unsigned char>( currentBlue  * 255.0 );
     currentColor[3] = static_cast<unsigned char>( currentAlpha * 255.0 );
 
-    colors->InsertNextTupleValue( currentColor );
+    colors->InsertNextTypedTuple( currentColor );
     }
   vtkMesh->GetPointData()->SetScalars( colors );
 
@@ -1000,7 +1000,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsSurf( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int antsSurf( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -1018,7 +1018,7 @@ int antsSurf( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NU
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

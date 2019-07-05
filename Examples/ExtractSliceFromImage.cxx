@@ -2,11 +2,12 @@
 
 #include "ReadWriteData.h"
 #include "itkExtractImageFilter.h"
+#include "itkPasteImageFilter.h"
 
 namespace ants
 {
 template <unsigned int ImageDimension>
-int ExtractSliceFromImage( int itkNotUsed( argc ), char *argv[] )
+int ExtractSliceFromImage( int argc, char *argv[] )
 {
   typedef float PixelType;
 
@@ -16,38 +17,90 @@ int ExtractSliceFromImage( int itkNotUsed( argc ), char *argv[] )
   typename ImageType::Pointer inputImage;
   ReadImage<ImageType>( inputImage, argv[2] );
 
-  typename ImageType::RegionType region;
-  typename ImageType::RegionType::SizeType size = inputImage->GetLargestPossibleRegion().GetSize();
-  size[atoi( argv[4] )] = 0;
-  typename ImageType::IndexType index;
-  index.Fill( 0 );
-  index[atoi( argv[4] )] = atoi( argv[5] );
-  region.SetIndex( index );
-  region.SetSize( size );
-
-  typedef itk::ExtractImageFilter<ImageType, SliceType> ExtracterType;
-  typename ExtracterType::Pointer extracter = ExtracterType::New();
-  extracter->SetInput( inputImage );
-  extracter->SetExtractionRegion( region );
-  if (ImageDimension < 4)
+  bool keepInputDim = false;
+  if ( argc == 7 )
     {
-    extracter->SetDirectionCollapseToIdentity();
+    std::istringstream( argv[6] ) >> keepInputDim;
+    }
+
+  if ( !keepInputDim )
+    {
+    typename ImageType::RegionType region;
+    typename ImageType::RegionType::SizeType size = inputImage->GetLargestPossibleRegion().GetSize();
+    size[atoi( argv[4] )] = 0;
+    typename ImageType::IndexType index;
+    index.Fill( 0 );
+    index[atoi( argv[4] )] = std::stoi( argv[5] );
+    region.SetIndex( index );
+    region.SetSize( size );
+
+    typedef itk::ExtractImageFilter<ImageType, SliceType> ExtracterType;
+    typename ExtracterType::Pointer extracter = ExtracterType::New();
+    extracter->SetInput( inputImage );
+    extracter->SetExtractionRegion( region );
+    if (ImageDimension < 4)
+      {
+      extracter->SetDirectionCollapseToIdentity();
+      }
+    else
+      {
+      extracter->SetDirectionCollapseToSubmatrix();
+      }
+    extracter->Update();
+
+    WriteImage<SliceType>( extracter->GetOutput(), argv[3] );
     }
   else
     {
-    extracter->SetDirectionCollapseToSubmatrix();
+    // extract the slice by setting the selected dimension to 1.
+    typename ImageType::RegionType region;
+    typename ImageType::RegionType::SizeType size = inputImage->GetLargestPossibleRegion().GetSize();
+    size[atoi( argv[4] )] = 1; // set size to 1 in selected direction
+    typename ImageType::IndexType index;
+    index.Fill( 0 );
+    index[atoi( argv[4] )] = std::stoi( argv[5] );
+    region.SetIndex( index );
+    region.SetSize( size );
+
+    typedef itk::ExtractImageFilter<ImageType, ImageType> ExtracterType;
+    typename ExtracterType::Pointer extracter = ExtracterType::New();
+    extracter->SetInput( inputImage );
+    extracter->SetExtractionRegion( region );
+    if (ImageDimension < 4)
+      {
+      extracter->SetDirectionCollapseToIdentity();
+      }
+    else
+      {
+      extracter->SetDirectionCollapseToSubmatrix();
+      }
+    extracter->Update();
+
+    // Create a blank image from the input image
+    typename ImageType::Pointer outImage = ImageType::New();
+    outImage->CopyInformation( inputImage );
+    outImage->SetRegions( inputImage->GetLargestPossibleRegion() );
+    outImage->Allocate();
+    outImage->FillBuffer(0);
+
+    // paste image slice to higher dimensionl image
+    typedef itk::PasteImageFilter<ImageType> PasteFilterType;
+    typename PasteFilterType::Pointer pasteFilter = PasteFilterType::New();
+    pasteFilter->SetSourceImage( extracter->GetOutput() );
+    pasteFilter->SetDestinationImage( outImage );
+    pasteFilter->SetDestinationIndex( index );
+    pasteFilter->SetSourceRegion( extracter->GetOutput()->GetBufferedRegion() );
+    pasteFilter->Update();
+
+    WriteImage<ImageType>( pasteFilter->GetOutput(), argv[3] );
     }
-  extracter->Update();
-
-
-  WriteImage<SliceType>( extracter->GetOutput(), argv[3] );
 
   return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ExtractSliceFromImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ExtractSliceFromImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -65,7 +118,7 @@ int ExtractSliceFromImage( std::vector<std::string> args, std::ostream* /*out_st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -91,10 +144,10 @@ private:
 
   // antscout->set_stream( out_stream );
 
-  if( argc != 6 )
+  if( argc < 6 )
     {
     std::cout << "Usage: " << argv[0]
-             << " imageDimension inputImage outputSlice direction(e.g. 0, 1, 2) slice_number" << std::endl;
+             << " imageDimension inputImage outputSlice direction(e.g. 0, 1, 2) slice_number [KeepSliceInOriginalSpace (0 or 1)]" << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -103,7 +156,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  switch( atoi( argv[1] ) )
+  switch( std::stoi( argv[1] ) )
     {
     case 2:
       {

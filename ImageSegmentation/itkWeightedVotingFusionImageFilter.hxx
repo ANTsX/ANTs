@@ -45,16 +45,16 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   m_RetainAtlasVotingWeightImages( false ),
   m_ConstrainSolutionToNonnegativeWeights( false )
 {
-  this->m_MaskImage = ITK_NULLPTR;
+  this->m_MaskImage = nullptr;
 
-  this->m_CountImage = ITK_NULLPTR;
+  this->m_CountImage = nullptr;
 
-  this->m_NeighborhoodSearchRadiusImage = ITK_NULLPTR;
+  this->m_NeighborhoodSearchRadiusImage = nullptr;
 
   this->SetSimilarityMetric( Superclass::PEARSON_CORRELATION );
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::UpdateInputs()
@@ -98,7 +98,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   this->Modified();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::GenerateInputRequestedRegion()
@@ -183,7 +183,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
@@ -196,7 +196,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   typename ImageSource<TOutputImage>::ThreadStruct str1;
   str1.Filter = this;
 
-  this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
+//  this->GetMultiThreader()->SetGlobalDefaultNumberOfThreads( this->GetNumberOfThreads() );
   this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str1 );
 
   this->GetMultiThreader()->SingleMethodExecute();
@@ -210,7 +210,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   typename ImageSource<TOutputImage>::ThreadStruct str2;
   str2.Filter = this;
 
-  this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
+//  this->GetMultiThreader()->SetGlobalDefaultNumberOfThreads( this->GetNumberOfThreads() );
   this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str2 );
 
   this->GetMultiThreader()->SingleMethodExecute();
@@ -218,7 +218,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   this->AfterThreadedGenerateData();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::BeforeThreadedGenerateData()
@@ -339,7 +339,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       squaredDistances[n].second = 0.0;
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        squaredDistances[n].second += vnl_math_sqr( offset[d] * spacing[d] );
+        squaredDistances[n].second += itk::Math::sqr ( offset[d] * spacing[d] );
         }
       }
     std::sort( squaredDistances.begin(), squaredDistances.end(), DistanceIndexComparator() );
@@ -383,7 +383,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           squaredDistances[n].second = 0.0;
           for( unsigned int d = 0; d < ImageDimension; d++ )
             {
-            squaredDistances[n].second += vnl_math_sqr( offset[d] * spacing[d] );
+            squaredDistances[n].second += itk::Math::sqr ( offset[d] * spacing[d] );
             }
           }
         std::sort( squaredDistances.begin(), squaredDistances.end(), DistanceIndexComparator() );
@@ -400,7 +400,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   this->AllocateOutputs();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateData( const RegionType &region, ThreadIdType threadId )
@@ -415,7 +415,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateDataForWeightedAveraging( const RegionType & region, ThreadIdType threadId )
@@ -614,7 +614,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     else
       {
       vnl_cholesky cholesky( MxBar, vnl_cholesky::estimate_condition );
-      if( cholesky.rcond() > vnl_math::sqrteps )
+      if( cholesky.rcond() > itk::Math::sqrteps )
         {
         // well-conditioned matrix
         W = cholesky.solve( ones );
@@ -625,11 +625,11 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
         W = vnl_svd<RealType>( MxBar ).solve( ones );
         }
 
-      for( SizeValueType i = 0; i < W.size(); i++ )
+      for(double & i : W)
         {
-        if( W[i] < 0.0 )
+        if( i < 0.0 )
           {
-          W[i] = 0.0;
+          i = 0.0;
           }
         }
       }
@@ -724,7 +724,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateDataForReconstruction( const RegionType &region, ThreadIdType threadId )
@@ -813,7 +813,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::AfterThreadedGenerateData()
@@ -844,7 +844,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::VectorType
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::NonNegativeLeastSquares( const MatrixType A, const VectorType y, const RealType tolerance )
@@ -997,7 +997,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
   return x;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 ::PrintSelf( std::ostream &os, Indent indent ) const

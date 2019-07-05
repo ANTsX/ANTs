@@ -31,7 +31,9 @@ namespace itk
 template< typename TInputImage, typename TOutputImage >
 VarianceImageFilter< TInputImage, TOutputImage >
 ::VarianceImageFilter()
-{}
+{
+  this->DynamicMultiThreadingOff();  
+}
 
 template< typename TInputImage, typename TOutputImage >
 void
@@ -82,12 +84,12 @@ VarianceImageFilter< TInputImage, TOutputImage >
       for ( i = 0; i < neighborhoodSize; ++i )
         {
         sum += static_cast< InputRealType >( bit.GetPixel(i) );
-        sumOfSquares += vnl_math_sqr( static_cast< InputRealType >( bit.GetPixel(i) ) );
+        sumOfSquares += itk::Math::sqr ( static_cast< InputRealType >( bit.GetPixel(i) ) );
         }
 
       // get the variance value
       const double num = static_cast< double >( neighborhoodSize );
-      OutputPixelType var = ( sumOfSquares - ( vnl_math_sqr( sum ) / num ) ) / ( num - 1.0 );
+      OutputPixelType var = ( sumOfSquares - ( itk::Math::sqr ( sum ) / num ) ) / ( num - 1.0 );
 
       it.Set( var );
 

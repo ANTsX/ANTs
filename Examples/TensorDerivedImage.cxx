@@ -14,7 +14,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -30,7 +30,7 @@ namespace ants
 {
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int TensorDerivedImage( std::vector<std::string> args, std::ostream* out_stream = ITK_NULLPTR )
+int TensorDerivedImage( std::vector<std::string> args, std::ostream* out_stream = nullptr )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -152,7 +152,7 @@ private:
     if( (outType == "0") || (outType == "1") || (outType == "2") || (outType == "3") ||
         (outType == "4") || (outType == "5") )
       {
-      int idx = atoi(outType.c_str() );
+      int idx = std::stoi(outType.c_str() );
       outImage->SetPixel(inputIt.GetIndex(), inputIt.Value()[idx]);
       }
     else if( (outType == "TR") || (outType == "MD") )

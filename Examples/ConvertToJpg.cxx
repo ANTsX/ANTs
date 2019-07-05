@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
@@ -57,8 +57,8 @@ int ConvertType(int argc, char *argv[])
   typedef itk::RescaleIntensityImageFilter<IntermediateType, IntermediateType> FilterType;
   typename   FilterType::Pointer fixedrescalefilter = FilterType::New();
   fixedrescalefilter->SetInput(caster->GetOutput() );
-  const double desiredMinimum =  0.0;
-  const double desiredMaximum =  255.0;
+  constexpr double desiredMinimum = 0.0;
+  constexpr double desiredMaximum = 255.0;
   fixedrescalefilter->SetOutputMinimum( desiredMinimum );
   fixedrescalefilter->SetOutputMaximum( desiredMaximum );
   fixedrescalefilter->UpdateLargestPossibleRegion();
@@ -88,7 +88,7 @@ int ConvertType(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ConvertToJpg( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ConvertToJpg( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   try
     {
@@ -107,7 +107,7 @@ int ConvertToJpg( std::vector<std::string> args, std::ostream* /*out_stream = IT
       // place the null character in the end
       argv[i][args[i].length()] = '\0';
       }
-    argv[argc] = ITK_NULLPTR;
+    argv[argc] = nullptr;
     // class to automatically cleanup argv upon destruction
     class Cleanup_argv
     {

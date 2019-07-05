@@ -17,11 +17,11 @@
 #include "itkManifoldParzenWindowsPointSetFunction.h"
 
 #include "vnl/vnl_vector.h"
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 namespace itk
 {
-template <class TPointSet, class TOutput, class TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordRep>
 ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
 ::ManifoldParzenWindowsPointSetFunction()
 {
@@ -30,8 +30,8 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
 
   this->m_EvaluationKNeighborhood = 50;
 
-  this->m_SamplePoints = ITK_NULLPTR;
-  this->m_KdTreeGenerator = ITK_NULLPTR;
+  this->m_SamplePoints = nullptr;
+  this->m_KdTreeGenerator = nullptr;
 
   this->m_RegularizationSigma = 1.0;
   this->m_KernelSigma = 1.0;
@@ -43,13 +43,13 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
   this->m_Randomizer->SetSeed();
 }
 
-template <class TPointSet, class TOutput, class TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordRep>
 ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
 ::~ManifoldParzenWindowsPointSetFunction()
 {
 }
 
-template <class TPointSet, class TOutput, class TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordRep>
 void
 ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
 ::SetInputPointSet( const InputPointSetType * ptr )
@@ -182,7 +182,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
     }
 }
 
-template <class TPointSet, class TOutput, class TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordRep>
 void
 ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
 ::GenerateKdTree()
@@ -212,7 +212,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
   this->m_KdTreeGenerator->Update();
 }
 
-template <class TPointSet, class TOutput, class TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordRep>
 TOutput
 ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
 ::Evaluate( const InputPointType & point ) const
@@ -242,7 +242,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
       queryPoint[d] = point[d];
       }
 
-    unsigned int numberOfNeighbors = vnl_math_min(
+    unsigned int numberOfNeighbors = std::min(
         this->m_EvaluationKNeighborhood,
         static_cast<unsigned int>( this->m_Gaussians.size() ) );
 
@@ -273,7 +273,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
     }
 }
 
-template <class TPointSet, class TOutput, class TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordRep>
 typename ManifoldParzenWindowsPointSetFunction
 <TPointSet, TOutput, TCoordRep>::NeighborhoodIdentifierType
 ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
@@ -291,7 +291,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
   return neighbors;
 }
 
-template <class TPointSet, class TOutput, class TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordRep>
 typename ManifoldParzenWindowsPointSetFunction
 <TPointSet, TOutput, TCoordRep>::NeighborhoodIdentifierType
 ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
@@ -307,7 +307,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
   return this->GetNeighborhoodIdentifiers( queryPoint, numberOfNeighbors );
 }
 
-template <class TPointSet, class TOutput, class TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordRep>
 typename ManifoldParzenWindowsPointSetFunction
 <TPointSet, TOutput, TCoordRep>::PointType
 ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
@@ -330,7 +330,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TPointSet, class TOutput, class TCoordRep>
+template <typename TPointSet, typename TOutput, typename TCoordRep>
 void
 ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
 ::PrintSelf(

@@ -20,7 +20,7 @@ Program:   Advanced Normalization Tools
 #include "itkLevelSet.h"
 #include "itkNeighborhoodIterator.h"
 
-#include "vnl/vnl_math.h"
+#include "itkMath.h"
 
 #include <functional>
 #include <queue>
@@ -98,8 +98,8 @@ namespace itk
  * \ingroup LevelSetSegmentation
  */
 template <
-  class TLevelSet,
-  class TSpeedImage = Image<float, TLevelSet::ImageDimension> >
+  typename TLevelSet,
+  typename TSpeedImage = Image<float, TLevelSet::ImageDimension> >
 class FMarchingImageFilter :
   public         ImageToImageFilter<TSpeedImage, TLevelSet>
 {
@@ -244,7 +244,7 @@ private:
   void SetSpeedConstant( double value )
   {
     m_SpeedConstant = value;
-    m_InverseSpeed = -1.0 * vnl_math_sqr( 1.0 / m_SpeedConstant );
+    m_InverseSpeed = -1.0 * itk::Math::sqr ( 1.0 / m_SpeedConstant );
     this->Modified();
   }
 
@@ -333,10 +333,10 @@ private:
 #endif
 protected:
   FMarchingImageFilter();
-  virtual ~FMarchingImageFilter() ITK_OVERRIDE
+  ~FMarchingImageFilter() override
   {
   };
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
   virtual void Initialize( LevelSetImageType * );
 
@@ -349,12 +349,12 @@ protected:
     return m_NodesUsed[idx];
   }
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
   /** Generate the output image meta information. */
-  void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() override;
 
-  void EnlargeOutputRequestedRegion(DataObject *output) ITK_OVERRIDE;
+  void EnlargeOutputRequestedRegion(DataObject *output) override;
 
   /** Get Large Value. This value is used to
       represent the concept of infinity for the time assigned to pixels that

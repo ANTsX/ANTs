@@ -17,6 +17,8 @@
 #include "itkImageToImageFilter.h"
 
 #include "itkVector.h"
+#include <vnl/vnl_sparse_matrix.h>
+
 
 namespace itk
 {
@@ -28,24 +30,30 @@ namespace itk
  *     are all labeled with values of 1, 2, and 3, respectively.
  *   - Corresponding grey matter and white matter probability maps.
  *
- * \author Nicholas J. Tustison
+ * \author Nick Tustison, Brian Avants
  *
  * \par REFERENCE
  * S. R. Das, B. B. Avants, M. Grossman, and J. C. Gee, "Registration based
  * cortical thickness measurement," Neuroimage 2009, 45:867--879.
  *
+ * Nicholas J. Tustison, Philip A. Cook, Arno Klein, Gang Song, Sandhitsu
+ * R. Das, Jeffrey T. Duda, Benjamin M. Kandel, Niels van Strien, James R.
+ * Stone, James C. Gee, and Brian B. Avants. Large-Scale Evaluation of ANTs
+ * and FreeSurfer Cortical Thickness Measurements. NeuroImage, 99:166-179,
+ * Oct 2014.
+ *
  */
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 class DiReCTImageFilter :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef DiReCTImageFilter                             Self;
-  typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
-  typedef SmartPointer<Self>                            Pointer;
-  typedef SmartPointer<const Self>                      ConstPointer;
+  using Self = DiReCTImageFilter;
+  using Superclass = ImageToImageFilter<TInputImage, TOutputImage>;
+  using Pointer = SmartPointer<Self>;
+  using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
   itkNewMacro( Self );
@@ -55,23 +63,25 @@ public:
                        TInputImage::ImageDimension );
 
   /** Convenient typedefs for simplifying declarations. */
-  typedef TInputImage                         InputImageType;
-  typedef typename InputImageType::Pointer    InputImagePointer;
-  typedef typename InputImageType::PixelType  InputPixelType;
-  typedef InputPixelType                      LabelType;
-  typedef typename InputImageType::RegionType RegionType;
-  typedef typename InputImageType::IndexType  IndexType;
-  typedef typename IndexType::IndexValueType  IndexValueType;
-  typedef TOutputImage                        OutputImageType;
-  typedef TOutputImage                        RealImageType;
+  using InputImageType = TInputImage;
+  using InputImagePointer = typename InputImageType::Pointer;
+  using InputPixelType = typename InputImageType::PixelType;
+  using RegionType = typename InputImageType::RegionType;
+  using IndexType = typename InputImageType::IndexType;
 
-  typedef typename OutputImageType::PixelType       RealType;
-  typedef typename RealImageType::Pointer           RealImagePointer;
-  typedef Vector<RealType, ImageDimension>          VectorType;
-  typedef Image<VectorType, ImageDimension>         DisplacementFieldType;
-  typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
-  typedef typename VectorType::ValueType            VectorValueType;
-  typedef typename DisplacementFieldType::PointType PointType;
+  using LabelType = InputPixelType;
+
+  using OutputImageType =  TOutputImage;
+  using RealType = typename OutputImageType::PixelType;
+  using RealImageType = TOutputImage;
+  using RealImagePointer = typename RealImageType::Pointer;
+
+  using VectorType = Vector<RealType, ImageDimension>;
+  using DisplacementFieldType = Image<VectorType, ImageDimension>;
+  using DisplacementFieldPointer = typename DisplacementFieldType::Pointer;
+  using VectorValueType = typename VectorType::ValueType;
+  using PointType = typename DisplacementFieldType::PointType;
+  using SparseMatrixType = vnl_sparse_matrix<RealType>;
 
   /**
    * Set the segmentation image.  The segmentation image is a labeled image
@@ -156,6 +166,12 @@ public:
   itkGetConstMacro( MaximumNumberOfIterations, unsigned int );
 
   /**
+   * Set/Get the variance for time regularization.
+   */
+  itkSetMacro( TimeSmoothingVariance, RealType );
+  itkGetConstMacro( TimeSmoothingVariance, RealType );
+
+  /**
    * Set/Get the maximum number of inversion iterations.  Default = 20.
    */
   itkSetMacro( MaximumNumberOfInvertDisplacementFieldIterations, unsigned int );
@@ -210,7 +226,7 @@ public:
   itkGetConstMacro( CurrentGradientStep, RealType );
 
   /**
-   * Set/Get the smoothing sigma for the total and hit images (in voxels).  Default = 1.0.
+   * Set/Get the smoothing variance for the total and hit images (in voxels).  Default = 1.0.
    */
   itkSetClampMacro( SmoothingVariance, RealType, 0, NumericTraits<RealType>::max() );
   itkGetConstMacro( SmoothingVariance, RealType );
@@ -222,7 +238,7 @@ public:
   itkGetConstMacro( BSplineSmoothingIsotropicMeshSpacing, RealType );
 
   /**
-   * Set/Get the B-spline smoothing sigma for the velocity field (in voxels).  Default = 1.5.
+   * Set/Get the B-spline smoothing variance for the velocity field (in voxels).  Default = 1.5.
    */
   itkSetClampMacro( SmoothingVelocityFieldVariance, RealType, 0, NumericTraits<RealType>::max() );
   itkGetConstMacro( SmoothingVelocityFieldVariance, RealType );
@@ -232,6 +248,36 @@ public:
    */
   itkSetMacro( NumberOfIntegrationPoints, unsigned int  );
   itkGetConstMacro( NumberOfIntegrationPoints, unsigned int );
+
+  /**
+   * Set/Get the sparse image neighborhood radius.  Default = 2.
+   */
+  itkSetMacro( SparseImageNeighborhoodRadius, unsigned int  );
+  itkGetConstMacro( SparseImageNeighborhoodRadius, unsigned int );
+
+  /**
+   * Set/Get the option to restrict deformation along the last dimension.  Default = false.
+   */
+  itkSetMacro( RestrictDeformation, bool  );
+  itkGetConstMacro( RestrictDeformation, bool  );
+  itkBooleanMacro( RestrictDeformation );
+
+  /**
+   * Set/Get the temporal points values.  Default = no special value.
+   */
+  void SetTimePoints( std::vector<RealType> timePoints )
+    {
+    this->m_TimePoints = timePoints;
+    this->Modified();
+    }
+  itkGetConstMacro( TimePoints, std::vector<RealType>  );
+
+  /**
+   * Set/Get the option to use masked smoothing.  Default = false.
+   */
+  itkSetMacro( UseMaskedSmoothing, bool  );
+  itkGetConstMacro( UseMaskedSmoothing, bool  );
+  itkBooleanMacro( UseMaskedSmoothing );
 
   /**
    * Set/Get the option to use B-spline smoothing.  Default = false.
@@ -261,17 +307,28 @@ public:
 protected:
 
   DiReCTImageFilter();
-  virtual ~DiReCTImageFilter() ITK_OVERRIDE;
+  ~DiReCTImageFilter() override;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void ThreadedGenerateData( const RegionType &, ThreadIdType ) ITK_OVERRIDE
+  void ThreadedGenerateData( const RegionType &, ThreadIdType ) override
   {
   };
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
 private:
+
+  /**
+   * Private function to determine if a voxel is in the mask.
+   */
+  bool IsInsideMask( IndexType index )
+    {
+    return(
+      this->GetSegmentationImage()->GetPixel( index ) == this->m_GrayMatterLabel |
+      this->GetSegmentationImage()->GetPixel( index ) == this->m_WhiteMatterLabel
+      );
+    }
 
   /**
    * Private function for extracting regions (e.g. gray or white).
@@ -306,6 +363,11 @@ private:
   /**
    * Private function for smoothing the deformation field.
    */
+  DisplacementFieldPointer MaskedGaussianSmoothDisplacementField( const DisplacementFieldType * );
+
+  /**
+   * Private function for smoothing the deformation field.
+   */
   DisplacementFieldPointer BSplineSmoothDisplacementField( const DisplacementFieldType *, const RealType );
 
   /**
@@ -321,6 +383,8 @@ private:
   RealType     m_CurrentGradientStep;
   unsigned int m_NumberOfIntegrationPoints;
 
+  unsigned int m_SparseImageNeighborhoodRadius;
+
   LabelType m_GrayMatterLabel;
   LabelType m_WhiteMatterLabel;
 
@@ -334,7 +398,13 @@ private:
 
   RealImagePointer  m_ThicknessPriorImage;
 
-  bool m_UseBSplineSmoothing;
+  bool                   m_UseBSplineSmoothing;
+  bool                   m_UseMaskedSmoothing;
+  bool                   m_RestrictDeformation;
+  SparseMatrixType       m_SparseMatrix;
+  RealImagePointer       m_SparseMatrixIndexImage;
+  std::vector<RealType>  m_TimePoints;
+  RealType               m_TimeSmoothingVariance;
 
 };
 } // end namespace itk

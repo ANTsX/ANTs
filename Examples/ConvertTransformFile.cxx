@@ -21,7 +21,7 @@
 #include "itksys/SystemTools.hxx"
 
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 
 #include "itkTransformFactory.h"
 #include "itkAffineTransform.h"
@@ -34,7 +34,7 @@
  * it in one of several different formats, defaulting to legacy text format for human reading.
  * Options are available to instead output only a transform matrix to a text file,
  * one row per dimension with space-delimited values. This option works only for
- * transforms of MatrixOffsetTranformBase or derived, Translation and Identity transforms. */
+ * transforms of MatrixOffsetTransformBase or derived, Translation and Identity transforms. */
 
 namespace ants
 {
@@ -74,7 +74,7 @@ bool FileExists(string strFilename)
 /*
  *
  */
-template <class TTransform>
+template <typename TTransform>
 bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransform::MatrixType & matrix,
                 bool outputRAS )
 {
@@ -157,7 +157,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
 /*
  *
  */
-template <class TTransform, class TMatrix>
+template <typename TTransform, typename TMatrix>
 bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatrix & hMatrix, bool outputRAS )
 {
   const unsigned int ImageDimension = TTransform::InputSpaceDimension;
@@ -447,7 +447,7 @@ int ConvertTransformFile(int argc, char* argv[])
 /*
  *
  */
-int ConvertTransformFile( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int ConvertTransformFile( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -465,7 +465,7 @@ int ConvertTransformFile( std::vector<std::string> args, std::ostream* /*out_str
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -508,13 +508,13 @@ private:
              << "   Output only the transform matrix (from transform::GetMatrix() )" << std::endl
              << "   to a text file, one row per line with space-delimited values. " << std::endl
              << "   Only works for transforms of type identity, translation or " << std::endl
-             << "   MatrixOffsetTranformBase and its derived types." << std::endl
+             << "   MatrixOffsetTransformBase and its derived types." << std::endl
              << "   The output filename must end in '.mat'." << std::endl
              << std::endl
              << " --homogeneousMatrix, --hm" << std::endl
              << "   Output an N+1 square homogeneous matrix from the transform matrix and offset." << std::endl
              << "   Only works for transforms of type identity, translation or " << std::endl
-             << "   MatrixOffsetTranformBase and its derived types." << std::endl
+             << "   MatrixOffsetTransformBase and its derived types." << std::endl
              << "   The output filename must end in '.mat'." << std::endl
              << std::endl
              << " --RAS, --ras" << std::endl
@@ -542,7 +542,7 @@ private:
     }
 
   // Get the image dimension
-  unsigned int dimension = atoi( argv[1] );
+  unsigned int dimension = std::stoi( argv[1] );
 
   switch( dimension )
     {

@@ -7,7 +7,7 @@
 #include "itkImage.h"
 #include "itkImageIOBase.h"
 #include "itkImageIOFactory.h"
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include "ReadWriteData.h"
 #include "itkTransformFileWriter.h"
@@ -19,7 +19,7 @@ namespace ants
 {
 // //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
-template <class TransformType>
+template <typename TransformType>
 void WriteAffineTransformFile(typename TransformType::Pointer & transform,
                               const std::string & filename)
 {
@@ -39,7 +39,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
   catch( itk::ExceptionObject & err )
     {
     std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
-             << "Exception in writing tranform file: " << std::endl
+             << "Exception in writing transform file: " << std::endl
              << filename << std::endl;
     return;
     }
@@ -49,7 +49,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
 
 // //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
-template <class RunningAffineTransformPointerType, class AffineTransformPointerType>
+template <typename RunningAffineTransformPointerType, typename AffineTransformPointerType>
 inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
                                    AffineTransformPointerType & transform)
 {
@@ -69,7 +69,7 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
   // std::cout << "transform" << transform << std::endl;
 }
 
-template <class TransformA, unsigned int ImageDimension>
+template <typename TransformA, unsigned int ImageDimension>
 void DumpTransformForANTS3D(typename TransformA::Pointer & transform, const std::string & ANTS_prefix)
 {
   // ANTS transform file type
@@ -97,7 +97,7 @@ void DumpTransformForANTS3D(typename TransformA::Pointer & transform, const std:
 //   assume PointContainerType is std::vector
 //   assume TrnasformPointerType is MatrixOffsetTransformBase
 
-template <class PointContainerType, class TransformType, unsigned int Dim>
+template <typename PointContainerType, typename TransformType, unsigned int Dim>
 void GetAffineTransformFromTwoPointSets(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
                                           typename TransformType::Pointer & transform)
 {
@@ -370,7 +370,7 @@ int LandmarkBasedTransformInitializerBA(int, char * argv[])
   return EXIT_SUCCESS;
 }
 
-int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */)
+int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -387,7 +387,7 @@ int ANTSUseLandmarkImagesToGetAffineTransform( std::vector<std::string> args, st
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

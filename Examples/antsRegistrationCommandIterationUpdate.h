@@ -6,7 +6,7 @@ namespace ants
 /** \class antsRegistrationCommandIterationUpdate
  *  \brief change parameters between iterations of registration
  */
-template <class TFilter>
+template <typename TFilter>
 class antsRegistrationCommandIterationUpdate : public itk::Command
 {
 public:
@@ -27,12 +27,12 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event ) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event ) override
   {
     TFilter const * const filter = dynamic_cast<const TFilter *>( object );
 

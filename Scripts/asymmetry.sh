@@ -50,8 +50,8 @@ if [[ ! -s $A ]] || [[  ! -s $B ]]  ; then echo inputs: $A $B $prefix ; echo $us
 reg=antsRegistration
 uval=0
 affits=999x999x1550x200
-rig=" -t rigid[ 0.2 ]  -c [ $affits ,1.e-7,20]  -s 3x2x1x0 -f 8x4x2x1 -u $uval -l 0 "
-aff=" -t affine[ 0.2 ]  -c [ $affits ,1.e-7,20]  -s 3x2x1x0 -f 8x4x2x1 -u $uval -l 0 "
+rig=" -t rigid[ 0.2 ]  -c [ $affits ,1.e-7,20 ]  -s 3x2x1x0 -f 8x4x2x1 -u $uval -l 0 "
+aff=" -t affine[ 0.2 ]  -c [ $affits ,1.e-7,20 ]  -s 3x2x1x0 -f 8x4x2x1 -u $uval -l 0 "
 metparams=" 1 , 32, regular , 0.5 "
 synits=220x220x100x50  #BA 
 # synits=0x0x0x0  #BA 
@@ -67,24 +67,24 @@ $reg -d $dim -r ${prefix}_init.mat\
     -m mattes[ $imgs, $metparams ] $rig \
     -m mattes[ $imgs, $metparams ] $aff \
     -u $uval -b 0 -z 1 \
-    -o [${prefix}_L,${prefix}_L_aff.nii.gz]
+    -o [ ${prefix}_L,${prefix}_L_aff.nii.gz]
 $reg -d $dim -r ${prefix}_L0GenericAffine.mat \
     -m mattes[ $imgs , 1 , 32 ] \
     -t $dtx \
-    -c [${synits},1.e-8,10]  \
+    -c [ ${synits},1.e-8,10 ]  \
     -s 3x2x1x0 \
     -f 8x4x2x1 \
     -u $uval -b 0 -z 1 \
-    -o [${prefix}_L,${prefix}_L.nii.gz]
+    -o [ ${prefix}_L,${prefix}_L.nii.gz]
 
 $reg -d $dim   -r  ${prefix}_reflection.mat -r ${prefix}_L0GenericAffine.mat \
     -m mattes[ $imgs , 1 , 32 ] \
     -t $dtx \
-    -c [${synits},1.e-8,10]  \
+    -c [ ${synits},1.e-8,10 ]  \
     -s 3x2x1x0 \
     -f 8x4x2x1 \
     -u $uval -b 0 -z 1 \
-    -o [${prefix}_R,${prefix}_R.nii.gz]
+    -o [ ${prefix}_R,${prefix}_R.nii.gz]
 
 ##########################################################
 ANTSJacobian $dim ${prefix}_R1Warp.nii.gz  ${prefix}_R 1

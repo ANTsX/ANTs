@@ -25,7 +25,7 @@
 
 namespace itk
 {
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
 ::SplitAlternatingTimeSeriesImageFilter()
 {
@@ -34,7 +34,7 @@ SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
   this->SetNthOutput( 1, this->MakeOutput(1) );
 }
 
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 void
 SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
 ::PrintSelf(std::ostream & os, Indent indent) const
@@ -45,7 +45,7 @@ SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
 /**
  * \sa UnaryFunctorImageFilter::GenerateOutputInformation()
  */
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 void
 SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
 ::GenerateOutputInformation()
@@ -98,7 +98,7 @@ SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
     }
 }
 
-template< class TInputImage, class TOutputImage >
+template< typename TInputImage, typename TOutputImage >
 void
 SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
 ::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,

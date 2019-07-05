@@ -24,7 +24,7 @@
 
 namespace ants
 {
-template <class TFilter>
+template <typename TFilter>
 class CommandIterationUpdate : public itk::Command
 {
 public:
@@ -206,9 +206,9 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
   // we define the options in the InitializeCommandLineOptions function
   // and then use them here ...
   typedef vtkPolyData MeshType;
-  vtkSmartPointer<MeshType> labelmesh = ITK_NULLPTR;
-  vtkSmartPointer<MeshType> featuremesh = ITK_NULLPTR;
-  vtkSmartPointer<MeshType> inflatedmesh = ITK_NULLPTR;
+  vtkSmartPointer<MeshType> labelmesh = nullptr;
+  vtkSmartPointer<MeshType> featuremesh = nullptr;
+  vtkSmartPointer<MeshType> inflatedmesh = nullptr;
   typedef itk::FEMDiscConformalMap<MeshType, ImageType> ParamType;
   typename ParamType::Pointer flattener = ParamType::New();
   flattener->SetDebug(false);
@@ -403,7 +403,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     }
 
   // do stuff -- but not implemented yet
-  //   flattener->SetDiscBoundaryList(ITK_NULLPTR);
+  //   flattener->SetDiscBoundaryList(nullptr);
 
   std::cout << " you will flatten " << labeltoflatten << ".  param while searching? " << paramws << std::endl;
   flattener->SetSigma(1);
@@ -470,7 +470,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTSConformalMapping( std::vector<std::string> args, std::ostream* out_stream = ITK_NULLPTR )
+int ANTSConformalMapping( std::vector<std::string> args, std::ostream* out_stream = nullptr )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

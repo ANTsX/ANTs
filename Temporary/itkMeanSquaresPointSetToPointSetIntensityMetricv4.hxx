@@ -24,7 +24,7 @@ namespace itk
 {
 
 /** Constructor */
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::MeanSquaresPointSetToPointSetIntensityMetricv4()
 {
@@ -38,17 +38,16 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 }
 
 /** Destructor */
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::~MeanSquaresPointSetToPointSetIntensityMetricv4()
-{
-}
+= default;
 
 /** Initialize the metric */
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
-::Initialize( void ) throw ( ExceptionObject )
+::Initialize( void )
 {
   Superclass::Initialize();
 
@@ -62,7 +61,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
     }
 }
 
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::InitializePointSets() const
@@ -76,7 +75,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
     }
 }
 
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::TransformFixedPointSetGradients() const
@@ -124,7 +123,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
     }
 }
 
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::TransformMovingPointSetGradients() const
@@ -171,7 +170,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
     }
 }
 
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::EstimateEuclideanDistanceSigma()
@@ -217,7 +216,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   this->m_EuclideanDistanceSigma = std::sqrt( runningDistanceSigma / static_cast<TInternalComputationValueType>( count ) );
 }
 
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::EstimateIntensityDistanceSigma()
@@ -300,15 +299,15 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // Now determine the sigma using a reasonable heuristic.
 
-  this->m_IntensityDistanceSigma = vnl_math_max( maxMovingIntensity, maxFixedIntensity )
-    - vnl_math_min( minMovingIntensity, maxMovingIntensity );
+  this->m_IntensityDistanceSigma = std::max( maxMovingIntensity, maxFixedIntensity )
+    - std::min( minMovingIntensity, maxMovingIntensity );
   if( this->m_IntensityDistanceSigma == 0 )
     {
-    this->m_IntensityDistanceSigma = vnl_math_max( maxMovingIntensity, maxFixedIntensity );
+    this->m_IntensityDistanceSigma = std::max( maxMovingIntensity, maxFixedIntensity );
     }
 }
 
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 typename MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::MeasureType
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
@@ -341,7 +340,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic icp term
   const MeasureType euclideanDistance = point.EuclideanDistanceTo( closestPoint );
-  MeasureType distanceProbability = std::exp( -0.5 * vnl_math_sqr( euclideanDistance / this->m_EuclideanDistanceSigma ) );
+  MeasureType distanceProbability = std::exp( -0.5 * itk::Math::sqr ( euclideanDistance / this->m_EuclideanDistanceSigma ) );
 
   SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
   SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5 * numberOfVoxelsInNeighborhood )
@@ -349,14 +348,14 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic intensity term
   MeasureType intensityDistance = pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex];
-  MeasureType intensityProbability = std::exp( -0.5 * vnl_math_sqr( intensityDistance / this->m_IntensityDistanceSigma ) );
+  MeasureType intensityProbability = std::exp( -0.5 * itk::Math::sqr ( intensityDistance / this->m_IntensityDistanceSigma ) );
 
   const MeasureType measure = ( -1.0 ) * intensityProbability * distanceProbability;
 
   return measure;
 }
 
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::GetLocalNeighborhoodValueAndDerivative( const PointType & point,
@@ -389,7 +388,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic icp term
   const MeasureType euclideanDistance = point.EuclideanDistanceTo( closestPoint );
-  MeasureType distanceProbability = std::exp( -0.5 * vnl_math_sqr( euclideanDistance / this->m_EuclideanDistanceSigma ) );
+  MeasureType distanceProbability = std::exp( -0.5 * itk::Math::sqr ( euclideanDistance / this->m_EuclideanDistanceSigma ) );
 
   SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
   SizeValueType centerIntensityIndex =
@@ -397,7 +396,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic intensity term
   MeasureType intensityDistance = pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex];
-  MeasureType intensityProbability = std::exp( -0.5 * vnl_math_sqr( intensityDistance / this->m_IntensityDistanceSigma ) );
+  MeasureType intensityProbability = std::exp( -0.5 * itk::Math::sqr ( intensityDistance / this->m_IntensityDistanceSigma ) );
 
   measure = ( -1.0 ) * intensityProbability * distanceProbability;
 
@@ -414,7 +413,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
     }
 }
 
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 typename LightObject::Pointer
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::InternalClone( void ) const
@@ -427,7 +426,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 }
 
 /** PrintSelf method */
-template<typename TFixedPointSet, typename TMovingPointSet, class TInternalComputationValueType>
+template<typename TFixedPointSet, typename TMovingPointSet, typename TInternalComputationValueType>
 void
 MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 ::PrintSelf( std::ostream & os, Indent indent ) const

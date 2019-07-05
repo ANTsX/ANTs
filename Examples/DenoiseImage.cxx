@@ -19,7 +19,7 @@ namespace ants
 {
 
 
-template <class TFilter>
+template <typename TFilter>
 class CommandProgressUpdate : public itk::Command
 {
 public:
@@ -37,9 +37,9 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(itk::Object *caller, const itk::EventObject & event) override
     {
-    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>( caller );
+    auto *po = dynamic_cast<itk::ProcessObject *>( caller );
     if (! po) return;
 //    std::cout << po->GetProgress() << std::endl;
     if( typeid( event ) == typeid ( itk::ProgressEvent )  )
@@ -59,9 +59,9 @@ public:
       }
     }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event) ITK_OVERRIDE
+  void Execute(const itk::Object * object, const itk::EventObject & event) override
     {
-    itk::ProcessObject *po = dynamic_cast<itk::ProcessObject *>(
+    auto *po = dynamic_cast<itk::ProcessObject *>(
       const_cast<itk::Object *>( object ) );
     if (! po) return;
 
@@ -105,10 +105,10 @@ int Denoise( itk::ants::CommandLineParser *parser )
     }
 
   typedef itk::Image<RealType, ImageDimension> ImageType;
-  typename ImageType::Pointer inputImage = ITK_NULLPTR;
+  typename ImageType::Pointer inputImage = nullptr;
 
   //typedef itk::Image<RealType, ImageDimension> MaskImageType;
-  //typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  //typename MaskImageType::Pointer maskImage = nullptr;
 
   typename OptionType::Pointer inputImageOption = parser->GetOption( "input-image" );
   if( inputImageOption && inputImageOption->GetNumberOfFunctions() )
@@ -181,7 +181,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
    * handle the mask image
    */
   typedef typename DenoiserType::MaskImageType MaskImageType;
-  typename MaskImageType::Pointer maskImage = ITK_NULLPTR;
+  typename MaskImageType::Pointer maskImage = nullptr;
 
   typename OptionType::Pointer maskImageOption = parser->GetOption( "mask-image" );
   if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
@@ -523,7 +523,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int DenoiseImage( std::vector<std::string> args, std::ostream* /*out_stream = ITK_NULLPTR */ )
+int DenoiseImage( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -541,7 +541,7 @@ int DenoiseImage( std::vector<std::string> args, std::ostream* /*out_stream = IT
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = ITK_NULLPTR;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {

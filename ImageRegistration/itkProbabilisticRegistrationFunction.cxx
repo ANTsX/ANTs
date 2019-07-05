@@ -15,8 +15,8 @@
 #define _itkProbabilisticRegistrationFunction_hxx_
 
 #include "itkProbabilisticRegistrationFunction.h"
-#include "itkExceptionObject.h"
-#include "vnl/vnl_math.h"
+#include "itkMacro.h"
+#include "itkMath.h"
 #include "itkImageFileWriter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkMeanImageFilter.h"
@@ -28,7 +28,7 @@ namespace itk
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ProbabilisticRegistrationFunction()
 {
@@ -45,13 +45,13 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   m_TimeStep = 1.0;
   m_DenominatorThreshold = 1e-9;
   m_IntensityDifferenceThreshold = 0.001;
-  Superclass::m_MovingImage = ITK_NULLPTR;
-  m_MetricGradientImage = ITK_NULLPTR;
-  Superclass::m_FixedImage = ITK_NULLPTR;
+  Superclass::m_MovingImage = nullptr;
+  m_MetricGradientImage = nullptr;
+  Superclass::m_FixedImage = nullptr;
   m_FixedImageSpacing.Fill( 1.0 );
   m_FixedImageOrigin.Fill( 0.0 );
   m_FixedImageGradientCalculator = GradientCalculatorType::New();
-  binaryimage = ITK_NULLPTR;
+  binaryimage = nullptr;
   m_FullyRobust = false;
   m_MovingImageGradientCalculator = GradientCalculatorType::New();
 
@@ -60,21 +60,21 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 
   m_MovingImageInterpolator = static_cast<InterpolatorType *>(
       interp.GetPointer() );
-  for( int i = 0; i < 5; i++ )
+  for(auto & finitediffimage : finitediffimages)
     {
-    finitediffimages[i] = ITK_NULLPTR;
+    finitediffimage = nullptr;
     }
 
   m_NumberOfHistogramBins = 32;
 
-  m_FixedImageMask = ITK_NULLPTR;
-  m_MovingImageMask = ITK_NULLPTR;
+  m_FixedImageMask = nullptr;
+  m_MovingImageMask = nullptr;
 }
 
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PrintSelf(std::ostream& os, Indent indent) const
@@ -95,7 +95,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
@@ -569,7 +569,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIterationOld()
@@ -793,7 +793,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ComputeMetricAtPairB(IndexType oindex, typename TDisplacementField::PixelType /* vec */)
@@ -803,10 +803,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   double sff = 0.0;
   double smm = 0.0;
   double sfm = 0.0;
-//  double fixedValue;
-//  double movingValue;
-  PointType           mappedPoint;
-  CovariantVectorType gradI, gradJ;
+  CovariantVectorType gradI;
   if( this->m_FixedImageMask )
     {
     if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )
@@ -870,7 +867,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDisplacementField>
+template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 typename TDisplacementField::PixelType
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ComputeMetricAtPairC(IndexType oindex, typename TDisplacementField::PixelType /* vec */)
@@ -880,10 +877,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   double sff = 0.0;
   double smm = 0.0;
   double sfm = 0.0;
-//  double fixedValue;
-//  double movingValue;
-  PointType           mappedPoint;
-  CovariantVectorType gradI, gradJ;
+  CovariantVectorType gradJ;
   if( this->m_FixedImageMask )
     {
     if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )

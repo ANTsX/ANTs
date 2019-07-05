@@ -28,13 +28,12 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 LogTensorImageFilter<TInputImage, TOutputImage>
 ::LogTensorImageFilter()
-{
-}
+= default;
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 LogTensorImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
@@ -60,7 +59,7 @@ LogTensorImageFilter<TInputImage, TOutputImage>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputImage, class TOutput>
+template <typename TInputImage, typename TOutput>
 void
 LogTensorImageFilter<TInputImage, TOutput>
 ::PrintSelf(

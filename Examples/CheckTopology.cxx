@@ -16,12 +16,12 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <stdio.h>
-#include <time.h>
+#include <cstdio>
+#include <ctime>
 
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImage.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "ReadWriteData.h"
 #include "itkRandomImageSource.h"
 #include "itkImageRandomConstIteratorWithIndex.h"
@@ -78,7 +78,7 @@ float vtkComputeTopology(vtkPolyData* pd)
   return g;
 }
 
-template <class TImage>
+template <typename TImage>
 float GetImageTopology(typename TImage::Pointer image)
 {
   typedef TImage      ImageType;
@@ -98,7 +98,7 @@ float GetImageTopology(typename TImage::Pointer image)
   return genus;
 }
 
-template <class TImage>
+template <typename TImage>
 void
 NormalizeImage(typename TImage::Pointer image)
 {
@@ -122,7 +122,7 @@ NormalizeImage(typename TImage::Pointer image)
     }
 }
 
-template <class TImage>
+template <typename TImage>
 typename TImage::Pointer SmoothImage( typename TImage::Pointer image, float sig )
 {
   typedef TImage ImageType;
@@ -138,7 +138,7 @@ typename TImage::Pointer SmoothImage( typename TImage::Pointer image, float sig 
   return filter->GetOutput();
 }
 
-template <class TImage>
+template <typename TImage>
 // std::vector<unsigned int>
 typename TImage::Pointer
 GetLargestComponent(typename TImage::Pointer image)
@@ -165,7 +165,7 @@ GetLargestComponent(typename TImage::Pointer image)
   filter->SetInput(threshold->GetOutput() );
   // if (argc > 5)
     {
-    int fullyConnected = 1;  // atoi( argv[5] );
+    int fullyConnected = 1;  // std::stoi( argv[5] );
     filter->SetFullyConnected( fullyConnected );
     }
   relabel->SetInput( filter->GetOutput() );
@@ -272,7 +272,7 @@ int CheckTopology( std::vector<std::string> args, std::ostream* )
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
-  argv[argc] = 0;
+  argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -316,7 +316,7 @@ private:
     thresh = atof(argv[3]);
     }
   typedef float PixelType;
-  const unsigned int ImageDimension = 3; // AvantsImageDimension;
+  constexpr unsigned int ImageDimension = 3; // AvantsImageDimension;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
   ImageType::Pointer image = ImageType::New();

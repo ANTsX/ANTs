@@ -28,7 +28,7 @@ namespace itk
 {
 namespace ants
 {
-template <class TInputImage, class TRealType = double>
+template <typename TInputImage, typename TRealType = double>
 class antsSCCANObject :
   public ImageToImageFilter<TInputImage, TInputImage>
 {
@@ -49,7 +49,7 @@ public:
   itkStaticConstMacro( ImageDimension, unsigned int,
                        TInputImage::ImageDimension );
 
-  itkStaticConstMacro( MatrixDimension, unsigned int, 2 );
+  static constexpr unsigned int MatrixDimension = 2;
 
   /** Typedef support of input types. */
   typedef TInputImage                   ImageType;
@@ -155,8 +155,8 @@ public:
 
   RealType ReconstructionError( MatrixType, MatrixType );
 
-  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = ITK_NULLPTR,  MatrixType* projecterV =
-                             ITK_NULLPTR )
+  VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = nullptr,  MatrixType* projecterV =
+                             nullptr )
   {
     if( ( !projecterM ) &&  ( !projecterV ) )
       {
@@ -772,7 +772,7 @@ protected:
       {
       if( x_k1[i] < 0 )
         {
-        x_k1[i] = vnl_math_abs( x_k1[i] );
+        x_k1[i] = itk::Math::abs ( x_k1[i] );
         x_k1[i] = 0;
         }
       }
@@ -780,7 +780,7 @@ protected:
 
   void SparsifyOther( VectorType& x_k1 , bool doclassic = false )
   {
-    RealType fnp = vnl_math_abs( this->m_RowSparseness );
+    RealType fnp = itk::Math::abs ( this->m_RowSparseness );
     if( fnp < 1.e-11 )
       {
       return;
@@ -791,7 +791,7 @@ protected:
       if ( fnp > x_k1.max_value() ) fnp = x_k1.max_value() * 0.9;
       for ( unsigned int i = 0; i < x_k1.size(); i++ )
 	{
-	RealType delta = vnl_math_abs( x_k1( i ) ) - fnp;
+	RealType delta = itk::Math::abs ( x_k1( i ) ) - fnp;
 	if ( delta < 0 ) delta = 0; else if ( x_k1( i ) < 0 ) delta *= ( -1 );
 	x_k1( i ) = delta;
 	}
@@ -802,7 +802,7 @@ protected:
       if ( fnp > x_k1.max_value() ) fnp = x_k1.max_value() * 0.9;
       for ( unsigned int i = 0; i < x_k1.size(); i++ )
 	{
-	RealType delta = vnl_math_abs( x_k1( i ) ) - fnp;
+	RealType delta = itk::Math::abs ( x_k1( i ) ) - fnp;
 	if ( delta < 0 ) delta = 0;
 	x_k1( i ) = delta;
 	}
@@ -817,19 +817,19 @@ protected:
       {
       keeppos = true;
       }
-    this->Sparsify( x_k1, fnp, keeppos, 0, ITK_NULLPTR );
+    this->Sparsify( x_k1, fnp, keeppos, 0, nullptr );
     this->m_UseL1 = usel1;
   }
 
   void SparsifyP( VectorType& x_k1 )
   {
-    RealType fnp = vnl_math_abs( this->m_FractionNonZeroP  );
+    RealType fnp = itk::Math::abs ( this->m_FractionNonZeroP  );
     this->Sparsify( x_k1, fnp, this->m_KeepPositiveP, this->m_MinClusterSizeP, this->m_MaskImageP);
   }
 
   void SparsifyQ( VectorType& x_k1 )
   {
-    RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ  );
+    RealType fnp = itk::Math::abs ( this->m_FractionNonZeroQ  );
     this->Sparsify( x_k1, fnp, this->m_KeepPositiveQ, this->m_MinClusterSizeQ, this->m_MaskImageQ);
   }
 
@@ -852,7 +852,7 @@ protected:
       return;
       }
     bool negate = false;
-    if ( vnl_math_abs( x_k1.min_value() ) > x_k1.max_value() )
+    if ( itk::Math::abs ( x_k1.min_value() ) > x_k1.max_value() )
       {
       negate = true;
       }
@@ -877,15 +877,15 @@ protected:
       RealType  maxval = x_k1sort[ maxjind ];
       RealType  minval = x_k1sort[ minjind ];
       RealType    high = maxval;
-      if ( vnl_math_abs( minval ) > high ) high = vnl_math_abs( minval );
+      if ( itk::Math::abs ( minval ) > high ) high = itk::Math::abs ( minval );
       //    if ( high * 0.2  > 0 ) low = high * 0.2; // hack to speed convergence
       RealType     eng = fnp;
       RealType     mid = low + 0.5 * ( high - low );
       unsigned int its = 0;
       RealType     fnm = 0;
-      RealType     lastfnm = 1;
+      //NOT USED: RealType     lastfnm = 1;
       while( ( ( eng > (fnp*0.1) )  &&
-               ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
+               ( itk::Math::abs ( high - low ) > this->m_Epsilon )  &&
                ( its < 20 ) ) || its < 3  )
         {
         mid = low + 0.5 * ( high - low );
@@ -896,7 +896,7 @@ protected:
         searcherm = this->SpatiallySmoothVector( searcherm, mask );
         //      if ( its > 10 & fnm > 0.99 ) std::cout << " C " << searcherm << std::endl;
         //      if ( its > 10 & fnm > 0.99 ) exit(1);
-        lastfnm = fnm;
+        //NOT USED: lastfnm = fnm;
         fnm = this->CountNonZero( searcherm );
         if( fnm > fnp )
           {
@@ -906,7 +906,7 @@ protected:
           {
   	      high = mid; // 0.5 * ( high + mid  );
           }
-        eng = vnl_math_abs( fnp - fnm );
+        eng = itk::Math::abs ( fnp - fnm );
         its++;
         }
       this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
@@ -914,7 +914,7 @@ protected:
     else
       {
       for ( unsigned long j = 0; j < x_k1.size(); ++j )
-        if ( vnl_math_abs( x_k1[ j ] ) < (1.0-fnp) )  x_k1[ j ] = 0;
+        if ( itk::Math::abs ( x_k1[ j ] ) < (1.0-fnp) )  x_k1[ j ] = 0;
       this->SoftClustThreshold( x_k1, 0, keeppos,  clust, mask  );
       }
     x_k1 = this->SpatiallySmoothVector( x_k1, mask );
@@ -962,7 +962,7 @@ protected:
     RealType     fnm = 0;
     RealType     lastfnm = 1;
     while( ( ( eng > 5.e-3 )  &&
-             ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
+             ( itk::Math::abs ( high - low ) > this->m_Epsilon )  &&
              ( its < 50 ) ) ||
 	     its < 5
 	 )
@@ -982,7 +982,7 @@ protected:
         {
         high = mid;
         }
-      eng = vnl_math_abs( fnp - fnm );
+      eng = itk::Math::abs ( fnp - fnm );
       its++;
       }
 
@@ -1041,7 +1041,7 @@ protected:
 
     for( unsigned int i = 0; i < v.size(); i++ )
       {
-      if( vnl_math_abs( v[i] ) > this->m_Epsilon )
+      if( itk::Math::abs ( v[i] ) > this->m_Epsilon )
         {
         ct++;
         }
@@ -1053,7 +1053,7 @@ protected:
   {
     RealType eps = this->m_Epsilon * 5.0;
     //    eps = 0.0001;
-    if ( vnl_math_abs( x - itk::NumericTraits<RealType>::ZeroValue() ) < eps ) return true;
+    if ( itk::Math::abs ( x - itk::NumericTraits<RealType>::ZeroValue() ) < eps ) return true;
     return false;
   }
 
@@ -1074,7 +1074,7 @@ protected:
       {
       return 0;
       }
-    return vnl_math_abs( numer / denom );
+    return itk::Math::abs ( numer / denom );
   }
 
   RealType RPearsonCorr(VectorType v1, VectorType v2 )
@@ -1116,7 +1116,7 @@ protected:
       {
       return 0;
       }
-    return vnl_math_abs( numer / denom );
+    return itk::Math::abs ( numer / denom );
   }
 
 
@@ -1178,11 +1178,9 @@ protected:
   }
 
   antsSCCANObject();
-  virtual ~antsSCCANObject() ITK_OVERRIDE
-  {
-  }
+  ~antsSCCANObject() override = default;
 
-  void PrintSelf( std::ostream &, /* os */ Indent /* indent */) const ITK_OVERRIDE
+  void PrintSelf( std::ostream &, /* os */ Indent /* indent */) const override
   {
     if( this->m_MaskImageP && this->m_MaskImageQ && this->m_MaskImageR )
       {

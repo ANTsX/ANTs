@@ -20,6 +20,12 @@ include(CMakeDependentOption)
 # Build option(s)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
+option(ANTS_BUILD_WITH_CCACHE "Build ${LOCAL_PROJECT_NAME} using ccache if available." ON)
+mark_as_advanced(ANTS_BUILD_WITH_CCACHE)
+if(ANTS_BUILD_WITH_CCACHE)
+  include(CCache)
+endif()
+
 option(BUILD_SHARED_LIBS "Build ITK with shared libraries." OFF)
 set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
@@ -32,13 +38,13 @@ set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 # list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
 # if("${isSystemDir}" STREQUAL "-1")
 #   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-# endif("${isSystemDir}" STREQUAL "-1")
+# endif()
 #####################################################################################################
 
-set(USE_ITKv4 ON)
-set(ITK_VERSION_MAJOR 4 CACHE STRING "Choose the expected ITK major version to build ANTS only version 4 allowed.")
+set(USE_ITKv5 ON)
+set(ITK_VERSION_MAJOR 5 CACHE STRING "Choose the expected ITK major version to build ANTS only version 5 allowed.")
 # Set the possible values of ITK major version for cmake-gui
-set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "4")
+set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "5")
 set(expected_ITK_VERSION_MAJOR ${ITK_VERSION_MAJOR})
 if(${ITK_VERSION_MAJOR} VERSION_LESS ${expected_ITK_VERSION_MAJOR})
   # Note: Since ITKv3 doesn't include a ITKConfigVersion.cmake file, let's check the version
@@ -158,4 +164,3 @@ if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
   endif()
 endif()
-

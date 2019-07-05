@@ -24,14 +24,15 @@
 
 namespace itk
 {
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 ::AlternatingValueSimpleSubtractionImageFilter()
 {
   m_SubtractionDimension = InputImageDimension - 1;
+  this->DynamicMultiThreadingOff();
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 ::PrintSelf(std::ostream & os, Indent indent) const
@@ -41,10 +42,10 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
   os << indent << "SubtractionDimension: " << m_SubtractionDimension << std::endl;
 }
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation()
+::VerifyInputInformation() const
 {
   Superclass::VerifyInputInformation();
 
@@ -81,7 +82,7 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 /**
  * \sa UnaryFunctorImageFilter::GenerateOutputInformation()
  */
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 ::GenerateOutputInformation()
@@ -175,7 +176,7 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 }
 
 /*
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 ::GenerateInputRequestedRegion()
@@ -221,7 +222,7 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 }
 */
 
-template <class TInputImage, class TOutputImage>
+template <typename TInputImage, typename TOutputImage>
 void
 AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 ::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,

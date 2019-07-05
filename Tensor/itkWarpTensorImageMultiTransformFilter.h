@@ -77,10 +77,10 @@ namespace itk
  * \ingroup GeometricTransforms MultiThreaded
  */
 template <
-  class TInputImage,
-  class TOutputImage,
-  class TDisplacementField,
-  class TTransform
+  typename TInputImage,
+  typename TOutputImage,
+  typename TDisplacementField,
+  typename TTransform
   >
 class WarpTensorImageMultiTransformFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
@@ -281,9 +281,7 @@ public:
   bool m_bFirstDeformNoInterp;
 protected:
   WarpTensorImageMultiTransformFilter();
-  ~WarpTensorImageMultiTransformFilter()
-  {
-  };
+  ~WarpTensorImageMultiTransformFilter() = default;
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** WarpTensorImageMultiTransformFilter is implemented as a multi-threaded filter.
@@ -305,8 +303,8 @@ protected:
 
   InputImagePointer m_CachedSmoothImage;
 private:
-  WarpTensorImageMultiTransformFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);                      // purposely not implemented
+  WarpTensorImageMultiTransformFilter(const Self &) = delete;
+  void operator=(const Self &) = delete;
 };
 } // end namespace itk
 

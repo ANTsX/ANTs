@@ -84,19 +84,19 @@ public:
    * pipeline execution model.
    *
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-  void GenerateInputRequestedRegion() throw( InvalidRequestedRegionError ) ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
   /** Get access to the input image casted as real pixel values */
   itkGetConstObjectMacro( RealValuedInputImage, RealVectorImageType );
 
 protected:
   GeometricJacobianDeterminantImageFilter();
-  virtual ~GeometricJacobianDeterminantImageFilter() ITK_OVERRIDE {}
+  ~GeometricJacobianDeterminantImageFilter() override = default;
 
   /** Do any necessary casting/copying of the input data.  Input pixel types
      whose value types are not real number types must be cast to real number
      types.*/
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
   /** DeformationFieldGradientTensorImageFilter can be implemented as a
    * multithreaded filter (we're only using vnl_det(), which is trivially
@@ -111,9 +111,9 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
   void ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
-                             ThreadIdType threadId ) ITK_OVERRIDE;
+                             ThreadIdType threadId ) override;
 
-  void PrintSelf ( std::ostream& os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf ( std::ostream& os, Indent indent ) const override;
 
 private:
   RadiusType                                    m_NeighborhoodRadius;
@@ -137,8 +137,8 @@ private:
   RealType CalculateTetrahedralVolume( PointType, PointType, PointType, PointType );
   RealType CalculateTriangularArea( PointType, PointType, PointType );
 
-  GeometricJacobianDeterminantImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  GeometricJacobianDeterminantImageFilter(const Self&) = delete;
+  void operator=(const Self&) = delete;
 };
 
 } // end namespace itk

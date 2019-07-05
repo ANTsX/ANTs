@@ -146,7 +146,7 @@ if [[ ${#SIZE[@]} -ne 3 ]];
 
 if [[ ${WHICH_DIRECTION} -gt 2 || ${WHICH_DIRECTION} -lt 0 ]];
   then
-    echo "Error: Direction must be an integer in [0,2]"
+    echo "Error: Direction must be an integer in [0,2 ]"
     exit
   fi
 

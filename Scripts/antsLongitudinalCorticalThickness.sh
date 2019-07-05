@@ -185,10 +185,10 @@ PARAMETERS
 DEBUG_MODE=0
 
 function logCmd() {
-  cmd="$*"
+  cmd="$@"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  $cmd
+  ( "$@" )
 
   cmdExit=$?
 
@@ -371,7 +371,7 @@ FORMAT=${FORMAT%%d*}
 
 REPCHARACTER=''
 TOTAL_LENGTH=0
-if [ ${#FORMAT} -eq 2 ]
+if [[ ${#FORMAT} -eq 2 ]]
   then
     REPCHARACTER=${FORMAT:0:1}
     TOTAL_LENGTH=${FORMAT:1:1}
@@ -675,7 +675,7 @@ if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
          -n 1 \
          -r 1 \
          -l 1 \
-         -m CC[4] \
+         -m CC[ 4 ] \
          -t SyN \
          -y ${AFFINE_UPDATE_FULL} \
          ${TEMPLATE_Z_IMAGES} \
@@ -901,8 +901,7 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
             let PRIOR_LABEL=$j+1
 
             logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} - ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]}
-            logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR} 0 1 1 0
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} m ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR}
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} WindowImage ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 0 1 0 1
           done
 
         logCmd rm -f $TMP_CSF_POSTERIOR
@@ -1026,7 +1025,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
             logCmd ${ANTSPATH}/antsApplyTransforms \
               -d ${DIMENSION} \
               -r ${REGISTRATION_TEMPLATE} \
-              -o [${OUTPUT_LOCAL_PREFIX}SubjectToGroupTemplateWarp.nii.gz,1] \
+              -o [ ${OUTPUT_LOCAL_PREFIX}SubjectToGroupTemplateWarp.nii.gz,1 ] \
               -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}SubjectToTemplate1Warp.nii.gz \
               -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}SubjectToTemplate0GenericAffine.mat \
               -t ${OUTPUT_LOCAL_PREFIX}SubjectToTemplate1Warp.nii.gz \
@@ -1038,7 +1037,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
             logCmd ${ANTSPATH}/antsApplyTransforms \
               -d ${DIMENSION} \
               -r ${ANATOMICAL_REFERENCE_IMAGE} \
-              -o [${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz,1] \
+              -o [ ${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz,1 ] \
               -t ${OUTPUT_LOCAL_PREFIX}TemplateToSubject1GenericAffine.mat \
               -t ${OUTPUT_LOCAL_PREFIX}TemplateToSubject0Warp.nii.gz \
               -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}TemplateToSubject1GenericAffine.mat \

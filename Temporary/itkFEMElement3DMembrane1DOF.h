@@ -35,7 +35,7 @@ namespace fem
  *                to use this class at any level of element definition.
  *                If not specified, it defaults to the Element base class.
  */
-template <class TBaseClass = Element>
+template <typename TBaseClass = Element>
 class Element3DMembrane1DOF : public TBaseClass
 {
   FEM_ABSTRACT_CLASS(Element3DMembrane1DOF, TBaseClass)

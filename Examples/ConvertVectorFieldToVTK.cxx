@@ -29,7 +29,7 @@ namespace ants
 {
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ConvertVectorFieldToVTK( std::vector<std::string> args, std::ostream* out_stream = ITK_NULLPTR )
+int ConvertVectorFieldToVTK( std::vector<std::string> args, std::ostream* out_stream = nullptr )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -82,7 +82,7 @@ private:
     }
 
   typedef float PixelType;
-  const unsigned int ImageDimension = 3;
+  constexpr unsigned int ImageDimension = 3;
 
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Image<int, ImageDimension>       MaskImageType;
@@ -118,7 +118,7 @@ private:
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     size[i] = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[i];
-    if( argc > 4 && atoi( argv[5] ) == (int) i )
+    if( argc > 4 && std::stoi( argv[5] ) == (int) i )
       {
       size[i] = 1;
       }
@@ -143,7 +143,7 @@ private:
     {
     DisplacementFieldType::IndexType idx = It.GetIndex();
 
-    if( ( argc > 4 && idx[atoi( argv[5] )] != atoi( argv[4] ) ) || It.Get() == 0 )
+    if( ( argc > 4 && idx[atoi( argv[5] )] != std::stoi( argv[4] ) ) || It.Get() == 0 )
       {
       continue;
       }

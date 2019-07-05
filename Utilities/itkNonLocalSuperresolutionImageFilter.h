@@ -46,7 +46,7 @@ namespace itk {
  * \ingroup ITKFiltering
  */
 
-template<typename TInputImage, class TOutputImage = TInputImage>
+template<typename TInputImage, typename TOutputImage = TInputImage>
 class NonLocalSuperresolutionImageFilter :
   public NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 {
@@ -195,30 +195,30 @@ public:
 
 protected:
   NonLocalSuperresolutionImageFilter();
-  virtual ~NonLocalSuperresolutionImageFilter() ITK_OVERRIDE {}
+  ~NonLocalSuperresolutionImageFilter() override = default;
 
-  void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream & os, Indent indent ) const override;
 
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
-  void ThreadedGenerateData( const RegionType &, ThreadIdType ) ITK_OVERRIDE;
+  void ThreadedGenerateData( const RegionType &, ThreadIdType ) override;
 
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
+  void BeforeThreadedGenerateData() override;
 
-  void AfterThreadedGenerateData() ITK_OVERRIDE;
+  void AfterThreadedGenerateData() override;
 
-  void AllocateOutputs() ITK_OVERRIDE;
+  void AllocateOutputs() override;
 
-  void VerifyInputInformation() ITK_OVERRIDE;
+  void VerifyInputInformation() const override;
 
-  void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() override;
 
-  void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
 private:
 
-  NonLocalSuperresolutionImageFilter( const Self& ) ITK_DELETED_FUNCTION;
-  void operator=( const Self& ) ITK_DELETED_FUNCTION;
+  NonLocalSuperresolutionImageFilter( const Self& ) = delete;
+  void operator=( const Self& ) = delete;
 
   InputImagePointer PerformMeanCorrection( InputImageType * );
 

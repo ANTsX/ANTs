@@ -43,7 +43,7 @@ namespace itk
  * \ingroup ITKMetricsv4
  */
 template<typename TFixedPointSet, typename TMovingPointSet = TFixedPointSet,
-  class TInternalComputationValueType = double>
+  typename TInternalComputationValueType = double>
 class MeanSquaresPointSetToPointSetIntensityMetricv4:
   public PointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 {
@@ -72,7 +72,7 @@ public:
   /** Dimension type */
   typedef typename Superclass::DimensionType                  DimensionType;
 
-  itkStaticConstMacro( FixedPointDimension, DimensionType, Superclass::FixedDimension );
+  static constexpr DimensionType FixedPointDimension = Superclass::FixedDimension;
 
   /**  Type of the moving point set. */
   typedef TMovingPointSet                                  MovingPointSetType;
@@ -81,13 +81,13 @@ public:
   typedef typename TMovingPointSet::PointsContainer        MovingPointsContainer;
   typedef typename TMovingPointSet::PointDataContainer     MovingPointDataContainer;
 
-  itkStaticConstMacro( MovingPointDimension, DimensionType, Superclass::MovingDimension );
+  static constexpr DimensionType MovingPointDimension = Superclass::MovingDimension;
 
   /** Transform types from Superclass*/
   typedef typename Superclass::FixedTransformType            FixedTransformType;
   typedef typename Superclass::MovingTransformType           MovingTransformType;
 
-  itkStaticConstMacro( PointDimension, DimensionType, Superclass::PointDimension );
+  static constexpr DimensionType PointDimension = Superclass::PointDimension;
 
   /** Types transferred from the base class */
   typedef typename Superclass::MeasureType             MeasureType;
@@ -133,17 +133,17 @@ public:
    /**
     * Initialize the metric by estimating the intensity and distance sigmas
     */
-  void Initialize( void ) throw ( ExceptionObject ) ITK_OVERRIDE;
+  void Initialize( void ) override;
 
   /**
    * Prepare point sets for use.
    */
-  void InitializePointSets() const ITK_OVERRIDE;
+  void InitializePointSets() const override;
 
   /**
    * Calculates the local metric value for a single point.
    */
-  MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & ) const ITK_OVERRIDE;
+  MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & ) const override;
 
   /** Helper method allows for code reuse while skipping the metric value
    * calculation when appropriate */
@@ -153,15 +153,15 @@ public:
    * Calculates the local value and derivative for a single point.
    */
   void GetLocalNeighborhoodValueAndDerivative( const PointType &,
-    MeasureType &, LocalDerivativeType &, const PixelType & ) const ITK_OVERRIDE;
+    MeasureType &, LocalDerivativeType &, const PixelType & ) const override;
 
   /** Clone method will clone the existing instance of this type,
    *  including its internal member variables. */
-  typename LightObject::Pointer InternalClone() const ITK_OVERRIDE;
+  typename LightObject::Pointer InternalClone() const override;
 
 protected:
   MeanSquaresPointSetToPointSetIntensityMetricv4();
-  virtual ~MeanSquaresPointSetToPointSetIntensityMetricv4() ITK_OVERRIDE;
+  ~MeanSquaresPointSetToPointSetIntensityMetricv4() override;
 
   /**
    * Estimate the intensity distance sigma based on simple heuristic
@@ -185,7 +185,7 @@ protected:
 
 
   /** PrintSelf function */
-  void PrintSelf( std::ostream & os, Indent indent ) const ITK_OVERRIDE;
+  void PrintSelf( std::ostream & os, Indent indent ) const override;
 
 private:
   MeanSquaresPointSetToPointSetIntensityMetricv4(const Self &); //purposely not implemented
