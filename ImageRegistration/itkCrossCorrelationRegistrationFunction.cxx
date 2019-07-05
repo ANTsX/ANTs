@@ -15,7 +15,7 @@
 #define _itkCrossCorrelationRegistrationFunction_hxx_
 
 #include "itkCrossCorrelationRegistrationFunction.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "itkMath.h"
 #include "itkImageFileWriter.h"
 #include "itkImageLinearConstIteratorWithIndex.h"

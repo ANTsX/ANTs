@@ -15,7 +15,7 @@
 #define _itkProbabilisticRegistrationFunction_hxx_
 
 #include "itkProbabilisticRegistrationFunction.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "itkMath.h"
 #include "itkImageFileWriter.h"
 #include "itkDiscreteGaussianImageFilter.h"
