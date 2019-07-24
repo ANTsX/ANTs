@@ -8201,6 +8201,11 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
         }
       }
     }
+  
+  WriteImage<ImageType>(outlabimage, outname.c_str() );
+/*
+  // Write debug images, but string manipulation breaks on any path containing periods
+
   std::string::size_type idx;
   idx = outname.find_first_of('.');
   std::string tempname = outname.substr(0, idx);
@@ -8208,13 +8213,13 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
   std::string kname = tempname + std::string("_speed") + extension;
   std::string lname = tempname + std::string("_label") + extension;
   WriteImage<ImageType>(fastimage, kname.c_str() );
-  WriteImage<ImageType>(outlabimage, outname.c_str() );
 
   // this nonsense fixes a type error
   typedef itk::CastImageFilter<LabelImageType, LabelImageType>                 CastFilterType;
   typename CastFilterType::Pointer castRegions = CastFilterType::New();
   castRegions->SetInput( fastMarching->GetLabelImage() );
   WriteImage<LabelImageType>( castRegions->GetOutput(), lname.c_str() );
+*/
 
   return 0;
 }
