@@ -66,8 +66,8 @@ echo " Blending values:   $BLENDINGA and $BLENDINGB"
   done
 
 ITS=100x100x10
-TRAN=SyN[ 0.5]
-REG=Gauss[ 3,1]
+TRAN=SyN[0.5]
+REG=Gauss[3,1]
 RADIUS=6
 
 if [ $NUMPARAMS -le 5 ]
