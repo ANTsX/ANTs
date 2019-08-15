@@ -2896,8 +2896,7 @@ private:
       itk::ants::CommandLineParser::OptionListType::const_iterator it;
       for( it = options.begin(); it != options.end(); ++it )
         {
-        const char *longName = ( ( *it )->GetLongName() ).c_str();
-        if( strstr( longName, value.c_str() ) == longName  )
+        if( ( *it )->GetLongName().find( value ) == 0  )
           {
           sccanparser->PrintMenu( std::cout, 5, false );
           }
