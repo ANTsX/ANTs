@@ -35,7 +35,7 @@
 #include "itkFiniteDifferenceFunction.h"
 #include "itkFixedArray.h"
 #include "itkANTSSimilarityMetric.h"
-#include "itkVectorExpandImageFilter.h"
+#include "itkExpandImageFilter.h"
 #include "itkPDEDeformableRegistrationFilter.h"
 #include "itkWarpImageFilter.h"
 #include "itkWarpImageMultiTransformFilter.h"
@@ -369,7 +369,7 @@ public:
         }
       }
     VectorType pad;  pad.Fill(0);
-    typedef VectorExpandImageFilter<TimeVaryingVelocityFieldType, TimeVaryingVelocityFieldType> ExpanderType;
+    typedef ExpandImageFilter<TimeVaryingVelocityFieldType, TimeVaryingVelocityFieldType> ExpanderType;
     typename ExpanderType::Pointer m_FieldExpander = ExpanderType::New();
     m_FieldExpander->SetInput(this->m_TimeVaryingVelocity);
     m_FieldExpander->SetExpandFactors( expandFactors );
@@ -397,7 +397,7 @@ public:
 
     VectorType pad;
     pad.Fill(0);
-    typedef VectorExpandImageFilter<DisplacementFieldType, DisplacementFieldType> ExpanderType;
+    typedef ExpandImageFilter<DisplacementFieldType, DisplacementFieldType> ExpanderType;
     typename ExpanderType::Pointer m_FieldExpander = ExpanderType::New();
     m_FieldExpander->SetInput(field);
     m_FieldExpander->SetExpandFactors( expandFactors );
