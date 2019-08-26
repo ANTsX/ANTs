@@ -151,7 +151,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
-  set(${proj}_GIT_TAG 683ba61ad9a95e9bbab9dd30e53c1fda3a37519b ) ## 20190703 Fix warning
+  set(${proj}_GIT_TAG  bccf5544c9a689bb70ddfc228da68734f9c54052) ## 20190816 Allow building with LEGACY_REMOVE =on
   set(ITK_VERSION_ID ITK-5.1) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
