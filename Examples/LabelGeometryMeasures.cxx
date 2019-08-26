@@ -15,7 +15,7 @@
 
 #include "itkLabelPerimeterEstimationCalculator.h"
 #include "itkLabelMap.h"
-#include "itkLabelImageToLabelMapFilter.h"
+#include "itkLabelImageToShapeLabelMapFilter.h"
 #include "itkShapeLabelMapFilter.h"
 #include "itkShapeLabelObject.h"
 
@@ -81,7 +81,7 @@ int LabelGeometryMeasures( int argc, char * argv[] )
   typedef itk::LabelMap< LabelObjectType > LabelMapType;
 
   // convert the image in a collection of objects
-  typedef itk::LabelImageToLabelMapFilter<LabelImageType, LabelMapType> ConverterType;
+  typedef itk::LabelImageToShapeLabelMapFilter<LabelImageType, LabelMapType> ConverterType;
   typename ConverterType::Pointer converter = ConverterType::New();
   converter->SetInput( labelImage );
 
