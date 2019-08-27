@@ -164,10 +164,18 @@ int N4( itk::ants::CommandLineParser *parser )
   RealType minOriginal = statsOriginal->GetMinimum( maskLabel );
   RealType maxOriginal = statsOriginal->GetMaximum( maskLabel );
 
+  if( verbose )
+    {
+    std::cout << "Original intensity range:  [" << minOriginal
+              << ", " << maxOriginal << "]" << std::endl;
+    }
+
   if( minOriginal <= 0 )
     {
     if( verbose )
       {
+      std::cout << std::endl;
+      std::cout << "***********************************************************" << std::endl;
       std::cout << "Warning:  Your input image contains nonpositive values" << std::endl;
       std::cout << "which could cause failure or problematic results.  A" << std::endl;
       std::cout << "possible solution would be to:" << std::endl;
@@ -175,6 +183,8 @@ int N4( itk::ants::CommandLineParser *parser )
       std::cout << "   2. run N4 on your rescaled image." << std::endl;
       std::cout << "   3. (optional) rescale the N4 output to the original" << std::endl;
       std::cout << "      intensity range." << std::endl;
+      std::cout << "***********************************************************" << std::endl;
+      std::cout << std::endl;
       }
     }
 
