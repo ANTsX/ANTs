@@ -138,6 +138,60 @@ int N4( itk::ants::CommandLineParser *parser )
     maskImage->FillBuffer( itk::NumericTraits<typename MaskImageType::PixelType>::OneValue() );
     }
 
+  /**
+   * check for negative values in the masked region
+   */
+  typedef itk::Image<unsigned short, ImageDimension> ShortImageType;
+
+  typedef itk::BinaryThresholdImageFilter<MaskImageType, ShortImageType> ThresholderType;
+  typename ThresholderType::Pointer thresholder = ThresholderType::New();
+  thresholder->SetInsideValue( itk::NumericTraits<typename ShortImageType::PixelType>::ZeroValue() );
+  thresholder->SetOutsideValue( itk::NumericTraits<typename ShortImageType::PixelType>::OneValue() );
+  thresholder->SetLowerThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
+  thresholder->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
+  thresholder->SetInput( maskImage );
+
+  typedef itk::LabelStatisticsImageFilter<ImageType, ShortImageType> StatsType;
+  typename StatsType::Pointer statsOriginal = StatsType::New();
+  statsOriginal->SetInput( inputImage );
+  statsOriginal->SetLabelInput( thresholder->GetOutput() );
+  statsOriginal->UseHistogramsOff();
+  statsOriginal->Update();
+
+  typedef typename StatsType::LabelPixelType StatsLabelType;
+  StatsLabelType maskLabel = itk::NumericTraits<StatsLabelType>::OneValue();
+
+  RealType minOriginal = statsOriginal->GetMinimum( maskLabel );
+  RealType maxOriginal = statsOriginal->GetMaximum( maskLabel );
+
+  if( verbose )
+    {
+    std::cout << "Original intensity range:  [" << minOriginal
+              << ", " << maxOriginal << "]" << std::endl;
+    }
+
+  if( minOriginal <= 0 )
+    {
+    if( verbose )
+      {
+      std::cout << std::endl;
+      std::cout << "***********************************************************" << std::endl;
+      std::cout << "Warning:  Your input image contains nonpositive values" << std::endl;
+      std::cout << "which could cause failure or problematic results.  A" << std::endl;
+      std::cout << "possible workaround would be to:" << std::endl;
+      std::cout << "   1. rescale your image to positive values e.g., [10,100]." << std::endl;
+      std::cout << "   2. run N4 on your rescaled image." << std::endl;
+      std::cout << "   3. (optional) rescale the N4 output to the original" << std::endl;
+      std::cout << "      intensity range." << std::endl;
+      std::cout << "***********************************************************" << std::endl;
+      std::cout << std::endl;
+      }
+    }
+
+  /**
+   * handle the weight image
+   */
+
   typename ImageType::Pointer weightImage = nullptr;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer weightImageOption =
@@ -478,37 +532,14 @@ int N4( itk::ants::CommandLineParser *parser )
 
     if( doRescale )
       {
-      typedef itk::Image<unsigned short, ImageDimension> ShortImageType;
+      typename StatsType::Pointer statsBiasCorrected = StatsType::New();
+      statsBiasCorrected->SetInput( divider->GetOutput() );
+      statsBiasCorrected->SetLabelInput( thresholder->GetOutput() );
+      statsBiasCorrected->UseHistogramsOff();
+      statsBiasCorrected->Update();
 
-      typedef itk::BinaryThresholdImageFilter<MaskImageType, ShortImageType> ThresholderType;
-      typename ThresholderType::Pointer thresholder = ThresholderType::New();
-      thresholder->SetInsideValue( itk::NumericTraits<typename ShortImageType::PixelType>::ZeroValue() );
-      thresholder->SetOutsideValue( itk::NumericTraits<typename ShortImageType::PixelType>::OneValue() );
-      thresholder->SetLowerThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
-      thresholder->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
-      thresholder->SetInput( maskImage );
-
-      typedef itk::LabelStatisticsImageFilter<ImageType, ShortImageType> StatsType;
-      typename StatsType::Pointer stats = StatsType::New();
-      stats->SetInput( inputImage );
-      stats->SetLabelInput( thresholder->GetOutput() );
-      stats->UseHistogramsOff();
-      stats->Update();
-
-      typedef typename StatsType::LabelPixelType StatsLabelType;
-      StatsLabelType maskLabel = itk::NumericTraits<StatsLabelType>::OneValue();
-
-      RealType minOriginal = stats->GetMinimum( maskLabel );
-      RealType maxOriginal = stats->GetMaximum( maskLabel );
-
-      typename StatsType::Pointer stats2 = StatsType::New();
-      stats2->SetInput( divider->GetOutput() );
-      stats2->SetLabelInput( thresholder->GetOutput() );
-      stats2->UseHistogramsOff();
-      stats2->Update();
-
-      RealType minBiasCorrected = stats2->GetMinimum( maskLabel );
-      RealType maxBiasCorrected = stats2->GetMaximum( maskLabel );
+      RealType minBiasCorrected = statsBiasCorrected->GetMinimum( maskLabel );
+      RealType maxBiasCorrected = statsBiasCorrected->GetMaximum( maskLabel );
 
       RealType slope = ( maxOriginal - minOriginal ) / ( maxBiasCorrected - minBiasCorrected );
 
