@@ -178,7 +178,7 @@ int N4( itk::ants::CommandLineParser *parser )
       std::cout << "***********************************************************" << std::endl;
       std::cout << "Warning:  Your input image contains nonpositive values" << std::endl;
       std::cout << "which could cause failure or problematic results.  A" << std::endl;
-      std::cout << "possible solution would be to:" << std::endl;
+      std::cout << "possible workaround would be to:" << std::endl;
       std::cout << "   1. rescale your image to positive values e.g., [10,100]." << std::endl;
       std::cout << "   2. run N4 on your rescaled image." << std::endl;
       std::cout << "   3. (optional) rescale the N4 output to the original" << std::endl;
