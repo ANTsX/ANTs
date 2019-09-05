@@ -279,7 +279,6 @@ matrix:
           update: yes
 
 before_install:
-    - if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then mkdir -p debs && wget http://mirrors.kernel.org/ubuntu/pool/main/c/ccache/ccache_3.7.1-1_amd64.deb -P debs && sudo dpkg -i debs/ccache_3.7.1-1_amd64.deb; fi
     - eval "${MATRIX_EVAL}"
 
 script:
