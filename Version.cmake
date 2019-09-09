@@ -16,9 +16,15 @@ if(NOT ${_GIT_VERSION_RC} STREQUAL "" )
   set(${PROJECT_NAME}_VERSION_RC "${_GIT_VERSION_RC}")
 endif()
 
+set(${PROJECT_NAME}_VERSION "${_GIT_VERSION}")
+set(${PROJECT_NAME}_VERSION_MAJOR "${_GIT_VERSION_MAJOR}")
+set(${PROJECT_NAME}_VERSION_MINOR "${_GIT_VERSION_MINOR}")
+set(${PROJECT_NAME}_VERSION_PATCH "${_GIT_VERSION_PATCH}")
+set(${PROJECT_NAME}_VERSION_TWEAK "${_GIT_VERSION_TWEAK}")
 
 # The hash is the current git sha1 hash tag of the HEAD.
 set(${PROJECT_NAME}_VERSION_HASH "${_GIT_VERSION_HASH}")
+
 
 # DEV or POST is set to the number of commits since this file has been
 # changed. If the MAJOR.MINOR.[PATCH[.TWEAK]] matches "closest"

@@ -72,7 +72,6 @@ if(${LOCAL_PROJECT_NAME}_SUPERBUILD)
   return()
 else()
   project(${LOCAL_PROJECT_NAME}
-    VERSION 3.0.0.0
     DESCRIPTION "Advanced Normalization Tools (ANTs)"
     LANGUAGES CXX C)
   include("${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_PROJECT_NAME}.cmake")
