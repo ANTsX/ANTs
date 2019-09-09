@@ -279,6 +279,7 @@ matrix:
           update: yes
 
 before_install:
+    - ccache -s
     - eval "${MATRIX_EVAL}"
 
 script:
