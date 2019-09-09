@@ -73,16 +73,11 @@ typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   typedef itk::BinaryThresholdImageFilter<TImage, TImage> InputThresholderType;
   typename InputThresholderType::Pointer inputThresholder =
     InputThresholderType::New();
-  PixelType maxValue = itk::NumericTraits<PixelType>::max();
 
   inputThresholder->SetInput( input );
   inputThresholder->SetInsideValue(  insideval );
   inputThresholder->SetOutsideValue( outsideval );
 
-  if( high < low )
-    {
-    high = maxValue;
-    }
   inputThresholder->SetLowerThreshold( (PixelType) low );
   inputThresholder->SetUpperThreshold( (PixelType) high);
   inputThresholder->Update();
