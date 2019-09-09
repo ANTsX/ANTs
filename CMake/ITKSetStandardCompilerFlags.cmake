@@ -248,12 +248,9 @@ macro(check_compiler_platform_flags)
   #-----------------------------------------------------------------------------
   #ITK requires special compiler flags on some platforms.
   if(CMAKE_COMPILER_IS_GNUCXX)
-    # GCC's -Warray-bounds has been shown to throw false positives with -O3 on 4.8.
-    if(UNIX AND (
-      ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_EQUAL "4.8") OR
-      ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER "4.8" AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "4.9") ))
-      set(${PROJECT_NAME}_REQUIRED_CXX_FLAGS "${${PROJECT_NAME}_REQUIRED_CXX_FLAGS} -Wno-array-bounds")
-    endif()
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+      message(FATAL_ERROR "Minimum GCC version is 5.0")
+    endif() 
 
     if("${CMAKE_SYSTEM_NAME}" MATCHES "Linux")
       set(_safe_cmake_required_flags "${CMAKE_REQUIRED_FLAGS}")
@@ -262,11 +259,6 @@ macro(check_compiler_platform_flags)
       set(CMAKE_REQUIRED_FLAGS "${_safe_cmake_required_flags}")
       if(have_gold)
         set(_use_gold_linker_default ON)
-        set(_gold_linker_failure_condition_0 "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "4.9.0")
-        set(_gold_linker_failure_condition_1  NOT BUILD_SHARED_LIBS AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_EQUAL "4.9.0")
-        if( (${_gold_linker_failure_condition_0}) OR (${_gold_linker_failure_condition_1}) )
-          set(_use_gold_linker_default OFF)
-        endif()
         option(${PROJECT_NAME}_USE_GOLD_LINKER "Use the gold linker instead of ld." ${_use_gold_linker_default})
         mark_as_advanced(${PROJECT_NAME}_USE_GOLD_LINKER)
         # The gold linker is approximately 3X faster.
