@@ -145,3 +145,30 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ANTsVersionConfig.h.in"
                "${CMAKE_CURRENT_BINARY_DIR}/ANTsVersionConfig.h" @ONLY IMMEDIATE)
 
 add_subdirectory(Examples)
+
+install(PROGRAMS Scripts/ANTSpexec.sh
+     Scripts/antsASLProcessing.sh
+     Scripts/antsAtroposN4.sh
+     Scripts/antsBOLDNetworkAnalysis.R
+     Scripts/antsBrainExtraction.sh
+     Scripts/antsCorticalThickness.sh
+     Scripts/antsIntermodalityIntrasubject.sh
+     Scripts/antsIntroduction.sh
+     Scripts/antsLaplacianBoundaryCondition.R
+     Scripts/antsLongitudinalCorticalThickness.sh
+     Scripts/antsJointLabelFusion.sh
+     Scripts/antsMultivariateTemplateConstruction.sh
+     Scripts/antsMultivariateTemplateConstruction2.sh
+     Scripts/antsNetworkAnalysis.R
+     Scripts/antsNeuroimagingBattery
+     Scripts/antsRegistrationSyN.sh
+     Scripts/antsRegistrationSyNQuick.sh
+     Scripts/waitForPBSQJobs.pl
+     Scripts/waitForSGEQJobs.pl
+     Scripts/waitForXGridJobs.pl
+     Scripts/waitForSlurmJobs.pl
+                DESTINATION bin
+                PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+                CONFIGURATIONS  Release
+                COMPONENT SCRIPTS
+        )

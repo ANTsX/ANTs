@@ -188,47 +188,6 @@ foreach(ANTS_APP ${VTK_ANTS_APPS})
 endforeach()
 endif()
 
-install(PROGRAMS ../Scripts/ANTSpexec.sh
-     ../Scripts/antsASLProcessing.sh
-     ../Scripts/antsAtroposN4.sh
-     ../Scripts/antsBOLDNetworkAnalysis.R
-     ../Scripts/antsBrainExtraction.sh
-     ../Scripts/antsCorticalThickness.sh
-     ../Scripts/antsIntermodalityIntrasubject.sh
-     ../Scripts/antsIntroduction.sh
-     ../Scripts/antsLaplacianBoundaryCondition.R
-     ../Scripts/antsLongitudinalCorticalThickness.sh
-     ../Scripts/antsJointLabelFusion.sh
-     ../Scripts/antsMultivariateTemplateConstruction.sh
-     ../Scripts/antsMultivariateTemplateConstruction2.sh
-     ../Scripts/antsNetworkAnalysis.R
-     ../Scripts/antsNeuroimagingBattery
-     ../Scripts/antsRegistrationSyN.sh
-     ../Scripts/antsRegistrationSyNQuick.sh
-     ../Scripts/waitForPBSQJobs.pl
-     ../Scripts/waitForSGEQJobs.pl
-     ../Scripts/waitForXGridJobs.pl
-     ../Scripts/waitForSlurmJobs.pl
-                DESTINATION bin
-                PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-                CONFIGURATIONS  Release
-                COMPONENT SCRIPTS
-        )
-
-if( COPY_SCRIPT_FILES_TO_BIN_DIR )
-  message( "-- Copy scripts." )
-  file( GLOB SCRIPT_FILES "../Scripts/*.sh" )
-  file( GLOB PSCRIPT_FILES "../Scripts/*.pl" )
-  foreach( SCRIPT_FILE ${SCRIPT_FILES} )
-    message( "  Copying ${SCRIPT_FILE} to ${CMAKE_CURRENT_BINARY_DIR}/../../bin/" )
-    configure_file( ${SCRIPT_FILE} ${CMAKE_CURRENT_BINARY_DIR}/../../bin/ COPYONLY )
-  endforeach()
-  foreach( SCRIPT_FILE ${PSCRIPT_FILES} )
-    message( "  Copying ${SCRIPT_FILE} to ${CMAKE_CURRENT_BINARY_DIR}/../../bin/" )
-    configure_file( ${SCRIPT_FILE} ${CMAKE_CURRENT_BINARY_DIR}/../../bin/ COPYONLY )
-  endforeach()
-endif()
-
 ## Build test option
 if(BUILD_TESTING)
     add_subdirectory(TestSuite)
