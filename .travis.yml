@@ -289,5 +289,4 @@ script:
   - export ExternalData_OBJECT_STORES=${TRAVIS_BUILD_DIR}/externalobjects
   - "export PATH=\"$(echo ${PATH} | awk -v RS=: -v ORS=: '/ccache/ {next} {print}')\""
   - cmake -GNinja -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON ..
-  - travis_wait 80 ninja -v
-  - cd ANTS-build && ctest
+  - ../buildscripts/travis-command-wrapper.py -s "date" --deadline=$(( $(python -c "import time; print(int(time.time()))") + 4500 )) -- ninja -v && cd ANTS-build && ctest -j2
