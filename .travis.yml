@@ -7,6 +7,9 @@ cache:
     - debs
 dist: xenial
 
+git:
+  depth: false
+
 before_cache:
   - brew cleanup
 
