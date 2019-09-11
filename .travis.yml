@@ -99,7 +99,7 @@ matrix:
         - MATRIX_EVAL="export CC=clang-8 CXX=clang++-8"
 #OSX GCC Starts here
 #    - os: osx
-#      osx_image: xcode10.1
+#      osx_image: xcode10.3
 #      env:
 #        - MATRIX_EVAL="export CC=gcc-5 CXX=g++-5"
 #      addons:
@@ -111,7 +111,7 @@ matrix:
 #            - gcc@5
 #          update: yes
     - os: osx
-      osx_image: xcode10.1
+      osx_image: xcode10.3
       env:
         - MATRIX_EVAL="export CC=gcc-6 CXX=g++-6"
       addons:
@@ -123,7 +123,7 @@ matrix:
             - gcc@6
           update: yes
     - os: osx
-      osx_image: xcode10.1
+      osx_image: xcode10.3
       env:
         - MATRIX_EVAL="export CC=gcc-7 CXX=g++-7"
       addons:
@@ -135,7 +135,7 @@ matrix:
             - gcc@7
           update: yes
     - os: osx
-      osx_image: xcode10.1
+      osx_image: xcode10.3
       env:
         - MATRIX_EVAL="export CC=gcc-8 CXX=g++-8"
       addons:
@@ -147,7 +147,7 @@ matrix:
             - gcc@8
           update: yes
     - os: osx
-      osx_image: xcode10.1
+      osx_image: xcode10.3
       env:
         - MATRIX_EVAL="export CC=gcc-9 CXX=g++-9"
       addons:
@@ -159,6 +159,28 @@ matrix:
             - gcc@9
           update: yes
 #OSX clang starts here
+    - os: osx
+      osx_image: xcode11
+      env:
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
+    - os: osx
+      osx_image: xcode10.3
+      env:
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
     - os: osx
       osx_image: xcode10.2
       env:
