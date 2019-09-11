@@ -17,15 +17,16 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-xenial-3.6
-      - llvm-toolchain-xenial-3.7
-      - llvm-toolchain-xenial-3.8
-      - llvm-toolchain-xenial-3.9
-      - llvm-toolchain-xenial-4.0
-      - llvm-toolchain-xenial-5.0
-      - llvm-toolchain-xenial-6.0
-      - llvm-toolchain-xenial-7
-      - llvm-toolchain-xenial-8
+      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.8 main'
+        key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main'
+      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-4.0 main'
+      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main'
+      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-6.0 main'
+      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main'
+      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main'
+      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main'
+      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main'
       - sourceline: 'ppa:jonathonf/meson'
       - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
         key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
@@ -51,6 +52,7 @@ addons:
       - clang-6.0
       - clang-7
       - clang-8
+      - clang-9
 
 matrix:
   include:
@@ -97,6 +99,9 @@ matrix:
     - os: linux
       env:
         - MATRIX_EVAL="export CC=clang-8 CXX=clang++-8"
+    - os: linux
+      env:
+        - MATRIX_EVAL="export CC=clang-9 CXX=clang++-9"
 #OSX GCC Starts here
 #    - os: osx
 #      osx_image: xcode10.3
