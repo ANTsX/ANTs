@@ -1042,7 +1042,7 @@ private:
 
   // BA - code below creates problems in ANTsR
   //  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-  //                                                            filename.c_str(), itk::ImageIOFactory::ReadMode );
+  //                                                            filename.c_str(), itk::ImageIOFactory::FileModeType::ReadMode );
   //  dimension = imageIO->GetNumberOfDimensions();
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
