@@ -3336,10 +3336,10 @@ RegistrationHelper<TComputeType, VImageDimension>
     // transforms for a SyN registration.
     //
     unsigned int numTransforms = compToRestore->GetNumberOfTransforms();
-    if( (compToRestore->GetNthTransform( numTransforms-1 )->GetTransformCategory() == TransformType::DisplacementField)
-       && (compToRestore->GetNthTransform( numTransforms-2 )->GetTransformCategory() == TransformType::DisplacementField)
-       && (compToRestore->GetNthTransform( numTransforms-3 )->GetTransformCategory() == TransformType::DisplacementField)
-       && (compToRestore->GetNthTransform( numTransforms-4 )->GetTransformCategory() == TransformType::DisplacementField) )
+    if( (compToRestore->GetNthTransform( numTransforms-1 )->GetTransformCategory() == TransformType::TransformCategoryType::DisplacementField)
+       && (compToRestore->GetNthTransform( numTransforms-2 )->GetTransformCategory() == TransformType::TransformCategoryType::DisplacementField)
+       && (compToRestore->GetNthTransform( numTransforms-3 )->GetTransformCategory() == TransformType::TransformCategoryType::DisplacementField)
+       && (compToRestore->GetNthTransform( numTransforms-4 )->GetTransformCategory() == TransformType::TransformCategoryType::DisplacementField) )
       {
       typename DisplacementFieldTransformType::Pointer fixedToMiddleForwardTx =
         dynamic_cast<DisplacementFieldTransformType *>( compToRestore->GetNthTransform( numTransforms-4 ).GetPointer() );
@@ -3505,7 +3505,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 {
   typename CompositeTransformType::Pointer combinedCompositeTransform = CompositeTransformType::New();
 
-  if( compositeTransform->GetTransformCategory() != TransformType::DisplacementField  )
+  if( compositeTransform->GetTransformCategory() != TransformType::TransformCategoryType::DisplacementField  )
     {
     itkExceptionMacro( "The composite transform is not composed strictly of displacement fields." );
     }
@@ -3604,7 +3604,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     collapsedCompositeTransform->AddTransform( this->CollapseLinearTransforms( compositeTransform ) );
     return collapsedCompositeTransform;
     }
-  else if( compositeTransform->GetTransformCategory() == TransformType::DisplacementField )
+  else if( compositeTransform->GetTransformCategory() == TransformType::TransformCategoryType::DisplacementField )
     {
     collapsedCompositeTransform->AddTransform( this->CollapseDisplacementFieldTransforms( compositeTransform ) );
     collapsedCompositeTransform->FlattenTransformQueue();
@@ -3612,13 +3612,13 @@ RegistrationHelper<TComputeType, VImageDimension>
     }
 
   // Find the first linear or displacement field transform
-  typename TransformType::TransformCategoryType currentTransformCategory = TransformType::UnknownTransformCategory;
+  typename TransformType::TransformCategoryType currentTransformCategory = TransformType::TransformCategoryType::UnknownTransformCategory;
   unsigned int startIndex = 0;
   for( unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++ )
     {
     typename TransformType::TransformCategoryType transformCategory =
       compositeTransform->GetNthTransform( n )->GetTransformCategory();
-    if( transformCategory == TransformType::Linear || transformCategory == TransformType::DisplacementField )
+    if( transformCategory == TransformType::TransformCategoryType::Linear || transformCategory == TransformType::TransformCategoryType::DisplacementField )
       {
       currentTransformCategory = transformCategory;
       startIndex = n;
@@ -3632,7 +3632,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
   // If a linear or displacement field transform is found then we can break down the
   // composite transform into neighboring sets of like transform types.
-  if( currentTransformCategory != TransformType::UnknownTransformCategory )
+  if( currentTransformCategory != TransformType::TransformCategoryType::UnknownTransformCategory )
     {
     CompositeTransformPointer currentCompositeTransform = CompositeTransformType::New();
     currentCompositeTransform->AddTransform( compositeTransform->GetNthTransform( startIndex ) );
@@ -3645,11 +3645,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         currentCompositeTransform->AddTransform( compositeTransform->GetNthTransform( n ) );
         if( n == compositeTransform->GetNumberOfTransforms() - 1 )
           {
-          if( currentTransformCategory == TransformType::Linear )
+          if( currentTransformCategory == TransformType::TransformCategoryType::Linear )
             {
             collapsedCompositeTransform->AddTransform( this->CollapseLinearTransforms( currentCompositeTransform ) );
             }
-          else if( currentTransformCategory == TransformType::DisplacementField )
+          else if( currentTransformCategory == TransformType::TransformCategoryType::DisplacementField )
             {
             collapsedCompositeTransform->AddTransform( this->CollapseDisplacementFieldTransforms(
                                                          currentCompositeTransform ) );
@@ -3658,12 +3658,12 @@ RegistrationHelper<TComputeType, VImageDimension>
         }
       else
         {
-        if( currentTransformCategory == TransformType::Linear )
+        if( currentTransformCategory == TransformType::TransformCategoryType::Linear )
           {
           collapsedCompositeTransform->AddTransform( this->CollapseLinearTransforms( currentCompositeTransform ) );
           currentCompositeTransform->ClearTransformQueue();
           }
-        else if( currentTransformCategory == TransformType::DisplacementField )
+        else if( currentTransformCategory == TransformType::TransformCategoryType::DisplacementField )
           {
           collapsedCompositeTransform->AddTransform( this->CollapseDisplacementFieldTransforms(
                                                        currentCompositeTransform ) );
@@ -3671,7 +3671,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         currentTransformCategory = transformCategory;
 
-        if( ( transformCategory == TransformType::Linear || transformCategory == TransformType::DisplacementField ) &&
+        if( ( transformCategory == TransformType::TransformCategoryType::Linear || transformCategory == TransformType::TransformCategoryType::DisplacementField ) &&
             n < compositeTransform->GetNumberOfTransforms() - 1 )
           {
           currentCompositeTransform->AddTransform( compositeTransform->GetNthTransform( n ) );

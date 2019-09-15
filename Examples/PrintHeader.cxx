@@ -456,7 +456,7 @@ private:
     }
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(
-      fn.c_str(), itk::ImageIOFactory::ReadMode);
+      fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
   imageIO->SetFileName(fn.c_str() );
   try
     {

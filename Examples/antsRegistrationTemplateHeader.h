@@ -1240,8 +1240,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     unsigned int numStateComponents = savedStateTx->GetNumberOfTransforms();
     // If the last two transforms are displacement field transforms, we add their inverse displacement field to the saved state composite.
-    if( savedStateTx->GetNthTransform( numStateComponents-1 )->GetTransformCategory() == TransformType::DisplacementField
-       && savedStateTx->GetNthTransform( numStateComponents-2 )->GetTransformCategory() == TransformType::DisplacementField )
+    if( savedStateTx->GetNthTransform( numStateComponents-1 )->GetTransformCategory() == TransformType::TransformCategoryType::DisplacementField
+       && savedStateTx->GetNthTransform( numStateComponents-2 )->GetTransformCategory() == TransformType::TransformCategoryType::DisplacementField )
       {
       typename DisplacementFieldTransformType::Pointer oneToEndTransform =
         dynamic_cast<DisplacementFieldTransformType *>( savedStateTx->GetNthTransform( numStateComponents-2 ).GetPointer() );
@@ -1281,13 +1281,13 @@ DoRegistration(typename ParserType::Pointer & parser)
       TransformTypeNames.clear();
       for( unsigned int i = 0; i < numTransforms; i++ )
         {
-        if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::Linear )
+        if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::TransformCategoryType::Linear )
           {
           // The output type must be Affine, not matrixoffset!  TransformTypeNames.push_back( "matrixoffset" );
           TransformTypeNames.emplace_back("genericaffine" );
           }
         else if( transformToWrite->GetNthTransform( i )->GetTransformCategory() ==
-          TransformType::DisplacementField )
+          TransformType::TransformCategoryType::DisplacementField )
           {
           typename DisplacementFieldTransformType::Pointer nthTransform =
             dynamic_cast<DisplacementFieldTransformType *>( transformToWrite->GetNthTransform( i ).GetPointer() );
@@ -1305,7 +1305,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             TransformTypeNames.emplace_back("gdf" );
             }
           }
-        else if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::BSpline )
+        else if( transformToWrite->GetNthTransform( i )->GetTransformCategory() == TransformType::TransformCategoryType::BSpline )
           {
           TransformTypeNames.emplace_back("bspline" );
           }
