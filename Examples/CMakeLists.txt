@@ -21,12 +21,31 @@ install(TARGETS antsUtilities
     COMPONENT DEVELOPMENT_antsUtilities
   )
 
-macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
+macro(STATIC_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   set( ANTS_FUNCTION_NAME ${ANTS_FUNCTION_NAME} )
 
   add_library(l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}.cxx)
   set_target_properties(l_${ANTS_FUNCTION_NAME} PROPERTIES
-    SOVERSION ${LIBRARY_SOVERSION_INFO}  VERSION ${LIBRARY_VERSION_INFO})
+    SOVERSION ${ANTS_VERSION_MAJOR}  VERSION ${${PROJECT_NAME}_VERSION})
+  message(STATUS "${ANTS_FUNCTION_NAME} ${EXTRA_LIBS}")
+  target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${EXTRA_LIBS} )
+  configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
+  add_executable( ${ANTS_FUNCTION_NAME} cli_${ANTS_FUNCTION_NAME}.cxx )
+  target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME} )
+
+  install(TARGETS ${ANTS_FUNCTION_NAME}
+    RUNTIME DESTINATION bin
+    COMPONENT RUNTIME_${ANTS_FUNCTION_NAME}
+  )
+
+endmacro()
+
+macro(DYNAMIC_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
+  set( ANTS_FUNCTION_NAME ${ANTS_FUNCTION_NAME} )
+
+  add_library(l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}.cxx)
+  set_target_properties(l_${ANTS_FUNCTION_NAME} PROPERTIES
+    SOVERSION ${ANTS_VERSION_MAJOR}  VERSION ${${PROJECT_NAME}_VERSION})
   message(STATUS "${ANTS_FUNCTION_NAME} ${EXTRA_LIBS}")
   target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${EXTRA_LIBS} )
   configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
@@ -43,6 +62,7 @@ macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   )
 
 endmacro()
+
 
 #set(PROG_WITH_NO_FLAG simpleSynRegistration)
 #add_executable(${PROG_WITH_NO_FLAG} ${PROG_WITH_NO_FLAG}.cxx)
@@ -154,17 +174,29 @@ set(MORE_ANTS_APPS
   )
 
 foreach(ANTS_APP ${CORE_ANTS_APPS})
-  STANDARD_ANTS_BUILD(${ANTS_APP} "")
+  if (BUILD_SHARED_LIBS)
+    DYNAMIC_ANTS_BUILD(${ANTS_APP} "")
+  else()
+    STATIC_ANTS_BUILD(${ANTS_APP} "")
+  endif()
 endforeach()
 
 if (BUILD_ALL_ANTS_APPS)
   foreach(ANTS_APP ${MORE_ANTS_APPS})
-    STANDARD_ANTS_BUILD(${ANTS_APP} "")
+    if (BUILD_SHARED_LIBS)
+     DYNAMIC_ANTS_BUILD(${ANTS_APP} "")
+    else()
+      STATIC_ANTS_BUILD(${ANTS_APP} "")
+    endif()
   endforeach()
 else()
   foreach(ANTS_APP ${MORE_ANTS_APPS})
     if(ANTS_BUILD_${ANTS_APP})
-      STANDARD_ANTS_BUILD(${ANTS_APP} "")
+      if (BUILD_SHARED_LIBS)
+        DYNAMIC_ANTS_BUILD(${ANTS_APP} "")
+      else()
+        STATIC_ANTS_BUILD(${ANTS_APP} "")
+      endif()
     endif()
   endforeach()
 endif()
