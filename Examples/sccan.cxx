@@ -482,7 +482,7 @@ ReadMatrixFromCSVorImageSet( std::string matname, vnl_matrix<PixelType> & p )
       {
       reader->Update();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed(exp) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -603,7 +603,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed(exp) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -837,7 +837,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed(exp) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -883,7 +883,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     {
     writer->Write();
     }
-  catch( itk::ExceptionObject& exp )
+  catch( itk::ExceptionObject& itkNotUsed(exp) )
     {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;

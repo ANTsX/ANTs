@@ -178,7 +178,7 @@ iMathGetLargestComponent( typename ImageType::Pointer image,                    
     {
     relabel->Update();
     }
-  catch( itk::ExceptionObject & excep )
+  catch( itk::ExceptionObject & itkNotUsed(excep) )
     {
     // std::cout << "Relabel: exception caught !" << std::endl;
     // std::cout << excep << std::endl;
@@ -253,7 +253,7 @@ iMathGetLargestComponent( typename ImageType::Pointer image,                    
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )      /*3*/ 
+iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )      /*3*/
 {
 
   typedef itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType,ImageType> FilterType;
