@@ -847,8 +847,8 @@ RegistrationHelper<TComputeType, VImageDimension>
     const unsigned int numberOfLevels = currentStageIterations.size();
     this->Logger() << "  number of levels = " << numberOfLevels << std::endl;
 
-    unsigned int fixedMaskIndex = -1;
-    unsigned int movingMaskIndex = -1;
+    unsigned int fixedMaskIndex = itk::NumericTraits<unsigned int>::max();
+    unsigned int movingMaskIndex = itk::NumericTraits<unsigned int>::max();
     bool useFixedImageMaskForThisStage = false;
     bool useMovingImageMaskForThisStage = false;
 
@@ -1358,7 +1358,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     if( this->m_WriteIntervalVolumes != 0 )
       {
-      optimizerObserver->SetWriteInterationsOutputsInIntervals( this->m_WriteIntervalVolumes );
+      optimizerObserver->SetWriteIterationsOutputsInIntervals( this->m_WriteIntervalVolumes );
       optimizerObserver->SetCurrentStageNumber( currentStageNumber );
       }
 
@@ -1394,7 +1394,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     if( this->m_WriteIntervalVolumes != 0 )
       {
-      optimizerObserver2->SetWriteInterationsOutputsInIntervals( this->m_WriteIntervalVolumes );
+      optimizerObserver2->SetWriteIterationsOutputsInIntervals( this->m_WriteIntervalVolumes );
       optimizerObserver2->SetCurrentStageNumber( currentStageNumber );
       }
 
@@ -1968,7 +1968,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         if( this->m_WriteIntervalVolumes != 0 )
           {
-          displacementFieldRegistrationObserver2->SetWriteInterationsOutputsInIntervals( this->m_WriteIntervalVolumes );
+          displacementFieldRegistrationObserver2->SetWriteIterationsOutputsInIntervals( this->m_WriteIntervalVolumes );
           displacementFieldRegistrationObserver2->SetCurrentStageNumber( currentStageNumber );
           }
         displacementFieldRegistration->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver2 );
@@ -3463,7 +3463,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     {
     typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n-1 );
     typename MatrixOffsetTransformBaseType::ConstPointer matrixOffsetTransform =
-      dynamic_cast<MatrixOffsetTransformBaseType * const>( transform.GetPointer() );
+      dynamic_cast<MatrixOffsetTransformBaseType *>( transform.GetPointer() );
     if( matrixOffsetTransform.IsNotNull() )
      {
      totalTransform->SetCenter( matrixOffsetTransform->GetCenter() );
@@ -3488,7 +3488,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     else
       {
       typename MatrixOffsetTransformBaseType::ConstPointer matrixOffsetTransform =
-        dynamic_cast<MatrixOffsetTransformBaseType * const>( transform.GetPointer() );
+        dynamic_cast<MatrixOffsetTransformBaseType *>( transform.GetPointer() );
       nthTransform->SetCenter( matrixOffsetTransform->GetCenter() );
       nthTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
       nthTransform->SetTranslation( matrixOffsetTransform->GetTranslation() );
