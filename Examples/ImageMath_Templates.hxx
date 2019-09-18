@@ -5967,7 +5967,7 @@ int TensorFunctions(int argc, char *argv[])
       {
       whichvec = std::stoi(fn2.c_str() );
       }
-    catch(std::invalid_argument& e)
+    catch(std::invalid_argument& itkNotUsed(e))
       {
       // arg is not whichvec
       }
@@ -8201,7 +8201,7 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
         }
       }
     }
-  
+
   WriteImage<ImageType>(outlabimage, outname.c_str() );
 /*
   // Write debug images, but string manipulation breaks on any path containing periods

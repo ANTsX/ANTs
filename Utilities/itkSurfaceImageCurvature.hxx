@@ -852,7 +852,6 @@ SurfaceImageCurvature<TSurface>
 
   IndexType index;
 
-  typename ImageType::RegionType requestedRegion;
   ImageIteratorType ti( this->GetInput(), this->GetInput()->GetLargestPossibleRegion() );
 
   //  std::cout << " begin integrate ";
@@ -903,7 +902,6 @@ SurfaceImageCurvature<TSurface>
     return;
     }
 
-  typename ImageType::RegionType requestedRegion;
   OutputImageIteratorType ti1( i1, i1->GetLargestPossibleRegion() );
   OutputImageIteratorType ti2( i2, i2->GetLargestPossibleRegion() );
 
@@ -1041,7 +1039,6 @@ void  SurfaceImageCurvature<TSurface>
     if ( image->GetSpacing()[d] < this->m_MinSpacing )
       this->m_MinSpacing = image->GetSpacing()[d];
   IndexType index;
-  typename ImageType::RegionType requestedRegion;
   this->m_ImageSize = image->GetLargestPossibleRegion().GetSize();
   ImageIteratorType ti( image, image->GetLargestPossibleRegion() );
 

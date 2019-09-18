@@ -159,16 +159,16 @@ private:
   int dim = 0;
   if( argc > 1 )
     {
-      try { 
+      try {
        dim = std::stoi( argv[1] );
       }
-      catch(std::invalid_argument& e){
+      catch(std::invalid_argument& itkNotUsed(e)){
          // if no conversion could be performed
          // assume --help is requested
       }
-      catch(std::out_of_range& e){
-       // if the converted value would fall out of the range of the result type 
-       // or if the underlying function (std::strtol or std::strtoull) sets errno 
+      catch(std::out_of_range& itkNotUsed(e)){
+       // if the converted value would fall out of the range of the result type
+       // or if the underlying function (std::strtol or std::strtoull) sets errno
        // to ERANGE.
       }
       catch(...) {

@@ -37,9 +37,9 @@ protected:
     this->m_origFixedImage = ImageType::New();
     this->m_origMovingImage = ImageType::New();
     this->m_ComputeFullScaleCCInterval = 0;
-    this->m_WriteInterationsOutputsInIntervals = 0;
+    this->m_WriteIterationsOutputsInIntervals = 0;
     this->m_CurrentStageNumber = 0;
-    this->m_CurLevel = -1;
+    this->m_CurrentLevel = itk::NumericTraits<unsigned int>::ZeroValue();
   }
 
 public:
@@ -93,11 +93,11 @@ public:
 #endif
     if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
-      // const unsigned int curLevel = this->m_Optimizer->GetCurrentLevel();
-      const unsigned int curIter = this->m_Optimizer->GetCurrentIteration() + 1;
-      if( curIter == 1 )
+      // const unsigned int CurrentLevel = this->m_Optimizer->GetCurrentLevel();
+      const unsigned int currentIteration = this->m_Optimizer->GetCurrentIteration() + 1;
+      if( currentIteration == 1 )
         {
-        ++this->m_CurLevel;
+        this->m_CurrentLevel++;
         }
 
       const unsigned int lCurrentIteration = this->m_Optimizer->GetCurrentIteration() + 1;
@@ -133,8 +133,8 @@ public:
         this->UpdateFullScaleMetricValue(this->m_Optimizer, metricValue);
         }
 
-      if( ( this->m_WriteInterationsOutputsInIntervals != 0 ) &&
-          ( lCurrentIteration == 1 || (lCurrentIteration % this->m_WriteInterationsOutputsInIntervals == 0 ) ||
+      if( ( this->m_WriteIterationsOutputsInIntervals != 0 ) &&
+          ( lCurrentIteration == 1 || (lCurrentIteration % this->m_WriteIterationsOutputsInIntervals == 0 ) ||
          lCurrentIteration == lastIteration) )
         {
         // This function writes the output volume of each iteration to the disk.
@@ -163,7 +163,7 @@ public:
         this->Logger() << std::flush << std::endl;
         }
 
-      this->m_Optimizer->SetNumberOfIterations( this->m_NumberOfIterations[this->m_CurLevel] );
+      this->m_Optimizer->SetNumberOfIterations( this->m_NumberOfIterations[this->m_CurrentLevel] );
 
       this->m_lastTotalTime = now;
       m_clock.Start();
@@ -177,7 +177,7 @@ public:
 
   itkSetMacro( ComputeFullScaleCCInterval, unsigned int );
 
-  itkSetMacro( WriteInterationsOutputsInIntervals, unsigned int );
+  itkSetMacro( WriteIterationsOutputsInIntervals, unsigned int );
 
   itkSetMacro( CurrentStageNumber, unsigned int );
 
@@ -382,30 +382,30 @@ public:
 
     // write the results to the disk
     std::stringstream currentFileName;
-    currentFileName << "Stage" << this->m_CurrentStageNumber + 1 << "_level" << this->m_CurLevel;
+    currentFileName << "Stage" << this->m_CurrentStageNumber + 1 << "_level" << this->m_CurrentLevel;
     /*
     The name arrangement of written files are important to us.
     To prevent: "Iter1 Iter10 Iter2 Iter20" we use the following style.
     Then the order is: "Iter1 Iter2 ... Iters10 ... Itert20"
     */
 
-    const unsigned int curIter = this->m_Optimizer->GetCurrentIteration() + 1;
+    const unsigned int currentIteration = this->m_Optimizer->GetCurrentIteration() + 1;
 
-    if( curIter < 10 )
+    if( currentIteration < 10 )
       {
-      currentFileName << "_Iter000" << curIter << ".nii.gz";
+      currentFileName << "_Iter000" << currentIteration << ".nii.gz";
       }
-    else if( curIter < 100 )
+    else if( currentIteration < 100 )
       {
-      currentFileName << "_Iter00" << curIter << ".nii.gz";
+      currentFileName << "_Iter00" << currentIteration << ".nii.gz";
       }
-    else if( curIter < 1000 )
+    else if( currentIteration < 1000 )
       {
-      currentFileName << "_Iter0" << curIter << ".nii.gz";
+      currentFileName << "_Iter0" << currentIteration << ".nii.gz";
       }
     else
       {
-      currentFileName << "_Iter" << curIter << ".nii.gz";
+      currentFileName << "_Iter" << currentIteration << ".nii.gz";
       }
     std::cout << "*"; // The star befor each DIAGNOSTIC shows that its output is writtent out.
     std::cout << currentFileName.str() << std::endl; // The star befor each DIAGNOSTIC shows that its output is writtent out.
@@ -443,9 +443,9 @@ private:
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
 
   unsigned int m_ComputeFullScaleCCInterval;
-  unsigned int m_WriteInterationsOutputsInIntervals;
+  unsigned int m_WriteIterationsOutputsInIntervals;
   unsigned int m_CurrentStageNumber;
-  unsigned int m_CurLevel;
+  unsigned int m_CurrentLevel;
 
   typename ImageType::Pointer       m_origFixedImage;
   typename ImageType::Pointer       m_origMovingImage;

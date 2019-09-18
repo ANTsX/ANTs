@@ -191,7 +191,6 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   typedef TDisplacementField FieldType;
   enum { ImageDimension = TImage::ImageDimension };
   typedef itk::Image<float, ImageDimension> FloatImageType;
-  typename FloatImageType::RegionType m_JacobianRegion;
   typename FloatImageType::Pointer mask = nullptr;
   typename FieldType::PixelType pvec;
   if( !v.empty() )
