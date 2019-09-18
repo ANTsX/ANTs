@@ -51,7 +51,7 @@ namespace ants
       {
       LesionReader->Update();
       }
-    catch( itk::ExceptionObject & excp )
+    catch( itk::ExceptionObject & itkNotUsed( excp ) )
       {
       std::cout << "no lesion mask that can be read" << std::endl;
       return 0;
@@ -62,7 +62,7 @@ namespace ants
       {
       T1Reader->Update();
       }
-    catch( itk::ExceptionObject & excp )
+    catch( itk::ExceptionObject & itkNotUsed( excp ) )
       {
       std::cout << "no T1 image that can be read" << std::endl;
       return 0;

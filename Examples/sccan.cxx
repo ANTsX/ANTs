@@ -268,7 +268,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     {
     writer->Write();
     }
-  catch( itk::ExceptionObject& exp )
+  catch( itk::ExceptionObject& itkNotUsed( exp ) )
     {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -302,7 +302,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed( exp ) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -328,7 +328,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed( exp ) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;

@@ -149,7 +149,6 @@ CopyImage(TDisplacementField* field )
   // unsigned int col=0;
   typedef typename TImage::PixelType            PixelType;
   typedef itk::Image<PixelType, ImageDimension> RealImageType;
-  typename RealImageType::RegionType m_JacobianRegion;
 
   typename RealImageType::Pointer m_RealImage = nullptr;
   m_RealImage = AllocImage<RealImageType>(field, 0);
