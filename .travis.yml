@@ -5,7 +5,7 @@ cache:
     - externalobjects
     - $HOME/Library/Caches/Homebrew
     - debs
-dist: xenial
+dist: bionic
 
 git:
   depth: false
@@ -16,19 +16,16 @@ before_cache:
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
-      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.8 main'
+      - sourceline: 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu bionic main'
+        key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x60C317803A41BA51845E371A1E9377A2BA9EF27F'
+      - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-5.0 main'
         key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
-      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main'
-      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-4.0 main'
-      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main'
-      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-6.0 main'
-      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main'
-      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main'
-      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main'
-      - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main'
-      - sourceline: 'ppa:jonathonf/meson'
-      - sourceline: 'deb https://apt.kitware.com/ubuntu/ xenial main'
+      - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-6.0 main'
+      - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-7 main'
+      - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-8 main'
+      - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main'
+      - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
+      - sourceline: 'deb https://apt.kitware.com/ubuntu/ bionic main'
         key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
     packages:
       - cmake
@@ -43,9 +40,6 @@ addons:
       - gcc-7
       - gcc-8
       - gcc-9
-      - clang-3.6
-      - clang-3.7
-      - clang-3.8
       - clang-3.9
       - clang-4.0
       - clang-5.0
@@ -72,15 +66,6 @@ matrix:
       env:
         - MATRIX_EVAL="export CC=gcc-9 CXX=g++-9"
 #Linux Clang Starts Here
-    - os: linux
-      env:
-        - MATRIX_EVAL="export CC=clang-3.6 CXX=clang++-3.6"
-    - os: linux
-      env:
-        - MATRIX_EVAL="export CC=clang-3.7 CXX=clang++-3.7"
-    - os: linux
-      env:
-        - MATRIX_EVAL="export CC=clang-3.8 CXX=clang++-3.8"
     - os: linux
       env:
         - MATRIX_EVAL="export CC=clang-3.9 CXX=clang++-3.9"
