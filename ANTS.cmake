@@ -172,3 +172,8 @@ install(PROGRAMS Scripts/ANTSpexec.sh
                 CONFIGURATIONS  Release
                 COMPONENT SCRIPTS
         )
+
+if(BUILD_SHARED_LIBS AND NOT (USE_SYSTEM_ITK AND USE_SYSTEM_VTK))
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/../staging/lib/
+          DESTINATION lib)
+endif()
