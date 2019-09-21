@@ -1,6 +1,6 @@
 ## Note that the antsUtilities can always be built static.  It will then be linked
 ## Directly into the other libraries.
-add_library(antsUtilities STATIC antsUtilities.cxx
+add_library(antsUtilities antsUtilities.cxx
             antsRegistrationTemplateHeader.cxx
             antsRegistration2DDouble.cxx antsRegistration2DFloat.cxx
             antsRegistration3DDouble.cxx antsRegistration3DFloat.cxx
@@ -216,7 +216,13 @@ set(VTK_ANTS_APPS
   )
 
 foreach(ANTS_APP ${VTK_ANTS_APPS})
-  STANDARD_ANTS_BUILD(${ANTS_APP} "${VTK_LIBRARIES}")
+
+  if (BUILD_SHARED_LIBS)
+    DYNAMIC_ANTS_BUILD(${ANTS_APP} $"${VTK_LIBRARIES}")
+  else()
+    STATIC_ANTS_BUILD(${ANTS_APP} "${VTK_LIBRARIES}")
+  endif()
+
 endforeach()
 endif()
 

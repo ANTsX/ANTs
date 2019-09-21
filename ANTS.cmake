@@ -74,13 +74,12 @@ if(USE_VTK)
    vtkImagingStencil
    vtkImagingGeneral
    vtkRenderingAnnotation
+   vtkFiltersExtraction
    )
   endif()
 
   if(VTK_FOUND)
     include(${VTK_USE_FILE})
-    include_directories(${VTK_INCLUDE_DIRS})
-    set(INIT_VTK_LIBRARIES ${VTK_LIBRARIES})
   else()
      message("Cannot build some programs without VTK.  Please set VTK_DIR if you need these programs.")
   endif()
