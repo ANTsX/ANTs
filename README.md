@@ -29,7 +29,7 @@ ANTs and related tools have won several international and unbiased competitions.
 
 ![ants competes](http://i.imgur.com/HE0j7IC.png)
 
-[ANTsR](https://github.com/ANTsX/ANTsR) is the underlying statistical workhorse.
+[ANTsR](https://github.com/ANTsX/ANTsR) is the underlying statistical workhorse.  ANTsR examples [here](https://rpubs.com/antsr).
 
 [ANTsPy](https://github.com/ANTsX/ANTsPy) is pythonic ANTs/ANTsR.
 
