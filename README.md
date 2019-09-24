@@ -31,7 +31,7 @@ ANTs and related tools have won several international and unbiased competitions.
 
 [ANTsR](https://github.com/ANTsX/ANTsR) is the underlying statistical workhorse.  ANTsR examples [here](https://rpubs.com/antsr).
 
-[ANTsPy](https://github.com/ANTsX/ANTsPy) is pythonic ANTs/ANTsR.
+[ANTsPy](https://github.com/ANTsX/ANTsPy) is pythonic ANTs/ANTsR. See [this content too](https://github.com/stnava/ANTsRPy).
 
 Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2) ... also read our [guide to evaluation strategies and addressing new problems with ANTs or other software](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3766821/).  
 
