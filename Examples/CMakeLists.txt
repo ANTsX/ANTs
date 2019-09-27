@@ -1,3 +1,4 @@
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 ## Note that the antsUtilities can always be built static.  It will then be linked
 ## Directly into the other libraries.
 add_library(antsUtilities antsUtilities.cxx
