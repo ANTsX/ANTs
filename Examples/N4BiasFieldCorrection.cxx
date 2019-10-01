@@ -532,6 +532,8 @@ int N4( itk::ants::CommandLineParser *parser )
 
     if( doRescale )
       {
+      thresholder->GetOutput()->SetRegions( divider->GetOutput()->GetLargestPossibleRegion() );
+
       typename StatsType::Pointer statsBiasCorrected = StatsType::New();
       statsBiasCorrected->SetInput( divider->GetOutput() );
       statsBiasCorrected->SetLabelInput( thresholder->GetOutput() );
