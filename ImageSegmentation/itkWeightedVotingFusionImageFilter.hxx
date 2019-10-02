@@ -580,13 +580,16 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           }
         mxValue /= static_cast<RealType>( this->GetNeighborhoodPatchSize() - 1 );
 
-        if( this->m_Beta == 2.0 )
+        if( this->m_Beta != 1.0 )
           {
-          mxValue *= mxValue;
-          }
-        else
-          {
-          mxValue = std::pow( mxValue, this->m_Beta );
+          if( this->m_Beta == 2.0 )
+            {
+            mxValue *= mxValue;
+            }
+          else
+            {
+            mxValue = std::pow( mxValue, this->m_Beta );
+            }
           }
 
         if( !std::isfinite( mxValue ) )
@@ -774,40 +777,43 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
     It.Set( winningLabel );
     }
 
-  ImageRegionIteratorWithIndex<ProbabilityImageType> ItW( this->m_WeightSumImage,
-    region );
-
-  for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
+  if( this->m_RetainLabelPosteriorProbabilityImages || this->m_RetainAtlasVotingWeightImages )
     {
-    progress.CompletedPixel();
+    ImageRegionIteratorWithIndex<ProbabilityImageType> ItW( this->m_WeightSumImage,
+      region );
 
-    typename ProbabilityImageType::PixelType weightSum = ItW.Get();
-
-    IndexType index = ItW.GetIndex();
-
-    if( weightSum < 0.1 )
+    for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
       {
-      continue;
-      }
+      progress.CompletedPixel();
 
-    if( this->m_RetainLabelPosteriorProbabilityImages )
-      {
-      typename LabelSetType::const_iterator labelIt;
-      for( labelIt = this->m_LabelSet.begin(); labelIt != this->m_LabelSet.end(); ++labelIt )
+      typename ProbabilityImageType::PixelType weightSum = ItW.Get();
+
+      IndexType index = ItW.GetIndex();
+
+      if( weightSum < 0.1 )
         {
-        typename ProbabilityImageType::PixelType labelProbability =
-          this->m_LabelPosteriorProbabilityImages[*labelIt]->GetPixel( index );
-        this->m_LabelPosteriorProbabilityImages[*labelIt]->SetPixel( index, labelProbability / weightSum );
+        continue;
         }
-      }
 
-    if( this->m_RetainAtlasVotingWeightImages )
-      {
-      for( SizeValueType i = 0; i < this->m_NumberOfAtlases; i++ )
+      if( this->m_RetainLabelPosteriorProbabilityImages )
         {
-        typename ProbabilityImageType::PixelType votingWeight =
-          this->m_AtlasVotingWeightImages[i]->GetPixel( index );
-        this->m_AtlasVotingWeightImages[i]->SetPixel( index, votingWeight / weightSum );
+        typename LabelSetType::const_iterator labelIt;
+        for( labelIt = this->m_LabelSet.begin(); labelIt != this->m_LabelSet.end(); ++labelIt )
+          {
+          typename ProbabilityImageType::PixelType labelProbability =
+            this->m_LabelPosteriorProbabilityImages[*labelIt]->GetPixel( index );
+          this->m_LabelPosteriorProbabilityImages[*labelIt]->SetPixel( index, labelProbability / weightSum );
+          }
+        }
+
+      if( this->m_RetainAtlasVotingWeightImages )
+        {
+        for( SizeValueType i = 0; i < this->m_NumberOfAtlases; i++ )
+          {
+          typename ProbabilityImageType::PixelType votingWeight =
+            this->m_AtlasVotingWeightImages[i]->GetPixel( index );
+          this->m_AtlasVotingWeightImages[i]->SetPixel( index, votingWeight / weightSum );
+          }
         }
       }
     }

@@ -57,9 +57,7 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
   auto *composite = dynamic_cast<CompositeTransformType *>(transform);
   if( composite == nullptr )
     {
-    std::cout << "Transform File " << transformName << " is a "
-             << transform->GetNameOfClass() << " not a Composite Transform."
-             << std::endl;
+    std::cout << "Transform File " << transformName << " is not a Composite Transform." << std::endl;
     return EXIT_FAILURE;
     }
 

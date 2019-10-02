@@ -66,8 +66,8 @@ echo " Blending values:   $BLENDINGA and $BLENDINGB"
   done
 
 ITS=100x100x10
-TRAN=SyN[ 0.5]
-REG=Gauss[ 3,1]
+TRAN=SyN[0.5]
+REG=Gauss[3,1]
 RADIUS=6
 
 if [ $NUMPARAMS -le 5 ]
@@ -80,8 +80,8 @@ if [ $USEAFF -ne 0 ]
 then
 ${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATE,$TARGET,1,${RADIUS}]   -t  $TRAN -r $REG -o $OUTNAME   -i $ITS     -x  $MASK  #--MI-option 16x2000
 fi
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii  -R $TEMPLATE ${OUTNAME}Warp.nii ${OUTNAME}Affine.txt
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii  -R $TARGET -i ${OUTNAME}Affine.txt ${OUTNAME}InverseWarp.nii
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii.gz  -R $TEMPLATE ${OUTNAME}Warp.nii.gz ${OUTNAME}Affine.txt
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii.gz  -R $TARGET -i ${OUTNAME}Affine.txt ${OUTNAME}InverseWarp.nii.gz
 fi
 
 if [ $NUMPARAMS -gt 5 ]
@@ -92,16 +92,16 @@ then
 #echo " method 1 "
 ${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATEB,$TARGET,1,${RADIUS}]   -t $TRAN -r $REG -o ${OUTNAME}B  -i $ITS    --number-of-affine-iterations 0    -x $MASK
 ${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATE,$TEMPLATEB,1,${RADIUS}]   -t  $TRAN -r $REG -o ${OUTNAME}A   -i $ITS  --number-of-affine-iterations 0    -x $MASK
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AWarp.nii  -R $TEMPLATE  ${OUTNAME}AWarp.nii ${OUTNAME}AAffine.txt
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AInverseWarp.nii  -R $TEMPLATEB -i ${OUTNAME}AAffine.txt ${OUTNAME}AInverseWarp.nii
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BWarp.nii  -R $TEMPLATEB  ${OUTNAME}BWarp.nii ${OUTNAME}BAffine.txt
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BInverseWarp.nii  -R $TARGET -i ${OUTNAME}BAffine.txt ${OUTNAME}BInverseWarp.nii
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii  -R $TEMPLATE  ${OUTNAME}AWarp.nii ${OUTNAME}BWarp.nii
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii  -R $TARGET  ${OUTNAME}BInverseWarp.nii ${OUTNAME}AInverseWarp.nii
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AWarp.nii.gz  -R $TEMPLATE  ${OUTNAME}AWarp.nii.gz ${OUTNAME}AAffine.txt
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AInverseWarp.nii.gz  -R $TEMPLATEB -i ${OUTNAME}AAffine.txt ${OUTNAME}AInverseWarp.nii.gz
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BWarp.nii.gz  -R $TEMPLATEB  ${OUTNAME}BWarp.nii.gz ${OUTNAME}BAffine.txt
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BInverseWarp.nii.gz  -R $TARGET -i ${OUTNAME}BAffine.txt ${OUTNAME}BInverseWarp.nii.gz
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii.gz  -R $TEMPLATE  ${OUTNAME}AWarp.nii.gz ${OUTNAME}BWarp.nii.gz
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii.gz  -R $TARGET  ${OUTNAME}BInverseWarp.nii.gz ${OUTNAME}AInverseWarp.nii.gz
 #
 #echo " method 2 "
-#${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii  -R $TEMPLATE  ${OUTNAME}AWarp.nii ${OUTNAME}AAffine.txt  ${OUTNAME}BWarp.nii ${OUTNAME}BAffine.txt
-#${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii  -R $TARGET -i ${OUTNAME}BAffine.txt   ${OUTNAME}BInverseWarp.nii -i ${OUTNAME}AAffine.txt  ${OUTNAME}AInverseWarp.nii
+#${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii.gz  -R $TEMPLATE  ${OUTNAME}AWarp.nii.gz ${OUTNAME}AAffine.txt  ${OUTNAME}BWarp.nii.gz ${OUTNAME}BAffine.txt
+#${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii.gz  -R $TARGET -i ${OUTNAME}BAffine.txt   ${OUTNAME}BInverseWarp.nii.gz -i ${OUTNAME}AAffine.txt  ${OUTNAME}AInverseWarp.nii
 #
 fi
 if [ $USEAFF -ne 0 ]
@@ -110,16 +110,16 @@ then
 #echo " method 1 "
 ${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATEB,$TARGET,1,${RADIUS}]   -t $TRAN -r $REG -o ${OUTNAME}B  -i $ITS    -x $MASK
 ${ANTSPATH}/ANTS 2 -m PR[ $TEMPLATE,$TEMPLATEB,1,${RADIUS}]   -t  $TRAN -r $REG -o ${OUTNAME}A   -i $ITS     -x $MASK
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AWarp.nii  -R $TEMPLATE  ${OUTNAME}AWarp.nii ${OUTNAME}AAffine.txt
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AInverseWarp.nii  -R $TEMPLATEB -i ${OUTNAME}AAffine.txt ${OUTNAME}AInverseWarp.nii
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BWarp.nii  -R $TEMPLATEB  ${OUTNAME}BWarp.nii ${OUTNAME}BAffine.txt
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BInverseWarp.nii  -R $TARGET -i ${OUTNAME}BAffine.txt ${OUTNAME}BInverseWarp.nii
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii  -R $TEMPLATE  ${OUTNAME}AWarp.nii ${OUTNAME}BWarp.nii
-${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii  -R $TARGET  ${OUTNAME}BInverseWarp.nii ${OUTNAME}AInverseWarp.nii
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AWarp.nii.gz  -R $TEMPLATE  ${OUTNAME}AWarp.nii.gz ${OUTNAME}AAffine.txt
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}AInverseWarp.nii.gz  -R $TEMPLATEB -i ${OUTNAME}AAffine.txt ${OUTNAME}AInverseWarp.nii.gz
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BWarp.nii.gz  -R $TEMPLATEB  ${OUTNAME}BWarp.nii.gz ${OUTNAME}BAffine.txt
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}BInverseWarp.nii.gz  -R $TARGET -i ${OUTNAME}BAffine.txt ${OUTNAME}BInverseWarp.nii.gz
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii.gz  -R $TEMPLATE  ${OUTNAME}AWarp.nii.gz ${OUTNAME}BWarp.nii
+${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii.gz  -R $TARGET  ${OUTNAME}BInverseWarp.nii.gz ${OUTNAME}AInverseWarp.nii.gz
 #
 #echo " method 2 "
-#${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii  -R $TEMPLATE  ${OUTNAME}AWarp.nii ${OUTNAME}AAffine.txt  ${OUTNAME}BWarp.nii ${OUTNAME}BAffine.txt
-#${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii  -R $TARGET -i ${OUTNAME}BAffine.txt   ${OUTNAME}BInverseWarp.nii -i ${OUTNAME}AAffine.txt  ${OUTNAME}AInverseWarp.nii
+#${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}Warp.nii.gz  -R $TEMPLATE  ${OUTNAME}AWarp.nii.gz ${OUTNAME}AAffine.txt  ${OUTNAME}BWarp.nii.gz ${OUTNAME}BAffine.txt
+#${ANTSPATH}/ComposeMultiTransform 2   ${OUTNAME}InverseWarp.nii.gz  -R $TARGET -i ${OUTNAME}BAffine.txt   ${OUTNAME}BInverseWarp.nii.gz -i ${OUTNAME}AAffine.txt  ${OUTNAME}AInverseWarp.nii
 #
 fi
 fi
@@ -135,22 +135,22 @@ echo " Blending values:   $BLENDINGA and $BLENDINGB"
 BASEA=${TEMPLATE%.*}
 BASEB=${TARGET%.*}
 
-${ANTSPATH}/MultiplyImages 2 ${OUTNAME}InverseWarpxvec.nii  $BLENDINGA  SM${OUTNAME}InverseWarpxvec.nii
-${ANTSPATH}/MultiplyImages 2 ${OUTNAME}InverseWarpyvec.nii  $BLENDINGA  SM${OUTNAME}InverseWarpyvec.nii
+${ANTSPATH}/MultiplyImages 2 ${OUTNAME}InverseWarp.nii.gz  $BLENDINGA  SM${OUTNAME}InverseWarp.nii.gz
+${ANTSPATH}/MultiplyImages 2 ${OUTNAME}InverseWarp.nii.gz  $BLENDINGA  SM${OUTNAME}InverseWarp.nii.gz
 
-${ANTSPATH}/MultiplyImages 2 ${OUTNAME}Warpxvec.nii  $BLENDINGB SM${OUTNAME}Warpxvec.nii
-${ANTSPATH}/MultiplyImages 2 ${OUTNAME}Warpyvec.nii  $BLENDINGB SM${OUTNAME}Warpyvec.nii
+${ANTSPATH}/MultiplyImages 2 ${OUTNAME}Warp.nii.gz  $BLENDINGB SM${OUTNAME}Warp.nii.gz
+${ANTSPATH}/MultiplyImages 2 ${OUTNAME}Warp.nii.gz  $BLENDINGB SM${OUTNAME}Warp.nii.gz
 
-  ${ANTSPATH}/WarpImageMultiTransform 2 $TARGET temp.nii SM${OUTNAME}Warp.nii  -R $TEMPLATE
-  ${ANTSPATH}/ImageMath 2 temp.nii Normalize temp.nii 1
-  ${ANTSPATH}/ImageMath 2 temp.nii m temp.nii 1.   #$BLENDINGA
-  ${ANTSPATH}/WarpImageMultiTransform 2 $TEMPLATE temp2.nii   SM${OUTNAME}InverseWarp.nii -R $TEMPLATE
-  ${ANTSPATH}/ImageMath 2 temp2.nii Normalize temp2.nii  1
-  ${ANTSPATH}/ImageMath 2 temp2.nii m temp2.nii 0  #$BLENDINGB
-  echo "  ImageMath 2 ${BASEA}${BASEB}${BLENDNAME}morph.nii + temp2.nii temp.nii  "
-  ${ANTSPATH}/ImageMath 2 ${BASEA}${BASEB}${BLENDNAME}morph.nii + temp2.nii temp.nii
-  ${ANTSPATH}/ConvertToJpg  ${BASEA}${BASEB}${BLENDNAME}morph.nii ${BASEA}${BASEB}${BLENDNAME}morph.jpg
-  rm  -f  ${BASEA}${BASEB}${BLENDNAME}morph.nii
+  ${ANTSPATH}/WarpImageMultiTransform 2 $TARGET temp.nii.gz SM${OUTNAME}Warp.nii.gz  -R $TEMPLATE
+  ${ANTSPATH}/ImageMath 2 temp.nii.gz Normalize temp.nii.gz 1
+  ${ANTSPATH}/ImageMath 2 temp.nii.gz m temp.nii.gz 1.   #$BLENDINGA
+  ${ANTSPATH}/WarpImageMultiTransform 2 $TEMPLATE temp2.nii.gz   SM${OUTNAME}InverseWarp.nii.gz -R $TEMPLATE
+  ${ANTSPATH}/ImageMath 2 temp2.nii.gz Normalize temp2.nii.gz  1
+  ${ANTSPATH}/ImageMath 2 temp2.nii.gz m temp2.nii.gz 0  #$BLENDINGB
+  echo "  ImageMath 2 ${BASEA}${BASEB}${BLENDNAME}morph.nii.gz + temp2.nii.gz temp.nii.gz  "
+  ${ANTSPATH}/ImageMath 2 ${BASEA}${BASEB}${BLENDNAME}morph.nii.gz + temp2.nii.gz temp.nii.gz
+  ${ANTSPATH}/ConvertToJpg  ${BASEA}${BASEB}${BLENDNAME}morph.nii.gz ${BASEA}${BASEB}${BLENDNAME}morph.jpg
+  rm  -f  ${BASEA}${BASEB}${BLENDNAME}morph.nii.gz
 
    done
 

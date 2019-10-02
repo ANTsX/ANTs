@@ -15,14 +15,6 @@ set (CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
 # Version information
 include(Version.cmake)
 
-set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}")
-if(DEFINED ${PROJECT_NAME}_VERSION_PATCH)
-  set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}.${${PROJECT_NAME}_VERSION_PATCH}")
-  if(DEFINED ${PROJECT_NAME}_VERSION_TWEAK)
-    set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}.${${PROJECT_NAME}_VERSION_TWEAK}")
-  endif()
-endif()
-
 if(DEFINED ${PROJECT_NAME}_VERSION_RC)
   set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}${${PROJECT_NAME}_VERSION_RC}")
 endif()
@@ -31,6 +23,7 @@ if(DEFINED ${PROJECT_NAME}_VERSION_POST)
 elseif(DEFINED ${PROJECT_NAME}_VERSION_DEV)
   set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}.dev${${PROJECT_NAME}_VERSION_DEV}")
 endif()
+
 
 option( ${PROJECT_NAME}_BUILD_DISTRIBUTE "Remove '-g#####' from version. ( for official distribution only )" OFF )
 mark_as_advanced( ${PROJECT_NAME}_BUILD_DISTRIBUTE )
@@ -58,7 +51,7 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
 message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\"")
 
 # Set up ITK
-find_package(ITK 5.0 REQUIRED)
+find_package(ITK ${ITK_VERSION_ID} REQUIRED)
 include(${ITK_USE_FILE})
 
 # Set up which ANTs apps to build
@@ -81,13 +74,12 @@ if(USE_VTK)
    vtkImagingStencil
    vtkImagingGeneral
    vtkRenderingAnnotation
+   vtkFiltersExtraction
    )
   endif()
 
   if(VTK_FOUND)
     include(${VTK_USE_FILE})
-    include_directories(${VTK_INCLUDE_DIRS})
-    set(INIT_VTK_LIBRARIES ${VTK_LIBRARIES})
   else()
      message("Cannot build some programs without VTK.  Please set VTK_DIR if you need these programs.")
   endif()
@@ -152,3 +144,35 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ANTsVersionConfig.h.in"
                "${CMAKE_CURRENT_BINARY_DIR}/ANTsVersionConfig.h" @ONLY IMMEDIATE)
 
 add_subdirectory(Examples)
+
+install(PROGRAMS Scripts/ANTSpexec.sh
+     Scripts/antsASLProcessing.sh
+     Scripts/antsAtroposN4.sh
+     Scripts/antsBOLDNetworkAnalysis.R
+     Scripts/antsBrainExtraction.sh
+     Scripts/antsCorticalThickness.sh
+     Scripts/antsIntermodalityIntrasubject.sh
+     Scripts/antsIntroduction.sh
+     Scripts/antsLaplacianBoundaryCondition.R
+     Scripts/antsLongitudinalCorticalThickness.sh
+     Scripts/antsJointLabelFusion.sh
+     Scripts/antsMultivariateTemplateConstruction.sh
+     Scripts/antsMultivariateTemplateConstruction2.sh
+     Scripts/antsNetworkAnalysis.R
+     Scripts/antsNeuroimagingBattery
+     Scripts/antsRegistrationSyN.sh
+     Scripts/antsRegistrationSyNQuick.sh
+     Scripts/waitForPBSQJobs.pl
+     Scripts/waitForSGEQJobs.pl
+     Scripts/waitForXGridJobs.pl
+     Scripts/waitForSlurmJobs.pl
+                DESTINATION bin
+                PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+                CONFIGURATIONS  Release
+                COMPONENT SCRIPTS
+        )
+
+if(BUILD_SHARED_LIBS AND NOT (USE_SYSTEM_ITK AND USE_SYSTEM_VTK))
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/../staging/lib/
+          DESTINATION lib)
+endif()

@@ -78,13 +78,8 @@ typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   inputThresholder->SetInsideValue(  insideval );
   inputThresholder->SetOutsideValue( outsideval );
 
-  if( high < low )
-    {
-    high = 255;
-    }
-  float eps = 1.e-6 * low;
-  inputThresholder->SetLowerThreshold( (PixelType) low - eps );
-  inputThresholder->SetUpperThreshold( (PixelType) high + eps);
+  inputThresholder->SetLowerThreshold( (PixelType) low );
+  inputThresholder->SetUpperThreshold( (PixelType) high);
   inputThresholder->Update();
 
   return inputThresholder->GetOutput();

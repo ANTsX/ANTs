@@ -45,8 +45,11 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
   permute = itk::PermuteAxesImageFilter<ShortImage>::New();
   permute->SetInput( inputImage );
 
-  unsigned int upperFactors[Dimension];
-  unsigned int lowerFactors[Dimension];
+  typedef itk::FlipImageFilter<ShortImage> FlipType;
+  typename FlipType::FlipAxesArrayType lowerFactors;
+
+  typename itk::PermuteAxesImageFilter<ShortImage>::PermuteOrderArrayType upperFactors;
+
   for( unsigned int q = 0; q < Dimension; ++q )
     {
     upperFactors[q] = 0;
@@ -109,10 +112,10 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
       }
     }
 
+
   permute->SetOrder( upperFactors );
   permute->Update();
 
-  typedef itk::FlipImageFilter<ShortImage> FlipType;
   typename FlipType::FlipAxesArrayType flip;
   for( unsigned int i = 0; i < Dimension; i++ )
     {

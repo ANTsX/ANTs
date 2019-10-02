@@ -114,7 +114,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   set(${proj}_CMAKE_OPTIONS
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
-      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_CURRENT_BINARY_DIR}/${proj}-install
+      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/staging
       -DITK_LEGACY_REMOVE:BOOL=ON
       -DITK_FUTURE_LEGACY_REMOVE:BOOL=ON
       -DITKV3_COMPATIBILITY:BOOL=OFF
@@ -139,7 +139,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
     if( USE_VTK STREQUAL "ON" )
       list(APPEND ${proj}_CMAKE_OPTIONS -DModule_ITKVtkGlue:BOOL=ON)
       if( USE_SYSTEM_VTK STREQUAL "OFF" )
-        list(INSERT CMAKE_PREFIX_PATH 0 ${CMAKE_CURRENT_BINARY_DIR}/VTK-install)
+        list(INSERT CMAKE_PREFIX_PATH 0 ${CMAKE_BINARY_DIR}/staging)
         list(APPEND ${proj}_CMAKE_OPTIONS -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH})
       endif()
       list(APPEND ${proj}_DEPENDENCIES VTK)
@@ -150,10 +150,10 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/muschellij2/ITK.git)
-  set(${proj}_GIT_TAG 19bb98fc72285412b65a0a18693e55a155cb339a )
+  set(${proj}_GIT_TAG 5503d732159a7bb9e27fa2e4c4a6c1eb82769593 )
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
-  # set(${proj}_GIT_TAG fe34d9caa5d98face1ef422afdfc05d71d38a68c ) ## 20190518 Fix ITKv5 api changes
-  set(ITK_VERSION_ID ITK-5.0) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
+  # set(${proj}_GIT_TAG  81c14ce858a530699ee2fbf7fa48b884ad26b984 ) #20190914 - ITKv5 Enumerations with legacy OFF
+  set(ITK_VERSION_ID ITK-5.1) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
@@ -176,7 +176,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
     DEPENDS
       ${${proj}_DEPENDENCIES}
   )
-  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-install/lib/cmake/${ITK_VERSION_ID})
+  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/staging/lib/cmake/${ITK_VERSION_ID})
 else()
   if(${USE_SYSTEM_${extProjName}})
     find_package(${extProjName} ${ITK_VERSION_MAJOR} REQUIRED)

@@ -39,7 +39,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
     {
     transform_writer->Update();
     }
-  catch( itk::ExceptionObject & err )
+  catch( itk::ExceptionObject & itkNotUsed(err) )
     {
     std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
              << "Exception in writing transform file: " << std::endl
@@ -480,7 +480,7 @@ private:
   // Get the image dimension
   // std::string fn = std::string(argv[1]) + "xvec.nii.gz";
   // itk::ImageIOBase::Pointer imageIO =
-  //        itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
+  //        itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
   // imageIO->SetFileName(fn.c_str());
   // imageIO->ReadImageInformation();
 

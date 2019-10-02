@@ -159,16 +159,16 @@ private:
   int dim = 0;
   if( argc > 1 )
     {
-      try { 
+      try {
        dim = std::stoi( argv[1] );
       }
-      catch(std::invalid_argument& e){
+      catch(std::invalid_argument& itkNotUsed(e)){
          // if no conversion could be performed
          // assume --help is requested
       }
-      catch(std::out_of_range& e){
-       // if the converted value would fall out of the range of the result type 
-       // or if the underlying function (std::strtol or std::strtoull) sets errno 
+      catch(std::out_of_range& itkNotUsed(e)){
+       // if the converted value would fall out of the range of the result type
+       // or if the underlying function (std::strtol or std::strtoull) sets errno
        // to ERANGE.
       }
       catch(...) {
@@ -190,14 +190,14 @@ private:
   if( argc == 3 && ( std::stoi( argv[1] ) != '-' || std::stoi( argv[1] ) != 2 || std::stoi( argv[1] ) != 3 ) )
     {
     itk::ImageIOBase::Pointer fixedImageIO
-      = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::ReadMode );
+      = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::FileModeType::ReadMode );
     if( fixedImageIO.IsNull() )
       {
       std::cerr << "Invalid fixed image: " << argv[1] << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer movingImageIO
-      = itk::ImageIOFactory::CreateImageIO( argv[2], itk::ImageIOFactory::ReadMode );
+      = itk::ImageIOFactory::CreateImageIO( argv[2], itk::ImageIOFactory::FileModeType::ReadMode );
     if( movingImageIO.IsNull() )
       {
       std::cerr << "Invalid moving image: " << argv[2] << std::endl;

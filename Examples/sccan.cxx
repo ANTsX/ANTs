@@ -268,7 +268,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     {
     writer->Write();
     }
-  catch( itk::ExceptionObject& exp )
+  catch( itk::ExceptionObject& itkNotUsed( exp ) )
     {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -302,7 +302,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed( exp ) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -328,7 +328,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed( exp ) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -482,7 +482,7 @@ ReadMatrixFromCSVorImageSet( std::string matname, vnl_matrix<PixelType> & p )
       {
       reader->Update();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed(exp) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -603,7 +603,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed(exp) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -837,7 +837,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
       {
       writer->Write();
       }
-    catch( itk::ExceptionObject& exp )
+    catch( itk::ExceptionObject& itkNotUsed(exp) )
       {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -883,7 +883,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     {
     writer->Write();
     }
-  catch( itk::ExceptionObject& exp )
+  catch( itk::ExceptionObject& itkNotUsed(exp) )
     {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -2896,8 +2896,7 @@ private:
       itk::ants::CommandLineParser::OptionListType::const_iterator it;
       for( it = options.begin(); it != options.end(); ++it )
         {
-        const char *longName = ( ( *it )->GetLongName() ).c_str();
-        if( strstr( longName, value.c_str() ) == longName  )
+        if( ( *it )->GetLongName().find( value ) == 0  )
           {
           sccanparser->PrintMenu( std::cout, 5, false );
           }

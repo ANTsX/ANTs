@@ -1053,7 +1053,7 @@ int TileImages(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
 
@@ -5762,7 +5762,7 @@ int TensorFunctions(int argc, char *argv[])
       " Convert a 4D tensor to a 3D tensor --- if there are 7 components to the tensor, we throw away the first component b/c its probably b0 "
       << std::endl;
     itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
     imageIO->SetFileName(fn1.c_str() );
     imageIO->ReadImageInformation();
     unsigned int dim = imageIO->GetNumberOfDimensions();
@@ -5967,7 +5967,7 @@ int TensorFunctions(int argc, char *argv[])
       {
       whichvec = std::stoi(fn2.c_str() );
       }
-    catch(std::invalid_argument& e)
+    catch(std::invalid_argument& itkNotUsed(e))
       {
       // arg is not whichvec
       }
@@ -8201,6 +8201,11 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
         }
       }
     }
+
+  WriteImage<ImageType>(outlabimage, outname.c_str() );
+/*
+  // Write debug images, but string manipulation breaks on any path containing periods
+
   std::string::size_type idx;
   idx = outname.find_first_of('.');
   std::string tempname = outname.substr(0, idx);
@@ -8208,13 +8213,13 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
   std::string kname = tempname + std::string("_speed") + extension;
   std::string lname = tempname + std::string("_label") + extension;
   WriteImage<ImageType>(fastimage, kname.c_str() );
-  WriteImage<ImageType>(outlabimage, outname.c_str() );
 
   // this nonsense fixes a type error
   typedef itk::CastImageFilter<LabelImageType, LabelImageType>                 CastFilterType;
   typename CastFilterType::Pointer castRegions = CastFilterType::New();
   castRegions->SetInput( fastMarching->GetLabelImage() );
   WriteImage<LabelImageType>( castRegions->GetOutput(), lname.c_str() );
+*/
 
   return 0;
 }
@@ -10961,7 +10966,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
@@ -11258,7 +11263,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )

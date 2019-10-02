@@ -15,7 +15,7 @@
 #define _itkSyNDemonsRegistrationFunction_hxx_
 
 #include "itkSyNDemonsRegistrationFunction.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "itkMath.h"
 
 namespace itk

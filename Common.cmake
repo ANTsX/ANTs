@@ -20,6 +20,12 @@ include(CMakeDependentOption)
 # Build option(s)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
+option(ANTS_BUILD_WITH_CCACHE "Build ${LOCAL_PROJECT_NAME} using ccache if available." ON)
+mark_as_advanced(ANTS_BUILD_WITH_CCACHE)
+if(ANTS_BUILD_WITH_CCACHE)
+  include(CCache)
+endif()
+
 option(BUILD_SHARED_LIBS "Build ITK with shared libraries." OFF)
 set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
@@ -98,40 +104,6 @@ if(PLATFORM_CHECK)
 endif()
 
 
-#-----------------------------------------------------------------------------
-if(NOT COMMAND SETIFEMPTY)
-  macro(SETIFEMPTY)
-    set(KEY ${ARGV0})
-    set(VALUE ${ARGV1})
-    if(NOT ${KEY})
-      set(${ARGV})
-    endif()
-  endmacro()
-endif()
-
-SETIFEMPTY(LIB_INSTALL_DIR lib${LIB_SUFFIX})
-SETIFEMPTY(BIN_INSTALL_DIR bin)
-SETIFEMPTY(SCRIPTS_INSTALL_DIR ${BIN_INSTALL_DIR})
-
-#-----------------------------------------------------------------------------
-SETIFEMPTY(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
-SETIFEMPTY(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
-SETIFEMPTY(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-#-----------------------------------------------------------------------------
-SETIFEMPTY(CMAKE_INSTALL_LIBRARY_DESTINATION ${LIB_INSTALL_DIR})
-SETIFEMPTY(CMAKE_INSTALL_ARCHIVE_DESTINATION ${LIB_INSTALL_DIR})
-SETIFEMPTY(CMAKE_INSTALL_RUNTIME_DESTINATION ${BIN_INSTALL_DIR})
-
-#-------------------------------------------------------------------------
-SETIFEMPTY(ANTs_CLI_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-SETIFEMPTY(ANTs_CLI_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
-SETIFEMPTY(ANTs_CLI_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-
-#-------------------------------------------------------------------------
-SETIFEMPTY(ANTs_CLI_INSTALL_LIBRARY_DESTINATION ${CMAKE_INSTALL_LIBRARY_DESTINATION})
-SETIFEMPTY(ANTs_CLI_INSTALL_ARCHIVE_DESTINATION ${CMAKE_INSTALL_ARCHIVE_DESTINATION})
-SETIFEMPTY(ANTs_CLI_INSTALL_RUNTIME_DESTINATION ${CMAKE_INSTALL_RUNTIME_DESTINATION})
 
 #-------------------------------------------------------------------------
 # Augment compiler flags
@@ -147,14 +119,8 @@ if(ITK_LEGACY_REMOVE)
   endif()
 endif()
 
-#-----------------------------------------------------------------------------
-# Add needed flag for gnu on linux like enviroments to build static common libs
-# suitable for linking with shared object libs.
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-  if(NOT "${CMAKE_CXX_FLAGS}" MATCHES "-fPIC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-  endif()
-  if(NOT "${CMAKE_C_FLAGS}" MATCHES "-fPIC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-  endif()
+if(BUILD_SHARED_LIBS)
+if(NOT CMAKE_POSITION_INDEPENDENT_CODE)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
 endif()

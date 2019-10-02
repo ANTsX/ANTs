@@ -1,5 +1,4 @@
-get_filename_component(_ITKExternalData_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-include(${_ITKExternalData_DIR}/ExternalData.cmake)
+include(ExternalData)
 
 ## The user can specify an environmental variable for shared locations of
 ## of object files to prevent continous downloading of common objects.

@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include "itkMatrixOffsetTransformBase.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 
 namespace itk
 {
