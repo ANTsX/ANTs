@@ -150,9 +150,9 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/muschellij2/ITK.git)
-  set(${proj}_GIT_TAG 5503d732159a7bb9e27fa2e4c4a6c1eb82769593 )
+  set(${proj}_GIT_TAG 7f5f7748c14b182e4072f9e433482bf165a811df )
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
-  # set(${proj}_GIT_TAG  81c14ce858a530699ee2fbf7fa48b884ad26b984 ) #20190914 - ITKv5 Enumerations with legacy OFF
+  # set(${proj}_GIT_TAG  39f1ba9b9540a5daa38ddb87d2c091d4db1fb45d ) #20191004, MINC update and N4 optimization
   set(ITK_VERSION_ID ITK-5.1) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}

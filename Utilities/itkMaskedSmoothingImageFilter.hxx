@@ -155,13 +155,10 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
       }
     }
 
-  using DuplicatorType = ImageDuplicator<InputImageType>;
-  typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
-  duplicator->SetInputImage( inputImage );
-
   using CasterType = CastImageFilter<InputImageType, OutputImageType>;
   typename CasterType::Pointer caster = CasterType::New();
-  caster->SetInput( duplicator->GetOutput() );
+  caster->SetInput( inputImage );
+  caster->Update();
 
   OutputImagePointer outputImage = caster->GetOutput();
   outputImage->Update();

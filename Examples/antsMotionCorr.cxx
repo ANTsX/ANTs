@@ -204,7 +204,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
     {
     typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> HistogramMatchingFilterType;
     typename HistogramMatchingFilterType::Pointer matchingFilter = HistogramMatchingFilterType::New();
-    matchingFilter->SetSourceImage( windowingFilter->GetOutput() );
+    matchingFilter->SetInput( windowingFilter->GetOutput() );
     matchingFilter->SetReferenceImage( histogramMatchSourceImage );
     matchingFilter->SetNumberOfHistogramLevels( 256 );
     matchingFilter->SetNumberOfMatchPoints( 12 );
@@ -578,7 +578,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     }
 
-  bool                doHistogramMatch(true);
+  bool                doHistogramMatch( true );
   OptionType::Pointer histogramMatchOption = parser->GetOption( "use-histogram-matching" );
   if( histogramMatchOption && histogramMatchOption->GetNumberOfFunctions() )
     {
@@ -861,20 +861,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
                                          1, 0.001, 0.999,
                                          nullptr );
 
-      typename FixedImageType::Pointer histogramMatchRef = nullptr;
-
-      if ( doHistogramMatch )
-	{
-	histogramMatchRef = preprocessFixedImage;
-	}
-
       if ( verbose ) std::cout << "  use histogram matching " << doHistogramMatch << std::endl;
 
       typename FixedImageType::Pointer preprocessMovingImage =
         PreprocessImage<FixedImageType>( moving_time_slice,
                                          0, 1,
                                          0.001, 0.999,
-                                         histogramMatchRef );
+                                         preprocessFixedImage );
 
       typedef itk::ImageToImageMetricv4<FixedImageType, FixedImageType> MetricType;
       typename MetricType::Pointer metric;
