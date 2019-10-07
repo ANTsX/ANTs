@@ -173,7 +173,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   this->SetNumberOfRequiredInputs( 1 );
 
   this->m_NumberOfHistogramBins = 200;
-  this->m_WeinerFilterNoise = 0.01;
+  this->m_WienerFilterNoise = 0.01;
   this->m_BiasFieldFullWidthAtHalfMaximum = 0.15;
 
   this->m_MaximumNumberOfIterations = 50;
@@ -389,8 +389,11 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   unsigned int histogramOffset = static_cast<unsigned int>( 0.5
                                                             * ( paddedHistogramSize - this->m_NumberOfHistogramBins ) );
 
-  vnl_vector<std::complex<RealType> > V( paddedHistogramSize,
-                                        std::complex<RealType>( 0.0, 0.0 ) );
+  using FFTComputationType = double;
+  using FFTComplexType = std::complex<FFTComputationType>;
+
+  vnl_vector<FFTComplexType> V( paddedHistogramSize,
+                                        FFTComplexType( 0.0, 0.0 ) );
   for( unsigned int n = 0; n < this->m_NumberOfHistogramBins; n++ )
     {
     V[n + histogramOffset] = H[n];
@@ -399,9 +402,9 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   /**
    * Instantiate the 1-d vnl fft routine
    */
-  vnl_fft_1d<RealType> fft( paddedHistogramSize );
+  vnl_fft_1d<FFTComputationType> fft( paddedHistogramSize );
 
-  vnl_vector<std::complex<RealType> > Vf( V );
+  vnl_vector<FFTComplexType> Vf( V );
   fft.fwd_transform( Vf );
 
   /**
@@ -412,60 +415,63 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   RealType scaleFactor = 2.0 * std::sqrt( std::log( 2.0 )
                                          / itk::Math::pi ) / scaledFWHM;
 
-  vnl_vector<std::complex<RealType> > F( paddedHistogramSize,
-                                        std::complex<RealType>( 0.0, 0.0 ) );
-  F[0] = std::complex<RealType>( scaleFactor, 0.0 );
+  vnl_vector<FFTComplexType> F( paddedHistogramSize,
+                                        FFTComplexType( 0.0, 0.0 ) );
+  F[0] = FFTComplexType( scaleFactor, 0.0 );
   unsigned int halfSize = static_cast<unsigned int>(
       0.5 * paddedHistogramSize );
   for( unsigned int n = 1; n <= halfSize; n++ )
     {
-    F[n] = F[paddedHistogramSize - n] = std::complex<RealType>(
+    F[n] = F[paddedHistogramSize - n] = FFTComplexType(
           scaleFactor * std::exp( -itk::Math::sqr ( static_cast<RealType>( n ) )
                                  * expFactor ), 0.0 );
     }
   if( paddedHistogramSize % 2 == 0 )
     {
-    F[halfSize] = std::complex<RealType>( scaleFactor * std::exp( 0.25
+    F[halfSize] = FFTComplexType( scaleFactor * std::exp( 0.25
                                                                 * -itk::Math::sqr ( static_cast<RealType>(
                                                                                    paddedHistogramSize ) )
                                                                 * expFactor ), 0.0 );
     }
 
-  vnl_vector<std::complex<RealType> > Ff( F );
+  vnl_vector<FFTComplexType> Ff( F );
   fft.fwd_transform( Ff );
 
   /**
-   * Create the Weiner deconvolution filter.
+   * Create the Wiener deconvolution filter.
    */
-  vnl_vector<std::complex<RealType> > Gf( paddedHistogramSize );
+  vnl_vector<FFTComplexType> Gf( paddedHistogramSize );
+
+  const auto wienerNoiseValue = static_cast<FFTComputationType>(this->m_WienerFilterNoise);
+
   for( unsigned int n = 0; n < paddedHistogramSize; n++ )
     {
-    std::complex<RealType> c =
-      vnl_complex_traits<std::complex<RealType> >::conjugate( Ff[n] );
-    Gf[n] = c / ( c * Ff[n] + this->m_WeinerFilterNoise );
+    FFTComplexType c =
+      vnl_complex_traits<FFTComplexType>::conjugate( Ff[n] );
+    Gf[n] = c / ( c * Ff[n] + wienerNoiseValue );
     }
 
-  vnl_vector<std::complex<RealType> > Uf( paddedHistogramSize );
+  vnl_vector<FFTComplexType> Uf( paddedHistogramSize );
   for( unsigned int n = 0; n < paddedHistogramSize; n++ )
     {
     Uf[n] = Vf[n] * Gf[n].real();
     }
 
-  vnl_vector<std::complex<RealType> > U( Uf );
+  vnl_vector<FFTComplexType> U( Uf );
   fft.bwd_transform( U );
   for( unsigned int n = 0; n < paddedHistogramSize; n++ )
     {
-    U[n] = std::complex<RealType>( std::max(
-                                    U[n].real(), static_cast<RealType>( 0.0 ) ), 0.0 );
+    U[n] = FFTComplexType( std::max(
+                                    U[n].real(), static_cast<FFTComputationType>( 0.0 ) ), 0.0 );
     }
 
   /**
    * Compute mapping E(u|v)
    */
-  vnl_vector<std::complex<RealType> > numerator( paddedHistogramSize );
+  vnl_vector<FFTComplexType> numerator( paddedHistogramSize );
   for( unsigned int n = 0; n < paddedHistogramSize; n++ )
     {
-    numerator[n] = std::complex<RealType>(
+    numerator[n] = FFTComplexType(
         ( binMinimum + ( static_cast<RealType>( n ) - histogramOffset )
           * histogramSlope ) * U[n].real(), 0.0 );
     }
@@ -476,7 +482,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
     }
   fft.bwd_transform( numerator );
 
-  vnl_vector<std::complex<RealType> > denominator( U );
+  vnl_vector<FFTComplexType> denominator( U );
   fft.fwd_transform( denominator );
   for( unsigned int n = 0; n < paddedHistogramSize; n++ )
     {
@@ -746,8 +752,8 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 
   os << indent << "Number of histogram bins: "
      << this->m_NumberOfHistogramBins << std::endl;
-  os << indent << "Weiner filter noise: "
-     << this->m_WeinerFilterNoise << std::endl;
+  os << indent << "Wiener filter noise: "
+     << this->m_WienerFilterNoise << std::endl;
   os << indent << "Bias field FWHM: "
      << this->m_BiasFieldFullWidthAtHalfMaximum << std::endl;
   os << indent << "Maximum number of iterations: "
