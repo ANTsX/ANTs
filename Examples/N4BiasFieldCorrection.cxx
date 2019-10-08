@@ -466,13 +466,33 @@ int N4( itk::ants::CommandLineParser *parser )
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     /**
-     * Reconstruct the bias field at full image resolution.  Divide
-     * the original input image by the bias field to get the final
-     * corrected image.
-     */
+                    * Reconstruct the bias field at full image resolution.  Divide
+                    * the original input image by the bias field to get the final
+                    * corrected image.
+                    */
+    typedef itk::BSplineControlPointImageFilter<typename
+                                                CorrecterType::BiasFieldControlPointLatticeType, typename
+                                                CorrecterType::ScalarImageType> BSplinerType;
+    typename BSplinerType::Pointer bspliner = BSplinerType::New();
+    bspliner->SetInput( correcter->GetLogBiasFieldControlPointLattice() );
+    bspliner->SetSplineOrder( correcter->GetSplineOrder() );
+    bspliner->SetSize( inputImage->GetLargestPossibleRegion().GetSize() );
+    bspliner->SetOrigin( newOrigin );
+    bspliner->SetDirection( inputImage->GetDirection() );
+    bspliner->SetSpacing( inputImage->GetSpacing() );
+    bspliner->Update();
 
-    typename ImageType::Pointer logField =
-      correcter->ReconstructBiasField( correcter->GetLogBiasFieldControlPointLattice() );
+    typename ImageType::Pointer logField = AllocImage<ImageType>( inputImage );
+
+    itk::ImageRegionIterator<typename CorrecterType::ScalarImageType> ItB(
+      bspliner->GetOutput(),
+      bspliner->GetOutput()->GetLargestPossibleRegion() );
+    itk::ImageRegionIterator<ImageType> ItF( logField,
+                                             logField->GetLargestPossibleRegion() );
+    for( ItB.GoToBegin(), ItF.GoToBegin(); !ItB.IsAtEnd(); ++ItB, ++ItF )
+      {
+      ItF.Set( ItB.Get()[0] );
+      }
 
     typedef itk::ExpImageFilter<ImageType, ImageType> ExpFilterType;
     typename ExpFilterType::Pointer expFilter = ExpFilterType::New();
