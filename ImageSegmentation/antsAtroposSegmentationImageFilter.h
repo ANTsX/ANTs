@@ -479,7 +479,7 @@ public:
       this->m_AdaptiveSmoothingWeights[idx] = clampedWeight;
       this->Modified();
       }
-    if( this->m_AdaptiveSmoothingWeights[idx] != weight )
+    if( ! itk::Math::FloatAlmostEqual( this->m_AdaptiveSmoothingWeights[idx], weight ) )
       {
       this->m_AdaptiveSmoothingWeights[idx] = clampedWeight;
       this->Modified();

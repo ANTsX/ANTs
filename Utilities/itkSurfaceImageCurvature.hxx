@@ -441,7 +441,9 @@ void  SurfaceImageCurvature<TSurface>
   while(  !Iterator.IsAtEnd()  )
     {
     float pix = Iterator.Get();
-    if( pix != 0 && pix != 1 && pix != 2 )
+    if( ! itk::Math::FloatAlmostEqual( pix, 0.0f ) &&
+        ! itk::Math::FloatAlmostEqual( pix, 1.0f ) &&
+        ! itk::Math::FloatAlmostEqual( pix, 2.0f ) )
       {
       wmgmcurv = false;
       }
@@ -637,7 +639,7 @@ void  SurfaceImageCurvature<TSurface>
     //NOT USED:if ( ( itk::Math::abs (u2) > 0 ) && ( itk::Math::abs (u1) < 1.e-6 ) )
     //NOT USED:  dfuv_v = itk::Math::abs ( f_uv - 1.0 ) / itk::Math::abs (u2) * 100.0;
     // this->m_Area += sqrt( 1.0 + dfuv_u*dfuv_u + dfuv_v*dfuv_v );
-    this->m_Area += itk::Math::abs ( f_uv - 1.0 );
+    this->m_Area += itk::Math::abs ( f_uv - 1.0f );
     }
   this->m_Area *= areaelt;
   vnl_svd<double>    svd(D);
@@ -931,7 +933,7 @@ SurfaceImageCurvature<TSurface>
       }
     PointType dd = this->m_Origin - this->m_PointList[pp];
     double    wi = dd.magnitude();
-    if( wi != 0.0 )
+    if( wi != 0.0f )
       {
       wi = 1. / wi;
       }
@@ -949,7 +951,7 @@ SurfaceImageCurvature<TSurface>
     }
   // if (norm ) curvature/=tw;
   // SD sometimes tw is zero making curvature = NaN
-  if( norm && tw != 0 )
+  if( norm && ! itk::Math::FloatAlmostEqual( tw, 0.0 ) )
     {
     curvature /= tw;
     }

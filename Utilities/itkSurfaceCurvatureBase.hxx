@@ -403,11 +403,11 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 //   if (robust) dists[i]/=wt;
 
     D(i, 0) = u1 * u1;
-    D(i, 1) = 2. * u1 * u2;
+    D(i, 1) = 2.0f * u1 * u2;
     D(i, 2) = u2 * u2;
     D(i, 3) = u1;
     D(i, 4) = u2;
-    D(i, 5) = 1.0;
+    D(i, 5) = 1.0f;
     }
 
   if( robust )
@@ -416,7 +416,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
     float sigma = m_Sigma;
     for( unsigned int tt = 0; tt < npts; tt++ )
       {
-      wt = exp(-1. * wts[tt] / sigma);
+      wt = exp(-1.0f * wts[tt] / sigma);
       dists[tt] *= wt;
       totwt += wt;
 //      std::cout << " wt " << wt << std::endl;
@@ -447,8 +447,8 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
   double fuv = a(1);
   double fvv = 2. * a(2);
 
-  m_MeanKappa = (1.0 + fv * fv) * fuu - 2.0 * fu * fv * fuv + (1.0 + fu * fu) * fvv;
-  m_MeanKappa  /=  (2.0 * pow( 1.0 + fu * fu + fv * fv, 1.5) );
+  m_MeanKappa = (1.0f + fv * fv) * fuu - 2.0f * fu * fv * fuv + (1.0f + fu * fu) * fvv;
+  m_MeanKappa  /=  (2.0f * pow( 1.0f + fu * fu + fv * fv, 1.5f) );
 
   m_GaussianKappa = (fuu * fvv - fuv * fuv) / ( ( 1.0 + fu * fu + fv * fv ) * ( 1.0 + fu * fu + fv * fv ) );
 
@@ -522,7 +522,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
       u2 += (Q[ijj] - origin[ijj]) * m_Tangent2[ijj];
       sqdif += ( (Q[ijj] - origin[ijj]) * (Q[ijj] - origin[ijj]) );
       }
-    totw += 1. / sqdif;
+    totw += 1.0f / sqdif;
 //
 // co-ordinates in tangent plane
 //   RealType sign=1.0;
@@ -550,7 +550,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
     dists[i] = temp.magnitude(); // /sqdif;//*exp(-1.*sqdif/2);//sqrt(dists[i]);
 
     D(i, 0) = u1 * u1;
-    D(i, 1) = 2. * u1 * u2;
+    D(i, 1) = 2.0f * u1 * u2;
     D(i, 2) = u2 * u2;
     }
 
@@ -569,7 +569,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
   m_Kappa1 = eig.get_eigenvalue(0);
   m_Kappa2 = eig.get_eigenvalue(1);
 
-  m_MeanKappa = 0.5 * (m_Kappa1 + m_Kappa2);
+  m_MeanKappa = 0.5f * (m_Kappa1 + m_Kappa2);
   m_GaussianKappa = m_Kappa1 * m_Kappa2;
 //  std::cout << " eval 0 " << m_Kappa1 << " eval 1 " << m_Kappa2 << std::endl;
 }
@@ -600,11 +600,11 @@ SurfaceCurvatureBase<TSurface, TDimension>
 {
   float th = 1.e-6;
 
-  if( fabs(m_GaussianKappa) < th * th )
+  if( static_cast<float>( fabs(m_GaussianKappa) ) < th * th )
     {
     m_GaussianKappa = 0.0;
     }
-  if( fabs(m_MeanKappa) < th )
+  if( static_cast<float>( fabs(m_MeanKappa) ) < th )
     {
     m_MeanKappa = 0.0;
     }
@@ -625,19 +625,19 @@ SurfaceCurvatureBase<TSurface, TDimension>
     {
     return 4;                                                 // neg saddle
     }
-  else if( m_MeanKappa > 0 && m_GaussianKappa == 0 )
+  else if( m_MeanKappa > 0 && itk::Math::FloatAlmostEqual( m_GaussianKappa, 0.0f ) )
     {
     return 5;                                                 // pos U
     }
-  else if( m_MeanKappa < 0 && m_GaussianKappa == 0 )
+  else if( m_MeanKappa < 0 && itk::Math::FloatAlmostEqual( m_GaussianKappa, 0.0f ) )
     {
     return 6;                                                 // neg U
     }
-  else if( m_MeanKappa == 0 && m_GaussianKappa == 0 )
+  else if( itk::Math::FloatAlmostEqual( m_MeanKappa, 0.0f ) && itk::Math::FloatAlmostEqual( m_GaussianKappa, 0.0f ) )
     {
     return 7;                                                 // flat
     }
-  else if( m_MeanKappa == 0 && m_GaussianKappa <  0 )
+  else if( itk::Math::FloatAlmostEqual( m_MeanKappa, 0.0f ) && m_GaussianKappa <  0 )
     {
     return 8;                                                 // perfect saddle
     }
@@ -704,12 +704,12 @@ SurfaceCurvatureBase<TSurface, TDimension>
       }
     }
 
-  RealType meandist = totdist / (float)ct;
+  RealType meandist = totdist / static_cast<float>( ct );
   // 4 pi r^2 = a,  r^2 = a/(4pi)
   RealType spheremeandist = 1.0; // sqrt((float)ct/(4.0*3.1418));
   RealType compactness = meandist / spheremeandist;
 
-  return 10. - compactness;
+  return 10.0f - compactness;
 }
 
 template <typename TSurface, unsigned int TDimension>
@@ -736,7 +736,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::TestEstimateTangentPlane(Point
     for( int j = 0; j < dim; j++ )
       {
       avgpt(j) += pts(i, j);
-      count += 1.0;
+      count += static_cast<RealType>( 1.0 );
       }
     }
 
@@ -827,7 +827,7 @@ template <typename TSurface, unsigned int TDimension>
 void   SurfaceCurvatureBase<TSurface, TDimension>::ChooseReferenceTangent()
 {
   float w = 1.;
-  float w2 = (1.0 - w);
+  float w2 = (1.0f - w);
 
   // m_ArbitraryTangent[0]=w;  m_ArbitraryTangent[1]=1.-w;  m_ArbitraryTangent[2]=0.;
   m_ArbitraryTangent = w * m_Tangent2 + (w2 * m_Tangent1);
@@ -882,7 +882,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
       sqdifMag += Dif[i] * Dif[i];
       }
 
-    if( sqdifMag != 0.0 && Q != origin )
+    if( ! itk::Math::FloatAlmostEqual( sqdifMag, 0.0f ) && Q != origin )
       {
 //   m_PlaneVector[0]=w1;  m_PlaneVector[1]=w2;
 
@@ -890,8 +890,8 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
       m_ThetaVector[ii] = GetTheta(Q, origin);
       m_TangentProjectionList.insert(m_TangentProjectionList.begin(), m_PlaneVector);
 
-      totalWeight += 1. / difMag;
-      m_WeightVector[ii] = 1. / difMag;
+      totalWeight += 1.0f / difMag;
+      m_WeightVector[ii] = 1.0f / difMag;
       m_TotalDKap += m_DirectionalKappa;
       m_DirectionalKappaVector[ii] = m_DirectionalKappa;
       }
@@ -913,9 +913,9 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
     double costheta = cos(m_ThetaVector[ii]);
     double sintheta = sin(m_ThetaVector[ii]);
     double weight = m_WeightVector[ii];
-    m_A += weight * costheta * costheta * costheta * costheta;
-    m_B += weight * sintheta * sintheta * costheta * costheta;
-    m_C += weight * sintheta * sintheta * sintheta * sintheta;
+    m_A += static_cast<float>( weight * costheta * costheta * costheta * costheta );
+    m_B += static_cast<float>( weight * sintheta * sintheta * costheta * costheta );
+    m_C += static_cast<float>( weight * sintheta * sintheta * sintheta * sintheta );
     }
 
   if( m_Origin[0] == 54 && m_Origin[1] == 54 && m_Origin[2] == 63 )
@@ -1011,7 +1011,7 @@ typename SurfaceCurvatureBase<TSurface, TDimension>::RealType   SurfaceCurvature
     }
 
   float temp = (sqrt(pvMag) * sqrt(arbMag) );
-  if( temp != 0.0 )
+  if( ! itk::Math::FloatAlmostEqual( temp, 0.0f ) )
     {
     theta = acos(ip / temp);
     }
@@ -1035,7 +1035,7 @@ void    SurfaceCurvatureBase<TSurface, TDimension>
     m_DirectionalKappa += (m_Normal[i] * Dif[i]);
     }
 
-  m_DirectionalKappa = 2.0 * m_DirectionalKappa / Dif.magnitude();
+  m_DirectionalKappa = 2.0f * m_DirectionalKappa / Dif.magnitude();
 }
 
 /** */
@@ -1070,7 +1070,7 @@ void     SurfaceCurvatureBase<TSurface, TDimension>
     }
   m_Kappa1 = (m_Eval1 - w2 * m_Kappa1) / w1;
 
-  m_MeanKappa = 0.5 * (m_Kappa1 + m_Kappa2);
+  m_MeanKappa = 0.5f * (m_Kappa1 + m_Kappa2);
   m_GaussianKappa = m_Kappa1 * m_Kappa2;
 
 //  std::cout << " eval test " << w1*m_Kappa1 + w2*m_Kappa2 << " e1 " << m_Eval1 << std::endl;
@@ -1119,9 +1119,10 @@ SurfaceCurvatureBase<TSurface, TDimension>
       theta = this->GetTheta(Q, origin);
       costheta = cos(theta);
       sintheta = sin(theta);
-      kp = m_Kappa1 * costheta * costheta + m_Kappa2 * sintheta * sintheta;
+      kp = static_cast<double>( m_Kappa1 ) * costheta * costheta +
+           static_cast<double>( m_Kappa2 ) * sintheta * sintheta;
 
-      if( kp != 0.0 )
+      if( ! itk::Math::FloatAlmostEqual( kp, 0.0 ) )
         {
         PointType qp = Q - origin;
 
@@ -1175,10 +1176,10 @@ SurfaceCurvatureBase<TSurface, TDimension>
 
   if( m_Debug )
     {
-    std::cout << " tot error " << 1. / ( (float)npts + 1) * toterror << std::endl;
+    std::cout << " tot error " << 1.0f / ( static_cast<float>( npts + 1 ) ) * toterror << std::endl;
     }
 
-  return 1. / ( (float)npts + 1) * toterror;
+  return 1.0f / ( static_cast<float>( npts + 1 ) ) * toterror;
 }
 
 template <typename TSurface, unsigned int TDimension>
@@ -1209,7 +1210,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 
   m_MetricTensorDeterminant = sqrt(a * c - b * b);
 
-  if( m_MetricTensorDeterminant < 0.0 )
+  if( m_MetricTensorDeterminant < 0.0f )
     {
     std::cout << "bad metric tensor ";
     }
@@ -1285,8 +1286,8 @@ float  SurfaceCurvatureBase<TSurface, TDimension>
     D(i, 1) = u2;
     D(i, 2) = 1.0;
 
-    meanu1 += fabs(u1);
-    meanu2 += fabs(u2);
+    meanu1 += static_cast<float>( fabs(u1) );
+    meanu2 += static_cast<float>( fabs(u2) );
     }
 
   meanu1 /= (float)npts;
@@ -1315,8 +1316,8 @@ float  SurfaceCurvatureBase<TSurface, TDimension>
   cc = a(1) * a(1) + b(1) * b(1) + c(1) * c(1);
 
   vnl_vector<double> func = svd.solve(funcvals);
-  double             Ux = func(0);
-  double             Uy = func(1);
+  float             Ux = static_cast<float>( func(0) );
+  float             Uy = static_cast<float>( func(1) );
   float              dx = meanu1; // m_dX;//m_Eval1;//m_dX;
   float              dy = meanu2; // m_dY;//m_Eval2;//m_dY;
   m_MetricTensor[0] = aa;
@@ -1327,7 +1328,7 @@ float  SurfaceCurvatureBase<TSurface, TDimension>
 //  std::cout << " denom " << denom << " dx " << dx << " dy " << dy << std::endl;
 // std::cout << " a " << aa << " b " << bb << " c " << cc << std::endl;
 
-  float dstarU = 1.0 / denom * (  (bb * Ux - aa * Uy) * dx + (cc * Ux - bb * Uy) * dy );
+  float dstarU = 1.0f / denom * (  (bb * Ux - aa * Uy) * dx + (cc * Ux - bb * Uy) * dy );
 
 // std::cout << " dstarU " << dstarU << std::endl;
 

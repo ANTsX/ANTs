@@ -23,6 +23,9 @@
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/algo/vnl_cholesky.h>
 #include "itkImageToImageFilter.h"
+
+#include "itkMath.h"
+
 /** Custom SCCA implemented with vnl and ITK: Flexible positivity constraints, image ops, permutation testing, etc. */
 namespace itk
 {
@@ -161,7 +164,7 @@ public:
     if( ( !projecterM ) &&  ( !projecterV ) )
       {
       double ipv   = inner_product(V, V);
-      if( ipv == 0 )
+      if( itk::Math::FloatAlmostEqual( ipv, 0.0 ) )
         {
         return Mvec;
         }
@@ -740,7 +743,7 @@ public:
     double   sdy = sqrt(  ( y - y.mean() ).squared_magnitude() /  ( y.size() - 1) );
     double   sdyp = sqrt(  ( ypred - ypred.mean() ).squared_magnitude() /  ( y.size() - 1) );
 
-    if( sdyp == 0 )
+    if( itk::Math::FloatAlmostEqual( sdyp, 0.0 ) )
       {
       return 0;
       }

@@ -305,7 +305,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         {
         annealingTemperature =
           parser->Convert<RealType>( posteriorOption->GetFunction( 0 )->GetParameter( 1 ) );
-        if( annealingTemperature <= 0.0 )
+        if( annealingTemperature <= itk::NumericTraits<RealType>::ZeroValue() )
           {
           if( verbose )
             {
@@ -321,7 +321,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         {
         annealingRate =
           parser->Convert<RealType>( posteriorOption->GetFunction( 0 )->GetParameter( 2 ) );
-        if( annealingRate < 0.0 || annealingRate > 1.0 )
+        if( annealingRate < itk::NumericTraits<RealType>::ZeroValue() ||
+            annealingRate > itk::NumericTraits<RealType>::OneValue() )
           {
           if( verbose )
             {
@@ -568,13 +569,13 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         {
         labelBoundaryProbability = parser->Convert<float>(
             labelOption->GetFunction( 0 )->GetParameter( 1 ) );
-        if( labelBoundaryProbability < 0.0 )
+        if( labelBoundaryProbability < itk::NumericTraits<float>::ZeroValue() )
           {
-          labelBoundaryProbability = 0.0;
+          labelBoundaryProbability = itk::NumericTraits<float>::ZeroValue();
           }
-        if( labelBoundaryProbability > 1.0 )
+        if( labelBoundaryProbability > itk::NumericTraits<float>::OneValue() )
           {
-          labelBoundaryProbability = 1.0;
+          labelBoundaryProbability = itk::NumericTraits<float>::OneValue();
           }
         }
       for( unsigned int n = 1; n <= segmenter->GetNumberOfTissueClasses(); n++ )
@@ -1204,7 +1205,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       fileNamesCreator->SetSeriesFormat( filename.c_str() );
       const std::vector<std::string> & imageNames = fileNamesCreator->GetFileNames();
 
-      if( segmenter->GetAdaptiveSmoothingWeight( 0 ) > 0.0 )
+      if( segmenter->GetAdaptiveSmoothingWeight( 0 ) > itk::NumericTraits<RealType>::ZeroValue() )
         {
         for( unsigned int i = 0; i < segmenter->GetNumberOfTissueClasses(); i++ )
           {

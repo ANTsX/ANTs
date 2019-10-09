@@ -207,7 +207,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
       break;
       case DIRECTIONCOLLAPSETOSUBMATRIX:
       {
-      if ( vnl_determinant( outputDirection.GetVnlMatrix() ) == 0.0 )
+      if ( itk::Math::FloatAlmostEqual( vnl_determinant( outputDirection.GetVnlMatrix() ), 0.0 ) )
         {
         itkExceptionMacro( << "Invalid submatrix extracted for collapsed direction." );
         }
@@ -215,7 +215,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
       break;
       case DIRECTIONCOLLAPSETOGUESS:
       {
-      if ( vnl_determinant( outputDirection.GetVnlMatrix() ) == 0.0 )
+      if ( itk::Math::FloatAlmostEqual( vnl_determinant( outputDirection.GetVnlMatrix() ), 0.0 ) )
         {
         outputDirection.SetIdentity();
         }
