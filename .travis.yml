@@ -29,7 +29,6 @@ addons:
         key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
     packages:
       - cmake
-      - ninja-build
       - g++-5
       - g++-6
       - g++-7
@@ -97,7 +96,6 @@ matrix:
 #          packages:
 #            - cmake
 #            - ccache
-#            - ninja
 #            - gcc@5
 #          update: yes
     - os: osx
@@ -109,7 +107,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
             - gcc@6
           update: yes
     - os: osx
@@ -121,7 +118,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
             - gcc@7
           update: yes
     - os: osx
@@ -133,7 +129,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
             - gcc@8
           update: yes
     - os: osx
@@ -145,7 +140,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
             - gcc@9
           update: yes
 #OSX clang starts here
@@ -158,7 +152,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode10.3
@@ -169,7 +162,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode10.2
@@ -180,7 +172,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode10.1
@@ -191,7 +182,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode10
@@ -202,7 +192,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode9.4
@@ -213,7 +202,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode9.3
@@ -224,7 +212,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode9.2
@@ -235,7 +222,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode9.1
@@ -246,7 +232,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode9
@@ -257,7 +242,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode8.3
@@ -268,7 +252,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode8
@@ -279,7 +262,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
     - os: osx
       osx_image: xcode7.3
@@ -290,7 +272,6 @@ matrix:
           packages:
             - cmake
             - ccache
-            - ninja
           update: yes
 
 before_install:
@@ -300,5 +281,5 @@ script:
   - mkdir -p build externalobjects && cd build
   - export ExternalData_OBJECT_STORES=${TRAVIS_BUILD_DIR}/externalobjects
   - "export PATH=\"$(echo ${PATH} | awk -v RS=: -v ORS=: '/ccache/ {next} {print}')\""
-  - cmake -GNinja -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON ..
-  - ../buildscripts/travis-command-wrapper.py -s "date" --deadline=$(( $(python -c "import time; print(int(time.time()))") + 4500 )) -- ninja -v && cd ANTS-build && ctest -j2
+  - cmake -DRUN_LONG_TESTS=OFF -DRUN_SHORT_TESTS=ON -DCMAKE_VERBOSE_MAKEFILE=ON ..
+  - ../buildscripts/travis-command-wrapper.py -s "date" --deadline=$(( $(python -c "import time; print(int(time.time()))") + 4500 )) -- make -j2 && cd ANTS-build && ctest -j2
