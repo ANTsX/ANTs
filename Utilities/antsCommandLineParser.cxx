@@ -121,7 +121,7 @@ CommandLineParser
       {
       name = argument.substr( 1, 2 );
       }
-    if( itk::Math::FloatAlmostEqual( atof( name.c_str() ), 0.0 ) )
+    if( ! itk::Math::FloatAlmostEqual( atof( name.c_str() ), 0.0 ) )
       {
       continue;
       }
@@ -186,7 +186,7 @@ CommandLineParser
           for( unsigned int m = n; m < arguments.size(); m++ )
             {
             std::string function = arguments[m];
-            if( !starts_with( function, "-" ) || itk::Math::FloatAlmostEqual( atof( function.c_str() ), 0.0 ) )
+            if( !starts_with( function, "-" ) || ! itk::Math::FloatAlmostEqual( atof( function.c_str() ), 0.0 ) )
               {
               option->AddFunction( function,
                                    this->m_LeftDelimiter, this->m_RightDelimiter, order++ );
@@ -374,7 +374,7 @@ ValidateFlag(const std::string & currentFlag)
       }
     }
 
-  if ( ( ! validFlagFound ) && ( currentFlag.size() > 0 ) && ( !itk::Math::FloatAlmostEqual( atof( currentFlag.c_str() ), 0.0 ) ) )
+  if ( ( ! validFlagFound ) && ( currentFlag.size() > 0 ) && ( itk::Math::FloatAlmostEqual( atof( currentFlag.c_str() ), 0.0 ) ) )
     {
     std::cout << "ERROR:  Invalid flag provided " << currentFlag << std::endl;
     }
