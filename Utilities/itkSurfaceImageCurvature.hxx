@@ -933,7 +933,7 @@ SurfaceImageCurvature<TSurface>
       }
     PointType dd = this->m_Origin - this->m_PointList[pp];
     double    wi = dd.magnitude();
-    if( ! itk::FloatAlmostEqual( wi, 0.0 ) )
+    if( ! itk::Math::FloatAlmostEqual( wi, 0.0 ) )
       {
       wi = 1. / wi;
       }
