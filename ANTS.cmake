@@ -172,7 +172,8 @@ install(PROGRAMS Scripts/ANTSpexec.sh
                 COMPONENT SCRIPTS
         )
 
-if(BUILD_SHARED_LIBS AND NOT (USE_SYSTEM_ITK AND USE_SYSTEM_VTK))
+#Only install ITK/VTK libraries if shared build and superbuild is used
+if(BUILD_SHARED_LIBS AND ((NOT USE_SYSTEM_ITK) OR ((NOT USE_SYSTEM_VTK) AND USE_VTK)))
   install(DIRECTORY ${CMAKE_BINARY_DIR}/../staging/lib/
           DESTINATION lib)
 endif()
