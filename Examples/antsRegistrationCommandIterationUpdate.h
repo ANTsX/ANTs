@@ -123,5 +123,5 @@ private:
 // typename ImageType::Pointer m_origFixedImage;
 // typename ImageType::Pointer m_origMovingImage;
 };
-}; // end namespace ants
+} // end namespace ants
 #endif // antsRegistrationCommandIterationUpdate__h_

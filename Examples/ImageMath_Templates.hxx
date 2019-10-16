@@ -701,7 +701,7 @@ int Finite(int argc, char *argv[])
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     float val = vfIter2.Get();
-    if( val != val )
+    if( ! std::isfinite( val ) )
       {
       vfIter2.Set( replaceValue );
       }
@@ -731,7 +731,7 @@ int ThresholdAtMean(int argc, char *argv[])
   typename ImageType::Pointer image1 = nullptr;
   ReadImage<ImageType>(image1, fn1.c_str() );
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  double        mean = 0, max = -1.e9, min = 1.e9;
+  float        mean = 0, max = -1.e9, min = 1.e9;
   unsigned long ct = 0;
   Iterator      vfIter2( image1,  image1->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -750,7 +750,7 @@ int ThresholdAtMean(int argc, char *argv[])
     }
   if( ct > 0 )
     {
-    mean /= (float)ct;
+    mean /= static_cast<float>( ct );
     }
 
   typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholdFilterType;
@@ -905,7 +905,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
     }
   else
     {
-    hi = 1.0 - lo;
+    hi = 1.0f - lo;
     } argct++;
   unsigned int numberOfBins = 64;
   if( argc > argct )
@@ -1079,7 +1079,8 @@ int TileImages(unsigned int argc, char *argv[])
   unsigned int xsize = maxSize[0];
   unsigned int ysize = maxSize[1];
   typename ImageType::SizeType tilesize;
-  unsigned int ny = (unsigned int)( (float)numberofimages / (float)nx + 0.5);
+  unsigned int ny = static_cast<unsigned int>( static_cast<float>( numberofimages ) /
+                    static_cast<float>( nx ) + 0.5f);
   if( nx * ny < numberofimages )
     {
     ny++;
@@ -1116,7 +1117,7 @@ int TileImages(unsigned int argc, char *argv[])
         }
       if( ct > 0 )
         {
-        meanval /= (float)ct;
+        meanval /= static_cast<float>( ct );
         }
       if( meanval <= 0 )
         {
@@ -1450,7 +1451,7 @@ int CorruptImage(int argc, char *argv[])
   for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
     {
     double r = (   (double)rand()  / ( (double)(RAND_MAX) + (double)(1) ) ) - 0.5;
-    iter.Set(iter.Get() + r * noiselevel);
+    iter.Set(iter.Get() + static_cast<PixelType>( r ) * static_cast<PixelType>( noiselevel ) );
     }
 
   if( smoothlevel >  0 )
@@ -2728,7 +2729,7 @@ int SliceTimingCorrection(int argc, char *argv[])
     return 1;
     }
 
-  if( sliceTiming == 0 )
+  if( itk::Math::FloatAlmostEqual( sliceTiming, 0.0f ) )
     {
     sliceTiming =
       image1->GetSpacing()[ImageDimension - 1] / image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 2];
@@ -2737,7 +2738,7 @@ int SliceTimingCorrection(int argc, char *argv[])
 
   // FIXME - rounding error hack
   if ( sliceTiming * image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 2] > image1->GetSpacing()[ImageDimension - 1] ) {
-    sliceTiming = sliceTiming - 1e-8;
+    sliceTiming = sliceTiming - 1.0e-8f;
     // std::cout << "Corrected timing = " << sliceTiming << std::endl;
   }
   else {
@@ -3545,7 +3546,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
           {
 	  matriximage->SetPixel( matind, pix );
 	  }
-	meanval += pix;
+	meanval += static_cast<PixelType>( pix );
 	fullct++;
         }
       std::string colname = std::string("V") + ants_to_string<unsigned int>(voxct);
@@ -3681,10 +3682,10 @@ int PASL(int argc, char *argv[])
       }
     RealType      total = 0;
     unsigned long cbfct = 0;
-    RealType      M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for
+    float      M_0   = static_cast<float>( M0image->GetPixel( ind ) ); // FIXME can be taken from an input reference image or defined for
                                                     // each tissue
     bool getCBF = true;
-    if( haveM0 && M_0 == 0 )
+    if( haveM0 && itk::Math::FloatAlmostEqual( M_0, 0.0f ) )
       {
       getCBF = false;
       }
@@ -3874,10 +3875,10 @@ int pCASL(int argc, char *argv[])
       }
     RealType      total = 0;
     unsigned long cbfct = 0;
-    RealType      M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for
+    float      M_0   = static_cast<float>( M0image->GetPixel( ind ) ); // FIXME can be taken from an input reference image or defined for
                                                     // each tissue
     bool getCBF = true;
-    if( haveM0 && M_0 == 0 )
+    if( haveM0 && itk::Math::FloatAlmostEqual( M_0, 0.0f ) )
       {
       getCBF = false;
       }
@@ -4142,13 +4143,14 @@ int CompCorrAuto(int argc, char *argv[])
         tind[ImageDimension - 1] = t;
         Scalar pix = image1->GetPixel(tind);
         sample(t) = pix;
-        total += pix;
+        total += static_cast<float>( pix );
         }
       float mean = total / (float)timedims;
       float var = 0;
       for( unsigned int t = 0; t < timedims; t++ )
         {
-        var += ( (sample(t) - mean) * (sample(t) - mean) );
+        float samplet = static_cast<float>( sample(t) );
+        var += ( samplet - mean) * (samplet - mean);
         }
       var /= (float)(timedims);
       var = sqrt(var);
@@ -4186,8 +4188,8 @@ int CompCorrAuto(int argc, char *argv[])
   float varval_csf = 0;
   for( unsigned int j = 0; j < histsize; j++ )
     {
-    temp += varhist(j);
-    if( temp >= 0.95 && varval_csf <=  0 )
+    temp += static_cast<float>( varhist(j) );
+    if( temp >= 0.95f && varval_csf <=  0 )
       {
       varval_csf = (float)j * binsize;
       }
@@ -4454,7 +4456,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
       for( unsigned int t = 0; t < timedims; t++ )
         {
         tind[ImageDimension - 1] = t;
-        Scalar pix = image1->GetPixel(tind);
+        float pix = static_cast<float>( image1->GetPixel(tind) );
         smoother(t) = pix;
         total += pix;
         }
@@ -4462,7 +4464,8 @@ int ThreeTissueConfounds(int argc, char *argv[])
       float var = 0;
       for( unsigned int t = 0; t < timedims; t++ )
         {
-        var += ( (smoother(t) - mean) * (smoother(t) - mean) );
+        float smoothert = static_cast<float>( smoother(t) );
+        var += ( (smoothert - mean) * (smoothert - mean) );
         }
       var /= (float)(timedims);
       var = sqrt(var);
@@ -4500,8 +4503,8 @@ int ThreeTissueConfounds(int argc, char *argv[])
   float varval_csf = 0;
   for( unsigned int j = 0; j < histsize; j++ )
     {
-    temp += varhist(j);
-    if( temp >= 0.95 && varval_csf <=  0 )
+    temp += static_cast<float>( varhist(j) );
+    if( temp >= 0.95f && varval_csf <=  0 )
       {
       varval_csf = (float)j * binsize;
       }
@@ -4954,12 +4957,12 @@ LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
         bool secondval = true;
         if( input2 )
           {
-          if( input2->GetPixel(ind2) >= 0.5 )
+          if( input2->GetPixel(ind2) >= 0.5f )
             {
             secondval = true;
             }
           }
-        if( GHood.GetPixel(i) < 0.5 && dist <  2. && secondval  )
+        if( GHood.GetPixel(i) < 0.5f && dist <  2.0f && secondval  )
           {
           atedge = true;
           }
@@ -5023,7 +5026,7 @@ int LabelSurfaceArea(int argc, char *argv[])
         dist += (float)(ind[j] - ind2[j]) * (float)(ind[j] - ind2[j]);
         }
       dist = sqrt( dist );
-      if( dist <  (2.0*voxspc) )
+      if( dist <  (2.0f*voxspc) )
         {
         area += ( ( GHood.GetPixel( i ) * voxspc2 ) / locrefarea );
         }
@@ -5452,17 +5455,17 @@ int ImageMath(int argc, char *argv[])
       }
     else if( strcmp(operation.c_str(), "abs") == 0 )
       {
-      result = fabs(pix1);
+      result = static_cast<float>( fabs(pix1) );
       }
-    else if( strcmp(operation.c_str(), "addtozero") == 0 && pix1 == 0 )
+    else if( strcmp(operation.c_str(), "addtozero") == 0 && itk::Math::FloatAlmostEqual( pix1, 0.0f ) )
       {
       result = pix1 + pix2;
       }
-    else if( strcmp(operation.c_str(), "addtozero") == 0 && pix1 != 0 )
+    else if( strcmp(operation.c_str(), "addtozero") == 0 && ! itk::Math::FloatAlmostEqual( pix1, 0.0f ) )
       {
       result = pix1;
       }
-    else if( strcmp(operation.c_str(), "overadd") == 0 && pix2 != 0 )
+    else if( strcmp(operation.c_str(), "overadd") == 0 && ! itk::Math::FloatAlmostEqual( pix2, 0.0f ) )
       {
       result = pix2;
       }
@@ -5472,7 +5475,7 @@ int ImageMath(int argc, char *argv[])
       }
     else if( strcmp(operation.c_str(), "Decision") == 0 )
       {
-      result = 1. / (1. + exp(-1.0 * ( pix1 - 0.25) / pix2) );
+      result = 1.0f / (1.0f + exp(-1.0f * ( pix1 - 0.25f) / pix2) );
       }
     else if( strcmp(operation.c_str(), "total") == 0 )
       {
@@ -6038,7 +6041,7 @@ int TensorFunctions(int argc, char *argv[])
     backgroundTensor[i] = 0.0;
     }
 
-  if ( backgroundMD > 0.0 )
+  if ( backgroundMD > 0.0f )
     {
     // std::cout << "Setting background voxels to isotropic tensors with mean diffusivity " << backgroundMD << std::endl;
     backgroundTensor[0] = backgroundMD;
@@ -6145,7 +6148,7 @@ int TensorFunctions(int argc, char *argv[])
       {
       float maskVal = mimage->GetPixel(ind);
 
-      if( maskVal > 0.0 )
+      if( maskVal > 0.0f )
         {
         toimage->SetPixel( ind, tIter.Value() );
         }
@@ -6460,21 +6463,21 @@ int CompareHeadersAndImages(int argc, char *argv[])
       float pix1 = image1->GetPixel(ind);
       if( pix1 > 0  )
         {
-        i1norm += fabs(pix1); ct1++;
+        i1norm += static_cast<float>( fabs(pix1) ); ct1++;
         }
       if( pix2 > 0  )
         {
-        i2norm += fabs(pix2); ct2++;
+        i2norm += static_cast<float>( fabs(pix2) ); ct2++;
         }
       // if (pix3 > 0  )  {  i3norm+=fabs(pix3); ct3++; }
       }
     float mean1 = i1norm / ct1;
-    if( mean1 == 0 )
+    if( itk::Math::FloatAlmostEqual( mean1, 0.0f ) )
       {
       mean1 = 1;
       }
     float mean2 = i2norm / ct2;
-    if( mean2 == 0 )
+    if( itk::Math::FloatAlmostEqual( mean2, 0.0f ) )
       {
       mean2 = 1;
       }
@@ -6997,7 +7000,7 @@ int NegativeImage(int /*argc */, char *argv[])
       mn = px;
       }
     }
-  if( mx == mn )
+  if( itk::Math::FloatAlmostEqual( mx, mn ) )
     {
     mx = 1; mn = 0;
     }
@@ -7264,8 +7267,8 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
       // label=label-1;
       classCounts[label] += 1;
       float n = classCounts[label];
-      classMeans[label] = (n - 1.0) / ( n ) *  classMeans[label] + 1.0 / n * pix;
-      double sqrdf =  ( pix -  classMeans[label]) * ( pix -  classMeans[label]);
+      classMeans[label] = (n - 1.0f) / ( n ) *  classMeans[label] + 1.0f / n * pix;
+      double sqrdf =  ( static_cast<double>( pix ) -  classMeans[label]) * ( static_cast<double>( pix ) -  classMeans[label]);
       if( n > 1 )
         {
         classSigmas[label] =  (n - 1) / n * classSigmas[label] +  1.0 / (n - 1) * sqrdf;
@@ -7816,7 +7819,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
     bool   isinside = true;
     double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
     double labval = labimage->GetPixel(vfIter2.GetIndex() );
-    if( speedval < thresh )
+    if( speedval < static_cast<double>( thresh ) )
       {
       isinside = false;
       }
@@ -7904,11 +7907,11 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
       bool   isinside = true;
       double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
       double labval = labimage->GetPixel(vfIter2.GetIndex() );
-      if( speedval < thresh )
+      if( speedval < static_cast<double>( thresh ) )
         {
         isinside = false;
         }
-      if( isinside && labval == 0 )
+      if( isinside && itk::Math::FloatAlmostEqual( labval, 0.0 ) )
         {
         double fmarrivaltime = fastMarching->GetOutput()->GetPixel( vfIter2.GetIndex() );
         double mmm = fastimage->GetPixel(vfIter2.GetIndex() );
@@ -8100,7 +8103,7 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
     bool   isinside = true;
     double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
     double labval = labimage->GetPixel(vfIter2.GetIndex() );
-    if( speedval < thresh )
+    if( speedval < static_cast<double>( thresh ) )
       {
       isinside = false;
       }
@@ -8181,11 +8184,11 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
       bool   isinside = true;
       double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
       double labval = labimage->GetPixel(vfIter2.GetIndex() );
-      if( speedval < thresh )
+      if( speedval < static_cast<double>( thresh ) )
         {
         isinside = false;
         }
-      if( isinside && labval == 0 )
+      if( isinside && itk::Math::FloatAlmostEqual( labval, 0.0 ) )
         {
         double fmarrivaltime = fastMarching->GetOutput()->GetPixel( vfIter2.GetIndex() );
         double mmm = fastimage->GetPixel(vfIter2.GetIndex() );
@@ -8372,7 +8375,7 @@ int FillHoles(int argc, char *argv[])
 
   // WriteImage<ImageType>(relabel->GetOutput(),"test.nii");
 
-  if( holeparam == 2 )
+  if( holeparam == 2.0f )
     {
     typedef itk::ImageRegionIteratorWithIndex<ImageType> RelabelIterator;
     RelabelIterator vfIter( relabel->GetOutput(),
@@ -8423,12 +8426,12 @@ int FillHoles(int argc, char *argv[])
             {
             ind2 = GHood.GetIndex(i);
             float val2 = image1->GetPixel(ind2);
-            if( val2 >= 0.5 && GHood.GetPixel(i) != lab )
+            if( val2 >= 0.5f && GHood.GetPixel(i) != lab )
               {
               objectedge++;
               totaledge++;
               }
-            else if( val2 < 0.5 && GHood.GetPixel(i) != lab )
+            else if( val2 < 0.5f && GHood.GetPixel(i) != lab )
               {
               backgroundedge++;
               totaledge++;
@@ -8508,7 +8511,7 @@ int NormalizeImage(int argc, char *argv[])
       if( It.Get() != 0 )
         {
         roiMean += It2.Get();
-        count += 1.0;
+        count += 1.0f;
         }
       }
     roiMean /= count;
@@ -8550,7 +8553,7 @@ int NormalizeImage(int argc, char *argv[])
     for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
       float pix = iter.Get();
-      if( option == 0 )
+      if( itk::Math::FloatAlmostEqual( option, 0.0f ) )
         {
         pix = (pix - min) / (max - min);
         iter.Set(pix);
@@ -8744,10 +8747,10 @@ int CannyImage(      int argc, char *argv[])
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image );
   filter->SetVariance( sig );
-  if ( upperThreshold != -1.0) {
+  if ( ! itk::Math::FloatAlmostEqual( upperThreshold, -1.0f ) ) {
   filter->SetUpperThreshold( (PixelType) (upperThreshold) );
   }
-  if (lowerThreshold != -1.0) {
+  if ( ! itk::Math::FloatAlmostEqual( lowerThreshold, -1.0f ) ) {
   filter->SetLowerThreshold( (PixelType) (lowerThreshold) );
   }
   filter->Update();
@@ -9151,7 +9154,7 @@ EnumerateLabelInterfaces(int argc, char *argv[])
         {
         faceimage->SetPixel(find, faceimage->GetPixel(find) / total);
         }
-      if( faceimage->GetPixel(find) >  0.01 )
+      if( faceimage->GetPixel(find) >  0.01f )
         {
         // std::cout << i << "  :: " << faceimage->GetPixel(find)  << std::endl;
         }
@@ -9302,7 +9305,7 @@ int CountVoxelDifference(      int argc, char *argv[])
       float p1 = image1->GetPixel(It.GetIndex() );
       float p2 = image2->GetPixel(It.GetIndex() );
       float locerr = p1 - p2;
-      err += fabs(locerr);
+      err += static_cast<float>( fabs(locerr) );
       if( locerr < 0 )
         {
         negerr += locerr;
@@ -9319,8 +9322,8 @@ int CountVoxelDifference(      int argc, char *argv[])
   logfile.open(outname.c_str() );
   if( logfile.good()  )
     {
-    logfile << " Err " <<  " : " << err << " %ER " <<  " : " << err / (maskct) * 100. << " NER " <<  " : " << negerr
-      / maskct * 100.0 << std::endl;
+    logfile << " Err " <<  " : " << err << " %ER " <<  " : " << err / (maskct) * 100.0f << " NER " <<  " : " << negerr
+      / maskct * 100.0f << std::endl;
     }
   return 0;
 }
@@ -9505,7 +9508,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
     if( count2 + count1 > 0 )
       {
       distances[labct] += (dist2 + dist1) / (count2 + count1);
-      dicevals[labct] = 2.0 * counti / (count2 + count1);
+      dicevals[labct] = 2.0f * counti / (count2 + count1);
       rovals[labct] = counti / (countu);
       tpvals[labct] = counti / count1;
       tpvals2[labct] = counti / count2;
@@ -9622,9 +9625,9 @@ int DiceAndMinDistSum(      int argc, char *argv[])
   for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
 
     {
-    sum += distances[labct];
-    sumdice += dicevals[labct];
-    sumro += rovals[labct];
+    sum += static_cast<float>( distances[labct] );
+    sumdice += static_cast<float>( dicevals[labct] );
+    sumro += static_cast<float>( rovals[labct] );
 // square image
     squareimage->GetBufferPointer()[labct] = distances[labct];
     squareimage2->GetBufferPointer()[labct] = dicevals[labct];
@@ -10223,7 +10226,7 @@ int LabelStats(      int argc, char *argv[])
     for( It.GoToBegin(); !It.IsAtEnd(); ++It )
       {
       PixelType label = It.Get();
-      if(  label == currentlabel  )
+      if( itk::Math::FloatAlmostEqual( label, currentlabel ) )
         {
         totalct += 1;
         if( valimage )
@@ -10395,7 +10398,7 @@ int LabelThickness(      int argc, char *argv[])
       PixelType thicknessprior = volumeelement;
       if( surface[label] > 0 )
         {
-        thicknessprior = volume[label] / surface[label] * 2.0 * volumeelement;
+        thicknessprior = volume[label] / surface[label] * 2.0f * volumeelement;
         }
       eimage->SetPixel( iIt.GetIndex(), thicknessprior );
       }
@@ -10635,8 +10638,8 @@ int ROIStatistics(      int argc, char *argv[])
     //    float vv = valimage->GetPixel(It.GetIndex());
     if(  label > 0  && fabs(vv) > 1.e-9 )
       {
-      clusters[(unsigned long) label] = clusters[(unsigned long) label] + 1;
-      masses[(unsigned long) label] = masses[(unsigned long) label] + vv;
+      clusters[(unsigned long) label] += 1;
+      masses[(unsigned long) label] += static_cast<double>( vv );
       }
     }
   logfile << "ROIName,ROINumber,ClusterSize,Mass,Mean,comX,comY,comZ,comT" << std::endl;
@@ -10661,7 +10664,7 @@ int ROIStatistics(      int argc, char *argv[])
       for( It.GoToBegin(); !It.IsAtEnd(); ++It )
         {
         PixelType label = It.Get();
-        if(  label == mylabel )
+        if( itk::Math::FloatAlmostEqual( label, static_cast<PixelType>( mylabel ) ) )
           {
           totalct += 1;
           // compute center of mass
@@ -10740,7 +10743,7 @@ int ROIStatistics(      int argc, char *argv[])
     for( It.GoToBegin(); !It.IsAtEnd(); ++It )
       {
       PixelType label = It.Get();
-      if(  label == currentlabel  )
+      if( itk::Math::FloatAlmostEqual( label, static_cast<PixelType>( currentlabel ) ) )
         {
         totalvolume += volumeelement;
         totalct += 1;
@@ -10787,9 +10790,9 @@ int ROIStatistics(      int argc, char *argv[])
           }
         }
       }
-    if( totalct == 0 )
+    if( totalct == 0.0f )
       {
-      totalct = 1;
+      totalct = 1.0f;
       }
     for( unsigned int i = 0; i < spacing.Size(); i++ )
       {
@@ -10798,10 +10801,10 @@ int ROIStatistics(      int argc, char *argv[])
 
     clusters[(unsigned long)*it] = totalvolume;
     masses[(unsigned long)*it] = totalmass / totalct;
-    pvals[(unsigned long)*it] = 1.0 - maxoneminuspval;
+    pvals[(unsigned long)*it] = 1.0f - maxoneminuspval;
     pvals3[(unsigned long)*it] = maxoneminuspval3;
-    pvals4[(unsigned long)*it] = 1.0 - maxoneminuspval4;
-    pvals5[(unsigned long)*it] = 1.0 - maxoneminuspval5;
+    pvals4[(unsigned long)*it] = 1.0f - maxoneminuspval4;
+    pvals5[(unsigned long)*it] = 1.0f - maxoneminuspval5;
     // mycomlist[(unsigned long)*it]=myCenterOfMass;
 // square image
     squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
@@ -11985,7 +11988,7 @@ int CorrelationVoting( int argc, char *argv[] )
       }
 
     // If all agree, assign label immediately
-    if( maxVotes == nImages )
+    if( static_cast<int>( maxVotes ) == nImages )
       {
       it.Set( votedLabel );
       }
@@ -12013,7 +12016,7 @@ int CorrelationVoting( int argc, char *argv[] )
             {
             k++;
             typename ImageType::IndexType idx = metricIt.GetIndex( j );
-            if( k == 1 )
+            if( itk::Math::FloatAlmostEqual( k, 1.0f ) )
               {
               targetMean = target->GetPixel( idx );
               imageMean = images[i]->GetPixel( idx );
@@ -12685,10 +12688,10 @@ int PMSmoothImage(int argc, char *argv[])
   typename ImageType::Pointer image1 = nullptr;
   typename ImageType::Pointer varimage = nullptr;
   ReadImage<ImageType>(image1, fn1.c_str() );
-  PixelType     spacingsize = 0;
+  double     spacingsize = 0;
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
-    PixelType sp = image1->GetSpacing()[d];
+    double sp = static_cast<double>( image1->GetSpacing()[d] );
     spacingsize += sp * sp;
     }
   spacingsize = sqrt( spacingsize );
@@ -12697,8 +12700,8 @@ int PMSmoothImage(int argc, char *argv[])
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image1 );
   filter->SetNumberOfIterations( sigma );
-  PixelType mytimestep = spacingsize / std::pow( 2.0 , static_cast<double>(ImageDimension+1) );
-  PixelType reftimestep = 0.4 / std::pow( 2.0 , static_cast<double>(ImageDimension+1) );
+  double mytimestep = spacingsize / std::pow( 2.0, static_cast<double>(ImageDimension+1) );
+  double reftimestep = 0.4 / std::pow( 2.0, static_cast<double>(ImageDimension+1) );
   if ( mytimestep > reftimestep ) mytimestep = reftimestep;
   filter->SetTimeStep( mytimestep );
   filter->SetConductanceParameter( conductance ); // might need to change this
@@ -12775,7 +12778,7 @@ int InPaint(int argc, char *argv[])
     spacingsize += sp * sp;
     }
   spacingsize = sqrt( spacingsize );
-  float       inpow = spacingsize * 2.0;
+  float       inpow = spacingsize * 2.0f;
   if( argc > argct )
     {
     inpow = atof(argv[argct]); argct++;
@@ -12801,7 +12804,7 @@ int InPaint(int argc, char *argv[])
   locPoint.Fill( 0 );
   while(!imageIterator.IsAtEnd())
     {
-    if ( ct == static_cast<unsigned int>( std::floor( (PixelType) kernelsize / 2.0 ) ) )
+    if ( ct == static_cast<unsigned int>( std::floor(static_cast<float>( kernelsize ) / 2.0f ) ) )
       {
       kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), centerPoint );
       }
@@ -12824,10 +12827,11 @@ int InPaint(int argc, char *argv[])
     if ( distval > inpow ) val = 1.e8;
     if ( val > 0 )
       {
-      imageIterator.Set( 1.0 / val );
+      imageIterator.Set( 1.0f / val );
       totalval += imageIterator.Get( );
       }
-    if ( ct2 == static_cast<unsigned int>( std::floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 1.e-8 );
+
+    if ( ct2 == static_cast<unsigned int>( std::floor( static_cast<float>( ct ) / 2.0f ) ) ) imageIterator.Set( 1.e-8 );
     ++ct2;
     ++imageIterator;
     }
@@ -12891,7 +12895,7 @@ int InPaint2(int argc, char *argv[])
     spacingsize += sp * sp;
     }
   spacingsize = sqrt( spacingsize );
-  float       inpow = spacingsize * 2.0;
+  float       inpow = spacingsize * 2.0f;
   if( argc > argct )
     {
     inpow = atof(argv[argct]); argct++;
@@ -12915,7 +12919,7 @@ int InPaint2(int argc, char *argv[])
   typename ImageType::PointType locPoint;
   while(!imageIterator.IsAtEnd())
     {
-    if ( ct == static_cast<unsigned int>( std::floor( (PixelType) kernelsize / 2.0 ) ) )
+    if ( ct == static_cast<unsigned int>( std::floor( static_cast<float>( kernelsize ) / 2.0f ) ) )
       {
       kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), centerPoint );
       }
@@ -12941,7 +12945,7 @@ int InPaint2(int argc, char *argv[])
       imageIterator.Set( 1.0 / val );
       totalval += imageIterator.Get( );
       }
-    if ( ct2 == static_cast<unsigned int>( std::floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 1.e-8 );
+    if ( ct2 == static_cast<unsigned int>( std::floor( static_cast<float>( ct ) / 2.0f ) ) ) imageIterator.Set( 1.e-8 );
     ++ct2;
     ++imageIterator;
     }
@@ -13248,7 +13252,7 @@ void getBlobCorrespondenceMatrix( unsigned int radval, typename TImage::Pointer 
     if( dist <= radval )
       {
       activeindex.push_back( ii );
-      RealType wt =  exp( -1.0 * dist / ( radval * radval ) );
+      RealType wt =  exp( -1.0f * dist / ( radval * radval ) );
       weights.push_back( wt );
       weightsum += ( wt );
       }

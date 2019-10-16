@@ -648,7 +648,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
     {
     maxTr = trD;     // and avoid division by zero
     }
-  if( maxTr == trB )
+  if( itk::Math::FloatAlmostEqual( maxTr, trB ) )
     {
     TMatrix dq(3, 3, 0);
     dq(0, 0) = 1;
@@ -658,7 +658,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
     R = dq * R;
     }
 
-  if( maxTr == trC )
+  if( itk::Math::FloatAlmostEqual( maxTr, trC ) )
     {
     TMatrix dq(3, 3, 0);
     dq(0, 0) = -1;
@@ -668,7 +668,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
     R = dq * R;
     }
 
-  if( maxTr == trD )
+  if( itk::Math::FloatAlmostEqual( maxTr, trD ) )
     {
     TMatrix dq(3, 3, 0);
     dq(0, 0) = -1;

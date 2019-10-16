@@ -27,6 +27,8 @@
 #include "itkGrayscaleDilateImageFilter.h"
 #include "itkGrayscaleErodeImageFilter.h"
 
+#include "itkMath.h"
+
 // We need to ensure that only one of these exists!
 namespace ants
 {
@@ -345,7 +347,7 @@ typename TImage::Pointer BinaryThreshold(
   inputThresholder->SetInput( input );
   inputThresholder->SetInsideValue(  replaceval );
   int outval = 0;
-  if( (float) replaceval == (float) -1 )
+  if( itk::Math::FloatAlmostEqual( static_cast<float>( replaceval ), -1.0f ) )
     {
     outval = 1;
     }

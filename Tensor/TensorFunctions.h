@@ -135,14 +135,14 @@ float DiffusionCoefficient( TensorType dtv, VectorType direction, bool normalize
   tangentmat(2, 0) = direction[2];
 
   vnl_matrix<double> fddmat = tangentmat.transpose() * tensor * tangentmat;
-  float              fdd = (float) fddmat(0, 0);
+  double             fdd = fddmat(0, 0);
 
   if( normalized > 0 )
     {
     fdd = fdd / (tensor[0][0] + tensor[1][1] + tensor[2][2]);
     }
 
-  return fdd;
+  return static_cast<float>(fdd);
 }
 
 namespace tensorHelper
@@ -219,12 +219,12 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
   double e3 = D(2, 2);
   // float peigeps=1.e-12;
 
-  if( fabs(e3) < eps )
-    {
-    // success = false;
-    // std::cout << "-4" << std::flush;
-    // return dtv;
-    }
+  // if( fabs(e3) < eps )
+  //   {
+  //   // success = false;
+  //   // std::cout << "-4" << std::flush;
+  //   // return dtv;
+  //   }
 
   MatrixType eigmat(3, 3);
   eigmat.Fill(0);
@@ -409,9 +409,9 @@ float  GetMetricTensorCost(  TVectorType dpath,  TTensorType dtv, unsigned int m
   double                            e2 = (eig.D(1, 1) );
   double                            e3 = (eig.D(2, 2) );
   double                            etot = e1 + e2 + e3;
-  if( etot == 0 )
+  if( itk::Math::FloatAlmostEqual( etot, 0.0 ) )
     {
-    etot = 1;
+    etot = 1.0;
     }
 
   MatrixType vec(3, 1);
@@ -447,9 +447,9 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
   double                            e2 = (eig.D(1, 1) );
   double                            e1 = (eig.D(2, 2) );
   double                            etot = e1 + e2 + e3;
-  if( etot == 0 )
+  if( itk::Math::FloatAlmostEqual( etot, 0.0 ) )
     {
-    etot = 1;
+    etot = 1.0;
     }
 
   MatrixType vec(3, 1);
@@ -473,7 +473,7 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
   float temp;
   temp = (vec.transpose() * evec1)(0, 0);
   temp = sqrt(temp * temp);
-  e1 *= ( 1.0 - epsilon * temp);
+  e1 *= ( 1.0f - epsilon * temp);
   if( e1 < 1.e-11 )
     {
     e1 = 1.e-11;
@@ -481,7 +481,7 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
 
   temp = (vec.transpose() * evec2)(0, 0);
   temp = sqrt(temp * temp);
-  e2 *= ( 1.0 - epsilon * temp);
+  e2 *= ( 1.0f - epsilon * temp);
   if( e2 < 1.e-11 )
     {
     e2 = 1.e-11;
@@ -489,7 +489,7 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
 
   temp = (vec.transpose() * evec3)(0, 0);
   temp = sqrt(temp * temp);
-  e3 *= ( 1.0 - epsilon * temp);
+  e3 *= ( 1.0f - epsilon * temp);
   if( e3 < 1.e-11 )
     {
     e3 = 1.e-11;
@@ -679,16 +679,16 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
   float yy = dtv[3];
   float yz = dtv[4];
   float zz = dtv[5];
-  float isp = ( xx * xx + yy * yy + zz * zz + 2.0 * (xy * xy + xz * xz + yz * yz) );
+  float isp = ( xx * xx + yy * yy + zz * zz + 2.0f * (xy * xy + xz * xz + yz * yz) );
 
   float fa = 0.0;
-  if( isp > 0.0 )
+  if( isp > 0.0f )
     {
     float trace = dtv[0];
     trace += dtv[3];
     trace += dtv[5];
-    float anisotropy = 3.0 * isp - trace * trace;
-    fa = ( std::sqrt(anisotropy / ( 2.0 * isp ) ) );
+    float anisotropy = 3.0f * isp - trace * trace;
+    fa = ( std::sqrt(anisotropy / ( 2.0f * isp ) ) );
     }
 
   // rgb[0]=eig.V(2,0)*fa*255;//+eig.V(1,0)*e2;
@@ -759,9 +759,9 @@ itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned in
   float yy = dtv[3];
   float yz = dtv[4];
   float zz = dtv[5];
-  float isp = ( xx * xx + yy * yy + zz * zz + 2.0 * (xy * xy + xz * xz + yz * yz) );
+  float isp = ( xx * xx + yy * yy + zz * zz + 2.0f * (xy * xy + xz * xz + yz * yz) );
 
-  if( isp > 0.0 )
+  if( isp > 0.0f )
     {
     float trace = dtv[0];
     trace += dtv[3];
@@ -792,7 +792,7 @@ static float GetMetricTensorCost(  itk::Vector<float, 3> dpath,  TTensorType dtv
   double                            e2 = (eig.D(1, 1) );
   double                            e3 = (eig.D(2, 2) );
   double                            etot = e1 + e2 + e3;
-  if( etot == 0 )
+  if( itk::Math::AlmostEquals( etot, 0.0 ) )
     {
     etot = 1;
     }

@@ -509,5 +509,5 @@ private:
   typename FixedImageType::Pointer  m_origFixedImage;
   typename MovingImageType::Pointer m_origMovingImage;
 };
-}; // end namespace ants
+} // end namespace ants
 #endif // antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate__h_
