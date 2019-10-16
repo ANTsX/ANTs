@@ -36,7 +36,7 @@ date of the download.
 
 Please attach the following files (relative to your build directory)
 
-  - build.log
+  - build.log (the terminal output from make)
   - CMakeCache.txt
   - CMakeFiles/CMakeError.log
   - CMakeFiles/CMakeOutput.log
