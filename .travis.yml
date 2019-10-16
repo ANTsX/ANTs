@@ -150,6 +150,28 @@ matrix:
           update: yes
 #OSX clang starts here
     - os: osx
+      osx_image: xcode11.2
+      env:
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
+    - os: osx
+      osx_image: xcode11.1
+      env:
+        - MATRIX_EVAL=""
+      addons:
+        homebrew:
+          packages:
+            - cmake
+            - ccache
+            - ninja
+          update: yes
+    - os: osx
       osx_image: xcode11
       env:
         - MATRIX_EVAL=""
