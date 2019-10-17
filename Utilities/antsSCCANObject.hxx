@@ -4949,7 +4949,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         eigenvalue_i *= ip;
         }
       }
-    if( eigenvalue_i == 0 )
+    if( itk::Math::FloatAlmostEqual( eigenvalue_i, 0.0 ) )
       {
       this->m_VariatesP.set_column( i, this->InitializeV( this->m_MatrixP ) );
       }
@@ -5239,7 +5239,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
     }
   // this->SortResults( n_vecs );
-  return this->m_CanonicalCorrelations.mean();
+  return ! itk::Math::FloatAlmostEqual( this->m_CanonicalCorrelations.mean(), 0.0 );
 }
 
 template <typename TInputImage, typename TRealType>
@@ -5535,7 +5535,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     bool normbycov = true;
     bool changedgrad = this->CCAUpdate( n_vecs_in, true , normbycov, k );
     //NOT USED: lastenergy = energy;
-    energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
+    energy = static_cast<RealType>( this->m_CanonicalCorrelations.one_norm() ) / static_cast<RealType>( n_vecs_in );
     if( this->m_GradStep < 1.e-12 ) // || ( itk::Math::abs ( energy - lastenergy ) < this->m_Epsilon  && !changedgrad ) )
       {
       if ( ! this->m_Silent )  std::cout << " this->m_GradStep : " << this->m_GradStep << " energy : " << energy << " changedgrad : " << changedgrad << std::endl;

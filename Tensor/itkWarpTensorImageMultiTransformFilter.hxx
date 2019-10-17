@@ -66,9 +66,12 @@ TTensorType LogExpTensor( TTensorType inTensor, bool doLog )
   tensor[2][2] = inTensor[5];
 
   // std::cout << " + " << inTensor << std::endl;
-  if( ( (tensor[0][0] == 0) && (tensor[0][1] == 0) &&
-        (tensor[0][2] == 0) && (tensor[1][1] == 0) &&
-        (tensor[1][2] == 0) && (tensor[2][2] == 0) ) ||
+  if( ( itk::Math::FloatAlmostEqual(tensor[0][0], 0.0) &&
+        itk::Math::FloatAlmostEqual(tensor[0][1], 0.0) &&
+        itk::Math::FloatAlmostEqual(tensor[0][2], 0.0) &&
+        itk::Math::FloatAlmostEqual(tensor[1][1], 0.0) &&
+        itk::Math::FloatAlmostEqual(tensor[1][2], 0.0) &&
+        itk::Math::FloatAlmostEqual(tensor[2][2], 0.0)) ||
       (tensor.has_nans() ) ||
       (!tensor.is_finite() )
       )

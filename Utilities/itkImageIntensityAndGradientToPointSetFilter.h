@@ -28,7 +28,7 @@ namespace itk
  *
  */
 template <typename TInputImage, typename TMaskImage, typename TOutputMesh>
-class ImageIntensityAndGradientToPointSetFilter
+class ImageIntensityAndGradientToPointSetFilter final
   : public MeshSource<TOutputMesh>
 {
 public:
@@ -102,7 +102,7 @@ public:
     return static_cast<const MaskImageType*>( this->ProcessObject::GetInput( 1 ) );
     }
 
-  void Update() override;
+  void Update() final;
 
   /**
    * Set/Get sigma for the gradient recursive gaussian image filter
@@ -128,7 +128,7 @@ protected:
 
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  void GenerateData() override;
+  void GenerateData() final;
 
   double                    m_Sigma;
 

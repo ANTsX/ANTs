@@ -47,7 +47,7 @@ int SuperResolution( unsigned int argc, char *argv[] )
 
   bool useGradientWeighting = true;
   RealType gradientSigma = atof( argv[4] );
-  if( gradientSigma < 0.0 )
+  if( gradientSigma < itk::NumericTraits<RealType>::ZeroValue() )
     {
     useGradientWeighting = false;
     }
@@ -212,7 +212,7 @@ int SuperResolution( unsigned int argc, char *argv[] )
         {
         weight = gradientImage->GetPixel( It.GetIndex() );
         }
-      if( weight == 0.0 )
+      if( itk::Math::FloatAlmostEqual( weight, itk::NumericTraits<RealType>::ZeroValue() ) )
         {
         continue;
         }

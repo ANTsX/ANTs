@@ -109,7 +109,7 @@ typedef itk::ants::CommandLineParser ParserType;
 typedef ParserType::OptionType       OptionType;
 
 template <typename TComputeType, unsigned VImageDimension>
-class RegistrationHelper : public itk::Object
+class RegistrationHelper final : public itk::Object
 {
 public:
   /** Standard class typedefs */
