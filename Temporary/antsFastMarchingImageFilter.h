@@ -100,7 +100,7 @@ namespace itk
 template <
   typename TLevelSet,
   typename TSpeedImage = Image<float, TLevelSet::ImageDimension> >
-class FMarchingImageFilter :
+class FMarchingImageFilter final :
   public         ImageToImageFilter<TSpeedImage, TLevelSet>
 {
 public:
@@ -338,11 +338,11 @@ protected:
   };
   void PrintSelf( std::ostream& os, Indent indent ) const override;
 
-  virtual void Initialize( LevelSetImageType * );
+  virtual void Initialize( LevelSetImageType * ) final;
 
-  virtual void UpdateNeighbors( const IndexType& index, const SpeedImageType *, LevelSetImageType * );
+  virtual void UpdateNeighbors( const IndexType& index, const SpeedImageType *, LevelSetImageType * ) final;
 
-  virtual double UpdateValue( const IndexType& index, const SpeedImageType *, LevelSetImageType * );
+  virtual double UpdateValue( const IndexType& index, const SpeedImageType *, LevelSetImageType * ) final;
 
   const AxisNodeType & GetNodeUsedInCalculation(unsigned int idx) const
   {

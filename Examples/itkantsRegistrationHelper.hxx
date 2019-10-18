@@ -579,13 +579,13 @@ typename RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDime
 RegistrationHelper<TComputeType, VImageDimension>
 ::CalculateShrinkFactorsPerDimension( unsigned int factor, ImageSpacingType spacing )
 {
-  typedef RealType                        SpacingValueType;
+  using SpacingValueType = typename ImageSpacingType::ComponentType;
 
   SpacingValueType minSpacing = spacing[0];
   unsigned int minIndex = 0;
   for( unsigned int n = 1; n < VImageDimension; n++ )
     {
-    if( minSpacing > spacing[n] )
+    if( minSpacing > static_cast<SpacingValueType>( spacing[n] ) )
       {
       minSpacing = spacing[n];
       minIndex = n;
@@ -603,15 +603,16 @@ RegistrationHelper<TComputeType, VImageDimension>
     {
     if( shrinkFactorsPerDimension[n] == 0 )
       {
-      SpacingValueType newMinSpacing = spacing[n] * static_cast<SpacingValueType>( factor );
-      RealType minDifferenceFromMinSpacing = itk::Math::abs ( newMinSpacing - newSpacing[minIndex] );
+      SpacingValueType newMinSpacing = static_cast<SpacingValueType>( spacing[n] ) * 
+        static_cast<SpacingValueType>( factor );
+      RealType minDifferenceFromMinSpacing = static_cast<RealType>( std::fabs( newMinSpacing - newSpacing[minIndex] ) );
       unsigned int minFactor = factor;
       for( unsigned int f = factor - 1; f > 0; f-- )
         {
-        newMinSpacing = spacing[n] * static_cast<SpacingValueType>( f );
+        newMinSpacing = static_cast<SpacingValueType>( spacing[n] ) * static_cast<SpacingValueType>( f );
 
         // We use <= such that the smaller factor is preferred if distances are the same
-        if( itk::Math::abs ( newMinSpacing - newSpacing[minIndex] ) <= minDifferenceFromMinSpacing )
+        if( static_cast<RealType>( std::fabs( newMinSpacing - newSpacing[minIndex] ) ) <= minDifferenceFromMinSpacing )
           {
           minDifferenceFromMinSpacing = itk::Math::abs ( newMinSpacing - newSpacing[minIndex] );
           minFactor = f;
@@ -1053,7 +1054,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
           msqMetric->SetIntensityDistanceSigma( stageMetricList[currentMetricNumber].m_IntensityDistanceSigma );
           msqMetric->SetEuclideanDistanceSigma( stageMetricList[currentMetricNumber].m_EuclideanDistanceSigma );
-          if( msqMetric->GetEuclideanDistanceSigma() <= 0.0 )
+          if( msqMetric->GetEuclideanDistanceSigma() <= 0.0f )
             {
             msqMetric->EstimateEuclideanDistanceSigmaAutomaticallyOn();
             }
@@ -1061,7 +1062,7 @@ RegistrationHelper<TComputeType, VImageDimension>
             {
             msqMetric->EstimateEuclideanDistanceSigmaAutomaticallyOff();
             }
-          if( msqMetric->GetIntensityDistanceSigma() <= 0.0 )
+          if( msqMetric->GetIntensityDistanceSigma() <= 0.0f )
             {
             msqMetric->EstimateIntensityDistanceSigmaAutomaticallyOn();
             }
@@ -3178,7 +3179,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename BSplineTransformType::MeshSizeType meshSize;
         for( unsigned int d = 0; d < VImageDimension; d++ )
           {
-          physicalDimensions[d] = preprocessedFixedImagesPerStage[0]->GetSpacing()[d]
+          physicalDimensions[d] = static_cast<RealType>( preprocessedFixedImagesPerStage[0]->GetSpacing()[d] )
             * static_cast<RealType>( preprocessedFixedImagesPerStage[0]->GetLargestPossibleRegion().GetSize()[d] - 1 );
           meshSize[d] = size[d];
           }
@@ -3431,7 +3432,8 @@ RegistrationHelper<TComputeType, VImageDimension>
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
     RealType domain = static_cast<RealType>(
-      inputImage->GetLargestPossibleRegion().GetSize()[d] - 1 ) * inputImage->GetSpacing()[d];
+      inputImage->GetLargestPossibleRegion().GetSize()[d] - 1 ) * 
+      static_cast<RealType>( inputImage->GetSpacing()[d] );
     meshSize.push_back( static_cast<unsigned int>( std::ceil( domain / knotSpacing ) ) );
 //     unsigned long extraPadding = static_cast<unsigned long>(
 //       ( numberOfSpans * splineDistance - domain ) / inputImage->GetSpacing()[d] + 0.5 );

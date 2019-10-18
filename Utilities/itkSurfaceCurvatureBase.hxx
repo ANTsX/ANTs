@@ -111,7 +111,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 
   RealType mag = N.magnitude();
 
-  if( mag != 0.0 )
+  if( ! itk::Math::FloatAlmostEqual( mag, itk::NumericTraits<RealType>::ZeroValue() ) )
     {
     m_Normal = N / mag;
     }
@@ -127,21 +127,21 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
     {
     float norm = 1. / m_Normal[0];
     m_Tangent1[1] = norm * N[0];
-    m_Tangent1[0] = -1. * norm * (N[1] + N[2]);
+    m_Tangent1[0] = -1.0f * norm * (N[1] + N[2]);
     m_Tangent1[2] = norm * N[0];
     }
   else if( fabs(m_Normal[1]) > 1.e-1 )
     {
     float norm = 1. / m_Normal[1];
     m_Tangent1[0] = norm * N[1];
-    m_Tangent1[1] = -1. * norm * (N[0] + N[2]);
+    m_Tangent1[1] = -1.0f * norm * (N[0] + N[2]);
     m_Tangent1[2] = norm * N[1];
     }
   else if( fabs(m_Normal[2]) > 1.e-1 )
     {
     float norm = 1. / m_Normal[2];
     m_Tangent1[0] = norm * N[2];
-    m_Tangent1[2] = -1. * norm * (N[0] + N[1]);
+    m_Tangent1[2] = -1.0f * norm * (N[0] + N[1]);
     m_Tangent1[1] = norm * N[2];
     }
   m_Tangent1 /= m_Tangent1.magnitude();
@@ -219,9 +219,9 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::WeightedEstimateTangentPlane(P
     {
     PointType t = m_PointList[i] - origin;
     RealType  wi = t.magnitude();
-    if( wi != 0.0 )
+    if( ! itk::Math::FloatAlmostEqual( wi, itk::NumericTraits<RealType>::ZeroValue() ) )
       {
-      wi = 1. / wi;
+      wi = itk::NumericTraits<RealType>::OneValue() / wi;
       }
     twi += wi;
     for( unsigned int j = 0; j < dim; j++ )
@@ -416,8 +416,8 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
     float sigma = m_Sigma;
     for( unsigned int tt = 0; tt < npts; tt++ )
       {
-      wt = exp(-1.0f * wts[tt] / sigma);
-      dists[tt] *= wt;
+      wt = exp(-1.0f * static_cast<float>( wts[tt] ) / sigma);
+      dists[tt] *= static_cast<double>( wt );
       totwt += wt;
 //      std::cout << " wt " << wt << std::endl;
       }
@@ -447,13 +447,13 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
   double fuv = a(1);
   double fvv = 2. * a(2);
 
-  m_MeanKappa = (1.0f + fv * fv) * fuu - 2.0f * fu * fv * fuv + (1.0f + fu * fu) * fvv;
-  m_MeanKappa  /=  (2.0f * pow( 1.0f + fu * fu + fv * fv, 1.5f) );
+  m_MeanKappa = static_cast<RealType>( (1.0 + fv * fv) * fuu - 2.0 * fu * fv * fuv + (1.0 + fu * fu) * fvv );
+  m_MeanKappa  /=  static_cast<RealType>(2.0 * std::pow( 1.0 + fu * fu + fv * fv, 1.5) );
 
   m_GaussianKappa = (fuu * fvv - fuv * fuv) / ( ( 1.0 + fu * fu + fv * fv ) * ( 1.0 + fu * fu + fv * fv ) );
 
-  m_Kappa1 = m_MeanKappa + sqrt( m_MeanKappa * m_MeanKappa - m_GaussianKappa );
-  m_Kappa2 = m_MeanKappa - sqrt( m_MeanKappa * m_MeanKappa - m_GaussianKappa );
+  m_Kappa1 = m_MeanKappa + static_cast<float>( std::sqrt( m_MeanKappa * m_MeanKappa - m_GaussianKappa ) );
+  m_Kappa2 = m_MeanKappa - static_cast<float>( std::sqrt( m_MeanKappa * m_MeanKappa - m_GaussianKappa ) );
 
   if( origin[0] == 20 && origin[1] == 65 && origin[2] == 39 )
     {
@@ -651,7 +651,7 @@ SurfaceCurvatureBase<TSurface, TDimension>
     {
     return 8;
     }
-  else if( m_MeanKappa > 0 && m_GaussianKappa == 0 )
+  else if( m_MeanKappa > 0 && itk::Math::FloatAlmostEqual( m_GaussianKappa, 0.0f ) )
     {
     return 7;
     }
@@ -659,11 +659,11 @@ SurfaceCurvatureBase<TSurface, TDimension>
     {
     return 6;
     }
-  else if( m_MeanKappa == 0 && m_GaussianKappa == 0 )
+  else if( itk::Math::FloatAlmostEqual( m_MeanKappa, 0.0f ) && itk::Math::FloatAlmostEqual( m_GaussianKappa, 0.0f ) )
     {
     return 5;
     }
-  else if( m_MeanKappa == 0 && m_GaussianKappa <  0 )
+  else if( itk::Math::FloatAlmostEqual( m_MeanKappa, 0.0f ) && m_GaussianKappa <  0 )
     {
     return 4;
     }
@@ -671,7 +671,7 @@ SurfaceCurvatureBase<TSurface, TDimension>
     {
     return 3;
     }
-  else if( m_MeanKappa < 0 && m_GaussianKappa == 0 )
+  else if( m_MeanKappa < 0 && itk::Math::FloatAlmostEqual( m_GaussianKappa, 0.0f ) )
     {
     return 2;
     }
@@ -704,7 +704,7 @@ SurfaceCurvatureBase<TSurface, TDimension>
       }
     }
 
-  RealType meandist = totdist / static_cast<float>( ct );
+  RealType meandist = static_cast<RealType>( totdist ) / static_cast<RealType>( ct );
   // 4 pi r^2 = a,  r^2 = a/(4pi)
   RealType spheremeandist = 1.0; // sqrt((float)ct/(4.0*3.1418));
   RealType compactness = meandist / spheremeandist;

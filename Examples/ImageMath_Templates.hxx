@@ -380,7 +380,7 @@ int GetLargestComponent(int argc, char *argv[])
   float volumeelement = 1.0;
   for( unsigned int i = 0;  i < spacing.Size(); i++ )
     {
-    volumeelement *= spacing[i];
+    volumeelement *= static_cast<float>( spacing[i] );
     }
 
   typedef itk::Image<unsigned long, ImageDimension>                          labelimagetype;
@@ -736,7 +736,7 @@ int ThresholdAtMean(int argc, char *argv[])
   Iterator      vfIter2( image1,  image1->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    double val = vfIter2.Get();
+    float val = static_cast<float>( vfIter2.Get() );
     mean += val;
     if( val > max )
       {
@@ -841,11 +841,11 @@ int FlattenImage(int argc, char *argv[])
   typename ImageType::Pointer image1 = nullptr;
   ReadImage<ImageType>(image1, fn1.c_str() );
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  double   max = -1.e9, min = 1.e9;
+  PixelType max = -1.e9f, min = 1.e9f;
   Iterator vfIter2( image1,  image1->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    double val = vfIter2.Get();
+    PixelType val = vfIter2.Get();
     if( val > max )
       {
       max = val;
@@ -859,7 +859,7 @@ int FlattenImage(int argc, char *argv[])
   typename ImageType::Pointer out = MakeNewImage<ImageType>(image1, 0);
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    double val = vfIter2.Get();
+    PixelType val = vfIter2.Get();
     if( val > max * percentofmax )
       {
       val = (max * percentofmax);
@@ -998,14 +998,14 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   typedef typename HistogramGeneratorType::HistogramType HistogramType;
   const HistogramType *histogram = stats->GetHistogram( 1 );
 
-  double lowerQuantile = histogram->Quantile( 0, lo );
-  double upperQuantile = histogram->Quantile( 0, hi );
+  float lowerQuantile = static_cast<float>( histogram->Quantile( 0, lo ) );
+  float upperQuantile = static_cast<float>( histogram->Quantile( 0, hi ) );
 
   // std::cout << "Lower quantile: " << lowerQuantile << std::endl;
   // std::cout << "Upper quantile: " << upperQuantile << std::endl;
   for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
     {
-    if( ItI.Get() <  lowerQuantile )
+    if( ItI.Get() < lowerQuantile )
       {
       ItI.Set(  lowerQuantile );
       }
@@ -1112,12 +1112,12 @@ int TileImages(unsigned int argc, char *argv[])
       Iterator vfIter2( image2,  image2->GetLargestPossibleRegion() );
       for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
         {
-        meanval += vfIter2.Get();
+        meanval += static_cast<double>( vfIter2.Get() );
         ct++;
         }
       if( ct > 0 )
         {
-        meanval /= static_cast<float>( ct );
+        meanval /= static_cast<double>( ct );
         }
       if( meanval <= 0 )
         {
@@ -1136,7 +1136,7 @@ int TileImages(unsigned int argc, char *argv[])
       typename ImageType::IndexType globind;
       globind[0] = size[0] * imagexct + locind[0];
       globind[1] = size[1] * imageyct + locind[1];
-      double val =  vfIter.Get() / meanval;
+      double val =  static_cast<double>( vfIter.Get() ) / meanval;
       tiledimage->SetPixel(globind,   val );
       }
     }
@@ -1390,7 +1390,7 @@ int ConvertVectorToImage(unsigned int argc, char *argv[])
   Iterator      mIter( mask, mask->GetLargestPossibleRegion() );
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
-    if( mIter.Get() >= 0.5 )
+    if( mIter.Get() >= 0.5f )
       {
       mct++;
       }
@@ -1410,7 +1410,7 @@ int ConvertVectorToImage(unsigned int argc, char *argv[])
   vIter.GoToBegin();
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
-    if( mIter.Get() >= 0.5 )
+    if( mIter.Get() >= 0.5f )
       {
       outimage->SetPixel(mIter.GetIndex(), vIter.Get() );
       ++vIter;
@@ -1510,13 +1510,13 @@ int Where(int argc, char *argv[])
     {
     if( !image2 )
       {
-      if( fabs(iter.Get() - value) < tol )
+      if( static_cast<float>( std::fabs(iter.Get() - value) ) < tol )
         {
         // std::cout << iter.GetIndex() << std::endl;
         ct++;
         }
       }
-    else if( image2->GetPixel(iter.GetIndex() ) > 0 &&  fabs(iter.Get() - value) < tol )
+    else if( image2->GetPixel(iter.GetIndex() ) > 0 && static_cast<float>( fabs(iter.Get() - value) ) < tol )
       {
       // std::cout << iter.GetIndex() << std::endl;
       ct++;
@@ -3057,7 +3057,7 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
         for( unsigned int t = 0; t < nTimes; t++ )
           {
           timeIdx[0] = t;
-          timeSig(i, t) += time->GetPixel(timeIdx);
+          timeSig(i, t) += static_cast<double>( time->GetPixel(timeIdx) );
           }
         }
       }
@@ -3733,7 +3733,7 @@ int PASL(int argc, char *argv[])
           RealType slice_delay = 42.0; // FIXME milliseconds
           // TI2(slice) = TI2 + slice_number * slice_delay (slice_delay = the time taken to acquire each slice)
           RealType TI_2  = TI_1 + t * slice_delay;
-          RealType scaling = 2 * alpha * M_0 * TI_1 * exp( -TI_2 / T_1a );
+          RealType scaling = 2 * alpha * static_cast<RealType>( M_0 ) * TI_1 * static_cast<RealType>( exp( -TI_2 / T_1a ) );
           cbf( t ) = lambda * deltaM / scaling;
           total += cbf( t );
           cbfct++;
@@ -3926,7 +3926,7 @@ int pCASL(int argc, char *argv[])
           // Label width: Not in dicom, but sequence-specific -- magic parameter. Reference values: pCASL 1.5, CASL 1.6,
           // PASL 0.7.
           // from PMC3049525
-          const RealType scaling = 4 * alpha * M_0 * T_1t
+          const RealType scaling = 4 * alpha * static_cast<RealType>( M_0 ) * T_1t
             * ( exp( -1.0 * ( tau + w ) / T_1a ) - exp( -1.0 * w / T_1t )  );
           cbf( t ) = lambda * deltaM * ( -1.0 )  / scaling;
           total += cbf( t );
@@ -4750,7 +4750,7 @@ int StackImage(int argc, char *argv[])
     // Check input images
     for ( unsigned int d=0; d<nDims; d++)
     {
-      if ( fabs(im1Spacing[d] - refSpacing[d]) > eps )
+      if ( static_cast<float>( std::fabs( im1Spacing[d] - refSpacing[d] ) ) > eps )
       {
         // std::cout << "Inconsistent image spacing not allowed" << std::endl;
         return EXIT_FAILURE;
@@ -4758,7 +4758,7 @@ int StackImage(int argc, char *argv[])
 
       for ( unsigned int d2=0; d2<nDims; d2++)
       {
-        if ( fabs(im1Direction(d,d2) - refDirection(d,d2)) > eps )
+        if ( static_cast<float>( std::fabs(im1Direction(d,d2) - refDirection(d,d2)) > eps ) )
         {
           // std::cout << "Inconsistent image direction not allowed" << std::endl;
           return EXIT_FAILURE;
@@ -4771,7 +4771,7 @@ int StackImage(int argc, char *argv[])
       // 100 volumes and 50 volumes respectively
       if ( d < (nDims-1) )
       {
-        if ( fabs(im1Origin[d] - refOrigin[d]) > eps )
+        if ( static_cast<float>( std::fabs(im1Origin[d] - refOrigin[d] ) ) > eps )
         {
           // std::cout << "Inconsistent image origins not allowed" << std::endl;
           return EXIT_FAILURE;
@@ -4942,7 +4942,7 @@ LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
     {
     typename TImage::PixelType p = GHood.GetCenterPixel();
     typename TImage::IndexType ind = GHood.GetIndex();
-    if( p >= 0.5 )
+    if( p >= 0.5f )
       {
       bool atedge = false;
       for( unsigned int i = 0; i < GHood.Size(); i++ )
@@ -4967,7 +4967,7 @@ LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
           atedge = true;
           }
         }
-      if( atedge && p >=  0.5 )
+      if( atedge && p >=  0.5f )
         {
         Image->SetPixel(ind, 1);
         }
@@ -5020,13 +5020,13 @@ int LabelSurfaceArea(int argc, char *argv[])
     for( unsigned int i = 0; i < GHood.Size(); i++ )
       {
       const typename ImageType::IndexType & ind2 = GHood.GetIndex(i);
-      float dist = 0.0;
+      Scalar dist = 0.0;
       for( unsigned int j = 0; j < ImageDimension; j++ )
         {
-        dist += (float)(ind[j] - ind2[j]) * (float)(ind[j] - ind2[j]);
+        dist += static_cast<Scalar>( ( ind[j] - ind2[j] ) * (ind[j] - ind2[j]) );
         }
       dist = sqrt( dist );
-      if( dist <  (2.0f*voxspc) )
+      if( dist <  (2.0*voxspc) )
         {
         area += ( ( GHood.GetPixel( i ) * voxspc2 ) / locrefarea );
         }
@@ -5402,7 +5402,7 @@ int ImageMath(int argc, char *argv[])
   float volumeelement = 1.0;
   for( unsigned int i = 0;  i < ImageDimension; i++ )
     {
-    volumeelement *= varimage->GetSpacing()[i];
+    volumeelement *= static_cast<float>( varimage->GetSpacing()[i] );
     }
 
   float         result = 0;
@@ -5475,7 +5475,7 @@ int ImageMath(int argc, char *argv[])
       }
     else if( strcmp(operation.c_str(), "Decision") == 0 )
       {
-      result = 1.0f / (1.0f + exp(-1.0f * ( pix1 - 0.25f) / pix2) );
+      result = 1.0f / (1.0f + static_cast<float>( exp(-1.0f * ( pix1 - 0.25f) / pix2) ) );
       }
     else if( strcmp(operation.c_str(), "total") == 0 )
       {
@@ -5632,7 +5632,7 @@ int VImageMath(int argc, char *argv[])
   float volumeelement = 1.0;
   for( unsigned int i = 0;  i < ImageDimension; i++ )
     {
-    volumeelement *= varimage->GetSpacing()[i];
+    volumeelement *= static_cast<float>( varimage->GetSpacing()[i] );
     }
 
   PixelType result;
@@ -6498,7 +6498,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
 
       if( pix1 > 0 || pix2 > 0 )
         {
-        i1i2norm += fabs(pix1 - pix2);
+        i1i2norm += static_cast<float>( std::fabs(pix1 - pix2) );
         ct12++;
         }
       //      if ( pix1 > 0 || pix3 > 0)
@@ -6523,7 +6523,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
         {
         fixedorig[i] *= (-1.0);
         }
-      else if( (op1[i] > 0 && op2[i] == 0 ) || (op1[i] < 0 && op2[i] == 0) )
+      else if( (op1[i] > 0 && itk::Math::FloatAlmostEqual( op2[i], 0.0 ) ) || ( op1[i] < 0 && itk::Math::FloatAlmostEqual( op2[i], 0.0 ) ) )
         {
         fixedorig[i] = image1->GetOrigin()[i];
         }
@@ -7266,12 +7266,12 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
       {
       // label=label-1;
       classCounts[label] += 1;
-      float n = classCounts[label];
-      classMeans[label] = (n - 1.0f) / ( n ) *  classMeans[label] + 1.0f / n * pix;
+      double n = static_cast<double>( classCounts[label] );
+      classMeans[label] = (n - 1.0) / ( n ) *  classMeans[label] + 1.0 / n * static_cast<double>( pix );
       double sqrdf =  ( static_cast<double>( pix ) -  classMeans[label]) * ( static_cast<double>( pix ) -  classMeans[label]);
       if( n > 1 )
         {
-        classSigmas[label] =  (n - 1) / n * classSigmas[label] +  1.0 / (n - 1) * sqrdf;
+        classSigmas[label] =  (n - 1.0) / n * classSigmas[label] +  1.0 / (n - 1.0) * sqrdf;
         }
       }
 
@@ -8375,7 +8375,7 @@ int FillHoles(int argc, char *argv[])
 
   // WriteImage<ImageType>(relabel->GetOutput(),"test.nii");
 
-  if( holeparam == 2.0f )
+  if( itk::Math::FloatAlmostEqual( holeparam, 2.0f ) )
     {
     typedef itk::ImageRegionIteratorWithIndex<ImageType> RelabelIterator;
     RelabelIterator vfIter( relabel->GetOutput(),
@@ -8419,19 +8419,19 @@ int FillHoles(int argc, char *argv[])
         {
         typename ImageType::PixelType p = GHood.GetCenterPixel();
         typename ImageType::IndexType ind2;
-        if( p == lab )
+        if( itk::Math::FloatAlmostEqual( p, static_cast<float>( lab ) ) )
           {
           volume++;
           for( unsigned int i = 0; i < GHood.Size(); i++ )
             {
             ind2 = GHood.GetIndex(i);
             float val2 = image1->GetPixel(ind2);
-            if( val2 >= 0.5f && GHood.GetPixel(i) != lab )
+            if( val2 >= 0.5f && ! itk::Math::FloatAlmostEqual( GHood.GetPixel(i), static_cast<float>( lab ) ) )
               {
               objectedge++;
               totaledge++;
               }
-            else if( val2 < 0.5f && GHood.GetPixel(i) != lab )
+            else if( val2 < 0.5f && ! itk::Math::FloatAlmostEqual( GHood.GetPixel(i), static_cast<float>( lab ) ) )
               {
               backgroundedge++;
               totaledge++;
@@ -8453,7 +8453,7 @@ int FillHoles(int argc, char *argv[])
                               relabel->GetOutput()->GetLargestPossibleRegion() );
       for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
         {
-        if( vfIter.Get() == lab )
+        if( itk::Math::FloatAlmostEqual( vfIter.Get(), static_cast<float>( lab ) ) )
           {
           imageout->SetPixel(vfIter.GetIndex(), 1);
           }
@@ -8508,7 +8508,7 @@ int NormalizeImage(int argc, char *argv[])
     float count = 0.0;
     for( It.GoToBegin(), It2.GoToBegin(); !It.IsAtEnd(); ++It, ++It2 )
       {
-      if( It.Get() != 0 )
+      if( ! itk::Math::FloatAlmostEqual( It.Get(), 0.0f ) )
         {
         roiMean += It2.Get();
         count += 1.0f;
@@ -8875,15 +8875,15 @@ int PoissonDiffusion( int argc, char *argv[])
     stats->SetLabelInput( thresholder->GetOutput() );
     stats->Update();
 
-    convergence = stats->GetMean( 1 ) - lastmean;
-    lastmean = stats->GetMean( 1 );
+    convergence = static_cast<float>( stats->GetMean( 1 ) ) - lastmean;
+    lastmean = static_cast<float>( stats->GetMean( 1 ) );
     output =  smoother->GetOutput();
     output->DisconnectPipeline();
 
     Iterator vfIter( output,  output->GetLargestPossibleRegion() );
     for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
       {
-      if(  thresholder2->GetOutput()->GetPixel(vfIter.GetIndex() ) == 1 )
+      if( itk::Math::FloatAlmostEqual( thresholder2->GetOutput()->GetPixel(vfIter.GetIndex() ), 1.0f ) )
         {
         vfIter.Set(reader->GetOutput()->GetPixel(vfIter.GetIndex() ) );
         }
@@ -8893,7 +8893,7 @@ int PoissonDiffusion( int argc, char *argv[])
   Iterator vfIter( output,  output->GetLargestPossibleRegion() );
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
-    if(  thresholder2->GetOutput()->GetPixel(vfIter.GetIndex() ) == 1 )
+    if( itk::Math::FloatAlmostEqual( thresholder2->GetOutput()->GetPixel(vfIter.GetIndex() ), 1.0f ) )
       {
       vfIter.Set(reader->GetOutput()->GetPixel(vfIter.GetIndex() ) );
       }
@@ -8947,7 +8947,7 @@ RemoveLabelInterfaces(int argc, char *argv[])
       bool atedge = false;
       for( unsigned int i = 0; i < GHood.Size(); i++ )
         {
-        if( GHood.GetPixel(i) > 0 && GHood.GetPixel(i)  != p )
+        if( GHood.GetPixel(i) > 0 && ! itk::Math::FloatAlmostEqual( GHood.GetPixel(i), p ) )
           {
           atedge = true;
           }
@@ -9102,7 +9102,7 @@ EnumerateLabelInterfaces(int argc, char *argv[])
       unsigned long linearinda = 0, linearindb = 0, linearind = 0;
       for( unsigned int i = 0; i < GHood.Size(); i++ )
         {
-        if( GHood.GetPixel(i) > 0 && GHood.GetPixel(i)  != p )
+        if( GHood.GetPixel(i) > 0 && ! itk::Math::FloatAlmostEqual( GHood.GetPixel(i), p ) )
           {
           atedge = true;
           typename myInterfaceImageType::IndexType inda, indb;
@@ -9462,7 +9462,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
     Iterator It2( image2, image2->GetLargestPossibleRegion() );
     for( It2.GoToBegin(); !It2.IsAtEnd(); ++It2 )
       {
-      if( It2.Get() == *it || image1->GetPixel(It2.GetIndex() ) == *it )
+      if( itk::Math::FloatAlmostEqual( It2.Get(), *it ) || itk::Math::FloatAlmostEqual( image1->GetPixel( It2.GetIndex() ), *it ) )
         {
         countu++;
         }
@@ -9471,7 +9471,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
         counti++;
         }
 
-      if( It2.Get() == *it )
+      if( itk::Math::FloatAlmostEqual( It2.Get(), *it ) )
         {
         count2++;
         if( d1 )
@@ -9479,7 +9479,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
           dist2 += d1->GetPixel(It2.GetIndex() );
           }
         }
-      if( image1->GetPixel(It2.GetIndex() ) == *it )
+      if( itk::Math::FloatAlmostEqual( image1->GetPixel(It2.GetIndex() ), *it ) )
         {
         count1++;
         if( d2 )
@@ -9507,7 +9507,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
     if( count2 + count1 > 0 )
       {
-      distances[labct] += (dist2 + dist1) / (count2 + count1);
+      distances[labct] += static_cast<double>( (dist2 + dist1) / (count2 + count1) );
       dicevals[labct] = 2.0f * counti / (count2 + count1);
       rovals[labct] = counti / (countu);
       tpvals[labct] = counti / count1;
@@ -9714,7 +9714,7 @@ int Lipschitz( int argc, char *argv[] )
     typename VectorImageType::PixelType vecx = It1.Get();
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      xt[i] = x[i] + vecx[i];
+      xt[i] = x[i] + static_cast<double>( vecx[i] );
       }
 
     float         localmaxval = 0;
@@ -9730,11 +9730,11 @@ int Lipschitz( int argc, char *argv[] )
         vecimage->TransformIndexToPhysicalPoint( It2.GetIndex(), y);
         typename VectorImageType::PixelType vecy = It2.Get();
 
-        float numer = 0;
-        float denom = 0;
+        double numer = 0.0;
+        double denom = 0.0;
         for( unsigned int i = 0; i < ImageDimension; i++ )
           {
-          yt[i] = y[i] + vecy[i];
+          yt[i] = y[i] + static_cast<double>( vecy[i] );
           numer += (yt[i] - xt[i]) * (yt[i] - xt[i]);
           denom += (y[i] - x[i]) * (y[i] - x[i]);
           }
@@ -9870,7 +9870,7 @@ int InvId( int argc, char *argv[] )
 
 /** global Lipschitz points */
   typename VectorImageType::PointType gx;  gx.Fill(0);
-  float    globalmaxval = 0;
+  double    globalmaxval = 0;
   Iterator It1( vecimage1, vecimage1->GetLargestPossibleRegion() );
   for( It1.GoToBegin(); !It1.IsAtEnd(); ++It1 )
     {
@@ -9880,7 +9880,7 @@ int InvId( int argc, char *argv[] )
     typename VectorImageType::PixelType vecx = It1.Get();
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      xt[i] = x[i] + vecx[i];
+      xt[i] = x[i] + static_cast<double>( vecx[i] );
       }
 // above, we warped the point -- now we index the other field with this
 // point
@@ -9899,7 +9899,7 @@ int InvId( int argc, char *argv[] )
       yt[jj] = xt[jj] + disp[jj];
       }
 
-    float error = 0;
+    double error = 0.0;
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
       error += (yt[jj] - x[jj]) * (yt[jj] - x[jj]);
@@ -9909,7 +9909,7 @@ int InvId( int argc, char *argv[] )
       {
       globalmaxval = error; gx = x;
       }
-    invid->SetPixel(It1.GetIndex(), error);
+    invid->SetPixel(It1.GetIndex(), static_cast<float>( error ) );
     }
   // std::cout << " Max error " << globalmaxval << " at " << gx << std::endl;
   timer.Stop();
@@ -10372,7 +10372,7 @@ int LabelThickness(      int argc, char *argv[])
       bool isedge = false;
       for( unsigned int ii = 0; ii < Gsz; ii++ )
         {
-        if( GHood.GetPixel( ii ) == 0 )
+        if( itk::Math::FloatAlmostEqual( GHood.GetPixel( ii ), 0.0f ) )
           {
           isedge = true;
           }
@@ -10398,7 +10398,7 @@ int LabelThickness(      int argc, char *argv[])
       PixelType thicknessprior = volumeelement;
       if( surface[label] > 0 )
         {
-        thicknessprior = volume[label] / surface[label] * 2.0f * volumeelement;
+        thicknessprior = static_cast<float>( volume[label] / surface[label] ) * 2.0f * volumeelement;
         }
       eimage->SetPixel( iIt.GetIndex(), thicknessprior );
       }
@@ -10433,7 +10433,7 @@ int LabelThickness2( int argc, char *argv[] )
   float volumeElement = 1.0;
   for( unsigned int i = 0;  i < spacing.Size(); i++ )
     {
-    volumeElement *= spacing[i];
+    volumeElement *= static_cast<double>( spacing[i] );
     }
 
   typedef itk::LabelGeometryImageFilter<LabelImageType, RealImageType> GeometryFilterType;
@@ -10597,7 +10597,7 @@ int ROIStatistics(      int argc, char *argv[])
   float volumeelement = 1.0;
   for( unsigned int i = 0;  i < spacing.Size(); i++ )
     {
-    volumeelement *= spacing[i];
+    volumeelement *= static_cast<float>( spacing[i] );
     }
 
   vnl_vector<double> pvals(maxlab + 1, 1.0);
@@ -10683,7 +10683,7 @@ int ROIStatistics(      int argc, char *argv[])
       }
     for( unsigned int i = 0; i < spacing.Size(); i++ )
       {
-      myCenterOfMass[i] /= (float)totalct;
+      myCenterOfMass[i] /= static_cast<double>( totalct );
       }
     double comy = 0, comz = 0, comt = 0;
     double comx = myCenterOfMass[0];
@@ -10790,13 +10790,13 @@ int ROIStatistics(      int argc, char *argv[])
           }
         }
       }
-    if( totalct == 0.0f )
+    if( itk::Math::FloatAlmostEqual( totalct, 0.0f ) )
       {
       totalct = 1.0f;
       }
     for( unsigned int i = 0; i < spacing.Size(); i++ )
       {
-      myCenterOfMass[i] /= (float)totalct;
+      myCenterOfMass[i] /= static_cast<double>( totalct );
       }
 
     clusters[(unsigned long)*it] = totalvolume;
@@ -10954,7 +10954,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
   Iterator      mIter( mask, mask->GetLargestPossibleRegion() );
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
-    if( mIter.Get() >= 0.5 )
+    if( mIter.Get() >= 0.5f )
       {
       voxct++;
       }
@@ -11022,7 +11022,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
         }
       for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
         {
-        if( mIter.Get() >= 0.5 )
+        if( mIter.Get() >= 0.5f )
           {
           if( rowcoloption == 0 )
             {
@@ -11099,7 +11099,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
       typename MatrixImageType::IndexType mind;
       for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
         {
-        if( mIter.Get() >= 0.5 )
+        if( mIter.Get() >= 0.5f )
           {
           if( rowcoloption == 0 )
             {
@@ -11290,7 +11290,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
     for( Iterator mIter( mask, mask->GetLargestPossibleRegion() );
          !mIter.IsAtEnd(); ++mIter )
       {
-      if( mIter.Get() == mv )
+      if( itk::Math::FloatAlmostEqual( mIter.Get(), static_cast<float>( mv ) ) )
         {
         voxct++;
         }
@@ -11445,7 +11445,7 @@ int ConvertImageToFile(      int argc, char *argv[])
     for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
       {
       bool getval = true;
-      if( mask->GetPixel(vfIter.GetIndex() ) < 0.5 )
+      if( mask->GetPixel(vfIter.GetIndex() ) < 0.5f )
         {
         getval = false;
         }
@@ -11884,7 +11884,7 @@ int AverageLabels( int argc, char *argv[] )
         {
         outimages[it.Value() - 1]->SetPixel( it.GetIndex(),
                                              outimages[it.Value() - 1]->GetPixel( it.GetIndex() )
-                                             + 1.0 / images.size() );
+                                             + 1.0f / static_cast<float>( images.size() ) );
         }
       }
     }
@@ -12437,7 +12437,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
   PointType avgpoint2;
   avgpoint1.Fill( 0 );
   avgpoint2.Fill( 0 );
-  RealType wt = 1.0 / ( RealType ) Gsz;
+  RealType wt = itk::NumericTraits<RealType>::OneValue() / static_cast<RealType>( Gsz );
   for( unsigned int ii = 0; ii < Gsz; ii++ )
     {
     sample1[ii] = GHood.GetPixel( activeindex[ii] );
@@ -12458,8 +12458,8 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
       gimage2->TransformIndexToPhysicalPoint( gind2, point2 );
       for( unsigned int dd = 0; dd < ImageDimension; dd++ )
         {
-        avgpoint1[dd] = avgpoint1[dd] + point1[dd] * wt;
-        avgpoint2[dd] = avgpoint2[dd] + point2[dd] * wt;
+        avgpoint1[dd] = avgpoint1[dd] + point1[dd] * static_cast<float>( wt );
+        avgpoint2[dd] = avgpoint2[dd] + point2[dd] * static_cast<float>( wt );
         }
       imagepatch1.push_back( point1 );
       imagepatch2.push_back( point2 );
@@ -12522,7 +12522,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
     ptran2 = ( A_solution ) * ptran2;
     for( unsigned int dd = 0; dd < ImageDimension; dd++ )
       {
-      ptran[dd] = ptran2[dd] + avgpoint2[dd];
+      ptran[dd] = ptran2[dd] + static_cast<RealType>( avgpoint2[dd] );
       }
     if( interp2->IsInsideBuffer( ptran ) )
       {
@@ -12642,17 +12642,17 @@ int PureTissueN4WeightMask( int argc, char *argv[] )
   itk::ImageRegionIteratorWithIndex<ImageType> ItO( output, output->GetLargestPossibleRegion() );
   for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
     {
-    PixelType probability = 0.0;
+    PixelType probability = 0.0f;
     for( unsigned int i = 0; i < images.size(); i++ )
       {
-      PixelType negation = 1.0;
+      PixelType negation = 1.0f;
       for( unsigned int j = 0; j < images.size(); j++ )
         {
         if( i == j )
           {
           continue;
           }
-        negation *= ( 1.0 - images[j]->GetPixel( ItO.GetIndex() ) );
+        negation *= ( 1.0f - images[j]->GetPixel( ItO.GetIndex() ) );
         }
       probability += negation * images[i]->GetPixel( ItO.GetIndex() );
       }
@@ -12942,7 +12942,7 @@ int InPaint2(int argc, char *argv[])
     if ( distval > inpow ) val = 1.e8;
     if ( val > 0 )
       {
-      imageIterator.Set( 1.0 / val );
+      imageIterator.Set( 1.0f / val );
       totalval += imageIterator.Get( );
       }
     if ( ct2 == static_cast<unsigned int>( std::floor( static_cast<float>( ct ) / 2.0f ) ) ) imageIterator.Set( 1.e-8 );
@@ -13454,7 +13454,7 @@ int BlobDetector( int argc, char *argv[] )
       bestblob = blobs2[maxcol];
       if( bestblob &&  bestblob->GetObjectRadius() > 1 )
         {
-        if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < maxradiusdiffallowed )
+        if( static_cast<RealType>( std::fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) ) < maxradiusdiffallowed )
           {
           if( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  &&
               ( image2->GetPixel( bestblob->GetCenter() )  > smallval ) &&
@@ -13705,7 +13705,7 @@ int MatchBlobs( int argc, char *argv[] )
     BlobPointer  bestblob( blobs2[maxcol] );
     if( bestblob &&  bestblob->GetObjectRadius() > 1 )
       {
-      if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < maxradiusdiffallowed )
+      if( static_cast<RealType>( std::fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) ) < maxradiusdiffallowed )
         {
         if( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  &&
             ( image2->GetPixel( bestblob->GetCenter() )  > smallval ) )

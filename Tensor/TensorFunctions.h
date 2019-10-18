@@ -190,7 +190,7 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
     unsigned int jj;
     for( jj = 0; indices[jj] < tensorHelper::size(dtv); ++jj )
       {
-      if( dtv[indices[jj]] != 0.0 )
+      if( ! itk::Math::FloatAlmostEqual( static_cast<double>( dtv[indices[jj]] ), 0.0 ) )
         {
         break;
         }
@@ -473,7 +473,7 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
   float temp;
   temp = (vec.transpose() * evec1)(0, 0);
   temp = sqrt(temp * temp);
-  e1 *= ( 1.0f - epsilon * temp);
+  e1 *= ( 1.0 - static_cast<double>( epsilon * temp ) );
   if( e1 < 1.e-11 )
     {
     e1 = 1.e-11;
@@ -481,7 +481,7 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
 
   temp = (vec.transpose() * evec2)(0, 0);
   temp = sqrt(temp * temp);
-  e2 *= ( 1.0f - epsilon * temp);
+  e2 *= ( 1.0 - static_cast<double>( epsilon * temp ) );
   if( e2 < 1.e-11 )
     {
     e2 = 1.e-11;
@@ -489,7 +489,7 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
 
   temp = (vec.transpose() * evec3)(0, 0);
   temp = sqrt(temp * temp);
-  e3 *= ( 1.0f - epsilon * temp);
+  e3 *= ( 1.0 - static_cast<double>( epsilon * temp ) );
   if( e3 < 1.e-11 )
     {
     e3 = 1.e-11;

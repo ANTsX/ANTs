@@ -7,7 +7,7 @@ namespace ants
  *  \brief observe the optimizer for traditional registration methods
  */
 template <typename ParametersValueType, unsigned VImageDimension, typename TOptimizer>
-class antsRegistrationOptimizerCommandIterationUpdate : public itk::Command
+class antsRegistrationOptimizerCommandIterationUpdate final : public itk::Command
 {
 public:
   typedef antsRegistrationOptimizerCommandIterationUpdate Self;
@@ -44,12 +44,12 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) override
+  void Execute(itk::Object *caller, const itk::EventObject & event) final
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object *, const itk::EventObject & event) override
+  void Execute(const itk::Object *, const itk::EventObject & event) final
   {
 #if 0
     if( typeid( event ) == typeid( itk::InitializeEvent ) )
@@ -153,7 +153,7 @@ public:
                      << std::scientific << std::setprecision(12) << this->m_Optimizer->GetConvergenceValue() << ", "
                      << std::setprecision(4) << now << ", "
                      << std::setprecision(4) << (now - this->m_lastTotalTime)  << ", ";
-      if( ( this->m_ComputeFullScaleCCInterval != 0 ) && std::fabs(metricValue) > 1e-7 )
+      if( ( this->m_ComputeFullScaleCCInterval != 0 ) && std::fabs(metricValue) > static_cast<MeasureType>( 1e-7 ) )
         {
         this->Logger() << std::scientific << std::setprecision(12) << metricValue
                        << std::flush << std::endl;

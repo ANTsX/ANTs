@@ -275,7 +275,7 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
     bool getpoint = true;
     if( maskimg )
       {
-      if( maskimg->GetPixel( it.GetIndex() ) < 0.5 )
+      if( maskimg->GetPixel( it.GetIndex() ) < 0.5f )
         {
         getpoint = false;
         }
