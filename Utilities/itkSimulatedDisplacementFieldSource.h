@@ -27,7 +27,7 @@ namespace itk
  * \brief Computes a randomly simulated displacement field.
  *
  * SimulatedDisplacementFieldSource is an abstract class for producing a random
- * displacement field.  It is used to define the domain of the displacement 
+ * displacement field.  It is used to define the domain of the displacement
  * field.
  *
  * This source object expects the image to be of pixel type Vector.
@@ -36,7 +36,7 @@ namespace itk
  * \ingroup ITKDisplacementField
  */
 template<typename TOutputImage>
-class ITK_TEMPLATE_EXPORT SimulatedDisplacementFieldSource:
+class SimulatedDisplacementFieldSource:
   public ImageSource<TOutputImage>
 {
 public:
@@ -130,8 +130,8 @@ public:
   itkGetConstMacro( EnforceStationaryBoundary, bool );
 
   /**
-   * Set/Get initialization random see for random number 
-   * generator.  Default is to initialize randomly using the system 
+   * Set/Get initialization random see for random number
+   * generator.  Default is to initialize randomly using the system
    * clock.
    */
   void SetRandomizerInitializationSeed( const RandomizerSeedType );
@@ -145,7 +145,7 @@ public:
     return static_cast<RandomizerType *>( this->m_Randomizer );
     }
 
-  /** 
+  /**
    * SimulatedDisplacementFieldSource produces an image which is a different size
    * than its input.  As such, it needs to provide an implementation
    * for GenerateOutputInformation() in order to inform the pipeline
@@ -166,10 +166,10 @@ protected:
 
 private:
 
-  SizeType                       m_OutputSize;        
-  SpacingType                    m_OutputSpacing;     
-  OriginType                     m_OutputOrigin;      
-  DirectionType                  m_OutputDirection;   
+  SizeType                       m_OutputSize;
+  SpacingType                    m_OutputSpacing;
+  OriginType                     m_OutputOrigin;
+  DirectionType                  m_OutputDirection;
 
   RandomizerPointer              m_Randomizer;
   RandomizerSeedType             m_RandomizerInitializationSeed;

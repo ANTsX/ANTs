@@ -133,7 +133,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
           {
           center[d] += point[d];
           }
-        N += 1.0;
+        N += 1.0f;
         }
       ++ItP;
       ++ItD;
@@ -168,7 +168,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
           {
           center[d] += point[d];
           }
-        N += 1.0;
+        N += 1.0f;
         }
       ++ItP;
       ++ItD;

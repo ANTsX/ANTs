@@ -441,7 +441,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
 
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    if( p[i] >= kMaxDisp )
+    if( p[i] >= static_cast<double>( kMaxDisp ) )
       {
       b = true;
       break;
@@ -565,7 +565,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
           DisplacementType displacement = fieldPtr->GetPixel(index);
           for( unsigned int j = 0; j < ImageDimension; j++ )
             {
-            point2[j] = point1[j] + displacement[j];
+            point2[j] = point1[j] + static_cast<double>( displacement[j] );
             }
           isinside = true;
           }

@@ -243,7 +243,7 @@ int LandmarkBasedTransformInitializerBA(int, char * argv[])
     float fixlabel = *fit;
     float movlabel = *mit;
     std::cout << " fix-label " << fixlabel << " movlabel " << movlabel << std::endl;
-    if( movlabel != fixlabel )
+    if( ! itk::Math::FloatAlmostEqual( movlabel, fixlabel ) )
       {
       std::cout << " labels do not match -- exiting " << std::endl;
       exit(1);
@@ -289,7 +289,7 @@ int LandmarkBasedTransformInitializerBA(int, char * argv[])
       }
     for( unsigned int i = 0; i < spacing.Size(); i++ )
       {
-      myCenterOfMass[i] /= (float)totalct;
+      myCenterOfMass[i] /= static_cast<double>( totalct );
       }
     // std::cout << " pushing-fix " <<  myCenterOfMass << std::endl;
     fixedLandmarks.push_back( myCenterOfMass );
@@ -306,7 +306,7 @@ int LandmarkBasedTransformInitializerBA(int, char * argv[])
     for( ItM.GoToBegin(); !ItM.IsAtEnd(); ++ItM )
       {
       PixelType label = ItM.Get();
-      if(  label == currentlabel  )
+      if( itk::Math::FloatAlmostEqual( label, currentlabel ) )
         {
         totalct++;
         // compute center of mass

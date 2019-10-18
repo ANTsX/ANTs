@@ -36,7 +36,7 @@ double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
 
   for( unsigned int i = 0; i < v1.size(); i++ )
     {
-    xysum += v1(i) * v2(i);
+    xysum += static_cast<double>( v1(i) * v2(i) );
     }
   double frac = 1.0 / (double)v1.size();
   double xsum = v1.sum(), ysum = v2.sum();
@@ -120,7 +120,7 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
     for ( unsigned int v=0; v<nVoxels; v++)
       {
       idx[0] = v;
-      if ( labels->GetPixel(idx) == (i+1) )
+      if ( itk::Math::FloatAlmostEqual(  static_cast<float>( labels->GetPixel(idx) ), static_cast<float>( i+1 ) ) )
         {
         ++labelCounts[i];
         }
@@ -144,7 +144,7 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
       typename NetworkType::IndexType timeIdx;
       timeIdx[1] = v;
 
-      if ( labels->GetPixel(idx) == (i+1) )
+      if ( itk::Math::FloatAlmostEqual(  static_cast<float>( labels->GetPixel(idx) ), static_cast<float>( i+1 ) ) )
         {
         for ( unsigned int t=0; t<nTimes; t++)
           {
@@ -176,7 +176,7 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
           typename NetworkType::IndexType timeIdx2;
           timeIdx2[1] = v2;
 
-          if ( labels->GetPixel(idx2) == (j+1) )
+          if ( itk::Math::FloatAlmostEqual(  static_cast<float>( labels->GetPixel(idx2) ), static_cast<float>( j+1 ) ) )
             {
             for ( unsigned int t2=0; t2<nTimes; t2++)
               {
@@ -322,7 +322,7 @@ bool RegionAveraging(typename NetworkType::Pointer network, typename NetworkType
     for ( unsigned int v=0; v<nVoxels; v++)
       {
       idx[0] = v;
-      if ( labels->GetPixel(idx) == (i+1) )
+      if ( itk::Math::FloatAlmostEqual(  static_cast<float>( labels->GetPixel(idx) ), static_cast<float>( i+1 ) ) )
         {
         labelCounts[i]++;
 

@@ -48,7 +48,7 @@ namespace ants
     {10, 20, 30} as "10x20x30".
 */
 
-class CommandLineParser
+class CommandLineParser final
   : public       DataObject
 {
 public:

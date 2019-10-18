@@ -55,7 +55,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   this->m_InverseSpeed = -1.0;
   this->m_LabelImage = LabelImageType::New();
 
-  this->m_LargeValue    = static_cast<PixelType>( NumericTraits<PixelType>::max() / 2.0 );
+  this->m_LargeValue    = static_cast<PixelType>( NumericTraits<PixelType>::max() / static_cast<PixelType>( 2.0 ) );
   this->m_StoppingValue = static_cast<double>( this->m_LargeValue );
   this->m_CollectPoints = false;
 
@@ -350,7 +350,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
     // does this node contain the current value ?
     currentValue = (double) output->GetPixel( node.GetIndex() );
 
-    if( node.GetValue() != currentValue )
+    if( ! itk::Math::FloatAlmostEqual( static_cast<double>( node.GetValue() ), currentValue ) )
       {
       continue;
       }
@@ -630,7 +630,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
     {
     node = this->m_NodesUsed[j];
 
-    if( solution >= node.GetValue() )
+    if( solution >= static_cast<double>( node.GetValue() ) )
       {
       const int    axis = node.GetAxis();
       const double spaceFactor = itk::Math::sqr ( 1.0 / spacing[axis] );
@@ -657,7 +657,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
       }
     }
 
-  if( solution < this->m_LargeValue )
+  if( solution < static_cast<double>( this->m_LargeValue ) )
     {
     // write solution to this->m_OutputLevelSet
     outputPixel = static_cast<PixelType>( solution );

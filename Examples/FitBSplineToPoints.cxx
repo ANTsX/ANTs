@@ -233,7 +233,7 @@ int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
         {
         VectorType previous( 0.0 );
         pointSet->GetPointData( count-1, &previous );
-        totalDistance += ( previous - vector ).GetNorm();
+        totalDistance += static_cast<RealType>( ( previous - vector ).GetNorm() );
         }
 
       typename PointSetType::PointType point;
@@ -252,7 +252,7 @@ int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
     pointSet->GetPointData( i, &vector );
     pointSet->GetPointData( i-1, &previous );
 
-    cumSum += ( vector - previous ).GetNorm();
+    cumSum += static_cast<RealType>( ( vector - previous ).GetNorm() );
     typename PointSetType::PointType point;
     point[0] = cumSum / totalDistance;
 

@@ -43,7 +43,7 @@ namespace ants
       -m mutualinformation[parameter1] --optimization gradientdescent"
 */
 
-class OptionFunction
+class OptionFunction final
   : public       DataObject
 {
 public:
@@ -111,7 +111,7 @@ private:
   ParameterStackType m_Parameters;
 };
 
-class CommandLineOption
+class CommandLineOption final
   : public       DataObject
 {
 public:

@@ -22,7 +22,7 @@ namespace itk
 namespace ants
 {
 template <typename TInputImage, typename TRealType = double>
-class antsMatrixUtilities :
+class antsMatrixUtilities final :
   public         ImageToImageFilter<TInputImage, TInputImage>
 {
 public:

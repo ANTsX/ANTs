@@ -17,7 +17,7 @@ There are two types of registration that do not use generic "itkImageRegistratio
 As these registration types have their own specific optimization processes, a different observer is needed to watch their internal optimization procedure.
 */
 template <typename TFilter>
-class antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate : public itk::Command
+class antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate final : public itk::Command
 {
 public:
   typedef antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate Self;
@@ -59,12 +59,12 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) override
+  void Execute(itk::Object *caller, const itk::EventObject & event) final
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event ) override
+  void Execute(const itk::Object * object, const itk::EventObject & event ) final
   {
     TFilter const * const filter = dynamic_cast<const TFilter *>( object );
 

@@ -39,7 +39,7 @@ namespace itk
  * \ingroup ITKImageScaleSpace
  **/
 template <unsigned int TDimension = 3>
-class ScaleSpaceBlobSpatialObject
+class ScaleSpaceBlobSpatialObject final
   : public GaussianSpatialObject<TDimension>
 {
 public:
