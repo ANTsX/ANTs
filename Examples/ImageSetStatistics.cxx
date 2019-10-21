@@ -66,7 +66,7 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file, bool co
 
 double TProb(double t, int df)
 {
-  if( t == 0 )
+  if( itk::Math::FloatAlmostEqual( t, 0.0 ) )
     {
     return 0;
     }
@@ -212,19 +212,19 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
 
         if( inimage )
           {
-          sumi += image->GetPixel(index);
+          sumi += static_cast<double>( image->GetPixel(index) );
           cter++;
           }
         }
 
       if( cter > 0 )
         {
-        fixedMean = sumi / (float)cter;
+        fixedMean = sumi / static_cast<double>( cter );
         }
       }
 
-    float val = image->GetPixel(oindex) - fixedMean;
-    meanimage->SetPixel( oindex, meanimage->GetPixel(oindex) + fixedMean);
+    float val = image->GetPixel(oindex) - static_cast<float>( fixedMean );
+    meanimage->SetPixel( oindex, meanimage->GetPixel(oindex) + static_cast<float>( fixedMean ) );
     localmean->SetPixel( oindex, val );
     }
 
@@ -405,7 +405,7 @@ GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int mi
       {
       if( clustersum[i] / (float)histogram[i] > mx )
         {
-        mx = clustersum[i] / (float)histogram[i] * 1000.0;
+        mx = clustersum[i] / (float)histogram[i] * 1000.0f;
         }
       }
     return mx;
@@ -465,17 +465,17 @@ float npdf(std::vector<float> vec, bool opt,  float www)
       min = val;
       }
     auto n = (float) (i + 1);
-    float wt1 = 1.0 / (float)n;
-    float wt2 = 1.0 - wt1;
+    float wt1 = 1.0f / (float)n;
+    float wt2 = 1.0f - wt1;
     mean = mean * wt2 + val * wt1;
     if( i > 0 )
       {
-      float wt3 = 1.0 / ( (float) n - 1.0 );
+      float wt3 = 1.0f / ( (float) n - 1.0f );
       var = var * wt2 + ( val - mean ) * ( val - mean) * wt3;
       }
     }
 
-  if( var == 0 )
+  if( itk::Math::FloatAlmostEqual( var, itk::NumericTraits<float>::ZeroValue() ) )
     {
     return mean;
     }
@@ -508,7 +508,7 @@ float npdf(std::vector<float> vec, bool opt,  float www)
       {
       float delt = vec[i] - sample;
       delt *= delt;
-      prob[i] = 1.0 / (2.0 * 3.1214 * width) * exp(-0.5 * delt / (width * width) );
+      prob[i] = 1.0f / (2.0f * 3.1214f * width) * exp(-0.5f * delt / (width * width) );
       total += prob[i];
       //            maxprobval+=prob[i]
       }
@@ -836,7 +836,7 @@ int ImageSetStatistics(int argc, char *argv[])
     bool         takesample = true;
     if( ROIimg )
       {
-      if( ROIimg->GetPixel(ind) < 0.5 )
+      if( ROIimg->GetPixel(ind) < 0.5f )
         {
         takesample = false;
         }

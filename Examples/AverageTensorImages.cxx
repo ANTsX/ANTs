@@ -21,7 +21,7 @@ int AverageTensorImages(unsigned int argc, char *argv[])
 
   char * outputName = argv[2];
   int    mathtype = std::stoi(argv[3]);
-  float  numberofimages = (float)argc - 4.0;
+  float  numberofimages = static_cast<float>( argc ) - 4.0f;
 
   std::cout << "Averaging " << numberofimages << " images " << std::endl;
 

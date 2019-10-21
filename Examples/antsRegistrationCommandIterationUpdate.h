@@ -7,7 +7,7 @@ namespace ants
  *  \brief change parameters between iterations of registration
  */
 template <typename TFilter>
-class antsRegistrationCommandIterationUpdate : public itk::Command
+class antsRegistrationCommandIterationUpdate final : public itk::Command
 {
 public:
   typedef antsRegistrationCommandIterationUpdate Self;
@@ -27,12 +27,12 @@ protected:
 
 public:
 
-  void Execute(itk::Object *caller, const itk::EventObject & event) override
+  void Execute(itk::Object *caller, const itk::EventObject & event) final
   {
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event ) override
+  void Execute(const itk::Object * object, const itk::EventObject & event ) final
   {
     TFilter const * const filter = dynamic_cast<const TFilter *>( object );
 
@@ -123,5 +123,5 @@ private:
 // typename ImageType::Pointer m_origFixedImage;
 // typename ImageType::Pointer m_origMovingImage;
 };
-}; // end namespace ants
+} // end namespace ants
 #endif // antsRegistrationCommandIterationUpdate__h_

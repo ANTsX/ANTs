@@ -18,6 +18,16 @@
 #include "ANTsVersion.h"
 #include "ANTsVersionConfig.h"
 
+/** define these if they do not exist to avoid compiler errors due to
+* lack of git-defined versions.  this hopefully fixes some issues with
+* installation from source repositories that do not contain git history.
+*/
+#ifndef ANTS_VERSION_MAJOR
+#define ANTS_VERSION_MAJOR 0
+#define ANTS_VERSION_MINOR 0
+#define ANTS_VERSION_PATCH 0
+#endif
+
 #include <iostream>     // std::cout, std::ios
 #include <sstream>      // std::ostringstream
 

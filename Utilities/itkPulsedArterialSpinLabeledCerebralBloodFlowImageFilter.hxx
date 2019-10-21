@@ -117,8 +117,8 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
     float ratio = inIt.Value() / this->GetReferenceImage()->GetPixel( idx );
 
     // 540,000 is a unit conversion to give ml/100g/min
-    float cbf = ratio * 5400000.0 * this->m_Lambda
-      / ( 2.0 * this->m_Alpha * this->m_TI1 * exp( -TI / this->m_T1blood ) );
+    float cbf = ratio * 5400000.0f * this->m_Lambda
+      / ( 2.0f * this->m_Alpha * this->m_TI1 * static_cast<float>( exp( -TI / this->m_T1blood ) ) );
 
     outIt.Set( cbf );
     ++outIt;

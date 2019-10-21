@@ -414,8 +414,8 @@ bool ReadImageIntensityPointSet( itk::SmartPointer<TPointSet> & target, const ch
     return false;
     }
 
-  typename TImage::Pointer intensityImage = ReadImage<TImage>( (char *)imageFile );
-  typename TMask::Pointer maskImage = ReadImage<TMask>( (char *)maskFile );
+  typename TImage::Pointer intensityImage = ReadImage<TImage>( const_cast<char *>( imageFile ) );
+  typename TMask::Pointer maskImage = ReadImage<TMask>( const_cast<char *>( maskFile ) );
 
   typedef itk::ImageIntensityAndGradientToPointSetFilter<TImage, TMask, TPointSet> FilterType;
 

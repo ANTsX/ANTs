@@ -128,7 +128,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
 
   m_Angle = std::acos(R[0][0]);
 
-  if( this->GetMatrix()[1][0] < 0.0 )
+  if( this->GetMatrix()[1][0] < 0.0f )
     {
     m_Angle = -m_Angle;
     }
@@ -139,7 +139,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
 
   this->ComputeMatrix();
 
-  if( this->GetMatrix()[1][0] - sin(m_Angle) > 0.000001 )
+  if( static_cast<double>( this->GetMatrix()[1][0] ) - std::sin(m_Angle) > 0.000001 )
     {
     itkWarningMacro("Bad Rotation Matrix " << this->GetMatrix() );
     }
@@ -435,8 +435,8 @@ ANTSCenteredAffine2DTransform<TScalarType>::ComputeJacobianWithRespectToParamete
   // j[0][0] = -sa * ( p[0] - cx ) - ca * ( p[1] - cy );
   // j[1][0] =  ca * ( p[0] - cx ) - sa * ( p[1] - cy );
 
-  double pxoff = (p[0] - cx) + k * (p[1] - cy);
-  double pyoff = p[1] - cy;
+  double pxoff = ( static_cast<double>( p[0] ) - cx) + k * ( static_cast<double>( p[1] ) - cy );
+  double pyoff = static_cast<double>( p[1] ) - cy;
 
   // wrt. theta
   j[0][0] = s1 * ( pxoff ) * (-sa) + s2 * ( pyoff ) * (-ca);

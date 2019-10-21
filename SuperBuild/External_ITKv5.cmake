@@ -150,9 +150,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/muschellij2/ITK.git)
-  set(${proj}_GIT_TAG 7f5f7748c14b182e4072f9e433482bf165a811df )
-  # set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
-  # set(${proj}_GIT_TAG  9521126afd3aa986a9ade3e1af46136d6a39b8c8 ) #20191004, N4 expose ReconstructBiasField
+  set(${proj}_GIT_TAG ad8254df7675626f06508718b88b3709a15cdf7e )
   set(ITK_VERSION_ID ITK-5.1) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}

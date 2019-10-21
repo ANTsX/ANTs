@@ -10,7 +10,7 @@ namespace itk
 template <typename TScalarType = double>
 // Data type for scalars (float or double)
 // class Rigid2DTransform :
-class ANTSCenteredAffine2DTransform :
+class ANTSCenteredAffine2DTransform final :
   public         MatrixOffsetTransformBase<TScalarType, 2, 2> // Dimensions of input and output spaces
 {
 public:
@@ -210,7 +210,7 @@ protected:
   /** Compute the matrix from angle. This is used in Set methods
    * to update the underlying matrix whenever a transform parameter
    * is changed. */
-  void ComputeMatrix() override;
+  void ComputeMatrix() final;
 
   /** Compute the angle from the matrix. This is used to compute
    * transform parameters from a given matrix. This is used in

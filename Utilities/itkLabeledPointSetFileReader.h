@@ -31,7 +31,7 @@ namespace itk
  *
  */
 template <typename TOutputMesh>
-class LabeledPointSetFileReader
+class LabeledPointSetFileReader final
   : public MeshSource<TOutputMesh>
 {
 public:
