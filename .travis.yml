@@ -18,6 +18,7 @@ addons:
     sources:
       - sourceline: 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu bionic main'
         key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x60C317803A41BA51845E371A1E9377A2BA9EF27F'
+      - sourceline: 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/ppa/ubuntu bionic main'
       - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-5.0 main'
         key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
       - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-6.0 main'
@@ -27,14 +28,18 @@ addons:
       - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
       - sourceline: 'deb https://apt.kitware.com/ubuntu/ bionic main'
         key_url: 'https://apt.kitware.com/keys/kitware-archive-latest.asc'
+      - sourceline: 'deb http://ppa.launchpad.net/jonathonf/gcc/ubuntu bionic main'
+        key_url: 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x4AB0F789CBA31744CC7DA76A8CF63AD3F06FC659'
     packages:
       - cmake
       - ninja-build
+      - g++-4.8
       - g++-5
       - g++-6
       - g++-7
       - g++-8
       - g++-9
+      - gcc-4.8
       - gcc-5
       - gcc-6
       - gcc-7
@@ -50,6 +55,9 @@ addons:
 
 matrix:
   include:
+    - os: linux
+      env:
+         - MATRIX_EVAL="export CC=gcc-4.8 CXX=g++-4.8"
     - os: linux
       env:
          - MATRIX_EVAL="export CC=gcc-5 CXX=g++-5"
@@ -88,18 +96,6 @@ matrix:
       env:
         - MATRIX_EVAL="export CC=clang-9 CXX=clang++-9"
 #OSX GCC Starts here
-#    - os: osx
-#      osx_image: xcode10.3
-#      env:
-#        - MATRIX_EVAL="export CC=gcc-5 CXX=g++-5"
-#      addons:
-#        homebrew:
-#          packages:
-#            - cmake
-#            - ccache
-#            - ninja
-#            - gcc@5
-#          update: yes
     - os: osx
       osx_image: xcode10.3
       env:
