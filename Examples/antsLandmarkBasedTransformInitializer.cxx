@@ -70,7 +70,7 @@ void ReadLabeledPointSetFromImage( typename ImageType::Pointer image, typename P
           {
           center[d] += point[d];
           }
-        N += 1.0;
+        N += 1.0f;
         }
       ++ItP;
       ++ItD;

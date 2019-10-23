@@ -41,7 +41,7 @@ namespace itk
  * \ingroup IntensityImageFilters
  */
 template <typename TTensorImage, typename TVectorImage>
-class PreservationOfPrincipalDirectionTensorReorientationImageFilter :
+class PreservationOfPrincipalDirectionTensorReorientationImageFilter final :
   public         ImageToImageFilter<TTensorImage, TTensorImage>
 {
 public:

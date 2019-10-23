@@ -191,7 +191,7 @@ public:
       VectorType ortho = Mvec - V * ratio;
       for( unsigned int i = 0; i < Mvec.size(); i++ )
         {
-        if( Mvec(i) == 0 )
+        if( itk::Math::FloatAlmostEqual( Mvec(i), itk::NumericTraits<RealType>::ZeroValue() ) )
           {
           ortho(i) = 0;
           }

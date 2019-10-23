@@ -603,7 +603,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     {
     if( shrinkFactorsPerDimension[n] == 0 )
       {
-      SpacingValueType newMinSpacing = static_cast<SpacingValueType>( spacing[n] ) * 
+      SpacingValueType newMinSpacing = static_cast<SpacingValueType>( spacing[n] ) *
         static_cast<SpacingValueType>( factor );
       RealType minDifferenceFromMinSpacing = static_cast<RealType>( std::fabs( newMinSpacing - newSpacing[minIndex] ) );
       unsigned int minFactor = factor;
@@ -1054,7 +1054,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
           msqMetric->SetIntensityDistanceSigma( stageMetricList[currentMetricNumber].m_IntensityDistanceSigma );
           msqMetric->SetEuclideanDistanceSigma( stageMetricList[currentMetricNumber].m_EuclideanDistanceSigma );
-          if( msqMetric->GetEuclideanDistanceSigma() <= 0.0f )
+          if( msqMetric->GetEuclideanDistanceSigma() <= itk::NumericTraits<RealType>::ZeroValue() )
             {
             msqMetric->EstimateEuclideanDistanceSigmaAutomaticallyOn();
             }
@@ -1062,7 +1062,7 @@ RegistrationHelper<TComputeType, VImageDimension>
             {
             msqMetric->EstimateEuclideanDistanceSigmaAutomaticallyOff();
             }
-          if( msqMetric->GetIntensityDistanceSigma() <= 0.0f )
+          if( msqMetric->GetIntensityDistanceSigma() <= itk::NumericTraits<RealType>::ZeroValue() )
             {
             msqMetric->EstimateIntensityDistanceSigmaAutomaticallyOn();
             }
@@ -3432,7 +3432,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
     RealType domain = static_cast<RealType>(
-      inputImage->GetLargestPossibleRegion().GetSize()[d] - 1 ) * 
+      inputImage->GetLargestPossibleRegion().GetSize()[d] - 1 ) *
       static_cast<RealType>( inputImage->GetSpacing()[d] );
     meshSize.push_back( static_cast<unsigned int>( std::ceil( domain / knotSpacing ) ) );
 //     unsigned long extraPadding = static_cast<unsigned long>(

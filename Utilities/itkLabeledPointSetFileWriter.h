@@ -28,7 +28,7 @@ namespace itk
  *
  */
 template <typename TInputMesh>
-class LabeledPointSetFileWriter : public Object
+class LabeledPointSetFileWriter final : public Object
 {
 public:
   /** Standard "Self" typedef. */

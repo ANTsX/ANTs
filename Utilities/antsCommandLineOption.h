@@ -11,8 +11,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsCommandLineOption_h
-#define __antsCommandLineOption_h
+#ifndef antsCommandLineOption_h
+#define antsCommandLineOption_h
 
 #include "itkDataObject.h"
 #include "itkObjectFactory.h"
@@ -52,28 +52,28 @@ public:
     m_ArgOrder( 0 ),
     m_StageID( 0 )
   {
-  };
+  }
   ~OptionFunction() override = default;
 
   typedef OptionFunction     Self;
   typedef DataObject         Superclass;
   typedef SmartPointer<Self> Pointer;
 
-  itkNewMacro( Self );
+  itkNewMacro( Self )
 
-  itkTypeMacro( Option, DataObject );
+  itkTypeMacro( Option, DataObject )
 
   typedef std::deque<std::string> ParameterStackType;
 
-  itkSetStringMacro( Name );
-  itkGetStringMacro( Name );
-  itkGetMacro( Name, std::string );
+  itkSetStringMacro( Name )
+  itkGetStringMacro( Name )
+  itkGetMacro( Name, std::string )
 
-  itkSetMacro( ArgOrder, unsigned int );
-  itkGetConstMacro( ArgOrder, unsigned int );
+  itkSetMacro( ArgOrder, unsigned int )
+  itkGetConstMacro( ArgOrder, unsigned int )
 
-  itkSetMacro( StageID, unsigned int );
-  itkGetConstMacro( StageID, unsigned int );
+  itkSetMacro( StageID, unsigned int )
+  itkGetConstMacro( StageID, unsigned int )
 
   ParameterStackType GetParameters()
   {
@@ -101,7 +101,7 @@ public:
 
   unsigned int GetNumberOfParameters()
   {
-    return this->m_Parameters.size();
+    return static_cast<unsigned int>( this->m_Parameters.size() );
   }
 
 private:
@@ -119,9 +119,9 @@ public:
   typedef DataObject         Superclass;
   typedef SmartPointer<Self> Pointer;
 
-  itkNewMacro( Self );
+  itkNewMacro( Self )
 
-  itkTypeMacro( Option, DataObject );
+  itkTypeMacro( Option, DataObject )
 
   typedef OptionFunction OptionFunctionType;
 
@@ -135,7 +135,7 @@ public:
 
   unsigned int GetNumberOfFunctions()
   {
-    return this->m_OptionFunctions.size();
+    return static_cast<unsigned int>( this->m_OptionFunctions.size() );
   }
 
   OptionFunction::Pointer GetFunction( unsigned int i = 0 )
@@ -157,7 +157,7 @@ public:
 
   unsigned int GetNumberOfUsageOptions()
   {
-    return this->m_UsageOptions.size();
+    return static_cast<unsigned int>( this->m_UsageOptions.size() );
   }
 
   std::string GetUsageOption( unsigned int i = 0 )
@@ -172,14 +172,14 @@ public:
       }
   }
 
-  itkSetMacro( ShortName, char );
-  itkGetConstMacro( ShortName, char );
+  itkSetMacro( ShortName, char )
+  itkGetConstMacro( ShortName, char )
 
-  itkSetStringMacro( LongName );
-  itkGetConstMacro( LongName, std::string );
+  itkSetStringMacro( LongName )
+  itkGetConstMacro( LongName, std::string )
 
-  itkSetStringMacro( Description );
-  itkGetMacro( Description, std::string );
+  itkSetStringMacro( Description )
+  itkGetMacro( Description, std::string )
 
   void AddFunction( std::string, char, char, unsigned int order = 0 );
 

@@ -41,7 +41,7 @@ namespace itk
  *
  */
 template <typename TInputImage, typename TOutputImage>
-class SliceTimingCorrectionImageFilter :
+class SliceTimingCorrectionImageFilter final :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

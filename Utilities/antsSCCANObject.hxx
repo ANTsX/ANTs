@@ -100,7 +100,7 @@ antsSCCANObject<TInputImage, TRealType>
   Iterator mIter(mask, mask->GetLargestPossibleRegion() );
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
-    if( mIter.Get() >= 0.5 )
+    if( mIter.Get() >= static_cast<TRealType>( 0.5 ) )
       {
       vecind++;
       }
@@ -115,12 +115,12 @@ antsSCCANObject<TInputImage, TRealType>
   unsigned long maskct = 0;
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
-    if( mIter.Get() >= 0.5 )
+    if( mIter.Get() >= static_cast<TRealType>( 0.5 ) )
       {
       TRealType val = 0;
       if( vecind < w_p.size() )
         {
-	val = w_p( vecind ) * avgwt + weights->GetPixel(mIter.GetIndex());
+	       val = static_cast<TRealType>( w_p( vecind ) * avgwt + weights->GetPixel(mIter.GetIndex()) );
         }
       else
         {

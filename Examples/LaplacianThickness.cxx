@@ -115,7 +115,7 @@ LabelSurface(typename TImage::PixelType foreground,
   typename iteratorType::RadiusType rad;
   for( int j = 0; j < ImageDimension; j++ )
     {
-    rad[j] = (unsigned int)(distthresh + 0.5);
+    rad[j] = static_cast<unsigned int>( distthresh + 0.5f );
     }
   iteratorType GHood(rad, input, input->GetLargestPossibleRegion() );
 
@@ -127,7 +127,7 @@ LabelSurface(typename TImage::PixelType foreground,
     typename TImage::PixelType p = GHood.GetCenterPixel();
     typename TImage::IndexType ind = GHood.GetIndex();
     typename TImage::IndexType ind2;
-    if( p == foreground )
+    if( itk::Math::FloatAlmostEqual( p, foreground ) )
       {
       bool atedge = false;
       for( unsigned int i = 0; i < GHood.Size(); i++ )
@@ -226,7 +226,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     o_iter.GoToBegin();
     while( !o_iter.IsAtEnd() )
       {
-      if( o_iter.Get() > 0.5 && input->GetPixel(o_iter.GetIndex() ) > 0.5 )
+      if( o_iter.Get() > 0.5f && input->GetPixel(o_iter.GetIndex() ) > 0.5f )
         {
         o_iter.Set(1);
         }
@@ -342,7 +342,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
   while(  !Iterator.IsAtEnd()  )
     {
     ind = Iterator.GetIndex();
-    if( wm->GetPixel(ind) >= 0.5 )
+    if( wm->GetPixel(ind) >= 0.5f )
       {
       laplacian->SetPixel(ind, 1);
       }
@@ -356,7 +356,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
   // smooth and then reset the values
   float        meanvalue = 0, lastmean = 1;
   unsigned int iterations = 0;
-  while( fabs(meanvalue - lastmean) > tolerance  && iterations < numits )
+  while( static_cast<float>( std::fabs(meanvalue - lastmean) ) > tolerance  && iterations < numits )
     {
     iterations++;
     std::cout << "  % " << (float) iterations
@@ -368,11 +368,11 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
     while(  !Iterator.IsAtEnd()  )
       {
       ind = Iterator.GetIndex();
-      if( wm->GetPixel(ind) >= 0.5 )
+      if( wm->GetPixel(ind) >= 0.5f )
         {
         laplacian->SetPixel(ind, 1);
         }
-      else if( gm->GetPixel(ind) < 0.5  && wm->GetPixel(ind) < 0.5 )
+      else if( gm->GetPixel(ind) < 0.5f  && wm->GetPixel(ind) < 0.5f )
         {
         laplacian->SetPixel(ind, 2.);
         }
@@ -390,7 +390,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
 
   GradientImageFilterPointer filter = GradientImageFilterType::New();
   filter->SetInput(  laplacian );
-  filter->SetSigma(sig * 0.5);
+  filter->SetSigma(sig * 0.5f);
   filter->Update();
   return filter->GetOutput();
 }
@@ -446,8 +446,8 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
       {
       float scale = 1; // *m_DT[timeind]/m_DS[timeind];
       //     std::cout << " scale " << scale << std::endl;
-      double itimetn1 = itime - timesign * deltaTime * scale;
-      double itimetn1h = itime - timesign * deltaTime * 0.5 * scale;
+      double itimetn1 = static_cast<double>( itime - timesign * deltaTime * scale );
+      double itimetn1h = static_cast<double>( itime - timesign * deltaTime * 0.5f * scale );
       if( itimetn1h < 0 )
         {
         itimetn1h = 0;
@@ -495,10 +495,13 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
       // Y3[ImageDimension]=itimetn1h;
       //      Y4[ImageDimension]=itime;
 
+      using ContinuousIndexType = typename DefaultInterpolatorType::ContinuousIndexType;
+      using CoordRepType = typename ContinuousIndexType::CoordRepType;
+
       f1 = vinterp->EvaluateAtContinuousIndex( Y1 );
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        Y2[jj] += f1[jj] * deltaTime * 0.5;
+        Y2[jj] += f1[jj] * static_cast<CoordRepType>( deltaTime * 0.5f );
         }
       bool isinside = true;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -514,7 +517,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         }
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        Y3[jj] += f2[jj] * deltaTime * 0.5;
+        Y3[jj] += f2[jj] * static_cast<CoordRepType>( deltaTime * 0.5f );
         }
       isinside = true;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -530,7 +533,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         }
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        Y4[jj] += f3[jj] * deltaTime;
+        Y4[jj] += f3[jj] * static_cast<CoordRepType>( deltaTime );
         }
       isinside = true;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -546,8 +549,8 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         }
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        pointIn3[jj] = pointIn2[jj] + gradsign * vecsign * deltaTime / 6.0
-          * ( f1[jj] + 2.0 * f2[jj] + 2.0 * f3[jj] + f4[jj] );
+        pointIn3[jj] = pointIn2[jj] + gradsign * vecsign * deltaTime / 6.0f
+          * ( f1[jj] + 2.0 * f2[jj] + 2.0f * f3[jj] + f4[jj] );
         }
 
       VectorType out;
@@ -560,7 +563,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         disp[jj] = out[jj];
         }
       dmag = sqrt(dmag);
-      totalmag += sqrt(mag);
+      totalmag += static_cast<float>( sqrt(mag) );
 
       ct++;
       //      if (!propagate) //thislength=dmag;//
@@ -572,17 +575,17 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         myind[qq] = (unsigned long)(pointIn3[qq] / spacing[qq] + 0.5);
         }
 
-      if( (gm->GetPixel(myind) < 0.5 && wm->GetPixel(myind) < 0.5) ||
-          (wm->GetPixel(myind) >= 0.5 && gm->GetPixel(myind) < 0.5) ||
-          mag < 1.e-1 * deltaTime )
+      if( (gm->GetPixel(myind) < 0.5f && wm->GetPixel(myind) < 0.5f) ||
+          (wm->GetPixel(myind) >= 0.5f && gm->GetPixel(myind) < 0.5f) ||
+          mag < 1.e-1f * deltaTime )
         {
         timedone = true;
         }
-      if( gm->GetPixel(myind) < 0.5 )
+      if( gm->GetPixel(myind) < 0.5f )
         {
         timedone = true;
         }
-      if( ct >  2.0 / deltaTime )
+      if( static_cast<float>( ct ) >  2.0f / deltaTime )
         {
         timedone = true;
         }
@@ -711,12 +714,12 @@ int LaplacianThickness(int argc, char *argv[])
 //  1/(1.+exp(-0.1*(sulcprob-0.275)/use-sulcus-prior)) " << std::endl;
 //
       float gmprob = gm->GetPixel(Iterator.GetIndex() );
-      if( gmprob == 0 )
+      if( itk::Math::FloatAlmostEqual( gmprob, 0.0f ) )
         {
-        gmprob = 0.05;
+        gmprob = 0.05f;
         }
       float sprob = sulci->GetPixel(Iterator.GetIndex() );
-      sprob = 1 / (1. + exp(-0.1 * (sprob - 0.5) / dosulc) );
+      sprob = 1.0f / (1.0f + std::exp(-0.1f * (sprob - 0.5f) / dosulc) );
       sulci->SetPixel(Iterator.GetIndex(), sprob );
 //    if (gmprob > 0) std::cout << " gmp " << gmprob << std::endl;
       ++Iterator;
@@ -841,7 +844,7 @@ int LaplacianThickness(int argc, char *argv[])
         bool   printprobability = false;
 //    std::cout << " wmb " << wmb->GetPixel(velind) << " gm " << gm->GetPixel(velind) << std::endl;
 //    if (surf->GetPixel(velind) != 0) printprobability=true;
-        if( gm->GetPixel(velind) > 0.25 ) // && wmb->GetPixel(velind) < 1 )
+        if( gm->GetPixel(velind) > 0.25f ) // && wmb->GetPixel(velind) < 1 )
           {
           cter++;
           domeasure = true;
@@ -890,7 +893,7 @@ int LaplacianThickness(int argc, char *argv[])
 
         if( smoothit == 0 )
           {
-          if( thickimage2->GetPixel(velind) == 0  )
+          if( itk::Math::FloatAlmostEqual( thickimage2->GetPixel(velind), 0.0f )  )
             {
             thickimage2->SetPixel(velind, totalength);
             }
@@ -901,7 +904,7 @@ int LaplacianThickness(int argc, char *argv[])
           }
         if( smoothit > 0 && smooththick )
           {
-          thickimage2->SetPixel(velind, (totalength) * 0.5 + smooththick->GetPixel(velind) * 0.5 );
+          thickimage2->SetPixel(velind, totalength * 0.5f + smooththick->GetPixel(velind) * 0.5f );
           }
 
         if( domeasure && (totalength) > 0 && cter % 10000 == 0 )
@@ -919,7 +922,7 @@ int LaplacianThickness(int argc, char *argv[])
     gIterator.GoToBegin();
     while(  !gIterator.IsAtEnd()  )
       {
-      if( gm->GetPixel(gIterator.GetIndex() ) < 0.25 )
+      if( gm->GetPixel(gIterator.GetIndex() ) < 0.25f )
         {
         thickimage2->SetPixel(gIterator.GetIndex(), 0);
         }

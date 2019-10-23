@@ -105,7 +105,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
 
     m3[index] += ( difference * difference * difference );
     m4[index] += ( m3[index] * difference );
-    N[index] += 1.0;
+    N[index] += itk::NumericTraits<RealType>::OneValue();
     }
   for( unsigned int n = 0; n < N.size(); n++ )
     {
@@ -142,7 +142,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
         / static_cast<RealType>( histogram->GetTotalFrequency() );
       if ( p > 0 )
         {
-        entropy += ( -p * std::log( p ) / std::log( 2.0 ) );
+        entropy += static_cast<RealType>( -p * std::log( p ) / std::log( 2.0f ) );
         }
       }
 
@@ -151,12 +151,12 @@ int ImageIntensityStatistics( int argc, char *argv[] )
     unsigned long index = it2 - labels.begin();
 
     RealType m2 = itk::Math::sqr ( stats->GetSigma( *it ) );
-    RealType k2 = ( N[index] ) / ( N[index] - 1.0 ) * m2;
+    RealType k2 = ( N[index] ) / ( N[index] - 1.0f ) * m2;
 
-    RealType prefactor3 = itk::Math::sqr ( N[index] ) / ( ( N[index] - 1.0 ) * ( N[index] - 2.0 ) );
+    RealType prefactor3 = itk::Math::sqr ( N[index] ) / ( ( N[index] - 1.0f ) * ( N[index] - 2.0 ) );
     RealType k3 = prefactor3 * m3[index];
 
-    RealType prefactor4 = itk::Math::sqr ( N[index] ) / ( ( N[index] - 1.0 ) * ( N[index] - 2.0 ) * ( N[index] - 3.0 ) );
+    RealType prefactor4 = itk::Math::sqr ( N[index] ) / ( ( N[index] - 1.0f ) * ( N[index] - 2.0 ) * ( N[index] - 3.0 ) );
     RealType k4 = prefactor4 * ( ( N[index] + 1 ) * m4[index] - 3 * ( N[index] - 1 ) * itk::Math::sqr ( m2 ) );
 
     RealType skewness = k3 / std::sqrt( k2 * k2 * k2 );

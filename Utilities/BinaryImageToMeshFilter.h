@@ -69,7 +69,7 @@ public:
 
   inline bool operator !=(const UnaryFunctorBinaryToFloat & otro) const
   {
-    return this->m_InsideValue != otro.m_InsideValue;
+    return( ! itk::Math::FloatAlmostEqual( this->m_InsideValue, otro.m_InsideValue ) );
   }
 
 private:
@@ -148,7 +148,7 @@ public:
   /** Get the floating point 'resampled' image, if resampling was enabled */
   FloatImageType * GetResampledImage()
   {
-    if( m_ResampleScaleFactor != 1.0f )
+    if( itk::Math::FloatAlmostEqual( m_ResampleScaleFactor, 1.0f ) )
       {
       return fltResample->GetOutput();
       }
@@ -230,7 +230,7 @@ protected:
 
     fltClean = vtkCleanPolyData::New();
     bool doclean = false;
-    if ( doclean ) 
+    if ( doclean )
       {
       // Clean up the data
       fltClean->SetInputData(meshPipeEnd);
@@ -319,7 +319,7 @@ protected:
     fltToFloat->Update();
 
     // Peform resampling only if necessary
-    if( m_ResampleScaleFactor != 1.0 )
+    if( ! itk::Math::FloatAlmostEqual( m_ResampleScaleFactor, 1.0f ) )
       {
       // Include the filter in the pipeline
       fltAlias->SetInput(fltResample->GetOutput() );
@@ -335,9 +335,9 @@ protected:
       // Set the scale and origin
       FloatImageType::SpacingType xSpacing =
         inputImage->GetSpacing();
-      xSpacing[0] /= m_ResampleScaleFactor;
-      xSpacing[1] /= m_ResampleScaleFactor;
-      xSpacing[2] /= m_ResampleScaleFactor;
+      xSpacing[0] /= static_cast<double>( m_ResampleScaleFactor );
+      xSpacing[1] /= static_cast<double>( m_ResampleScaleFactor );
+      xSpacing[2] /= static_cast<double>( m_ResampleScaleFactor );
       fltResample->SetOutputSpacing(xSpacing);
       fltResample->SetOutputOrigin(inputImage->GetOrigin() );
 
@@ -397,11 +397,11 @@ protected:
       }
 
     bool doclean = false;
-    if ( doclean ) 
+    if ( doclean )
       {
       if (verbose) cout << "   cleaning the mesh " << endl;
       fltClean->Update();
-      if (verbose) cout << "  after clean step mesh uses " << m_DecimateFactor << " decimation " 
+      if (verbose) cout << "  after clean step mesh uses " << m_DecimateFactor << " decimation "
 		      << fltClean->GetOutput()->GetNumberOfCells() << " cells and "
 		      << fltClean->GetOutput()->GetNumberOfPoints() << " points. " << endl;
       }
