@@ -393,8 +393,8 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
         }
       // =fabs(manifoldIntegrator->GetGraphNode(i)->GetTotalCost());
 
-      temp = fabs(temp);
-      float vvv = (temp - mn2) * 255. / dif;
+      temp = std::fabs(temp);
+      float vvv = (temp - mn2) * 255.0f / dif;
       vvv = (temp - mn) / dif;
       /*
       if (vvv > 128)

@@ -341,17 +341,17 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic icp term
   const MeasureType euclideanDistance = point.EuclideanDistanceTo( closestPoint );
-  MeasureType distanceProbability = std::exp( -0.5f * itk::Math::sqr ( euclideanDistance / this->m_EuclideanDistanceSigma ) );
+  MeasureType distanceProbability = std::exp( static_cast<MeasureType>( -0.5 ) * itk::Math::sqr ( euclideanDistance / this->m_EuclideanDistanceSigma ) );
 
   SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
-  SizeValueType centerIntensityIndex = static_cast<SizeValueType>( 0.5f * numberOfVoxelsInNeighborhood )
+  SizeValueType centerIntensityIndex = static_cast<SizeValueType>( static_cast<MeasureType>( -0.5 ) * numberOfVoxelsInNeighborhood )
     * ( PointDimension + 1 );
 
   // the probabilistic intensity term
   MeasureType intensityDistance = pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex];
   MeasureType intensityProbability = std::exp( -0.5f * itk::Math::sqr ( intensityDistance / this->m_IntensityDistanceSigma ) );
 
-  const MeasureType measure = ( -1.0f ) * intensityProbability * distanceProbability;
+  const MeasureType measure = -itk::NumericTraits<MeasureType>::OneValue() * intensityProbability * distanceProbability;
 
   return measure;
 }
@@ -389,7 +389,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic icp term
   const MeasureType euclideanDistance = point.EuclideanDistanceTo( closestPoint );
-  MeasureType distanceProbability = std::exp( -0.5f * itk::Math::sqr ( euclideanDistance / this->m_EuclideanDistanceSigma ) );
+  MeasureType distanceProbability = std::exp( static_cast<MeasureType>( -0.5 ) * itk::Math::sqr ( euclideanDistance / this->m_EuclideanDistanceSigma ) );
 
   SizeValueType numberOfVoxelsInNeighborhood = pixel.size() / ( 1 + PointDimension );
   SizeValueType centerIntensityIndex =
@@ -397,9 +397,9 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic intensity term
   MeasureType intensityDistance = pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex];
-  MeasureType intensityProbability = std::exp( -0.5f * itk::Math::sqr ( intensityDistance / this->m_IntensityDistanceSigma ) );
+  MeasureType intensityProbability = std::exp( static_cast<MeasureType>( -0.5 ) * itk::Math::sqr ( intensityDistance / this->m_IntensityDistanceSigma ) );
 
-  measure = ( -1.0f ) * intensityProbability * distanceProbability;
+  measure = -itk::NumericTraits<MeasureType>::OneValue() * intensityProbability * distanceProbability;
 
   // total derivative is
   // d/dx( intProb * distProb ) =

@@ -147,7 +147,7 @@ std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransform,  T
   os << "translation_scales=" << p.translation_scales << std::endl;
 
   return os;
-};
+}
 
 template <typename TransformType>
 void WriteAffineTransformFile(typename TransformType::Pointer & transform,
@@ -1116,7 +1116,7 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
         current_step_length *= relaxation_factor;
         }
 
-      if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+      if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
         {
         is_converged = true;
         break;
@@ -1142,7 +1142,7 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
         current_step_length *= relaxation_factor;
         }
 
-      if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+      if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
         {
         is_converged = true;
         break;
@@ -1317,13 +1317,13 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         current_step_length *= relaxation_factor;
         }
 
-      if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+      if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
         {
         is_converged = true;
         break;
         }
 
-      if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+      if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
         {
         is_converged = true;
         break;
@@ -1466,13 +1466,13 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
           current_step_length *= relaxation_factor;
           }
 
-        if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+        if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
           {
           is_converged = true;
           break;
           }
 
-        if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+        if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
           {
           is_converged = true;
           break;

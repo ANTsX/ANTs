@@ -133,8 +133,6 @@ public:
   AverageAffineTransformNoRigidFunction();
   ~AverageAffineTransformNoRigidFunction() = default;
 
-  ;
-
   // void PrintSelf(std::ostream& os, Indent indent) const;
 
   typedef typename GenericAffineTransformType::Pointer GenericAffineTransformPointerType;

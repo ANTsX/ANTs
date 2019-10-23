@@ -298,9 +298,10 @@ float  GetTensorFA( TensorType dtv )
 
   // Check for zero diffusion (probably background) and return zero FA
   // if that's the case
-  if (dtv[0] + dtv[3] + dtv[5] == 0.0f)
+  typename TensorType::ValueType sum = dtv[0] + dtv[3] + dtv[5];
+  if (itk::Math::FloatAlmostEqual( sum, itk::NumericTraits<typename TensorType::ValueType>::ZeroValue() ) )
     {
-      return 0.0f;
+      return itk::NumericTraits<float>::ZeroValue();
     }
 
   typedef vnl_matrix<double> MatrixType;
@@ -511,9 +512,11 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
 template <typename TTensorType>
 float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
 {
+  typename TTensorType::ValueType sum = dtv[0] + dtv[3] + dtv[5];
+
   if( opt <= 1 )
     {
-    return ( dtv[0] + dtv[3] + dtv[5] ) / 3.0;
+    return ( sum / static_cast<typename TTensorType::ValueType>( 3.0 ) );
     }
   float eps = 1.e-9, mag = 0;
   for( unsigned int jj = 0; jj < 6; jj++ )
@@ -522,18 +525,20 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
     mag += ff * ff;
     if( std::isnan( ff ) || std::isinf(ff)   )
       {
-      return 0;
+      return itk::NumericTraits<float>::ZeroValue();
       }
     }
   mag = sqrt(mag);
 
-  if(  dtv[1] == 0 && dtv[2] == 0 && dtv[4] == 0 )
+  if( itk::Math::FloatAlmostEqual( dtv[1], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) &&
+      itk::Math::FloatAlmostEqual( dtv[2], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) &&
+      itk::Math::FloatAlmostEqual( dtv[4], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) )
     {
-    return 0;
+    return itk::NumericTraits<float>::ZeroValue();
     }
   if( mag < eps )
     {
-    return 0;
+    return itk::NumericTraits<float>::ZeroValue();
     }
 
   typedef vnl_matrix<double> MatrixType;
@@ -608,7 +613,9 @@ itk::RGBPixel<unsigned char>   GetTensorRGB( TTensorType dtv )
 
   itk::RGBPixel<unsigned char> rgb;
 
-  if(  dtv[1] == 0 && dtv[2] == 0 && dtv[4] == 0 )
+  if( itk::Math::FloatAlmostEqual( dtv[1], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) &&
+      itk::Math::FloatAlmostEqual( dtv[2], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) &&
+      itk::Math::FloatAlmostEqual( dtv[4], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) )
     {
     return zero;
     }
@@ -649,13 +656,15 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
     }
   mag = sqrt(mag);
 
-  if(  dtv[1] == 0 && dtv[2] == 0 && dtv[4] == 0 )
+  if( itk::Math::FloatAlmostEqual( dtv[1], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) &&
+      itk::Math::FloatAlmostEqual( dtv[2], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) &&
+      itk::Math::FloatAlmostEqual( dtv[4], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) )
     {
-    return zero;
+    return itk::NumericTraits<float>::ZeroValue();
     }
   if( mag < eps )
     {
-    return zero;
+    return itk::NumericTraits<float>::ZeroValue();
     }
 
   typedef vnl_matrix<double> MatrixType;
@@ -729,7 +738,9 @@ itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned in
     }
   mag = sqrt(mag);
 
-  if(  dtv[1] == 0 && dtv[2] == 0 && dtv[4] == 0 )
+  if( itk::Math::FloatAlmostEqual( dtv[1], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) &&
+      itk::Math::FloatAlmostEqual( dtv[2], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) &&
+      itk::Math::FloatAlmostEqual( dtv[4], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue() ) )
     {
     return zero;
     }

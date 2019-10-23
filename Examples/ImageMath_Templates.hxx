@@ -2098,9 +2098,9 @@ int CenterImage2inImage1(int argc, char *argv[])
     image2->TransformIndexToPhysicalPoint(iter.GetIndex(), point);
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      cm_point[d] += point[d] * iter.Get();
+      cm_point[d] += point[d] * static_cast<double>( iter.Get() );
       }
-    iweight += iter.Get();
+    iweight += static_cast<double>( iter.Get() );
     }
 
   // center of image1
@@ -2172,7 +2172,7 @@ int TimeSeriesMask( int argc, char *argv[] )
   Iterator it( mask, mask->GetLargestPossibleRegion() );
   while ( ! it.IsAtEnd() )
     {
-    if ( it.Value() == 0 )
+    if( itk::Math::FloatAlmostEqual( it.Value(), itk::NumericTraits<PixelType>::ZeroValue() ) )// reference
       {
       typename MaskImageType::IndexType maskIdx = it.GetIndex();
       typename ImageType::IndexType timeIdx;
@@ -2737,7 +2737,7 @@ int SliceTimingCorrection(int argc, char *argv[])
     }
 
   // FIXME - rounding error hack
-  if ( sliceTiming * image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 2] > image1->GetSpacing()[ImageDimension - 1] ) {
+  if ( sliceTiming * static_cast<float>( image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 2] ) > static_cast<float>( image1->GetSpacing()[ImageDimension - 1] ) ) {
     sliceTiming = sliceTiming - 1.0e-8f;
     // std::cout << "Corrected timing = " << sliceTiming << std::endl;
   }
@@ -3479,7 +3479,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
   SliceIt mIter( mask, mask->GetLargestPossibleRegion() );
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
-    if( mIter.Get() >= 0.5 )
+    if( mIter.Get() >= static_cast<PixelType>( 0.5 ) )
       {
       voxct++;
       }
@@ -3524,7 +3524,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     OutIndexType ind = vfIter2.GetIndex();
-    if( mask->GetPixel(ind) >= 0.5 )
+    if( mask->GetPixel(ind) >= static_cast<PixelType>( 0.5 ) )
       {
       IndexType tind;
       // first collect all samples for that location
@@ -4105,7 +4105,7 @@ int CompCorrAuto(int argc, char *argv[])
   // std::cout << " verify input " << std::endl;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    if( vfIter2.Get() == 1 )      // in brain
+    if( itk::Math::FloatAlmostEqual( vfIter2.Get(), itk::NumericTraits<PixelType>::OneValue() ) )      // in brain
       {
       ct_vox++;
       }
@@ -4403,11 +4403,11 @@ int ThreeTissueConfounds(int argc, char *argv[])
   // std::cout << " verify input " << std::endl;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    if( vfIter2.Get() == csflabel )      // nuisance
+    if( itk::Math::FloatAlmostEqual( vfIter2.Get(), static_cast<PixelType>( csflabel ) ) )      // nuisance
       {
       ct_nuis++;
       }
-    if( vfIter2.Get() == wmlabel )      // reference
+    if( itk::Math::FloatAlmostEqual( vfIter2.Get(), static_cast<PixelType>( wmlabel ) ) )      // reference
       {
       ct_ref++;
       }
@@ -4517,7 +4517,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     // OutIndexType ind = vfIter2.GetIndex();
-    if( vfIter2.Get() == csflabel )      // reference
+    if ( itk::Math::FloatAlmostEqual( vfIter2.Get(), static_cast<PixelType>( csflabel ) ) )// reference
     //    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
       {
       ct_nuis++;
@@ -4530,7 +4530,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
     OutIndexType ind = vfIter2.GetIndex();
     //      if ( vfIter2.Get() == 3 ) { // nuisance
     //    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
-    if( vfIter2.Get() == csflabel )      // reference
+    if( itk::Math::FloatAlmostEqual( vfIter2.Get(), static_cast<PixelType>( csflabel ) ) )// reference
       {
       IndexType tind;
       for( unsigned int i = 0; i < ImageDimension - 1; i++ )
@@ -4545,7 +4545,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
         }
       nuis_vox++;
       }
-    if( vfIter2.Get() == wmlabel )      // reference
+    if( itk::Math::FloatAlmostEqual( vfIter2.Get(), static_cast<PixelType>( wmlabel ) ) )// reference
       {
       IndexType tind;
       for( unsigned int i = 0; i < ImageDimension - 1; i++ )
@@ -4758,7 +4758,7 @@ int StackImage(int argc, char *argv[])
 
       for ( unsigned int d2=0; d2<nDims; d2++)
       {
-        if ( static_cast<float>( std::fabs(im1Direction(d,d2) - refDirection(d,d2)) > eps ) )
+        if ( static_cast<float>( std::fabs(im1Direction(d,d2) - refDirection(d,d2)) ) > eps )
         {
           // std::cout << "Inconsistent image direction not allowed" << std::endl;
           return EXIT_FAILURE;
@@ -5015,7 +5015,7 @@ int LabelSurfaceArea(int argc, char *argv[])
     typename ImageType::IndexType ind = GHood.GetIndex();
     Scalar area = 0.0;
     Scalar locrefarea = refarea;
-    if (  GHood.GetCenterPixel() > 0.1 )
+    if (  GHood.GetCenterPixel() > 0.1f )
     {
     for( unsigned int i = 0; i < GHood.Size(); i++ )
       {
@@ -5028,7 +5028,7 @@ int LabelSurfaceArea(int argc, char *argv[])
       dist = sqrt( dist );
       if( dist <  (2.0*voxspc) )
         {
-        area += ( ( GHood.GetPixel( i ) * voxspc2 ) / locrefarea );
+        area += ( ( static_cast<Scalar>( GHood.GetPixel( i ) ) * voxspc2 ) / locrefarea );
         }
       }
     }
@@ -9466,7 +9466,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
         {
         countu++;
         }
-      if( It2.Get() == *it && image1->GetPixel(It2.GetIndex() ) == *it )
+      if( itk::Math::FloatAlmostEqual( It2.Get(), *it ) && itk::Math::FloatAlmostEqual( image1->GetPixel( It2.GetIndex() ), *it ) )
         {
         counti++;
         }
@@ -9902,7 +9902,7 @@ int InvId( int argc, char *argv[] )
     double error = 0.0;
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
-      error += (yt[jj] - x[jj]) * (yt[jj] - x[jj]);
+      error += static_cast<double>( (yt[jj] - x[jj]) * (yt[jj] - x[jj]) );
       }
     error = sqrt(error);
     if( error >  globalmaxval )
@@ -10188,7 +10188,7 @@ int LabelStats(      int argc, char *argv[])
   float volumeelement = 1.0;
   for( unsigned int i = 0;  i < spacing.Size(); i++ )
     {
-    volumeelement *= spacing[i];
+    volumeelement *= static_cast<float>( spacing[i] );
     }
 
   std::ofstream logfile;
@@ -10248,7 +10248,7 @@ int LabelStats(      int argc, char *argv[])
 
     for( unsigned int i = 0; i < spacing.Size(); i++ )
       {
-      myCenterOfMass[i] /= (float)totalct;
+      myCenterOfMass[i] /= static_cast<double>( totalct );
       }
 
     if( !valimage )
@@ -10345,7 +10345,7 @@ int LabelThickness(      int argc, char *argv[])
   float volumeelement = 1.0;
   for( unsigned int i = 0;  i < spacing.Size(); i++ )
     {
-    volumeelement *= spacing[i];
+    volumeelement *= static_cast<double>( spacing[i] );
     }
   volumeelement = std::pow( static_cast<double>(  volumeelement ), static_cast<double>( 0.3333 ) );
 
@@ -10433,7 +10433,7 @@ int LabelThickness2( int argc, char *argv[] )
   float volumeElement = 1.0;
   for( unsigned int i = 0;  i < spacing.Size(); i++ )
     {
-    volumeElement *= static_cast<double>( spacing[i] );
+    volumeElement *= static_cast<float>( spacing[i] );
     }
 
   typedef itk::LabelGeometryImageFilter<LabelImageType, RealImageType> GeometryFilterType;
@@ -11330,7 +11330,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
         for( Iterator mIter( mask, mask->GetLargestPossibleRegion() );
              !mIter.IsAtEnd(); ++mIter )
           {
-          if( mIter.Get() == mv )
+          if( itk::Math::FloatAlmostEqual( mIter.Get(), static_cast<PixelType>( mv ) ) )
             {
             if( rowcoloption == 0 )
               {
@@ -12458,8 +12458,8 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
       gimage2->TransformIndexToPhysicalPoint( gind2, point2 );
       for( unsigned int dd = 0; dd < ImageDimension; dd++ )
         {
-        avgpoint1[dd] = avgpoint1[dd] + point1[dd] * static_cast<float>( wt );
-        avgpoint2[dd] = avgpoint2[dd] + point2[dd] * static_cast<float>( wt );
+        avgpoint1[dd] = avgpoint1[dd] + point1[dd] * static_cast<double>( wt );
+        avgpoint2[dd] = avgpoint2[dd] + point2[dd] * static_cast<double>( wt );
         }
       imagepatch1.push_back( point1 );
       imagepatch2.push_back( point2 );

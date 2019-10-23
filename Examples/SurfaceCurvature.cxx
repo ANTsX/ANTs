@@ -144,9 +144,9 @@ private:
 
   //  Parameterizer->ProcessLabelImage();
   Parameterizer->SetNeighborhoodRadius( 1. );
-  if( sig <= 0.5 )
+  if( sig <= 0.5f )
     {
-    sig = 1.66;
+    sig = 1.66f;
     }
   Parameterizer->SetSigma(sig);
 

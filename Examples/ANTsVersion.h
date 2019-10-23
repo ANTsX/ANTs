@@ -15,8 +15,8 @@
 *  limitations under the License.
 *
 *=========================================================================*/
-#ifndef __ANTsVersion_h
-#define __ANTsVersion_h
+#ifndef ANTsVersion_h
+#define ANTsVersion_h
 
 //NOTE: Windows magic needed here
 #define ANTsCommon_EXPORT

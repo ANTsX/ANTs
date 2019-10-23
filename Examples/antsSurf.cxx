@@ -61,7 +61,7 @@ float CalculateGenus( vtkPolyData *mesh, bool verbose )
   auto numberOfVertices = static_cast<float>( mesh->GetNumberOfPoints() );
   auto numberOfFaces = static_cast<float>( mesh->GetNumberOfPolys() );
 
-  float genus = 0.5 * ( 2.0 - numberOfVertices + numberOfEdges - numberOfFaces );
+  float genus = 0.5f * ( 2.0f - numberOfVertices + numberOfEdges - numberOfFaces );
 
   if( verbose )
     {
@@ -106,7 +106,7 @@ void Display( vtkPolyData *vtkMesh,
   actor->RotateZ( rotationAngleInDegrees[2] );
 
   vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-  renderer->SetBackground( backgroundColor[0] / 255.0, backgroundColor[1] / 255.0, backgroundColor[2] / 255.0 );
+  renderer->SetBackground( backgroundColor[0] / 255.0f, backgroundColor[1] / 255.0f, backgroundColor[2] / 255.0f );
 
   vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
   renderWindow->AddRenderer( renderer );
@@ -438,9 +438,9 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
       imagePoint[d] = meshPoints->GetPoint( n )[d];
       }
 
-    RealType currentRed   = defaultColorRed / 255.0;
-    RealType currentGreen = defaultColorGreen / 255.0;
-    RealType currentBlue  = defaultColorBlue / 255.0;
+    RealType currentRed   = defaultColorRed / static_cast<RealType>( 255.0 );
+    RealType currentGreen = defaultColorGreen / static_cast<RealType>( 255.0 );
+    RealType currentBlue  = defaultColorBlue / static_cast<RealType>( 255.0 );
     RealType currentAlpha = defaultAlpha;
 
     for( int i = functionalAlphaValues.size() - 1; i >= 0; i-- )
@@ -455,9 +455,9 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
         RgbPixelType rgbPixel = functionalRgbImages[i]->GetPixel( index );
 
-        RealType functionalRed = rgbPixel.GetRed() / 255.0;
-        RealType functionalGreen = rgbPixel.GetGreen() / 255.0;
-        RealType functionalBlue = rgbPixel.GetBlue() / 255.0;
+        RealType functionalRed = rgbPixel.GetRed() / static_cast<RealType>( 255.0 );
+        RealType functionalGreen = rgbPixel.GetGreen() / static_cast<RealType>( 255.0 );
+        RealType functionalBlue = rgbPixel.GetBlue() / static_cast<RealType>( 255.0 );
         RealType functionalAlpha = functionalAlphaValues[i];
 
         RealType backgroundRed   = currentRed;
@@ -465,18 +465,18 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
         RealType backgroundBlue  = currentBlue;
         RealType backgroundAlpha = currentAlpha;
 
-        currentAlpha = 1.0 - ( 1.0 - functionalAlpha ) * ( 1.0 - backgroundAlpha );
-        currentRed   = functionalRed   * functionalAlpha / currentAlpha + backgroundRed   * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
-        currentGreen = functionalGreen * functionalAlpha / currentAlpha + backgroundGreen * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
-        currentBlue  = functionalBlue  * functionalAlpha / currentAlpha + backgroundBlue  * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
+        currentAlpha = 1.0f - ( 1.0f - functionalAlpha ) * ( 1.0f - backgroundAlpha );
+        currentRed   = functionalRed   * functionalAlpha / currentAlpha + backgroundRed   * backgroundAlpha * ( 1.0f - functionalAlpha ) / currentAlpha;
+        currentGreen = functionalGreen * functionalAlpha / currentAlpha + backgroundGreen * backgroundAlpha * ( 1.0f - functionalAlpha ) / currentAlpha;
+        currentBlue  = functionalBlue  * functionalAlpha / currentAlpha + backgroundBlue  * backgroundAlpha * ( 1.0f - functionalAlpha ) / currentAlpha;
         }
       }
 
     unsigned char currentColor[4];
-    currentColor[0] = static_cast<unsigned char>( currentRed   * 255.0 );
-    currentColor[1] = static_cast<unsigned char>( currentGreen * 255.0 );
-    currentColor[2] = static_cast<unsigned char>( currentBlue  * 255.0 );
-    currentColor[3] = static_cast<unsigned char>( currentAlpha * 255.0 );
+    currentColor[0] = static_cast<unsigned char>( currentRed   * 255.0f );
+    currentColor[1] = static_cast<unsigned char>( currentGreen * 255.0f );
+    currentColor[2] = static_cast<unsigned char>( currentBlue  * 255.0f );
+    currentColor[3] = static_cast<unsigned char>( currentAlpha * 255.0f );
 
     colors->InsertNextTypedTuple( currentColor );
     }

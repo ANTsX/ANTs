@@ -63,7 +63,7 @@ int CreateWarpedGridImage( int argc, char *argv[] )
     {
     gridSpacing[i] = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[i]
       * reader->GetOutput()->GetSpacing()[i] / 25.0;
-    gridSigma[i] = gridSpacing[i] / 10.0;
+    gridSigma[i] = gridSpacing[i] / 10.0f;
     }
   if( argc > 5 )
     {

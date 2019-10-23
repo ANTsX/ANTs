@@ -31,7 +31,7 @@ namespace itk
  *
  */
 template <typename TSurface>
-class SurfaceImageCurvature :
+class SurfaceImageCurvature final :
   public SurfaceCurvatureBase<TSurface,
                               3>
 {
@@ -215,7 +215,7 @@ public:
 
     if( this->m_UseLabel )
       {
-      if( pix == this->m_SurfaceLabel )
+      if( itk::Math::FloatAlmostEqual( pix, this->m_SurfaceLabel ) )
         {
         return true;
         }

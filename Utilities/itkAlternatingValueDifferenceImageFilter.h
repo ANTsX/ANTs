@@ -41,7 +41,7 @@ namespace itk
  *
  */
 template <typename TInputImage, typename TOutputImage>
-class AlternatingValueDifferenceImageFilter :
+class AlternatingValueDifferenceImageFilter final :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

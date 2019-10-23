@@ -98,9 +98,8 @@ LabeledPointSetFileWriter<TInputMesh>
     bbox->ComputeBoundingBox();
     for( unsigned int d = 0; d < Dimension; d++ )
       {
-      this->m_ImageSpacing[d] = (
-          bbox->GetMaximum()[d]
-          - bbox->GetMinimum()[d] )
+      this->m_ImageSpacing[d] =
+          static_cast<double>( bbox->GetMaximum()[d] - bbox->GetMinimum()[d] )
         / static_cast<double>( this->m_ImageSize[d] + 1 );
       }
     this->m_ImageDirection.SetIdentity();
