@@ -304,7 +304,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
     RealType minimumValue2 = rgbfilter->GetModifiableColormap()->GetMinimumInputValue();
     RealType maximumValue2 = rgbfilter->GetModifiableColormap()->GetMaximumInputValue();
 
-    RealType deltaValue = ( maximumValue2 - minimumValue2 ) / 255.0;
+    RealType deltaValue = ( maximumValue2 - minimumValue2 ) / 255.0f;
 
     for( unsigned int d = 0; d < 256; d++ )
       {

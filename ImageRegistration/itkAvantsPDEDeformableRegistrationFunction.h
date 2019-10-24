@@ -257,7 +257,7 @@ public:
       loce += static_cast<float>(nccp1 + nccm1);
       }
     loce /= ( 2.0f * static_cast<float>( ImageDimension ) ); // this->ComputeMetricAtPair(oindex,vec);
-    this->m_Energy += loce;
+    this->m_Energy += static_cast<double>( loce );
     if( m_MetricImage )
       {
       m_MetricImage->SetPixel(oindex, loce);

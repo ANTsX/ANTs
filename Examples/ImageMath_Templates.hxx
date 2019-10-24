@@ -9902,7 +9902,7 @@ int InvId( int argc, char *argv[] )
     double error = 0.0;
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
-      error += static_cast<double>( (yt[jj] - x[jj]) * (yt[jj] - x[jj]) );
+      error += static_cast<double>( itk::Math::sqr( static_cast<double>( yt[jj] ) - static_cast<double>( x[jj] ) ) );
       }
     error = sqrt(error);
     if( error >  globalmaxval )
@@ -10345,9 +10345,9 @@ int LabelThickness(      int argc, char *argv[])
   float volumeelement = 1.0;
   for( unsigned int i = 0;  i < spacing.Size(); i++ )
     {
-    volumeelement *= static_cast<double>( spacing[i] );
+    volumeelement *= static_cast<float>( spacing[i] );
     }
-  volumeelement = std::pow( static_cast<double>(  volumeelement ), static_cast<double>( 0.3333 ) );
+  volumeelement = std::pow( static_cast<double>( volumeelement ), static_cast<double>( 0.3333 ) );
 
   vnl_vector<double> surface(maxlab + 1, 0);
   vnl_vector<double> volume(maxlab + 1, 0);

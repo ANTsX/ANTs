@@ -78,7 +78,7 @@ int CreateMosaic( unsigned int argc, char *argv[] )
     unsigned int maxIndex = 0;
     for( unsigned int d = 1; d < ImageDimension; d++ )
       {
-      if( spacing[d] > maxSpacing )
+      if( spacing[d] > static_cast<double>( maxSpacing ) )
         {
         maxSpacing = spacing[d];
         maxIndex = d;

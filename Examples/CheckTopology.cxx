@@ -112,9 +112,9 @@ NormalizeImage(typename TImage::Pointer image)
       max = vfIter2.Get();
       }
     }
-  if( max == 0 )
+  if( itk::Math::FloatAlmostEqual( max, itk::NumericTraits<float>::ZeroValue() ) )
     {
-    max = 1;
+    max = itk::NumericTraits<float>::OneValue();
     }
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {

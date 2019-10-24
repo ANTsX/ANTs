@@ -144,11 +144,11 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
       {
       sum += *it;
       sumOfSquares += itk::Math::sqr ( *it );
-      count += 1.0;
+      count += itk::NumericTraits<RealType>::OneValue();
       }
     }
   mean = sum / count;
-  standardDeviation = std::sqrt( ( sumOfSquares - count * itk::Math::sqr ( mean ) ) / ( count - 1.0 ) );
+  standardDeviation = std::sqrt( ( sumOfSquares - count * itk::Math::sqr( mean ) ) / ( count - itk::NumericTraits<RealType>::OneValue() ) );
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -187,7 +187,7 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
         sumXY += ( x * y );
 
         sumOfSquaredDifferencesXY += itk::Math::sqr ( y - x );
-        N += 1.0;
+        N += itk::NumericTraits<RealType>::OneValue();
         }
       ++count;
       }
@@ -196,7 +196,7 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
   // If we are on the boundary, a neighborhood patch might not overlap
   // with the image.  If we have 2 voxels or less for a neighborhood patch
   // we don't consider it to be a suitable match.
-  if( N < 3.0 )
+  if( N < static_cast<RealType>( 3.0 ) )
     {
     return NumericTraits<RealType>::max();
     }

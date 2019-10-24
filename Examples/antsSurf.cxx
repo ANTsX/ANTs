@@ -612,7 +612,10 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
     unsigned int index = 0;
     while( fileStr >> value >> comma >> redComponent >> comma >> greenComponent >> comma >> blueComponent >> comma >> alphaComponent )
       {
-      lookupTable->SetTableValue( index++, redComponent / 255.0, greenComponent / 255.0, blueComponent / 255.0, alphaComponent );
+      lookupTable->SetTableValue( index++, redComponent / static_cast<RealType>( 255.0 ),
+                                           greenComponent / static_cast<RealType>( 255.0 ),
+                                           blueComponent / static_cast<RealType>( 255.0 ),
+                                           alphaComponent );
 
       if( value < minValue )
         {

@@ -75,7 +75,7 @@ int TextureCooccurrenceFeatures( int argc, char *argv[] )
 
   for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
     {
-    if ( !mask || ( mask->GetPixel( ItI.GetIndex() ) == label ) )
+    if ( !mask || itk::Math::FloatAlmostEqual( mask->GetPixel( ItI.GetIndex() ), label ) )
       {
       if ( ItI.Get() < minValue )
         {

@@ -193,7 +193,7 @@ public:
           }
         totalcc += cc;
         }
-      this->m_Energy = totalcc / (float)ct * (-1.0);
+      this->m_Energy = totalcc / static_cast<double>( ct ) * (-1.0);
       return this->m_Energy;
       }
     else
@@ -246,7 +246,7 @@ public:
       {
       speedValue = 0;
       }
-    double denominator = itk::Math::sqr ( speedValue ) / m_Normalizer
+    double denominator = itk::Math::sqr ( speedValue ) / static_cast<double>( m_Normalizer )
       + fixedGradientSquaredMagnitude;
     double DenominatorThreshold = 1e-9;
     double IntensityDifferenceThreshold = 0.001;

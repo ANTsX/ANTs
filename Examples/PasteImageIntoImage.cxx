@@ -36,10 +36,10 @@ int PasteImageIntoImage( unsigned int argc, char *argv[] )
     {
     backgroundValue = static_cast<PixelType>( atof( argv[6] ) );
     }
-  unsigned int writeOver = 1;
+  bool writeOver = true;
   if( argc > 7 )
     {
-    writeOver = static_cast<unsigned int>( std::stoi( argv[7] ) );
+    writeOver = static_cast<bool>( std::stoi( argv[7] ) );
     }
   PixelType conflictLabel = -1;
   if( argc > 8 )
@@ -57,16 +57,16 @@ int PasteImageIntoImage( unsigned int argc, char *argv[] )
       {
       index[d] += startIndex[d];
       }
-    if( paintValue != backgroundValue )
+    if( ! itk::Math::FloatAlmostEqual( paintValue, backgroundValue ) )
       {
       if( reader1->GetOutput()->GetLargestPossibleRegion().IsInside( index ) )
         {
         PixelType canvasValue = reader1->GetOutput()->GetPixel( index );
-        if( canvasValue == backgroundValue || writeOver == 1 )
+        if( itk::Math::FloatAlmostEqual( canvasValue, backgroundValue ) || writeOver )
           {
           reader1->GetOutput()->SetPixel( index, paintValue );
           }
-        else if( canvasValue != backgroundValue && writeOver == 0 )
+        else if( ! itk::Math::FloatAlmostEqual( canvasValue, backgroundValue ) && ! writeOver )
           {
           continue;
           }
