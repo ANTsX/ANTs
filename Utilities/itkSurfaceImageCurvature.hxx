@@ -244,8 +244,8 @@ void  SurfaceImageCurvature<TSurface>::FindGeodesicNeighborhood()
   unsigned long longindex = 0;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    rad[i] = (long)(m_NeighborhoodRadius);
-    oindex[i] = (long) (this->m_Origin[i] + 0.5);
+    rad[i] = static_cast<long>( m_NeighborhoodRadius );
+    oindex[i] = static_cast<long>( static_cast<double>( this->m_Origin[i] ) + 0.5 );
     }
   index = oindex;
   for( k = 0; k < ImageDimension; k++ )
@@ -519,8 +519,6 @@ void  SurfaceImageCurvature<TSurface>
       {
       IndexType ind = Iterator.GetIndex();
       if( ! itk::Math::FloatAlmostEqual( image->GetPixel(ind), itk::NumericTraits<PixelType>::OneValue() ) )
-
-      if( image->GetPixel(ind) != 1 )
         {
         this->m_GradientImage->SetPixel(ind, zero);
         }
@@ -710,7 +708,7 @@ void  SurfaceImageCurvature<TSurface>
   for ( RealType zi = -paramdelt; zi <= paramdelt+eps; zi=zi+paramdelt)
   for ( RealType ui = -paramdelt; ui <= paramdelt+eps; ui=ui+paramdelt)
     {
-    for ( RealType vi = -1.0 * paramdelt; vi <= paramdelt+eps; vi=vi+paramdelt)
+    for ( RealType vi = -paramdelt; vi <= paramdelt+eps; vi=vi+paramdelt)
       {
       p = this->m_Origin + this->m_Tangent1 * ui + this->m_Tangent2 * vi +
         this->m_Normal * zi;

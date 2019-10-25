@@ -102,13 +102,13 @@ int MeasureMinMaxMean(int argc, char *argv[])
           val[k] = fabs(val[k]);
           }
         }
-      variance += (val - mean).GetSquaredNorm();
+      variance += static_cast<float>( (val - mean).GetSquaredNorm() );
       }
     }
 
-  float temp = (1.0 / (float)ct) * variance;
+  float temp = (1.0f / (float)ct) * variance;
   std::cout <<  argv[2] << " Max : " << max << " Min : " << min << " Mean : " << mean << " Var : " <<  temp
-           << " SD : " << sqrt(1.0 / (float)(ct - 1) * variance) << std::endl;
+           << " SD : " << std::sqrt(1.0f / (float)(ct - 1) * variance) << std::endl;
 
   if( argc > 3 )
     {

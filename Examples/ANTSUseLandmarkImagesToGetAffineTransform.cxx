@@ -301,7 +301,8 @@ int LandmarkBasedTransformInitializerBA(int, char * argv[])
     {
     float                                       currentlabel = *mit;
     float                                       totalct = 0;
-    typename TransformInitializerType::LandmarkPointType myCenterOfMass;
+    using LandmarkPointType = typename TransformInitializerType::LandmarkPointType;
+    LandmarkPointType myCenterOfMass;
     myCenterOfMass.Fill(0);
     for( ItM.GoToBegin(); !ItM.IsAtEnd(); ++ItM )
       {
@@ -320,7 +321,7 @@ int LandmarkBasedTransformInitializerBA(int, char * argv[])
       }
     for( unsigned int i = 0; i < spacing.Size(); i++ )
       {
-      myCenterOfMass[i] /= (float)totalct;
+      myCenterOfMass[i] /= static_cast<typename LandmarkPointType::CoordRepType>( totalct );
       }
     //    std::cout << " pushing-mov " <<  myCenterOfMass << std::endl;
     movingLandmarks.push_back( myCenterOfMass );

@@ -50,7 +50,7 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
   float prefactor = 1.0;
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
-    prefactor *= spacing[d];
+    prefactor *= static_cast<float>( spacing[d] );
     }
 
   typedef itk::RelabelComponentImageFilter<ImageType, ImageType> RelabelerType;
@@ -112,7 +112,7 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
         float volume = prefactor * static_cast<float>( geometry->GetVolume( label ) );
 
         outputImages[0]->SetPixel( index, volume );
-        outputImages[1]->SetPixel( index, area->GetPerimeter( label ) / volume );
+        outputImages[1]->SetPixel( index, static_cast<float>( area->GetPerimeter( label ) ) / volume );
         outputImages[2]->SetPixel( index, geometry->GetEccentricity( label ) );
         outputImages[3]->SetPixel( index, geometry->GetElongation( label ) );
         }

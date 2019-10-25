@@ -33,11 +33,15 @@ int CreateWarpedGridImage( int argc, char *argv[] )
   gridder->SetOrigin( reader->GetOutput()->GetOrigin() );
   gridder->SetSize( reader->GetOutput()->GetLargestPossibleRegion().GetSize() );
 
-  typename GridSourceType::ArrayType gridSpacing;
-  typename GridSourceType::ArrayType gridSigma;
-  typename GridSourceType::BoolArrayType which;
+  using ArrayType = typename GridSourceType::ArrayType;
+  using BoolArrayType = typename GridSourceType::BoolArrayType;
+
+  ArrayType gridSpacing;
+  ArrayType gridSigma;
+  BoolArrayType which;
+
   which.Fill( false );
-  for( unsigned int i = 0; i < 2; i++ )
+  for( itk::SizeValueType i = 0; i < 2; i++ )
     {
     which[i] = true;
     }
@@ -53,17 +57,19 @@ int CreateWarpedGridImage( int argc, char *argv[] )
       }
     else
       {
-      for( unsigned int i = 0; i < ImageDimension; i++ )
+      for( itk::SizeValueType i = 0; i < ImageDimension; i++ )
         {
         which[i] = static_cast<bool>( directions[i] );
         }
       }
     }
-  for( unsigned int i = 0; i < ImageDimension; i++ )
+  for( itk::SizeValueType i = 0; i < ImageDimension; i++ )
     {
-    gridSpacing[i] = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[i]
-      * reader->GetOutput()->GetSpacing()[i] / 25.0;
-    gridSigma[i] = gridSpacing[i] / 10.0f;
+    gridSpacing[i] = static_cast<typename ArrayType::ValueType>(
+      reader->GetOutput()->GetLargestPossibleRegion().GetSize()[i] )
+      * static_cast<typename ArrayType::ValueType>( reader->GetOutput()->GetSpacing()[i] ) /
+      static_cast<typename ArrayType::ValueType>( 25.0 );
+    gridSigma[i] = gridSpacing[i] / static_cast<typename ArrayType::ValueType>( 10.0 );
     }
   if( argc > 5 )
     {
@@ -76,7 +82,7 @@ int CreateWarpedGridImage( int argc, char *argv[] )
       }
     else
       {
-      for( unsigned int i = 0; i < ImageDimension; i++ )
+      for( itk::SizeValueType i = 0; i < ImageDimension; i++ )
         {
         gridSpacing[i] = spacing[i];
         gridSigma[i] = gridSpacing[i] / 10.0;
@@ -85,8 +91,8 @@ int CreateWarpedGridImage( int argc, char *argv[] )
     }
   if( argc > 6 )
     {
-    std::vector<RealType> sigma
-      = ConvertVector<RealType>( std::string( argv[6] ) );
+    std::vector<typename ArrayType::ValueType> sigma
+      = ConvertVector<typename ArrayType::ValueType>( std::string( argv[6] ) );
     if( sigma.size() != ImageDimension )
       {
       std::cout << "Incorrect sigma size." << std::endl;
@@ -94,9 +100,9 @@ int CreateWarpedGridImage( int argc, char *argv[] )
       }
     else
       {
-      for( unsigned int i = 0; i < ImageDimension; i++ )
+      for( itk::SizeValueType i = 0; i < ImageDimension; i++ )
         {
-        gridSigma[i] = sigma[i] / 10.0;
+        gridSigma[i] = sigma[i] / static_cast<typename ArrayType::ValueType>( 10.0 );
         }
       }
     }

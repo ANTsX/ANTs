@@ -139,12 +139,12 @@ LabelSurface(typename TImage::PixelType foreground,
           dist += (float)(ind[j] - ind2[j]) * (float)(ind[j] - ind2[j]);
           }
         dist = sqrt(dist);
-        if( GHood.GetPixel(i) != foreground && dist <  distthresh  )
+        if( ! itk::Math::FloatAlmostEqual( GHood.GetPixel(i), foreground ) && dist <  distthresh  )
           {
           atedge = true;
           }
         }
-      if( atedge && p == foreground )
+      if( atedge && itk::Math::FloatAlmostEqual( p, foreground ) )
         {
         Image->SetPixel(ind, newval);
         }
@@ -483,7 +483,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
       typename DefaultInterpolatorType::ContinuousIndexType  Y4;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        pointIn2[jj] = disp[jj] + pointIn1[jj];
+        pointIn2[jj] = static_cast<typename DPointType::CoordRepType>( disp[jj] ) + pointIn1[jj];
         vcontind[jj] = pointIn2[jj] / lapgrad->GetSpacing()[jj];
         Y1[jj] = vcontind[jj];
         Y2[jj] = vcontind[jj];
@@ -501,7 +501,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
       f1 = vinterp->EvaluateAtContinuousIndex( Y1 );
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        Y2[jj] += f1[jj] * static_cast<CoordRepType>( deltaTime * 0.5f );
+        Y2[jj] += static_cast<CoordRepType>( f1[jj] ) * static_cast<CoordRepType>( deltaTime ) * static_cast<CoordRepType>( 0.5 );
         }
       bool isinside = true;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -517,7 +517,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         }
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        Y3[jj] += f2[jj] * static_cast<CoordRepType>( deltaTime * 0.5f );
+        Y3[jj] += static_cast<CoordRepType>( f2[jj] ) * static_cast<CoordRepType>( deltaTime ) * static_cast<CoordRepType>( 0.5 );
         }
       isinside = true;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -533,7 +533,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         }
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        Y4[jj] += f3[jj] * static_cast<CoordRepType>( deltaTime );
+        Y4[jj] += static_cast<CoordRepType>( f3[jj] ) * static_cast<CoordRepType>( deltaTime );
         }
       isinside = true;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -549,8 +549,8 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         }
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        pointIn3[jj] = pointIn2[jj] + gradsign * vecsign * deltaTime / 6.0f
-          * ( f1[jj] + 2.0 * f2[jj] + 2.0f * f3[jj] + f4[jj] );
+        pointIn3[jj] = pointIn2[jj] + static_cast<typename DPointType::CoordRepType>( gradsign * vecsign * deltaTime / 6.0f )
+          * static_cast<typename DPointType::CoordRepType>( f1[jj] + 2.0f * f2[jj] + 2.0f * f3[jj] + f4[jj] );
         }
 
       VectorType out;
@@ -558,8 +558,8 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
         out[jj] = pointIn3[jj] - pointIn1[jj];
-        mag += (pointIn3[jj] - pointIn2[jj]) * (pointIn3[jj] - pointIn2[jj]);
-        dmag += (pointIn3[jj] - pointIn1[jj]) * (pointIn3[jj] - pointIn1[jj]);
+        mag += static_cast<float>( itk::Math::sqr(pointIn3[jj] - pointIn2[jj]) );
+        dmag += static_cast<float>( itk::Math::sqr(pointIn3[jj] - pointIn1[jj]) );
         disp[jj] = out[jj];
         }
       dmag = sqrt(dmag);

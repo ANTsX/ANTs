@@ -62,7 +62,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     }
 
   const bool  normalizei = std::stoi(argv[3]);
-  const float numberofimages = (float)argc - 4.;
+  const float numberofimages = static_cast<float>( argc ) - 4.0f;
 
   typename ImageType::SizeType maxSize;
   maxSize.Fill( 0 );
@@ -178,7 +178,7 @@ int AverageImages(unsigned int argc, char *argv[])
   typedef itk::ImageFileWriter<ImageType>              writertype;
 
   //  bool  normalizei = std::stoi(argv[3]);
-  float numberofimages = (float)argc - 4.;
+  float numberofimages = static_cast<float>( argc ) - 4.0f;
   typename ImageType::Pointer averageimage = nullptr;
   typename ImageType::Pointer image2 = nullptr;
 

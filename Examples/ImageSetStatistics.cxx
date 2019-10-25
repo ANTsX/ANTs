@@ -172,9 +172,9 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
 
   typedef itk::NeighborhoodIterator<TImage> iteratorType;
   typename iteratorType::RadiusType rad;
-  for( unsigned int j = 0; j < ImageDimension; j++ )
+  for( itk::SizeValueType j = 0; j < ImageDimension; j++ )
     {
-    rad[j] = nhood;
+    rad[j] = static_cast<itk::SizeValueType>( nhood );
     }
   for( outIter.GoToBegin(); !outIter.IsAtEnd(); ++outIter )
     {
@@ -202,7 +202,7 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
         {
         typename TImage::IndexType index = hoodIt.GetIndex(indct);
         bool inimage = true;
-        for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+        for( itk::SizeValueType dd = 0; dd < ImageDimension; dd++ )
           {
           if( index[dd] < 0 || index[dd] > static_cast<typename TImage::IndexType::IndexValueType>(imagesize[dd] - 1) )
             {

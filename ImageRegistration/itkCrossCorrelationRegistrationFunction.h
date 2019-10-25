@@ -187,7 +187,7 @@ public:
         double    sff = finitediffimages[3]->GetPixel(oindex);
         double    smm = finitediffimages[4]->GetPixel(oindex);
         double    cc = 0;
-        if( fabs(sff * smm) > 0 )
+        if( std::fabs(sff * smm) > 0 )
           {
           cc += sfm * sfm / (sff * smm); ct++;
           }
@@ -199,7 +199,7 @@ public:
           }
         totalcc += cc;
         }
-      this->m_Energy = totalcc / (float)ct * (-1.0);
+      this->m_Energy = totalcc / static_cast<double>( ct ) * (-1.0);
       return this->m_Energy;
       }
     else
@@ -232,7 +232,7 @@ public:
       {
       mappedPoint[j] = double( index[j] ) * m_FixedImageSpacing[j]
         + m_FixedImageOrigin[j];
-      mappedPoint[j] += vec[j];
+      mappedPoint[j] += static_cast<double>( vec[j] );
       }
     if( m_MovingImageInterpolator->IsInsideBuffer( mappedPoint ) )
       {
@@ -247,11 +247,11 @@ public:
       return update;
       }
     double speedValue = fixedValue - movingValue;
-    if( fabs(speedValue) < this->m_RobustnessParameter )
+    if( std::fabs( speedValue ) < static_cast<double>( this->m_RobustnessParameter ) )
       {
-      speedValue = 0;
+      speedValue = itk::NumericTraits<double>::ZeroValue();
       }
-    double denominator = itk::Math::sqr ( speedValue ) / m_Normalizer
+    double denominator = itk::Math::sqr ( speedValue ) / static_cast<double>( m_Normalizer )
       + fixedGradientSquaredMagnitude;
     double DenominatorThreshold = 1e-9;
     double IntensityDifferenceThreshold = 0.001;

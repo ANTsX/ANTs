@@ -155,7 +155,7 @@ private:
   gradientfile.open(output_gradients_filename);
   gradientfile << "VERSION: 2" << std::endl;
 
-  for ( unsigned int i=0; i<reader->GetOutput()->GetNumberOfComponentsPerPixel(); i++ )
+  for ( int i=0; i<reader->GetOutput()->GetNumberOfComponentsPerPixel(); i++ )
     {
     char gradKey[20];
     sprintf( gradKey, "DWMRI_gradient_%04d", i );
@@ -166,7 +166,7 @@ private:
     double x, y, z;
     iss >> x >> y >> z;
 
-    if ( (x*x + y*y + z*z ) == 0 )
+    if ( itk::Math::FloatAlmostEqual( x*x + y*y + z*z, itk::NumericTraits<double>::ZeroValue() ) )
       {
       gradientfile << v_string << " 0" << std::endl;
       }

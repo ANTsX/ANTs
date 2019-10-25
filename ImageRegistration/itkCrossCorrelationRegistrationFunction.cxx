@@ -127,9 +127,9 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   m_Normalizer      = 0.0;
   for( unsigned int k = 0; k < ImageDimension; k++ )
     {
-    m_Normalizer += m_FixedImageSpacing[k] * m_FixedImageSpacing[k];
+    m_Normalizer += static_cast<float>( itk::Math::sqr( m_FixedImageSpacing[k] ) );
     }
-  m_Normalizer /= static_cast<double>( ImageDimension );
+  m_Normalizer /= static_cast<float>( ImageDimension );
 
   bool makeimg = false;
   if( m_Iteration == 0 )
@@ -239,7 +239,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
         suma += a;
         sumb += b;
         sumab += a * b;
-        count += 1.0;
+        count += itk::NumericTraits<float>::OneValue();
         }
 
       Qsuma2.push_back( suma2 );
@@ -346,7 +346,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
           suma += a;
           sumb += b;
           sumab += a * b;
-          count += 1.0;
+          count += itk::NumericTraits<float>::OneValue();
           }
 
         Qsuma2.push_back( suma2 );
@@ -403,7 +403,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   sfm = finitediffimages[2]->GetPixel(oindex);
   sff = finitediffimages[3]->GetPixel(oindex);
   smm = finitediffimages[4]->GetPixel(oindex);
-  if( sff == 0.0 || smm == 0.0 )
+  if( itk::Math::FloatAlmostEqual( sff, itk::NumericTraits<double>::ZeroValue() ) || itk::Math::FloatAlmostEqual( smm, itk::NumericTraits<double>::ZeroValue() ) )
     {
     return deriv;
     }
@@ -420,10 +420,10 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   float Ji = finitediffimages[1]->GetPixel(index);
   float Ii = finitediffimages[0]->GetPixel(index);
 
-  m_TEMP = 2.0 * sfm / (sff * smm) * ( Ji - sfm / sff * Ii );
+  m_TEMP = 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ji ) - sfm / sff * static_cast<double>( Ii ) );
   for( unsigned int qq = 0; qq < ImageDimension; qq++ )
     {
-    deriv[qq]   -= 2.0 * sfm / (sff * smm) * ( Ji - sfm / sff * Ii ) * gradI[qq];
+    deriv[qq]   -= 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ji ) - sfm / sff * static_cast<double>( Ii ) ) * gradI[qq];
     //        derivinv[qq]-=2.0*sfm/(sff*smm)*( Ii - sfm/smm*Ji )*gradJ[qq];
     }
 
@@ -463,19 +463,19 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   sff = finitediffimages[3]->GetPixel(oindex);
   smm = finitediffimages[4]->GetPixel(oindex);
 
-  if( sff == 0.0 || smm == 0.0 )
+  if( itk::Math::FloatAlmostEqual( sff, itk::NumericTraits<double>::ZeroValue() ) || itk::Math::FloatAlmostEqual( smm, itk::NumericTraits<double>::ZeroValue() ) )
     {
     return deriv;
     }
 
   IndexType index = oindex; // hoodIt.GetIndex(indct);
-  if( sff == 0.0 )
+  if( itk::Math::FloatAlmostEqual( sff, itk::NumericTraits<double>::ZeroValue() ) )
     {
-    sff = 1.0;
+    sff = itk::NumericTraits<double>::OneValue();
     }
-  if( smm == 0.0 )
+  if( itk::Math::FloatAlmostEqual( smm, itk::NumericTraits<double>::ZeroValue() ) )
     {
-    smm = 1.0;
+    smm = itk::NumericTraits<double>::OneValue();
     }
 
   // /gradI = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
@@ -485,11 +485,11 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   float Ii = finitediffimages[0]->GetPixel(index);
   for( unsigned int qq = 0; qq < ImageDimension; qq++ )
     {
+    deriv[qq]  -= 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ii ) - sfm / smm * static_cast<double>( Ji ) ) * gradJ[qq];
     // deriv[qq]   -=2.0*sfm/(sff*smm)*( Ji - sfm/sff*Ii )*gradI[qq];
-    deriv[qq] -= 2.0 * sfm / (sff * smm) * ( Ii - sfm / smm * Ji ) * gradJ[qq];
     }
 
-  if( sff * smm != 0.0 )
+  if( ! itk::Math::FloatAlmostEqual( sff * smm, itk::NumericTraits<double>::ZeroValue() ) )
     {
     this->localCrossCorrelation = sfm * sfm / ( sff * smm );
     }

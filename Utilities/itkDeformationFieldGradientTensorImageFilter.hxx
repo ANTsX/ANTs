@@ -98,7 +98,7 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>
     {
     for ( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      if ( this->GetInput()->GetSpacing()[i] == 0.0 )
+      if ( itk::Math::FloatAlmostEqual( this->GetInput()->GetSpacing()[i], 0.0 ) )
         {
         itkExceptionMacro(<< "Image spacing in dimension " << i << " is zero.");
         }

@@ -349,7 +349,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
 
   // the probabilistic intensity term
   MeasureType intensityDistance = pixel[centerIntensityIndex] - closestPixel[centerIntensityIndex];
-  MeasureType intensityProbability = std::exp( -0.5f * itk::Math::sqr ( intensityDistance / this->m_IntensityDistanceSigma ) );
+  MeasureType intensityProbability = std::exp( static_cast<MeasureType>( -0.5 ) * itk::Math::sqr ( intensityDistance / this->m_IntensityDistanceSigma ) );
 
   const MeasureType measure = -itk::NumericTraits<MeasureType>::OneValue() * intensityProbability * distanceProbability;
 

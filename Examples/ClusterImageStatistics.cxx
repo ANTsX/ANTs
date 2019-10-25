@@ -95,7 +95,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     fIterator tIter( thresh, thresh->GetLargestPossibleRegion() );
     for(  tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter )
       {
-      if( roiimage->GetPixel(tIter.GetIndex() ) < 0.5 )
+      if( roiimage->GetPixel(tIter.GetIndex() ) < static_cast<PixelType>( 0.5 ) )
         {
         tIter.Set(0);
         }
@@ -158,8 +158,8 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
             maxlabel[(unsigned long)vfIter.Get()] = (long int)labelimage->GetPixel(vfIter.GetIndex() );
             }
 
-          suminlabel[(unsigned long)(labelimage->GetPixel(vfIter.GetIndex() ) - min)] += vox;
-          countinlabel[(unsigned long)(labelimage->GetPixel(vfIter.GetIndex() ) - min)] += 1;
+          suminlabel[(unsigned long)(labelimage->GetPixel(vfIter.GetIndex() ) - static_cast<float>( min ))] += vox;
+          countinlabel[(unsigned long)(labelimage->GetPixel(vfIter.GetIndex() ) - static_cast<float>( min ))] += 1;
           }
         }
       }

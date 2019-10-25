@@ -149,7 +149,7 @@ namespace ants
        double meanInsideLesion = 0;
        while ( !it.IsAtEnd() )
          {
-           if( it.Value() != 0)
+           if( ! itk::Math::FloatAlmostEqual( it.Value(), 0.0 ) )
            {
              //coutning number of voxels inside lesion
              counter++;
@@ -186,7 +186,7 @@ namespace ants
       itL.GoToBegin();
       while ( !it4.IsAtEnd() )
       {
-        if (itL.Get() == 1)
+        if (itk::Math::FloatAlmostEqual( itL.Get(), 1.0 ) )
         {
           int index = min  + (rand() % (int)(max - min )) ;
           it4.Set( outerWMVoxels[ index ] );
