@@ -312,8 +312,8 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::ComputeFrameAndKappa(PointType
       for( unsigned int k = 0; k < dim; k++ )
         {
         D(j,
-          k) +=  m_TangentProjectionList[i][j] * m_TangentProjectionList[i][k] * m_WeightVector[i]
-          * (m_DirectionalKappaVector[i]);                                                                                   //
+          k) += static_cast<double>( m_TangentProjectionList[i][j] * m_TangentProjectionList[i][k]
+            * m_WeightVector[i] * m_DirectionalKappaVector[i] );
         }
       }
     }

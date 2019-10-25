@@ -132,8 +132,8 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
     {
     float scale = 1;  // *m_DT[timeind]/m_DS[timeind];
     //     std::cout << " scale " << scale << std::endl;
-    double itimetn1 = itime - timesign * deltaTime * scale;
-    double itimetn1h = itime - timesign * deltaTime * 0.5 * scale;
+    double itimetn1 = static_cast<double>( itime - timesign * deltaTime * scale );
+    double itimetn1h = static_cast<double>( itime - timesign * deltaTime * 0.5f * scale );
     if( itimetn1h < 0 )
       {
       itimetn1h = 0;
@@ -161,10 +161,12 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
     typename DefaultInterpolatorType::OutputType f2;  f2.Fill(0);
     typename DefaultInterpolatorType::OutputType f3;  f3.Fill(0);
     typename DefaultInterpolatorType::OutputType f4;  f4.Fill(0);
-    typename DefaultInterpolatorType::ContinuousIndexType  Y1;
-    typename DefaultInterpolatorType::ContinuousIndexType  Y2;
-    typename DefaultInterpolatorType::ContinuousIndexType  Y3;
-    typename DefaultInterpolatorType::ContinuousIndexType  Y4;
+
+    using ContinuousIndexType = typename DefaultInterpolatorType::ContinuousIndexType;
+    ContinuousIndexType  Y1;
+    ContinuousIndexType  Y2;
+    ContinuousIndexType  Y3;
+    ContinuousIndexType  Y4;
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
       pointIn2[jj] = disp[jj] + pointIn1[jj];
@@ -182,7 +184,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
     f1 = vinterp->EvaluateAtContinuousIndex( Y1 );
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
-      Y2[jj] += f1[jj] * deltaTime * 0.5;
+      Y2[jj] += static_cast<typename ContinuousIndexType::CoordRepType>( static_cast<float>( f1[jj] ) * deltaTime * 0.5f );
       }
     bool isinside = true;
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -198,7 +200,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       }
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
-      Y3[jj] += f2[jj] * deltaTime * 0.5;
+      Y3[jj] += static_cast<typename ContinuousIndexType::CoordRepType>( static_cast<float>( f2[jj] ) * deltaTime * 0.5f );
       }
     isinside = true;
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -214,7 +216,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       }
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
-      Y4[jj] += f3[jj] * deltaTime;
+      Y4[jj] += static_cast<typename ContinuousIndexType::CoordRepType>( static_cast<float>( f3[jj] ) * deltaTime );
       }
     isinside = true;
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -230,8 +232,8 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       }
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
-      pointIn3[jj] = pointIn2[jj] + gradsign * vecsign * deltaTime / 6.0
-        * ( f1[jj] + 2.0 * f2[jj] + 2.0 * f3[jj] + f4[jj] );
+      pointIn3[jj] = pointIn2[jj] + static_cast<double>( gradsign * vecsign * deltaTime / 6.0f
+        * ( f1[jj] + 2.0f * f2[jj] + 2.0f * f3[jj] + f4[jj] ) );
       }
 
     VectorType out;
@@ -244,9 +246,9 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       dmag += (pointIn3[jj] - pointIn1[jj]) * (pointIn3[jj] - pointIn1[jj]);
       disp[jj] = out[jj];
       }
-    voxmag = sqrt(voxmag);
-    dmag = sqrt(dmag);
-    totalmag += sqrt(mag);
+    voxmag = static_cast<float>( std::sqrt(voxmag) );
+    dmag = static_cast<float>( std::sqrt(dmag) );
+    totalmag += static_cast<float>( std::sqrt(mag) );
 
     ct++;
     //      if (!propagate) //thislength=dmag;//
@@ -266,7 +268,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       {
       std::cout << " stopping b/c exceed 1000 points " << voxmag <<  std::endl;  timedone = true;
       }
-    if( voxmag < 0.1 )
+    if( voxmag < 0.1f )
       {
       timedone = true;
       }
@@ -285,7 +287,7 @@ int IntegrateVectorField(int argc, char *argv[])
   typedef typename  ImageType::SpacingType       SpacingType;
 
   constexpr float deltaTime = 0.001;
-  float       gradstep = 1. / deltaTime; // atof(argv[3])*(-1.0);
+  float       gradstep = 1.f / deltaTime; // atof(argv[3])*(-1.0);
   std::string vectorfn = std::string(argv[1]);
   std::string roifn = std::string(argv[2]);
   int         argct = 3;
@@ -298,7 +300,7 @@ int IntegrateVectorField(int argc, char *argv[])
   argct++;
   if( argc > argct )
     {
-    gradstep *= atof(argv[argct]);
+    gradstep *= static_cast<float>(atof(argv[argct]));
     }
   argct++;
 
@@ -359,7 +361,7 @@ int IntegrateVectorField(int argc, char *argv[])
     float      itime = starttime;
     VectorType disp;
     disp.Fill(0.0);
-    if( ROIimage->GetPixel(velind) == 2 )
+    if( itk::Math::FloatAlmostEqual( ROIimage->GetPixel(velind), static_cast<PixelType>( 2 ) ) )
       {
       vinterp->SetInputImage(VECimage);
       float gradsign = -1.0;

@@ -126,7 +126,7 @@ LabelSurface(typename TImage::PixelType foreground,
           dist += (float)(ind[j] - ind2[j]) * (float)(ind[j] - ind2[j]);
           }
         dist = sqrt(dist);
-        if( GHood.GetPixel(i) != foreground && dist < 1.1 )
+        if( GHood.GetPixel(i) != foreground && dist < 1.1f )
           {
           atedge = true;
           }
@@ -237,7 +237,7 @@ typename TImage::Pointer OtsuThreshold(
         {
         if ( ItM.Get() == maskLabel )
           {
-          if ( ItO.Get() == 0 && ItI.Get() < thresholds[i] )
+          if ( itk::Math::FloatAlmostEqual( ItO.Get(), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() ) && ItI.Get() < static_cast<typename ImageType::PixelType>( thresholds[i] ) )
             {
             ItO.Set( i+1 );
             }
@@ -253,7 +253,7 @@ typename TImage::Pointer OtsuThreshold(
     ItO.GoToBegin();
     while ( !ItM.IsAtEnd() )
       {
-      if ( ItM.Get() == maskLabel && ItO.Get() == 0 )
+      if ( itk::Math::FloatAlmostEqual( ItO.Get(), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() ) && ItM.Get() == maskLabel )
         {
         ItO.Set( thresholds.size()+1 );
         }
@@ -337,9 +337,9 @@ typename TImage::Pointer KmeansThreshold(
 
   for( unsigned int n = 0; n < numberOfTissueClasses; n++ )
     {
-    initialMeans[n] = minValue + ( maxValue - minValue )
-      * ( static_cast<RealType>( n ) + 0.5 )
-      / static_cast<RealType>( numberOfTissueClasses );
+    initialMeans[n] = static_cast<double>( minValue + ( maxValue - minValue )
+      * ( static_cast<RealType>( n ) + 0.5f )
+      / static_cast<RealType>( numberOfTissueClasses ) );
     }
   estimator->SetParameters( initialMeans );
   estimator->StartOptimization();

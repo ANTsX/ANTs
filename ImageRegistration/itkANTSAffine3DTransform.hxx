@@ -416,7 +416,7 @@ void ANTSAffine3DTransform<TScalarType>
   j[0][0] = static_cast<TScalarType>( 2.0 )
     * (m_Rotation.x() * z1 + m_Rotation.y() * z2 + m_Rotation.z() * z3);
   j[0][1] =
-    2.0f
+   static_cast<TScalarType>( 2.0 )
     * (-m_Rotation.y() * z1 + m_Rotation.x() * z2
        + m_Rotation.r() * z3);
   j[0][2] =

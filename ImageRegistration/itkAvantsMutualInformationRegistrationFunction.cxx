@@ -165,10 +165,10 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   m_NumberOfSpatialSamples = 1;
   for( unsigned int k = 0; k < ImageDimension; k++ )
     {
-    m_Normalizer += m_FixedImageSpacing[k] * m_FixedImageSpacing[k];
+    m_Normalizer += static_cast<float>( itk::Math::sqr( m_FixedImageSpacing[k] ) );
     m_NumberOfSpatialSamples *= this->m_FixedImage->GetLargestPossibleRegion().GetSize()[k];
     }
-  m_Normalizer /= static_cast<double>( ImageDimension );
+  m_Normalizer /= static_cast<float>( ImageDimension );
 
   /**
    * Compute binsize for the histograms.
@@ -209,7 +209,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
 
     if( this->m_FixedImageMask )
       {
-      if( this->m_FixedImageMask->GetPixel( movingImageIterator.GetIndex() ) < 1.e-6 )
+      if( this->m_FixedImageMask->GetPixel( movingImageIterator.GetIndex() ) < static_cast<typename FixedImageType::PixelType>( 1.e-6 ) )
         {
         takesample = false;
         }
@@ -390,12 +390,12 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   while( !jointPDFIterator.IsAtEnd() )
     {
     float temp = jointPDFIterator.Get();
-    jointPDFSum += temp;
+    jointPDFSum += static_cast<double>( temp );
     ++jointPDFIterator;
     }
 
 // of derivatives
-  if( jointPDFSum == 0.0 )
+  if( itk::Math::FloatAlmostEqual( jointPDFSum, itk::NumericTraits<double>::ZeroValue() ) )
     {
     itkExceptionMacro( "Joint PDF summed to zero" );
     }
@@ -433,7 +433,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
     double sum = 0.0;
     while( !linearIter.IsAtEndOfLine() )
       {
-      sum += linearIter.Get();
+      sum += static_cast<double>( linearIter.Get() );
       ++linearIter;
       }
 
@@ -452,7 +452,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
     double sum = 0.0;
     while( !linearIter.IsAtEndOfLine() )
       {
-      sum += linearIter.Get();
+      sum += static_cast<double>( linearIter.Get() );
       ++linearIter;
       }
 

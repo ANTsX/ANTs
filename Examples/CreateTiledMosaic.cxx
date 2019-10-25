@@ -115,7 +115,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     {
     alpha = parser->Convert<RealType>( alphaOption->GetFunction( 0 )->GetName() );
 
-    if( alpha < 0 || alpha > 1.0 )
+    if( alpha < itk::NumericTraits<RealType>::ZeroValue() || alpha > itk::NumericTraits<RealType>::OneValue() )
       {
       std::cerr << "The alpha parameter must be between 0 and 1." << std::endl;
       return EXIT_FAILURE;
@@ -279,7 +279,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
         ImageType::PointType::VectorType directionalVector = point - pointOrigin;
 
-        if( itk::Math::abs ( directionalVector[physicalCoordinateComponent] ) > maxComponentValue )
+        if( itk::Math::abs( directionalVector[physicalCoordinateComponent] ) > static_cast<double>( maxComponentValue ) )
           {
           direction = d;
           }
@@ -883,7 +883,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
         RealType functionalAlpha = functionalAlphaValues[n];
         RealType backgroundAlpha = compositeAlpha;
-        RealType currentAlpha = 1.0 - ( 1.0 - functionalAlpha ) * ( 1.0 - backgroundAlpha );
+        RealType currentAlpha = itk::NumericTraits<RealType>::OneValue() - ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) * ( itk::NumericTraits<RealType>::OneValue() - backgroundAlpha );
 
         // combine grayscale slice and rgb slice
         itk::ImageRegionConstIteratorWithIndex<SliceType> It( outputSlice2,
@@ -900,9 +900,9 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
             if( outputMaskSlice2 && outputMaskSlice2->GetPixel( It.GetIndex() ) != 0 )
               {
-              rgbPixel.SetRed( static_cast<RgbComponentType>( ( 1.0 - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetRed() ) );
-              rgbPixel.SetGreen( static_cast<RgbComponentType>( ( 1.0 - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetGreen() ) );
-              rgbPixel.SetBlue( static_cast<RgbComponentType>( ( 1.0 - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetBlue() ) );
+              rgbPixel.SetRed( static_cast<RgbComponentType>( ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetRed() ) );
+              rgbPixel.SetGreen( static_cast<RgbComponentType>( ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetGreen() ) );
+              rgbPixel.SetBlue( static_cast<RgbComponentType>( ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetBlue() ) );
               }
             else
               {
@@ -918,26 +918,25 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
             // or
             // http://en.wikipedia.org/wiki/Alpha_compositing
 
-            if( outputMaskSlice2 && outputMaskSlice2->GetPixel( It.GetIndex() ) != 0 )
+            if( outputMaskSlice2 && ! itk::Math::FloatAlmostEqual( outputMaskSlice2->GetPixel( It.GetIndex() ), itk::NumericTraits<RealType>::ZeroValue() ) )
               {
-
-              RealType functionalRed = rgbPixel.GetRed() / 255.0;
-              RealType functionalGreen = rgbPixel.GetGreen() / 255.0;
-              RealType functionalBlue = rgbPixel.GetBlue() / 255.0;
+              RealType functionalRed = rgbPixel.GetRed() / static_cast<RealType>( 255.0 );
+              RealType functionalGreen = rgbPixel.GetGreen() / static_cast<RealType>( 255.0 );
+              RealType functionalBlue = rgbPixel.GetBlue() / static_cast<RealType>( 255.0 );
 
               RgbPixelType backgroundRgbPixel = compositeRgbSlice->GetPixel( It.GetIndex() );
 
-              RealType backgroundRed   = backgroundRgbPixel.GetRed() / 255.0;
-              RealType backgroundGreen = backgroundRgbPixel.GetGreen() / 255.0;
-              RealType backgroundBlue  = backgroundRgbPixel.GetBlue() / 255.0;
+              RealType backgroundRed   = backgroundRgbPixel.GetRed() / static_cast<RealType>( 255.0 );
+              RealType backgroundGreen = backgroundRgbPixel.GetGreen() / static_cast<RealType>( 255.0 );
+              RealType backgroundBlue  = backgroundRgbPixel.GetBlue() / static_cast<RealType>( 255.0 );
 
               RealType currentRed   = functionalRed   * functionalAlpha / currentAlpha + backgroundRed   * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
               RealType currentGreen = functionalGreen * functionalAlpha / currentAlpha + backgroundGreen * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
               RealType currentBlue  = functionalBlue  * functionalAlpha / currentAlpha + backgroundBlue  * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
 
-              rgbPixel.SetRed( currentRed * 255.0 );
-              rgbPixel.SetGreen( currentGreen * 255.0 );
-              rgbPixel.SetBlue( currentBlue * 255.0 );
+              rgbPixel.SetRed( currentRed * static_cast<RealType>( 255.0 ) );
+              rgbPixel.SetGreen( currentGreen * static_cast<RealType>( 255.0 ) );
+              rgbPixel.SetBlue( currentBlue * static_cast<RealType>( 255.0 ) );
 
               compositeRgbSlice->SetPixel( It.GetIndex(), rgbPixel );
               }

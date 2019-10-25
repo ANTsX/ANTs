@@ -25,7 +25,7 @@
 namespace ants
 {
 template <typename TFilter>
-class CommandIterationUpdate : public itk::Command
+class CommandIterationUpdate final : public itk::Command
 {
 public:
   typedef CommandIterationUpdate  Self;
@@ -281,15 +281,15 @@ int N4( itk::ants::CommandLineParser *parser )
         itk::Size<ImageDimension> upperBound;
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
-          float domain = static_cast<RealType>( originalImageSize[d] - 1 ) * inputImage->GetSpacing()[d];
+          float domain = static_cast<float>( originalImageSize[d] - 1 ) * static_cast<float>( inputImage->GetSpacing()[d] );
           auto numberOfSpans = static_cast<unsigned int>(
               std::ceil( domain / splineDistance ) );
           auto extraPadding = static_cast<unsigned long>( ( numberOfSpans
                                                                      * splineDistance
-                                                                     - domain ) / inputImage->GetSpacing()[d] + 0.5 );
+                                                                     - domain ) / static_cast<float>( inputImage->GetSpacing()[d] ) + static_cast<float>( 0.5 ) );
           lowerBound[d] = static_cast<unsigned long>( 0.5 * extraPadding );
           upperBound[d] = extraPadding - lowerBound[d];
-          newOrigin[d] -= ( static_cast<RealType>( lowerBound[d] )
+          newOrigin[d] -= ( static_cast<double>( lowerBound[d] )
                             * inputImage->GetSpacing()[d] );
           numberOfControlPoints[d] = numberOfSpans + correcter->GetSplineOrder();
           }
@@ -299,7 +299,7 @@ int N4( itk::ants::CommandLineParser *parser )
         padder->SetInput( inputImage );
         padder->SetPadLowerBound( lowerBound );
         padder->SetPadUpperBound( upperBound );
-        padder->SetConstant( 0 );
+        padder->SetConstant( itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() );
         padder->Update();
 
         inputImage = padder->GetOutput();
@@ -513,7 +513,7 @@ int N4( itk::ants::CommandLineParser *parser )
                                                inputImage->GetLargestPossibleRegion() );
       for( ItD.GoToBegin(), ItI.GoToBegin(); !ItD.IsAtEnd(); ++ItD, ++ItI )
         {
-        if( maskImage->GetPixel( ItD.GetIndex() ) == itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() )
+        if( itk::Math::FloatAlmostEqual( maskImage->GetPixel( ItD.GetIndex() ), itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() ) )
           {
           ItD.Set( ItI.Get() );
           }
@@ -549,7 +549,7 @@ int N4( itk::ants::CommandLineParser *parser )
                                                         divider->GetOutput()->GetLargestPossibleRegion() );
       for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
-        if( maskImage->GetPixel( ItD.GetIndex() ) == maskLabel )
+        if( itk::Math::FloatAlmostEqual( maskImage->GetPixel( ItD.GetIndex() ), static_cast<RealType>( maskLabel ) ) )
           {
           RealType originalIntensity = ItD.Get();
           RealType rescaledIntensity = maxOriginal - slope * ( maxBiasCorrected - originalIntensity );

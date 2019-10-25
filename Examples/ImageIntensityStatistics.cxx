@@ -99,7 +99,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
       std::cerr << "Label not found.  Shouldn't get here." << std::endl;
       return EXIT_FAILURE;
       }
-    RealType difference = ItI.Get() - stats->GetMean( label );
+    RealType difference = ItI.Get() - static_cast<RealType>( stats->GetMean( label ) );
 
     unsigned long index = it - labels.begin();
 
@@ -150,17 +150,17 @@ int ImageIntensityStatistics( int argc, char *argv[] )
       std::find( labels.begin(), labels.end(), *it );
     unsigned long index = it2 - labels.begin();
 
-    RealType m2 = itk::Math::sqr ( stats->GetSigma( *it ) );
+    RealType m2 = itk::Math::sqr( stats->GetSigma( *it ) );
     RealType k2 = ( N[index] ) / ( N[index] - 1.0f ) * m2;
 
-    RealType prefactor3 = itk::Math::sqr ( N[index] ) / ( ( N[index] - 1.0f ) * ( N[index] - 2.0 ) );
+    RealType prefactor3 = itk::Math::sqr( N[index] ) / ( ( N[index] - 1.0f ) * ( N[index] - 2.0f ) );
     RealType k3 = prefactor3 * m3[index];
 
-    RealType prefactor4 = itk::Math::sqr ( N[index] ) / ( ( N[index] - 1.0f ) * ( N[index] - 2.0 ) * ( N[index] - 3.0 ) );
-    RealType k4 = prefactor4 * ( ( N[index] + 1 ) * m4[index] - 3 * ( N[index] - 1 ) * itk::Math::sqr ( m2 ) );
+    RealType prefactor4 = itk::Math::sqr( N[index] ) / ( ( N[index] - 1.0f ) * ( N[index] - 2.0f ) * ( N[index] - 3.0f ) );
+    RealType k4 = prefactor4 * ( ( N[index] + 1.0f ) * m4[index] - 3.0f * ( N[index] - 1.0f ) * itk::Math::sqr( m2 ) );
 
     RealType skewness = k3 / std::sqrt( k2 * k2 * k2 );
-    RealType kurtosis = k4 / itk::Math::sqr ( k2 );
+    RealType kurtosis = k4 / itk::Math::sqr( k2 );
 
     std::cout << std::setw( 8  ) << *it;
     std::cout << std::setw( 14 ) << stats->GetMean( *it );
