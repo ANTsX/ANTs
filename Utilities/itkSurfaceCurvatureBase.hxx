@@ -125,21 +125,21 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
   // now estimate the tangent plane
   if( fabs(m_Normal[0]) > 1.e-1 )
     {
-    float norm = 1. / m_Normal[0];
+    float norm = itk::NumericTraits<float>::OneValue() / m_Normal[0];
     m_Tangent1[1] = norm * N[0];
     m_Tangent1[0] = -1.0f * norm * (N[1] + N[2]);
     m_Tangent1[2] = norm * N[0];
     }
   else if( fabs(m_Normal[1]) > 1.e-1 )
     {
-    float norm = 1. / m_Normal[1];
+    float norm = itk::NumericTraits<float>::OneValue() / m_Normal[1];
     m_Tangent1[0] = norm * N[1];
     m_Tangent1[1] = -1.0f * norm * (N[0] + N[2]);
     m_Tangent1[2] = norm * N[1];
     }
   else if( fabs(m_Normal[2]) > 1.e-1 )
     {
-    float norm = 1. / m_Normal[2];
+    float norm = itk::NumericTraits<float>::OneValue() / m_Normal[2];
     m_Tangent1[0] = norm * N[2];
     m_Tangent1[2] = -1.0f * norm * (N[0] + N[1]);
     m_Tangent1[1] = norm * N[2];
@@ -373,7 +373,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 
     float u1 = 0.0;
     float u2 = 0.0;
-    wt = 1. / Dif.magnitude();
+    wt = itk::NumericTraits<float>::OneValue() / static_cast<float>( Dif.magnitude() );
     wts[i] = wt;
 //   totwt+=wt;
     for( unsigned int pp = 0; pp < SurfaceDimension; pp++ )
@@ -455,7 +455,9 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
   m_Kappa1 = m_MeanKappa + static_cast<float>( std::sqrt( m_MeanKappa * m_MeanKappa - m_GaussianKappa ) );
   m_Kappa2 = m_MeanKappa - static_cast<float>( std::sqrt( m_MeanKappa * m_MeanKappa - m_GaussianKappa ) );
 
-  if( origin[0] == 20 && origin[1] == 65 && origin[2] == 39 )
+  if( itk::Math::FloatAlmostEqual( origin[0], 20.0f ) &&
+      itk::Math::FloatAlmostEqual( origin[1], 65.0f ) &&
+      itk::Math::FloatAlmostEqual( origin[2], 39.0f ) )
     {
     std::cout << " surf params " << a << std::endl;
     std::cout << " k1 " << m_Kappa1 << " k2 " << m_Kappa2 << std::endl;
@@ -699,7 +701,7 @@ SurfaceCurvatureBase<TSurface, TDimension>
     for( unsigned int j = 0; j < pls; j++ )
       {
       PointType p = m_PointList[j] - m_PointList[i];
-      totdist += p.magnitude();
+      totdist += static_cast<double>( p.magnitude() );
       ct++;
       }
     }
@@ -799,7 +801,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::FindNeighborhood(unsigned int 
     for( unsigned int j = 0; j < dim; j++ )
       {
       pt(j) = pts(i, j);
-      m_AveragePoint[j] += pts(i, j);
+      m_AveragePoint[j] += static_cast<RealType>( pts(i, j) );
       }
     if( i == 0 )
       {
@@ -904,12 +906,12 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
       m_TangentProjectionList.insert(m_TangentProjectionList.begin(), pp);
       }
 
-    if( m_Origin[0] == 95 && m_Origin[1] == 94 && m_Origin[2] == 63 )
-      {
-      std::cout << " tdk " << m_TotalDKap << " nor " << m_Normal << " dk "
-                       << m_DirectionalKappa << " dif " << Dif << " mpv " << m_PlaneVector << std::endl;
-      // m_Debug=true;
-      }
+    // if( m_Origin[0] == 95 && m_Origin[1] == 94 && m_Origin[2] == 63 )
+    //   {
+    //   std::cout << " tdk " << m_TotalDKap << " nor " << m_Normal << " dk "
+    //                    << m_DirectionalKappa << " dif " << Dif << " mpv " << m_PlaneVector << std::endl;
+    //   // m_Debug=true;
+    //   }
     double costheta = cos(m_ThetaVector[ii]);
     double sintheta = sin(m_ThetaVector[ii]);
     double weight = m_WeightVector[ii];
@@ -918,11 +920,11 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
     m_C += static_cast<float>( weight * sintheta * sintheta * sintheta * sintheta );
     }
 
-  if( m_Origin[0] == 54 && m_Origin[1] == 54 && m_Origin[2] == 63 )
-    {
-    std::cout << m_Origin << " tdk " << m_TotalDKap << " nor " << m_Normal << std::endl;
-    // m_Debug=true;
-    }
+  // if( m_Origin[0] == 54 && m_Origin[1] == 54 && m_Origin[2] == 63 )
+  //   {
+  //   std::cout << m_Origin << " tdk " << m_TotalDKap << " nor " << m_Normal << std::endl;
+  //   // m_Debug=true;
+  //   }
   // Now compute A, B, C
   m_A /= totalWeight;
   m_B /= totalWeight;
@@ -1058,7 +1060,7 @@ void     SurfaceCurvatureBase<TSurface, TDimension>
 
   RealType denom = (w4 - w2 * w3 / w1);
 
-  if( fabs(denom) > 1.e-12 )
+  if( std::fabs(denom) > static_cast<RealType>( 1.e-12 ) )
     {
     m_Kappa2 = (m_Eval2 - m_Eval1 * w3 / w1) / denom;
     }

@@ -40,7 +40,7 @@ int SmoothImage(int argc, char *argv[])
   typename rgf::SigmaArrayType sigmaArray;
   auto & spacing  = image1->GetSpacing();
   // If true, sigma is in spacing units (usually mm), not voxels
-  // The recursive filter wants a sigma in mm so we convert if given voxels 
+  // The recursive filter wants a sigma in mm so we convert if given voxels
   bool sigmaInSpacingUnits = false;
   if( argc  >  5 )
     {
@@ -63,13 +63,13 @@ int SmoothImage(int argc, char *argv[])
           if ( sigmaInSpacingUnits ) {
             sigmaArray[d] = sigmaVector[0];
           } else {
-            sigmaArray[d] = sigmaVector[0] * spacing[d];
+            sigmaArray[d] = sigmaVector[0] * static_cast<float>( spacing[d] );
           }
         } else
           if ( sigmaInSpacingUnits ) {
             sigmaArray[d] = sigmaVector[d];
           } else {
-            sigmaArray[d] = sigmaVector[d] * spacing[d];
+            sigmaArray[d] = sigmaVector[d] * static_cast<float>( spacing[d] );
           }
         }
       filter->SetSigmaArray( sigmaArray );

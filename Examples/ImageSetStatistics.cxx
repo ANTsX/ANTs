@@ -412,7 +412,7 @@ GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int mi
     }
   else if( whichstat == 3 )
     {
-    return maxtstat * 1000.0;
+    return maxtstat * 1000.0f;
     }
   else
     {
@@ -508,7 +508,7 @@ float npdf(std::vector<float> vec, bool opt,  float www)
       {
       float delt = vec[i] - sample;
       delt *= delt;
-      prob[i] = 1.0f / (2.0f * 3.1214f * width) * exp(-0.5f * delt / (width * width) );
+      prob[i] = 1.0f / (2.0f * 3.1214f * width) * static_cast<float>( exp(-0.5f * delt / (width * width) ) );
       total += prob[i];
       //            maxprobval+=prob[i]
       }

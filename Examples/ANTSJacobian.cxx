@@ -129,7 +129,7 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
     {
     for( unsigned int col = 0; col < ImageDimension; col++ )
       {
-      newvec[row] += vec[col] * field->GetDirection()[row][col];
+      newvec[row] += vec[col] * static_cast<float>( field->GetDirection()[row][col] );
       }
     }
   return newvec;
@@ -144,11 +144,11 @@ ProjectVector(typename TDisplacementField::PixelType invec, typename TDisplaceme
   double ip = 0;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    ip += invec[i] * projvec[i];
+    ip += static_cast<double>( invec[i] * projvec[i] );
     }
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    newvec[i] = ip * projvec[i];
+    newvec[i] = static_cast<float>( ip ) * projvec[i];
     }
   return newvec;
 }
@@ -334,13 +334,13 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
           {
           rpix = ProjectVector<ImageType, FieldType>(rpix, pvec);
           }
-        rpix = rpix * h + cpix * (1. - h);
+        rpix = rpix * h + cpix * (1.f - h);
         lpix = TransformVector<ImageType, FieldType>(field, difIndex[row][0]);
         if( !v.empty() )
           {
           lpix = ProjectVector<ImageType, FieldType>(lpix, pvec);
           }
-        lpix = lpix * h + cpix * (1. - h);
+        lpix = lpix * h + cpix * (1.f - h);
         //    dPix = ( rpix - lpix)*(1.0)/(2.0);
 
         //    rrpix = TransformVector<ImageType,FieldType>(field,ddrindex);
@@ -349,21 +349,21 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
         // llpix = llpix*h+lpix*(1.-h);
         //      dPix=( rrpix*(-1.0) + rpix*8.0 - lpix*8.0 + lpix )*(-1.0)*space/(12.0*h); //4th order centered
         // difference
-        dPix = ( lpix - rpix ) * (1.0) * space / (2.0 * h); // 4th order centered difference
+        dPix = ( lpix - rpix ) * space / (2.0f * h); // 4th order centered difference
         for( unsigned int col = 0; col < ImageDimension; col++ )
           {
           float val;
           if( row == col )
             {
-            val = dPix[col] / sp[col] + 1.0;
+            val = static_cast<float>( dPix[col] ) / static_cast<float>( sp[col] ) + 1.0f;
             }
           else
             {
-            val = dPix[col] / sp[col];
+            val = static_cast<float>( dPix[col] ) / static_cast<float>( sp[col] );
             }
           //        std::cout << " row " << row << " col " << col << " val " << val << std::endl;
           jMatrix.put(col, row, val);
-          avgMatrix.put(col, row, avgMatrix.get(col, row) + val);
+          avgMatrix.put(col, row, avgMatrix.get(col, row) + static_cast<double>( val ));
           }
         }
 
@@ -417,7 +417,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
       rindex = m_FieldIter.GetIndex();
       if( mask->GetPixel(rindex) > 0 )
         {
-        total += m_FloatImage->GetPixel(rindex);
+        total += static_cast<double>( m_FloatImage->GetPixel(rindex) );
         _ct++;
         }
       else
@@ -429,7 +429,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     for(  m_FieldIter.GoToBegin(); !m_FieldIter.IsAtEnd(); ++m_FieldIter )
       {
       rindex = m_FieldIter.GetIndex();
-      double val = m_FloatImage->GetPixel(rindex) / total;
+      double val = static_cast<double>( m_FloatImage->GetPixel(rindex) ) / total;
       if( mask->GetPixel(rindex) > 0 )
         {
         m_FloatImage->SetPixel(rindex, val);

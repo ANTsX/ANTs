@@ -301,7 +301,7 @@ void
 WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::SetSmoothScale(double scale)
 {
-  if( m_SmoothScale != scale )
+  if( ! itk::Math::FloatAlmostEqual( m_SmoothScale, scale ) )
     {
     // compute the new cached
     m_SmoothScale = scale;

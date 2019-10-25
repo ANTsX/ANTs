@@ -5,8 +5,8 @@
  * those file.
  * \author Hans J. Johnson
  */
-#ifndef __antsUtilities_h__
-#define __antsUtilities_h__
+#ifndef antsUtilities_h
+#define antsUtilities_h
 
 // #include "antscout.hxx"
 #include "antsAllocImage.h"

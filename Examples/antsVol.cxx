@@ -199,11 +199,11 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
     // [0,1] since that is what is specified on the command line and simply renormalize
     // to the range [0,255] when setting the voxel.
 
-    RealType currentRed   = pixel / 255.0;
-    RealType currentGreen = pixel / 255.0;
-    RealType currentBlue  = pixel / 255.0;
+    RealType currentRed   = static_cast<RealType>( pixel ) / static_cast<RealType>( 255.0 );
+    RealType currentGreen = static_cast<RealType>( pixel ) / static_cast<RealType>( 255.0 );
+    RealType currentBlue  = static_cast<RealType>( pixel ) / static_cast<RealType>( 255.0 );
 
-    RealType currentAlpha = pixel / 255.0;
+    RealType currentAlpha = static_cast<RealType>( pixel ) / static_cast<RealType>( 255.0 );
 
     for( int i = functionalRgbImages.size() - 1; i >= 0; i-- )
       {
@@ -214,11 +214,11 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 
       RgbPixelType rgbPixel = functionalRgbImages[i]->GetPixel( index );
 
-      RealType functionalRed = rgbPixel.GetRed() / 255.0;
-      RealType functionalGreen = rgbPixel.GetGreen() / 255.0;
-      RealType functionalBlue = rgbPixel.GetBlue() / 255.0;
+      RealType functionalRed = rgbPixel.GetRed() / static_cast<RealType>( 255.0 );
+      RealType functionalGreen = rgbPixel.GetGreen() / static_cast<RealType>( 255.0 );
+      RealType functionalBlue = rgbPixel.GetBlue() / static_cast<RealType>( 255.0 );
 
-      if( functionalRed + functionalGreen + functionalBlue > 0.0 )
+      if( functionalRed + functionalGreen + functionalBlue > itk::NumericTraits<RealType>::ZeroValue() )
         {
         currentRed   = functionalRed;
         currentGreen = functionalGreen;
@@ -227,10 +227,10 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
       }
 
     RgbaPixelType currentColor;
-    currentColor.SetRed( static_cast<unsigned char>( currentRed * 255.0 ) );
-    currentColor.SetGreen( static_cast<unsigned char>( currentGreen * 255.0 ) );
-    currentColor.SetBlue( static_cast<unsigned char>( currentBlue * 255.0 ) );
-    currentColor.SetAlpha( static_cast<unsigned char>( currentAlpha * 255.0 ) );
+    currentColor.SetRed( static_cast<unsigned char>( currentRed * static_cast<RealType>( 255.0 ) ) );
+    currentColor.SetGreen( static_cast<unsigned char>( currentGreen * static_cast<RealType>( 255.0 ) ) );
+    currentColor.SetBlue( static_cast<unsigned char>( currentBlue * static_cast<RealType>( 255.0 ) ) );
+    currentColor.SetAlpha( static_cast<unsigned char>( currentAlpha * static_cast<RealType>( 255.0 ) ) );
 
     rgbaImage->SetPixel( index, currentColor );
     }
@@ -302,9 +302,9 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
   // Set up rendering window
 
   vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
-  renderer->SetBackground( backgroundColor[0] / 255.0,
-                           backgroundColor[1] / 255.0,
-                           backgroundColor[2] / 255.0 );
+  renderer->SetBackground( backgroundColor[0] / static_cast<RealType>( 255.0 ),
+                           backgroundColor[1] / static_cast<RealType>( 255.0 ),
+                           backgroundColor[2] / static_cast<RealType>( 255.0 ) );
 
   vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
   renderWindow->AddRenderer( renderer );

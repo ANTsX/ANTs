@@ -213,9 +213,9 @@ public:
       fdvec2[imd] = vec[imd] - step;
       nccm1 = this->ComputeMetricAtPair(oindex, fdvec2);
       update[imd] = nccp1 - nccm1;
-      loce += (nccp1 + nccm1);
+      loce += static_cast<float>(nccp1 + nccm1);
       }
-    loce /= (2.0 * (float)ImageDimension); // this->ComputeMetricAtPair(oindex,vec);
+    loce /= ( 2.0f * static_cast<float>( ImageDimension ) ); // this->ComputeMetricAtPair(oindex,vec);
     this->m_Energy += loce;
     if( m_MetricImage )
       {
@@ -254,9 +254,9 @@ public:
       fdvec2[imd] = vec[imd] - step;
       nccm1 = this->ComputeMetricAtPair(oindex, fdvec2);
       update[imd] = nccp1 - nccm1;
-      loce += (nccp1 + nccm1);
+      loce += static_cast<float>(nccp1 + nccm1);
       }
-    loce /= (2.0 * (float)ImageDimension); // this->ComputeMetricAtPair(oindex,vec);
+    loce /= ( 2.0f * static_cast<float>( ImageDimension ) ); // this->ComputeMetricAtPair(oindex,vec);
     this->m_Energy += loce;
     if( m_MetricImage )
       {
