@@ -32,7 +32,7 @@ namespace itk
 template <typename TInputImage,
   typename TMaskImage = Image<unsigned char, TInputImage::ImageDimension>,
   class TOutputImage = TInputImage>
-class MaskedSmoothingImageFilter :
+class MaskedSmoothingImageFilter final :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

@@ -138,13 +138,13 @@ typename ImageType::IndexType newStartIndex;
       }
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      RealType spacing_old = image->GetSpacing()[i];
-      RealType size_old = image->GetLargestPossibleRegion().GetSize()[i];
-      float ratio = static_cast<float>( size_old - 1.0 )
-                  / static_cast<float>( size[i] - 1.0 );
+      RealType spacing_old = static_cast<RealType>( image->GetSpacing()[i] );
+      RealType size_old = static_cast<RealType>( image->GetLargestPossibleRegion().GetSize()[i] );
+      RealType ratio = ( static_cast<RealType>( size_old ) - itk::NumericTraits<RealType>::OneValue() )
+                  / ( static_cast<RealType>( size[i] ) - itk::NumericTraits<RealType>::OneValue() );
       spacing[i] = spacing_old * ratio;
       RealType oldstart = static_cast<float>( oldStartIndex[i] );
-      newStartIndex[i] = static_cast<int>( oldstart * ratio + 0.5 );
+      newStartIndex[i] = static_cast<int>( oldstart * ratio + static_cast<RealType>( 0.5 ) );
       }
     }
 
@@ -226,6 +226,7 @@ typename ImageType::IndexType newStartIndex;
             }
             break;
           }
+        break;
         }
       case 4:
         {
@@ -238,8 +239,8 @@ typename ImageType::IndexType newStartIndex;
           bs_interpolator->SetSplineOrder( 3 );
           }
         resampler->SetInterpolator( bs_interpolator );
-        }
         break;
+        }
       }
     }
   resampler->SetInput( image );

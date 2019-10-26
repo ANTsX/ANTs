@@ -211,7 +211,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
    * where K = mean square spacing to compensate for the mismatch in units.
    */
   double speedValue = fixedValue - movingValue;
-  if( fabs(speedValue) < this->m_RobustnessParameter )
+  if( fabs(speedValue) < static_cast<double>( this->m_RobustnessParameter ) )
     {
     speedValue = 0;
     }
@@ -245,7 +245,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     update[j] = speedValue * gradient[j] / denominator;
     if( globalData )
       {
-      globalData->m_SumOfSquaredChange += itk::Math::sqr ( update[j] );
+      globalData->m_SumOfSquaredChange += static_cast<double>( itk::Math::sqr( update[j] ) );
       }
     }
 
@@ -299,7 +299,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
    * where K = mean square spacing to compensate for the mismatch in units.
    */
   double speedValue = movingValue - fixedValue;
-  if( fabs(speedValue) < this->m_RobustnessParameter )
+  if( std::fabs( speedValue ) < static_cast<double>( this->m_RobustnessParameter ) )
     {
     speedValue = 0;
     }
@@ -329,7 +329,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     update[j] = speedValue * gradient[j] / denominator;
     if( globalData )
       {
-      globalData->m_SumOfSquaredChange += itk::Math::sqr ( update[j] );
+      globalData->m_SumOfSquaredChange += static_cast<double>( itk::Math::sqr( update[j] ) );
       }
     }
 

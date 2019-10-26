@@ -17,7 +17,7 @@
 namespace ants
 {
 template <typename TFilter>
-class CommandIterationUpdate : public itk::Command
+class CommandIterationUpdate final : public itk::Command
 {
 public:
   typedef CommandIterationUpdate  Self;

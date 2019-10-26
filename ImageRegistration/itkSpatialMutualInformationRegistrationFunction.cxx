@@ -172,10 +172,10 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_NumberOfSpatialSamples = 1;
   for( unsigned int k = 0; k < ImageDimension; k++ )
     {
-    m_Normalizer += m_FixedImageSpacing[k] * m_FixedImageSpacing[k];
+    m_Normalizer += static_cast<float>( itk::Math::sqr( m_FixedImageSpacing[k] ) );
     m_NumberOfSpatialSamples *= this->m_FixedImage->GetLargestPossibleRegion().GetSize()[k];
     }
-  m_Normalizer /= static_cast<double>( ImageDimension );
+  m_Normalizer /= static_cast<float>( ImageDimension );
 
   /**
    * Compute binsize for the histograms.
@@ -558,14 +558,14 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     {
     float temp = jointPDFIterator.Get();
     //    jointPDFIterator.Set(temp);
-    jointPDFSum += temp;
+    jointPDFSum += static_cast<double>( temp );
     ++jointPDFIterator;
     }
 
 //    std::cout << " Joint PDF Summation? " << jointPDFSum << std::endl;
 
   // of derivatives
-  if( jointPDFSum == 0.0 )
+  if( itk::Math::FloatAlmostEqual( jointPDFSum, itk::NumericTraits<double>::ZeroValue() ) )
     {
     itkExceptionMacro( "Joint PDF summed to zero" );
     }
@@ -630,7 +630,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     double sum = 0.0;
     while( !linearIter.IsAtEndOfLine() )
       {
-      sum += linearIter.Get();
+      sum += static_cast<double>( linearIter.Get() );
       ++linearIter;
       }
 
@@ -649,7 +649,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     double sum = 0.0;
     while( !linearIter.IsAtEndOfLine() )
       {
-      sum += linearIter.Get();
+      sum += static_cast<double>( linearIter.Get() );
       ++linearIter;
       }
 

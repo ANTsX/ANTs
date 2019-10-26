@@ -185,7 +185,7 @@ LabelSurface(typename TImage::PixelType foreground,
     typename TImage::PixelType p = GHood.GetCenterPixel();
     typename TImage::IndexType ind = GHood.GetIndex();
     typename TImage::IndexType ind2;
-    if( p == foreground )
+    if( itk::Math::FloatAlmostEqual( p, foreground ) )
       {
       bool atedge = false;
       for( unsigned int i = 0; i < GHood.Size(); i++ )
@@ -197,12 +197,12 @@ LabelSurface(typename TImage::PixelType foreground,
           dist += (double)(ind[j] - ind2[j]) * (double)(ind[j] - ind2[j]);
           }
         dist = sqrt(dist);
-        if( GHood.GetPixel(i) != foreground && dist <  distthresh  )
+        if( ! itk::Math::FloatAlmostEqual( GHood.GetPixel(i), foreground ) && dist <  distthresh  )
           {
           atedge = true;
           }
         }
-      if( atedge && p == foreground )
+      if( atedge && itk::Math::FloatAlmostEqual( p, foreground ) )
         {
         Image->SetPixel(ind, newval);
         }
@@ -241,7 +241,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double s
   while(  !Iterator.IsAtEnd()  )
     {
     ind = Iterator.GetIndex();
-    if( wm->GetPixel(ind) )
+    if( ! itk::Math::FloatAlmostEqual( wm->GetPixel(ind), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() ) )
       {
       laplacian->SetPixel(ind, 1);
       }
@@ -259,13 +259,13 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double s
     while(  !Iterator.IsAtEnd()  )
       {
       ind = Iterator.GetIndex();
-      if( wm->GetPixel(ind) )
+      if( ! itk::Math::FloatAlmostEqual( wm->GetPixel(ind), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() ) )
         {
-        laplacian->SetPixel(ind, 1);
+        laplacian->SetPixel(ind, itk::NumericTraits<typename ImageType::PixelType>::OneValue());
         }
-      else if( gm->GetPixel(ind) == 0 && wm->GetPixel(ind) == 0 )
+      else if( itk::Math::FloatAlmostEqual( gm->GetPixel(ind), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() ) && itk::Math::FloatAlmostEqual( wm->GetPixel(ind), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() ) )
         {
-        laplacian->SetPixel(ind, 0.);
+        laplacian->SetPixel(ind, itk::NumericTraits<typename ImageType::PixelType>::ZeroValue());
         }
       ++Iterator;
       }
@@ -758,7 +758,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       while(  !xxIterator.IsAtEnd()  )
         {
         typename ImageType::IndexType speedindex = xxIterator.GetIndex();
-        if( segmentationimage->GetPixel(speedindex) == 2 )  // fixme
+        if( itk::Math::FloatAlmostEqual( segmentationimage->GetPixel(speedindex), static_cast<typename ImageType::PixelType>( 2.0 ) ) )  // fixme
           {
           thickprior = origthickprior;
           VectorType wgradval = lapgrad2->GetPixel(speedindex);
@@ -774,7 +774,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           wmag = sqrt(wmag);
           if( checknans )
             {
-            if( std::isnan(wmag) || std::isinf(wmag) || wmag == 0 )
+            if( std::isnan( wmag) || std::isinf(wmag) || itk::Math::FloatAlmostEqual( wmag, itk::NumericTraits<RealType>::ZeroValue() ) )
               {
               wgradval.Fill(0);
               lapgrad2->SetPixel(speedindex, wgradval);
@@ -872,7 +872,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           totalimage->SetPixel(velind, dmag);
           hitimage->SetPixel(velind, bval);
           }
-        else if( segmentationimage->GetPixel(velind) == 2 )     // fixme
+        else if( itk::Math::FloatAlmostEqual( segmentationimage->GetPixel(velind), static_cast<typename ImageType::PixelType>( 2.0 ) ) )  // fixme
           {
           RealType thkval = thkdef->GetPixel(velind);
           RealType putval = thindef->GetPixel(velind);
@@ -888,14 +888,15 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         {
         IndexType velind = Iterator.GetIndex();
         bool      shouldbezero = false;
-        if( segmentationimage->GetPixel(velind) == 0 )
+        if( itk::Math::FloatAlmostEqual( segmentationimage->GetPixel(velind), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() ) )  // fixme
           {
           shouldbezero = true;
           }
         if( !shouldbezero )
           {
-          if( bsurf->GetPixel(velind) == 0 && gmsurf->GetPixel(velind) == 0 && segmentationimage->GetPixel(velind) !=
-              2 )
+          if( itk::Math::FloatAlmostEqual( bsurf->GetPixel(velind), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() ) &&
+              itk::Math::FloatAlmostEqual( gmsurf->GetPixel(velind), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() ) &&
+             !itk::Math::FloatAlmostEqual( segmentationimage->GetPixel(velind), static_cast<typename ImageType::PixelType>( 2.0 ) ) )
             {
             shouldbezero = true;
             }
@@ -945,7 +946,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         {
         thkval = 0;
         }
-      if( segmentationimage->GetPixel(velind) == 2 )
+      if( itk::Math::FloatAlmostEqual( segmentationimage->GetPixel(velind), static_cast<typename ImageType::PixelType>( 2.0 ) ) )
         {
         finalthickimage->SetPixel(velind, thkval);
         }

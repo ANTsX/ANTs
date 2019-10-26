@@ -232,19 +232,19 @@ public:
     if( ( regularizationOption->GetFunction( 0 )->GetName() ).find( "DMFFD" )
         != std::string::npos )
       {
-      if( ( !TrueEqualsGradElseTotal && this->m_TotalSmoothingparam == 0.0 ) ||
-          ( TrueEqualsGradElseTotal && this->m_GradSmoothingparam == 0.0 ) )
+      if( ( !TrueEqualsGradElseTotal && itk::Math::FloatAlmostEqual( this->m_TotalSmoothingparam, itk::NumericTraits<TReal>::ZeroValue() ) ) ||
+          ( TrueEqualsGradElseTotal && itk::Math::FloatAlmostEqual( this->m_GradSmoothingparam, itk::NumericTraits<TReal>::ZeroValue() ) ) )
         {
         return;
         }
       ArrayType    meshSize;
       unsigned int splineOrder = this->m_BSplineFieldOrder;
-      TReal        bsplineKernelVariance = static_cast<TReal>( splineOrder + 1 ) / 12.0;
+      TReal        bsplineKernelVariance = static_cast<TReal>( splineOrder + 1 ) / static_cast<TReal>( 12.0 );
       unsigned int numberOfLevels = 1;
 
       if( TrueEqualsGradElseTotal )
         {
-        if( this->m_GradSmoothingparam < 0.0 )
+        if( this->m_GradSmoothingparam < itk::NumericTraits<TReal>::ZeroValue() )
           {
           meshSize = this->m_GradSmoothingMeshSize;
           for( unsigned int d = 0; d < ImageDimension; d++ )
@@ -260,8 +260,8 @@ public:
           for( unsigned int d = 0; d < ImageDimension; d++ )
             {
             meshSize[d] = static_cast<unsigned int>(
-                field->GetLargestPossibleRegion().GetSize()[d]
-                / spanLength + 0.5 );
+                static_cast<TReal>( field->GetLargestPossibleRegion().GetSize()[d] )
+                / spanLength + static_cast<TReal>( 0.5 ) );
             }
           }
         this->SmoothDisplacementFieldBSpline( field, meshSize, splineOrder,
@@ -269,7 +269,7 @@ public:
         }
       else
         {
-        if( this->m_TotalSmoothingparam < 0.0 )
+        if( this->m_TotalSmoothingparam < itk::NumericTraits<TReal>::ZeroValue() )
           {
           meshSize = this->m_TotalSmoothingMeshSize;
           for( unsigned int d = 0; d < ImageDimension; d++ )
@@ -305,7 +305,7 @@ public:
         this->SmoothDisplacementFieldBSpline( field, meshSize, splineOrder,
                                               numberOfLevels );
 
-        if( maxMagnitude > 0.0 )
+        if( maxMagnitude > itk::NumericTraits<RealType>::ZeroValue() )
           {
           for( It.GoToBegin(); !It.IsAtEnd(); ++It )
             {
@@ -721,11 +721,11 @@ public:
 //    RealType maximumSpacing = inputSpacing.GetVnlVector().max_value();
     for( unsigned int d = 0; d < Dimension; d++ )
       {
-      RealType scaling = std::min( scalingFactor * minimumSpacing / inputSpacing[d],
-                                       static_cast<RealType>( inputSize[d] ) / 32.0 );
-      outputSpacing[d] = inputSpacing[d] * scaling;
-      outputSize[d] = static_cast<unsigned long>( inputSpacing[d]
-                                                  * static_cast<RealType>( inputSize[d] ) / outputSpacing[d] + 0.5 );
+      RealType scaling = std::min( scalingFactor * minimumSpacing / static_cast<RealType>( inputSpacing[d] ),
+                                       static_cast<RealType>( inputSize[d] ) / static_cast<RealType>( 32.0 ) );
+      outputSpacing[d] = inputSpacing[d] * static_cast<double>( scaling );
+      outputSize[d] = static_cast<unsigned long>( static_cast<RealType>( inputSpacing[d] )
+                                                  * static_cast<RealType>( inputSize[d] ) / static_cast<RealType>( outputSpacing[d] ) + static_cast<RealType>( 0.5 ) );
 
       typedef RecursiveGaussianImageFilter<ImageType, ImageType> GaussianFilterType;
       typename GaussianFilterType::Pointer smoother = GaussianFilterType::New();
@@ -1080,20 +1080,20 @@ public:
       if( this->m_SubsamplingFactors.size() == 0 )
         {
         scaling = std::min( this->m_ScaleFactor * minimumSpacing
-                                / this->m_FullDomainSpacing[d],
-                                static_cast<RealType>( this->m_FullDomainSize[d] ) / 32.0 );
+                                / static_cast<RealType>( this->m_FullDomainSpacing[d] ),
+                                static_cast<RealType>( this->m_FullDomainSize[d] ) / static_cast<RealType>( 32.0 ) );
         }
-      if( scaling < 1.0 )
+      if( scaling < itk::NumericTraits<RealType>::OneValue() )
         {
-        scaling = 1.0;
+        scaling = itk::NumericTraits<RealType>::OneValue();
         }
-      this->m_CurrentDomainSpacing[d] = this->m_FullDomainSpacing[d] * scaling;
+      this->m_CurrentDomainSpacing[d] = this->m_FullDomainSpacing[d] * static_cast<double>( scaling );
       this->m_CurrentDomainSize[d] =
-        static_cast<unsigned long>( this->m_FullDomainSpacing[d] * static_cast<RealType>( this->m_FullDomainSize[d] )
+        static_cast<unsigned long>( this->m_FullDomainSpacing[d] * static_cast<double>( this->m_FullDomainSize[d] )
                                     / this->m_CurrentDomainSpacing[d] + 0.5 );
       this->m_CurrentDomainOrigin[d] =
         static_cast<unsigned long>( this->m_FullDomainSpacing[d]
-                                    * static_cast<RealType>( this->m_FullDomainOrigin[d] )
+                                    * static_cast<double>( this->m_FullDomainOrigin[d] )
                                     / this->m_CurrentDomainSpacing[d] + 0.5 );
       }
 
@@ -1138,10 +1138,10 @@ public:
     minMaxFilter->Update();
 
     TReal min = minMaxFilter->GetMinimum();
-    TReal shift = -1.0 * static_cast<TReal>( min );
+    TReal shift = -min;
     TReal scale = static_cast<TReal>( minMaxFilter->GetMaximum() );
     scale += shift;
-    scale = 1.0 / scale;
+    scale = itk::NumericTraits<TReal>::OneValue() / scale;
 
     typedef itk::ShiftScaleImageFilter<ImageType, ImageType> FilterType;
     typename FilterType::Pointer filter = FilterType::New();
@@ -1495,7 +1495,7 @@ public:
 //      std::cout <<" totale " << totale << std::endl;
           if( totale > 0 )
             {
-            totale *= (-1.0);
+            totale *= -itk::NumericTraits<TReal>::OneValue();
             }
           for( unsigned int qq = windowBegin; qq < this->m_CurrentIteration; qq++ )
             {
@@ -1545,7 +1545,7 @@ public:
           typename BSplinerType2::GradientType gradient =
             bspliner2->EvaluateGradientAtParametricPoint( endPoint );
           this->m_ESlope = gradient[0][0];
-          if(  this->m_ESlope < 0.0001 && this->m_CurrentIteration > domtar )
+          if(  this->m_ESlope < static_cast<TReal>( 0.0001 ) && this->m_CurrentIteration > domtar )
             {
             converged = true;
             }
@@ -1855,8 +1855,8 @@ public:
 
     eulerianInitCond->FillBuffer(zero);
 
-    TReal scale = (1.) / max;
-    if( scale > 1. )
+    TReal scale = itk::NumericTraits<TReal>::OneValue() / max;
+    if( scale > itk::NumericTraits<TReal>::OneValue() )
       {
       scale = 1.0;
       }
@@ -1894,8 +1894,8 @@ public:
         TReal          mag = 0;
         for( unsigned int j = 0; j < ImageDimension; j++ )
           {
-          update[j] *= (-1.0);
-          mag += (update[j] / spacing[j]) * (update[j] / spacing[j]);
+          update[j] *= -itk::NumericTraits<TReal>::OneValue();
+          mag += static_cast<TReal>( itk::Math::sqr( ( update[j] / static_cast<TReal>( spacing[j] ) ) ) );
           }
         mag = sqrt(mag);
         meandif += mag;
@@ -2051,8 +2051,8 @@ protected:
         DispVectorType dif = rupdate - lupdate;
         for( unsigned int tt = 0; tt < ImageDimension; tt++ )
           {
-          stepl += update[tt] * update[tt] / (myspacing[tt] * myspacing[tt]);
-          mag += dif[tt] * dif[tt] / (myspacing[tt] * myspacing[tt]);
+          stepl += static_cast<TReal>( itk::Math::sqr( update[tt] / static_cast<TReal>( myspacing[tt] ) ) );
+          mag += static_cast<TReal>( itk::Math::sqr( dif[tt] / static_cast<TReal>( myspacing[tt] ) ) );
           }
         }
       stepl = sqrt(stepl);

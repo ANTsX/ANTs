@@ -95,7 +95,7 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
     if( maskImage->GetPixel( centerIndex ) != NumericTraits<MaskPixelType>::ZeroValue() )
       {
       long location = static_cast<long>(
-        this->m_SparseMatrixIndexImage->GetPixel( centerIndex ) + 0.5 ) - 1;
+        this->m_SparseMatrixIndexImage->GetPixel( centerIndex ) + static_cast<RealType>( 0.5 ) ) - 1;
 
       for( SizeValueType i = 0; i < numberOfNeighborhoodIndices; i++ )
         {
@@ -108,33 +108,33 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
           if( maskImage->GetPixel( index ) != NumericTraits<MaskPixelType>::ZeroValue() )
             {
             long next = static_cast<long>(
-              ItSparseImageNeighborhood.GetPixel( i, isInBounds ) + 0.5 ) - 1;
+              ItSparseImageNeighborhood.GetPixel( i, isInBounds ) + static_cast<RealType>( 0.5 ) ) - 1;
 
             if( next >= 0 && location >= 0 && isInBounds )
               {
-              RealType spaceValue = 0;
-              RealType timeValue = 0;
+              RealType spaceValue = NumericTraits<RealType>::ZeroValue();
+              RealType timeValue = NumericTraits<RealType>::ZeroValue();
               if ( this->m_TimePoints.size() == 0 )
                 {
                 for( SizeValueType k = 0; k < ImageDimension; k++ )
                   {
-                  spaceValue += std::pow( ( centerIndex[k] - index[k] ) * spacing[k], 2.0 );
+                  spaceValue += static_cast<RealType>( std::pow( ( centerIndex[k] - index[k] ) * spacing[k], 2.0 ) );
                   }
                 }
               else // handle temporal regularization
                 {
-                spaceValue = 0;
+                spaceValue = NumericTraits<RealType>::ZeroValue();
                 for ( unsigned int k = 0; k < ImageDimension - 1; k++ )
                   {
-                  spaceValue += std::pow( ( centerIndex[k] - index[k] ) * spacing[ k ], 2.0 );
+                  spaceValue += static_cast<RealType>( std::pow( ( centerIndex[k] - index[k] ) * spacing[ k ], 2.0 ) );
                   }
                 RealType timeDistance =
                   this->m_TimePoints[centerIndex[ImageDimension - 1]] -
                   this->m_TimePoints[index[ImageDimension - 1]];
 
-                timeValue = std::pow( timeDistance, 2.0 );
+                timeValue = static_cast<RealType>( std::pow( timeDistance, 2.0 ) );
                 }
-              RealType smoothValue = std::exp( -1.0 * (
+              RealType smoothValue = std::exp( static_cast<RealType>( -1.0 ) * (
                 spaceValue / this->m_SmoothingVariance +
                 timeValue  / this->m_TimeSmoothingVariance ) );
               this->m_SparseMatrix( location, next ) = smoothValue;
@@ -151,7 +151,7 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
     RealType rowSum = this->m_SparseMatrix.sum_row( k );
     if( rowSum > 0 )
       {
-      this->m_SparseMatrix = this->m_SparseMatrix.scale_row( k, 1.0 / rowSum );
+      this->m_SparseMatrix = this->m_SparseMatrix.scale_row( k, NumericTraits<RealType>::OneValue() / rowSum );
       }
     }
 
@@ -181,7 +181,7 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
     if( maskImage->GetPixel( index ) != NumericTraits<MaskPixelType>::ZeroValue() )
       {
       long location = static_cast<long>(
-        this->m_SparseMatrixIndexImage->GetPixel( index ) + 0.5 ) - 1;
+        this->m_SparseMatrixIndexImage->GetPixel( index ) + static_cast<RealType>( 0.5 ) ) - 1;
 
       InputPixelType inputValue = It.Get();
       for( SizeValueType d = 0; d < smoothImageMatrix.columns(); d++ )
@@ -204,7 +204,7 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>
     if( maskImage->GetPixel( It.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() )
       {
       long location = static_cast<long>(
-          this->m_SparseMatrixIndexImage->GetPixel( It.GetIndex() ) + 0.5 ) - 1;
+          this->m_SparseMatrixIndexImage->GetPixel( It.GetIndex() ) + static_cast<RealType>( 0.5 ) ) - 1;
       OutputPixelType outputValue = It.Get();
       for( SizeValueType d = 0; d < smoothImageMatrix.columns(); d++ )
         {

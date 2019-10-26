@@ -100,7 +100,7 @@ antsSCCANObject<TInputImage, TRealType>
   Iterator mIter(mask, mask->GetLargestPossibleRegion() );
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
-    if( mIter.Get() >= static_cast<TRealType>( 0.5 ) )
+    if( mIter.Get() >= static_cast<typename TInputImage::PixelType>( 0.5 ) )
       {
       vecind++;
       }
@@ -115,12 +115,12 @@ antsSCCANObject<TInputImage, TRealType>
   unsigned long maskct = 0;
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
-    if( mIter.Get() >= static_cast<TRealType>( 0.5 ) )
+    if( mIter.Get() >= static_cast<typename TInputImage::PixelType>( 0.5 ) )
       {
       TRealType val = 0;
       if( vecind < w_p.size() )
         {
-	       val = static_cast<TRealType>( w_p( vecind ) * avgwt + weights->GetPixel(mIter.GetIndex()) );
+	       val = static_cast<TRealType>( w_p( vecind ) ) * avgwt + static_cast<RealType>( weights->GetPixel(mIter.GetIndex()) );
         }
       else
         {
@@ -128,7 +128,7 @@ antsSCCANObject<TInputImage, TRealType>
         if ( ! this->m_Silent )  std::cout << " this is likely a mask problem --- exiting! " << std::endl;
         std::exception();
         }
-      if ( threshold_at_zero && ( fabs(val) > this->m_Epsilon  ) )
+      if ( threshold_at_zero && ( std::fabs(val) > this->m_Epsilon  ) )
         {
         weights->SetPixel( mIter.GetIndex(), 1 );
         }
@@ -921,15 +921,15 @@ antsSCCANObject<TInputImage, TRealType>
 ::ReSoftThreshold( typename antsSCCANObject<TInputImage, TRealType>::VectorType &
                    v_in, TRealType fractional_goal, bool keep_positive )
 {
-  //  if ( ! this->m_Silent )  std::cout <<" resoft " << fractional_goal << std::endl;
-  if( fabs(fractional_goal) >= 1 || fabs( (float)(v_in.size() ) * fractional_goal) <= 1 )
+  TRealType abs_fractional_goal = static_cast<TRealType>( std::fabs( fractional_goal ) );
+  if( abs_fractional_goal >= itk::NumericTraits<TRealType>::OneValue() || static_cast<TRealType>( v_in.size() ) * abs_fractional_goal  <= itk::NumericTraits<TRealType>::OneValue() )
     {
     return;
     }
   RealType maxv = v_in.max_value();
-  if( fabs(v_in.min_value() ) > maxv )
+  if( static_cast<RealType>( std::fabs( v_in.min_value() ) ) > maxv )
     {
-    maxv = fabs(v_in.min_value() );
+    maxv = static_cast<RealType>( std::fabs( v_in.min_value() ) );
     }
   RealType     lambg = this->m_Epsilon;
   RealType     frac = 0;
@@ -947,7 +947,7 @@ antsSCCANObject<TInputImage, TRealType>
   unsigned int maxits = 1000;
   for( its = 0; its < maxits; its++ )
     {
-    soft_thresh = (its / (float)maxits) * maxv;
+    soft_thresh = static_cast<RealType>( its ) / static_cast<RealType>( maxits ) * maxv;
     ct = 0;
     for( unsigned int i = 0; i < v_in.size(); i++ )
       {
@@ -965,7 +965,7 @@ antsSCCANObject<TInputImage, TRealType>
         ct++;
         }
       }
-    frac = (float)(v_in.size() - ct) / (float)v_in.size();
+    frac = static_cast<RealType>( v_in.size() - ct ) / static_cast<RealType>( v_in.size() );
     //    if ( ! this->m_Silent )  std::cout << " cur " << frac << " goal "  << fractional_goal << " st " << soft_thresh << " th " <<
     // minthresh
     // << std::endl;
@@ -1060,7 +1060,7 @@ antsSCCANObject<TInputImage, TRealType>
   unsigned int maxits = 1000;
   for( its = 0; its < maxits; its++ )
     {
-    soft_thresh = (its / (float)maxits) * maxv;
+    soft_thresh = static_cast<RealType>( its ) / static_cast<RealType>( maxits ) * maxv;
     probability = 0;
     for( unsigned int i = 0; i < v_in.size(); i++ )
       {
@@ -1975,12 +1975,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       we use a conjugate gradient version of this optimization.
   */
   VectorType prior( priorin );
-  if( evec.two_norm() ==  0 )
+  if( itk::Math::FloatAlmostEqual( evec.two_norm(), itk::NumericTraits<typename VectorType::abs_t>::ZeroValue() ) )
     {
     evec = this->InitializeV( this->m_MatrixP, false );
     }
   evec = evec / evec.two_norm();
-  if( inner_product( prior, evec ) == 0 )
+  if( itk::Math::FloatAlmostEqual( inner_product( prior, evec ), itk::NumericTraits<RealType>::ZeroValue() ) )
     {
     evec.update( prior, 0  );
     this->SparsifyP( evec  );
@@ -2050,7 +2050,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   // if ( ! this->m_Silent )  std::cout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth;
   evec = bestevec;
-  if( inner_product( prior, evec ) == 0 )
+  if( itk::Math::FloatAlmostEqual( inner_product( prior, evec ), itk::NumericTraits<RealType>::ZeroValue() ) )
     {
     evec.update( prior, 0  );
     this->SparsifyP( evec  );
@@ -2340,7 +2340,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       d.dx ( x^t A^t A x  ) =   A^t A x  ,   x \leftarrow  x / \| x \|
       we use a conjugate gradient version of this optimization.
   */
-  if( evec.two_norm() ==  0 )
+  if( itk::Math::FloatAlmostEqual( evec.two_norm(), itk::NumericTraits<typename VectorType::abs_t>::ZeroValue() ) )
     {
     evec = this->InitializeV( this->m_MatrixP, true );
     }
@@ -2730,7 +2730,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     vexlist.push_back( vex );
     this->SortResults(n_vecs);
     convcrit = ( this->ComputeEnergySlope(vexlist, 10) );
-    if( bestvex == vexlist[loop] )
+    if( itk::Math::FloatAlmostEqual( bestvex, vexlist[loop] ) )
       {
       convcrit = 0;
       }
@@ -3369,7 +3369,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   A = A - A.min_value();
   VectorType evec = evecin;
   unsigned int maxcoltoorth = ( unsigned int ) ( 1.0 / itk::Math::abs ( this->m_FractionNonZeroP ) ) - 1;
-  if( evecin.two_norm() ==  0 )
+  if( itk::Math::FloatAlmostEqual( evecin.two_norm(), itk::NumericTraits<typename VectorType::abs_t>::ZeroValue() ) )
     {
     evec = this->InitializeV( this->m_MatrixP, false );
     }
@@ -4367,7 +4367,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     unsigned int foldct = 0;
     for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
       {
-      if( folds( f ) == fold )
+      if( itk::Math::FloatAlmostEqual( folds( f ), static_cast<RealType>( fold ) ) )
         {
         foldct++;
         }
@@ -4381,7 +4381,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     unsigned int dont_leave_out = 0;
     for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
       {
-      if( folds( f ) == fold )
+      if( itk::Math::FloatAlmostEqual( folds( f ), static_cast<RealType>( fold ) ) )
         {
         p_leave_out.set_row( leave_out, this->m_MatrixP.get_row( f ) );
         r_leave_out.set_row( leave_out, this->m_MatrixR.get_row( f ) );
@@ -4512,7 +4512,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
           {
-          if( folds( f ) == fold )
+          if( itk::Math::FloatAlmostEqual( folds( f ), static_cast<RealType>( fold ) ) )
             {
             this->m_CanonicalCorrelations( f ) = soln( fleave_out );
             RealType temp = fabs( soln( fleave_out ) - r_leave_out.get_column( 0 ) ( fleave_out ) );

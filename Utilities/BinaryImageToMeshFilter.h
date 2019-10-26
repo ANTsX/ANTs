@@ -77,7 +77,7 @@ private:
 };
 
 template <typename TImage>
-class BinaryImageToMeshFilter : public itk::ProcessObject
+class BinaryImageToMeshFilter final : public itk::ProcessObject
 {
 public:
   typedef BinaryImageToMeshFilter       Self;

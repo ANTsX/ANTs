@@ -986,14 +986,14 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     //   labeled point sets
     bool useBoundaryPointsOnly = false;
-    float pointSetSigma = 1.0;
+    RealType pointSetSigma = itk::NumericTraits<RealType>::OneValue();
     unsigned int evaluationKNeighborhood = 50;
-    float alpha = 1.1;
-    float useAnisotropicCovariances = false;
-    float samplingPercentage = 1.0;
+    RealType alpha = static_cast<RealType>( 1.1 );
+    bool useAnisotropicCovariances = false;
+    RealType samplingPercentage = itk::NumericTraits<RealType>::OneValue();
     //   intensity point sets
-    float intensityDistanceSigma = 0.0;
-    float euclideanDistanceSigma = 0.0;
+    RealType intensityDistanceSigma = itk::NumericTraits<RealType>::ZeroValue();
+    RealType euclideanDistanceSigma = itk::NumericTraits<RealType>::ZeroValue();
 
     if( !regHelper->IsPointSetMetric( currentMetric ) )
       {
@@ -1088,12 +1088,12 @@ DoRegistration(typename ParserType::Pointer & parser)
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 6 )
           {
           intensityDistanceSigma =
-            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 6 ) );
+            parser->Convert<RealType>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 6 ) );
           }
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 7 )
           {
           euclideanDistanceSigma =
-            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 7 ) );
+            parser->Convert<RealType>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 7 ) );
           }
         evaluationKNeighborhood = 1;
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 8 )
@@ -1102,10 +1102,10 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->Convert<unsigned int>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 8 ) );
           }
 
-        double gradientPointSetSigma = 1.0;
+        RealType gradientPointSetSigma = itk::NumericTraits<RealType>::OneValue();
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 9 )
           {
-          gradientPointSetSigma = parser->Convert<double>(
+          gradientPointSetSigma = parser->Convert<RealType>(
             metricOption->GetFunction( currentMetricNumber )->GetParameter( 9 ) );
           }
         std::vector<unsigned int> neighborhoodRadius;
@@ -1147,7 +1147,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 3 )
           {
           samplingPercentage =
-            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 ) );
+            parser->Convert<RealType>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 ) );
           }
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 4 )
           {
@@ -1157,7 +1157,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 5 )
           {
           pointSetSigma =
-            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
+            parser->Convert<RealType>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
           }
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 6 )
           {
@@ -1167,7 +1167,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 7 )
           {
           alpha =
-            parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 7 ) );
+            parser->Convert<RealType>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 7 ) );
           }
         if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 8 )
           {

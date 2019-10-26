@@ -72,28 +72,28 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
     if( ( !this->m_MaskImage ||
           this->m_MaskImage->GetPixel( ItI.GetIndex() ) != NumericTraits<typename TMaskImage::PixelType>::ZeroValue() )
         && ( !this->m_ConfidenceImage ||
-             this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > 0.0 ) )
+             this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > NumericTraits<typename TConfidenceImage::PixelType>::ZeroValue() ) )
       {
       mu += static_cast<MeasureType>( ItI.Get() ) / ( parameters[0]
-                                                      * ( static_cast<MeasureType>( ItB.Get() ) - 1.0 ) + 1.0 );
-      N += 1.0;
+                                                      * ( static_cast<MeasureType>( ItB.Get() ) - NumericTraits<MeasureType>::OneValue() ) + NumericTraits<MeasureType>::OneValue() );
+      N += NumericTraits<MeasureType>::OneValue();
       }
     }
   mu /= N;
 
-  MeasureType value = 0.0;
+  MeasureType value = NumericTraits<MeasureType>::ZeroValue();
   for( ItI.GoToBegin(), ItB.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItB )
     {
     if( ( !this->m_MaskImage ||
           this->m_MaskImage->GetPixel( ItI.GetIndex() ) != NumericTraits<typename TMaskImage::PixelType>::ZeroValue() )
         && ( !this->m_ConfidenceImage ||
-             this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > 0.0 ) )
+             this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > NumericTraits<typename TConfidenceImage::PixelType>::ZeroValue() ) )
       {
-      value += Math::sqr( ( ItI.Get() / ( parameters[0]
-                                             * ( static_cast<MeasureType>( ItB.Get() ) - 1.0 ) + 1.0 ) ) / mu - 1.0 );
+      value += Math::sqr( ( static_cast<MeasureType>( ItI.Get() ) / ( static_cast<MeasureType>( parameters[0] )
+        * ( static_cast<MeasureType>( ItB.Get() ) - NumericTraits<MeasureType>::OneValue() ) + NumericTraits<MeasureType>::OneValue() ) ) / mu - NumericTraits<MeasureType>::OneValue() );
       }
     }
-  value /= ( N - 1.0 );
+  value /= ( N - NumericTraits<MeasureType>::OneValue() );
 
   return value;
 }
@@ -119,7 +119,7 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
     if( ( !this->m_MaskImage ||
           this->m_MaskImage->GetPixel( ItI.GetIndex() ) != NumericTraits<typename TMaskImage::PixelType>::ZeroValue() )
         && ( !this->m_ConfidenceImage ||
-             this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > 0.0 ) )
+             this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > NumericTraits<typename TConfidenceImage::PixelType>::ZeroValue() ) )
       {
       MeasureType d = parameters[0]
         * ( static_cast<MeasureType>( ItB.Get() ) - 1.0 ) + 1.0;
@@ -138,18 +138,18 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage,
     if( ( !this->m_MaskImage ||
           this->m_MaskImage->GetPixel( ItI.GetIndex() ) != NumericTraits<typename TMaskImage::PixelType>::ZeroValue() )
         && ( !this->m_ConfidenceImage ||
-             this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > 0.0 ) )
+             this->m_ConfidenceImage->GetPixel( ItI.GetIndex() ) > NumericTraits<typename TConfidenceImage::PixelType>::ZeroValue() ) )
       {
-      MeasureType d = parameters[0]
-        * ( static_cast<MeasureType>( ItB.Get() ) - 1.0 ) + 1.0;
+      MeasureType d = static_cast<MeasureType>( parameters[0] )
+        * ( static_cast<MeasureType>( ItB.Get() ) - NumericTraits<MeasureType>::OneValue() ) + NumericTraits<MeasureType>::OneValue();
       MeasureType t = static_cast<MeasureType>( ItI.Get() ) / d;
-      MeasureType dt = -t * ( static_cast<MeasureType>( ItB.Get() ) - 1.0 );
-      value += ( ( t / mu - 1.0 )
+      MeasureType dt = -t * ( static_cast<MeasureType>( ItB.Get() ) - NumericTraits<MeasureType>::OneValue() );
+      value += ( ( t / mu - NumericTraits<MeasureType>::OneValue() )
                  * ( dt / mu - dmu * t / ( Math::sqr( mu ) ) ) );
       }
     }
   derivative.SetSize( 1 );
-  derivative( 0 ) = 2.0 * value / ( N - 1 );
+  derivative( 0 ) = static_cast<MeasureType>( 2.0 ) * value / ( N - NumericTraits<MeasureType>::OneValue() );
 }
 
 template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage,
@@ -428,7 +428,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
     }
   if( paddedHistogramSize % 2 == 0 )
     {
-    F[halfSize] = FFTComplexType( scaleFactor * std::exp( 0.25
+    F[halfSize] = FFTComplexType( static_cast<FFTComputationType>( scaleFactor ) * std::exp( 0.25
       * -Math::sqr( static_cast<FFTComputationType>(
                          paddedHistogramSize ) )
       * static_cast<FFTComputationType>( expFactor ) ), NumericTraits<FFTComputationType>::ZeroValue() );
@@ -472,7 +472,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   for( unsigned int n = 0; n < paddedHistogramSize; n++ )
     {
     numerator[n] = FFTComplexType(
-        ( binMinimum + ( static_cast<FFTComputationType>( n ) - static_cast<FFTComputationType>( histogramOffset ) )
+        ( static_cast<FFTComputationType>( binMinimum ) + ( static_cast<FFTComputationType>( n ) - static_cast<FFTComputationType>( histogramOffset ) )
           * static_cast<FFTComputationType>( histogramSlope ) ) * U[n].real(), 0.0 );
     }
   fft.fwd_transform( numerator );
@@ -574,7 +574,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
     if( ( !this->GetMaskImage() ||
           this->GetMaskImage()->GetPixel( It.GetIndex() ) != NumericTraits<MaskPixelType>::ZeroValue() )
         && ( !this->GetConfidenceImage() ||
-             this->GetConfidenceImage()->GetPixel( It.GetIndex() ) > 0.0 ) )
+             this->GetConfidenceImage()->GetPixel( It.GetIndex() ) > NumericTraits<RealType>::ZeroValue() ) )
       {
       typename PointSetType::PointType point;
       fieldEstimate->TransformIndexToPhysicalPoint( It.GetIndex(), point );
@@ -666,7 +666,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
       RealType pixel = It.Get();
       N += NumericTraits<RealType>::OneValue();
 
-      if( N > 1.0 )
+      if( N > NumericTraits<RealType>::OneValue() )
         {
         sigma = sigma + Math::sqr( pixel - mu ) * ( N - NumericTraits<RealType>::OneValue() ) / N;
         }
