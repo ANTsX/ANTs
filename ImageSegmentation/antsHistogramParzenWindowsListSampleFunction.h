@@ -32,7 +32,7 @@ namespace Statistics
  */
 
 template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
-class HistogramParzenWindowsListSampleFunction
+class HistogramParzenWindowsListSampleFunction final
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:

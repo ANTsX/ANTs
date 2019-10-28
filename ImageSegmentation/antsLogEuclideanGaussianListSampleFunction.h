@@ -30,7 +30,7 @@ namespace Statistics
  */
 
 template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
-class LogEuclideanGaussianListSampleFunction
+class LogEuclideanGaussianListSampleFunction final
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:

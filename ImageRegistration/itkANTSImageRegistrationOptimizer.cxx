@@ -504,7 +504,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         }
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        pointIn3[jj] = disp2[jj] * static_cast<double>( timesign ) + pointIn2[jj];
+        pointIn3[jj] = static_cast<typename VPointType::CoordRepType>( disp2[jj] ) * static_cast<typename VPointType::CoordRepType>( timesign ) + pointIn2[jj];
         }
 
       DispVectorType out;
@@ -912,7 +912,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       mag = 0;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / spacing[jj] ) );
+        mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / static_cast<typename VectorType::ComponentType>( spacing[jj] ) ) );
         }
       mag = sqrt(mag);
       if( mag >  max2 )
@@ -971,7 +971,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         mag = 0;
         for( unsigned int jj = 0; jj < ImageDimension; jj++ )
           {
-          mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / spacing[jj] ) );
+          mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / static_cast<typename VectorType::ComponentType>( spacing[jj] ) ) );
           }
         mag = sqrt(mag);
 //            if (mag > 0. ) std::cout << " mag " << mag << " max " << max << " vec " << vec << std::endl;
@@ -1000,7 +1000,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         mag = 0;
         for( unsigned int jj = 0; jj < ImageDimension; jj++ )
           {
-          mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / spacing[jj] ) );
+          mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / static_cast<typename VectorType::ComponentType>( spacing[jj] ) ) );
           }
         mag = sqrt(mag);
         if( mag >  max2 )
@@ -2723,11 +2723,15 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       f4 = this->m_VelocityFieldInterpolator->Evaluate( Y4x );
       }
+    using xPointCoordRepType = typename xPointType::CoordRepType;
+    xPointCoordRepType twoValue = static_cast<xPointCoordRepType>( 2.0 );
     for( unsigned int jj = 0; jj < TDimension; jj++ )
       {
-      pointIn3[jj] = pointIn2[jj] + vecsign * deltaTime / 6.0f * ( f1[jj] + 2.0f * f2[jj] + 2.0f * f3[jj] + f4[jj] );
+      pointIn3[jj] = pointIn2[jj] + static_cast<xPointCoordRepType>( vecsign * deltaTime / 6.0f )
+        * ( static_cast<xPointCoordRepType>( f1[jj] ) + twoValue * static_cast<xPointCoordRepType>( f2[jj] )
+        + twoValue * static_cast<xPointCoordRepType>( f3[jj] ) + static_cast<xPointCoordRepType>( f4[jj] ) );
       }
-    pointIn3[TDimension] = itime * (TReal)(m_NumberOfTimePoints - 1);
+    pointIn3[TDimension] = itime * static_cast<TReal>( m_NumberOfTimePoints - 1 );
 
     VectorType out;
     TReal      mag = 0, dmag = 0;
@@ -2865,9 +2869,13 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         {
         f4 = this->m_VelocityFieldInterpolator->Evaluate( Y4x );
         }
+      using xPointCoordRepType = typename xPointType::CoordRepType;
+      xPointCoordRepType twoValue = static_cast<xPointCoordRepType>( 2.0 );
       for( unsigned int jj = 0; jj < TDimension; jj++ )
         {
-        pointIn3[jj] = pointIn2[jj] + vecsign * deltaTime / 6.0f * ( f1[jj] + 2.0f * f2[jj] + 2.0f * f3[jj] + f4[jj] );
+        pointIn3[jj] = pointIn2[jj] + static_cast<xPointCoordRepType>( vecsign * deltaTime / 6.0f )
+          * ( static_cast<xPointCoordRepType>( f1[jj] ) + twoValue * static_cast<xPointCoordRepType>( f2[jj] )
+          + twoValue * static_cast<xPointCoordRepType>( f3[jj] ) + static_cast<xPointCoordRepType>( f4[jj] ) );
         }
       pointIn3[TDimension] = itime * static_cast<TReal>( m_NumberOfTimePoints - 1 );
 

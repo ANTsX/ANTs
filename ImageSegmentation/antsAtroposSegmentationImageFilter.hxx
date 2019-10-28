@@ -742,7 +742,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           ItM.Set( ItP.Get() );
           ItO.Set( n + 1 );
           }
-        else if( ItP.Get() == ItM.Get() )
+        else if( Math::FloatAlmostEqual( ItP.Get(), ItM.Get() ) )
           {
           if( n == 0 )
             {
@@ -785,7 +785,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       {
       if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel( ItP.GetIndex() ) != NumericTraits<MaskLabelType>::ZeroValue() )
         {
-        if( ItM.Get() <= this->m_ProbabilityThreshold || ItS.Get() == 0.0 )
+        if( ItM.Get() <= this->m_ProbabilityThreshold || Math::FloatAlmostEqual( ItS.Get(), NumericTraits<typename ImageType::PixelType>::ZeroValue() ) )
           {
           ItO.Set( NumericTraits<LabelType>::ZeroValue() );
           ItP.Set( NumericTraits<RealType>::ZeroValue() );
@@ -876,7 +876,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     LabelType label = NumericTraits<LabelType>::ZeroValue();
     if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel( ItI.GetIndex() ) != NumericTraits<MaskLabelType>::ZeroValue() )
       {
-      if( ItI.Get() < thresholds[0] )
+      if( ItI.Get() < static_cast<typename ImageType::PixelType>( thresholds[0] ) )
         {
         label = NumericTraits<LabelType>::OneValue();
         }
@@ -885,7 +885,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         bool thresholdFound = false;
         for( unsigned int i = 1; i < thresholds.size(); i++ )
           {
-          if( ItI.Get() >= thresholds[i - 1] && ItI.Get() <= thresholds[i] )
+          if( ItI.Get() >= static_cast<typename ImageType::PixelType>( thresholds[i - 1] ) && ItI.Get() <= static_cast<typename ImageType::PixelType>( thresholds[i] ) )
             {
             label = static_cast<LabelType>( i + 1 );
             thresholdFound = true;
@@ -1336,7 +1336,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           ItM.Set( posteriorProbability );
           ItO.Set( static_cast<LabelType>( n + 1 ) );
           }
-        else if( posteriorProbability == ItM.Get() )
+        else if( Math::FloatAlmostEqual( posteriorProbability, ItM.Get() ) )
           {
           LabelType currentLabel = ItO.Get();
           if( currentLabel >= 1 && this->m_LabelVolumes[n] < this->m_LabelVolumes[currentLabel - 1] )
@@ -1808,7 +1808,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         mrfPriorProbability = 1.0;
         }
       else if( this->GetPriorProbabilityImage( whichClass ) &&
-               this->GetPriorProbabilityImage( whichClass )->GetPixel( index ) == 1.0 )
+               Math::FloatAlmostEqual( this->GetPriorProbabilityImage( whichClass )->GetPixel( index ), NumericTraits<RealType>::OneValue() ) )
         {
         spatialPriorProbability = 1.0;
         likelihood = 1.0;
@@ -1914,7 +1914,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         RealType distance = 0.0;
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
-          distance += Math::sqr ( offset[d] * this->m_ImageSpacing[d] );
+          distance += static_cast<RealType>( Math::sqr( offset[d] * this->m_ImageSpacing[d] ) );
           }
         distance = std::sqrt( distance );
 
@@ -2150,7 +2150,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 }
               else if( this->GetPriorLabelImage() )
                 {
-                if( priorProbability == NumericTraits<RealType>::ZeroValue() )
+                if( Math::FloatAlmostEqual( priorProbability, NumericTraits<RealType>::ZeroValue() ) )
                   {
                   priorProbability = NumericTraits<RealType>::OneValue()
                     / static_cast<RealType>( totalNumberOfClasses );
@@ -2631,7 +2631,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             contour->GetOutput(), contour->GetOutput()->GetRequestedRegion() );
           for( ItC.GoToBegin(); !ItC.IsAtEnd(); ++ItC )
             {
-            if( ItC.Get() == contour->GetForegroundValue() )
+            if( Math::FloatAlmostEqual( ItC.Get(), contour->GetForegroundValue() ) )
               {
               NodeType node;
               node.SetValue( 0.0 );
@@ -2650,7 +2650,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                                   fastMarching->GetOutput()->GetRequestedRegion() );
           for( ItT.GoToBegin(), ItF.GoToBegin(); !ItT.IsAtEnd(); ++ItT, ++ItF )
             {
-            if( ItT.Get() == 1 )
+            if( Math::FloatAlmostEqual( ItT.Get(), NumericTraits<float>::OneValue() ) )
               {
               ItF.Set( -ItF.Get() );
               }
@@ -2666,9 +2666,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
           {
           if( ItD.Get() < 0 &&
-              maximumInteriorDistance < Math::abs ( ItD.Get() ) )
+              maximumInteriorDistance < Math::abs( ItD.Get() ) )
             {
-            maximumInteriorDistance = Math::abs ( ItD.Get() );
+            maximumInteriorDistance = Math::abs( ItD.Get() );
             }
           }
 
@@ -2686,7 +2686,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           if( Math::FloatAlmostEqual( labelLambda, NumericTraits<RealType>::ZeroValue() ) )
             {
-            if( ItD.Get() <= 0 )
+            if( ItD.Get() <= NumericTraits<float>::ZeroValue() )
               {
               ItD.Set( labelBoundaryProbability );
               }
@@ -2695,15 +2695,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               ItD.Set( NumericTraits<RealType>::ZeroValue() );
               }
             }
-          else if( ItD.Get() >= 0 )
+          else if( ItD.Get() >= NumericTraits<float>::ZeroValue() )
             {
             ItD.Set( labelBoundaryProbability
                      * std::exp( -labelLambda * ItD.Get() ) );
             }
-          else if( ItD.Get() < 0 )
+          else if( ItD.Get() < NumericTraits<float>::ZeroValue() )
             {
-            ItD.Set( 1.0 - ( 1.0 - labelBoundaryProbability )
-                     * ( maximumInteriorDistance - Math::abs ( ItD.Get() ) )
+            ItD.Set( NumericTraits<RealType>::OneValue() - ( NumericTraits<RealType>::OneValue() - labelBoundaryProbability )
+                     * ( maximumInteriorDistance - Math::abs( ItD.Get() ) )
                      / ( maximumInteriorDistance ) );
             }
           }
@@ -2860,7 +2860,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           contour->GetOutput(), contour->GetOutput()->GetRequestedRegion() );
         for( ItC.GoToBegin(); !ItC.IsAtEnd(); ++ItC )
           {
-          if( ItC.Get() == contour->GetForegroundValue() )
+          if( Math::FloatAlmostEqual( ItC.Get(), contour->GetForegroundValue() ) )
             {
             NodeType node;
             node.SetValue( 0.0 );
@@ -2879,7 +2879,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                                 fastMarching->GetOutput()->GetRequestedRegion() );
         for( ItT.GoToBegin(), ItF.GoToBegin(); !ItT.IsAtEnd(); ++ItT, ++ItF )
           {
-          if( ItT.Get() == 1 )
+          if( Math::FloatAlmostEqual( ItT.Get(), itk::NumericTraits<float>::OneValue() ) )
             {
             ItF.Set( -ItF.Get() );
             }
@@ -2896,9 +2896,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
         if( ItD.Get() < 0 &&
-            maximumInteriorDistance < Math::abs ( ItD.Get() ) )
+            maximumInteriorDistance < Math::abs( ItD.Get() ) )
           {
-          maximumInteriorDistance = Math::abs ( ItD.Get() );
+          maximumInteriorDistance = Math::abs( ItD.Get() );
           }
         }
 
@@ -2914,18 +2914,18 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         }
       for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
-        if( labelLambda == 0 )
+        if( Math::FloatAlmostEqual( labelLambda, NumericTraits<RealType>::ZeroValue() ) )
           {
-          if( ItD.Get() <= 0 )
+          if( ItD.Get() <= NumericTraits<RealType>::ZeroValue() )
             {
             ItD.Set( labelBoundaryProbability );
             }
           else
             {
-            ItD.Set( 0.0 );
+            ItD.Set( NumericTraits<RealType>::ZeroValue() );
             }
           }
-        else if( ItD.Get() >= 0 )
+        else if( ItD.Get() >= NumericTraits<RealType>::ZeroValue() )
           {
           ItD.Set( labelBoundaryProbability
                    * std::exp( -labelLambda * ItD.Get() ) );
@@ -2933,7 +2933,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         else if( ItD.Get() < 0 )
           {
           ItD.Set( NumericTraits<RealType>::OneValue() - ( NumericTraits<RealType>::OneValue() - labelBoundaryProbability )
-                   * ( maximumInteriorDistance - Math::abs ( ItD.Get() ) )
+                   * ( maximumInteriorDistance - Math::abs( ItD.Get() ) )
                    / ( maximumInteriorDistance ) );
           }
         }
@@ -3033,7 +3033,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       {
       if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel( ItP.GetIndex() ) != NumericTraits<MaskLabelType>::ZeroValue() )
         {
-        if( ItP.Get() >= 0.5 )
+        if( ItP.Get() >= static_cast<RealType>( 0.5 ) )
           {
           typename RealImageType::PointType imagePoint;
           probabilityImage->TransformIndexToPhysicalPoint(

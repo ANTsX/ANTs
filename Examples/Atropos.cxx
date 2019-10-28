@@ -31,7 +31,7 @@
 namespace ants
 {
 template <typename TFilter>
-class CommandIterationUpdate : public itk::Command
+class CommandIterationUpdate final : public itk::Command
 {
 public:
   typedef CommandIterationUpdate  Self;
@@ -600,13 +600,13 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         if( labelOption->GetFunction( n )->GetNumberOfParameters() > 1 )
           {
           labelBoundaryProbability = parser->Convert<float>( labelOption->GetFunction( n )->GetParameter( 1 ) );
-          if( labelBoundaryProbability < 0.0 )
+          if( labelBoundaryProbability < itk::NumericTraits<float>::ZeroValue() )
             {
-            labelBoundaryProbability = 0.0;
+            labelBoundaryProbability = itk::NumericTraits<float>::ZeroValue();
             }
-          if( labelBoundaryProbability > 1.0 )
+          if( labelBoundaryProbability > itk::NumericTraits<float>::OneValue() )
             {
-            labelBoundaryProbability = 1.0;
+            labelBoundaryProbability = itk::NumericTraits<float>::OneValue();
             }
           }
         labelPair.first = labelLambda;

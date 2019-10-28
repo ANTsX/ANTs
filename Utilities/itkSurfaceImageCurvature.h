@@ -226,7 +226,7 @@ public:
       }
     else
       {
-      if( pix > this->m_Threshold )
+      if( pix > static_cast<PixelType>( this->m_Threshold ) )
         {
         return true;
         }

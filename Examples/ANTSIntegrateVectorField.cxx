@@ -169,7 +169,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
     ContinuousIndexType  Y4;
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
-      pointIn2[jj] = disp[jj] + pointIn1[jj];
+      pointIn2[jj] = static_cast<typename DPointType::CoordRepType>( disp[jj] ) + pointIn1[jj];
       vcontind[jj] = pointIn2[jj] / lapgrad->GetSpacing()[jj];
       Y1[jj] = vcontind[jj];
       Y2[jj] = vcontind[jj];
@@ -230,8 +230,14 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       {
       f4 = vinterp->EvaluateAtContinuousIndex( Y4 );
       }
+    using DPointCoordRepType = typename DPointType::CoordRepType;
+    DPointCoordRepType twoValue = static_cast<DPointCoordRepType>( 2.0 );
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
+      pointIn3[jj] = pointIn2[jj] + static_cast<DPointCoordRepType>( gradsign * vecsign * deltaTime / 6.0f )
+        * ( static_cast<DPointCoordRepType>( f1[jj] ) + twoValue * static_cast<DPointCoordRepType>( f2[jj] )
+        + twoValue * static_cast<DPointCoordRepType>( f3[jj] ) + static_cast<DPointCoordRepType>( f4[jj] ) );
+
       pointIn3[jj] = pointIn2[jj] + static_cast<double>( gradsign * vecsign * deltaTime / 6.0f
         * ( f1[jj] + 2.0f * f2[jj] + 2.0f * f3[jj] + f4[jj] ) );
       }
@@ -241,9 +247,9 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
       out[jj] = pointIn3[jj] - pointIn1[jj];
-      mag += (pointIn3[jj] - pointIn2[jj]) * (pointIn3[jj] - pointIn2[jj]);
-      voxmag += (pointIn3[jj] - pointIn2[jj]) / spacing[jj] * (pointIn3[jj] - pointIn2[jj]) / spacing[jj];
-      dmag += (pointIn3[jj] - pointIn1[jj]) * (pointIn3[jj] - pointIn1[jj]);
+      mag += static_cast<float>( itk::Math::sqr(pointIn3[jj] - pointIn2[jj]) );
+      dmag += static_cast<float>( itk::Math::sqr(pointIn3[jj] - pointIn1[jj]) );
+      voxmag += static_cast<float>( itk::Math::sqr( ( pointIn3[jj] - pointIn2[jj] ) / spacing[jj] ) );
       disp[jj] = out[jj];
       }
     voxmag = static_cast<float>( std::sqrt(voxmag) );

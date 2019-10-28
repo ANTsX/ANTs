@@ -798,7 +798,8 @@ typename TDisplacementField::PixelType
 ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ComputeMetricAtPairB(IndexType oindex, typename TDisplacementField::PixelType /* vec */)
 {
-  typename TDisplacementField::PixelType deriv;
+  using DisplacementFieldVectorType = typename TDisplacementField::PixelType;
+  DisplacementFieldVectorType deriv;
   deriv.Fill(0.0);
   double sff = 0.0;
   double smm = 0.0;
@@ -806,7 +807,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   CovariantVectorType gradI;
   if( this->m_FixedImageMask )
     {
-    if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )
+    if( this->m_FixedImageMask->GetPixel( oindex ) < static_cast<typename FixedImageType::PixelType>( 0.25 ) )
       {
       return deriv;
       }
@@ -840,7 +841,8 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   m_TEMP = 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ji ) - sfm / sff * static_cast<double>( Ii ) );
   for( unsigned int qq = 0; qq < ImageDimension; qq++ )
     {
-    deriv[qq]   -= 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ji ) - sfm / sff * static_cast<double>( Ii ) ) * gradI[qq];
+    deriv[qq]   -= static_cast<typename DisplacementFieldVectorType::ComponentType>(
+       2.0 * sfm / (sff * smm) * ( static_cast<double>( Ji ) - sfm / sff * static_cast<double>( Ii ) ) * gradI[qq] );
     //        derivinv[qq]-=2.0*sfm/(sff*smm)*( Ii - sfm/smm*Ji )*gradJ[qq];
     }
 
@@ -850,9 +852,9 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     }
   else
     {
-    localProbabilistic = 1.0;
+    localProbabilistic = itk::NumericTraits<double>::OneValue();
     }
-  if( localProbabilistic * (-1.0) < this->m_RobustnessParameter )
+  if( -localProbabilistic < static_cast<double>( this->m_RobustnessParameter ) )
     {
     deriv.Fill(0);
     }
@@ -880,7 +882,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   CovariantVectorType gradJ;
   if( this->m_FixedImageMask )
     {
-    if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )
+    if( this->m_FixedImageMask->GetPixel( oindex ) < static_cast<typename FixedImageType::PixelType>( 0.25 ) )
       {
       return deriv;
       }

@@ -97,7 +97,7 @@ BoxPlotQuantileListSampleFilter<TScalarListSample>
     MeasurementVectorType inputMeasurement = It.GetMeasurementVector();
     typename ScalarListSampleType::MeasurementVectorType outputMeasurement;
     outputMeasurement.SetSize( scalarMeasurementVectorSize );
-    if( inputMeasurement[0] < lowerBound || inputMeasurement[0] > upperBound )
+    if( static_cast<RealType>( inputMeasurement[0] ) < lowerBound || static_cast<RealType>( inputMeasurement[0] ) > upperBound )
       {
       this->m_OutlierInstanceIdentifiers.push_back( It.GetInstanceIdentifier() );
       if( this->m_OutlierHandling == None )
@@ -142,11 +142,11 @@ BoxPlotQuantileListSampleFilter<TScalarListSample>
       typename ScalarListSampleType::MeasurementVectorType outputMeasurement;
       outputMeasurement.SetSize( scalarMeasurementVectorSize );
       outputMeasurement[0] = inputMeasurement[0];
-      if( inputMeasurement[0] < lowerBound )
+      if( static_cast<RealType>( inputMeasurement[0] ) < lowerBound )
         {
         outputMeasurement[0] = lowerBound2;
         }
-      else if( inputMeasurement[0] > upperBound )
+      else if( static_cast<RealType>( inputMeasurement[0] ) > upperBound )
         {
         outputMeasurement[0] = upperBound2;
         }

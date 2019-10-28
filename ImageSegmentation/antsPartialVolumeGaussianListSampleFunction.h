@@ -30,7 +30,7 @@ namespace Statistics
  */
 
 template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
-class PartialVolumeGaussianListSampleFunction
+class PartialVolumeGaussianListSampleFunction final
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:

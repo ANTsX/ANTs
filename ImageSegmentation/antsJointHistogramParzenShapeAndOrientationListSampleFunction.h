@@ -31,7 +31,7 @@ namespace Statistics
  */
 
 template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
-class JointHistogramParzenShapeAndOrientationListSampleFunction
+class JointHistogramParzenShapeAndOrientationListSampleFunction final
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:
