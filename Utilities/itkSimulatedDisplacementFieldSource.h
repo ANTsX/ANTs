@@ -81,7 +81,7 @@ public:
   using SizeType = typename RegionType::SizeType;
 
   /** Randomizer typedefs */
-  using RandomizerType = typename Statistics::MersenneTwisterRandomVariateGenerator;
+  using RandomizerType = typename itk::Statistics::MersenneTwisterRandomVariateGenerator;
   using RandomizerPointer = typename RandomizerType::Pointer;
   using RandomizerSeedType = typename RandomizerType::IntegerType;
 

@@ -220,7 +220,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
     calc->SetImage( inputImage );
     calc->ComputeMaximum();
     calc->ComputeMinimum();
-    if( itk::Math::abs ( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
+    if( itk::Math::abs( calc->GetMaximum() - calc->GetMinimum() ) < static_cast<typename ImageType::PixelType>( 1.e-9 ) )
       {
       if ( verbose ) std::cout << "Warning: bad time point - too little intensity variation" << std::endl;
       return histogramMatchSourceImage;
@@ -251,7 +251,7 @@ struct ants_moco_index_cmp
   };
 
 template <typename TFilter>
-class CommandIterationUpdate : public itk::Command
+class CommandIterationUpdate final : public itk::Command
 {
 public:
   typedef CommandIterationUpdate  Self;
@@ -419,7 +419,7 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
       ind[ImageDimension - 1] = xx;
       fval += image_in->GetPixel(ind);
       }
-    fval /= (double)timelist.size();
+    fval /= static_cast<typename OutImageType::PixelType>( timelist.size() );
     image_avg->SetPixel(spind, fval);
     }
   if ( verbose ) std::cout << " averaging images done " << std::endl;
@@ -593,7 +593,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   // Zero seed means use default behavior: registration randomizer seeds from system time
   // and does not re-seed iterator
   int antsRandomSeed = 0;
-  
+
   itk::ants::CommandLineParser::OptionType::Pointer randomSeedOption = parser->GetOption( "random-seed" );
   if( randomSeedOption && randomSeedOption->GetNumberOfFunctions() )
     {
@@ -602,13 +602,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   else
     {
     char* envSeed = getenv( "ANTS_RANDOM_SEED" );
-    
+
     if ( envSeed != nullptr )
       {
       antsRandomSeed = std::stoi( envSeed );
       }
     }
-  
+
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
   totalTimer.Start();
@@ -1809,7 +1809,7 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
   }
 
   {
-  std::string description = std::string( "Use a fixed seed for random number generation. " ) 
+  std::string description = std::string( "Use a fixed seed for random number generation. " )
     + std::string( "By default, the system clock is used to initialize the seeding. " )
     + std::string( "The fixed seed can be any nonzero int value." );
   OptionType::Pointer option = OptionType::New();

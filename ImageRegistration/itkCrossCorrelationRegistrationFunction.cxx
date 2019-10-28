@@ -226,7 +226,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
         IndexType index = hoodIt.GetIndex( indct );
 
         if( !isInBounds || ( this->m_FixedImageMask &&
-                             this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+                             this->m_FixedImageMask->GetPixel( index ) < static_cast<typename FixedImageType::PixelType>( 0.25 ) ) )
           {
           continue;
           }
@@ -333,7 +333,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
           IndexType index = hoodIt.GetIndex( indct );
 
           if( !isInBounds || ( this->m_FixedImageMask &&
-                               this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+                               this->m_FixedImageMask->GetPixel( index ) < static_cast<typename FixedImageType::PixelType>( 0.25 ) ) )
             {
             continue;
             }
@@ -394,7 +394,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   CovariantVectorType gradI;
   if( this->m_FixedImageMask )
     {
-    if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )
+    if( this->m_FixedImageMask->GetPixel( oindex ) < static_cast<typename FixedImageType::PixelType>( 0.25 ) )
       {
       return deriv;
       }
@@ -423,7 +423,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   m_TEMP = 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ji ) - sfm / sff * static_cast<double>( Ii ) );
   for( unsigned int qq = 0; qq < ImageDimension; qq++ )
     {
-    deriv[qq]   -= 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ji ) - sfm / sff * static_cast<double>( Ii ) ) * gradI[qq];
+    deriv[qq]   -= static_cast<float>( 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ji ) - sfm / sff * static_cast<double>( Ii ) ) * gradI[qq] );
     //        derivinv[qq]-=2.0*sfm/(sff*smm)*( Ii - sfm/smm*Ji )*gradJ[qq];
     }
 
@@ -453,7 +453,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   CovariantVectorType gradJ;
   if( this->m_FixedImageMask )
     {
-    if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )
+    if( this->m_FixedImageMask->GetPixel( oindex ) < static_cast<typename TFixedImage::PixelType>( 0.25 ) )
       {
       return deriv;
       }
@@ -485,7 +485,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   float Ii = finitediffimages[0]->GetPixel(index);
   for( unsigned int qq = 0; qq < ImageDimension; qq++ )
     {
-    deriv[qq]  -= 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ii ) - sfm / smm * static_cast<double>( Ji ) ) * gradJ[qq];
+    deriv[qq]  -= static_cast<float>( 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ii ) - sfm / smm * static_cast<double>( Ji ) ) * gradJ[qq] );
     // deriv[qq]   -=2.0*sfm/(sff*smm)*( Ji - sfm/sff*Ii )*gradI[qq];
     }
 

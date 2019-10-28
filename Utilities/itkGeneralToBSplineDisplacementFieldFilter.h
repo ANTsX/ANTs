@@ -22,7 +22,7 @@
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage = TInputImage>
-class GeneralToBSplineDisplacementFieldFilter :
+class GeneralToBSplineDisplacementFieldFilter final :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

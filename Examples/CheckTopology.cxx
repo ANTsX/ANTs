@@ -330,7 +330,7 @@ private:
     float              G = 1;
     float              smooth = 1;
     ImageType::Pointer simage;
-    while( G != 0 && smooth < 20 )
+    while( ! itk::Math::FloatAlmostEqual( G, itk::NumericTraits<float>::ZeroValue() ) && smooth < 20 )
       {
       simage = SmoothImage<ImageType>(image, smooth);
       NormalizeImage<ImageType>(simage);
@@ -349,7 +349,7 @@ private:
     float        err = 1.e9;
     float        lasterr = 1.e10;
     float        derr = lasterr - err;
-    while( G2 == 0 && derr > 0 )
+    while( itk::Math::FloatAlmostEqual( G2, itk::NumericTraits<float>::ZeroValue() ) && derr > itk::NumericTraits<float>::ZeroValue() )
       {
       lasterr = err;
       err = 0;
@@ -368,7 +368,7 @@ private:
       mct++;
       derr = lasterr - err;
       std::cout << " G2 " <<  G2 << " at morph " << mct << " err " << err << std::endl;
-      if( G2 == 0 && derr > 0 )
+      if( itk::Math::FloatAlmostEqual( G2, itk::NumericTraits<float>::ZeroValue() ) && derr > itk::NumericTraits<float>::ZeroValue() )
         {
         simage = GetLargestComponent<ImageType>(out);
         }

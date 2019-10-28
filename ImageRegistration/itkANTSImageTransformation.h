@@ -32,7 +32,7 @@
 namespace itk
 {
 template <unsigned int TDimension = 3, typename TReal = float>
-class ANTSImageTransformation
+class ANTSImageTransformation final
   : public       Object
 {
 public:

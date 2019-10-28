@@ -45,7 +45,7 @@ namespace itk
  * \endwiki
  */
 template< typename TInputImage, typename TOutputImage >
-class VarianceImageFilter:
+class VarianceImageFilter final :
   public BoxImageFilter< TInputImage, TOutputImage >
 {
 public:

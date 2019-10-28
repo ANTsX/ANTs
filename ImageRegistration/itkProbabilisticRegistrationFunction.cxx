@@ -124,7 +124,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   m_Normalizer      = itk::NumericTraits<float>::ZeroValue();
   for( unsigned int k = 0; k < ImageDimension; k++ )
     {
-    m_Normalizer += m_FixedImageSpacing[k] * m_FixedImageSpacing[k];
+    m_Normalizer += static_cast<float>( itk::Math::sqr( m_FixedImageSpacing[k] ) );
     }
   m_Normalizer /= static_cast<float>( ImageDimension );
 
@@ -225,7 +225,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
           IndexType index = hoodIt.GetIndex( indct );
 
           if( !isInBounds || ( this->m_FixedImageMask &&
-                               this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+                               this->m_FixedImageMask->GetPixel( index ) < static_cast<typename FixedImageType::PixelType>( 0.25 ) ) )
             {
             continue;
             }
@@ -332,7 +332,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
             IndexType index = hoodIt.GetIndex( indct );
 
             if( !isInBounds || ( this->m_FixedImageMask &&
-                                 this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+                                 this->m_FixedImageMask->GetPixel( index ) < static_cast<typename FixedImageType::PixelType>( 0.25 ) ) )
               {
               continue;
               }
@@ -417,7 +417,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
           IndexType index = hoodIt.GetIndex( indct );
 
           if( !isInBounds || ( this->m_FixedImageMask &&
-                               this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+                               this->m_FixedImageMask->GetPixel( index ) < static_cast<typename FixedImageType::PixelType>( 0.25 ) ) )
             {
             continue;
             }
@@ -524,7 +524,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
             IndexType index = hoodIt.GetIndex( indct );
 
             if( !isInBounds || ( this->m_FixedImageMask &&
-                                 this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+                                 this->m_FixedImageMask->GetPixel( index ) < static_cast<typename FixedImageType::PixelType>( 0.25 ) ) )
               {
               continue;
               }
@@ -890,7 +890,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   sff = finitediffimages[3]->GetPixel(oindex);
   smm = finitediffimages[4]->GetPixel(oindex);
 
-  if( sff == 0.0 || smm == 0.0 )
+  if( itk::Math::FloatAlmostEqual( sff, itk::NumericTraits<double>::ZeroValue() ) || itk::Math::FloatAlmostEqual( smm, itk::NumericTraits<double>::ZeroValue() ) )
     {
     return deriv;
     }
@@ -913,7 +913,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   for( unsigned int qq = 0; qq < ImageDimension; qq++ )
     {
     // deriv[qq]   -=2.0*sfm/(sff*smm)*( Ji - sfm/sff*Ii )*gradI[qq];
-    deriv[qq] -= 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ii ) - sfm / smm * static_cast<double>( Ji ) ) * gradJ[qq];
+    deriv[qq] -= static_cast<float>( 2.0 * sfm / (sff * smm) * ( static_cast<double>( Ii ) - sfm / smm * static_cast<double>( Ji ) ) * gradJ[qq] );
     }
 
   if( ! itk::Math::FloatAlmostEqual( sff * smm, itk::NumericTraits<double>::ZeroValue() ) )
@@ -924,7 +924,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     {
     localProbabilistic = 1.0;
     }
-  if( localProbabilistic * (-1.0) < this->m_RobustnessParameter )
+  if( localProbabilistic < -static_cast<double>( this->m_RobustnessParameter ) )
     {
     deriv.Fill(0);
     }
