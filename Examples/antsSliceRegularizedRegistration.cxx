@@ -220,7 +220,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
     calc->SetImage( inputImage );
     calc->ComputeMaximum();
     calc->ComputeMinimum();
-    if( itk::Math::abs ( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
+    if( itk::Math::abs( calc->GetMaximum() - calc->GetMinimum() ) < static_cast<float>( 1.e-9 ) )
       {
       std::cout << "Warning: bad time point - too little intensity variation"
         << calc->GetMinimum() << " " <<  calc->GetMaximum() << std::endl;
@@ -252,7 +252,7 @@ struct ants_slice_regularized_index_cmp
   };
 
 template <typename TFilter>
-class CommandIterationUpdate : public itk::Command
+class CommandIterationUpdate final : public itk::Command
 {
 public:
   typedef CommandIterationUpdate  Self;
@@ -961,7 +961,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
 	      VectorIOType vecout;
 	      vecout.Fill( 0 );
         typename MovingIOImageType::IndexType ind;
-        for( unsigned int xx = 0; xx < ImageDimension; xx++ )
+        for( itk::SizeValueType xx = 0; xx < ImageDimension; xx++ )
           {
           ind[xx] = vfIter2.GetIndex()[xx];
           vecout[xx] = vec[xx];
@@ -1023,7 +1023,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
           VectorIOType vecout;
           vecout.Fill( 0 );
           typename MovingIOImageType::IndexType ind;
-          for( unsigned int xx = 0; xx < ImageDimension; xx++ )
+          for( itk::SizeValueType xx = 0; xx < ImageDimension; xx++ )
             {
             ind[xx] = vfIter2.GetIndex()[xx];
             vecout[xx] = vec[xx];

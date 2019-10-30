@@ -557,7 +557,7 @@ iMathPropagateLabelsThroughMask( typename ImageType::Pointer speedimage,      /*
         }
 
 
-      if( isinside && labval == 0 )
+      if( isinside && itk::Math::FloatAlmostEqual( labval, itk::NumericTraits<double>::ZeroValue() ) )
         {
         double fmarrivaltime = fastMarching->GetOutput()->GetPixel( vfIter2.GetIndex() );
         double mmm = fastimage->GetPixel(vfIter2.GetIndex() );
@@ -627,11 +627,11 @@ iMathTruncateIntensity( typename ImageType::Pointer image, double lowerQ, double
   PixelType maxValue = stats->GetMaximum( 1 );
 
   // Hack increment by delta
-  if (minValue == 0)
+  if( itk::Math::FloatAlmostEqual( minValue, itk::NumericTraits<PixelType>::ZeroValue() ) )
     {
-    minValue = (PixelType) (minValue + 1e-6);
+    minValue = minValue + static_cast<PixelType>( 1e-6 );
     }
-  if (minValue == 0)
+  if( itk::Math::FloatAlmostEqual( minValue, itk::NumericTraits<PixelType>::ZeroValue() ) )
     {
     minValue++;
     }

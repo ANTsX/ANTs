@@ -286,7 +286,7 @@ public:
             {
             meshSize[d] = static_cast<unsigned int>(
                 field->GetLargestPossibleRegion().GetSize()[d]
-                / spanLength + 0.5 );
+                / spanLength + static_cast<TReal>( 0.5 ) );
             }
           }
 
@@ -1880,7 +1880,7 @@ public:
       epsilon = 1;
       }
 
-    while( difmag > mytoler && ct<mymaxiter && meandif> 0.001 )
+    while( difmag > mytoler && ct<mymaxiter && meandif > static_cast<TReal>( 0.001 ) )
       {
       meandif = 0.0;
 

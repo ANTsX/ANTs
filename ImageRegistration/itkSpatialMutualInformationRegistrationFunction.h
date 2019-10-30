@@ -526,7 +526,7 @@ public:
   {
     unsigned int movingImageParzenWindowIndex  =
       static_cast<unsigned int>( this->m_Padding
-        + static_cast<unsigned int>( windowTerm *
+        + static_cast<unsigned int>( static_cast<float>( windowTerm ) *
           static_cast<float>( this->m_NumberOfHistogramBins - 1 - this->m_Padding ) + 0.5f ) );
 
     // Make sure the extreme values are in valid bins
@@ -582,18 +582,18 @@ public:
     double nccm1 = 0;
     double loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
 
-    float eps = 10;
+    double eps = 10;
     if( loce > eps )
       {
       loce = eps;
       }
-    if( loce < eps * (-1.0) )
+    if( loce < -eps )
       {
-      loce = eps * (-1.0);
+      loce *= -1.0;
       }
     for( unsigned int imd = 0; imd < ImageDimension; imd++ )
       {
-      update[imd] = loce * movingGradient[imd] * spacing[imd] * (1);
+      update[imd] = static_cast<typename VectorType::ComponentType>( loce * movingGradient[imd] * spacing[imd] );
       }
     return update;
   }

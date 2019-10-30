@@ -351,7 +351,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
               // randomly perturb the point within a voxel (approximately)
               for( unsigned int d = 0; d < ImageDimension; d++ )
                 {
-                point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
+                point[d] += static_cast<typename SamplePointType::CoordRepType>( randomizer->GetNormalVariate() ) * static_cast<typename SamplePointType::CoordRepType>( oneThirdVirtualSpacing[d] );
                 }
               if( !fixedImageMask || fixedImageMask->IsInsideInWorldSpace( point ) )
                 {
@@ -366,7 +366,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         case RegistrationHelperType::random:
           {
           const unsigned long totalVirtualDomainVoxels = fixedImage->GetRequestedRegion().GetNumberOfPixels();
-          const auto sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
+          const auto sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * static_cast<float>( samplingPercentage ) );
           itk::ImageRandomConstIteratorWithIndex<ImageType> ItR( fixedImage, fixedImage->GetRequestedRegion() );
           ItR.SetNumberOfSamples( sampleCount );
           for( ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR )
@@ -377,7 +377,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
             // randomly perturb the point within a voxel (approximately)
             for ( unsigned int d = 0; d < ImageDimension; d++ )
               {
-              point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
+              point[d] += static_cast<typename SamplePointType::CoordRepType>( randomizer->GetNormalVariate() ) * static_cast<typename SamplePointType::CoordRepType>( oneThirdVirtualSpacing[d] );
               }
             if( !fixedImageMask || fixedImageMask->IsInsideInWorldSpace( point ) )
               {

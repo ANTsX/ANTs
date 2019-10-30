@@ -87,12 +87,12 @@ int SmoothDisplacementField( int argc, char *argv[] )
     const VectorType zeroVector( 0.0 );
 
     //make sure boundary does not move
-    float weight1 = 1.0;
-    if (variance < 0.5)
+    float weight1 = itk::NumericTraits<float>::OneValue();
+    if( variance < static_cast<float>( 0.5 ) )
       {
-      weight1 = 1.0 - 1.0 * ( variance / 0.5);
+      weight1 = itk::NumericTraits<float>::OneValue() - itk::NumericTraits<float>::OneValue() * ( variance / static_cast<float>( 0.5 ) );
       }
-    float weight2 = 1.0 - weight1;
+    float weight2 = itk::NumericTraits<float>::OneValue() - weight1;
 
     const typename DisplacementFieldType::RegionType region = field->GetLargestPossibleRegion();
     const typename DisplacementFieldType::SizeType size = region.GetSize();
@@ -206,8 +206,8 @@ int SmoothDisplacementField( int argc, char *argv[] )
       {
       rmse_comp[d] += itk::Math::sqr ( fieldIt.Get()[d] - smoothedFieldIt.Get()[d] );
       }
-    rmse += ( fieldIt.Get() - smoothedFieldIt.Get() ).GetSquaredNorm();
-    N += 1.0;
+    rmse += static_cast<float>( ( fieldIt.Get() - smoothedFieldIt.Get() ).GetSquaredNorm() );
+    N += itk::NumericTraits<float>::OneValue();
     }
   rmse = std::sqrt( rmse / N );
 

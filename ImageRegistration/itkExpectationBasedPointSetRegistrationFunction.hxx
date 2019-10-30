@@ -256,14 +256,14 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     {
     for( unsigned int jj = 0; jj < sz2; jj++ )
       {
-      float total = 0;
+      double total = 0.0;
       for( unsigned int ii = 0; ii < sz1; ii++ )
         {
-        total += static_cast<float>( sinkhorn(ii, jj) );
+        total += sinkhorn(ii, jj);
         }
-      if( total <= itk::NumericTraits<float>::ZeroValue() )
+      if( total <= itk::NumericTraits<double>::ZeroValue() )
         {
-        total = itk::NumericTraits<float>::OneValue();
+        total = itk::NumericTraits<double>::OneValue();
         }
       for( unsigned int ii = 0; ii < sz1; ii++ )
         {
@@ -272,14 +272,14 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
       }
     for( unsigned int ii = 0; ii < sz1; ii++ )
       {
-      float total = 0;
+      double total = 0;
       for( unsigned int jj = 0; jj < sz2; jj++ )
         {
         total += sinkhorn(ii, jj);
         }
-      if( total <= 0 )
+      if( total <= itk::NumericTraits<double>::ZeroValue() )
         {
-        total = 1;
+        total = itk::NumericTraits<double>::OneValue();
         }
       for( unsigned int jj = 0; jj < sz2; jj++ )
         {
@@ -360,12 +360,12 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     mag=0;
     }
 */
-      if( mag > maxerr )
+      if( mag > static_cast<float>( maxerr ) )
         {
-        maxerr = mag;
+        maxerr = static_cast<float>( mag );
         }
-      energy += mag;
-      std::cout << " ii " << ii << " force " << force << " mag " << sqrt(mag) << " mpt " << mpt << " fpt "
+      energy += static_cast<float>( mag );
+      std::cout << " ii " << ii << " force " << force << " mag " << std::sqrt(mag) << " mpt " << mpt << " fpt "
                        << fixedpoint <<  " nrg " << energy / (float)ii << std::endl;
       lmField->SetPixel(fixedindex, force + lmField->GetPixel(fixedindex) );
       }
@@ -725,7 +725,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
             {
             for( unsigned int j = 0; j < ImageDimension; j++ )
               {
-              mpt[j] += pp * npt[j];
+              mpt[j] += static_cast<typename ImagePointType::CoordRepType>( pp ) * static_cast<typename ImagePointType::CoordRepType>( npt[j] );
               }
             }
           //
@@ -739,8 +739,8 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
       typename BSplinePointSetType::PointType bpoint;
       for( unsigned int j = 0; j < ImageDimension; j++ )
         {
-        distance[j] = mpt[j] - fixedpoint[j];
-        mag += static_cast<double>( itk::Math::sqr( distance[j] / spacing[j] ) );
+        distance[j] = static_cast<typename VectorType::ComponentType>( mpt[j] ) - static_cast<typename VectorType::ComponentType>( fixedpoint[j] );
+        mag += static_cast<double>( itk::Math::sqr( static_cast<double>( distance[j] ) / static_cast<double>( spacing[j] ) ) );
         force[j] = distance[j] * inweight;
         bpoint[j] = fixedpoint[j];
         }
@@ -761,11 +761,11 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
       this->m_bcount++;
 
       mag = sqrt(mag);
-      if( mag > maxerr )
+      if( mag > static_cast<double>( maxerr ) )
         {
-        maxerr = mag;
+        maxerr = static_cast<float>( mag );
         }
-      energy += mag;
+      energy += static_cast<float>( mag );
       lmField->SetPixel(fixedindex, force + lmField->GetPixel(fixedindex) );
       }
     }

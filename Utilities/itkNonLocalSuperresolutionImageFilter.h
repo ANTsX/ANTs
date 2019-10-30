@@ -47,7 +47,7 @@ namespace itk {
  */
 
 template<typename TInputImage, typename TOutputImage = TInputImage>
-class NonLocalSuperresolutionImageFilter :
+class NonLocalSuperresolutionImageFilter final :
   public NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 {
 public:

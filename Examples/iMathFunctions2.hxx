@@ -148,7 +148,7 @@ iMathGetLargestComponent( typename ImageType::Pointer image,                    
   float volumeelement = 1.0;
   for( unsigned int i = 0;  i < spacing.Size(); i++ )
     {
-    volumeelement *= spacing[i];
+    volumeelement *= static_cast<float>( spacing[i] );
     }
 
   typedef itk::Image<unsigned long, ImageDimension>                          LabelImageType;

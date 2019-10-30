@@ -216,7 +216,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 
     if( this->m_FixedImageMask )
       {
-      if( this->m_FixedImageMask->GetPixel( movingImageIterator.GetIndex() ) < 1.e-6 )
+      if( this->m_FixedImageMask->GetPixel( movingImageIterator.GetIndex() ) < static_cast<typename FixedImageType::PixelType>( 1.e-6 ) )
         {
         takesample = false;
         }
@@ -406,7 +406,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     bool takesample = true;
     if( this->m_FixedImageMask )
       {
-      if( this->m_FixedImageMask->GetPixel( iter.GetIndex() ) < 1.e-6 )
+      if( this->m_FixedImageMask->GetPixel( iter.GetIndex() ) < static_cast<typename FixedImageType::PixelType>( 1.e-6 ) )
         {
         takesample = false;
         }

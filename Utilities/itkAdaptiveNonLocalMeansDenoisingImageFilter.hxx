@@ -470,8 +470,10 @@ AdaptiveNonLocalMeansDenoisingImageFilter<TInputImage, TOutputImage, TMaskImage>
 {
    const RealType snrSquared = itk::Math::sqr( snr );
 
-   RealType value = static_cast<RealType>( 2.0 ) + snrSquared - static_cast<RealType>( 0.125 ) * static_cast<RealType>( Math::pi ) * std::exp( static_cast<RealType>( -0.5 ) * snrSquared ) *
-     itk::Math::sqr( ( static_cast<RealType>( 2.0 ) + snrSquared ) * static_cast<RealType>( this->m_ModifiedBesselCalculator.ModifiedBesselI0( static_cast<RealType>( 0.25 ) * snrSquared ) ) +
+   RealType value = static_cast<RealType>( 2.0 ) + snrSquared - static_cast<RealType>( 0.125 ) *
+     static_cast<RealType>( Math::pi ) * static_cast<RealType>( std::exp( static_cast<RealType>( -0.5 ) * snrSquared ) ) *
+     itk::Math::sqr( ( static_cast<RealType>( 2.0 ) + snrSquared ) *
+     static_cast<RealType>( this->m_ModifiedBesselCalculator.ModifiedBesselI0( static_cast<RealType>( 0.25 ) * snrSquared ) ) +
      snrSquared * this->m_ModifiedBesselCalculator.ModifiedBesselI1( static_cast<RealType>( 0.25 ) * snrSquared ) );
 
    if( value < static_cast<RealType>( 0.001 ) || value > static_cast<RealType>( 10.0 ) )

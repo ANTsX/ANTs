@@ -118,7 +118,7 @@ namespace itk
  * \ingroup ThreadUnSafe
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-class AvantsMutualInformationRegistrationFunction :
+class AvantsMutualInformationRegistrationFunction final :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
 public:

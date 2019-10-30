@@ -51,7 +51,7 @@ namespace itk
  * \ingroup FiniteDifferenceFunctions
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-class CrossCorrelationRegistrationFunction :
+class CrossCorrelationRegistrationFunction final :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage, TDisplacementField>
 {

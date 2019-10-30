@@ -38,7 +38,7 @@ namespace itk
 namespace Functor
 {
 template <typename TInput, typename TConstant, typename TOutput>
-class DivideByConstant
+class DivideByConstant final
 {
 public:
   DivideByConstant() : m_Constant(NumericTraits<TConstant>::OneValue())
@@ -64,7 +64,7 @@ public:
 
   void SetConstant(TConstant ct)
   {
-    if( ct == NumericTraits<TConstant>::ZeroValue() )
+    if( Math::FloatAlmostEqual( ct, NumericTraits<TConstant>::ZeroValue() ) )
       {
       itkGenericExceptionMacro(
         << "The constant value used as denominator should not be set to zero");
@@ -110,7 +110,7 @@ public:
    * pixels */
   void SetConstant(TConstant ct)
   {
-    if( ct != this->GetFunctor().GetConstant() )
+    if( ! Math::FloatAlmostEqual( ct, this->GetFunctor().GetConstant() ) )
       {
       this->GetFunctor().SetConstant(ct);
       this->Modified();
