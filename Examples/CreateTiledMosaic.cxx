@@ -898,7 +898,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
             {
             PixelType pixel = 255 * ( It.Get() - minIntensityValue ) / ( maxIntensityValue - minIntensityValue );
 
-            if( outputMaskSlice2 && outputMaskSlice2->GetPixel( It.GetIndex() ) != 0 )
+            if( outputMaskSlice2 && ! itk::Math::FloatAlmostEqual( outputMaskSlice2->GetPixel( It.GetIndex() ), itk::NumericTraits<PixelType>::ZeroValue() ) )
               {
               rgbPixel.SetRed( static_cast<RgbComponentType>( ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetRed() ) );
               rgbPixel.SetGreen( static_cast<RgbComponentType>( ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetGreen() ) );

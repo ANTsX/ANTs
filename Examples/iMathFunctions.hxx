@@ -289,7 +289,7 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )           
         {
         typename ImageType::PixelType p = GHood.GetCenterPixel();
         typename ImageType::IndexType ind2;
-        if( p == lab )
+        if( itk::Math::FloatAlmostEqual( p, static_cast<typename ImageType::PixelType>( lab ) ) )
           {
           volume++;
           for( unsigned int i = 0; i < GHood.Size(); i++ )

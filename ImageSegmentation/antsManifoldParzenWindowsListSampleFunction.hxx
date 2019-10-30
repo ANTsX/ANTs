@@ -143,7 +143,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
             }
           }
         }
-      if( denominator > 0.0 )
+      if( denominator > NumericTraits<RealType>::ZeroValue() )
         {
         Cov /= denominator;
         }

@@ -21,7 +21,7 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkContinuousIndex.h"
 #include "itkDiscreteGaussianImageFilter.h"
-#include "itkDivideByConstantImageFilter.h"
+#include "itkDivideImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 
 namespace itk
@@ -183,7 +183,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     stats->SetInput( gaussian->GetOutput() );
     stats->Update();
 
-    typedef DivideByConstantImageFilter<HistogramImageType, RealType,
+    typedef DivideImageFilter<HistogramImageType, HistogramImageType,
                                         HistogramImageType> DividerType;
     typename DividerType::Pointer divider = DividerType::New();
     divider->SetInput( gaussian->GetOutput() );

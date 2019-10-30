@@ -57,7 +57,7 @@ double CalculateFractionalAnisotropy( TensorType tensor )
   double denominator = 0.0;
   for( unsigned int d = 0; d < TensorType::Dimension; d++ )
     {
-    numerator += static_cast<double>( itk::Math::sqr( eigenvalues[d] - mean ) );
+    numerator += static_cast<double>( itk::Math::sqr( static_cast<double>( eigenvalues[d] ) - mean ) );
     denominator += static_cast<double>( itk::Math::sqr( eigenvalues[d] ) );
     }
   fa = std::sqrt( ( 3.0 * numerator ) / ( 2.0 * denominator ) );
@@ -420,8 +420,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           else
             {
             M(k, count) = eigenvalues[2];
-            M(k, totalMaskVolume + count) =
-              0.5 * ( eigenvalues[0] + eigenvalues[1] );
+            M(k, totalMaskVolume + count) = static_cast<RealType>( 0.5 )
+              * ( eigenvalues[0] + eigenvalues[1] );
             }
           ++count;
           }
@@ -682,11 +682,11 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         newEigenvalues[1] = eigenvalues[1]
           + eigenvalues[1] * pathologyLongitudinalChange
           + isvLongitudinalProjection;
-        newEigenvalues[0] = eigenvalues[0] * ( 1.0 + eigenvalues[0] )
+        newEigenvalues[0] = eigenvalues[0] * ( itk::NumericTraits<RealType>::OneValue() + eigenvalues[0] )
           * pathologyTransverseChange + isvTransverseProjection;
         if( newEigenvalues[0] >= newEigenvalues[1] )
           {
-          newEigenvalues[0] = newEigenvalues[1] - 1.0e-6;
+          newEigenvalues[0] = newEigenvalues[1] - static_cast<RealType>( 1.0e-6 );
           }
         }
       else
@@ -744,14 +744,14 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
       if( label != 0 && n == 0 )
         {
-        meanFAandMD(labelIndex, 0) +=
-          CalculateFractionalAnisotropy<TensorType>( tensor );
-        meanFAandMD(labelIndex, 1) +=
-          CalculateMeanDiffusivity<TensorType>( tensor );
-        meanFAandMD(labelIndex, 2) +=
-          CalculateFractionalAnisotropy<TensorType>( newTensor );
-        meanFAandMD(labelIndex, 3) +=
-          CalculateMeanDiffusivity<TensorType>( newTensor );
+        meanFAandMD(labelIndex, 0) += static_cast<RealType>(
+          CalculateFractionalAnisotropy<TensorType>( tensor ) );
+        meanFAandMD(labelIndex, 1) += static_cast<RealType>(
+          CalculateMeanDiffusivity<TensorType>( tensor ) );
+        meanFAandMD(labelIndex, 2) += static_cast<RealType>(
+          CalculateFractionalAnisotropy<TensorType>( newTensor ) );
+        meanFAandMD(labelIndex, 3) += static_cast<RealType>(
+          CalculateMeanDiffusivity<TensorType>( newTensor ) );
         meanFAandMD(labelIndex, 4)++;
         }
       else if( n != 0 )
