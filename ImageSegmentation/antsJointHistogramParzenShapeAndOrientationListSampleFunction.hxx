@@ -21,7 +21,7 @@
 #include "itkContinuousIndex.h"
 #include "itkDecomposeTensorFunction.h"
 #include "itkDiscreteGaussianImageFilter.h"
-#include "itkDivideByConstantImageFilter.h"
+#include "itkDivideImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 
 namespace itk
@@ -210,7 +210,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     this->m_JointHistogramImages[whichHistogram]->FillBuffer( 0 );
     }
 
-  typename JointHistogramImageType::PointType orientPoint;
+  JointHistogramImagePointType orientPoint;
   RealType tp[2];
   tp[1] = 0.0;
 
@@ -267,11 +267,11 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       }
     else if( x < NumericTraits<RealType>::ZeroValue() && y > NumericTraits<RealType>::ZeroValue() )
       {     // second quadrant
-      tp[1] = Math::pi + std::atan( y / x );
+      tp[1] = static_cast<RealType>( Math::pi ) + std::atan( y / x );
       }
     else if( x < NumericTraits<RealType>::ZeroValue() && y < NumericTraits<RealType>::ZeroValue() )
       {     // third quadrant
-      tp[1] =  Math::pi + std::atan( y / x );
+      tp[1] =  static_cast<RealType>( Math::pi ) + std::atan( y / x );
       }
     else
       {     // fourth quadrant
@@ -283,10 +283,10 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 
 // note, if a point maps to 0 or 2*pi then it should contribute to both bins -- pretty much only difference between this
 // function and matlab code is the next 15 or so lines, as far as we see
-  orientPoint[0] = psi / (Math::pi ) *
-    ( this->m_NumberOfOrientationJointHistogramBins - 1) + 1;
-  orientPoint[1] = ( theta + Math::pi_over_2 ) / Math::pi
-    * ( this->m_NumberOfOrientationJointHistogramBins - 1 );
+  orientPoint[0] = static_cast<typename JointHistogramImagePointType::CoordRepType>( psi / static_cast<RealType>( Math::pi ) *
+    static_cast<RealType>( this->m_NumberOfOrientationJointHistogramBins - 1 ) + NumericTraits<RealType>::OneValue() );
+  orientPoint[1] = static_cast<typename JointHistogramImagePointType::CoordRepType>( ( theta + static_cast<RealType>( Math::pi_over_2 ) ) / static_cast<RealType>( Math::pi )
+    * static_cast<RealType>( this->m_NumberOfOrientationJointHistogramBins - 1 ) );
 
   ContinuousIndex<double, 2> orientCidx;
   this->m_JointHistogramImages[whichHistogram]->
@@ -587,7 +587,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     stats->SetInput( gaussian->GetOutput() );
     stats->Update();
 
-    typedef DivideByConstantImageFilter<JointHistogramImageType, RealType,
+    typedef DivideImageFilter<JointHistogramImageType, JointHistogramImageType,
                                         JointHistogramImageType> DividerType;
     typename DividerType::Pointer divider = DividerType::New();
     divider->SetInput( gaussian->GetOutput() );
@@ -634,7 +634,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       this->m_Interpolator->SetInputImage( this->m_JointHistogramImages[d] );
       if( this->m_Interpolator->IsInsideBuffer( point ) )
         {
-        probability *= this->m_Interpolator->Evaluate( point );
+        probability *= static_cast<RealType>( this->m_Interpolator->Evaluate( point ) );
         }
       else
         {

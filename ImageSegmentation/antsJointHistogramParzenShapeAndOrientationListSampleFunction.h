@@ -59,9 +59,10 @@ public:
   typedef TOutput RealType;
   typedef TOutput OutputType;
 
-  typedef Image<RealType, 2>                        JointHistogramImageType;
-  typedef typename JointHistogramImageType::Pointer JointHistogramImagePointer;
-  typedef Vector<RealType, 2>                       ThetaPsiType;
+  typedef Image<RealType, 2>                           JointHistogramImageType;
+  typedef typename JointHistogramImageType::PointType  JointHistogramImagePointType;
+  typedef typename JointHistogramImageType::Pointer    JointHistogramImagePointer;
+  typedef Vector<RealType, 2>                          ThetaPsiType;
 
   typedef typename JointHistogramImageType::IndexType IndexType;
   typedef typename IndexType::IndexValueType          IndexValueType;

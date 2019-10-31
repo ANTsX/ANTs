@@ -121,11 +121,10 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
       if( outlierFound )
         {
         /** Retabulate the variance and mean by removing the previous estimate */
-        RealType count2 = this->GetInput()->Size()
-          - this->m_OutlierInstanceIdentifiers.size();
-        mean = ( mean * count2 - measurement[0] ) / ( count2 -  NumericTraits<RealType>::OneValue());
+        RealType count2 = this->GetInput()->Size() - this->m_OutlierInstanceIdentifiers.size();
+        mean = ( mean * count2 - static_cast<RealType>( measurement[0] ) ) / ( count2 -  NumericTraits<RealType>::OneValue());
         variance = ( count2 - 1.0 ) * variance - ( count2 -  NumericTraits<RealType>::OneValue() )
-          * itk::Math::sqr( measurement[0] - mean ) / count2;
+          * itk::Math::sqr( static_cast<RealType>( measurement[0] ) - mean ) / count2;
         variance /= ( count2 - static_cast<RealType>( 2.0 ) );
         this->m_OutlierInstanceIdentifiers.push_back( id );
         }

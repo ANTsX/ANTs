@@ -232,7 +232,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     }
   RealType distance = this->CalculateTensorDistance( T, this->m_MeanTensor );
   RealType preFactor = NumericTraits<RealType>::OneValue()
-    / ( std::sqrt( static_cast<RealType>( 2.0 ) * itk::Math::pi * this->m_Dispersion ) );
+    / ( std::sqrt( static_cast<RealType>( 2.0 ) * static_cast<RealType>( itk::Math::pi ) * this->m_Dispersion ) );
   RealType probability = preFactor * std::exp( static_cast<RealType>( -0.5 )
                                               * itk::Math::sqr( distance ) / this->m_Dispersion );
 

@@ -26,7 +26,7 @@ namespace itk
  * \brief Computes a randomly SimulatedExponential displacement field.
  *
  * SimulatedExponentialDisplacementFieldSource produces a random exponential
- * displacement field.  
+ * displacement field.
  *
  * This source object expects the image to be of pixel type Vector.
  *
@@ -34,7 +34,7 @@ namespace itk
  * \ingroup ITKDisplacementField
  */
 template<typename TOutputImage>
-class ITK_TEMPLATE_EXPORT SimulatedExponentialDisplacementFieldSource:
+class SimulatedExponentialDisplacementFieldSource final:
   public SimulatedDisplacementFieldSource<TOutputImage>
 {
 public:

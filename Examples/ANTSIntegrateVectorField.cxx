@@ -237,9 +237,6 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       pointIn3[jj] = pointIn2[jj] + static_cast<DPointCoordRepType>( gradsign * vecsign * deltaTime / 6.0f )
         * ( static_cast<DPointCoordRepType>( f1[jj] ) + twoValue * static_cast<DPointCoordRepType>( f2[jj] )
         + twoValue * static_cast<DPointCoordRepType>( f3[jj] ) + static_cast<DPointCoordRepType>( f4[jj] ) );
-
-      pointIn3[jj] = pointIn2[jj] + static_cast<double>( gradsign * vecsign * deltaTime / 6.0f
-        * ( f1[jj] + 2.0f * f2[jj] + 2.0f * f3[jj] + f4[jj] ) );
       }
 
     VectorType out;

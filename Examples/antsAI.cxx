@@ -206,7 +206,7 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
       movingGradientImage->TransformIndexToPhysicalPoint( movingIndex, movingPoint );
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        movingPointCentroid[d] += movingPoint[d] * weight;
+        movingPointCentroid[d] += movingPoint[d] * static_cast<typename PointType::CoordRepType>( weight );
         }
       movingImagePatchPoints.push_back( movingPoint );
       }

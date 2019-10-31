@@ -360,7 +360,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     mag=0;
     }
 */
-      if( mag > static_cast<float>( maxerr ) )
+      if( mag > static_cast<double>( maxerr ) )
         {
         maxerr = static_cast<float>( mag );
         }

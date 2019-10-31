@@ -714,7 +714,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           this->m_LabelPosteriorProbabilityImages[label]->SetPixel( neighborhoodIndex,
             this->m_LabelPosteriorProbabilityImages[label]->GetPixel( neighborhoodIndex ) + static_cast<float>( W[i] ) );
           this->m_WeightSumImage->SetPixel( neighborhoodIndex,
-            this->m_WeightSumImage->GetPixel( neighborhoodIndex ) + W[i] );
+            this->m_WeightSumImage->GetPixel( neighborhoodIndex ) + static_cast<float>( W[i] ) );
 
           if( this->m_RetainAtlasVotingWeightImages )
             {
@@ -844,7 +844,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
       if( count > 0 )
         {
-        ItJ.Set( ItJ.Get() / static_cast<RealType>( count ) );
+        ItJ.Set( ItJ.Get() / static_cast<InputImagePixelType>( count ) );
         }
       }
     }
