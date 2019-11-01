@@ -51,7 +51,7 @@ namespace itk
  * \ingroup FiniteDifferenceFunctions
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-class ProbabilisticRegistrationFunction :
+class ProbabilisticRegistrationFunction final :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage, TDisplacementField>
 {

@@ -47,7 +47,7 @@ namespace itk
 * \ingroup FiniteDifferenceFunctions
 */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-class SyNDemonsRegistrationFunction :
+class SyNDemonsRegistrationFunction final :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage,
                                                          TDisplacementField>
