@@ -151,7 +151,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
-  set(${proj}_GIT_TAG  39f1ba9b9540a5daa38ddb87d2c091d4db1fb45d ) #20191004, MINC update and N4 optimization
+  set(${proj}_GIT_TAG  49671655c88612fabeb5f0784d3f40123100f166) # 2019-10-30: fixes N4 errors with physical space drifting out of alignment
   set(ITK_VERSION_ID ITK-5.1) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
