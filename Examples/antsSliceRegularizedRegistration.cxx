@@ -961,7 +961,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
 	      VectorIOType vecout;
 	      vecout.Fill( 0 );
         typename MovingIOImageType::IndexType ind;
-        for( itk::SizeValueType xx = 0; xx < ImageDimension; xx++ )
+        for( itk::SizeValueType xx = 0; xx < MovingIOImageType::ImageDimension; xx++ )
           {
           ind[xx] = vfIter2.GetIndex()[xx];
           vecout[xx] = vec[xx];
@@ -971,7 +971,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
           {
           tdim = timedims - 1;
           }
-        ind[ImageDimension-1] = tdim;
+        ind[MovingIOImageType::ImageDimension-1] = tdim;
         outputImage->SetPixel(ind, fval);
         displacementout->SetPixel( ind, vecout );
         }
@@ -1023,7 +1023,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
           VectorIOType vecout;
           vecout.Fill( 0 );
           typename MovingIOImageType::IndexType ind;
-          for( itk::SizeValueType xx = 0; xx < ImageDimension; xx++ )
+          for( itk::SizeValueType xx = 0; xx < MovingIOImageType::ImageDimension; xx++ )
             {
             ind[xx] = vfIter2.GetIndex()[xx];
             vecout[xx] = vec[xx];
@@ -1033,7 +1033,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
             {
             tdim = timedims - 1;
             }
-          ind[ImageDimension-1] = tdim;
+          ind[MovingIOImageType::ImageDimension-1] = tdim;
           displacementinv->SetPixel( ind, vecout );
           }
         }

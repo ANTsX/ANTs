@@ -53,7 +53,7 @@
 namespace itk
 {
 template <unsigned int TDimension = 3, typename TReal = float>
-class ANTSImageRegistrationOptimizer
+class ANTSImageRegistrationOptimizer final
   : public       Object
 {
 public:

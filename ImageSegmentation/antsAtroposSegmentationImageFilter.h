@@ -252,7 +252,7 @@ public:
    * cause a greater spatial homogeneity in the final labeling.  Default value
    * = 0.3.
    */
-  itkSetClampMacro( MRFSmoothingFactor, RealType, 0.0, NumericTraits<RealType>::max() );
+  itkSetClampMacro( MRFSmoothingFactor, RealType,  NumericTraits<RealType>::ZeroValue(), NumericTraits<RealType>::max() );
 
   /**
    * Get the MRF smoothing parameter.
@@ -289,7 +289,7 @@ public:
    * (likelihoods * priors)^(1/T) where T is specified annealing temperature
    * raised to the number of elapsed iterations.  Default value = 1.0.
    */
-  itkSetClampMacro( InitialAnnealingTemperature, RealType, 0.0, NumericTraits<RealType>::max() );
+  itkSetClampMacro( InitialAnnealingTemperature, RealType,  NumericTraits<RealType>::ZeroValue(), NumericTraits<RealType>::max() );
 
   /**
    * Get the initial annealing temperature.  For values
@@ -305,8 +305,8 @@ public:
    * Typically, the algorithm becomes unstable for values < 0.1.  Default value
    * = 0.1.
    */
-  itkSetClampMacro( MinimumAnnealingTemperature, RealType, 0.0,
-                    NumericTraits<RealType>::max() );
+  itkSetClampMacro( MinimumAnnealingTemperature, RealType,
+    NumericTraits<RealType>::ZeroValue(), NumericTraits<RealType>::max() );
 
   /**
    * Get the minimum annealing temperature for ICM asynchronous updating.
@@ -322,7 +322,8 @@ public:
    * (likelihoods * priors)^(1/T) where T is specified annealing temperature
    * raised to the number of elapsed iterations. Default value = 1.0.
    */
-  itkSetClampMacro( AnnealingRate, RealType, 0.0, 1.0 );
+  itkSetClampMacro( AnnealingRate, RealType,
+    NumericTraits<RealType>::ZeroValue(), NumericTraits<RealType>::OneValue() );
 
   /**
    * Set the annealing rate for ICM asynchronous updating.  For values
@@ -421,7 +422,8 @@ public:
    * values are included in the sparse representation of the prior probability
    * images.  Default value =
    */
-  itkSetClampMacro( ProbabilityThreshold, RealType, 0.0, 1.0 );
+  itkSetClampMacro( ProbabilityThreshold, RealType,
+    NumericTraits<RealType>::ZeroValue(), NumericTraits<RealType>::OneValue() );
 
   /**
    * Get the prior probability threshold value.
@@ -528,7 +530,7 @@ public:
    * prior probability information should be included in the posterior
    * probability information.
    */
-  itkSetClampMacro( PriorProbabilityWeight, RealType, 0.0, 1.e9 );
+  itkSetClampMacro( PriorProbabilityWeight, RealType,  NumericTraits<RealType>::ZeroValue(), static_cast<RealType>( 1.e9 ) );
 
   /**
    * Get the prior probability weight.
