@@ -36,7 +36,7 @@ namespace itk
  * \ingroup ITKDisplacementField
  */
 template<typename TOutputImage>
-class ITK_TEMPLATE_EXPORT SimulatedBSplineDisplacementFieldSource:
+class SimulatedBSplineDisplacementFieldSource final :
   public SimulatedDisplacementFieldSource<TOutputImage>
 {
 public:

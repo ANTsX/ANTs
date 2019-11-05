@@ -547,10 +547,13 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         {
         f4 = vinterp->EvaluateAtContinuousIndex( Y4 );
         }
+      using DPointCoordRepType = typename DPointType::CoordRepType;
+      DPointCoordRepType twoValue = static_cast<DPointCoordRepType>( 2.0 );
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        pointIn3[jj] = pointIn2[jj] + static_cast<typename DPointType::CoordRepType>( gradsign * vecsign * deltaTime / 6.0f )
-          * static_cast<typename DPointType::CoordRepType>( f1[jj] + 2.0f * f2[jj] + 2.0f * f3[jj] + f4[jj] );
+        pointIn3[jj] = pointIn2[jj] + static_cast<DPointCoordRepType>( gradsign * vecsign * deltaTime / 6.0f )
+          * ( static_cast<DPointCoordRepType>( f1[jj] ) + twoValue * static_cast<DPointCoordRepType>( f2[jj] )
+          + twoValue * static_cast<DPointCoordRepType>( f3[jj] ) + static_cast<DPointCoordRepType>( f4[jj] ) );
         }
 
       VectorType out;

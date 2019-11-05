@@ -46,7 +46,7 @@ namespace itk {
 template<typename TInputImage,
   typename TOutputImage = TInputImage,
   typename TMaskImage = Image<unsigned char, TInputImage::ImageDimension> >
-class AdaptiveNonLocalMeansDenoisingImageFilter :
+class AdaptiveNonLocalMeansDenoisingImageFilter final :
   public NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 {
 public:

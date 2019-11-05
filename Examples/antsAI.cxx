@@ -183,7 +183,7 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
 
   PointType movingPointCentroid( 0.0 );
 
-  RealType weight = 1.0 / static_cast<RealType>( numberOfIndices );
+  RealType weight = itk::NumericTraits<RealType>::OneValue() / static_cast<RealType>( numberOfIndices );
   for( unsigned int i = 0; i < numberOfIndices; i++ )
     {
     fixedSamples[i] = fixedNeighborhood.GetPixel( activeIndex[i] );
@@ -206,7 +206,7 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
       movingGradientImage->TransformIndexToPhysicalPoint( movingIndex, movingPoint );
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        movingPointCentroid[d] += movingPoint[d] * weight;
+        movingPointCentroid[d] += movingPoint[d] * static_cast<typename PointType::CoordRepType>( weight );
         }
       movingImagePatchPoints.push_back( movingPoint );
       }
@@ -273,7 +273,7 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
     vnl_vector<RealType> movingImagePointRotated = A * movingImageVector;
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      movingImagePoint[d] = movingImagePointRotated[d] + movingPointCentroid[d];
+      movingImagePoint[d] = static_cast<typename PointType::CoordRepType>( movingImagePointRotated[d] ) + movingPointCentroid[d];
       }
     if( movingInterpolator->IsInsideBuffer( movingImagePoint ) )
       {
@@ -359,13 +359,13 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
     RealType distance = 0.0;
     for( unsigned int j = 0; j < ImageDimension; j++ )
       {
-      distance += itk::Math::sqr ( index[j] - zeroIndex[j] );
+      distance += itk::Math::sqr( index[j] - zeroIndex[j] );
       }
     distance = std::sqrt( distance );
     if( distance <= radiusValue )
       {
       activeIndex.push_back( i );
-      RealType weight = std::exp( -1.0 * distance / itk::Math::sqr ( radiusValue ) );
+      RealType weight = std::exp( -distance / itk::Math::sqr( radiusValue ) );
       weights.push_back( weight );
       weightSum += ( weight );
       }
@@ -382,22 +382,22 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
   for( unsigned int i = 0; i < fixedBlobs.size(); i++ )
     {
     IndexType fixedIndex = fixedBlobs[i]->GetCenter();
-    if( fixedImage->GetPixel( fixedIndex ) > 1.0e-4 )
+    if( fixedImage->GetPixel( fixedIndex ) > static_cast<typename ImageType::PixelType>( 1.0e-4 ) )
       {
       ItF.SetLocation( fixedIndex );
       for( unsigned int j = 0; j < movingBlobs.size(); j++ )
         {
         IndexType movingIndex = movingBlobs[j]->GetCenter();
-        if( movingImage->GetPixel( movingIndex ) > 1.0e-4 )
+        if( movingImage->GetPixel( movingIndex ) > static_cast<typename ImageType::PixelType>( 1.0e-4 ) )
           {
           ItM.SetLocation( movingIndex );
 
           RealType correlation = PatchCorrelation<ImageType, GradientImageType, ScalarInterpolatorType, RealType>
             ( ItF, ItM, activeIndex, weights, fixedGradientImage, movingGradientImage, movingInterpolator );
 
-          if( correlation < 0.0 )
+          if( correlation < itk::NumericTraits<RealType>::ZeroValue() )
             {
-            correlation = 0.0;
+            correlation = itk::NumericTraits<RealType>::ZeroValue();
             }
 
           correspondenceMatrix(i, j) = correlation;
@@ -500,10 +500,10 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
 
     if( bestBlob && bestBlob->GetObjectRadius() > 1 )
       {
-      if( std::fabs( bestBlob->GetObjectRadius() - fixedBlob->GetObjectRadius() ) < maxRadiusDifferenceAllowed )
+      if( static_cast<RealType>( std::fabs( bestBlob->GetObjectRadius() - fixedBlob->GetObjectRadius() ) ) < maxRadiusDifferenceAllowed )
         {
-        if( ( fixedImage->GetPixel( fixedBlob->GetCenter() ) > 1.0e-4 ) &&
-            ( movingImage->GetPixel( bestBlob->GetCenter() ) > 1.0e-4 ) )
+        if( fixedImage->GetPixel( fixedBlob->GetCenter() ) > static_cast<typename ImageType::PixelType>( 1.0e-4 ) &&
+            movingImage->GetPixel( bestBlob->GetCenter() ) > static_cast<typename ImageType::PixelType>( 1.0e-4 ) )
           {
           BlobPairType blobPairing = std::make_pair( fixedBlob, bestBlob );
           blobPairs.push_back( blobPairing );
@@ -566,7 +566,7 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
     unsigned int neighborhoodCount = 0;
     for( unsigned int j = 0; j < blobPairs.size(); j++ )
       {
-      if( ( j != i ) && ( std::fabs( distanceRatios( i, j ) - 1.0 ) <  distancePreservationThreshold ) )
+      if( ( j != i ) && ( std::fabs( distanceRatios( i, j ) - itk::NumericTraits<RealType>::OneValue() ) <  distancePreservationThreshold ) )
         {
         neighborhoodCount++;
         }
@@ -792,7 +792,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
   typename AffineTransformType::Pointer initialTransform = AffineTransformType::New();
   initialTransform->SetIdentity();
-    
+
   bool initialTransformInitializedWithImages = false;
 
   unsigned int numberOfTransformParameters = 0;
@@ -811,7 +811,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
     numberOfTransformParameters = SimilarityTransformType::ParametersDimension;
     // outputTransformTypeName = std::string( "Similarity" );
     }
-  else if( strcmp( transform.c_str(), "aligngeometriccenters" ) == 0 || 
+  else if( strcmp( transform.c_str(), "aligngeometriccenters" ) == 0 ||
     strcmp( transform.c_str(), "aligncentersofmass" ) == 0 )
     {
     typedef itk::CenteredTransformInitializer<AffineTransformType, ImageType, ImageType> TransformInitializerType;
@@ -1082,7 +1082,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
         typename TranslationTransformType::Pointer bestTranslationTransform = TranslationTransformType::New();
         bestTranslationTransform->SetOffset( initialTransform->GetOffset() );
         transformWriter->SetInput( bestTranslationTransform );
-        }  
+        }
 
       transformWriter->SetFileName( outputName.c_str() );
 #if ITK_VERSION_MAJOR >= 5
@@ -1231,18 +1231,18 @@ int antsAI( itk::ants::CommandLineParser *parser )
     else
       {
       char* envSeed = getenv( "ANTS_RANDOM_SEED" );
-      
+
       if ( envSeed != nullptr )
 	{
 	antsRandomSeed = std::stoi( envSeed );
 	}
       }
 
-    if ( antsRandomSeed != 0 ) 
+    if ( antsRandomSeed != 0 )
       {
       randomizer->SetSeed( antsRandomSeed );
       }
-    
+
     unsigned long index = 0;
 
     switch( samplingStrategy )
@@ -1263,7 +1263,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
             // randomly perturb the point within a voxel (approximately)
             for( unsigned int d = 0; d < ImageDimension; d++ )
               {
-              point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
+              point[d] += static_cast<typename SamplePointType::CoordRepType>( randomizer->GetNormalVariate() ) * static_cast<typename SamplePointType::CoordRepType>( oneThirdVirtualSpacing[d] );
               }
             if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInsideInWorldSpace( point ) )
               {
@@ -1278,7 +1278,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       case RANDOM:
         {
         const unsigned long totalVirtualDomainVoxels = fixedImage->GetRequestedRegion().GetNumberOfPixels();
-        const auto sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * samplingPercentage );
+        const auto sampleCount = static_cast<unsigned long>( static_cast<float>( totalVirtualDomainVoxels ) * static_cast<float>( samplingPercentage ) );
         itk::ImageRandomConstIteratorWithIndex<ImageType> ItR( fixedImage, fixedImage->GetRequestedRegion() );
         ItR.SetNumberOfSamples( sampleCount );
         for( ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR )
@@ -1289,7 +1289,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
           // randomly perturb the point within a voxel (approximately)
           for ( unsigned int d = 0; d < ImageDimension; d++ )
             {
-            point[d] += randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d];
+            point[d] += static_cast<typename SamplePointType::CoordRepType>( randomizer->GetNormalVariate() * oneThirdVirtualSpacing[d] );
             }
           if( !fixedMaskSpatialObject || fixedMaskSpatialObject->IsInsideInWorldSpace( point ) )
             {
@@ -1460,7 +1460,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
                   similaritySearchTransform->SetOffset( initialTransform->GetOffset() );
                   similaritySearchTransform->SetMatrix( affineSearchTransform->GetMatrix() );
                   similaritySearchTransform->SetScale( bestScale );
-		  
+
                   parametersList.push_back( similaritySearchTransform->GetParameters() );
                   }
 		trialCounter++;
@@ -1676,7 +1676,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   }
 
   {
-  std::string description = std::string( "Use a fixed seed for random number generation. " ) 
+  std::string description = std::string( "Use a fixed seed for random number generation. " )
     + std::string( "The default fixed seed is overwritten by this value. " )
     + std::string( "The fixed seed can be any nonzero int value. If the specified seed is zero, " )
     + std::string( "the system time will be used." );

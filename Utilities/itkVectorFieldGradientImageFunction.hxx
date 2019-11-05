@@ -115,10 +115,11 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>
         }
       }
 
-    RealType weight = 1.0 / ( 12.0 * delta[i] );
+    RealType weight = itk::NumericTraits<RealType>::OneValue() / ( static_cast<RealType>( 12.0 ) * delta[i] );
+    RealType eightValue = static_cast<RealType>( 8.0 );
     for( unsigned int j = 0; j < VectorDimension; j++ )
       {
-      F[i][j] = weight * ( -xp2[j] + 8.0 * xp1[j] - 8.0 * xm1[j] + xm2[j] );
+      F[i][j] = static_cast<typename MatrixType::ComponentType>( weight * ( static_cast<RealType>( -xp2[j] ) + eightValue * static_cast<RealType>( xp1[j] ) - eightValue * static_cast<RealType>( xm1[j] ) + static_cast<RealType>( xm2[j] ) ) );
       }
     }
 
@@ -130,7 +131,7 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>
     }
   for( unsigned int i = 0; i < minDimension; i++ )
     {
-    F[i][i] += 1.0;
+    F[i][i] += itk::NumericTraits<RealType>::OneValue();
     }
 
   return F;
@@ -214,11 +215,11 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>
         }
       }
 
-    RealType weight = 1.0
-      / ( 12.0 * static_cast<RealType>( offset1[i] ) * spacing[i] );
+    RealType weight = NumericTraits<RealType>::OneValue()
+      / ( static_cast<RealType>( 12.0 ) * static_cast<RealType>( offset1[i] ) * static_cast<RealType>( spacing[i] ) );
     for( unsigned int j = 0; j < VectorDimension; j++ )
       {
-      F[i][j] = weight * ( -xp2[j] + 8.0 * xp1[j] - 8.0 * xm1[j] + xm2[j] );
+      F[i][j] = weight * ( -xp2[j] + static_cast<RealType>( 8.0 ) * xp1[j] - static_cast<RealType>( 8.0 ) * xm1[j] + xm2[j] );
       }
     }
 
@@ -230,7 +231,7 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>
     }
   for( unsigned int i = 0; i < minDimension; i++ )
     {
-    F[i][i] += 1.0;
+    F[i][i] += itk::NumericTraits<RealType>::OneValue();
     }
 
   return F;

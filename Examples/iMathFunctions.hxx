@@ -137,7 +137,7 @@ iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs )     
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathCanny( typename ImageType::Pointer image,                                    /*0*/  
+iMathCanny( typename ImageType::Pointer image,                                    /*0*/
             double sigma,
             double lowerThreshold,
             double upperThreshold )
@@ -236,7 +236,7 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )           
   relabel->SetMinimumObjectSize( 0 );
   relabel->Update();
 
-  if( holeParam == 2 )
+  if( itk::Math::FloatAlmostEqual( holeParam, static_cast<double>( 2.0 ) ) )
     {
     typename ThresholdMaskFilterType::Pointer oThreshold = ThresholdMaskFilterType::New();
     oThreshold->SetInput( relabel->GetOutput() );
@@ -289,19 +289,19 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )           
         {
         typename ImageType::PixelType p = GHood.GetCenterPixel();
         typename ImageType::IndexType ind2;
-        if( p == lab )
+        if( itk::Math::FloatAlmostEqual( p, static_cast<typename ImageType::PixelType>( lab ) ) )
           {
           volume++;
           for( unsigned int i = 0; i < GHood.Size(); i++ )
             {
             ind2 = GHood.GetIndex(i);
             float val2 = threshold->GetOutput()->GetPixel(ind2);
-            if( (val2 == 1) && GHood.GetPixel(i) != lab )
+            if( itk::Math::FloatAlmostEqual( val2, itk::NumericTraits<float>::OneValue() ) && GHood.GetPixel(i) != lab )
               {
               objectedge++;
               totaledge++;
               }
-            else if( (val2 == 1) && GHood.GetPixel(i) != lab )
+            else if( itk::Math::FloatAlmostEqual( val2, itk::NumericTraits<float>::OneValue() ) && GHood.GetPixel(i) != lab )
               {
               backgroundedge++;
               totaledge++;
@@ -314,7 +314,7 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )           
       erat = (float)objectedge / (float)totaledge;
       }
 
-    if( erat > holeParam ) // fill the hole
+    if( erat > static_cast<float>( holeParam ) ) // fill the hole
       {
       // std::cout << " Filling " << lab << " of " << maximum <<  std::endl;
       typedef itk::ImageRegionIteratorWithIndex<MaskType> RelabelIterator;

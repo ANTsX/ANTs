@@ -52,7 +52,7 @@ namespace itk
  */
 
 template <typename TInputImage, typename TOutputImage, typename TParamImage>
-class VectorParameterizedNeighborhoodOperatorImageFilter :
+class VectorParameterizedNeighborhoodOperatorImageFilter final :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

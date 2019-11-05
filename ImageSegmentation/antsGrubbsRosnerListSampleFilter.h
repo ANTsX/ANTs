@@ -32,7 +32,7 @@ namespace Statistics
  */
 
 template <typename TScalarListSample>
-class GrubbsRosnerListSampleFilter
+class GrubbsRosnerListSampleFilter final
   : public       ListSampleToListSampleFilter<TScalarListSample, TScalarListSample>
 {
 public:

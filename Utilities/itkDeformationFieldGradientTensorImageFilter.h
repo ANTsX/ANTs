@@ -30,7 +30,7 @@ template <typename TInputImage,
                TInputImage::PixelType::Dimension>,
                TInputImage::ImageDimension>
 >
-class ITK_EXPORT DeformationFieldGradientTensorImageFilter :
+class DeformationFieldGradientTensorImageFilter final :
     public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

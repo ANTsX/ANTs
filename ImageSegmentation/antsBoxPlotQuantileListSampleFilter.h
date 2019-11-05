@@ -32,7 +32,7 @@ namespace Statistics
  */
 
 template <typename TScalarListSample>
-class BoxPlotQuantileListSampleFilter
+class BoxPlotQuantileListSampleFilter final
   : public       ListSampleToListSampleFilter<TScalarListSample, TScalarListSample>
 {
 public:

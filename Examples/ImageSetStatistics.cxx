@@ -168,14 +168,13 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
   typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
   Iterator outIter(image, image->GetLargestPossibleRegion() );
   typename TImage::SizeType imagesize = image->GetLargestPossibleRegion().GetSize();
-  constexpr unsigned int ImageDimension = 3;
 
   typedef itk::NeighborhoodIterator<TImage> iteratorType;
   typename iteratorType::RadiusType rad;
-  for( itk::SizeValueType j = 0; j < ImageDimension; j++ )
-    {
-    rad[j] = static_cast<itk::SizeValueType>( nhood );
-    }
+  rad.Fill( static_cast<itk::SizeValueType>( nhood ) );
+
+  using IndexType = typename TImage::IndexType;
+
   for( outIter.GoToBegin(); !outIter.IsAtEnd(); ++outIter )
     {
     itk::NeighborhoodIterator<TImage> hoodIt( rad, image, image->GetLargestPossibleRegion() );
@@ -202,9 +201,9 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
         {
         typename TImage::IndexType index = hoodIt.GetIndex(indct);
         bool inimage = true;
-        for( itk::SizeValueType dd = 0; dd < ImageDimension; dd++ )
+        for( itk::SizeValueType dd = 0; dd < TImage::ImageDimension; dd++ )
           {
-          if( index[dd] < 0 || index[dd] > static_cast<typename TImage::IndexType::IndexValueType>(imagesize[dd] - 1) )
+          if( index[dd] < itk::NumericTraits<typename IndexType::IndexValueType>::ZeroValue() || index[dd] > static_cast<typename IndexType::IndexValueType>( imagesize[dd] - 1) )
             {
             inimage = false;
             }

@@ -345,7 +345,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
     bool takesample = true;
     if( this->m_FixedImageMask )
       {
-      if( this->m_FixedImageMask->GetPixel( iter.GetIndex() ) < 1.e-6 )
+      if( this->m_FixedImageMask->GetPixel( iter.GetIndex() ) < static_cast<typename FixedImageType::PixelType>( 1.e-6 ) )
         {
         takesample = false;
         }

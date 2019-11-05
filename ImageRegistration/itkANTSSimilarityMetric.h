@@ -25,7 +25,7 @@
 namespace itk
 {
 template <unsigned int TDimension = 3, typename TReal = float>
-class ANTSSimilarityMetric
+class ANTSSimilarityMetric final
   : public       Object
 {
 public:

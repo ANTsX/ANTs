@@ -93,18 +93,13 @@ public:
 #endif
     if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
-      // const unsigned int CurrentLevel = this->m_Optimizer->GetCurrentLevel();
+      // currentIteration indexed from 1 for printing to the screen and naming output
       const unsigned int currentIteration = this->m_Optimizer->GetCurrentIteration() + 1;
       if( currentIteration == 1 )
         {
+        this->m_Optimizer->SetNumberOfIterations( this->m_NumberOfIterations[this->m_CurrentLevel] );
         this->m_CurrentLevel++;
-        }
 
-      const unsigned int lCurrentIteration = this->m_Optimizer->GetCurrentIteration() + 1;
-
-
-      if( lCurrentIteration  == 1 )
-        {
         if( this->m_ComputeFullScaleCCInterval != 0 )
           {
           // Print header line one time
@@ -124,8 +119,8 @@ public:
       MeasureType        metricValue = 0.0;
       const unsigned int lastIteration = this->m_Optimizer->GetNumberOfIterations();
       if( ( this->m_ComputeFullScaleCCInterval != 0 ) &&
-          ( lCurrentIteration == 1 || ( lCurrentIteration % this->m_ComputeFullScaleCCInterval == 0 ) ||
-            lCurrentIteration == lastIteration) )
+          ( currentIteration == 1 || ( currentIteration % this->m_ComputeFullScaleCCInterval == 0 ) ||
+            currentIteration == lastIteration) )
         {
         // This function finds the similarity value between the original fixed image and the original moving images
         // using a CC metric type with radius 4.
@@ -134,8 +129,8 @@ public:
         }
 
       if( ( this->m_WriteIterationsOutputsInIntervals != 0 ) &&
-          ( lCurrentIteration == 1 || (lCurrentIteration % this->m_WriteIterationsOutputsInIntervals == 0 ) ||
-         lCurrentIteration == lastIteration) )
+          ( currentIteration == 1 || (currentIteration % this->m_WriteIterationsOutputsInIntervals == 0 ) ||
+         currentIteration == lastIteration) )
         {
         // This function writes the output volume of each iteration to the disk.
         // The feature can be used to observe the progress of the registration process at each iteration,
@@ -148,7 +143,7 @@ public:
         }                 // will appear before line, else a free space will be printed to keep visual alignment.
 
       this->Logger() << "2DIAGNOSTIC, "
-                     << std::setw(5) << lCurrentIteration << ", "
+                     << std::setw(5) << currentIteration << ", "
                      << std::scientific << std::setprecision(12) << this->m_Optimizer->GetValue() << ", "
                      << std::scientific << std::setprecision(12) << this->m_Optimizer->GetConvergenceValue() << ", "
                      << std::setprecision(4) << now << ", "
@@ -162,8 +157,6 @@ public:
         {
         this->Logger() << std::flush << std::endl;
         }
-
-      this->m_Optimizer->SetNumberOfIterations( this->m_NumberOfIterations[this->m_CurrentLevel] );
 
       this->m_lastTotalTime = now;
       m_clock.Start();

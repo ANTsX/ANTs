@@ -123,11 +123,11 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
           RealType kernelValue = this->m_Gaussians[count]->Evaluate( neighbor );
           if( this->GetListSampleWeights()->Size() == this->m_Gaussians.size() )
             {
-            kernelValue *= ( *this->GetListSampleWeights() )[count];
+            kernelValue *= static_cast<RealType>( ( *this->GetListSampleWeights() )[count] );
             }
 
           denominator += kernelValue;
-          if( kernelValue > 0.0 )
+          if( kernelValue > NumericTraits<RealType>::ZeroValue() )
             {
             for( unsigned int m = 0; m < Dimension; m++ )
               {
@@ -136,21 +136,21 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
                 RealType covariance = kernelValue
                   * ( neighbor[m] - inputMeasurement[m] )
                   * ( neighbor[n] - inputMeasurement[n] );
-                Cov( m, n ) += covariance;
-                Cov( n, m ) += covariance;
+                Cov( m, n ) += static_cast<typename CovarianceMatrixType::ComponentType>( covariance );
+                Cov( n, m ) += Cov( m, n );
                 }
               }
             }
           }
         }
-      if( denominator > 0.0 )
+      if( denominator > NumericTraits<RealType>::ZeroValue() )
         {
         Cov /= denominator;
         }
       for( unsigned int m = 0; m < Dimension; m++ )
         {
         Cov( m, m ) +=
-          ( this->m_RegularizationSigma * this->m_RegularizationSigma );
+          static_cast<typename CovarianceMatrixType::ComponentType>( this->m_RegularizationSigma * this->m_RegularizationSigma );
         }
       this->m_Gaussians[count]->SetCovariance( Cov );
       }
@@ -173,11 +173,11 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     {
     if( this->GetListSampleWeights()->Size() == this->m_Gaussians.size() )
       {
-      this->m_NormalizationFactor += ( *this->GetListSampleWeights() )[i];
+      this->m_NormalizationFactor += static_cast<RealType>( ( *this->GetListSampleWeights() )[i] );
       }
     else
       {
-      this->m_NormalizationFactor += 1.0;
+      this->m_NormalizationFactor += NumericTraits<RealType>::OneValue();
       }
     }
 }

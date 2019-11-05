@@ -230,7 +230,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     o_iter.GoToBegin();
     while( !o_iter.IsAtEnd() )
       {
-      if( o_iter.Get() > 0.5f && input->GetPixel(o_iter.GetIndex() ) > 0.5f )
+      if( o_iter.Get() > static_cast<typename ImageType::PixelType>( 0.5 ) && input->GetPixel(o_iter.GetIndex() ) > static_cast<typename ImageType::PixelType>( 0.5 ) )
         {
         o_iter.Set(1);
         }

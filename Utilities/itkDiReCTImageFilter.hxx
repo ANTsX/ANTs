@@ -357,7 +357,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         if( ItSegmentationImage.Get() == grayMatterPixel )
           {
           RealType norm = ( ItGradientImage.Get() ).GetNorm();
-          if( norm > 1e-3 && !std::isnan( norm ) && !std::isinf( norm ) )
+          if( norm > static_cast<RealType>( 1e-3 ) && !std::isnan( norm ) && !std::isinf( norm ) )
             {
             ItGradientImage.Set( ItGradientImage.Get() / norm );
             }
@@ -366,9 +366,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             ItGradientImage.Set( zeroVector );
             }
           RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get() );
-          currentEnergy += itk::Math::abs ( delta );
+          currentEnergy += itk::Math::abs( delta );
           numberOfGrayMatterVoxels++;
-          RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
+          RealType speedValue = static_cast<RealType>( -1.0 ) * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
           if( std::isnan( speedValue ) || std::isinf( speedValue ) )
             {
             speedValue = 0.0;
@@ -542,7 +542,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
     RealImagePointer smoothHitImage;
     RealImagePointer smoothTotalImage;
-    if( this->m_SmoothingVariance > 0.0 )
+    if( this->m_SmoothingVariance > NumericTraits<RealType>::ZeroValue() )
       {
       smoothHitImage = this->SmoothImage( hitImage, this->m_SmoothingVariance );
       smoothTotalImage = this->SmoothImage( totalImage, this->m_SmoothingVariance );
@@ -572,13 +572,13 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
       if(  ItSegmentationImage.Get() == grayMatterPixel )
         {
-        RealType thicknessValue = 0.0;
-        if( ItSmoothHitImage.Get() > 0.001 )
+        RealType thicknessValue = NumericTraits<RealType>::ZeroValue();
+        if( ItSmoothHitImage.Get() > static_cast<RealType>( 0.001 ) )
           {
           thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
-          if( thicknessValue < 0.0 )
+          if( thicknessValue < NumericTraits<RealType>::ZeroValue() )
             {
-            thicknessValue = 0.0;
+            thicknessValue = NumericTraits<RealType>::ZeroValue();
             }
           if( ! this->m_ThicknessPriorImage && ( thicknessValue > this->m_ThicknessPriorEstimate ) )
             {
@@ -725,7 +725,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 {
   RealImagePointer smoothHitImage;
   RealImagePointer smoothTotalImage;
-  if( this->m_SmoothingVariance > 0.0 )
+  if( this->m_SmoothingVariance > NumericTraits<RealType>::ZeroValue() )
     {
     smoothHitImage = this->SmoothImage( hitImage, this->m_SmoothingVariance );
     smoothTotalImage = this->SmoothImage( totalImage, this->m_SmoothingVariance );
@@ -761,15 +761,15 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
     if( ItSegmentationImage.Get() == grayMatterPixel )
       {
-      RealType thicknessValue = 0.0;
-      if( ItSmoothHitImage.Get() > 0.001 )
+      RealType thicknessValue = NumericTraits<RealType>::ZeroValue();
+      if( ItSmoothHitImage.Get() > static_cast<RealType>( 0.001 ) )
         {
         thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
         meanThickness += thicknessValue;
         count++;
-        if( thicknessValue < 0.0 )
+        if( thicknessValue < NumericTraits<RealType>::ZeroValue() )
           {
-          thicknessValue = 0.0;
+          thicknessValue = NumericTraits<RealType>::ZeroValue();
           }
         }
         ItCorticalThicknessImage.Set( thicknessValue );
@@ -839,12 +839,12 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
   // Ensure zero motion on the boundary
 
-  RealType weight1 = 1.0;
-  if( variance < 0.5 )
+  RealType weight1 = NumericTraits<RealType>::OneValue();
+  if( variance < static_cast<RealType>( 0.5 ) )
     {
-    weight1 = 1.0 - 1.0 * ( variance / 0.5 );
+    weight1 = NumericTraits<RealType>::OneValue() - NumericTraits<RealType>::OneValue() * ( variance / static_cast<RealType>( 0.5 ) );
     }
-  RealType weight2 = 1.0 - weight1;
+  RealType weight2 = NumericTraits<RealType>::OneValue() - weight1;
 
   using MultiplierType =
     MultiplyByConstantImageFilter<DisplacementFieldType, RealType, DisplacementFieldType>;
@@ -904,7 +904,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
     RealType domain = static_cast<RealType>(
-      inputField->GetLargestPossibleRegion().GetSize()[d] - 1 ) * inputField->GetSpacing()[d];
+      inputField->GetLargestPossibleRegion().GetSize()[d] - 1 ) * static_cast<RealType>( inputField->GetSpacing()[d] );
     ncps[d] = static_cast<unsigned int>( std::ceil( domain / isotropicMeshSpacing ) );
     }
 

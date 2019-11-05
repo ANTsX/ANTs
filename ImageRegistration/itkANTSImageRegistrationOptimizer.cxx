@@ -211,11 +211,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   // make sure boundary does not move
   TReal weight = 1.0;
-  if( sig < 0.5 )
+  if( sig < static_cast<TReal>( 0.5 ) )
     {
-    weight = 1.0 - 1.0 * (sig / 0.5);
+    weight = itk::NumericTraits<TReal>::OneValue() - ( sig / static_cast<TReal>( 0.5 ) );
     }
-  TReal weight2 = 1.0 - weight;
+  TReal weight2 = itk::NumericTraits<TReal>::OneValue() - weight;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
   typename DisplacementFieldType::SizeType size = field->GetLargestPossibleRegion().GetSize();
   Iterator outIter( field, field->GetLargestPossibleRegion() );
@@ -312,11 +312,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   // make sure boundary does not move
   TReal weight = 1.0;
-  if( sig < 0.5 )
+  if( sig < static_cast<TReal>( 0.5 ) )
     {
-    weight = 1.0 - 1.0 * (sig / 0.5);
+    weight = itk::NumericTraits<TReal>::OneValue() - itk::NumericTraits<TReal>::OneValue() * (sig / static_cast<TReal>( 0.5 ));
     }
-  TReal weight2 = 1.0 - weight;
+  TReal weight2 = itk::NumericTraits<TReal>::OneValue() - weight;
   typedef itk::ImageRegionIteratorWithIndex<TimeVaryingVelocityFieldType> Iterator;
   typename TimeVaryingVelocityFieldType::SizeType size = field->GetLargestPossibleRegion().GetSize();
   Iterator outIter( field, field->GetLargestPossibleRegion() );
@@ -504,7 +504,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         }
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        pointIn3[jj] = disp2[jj] * timesign + pointIn2[jj];
+        pointIn3[jj] = static_cast<typename VPointType::CoordRepType>( disp2[jj] ) * static_cast<typename VPointType::CoordRepType>( timesign ) + pointIn2[jj];
         }
 
       DispVectorType out;
@@ -726,11 +726,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       if( mask )
         {
         maskprob = mask->GetPixel( nD.GetIndex() );
-        if( maskprob > 1.0 )
+        if( maskprob > itk::NumericTraits<TReal>::OneValue() )
           {
-          maskprob = 1.0;
+          maskprob = itk::NumericTraits<TReal>::OneValue();
           }
-        if( maskprob < 0.1 )
+        if( maskprob < static_cast<TReal>( 0.1 ) )
           {
           oktosample = false;
           }
@@ -883,7 +883,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       mag = 0;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        mag += vec[jj] / spacing[jj] * vec[jj] / spacing[jj];
+        mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / static_cast<TReal>( spacing[jj] ) ) );
         }
       mag = sqrt(mag);
 //            if (mag > 0. ) std::cout << " mag " << mag << " max " << max << " vec " << vec << std::endl;
@@ -912,7 +912,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       mag = 0;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
-        mag += vec[jj] / spacing[jj] * vec[jj] / spacing[jj];
+        mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / static_cast<typename VectorType::ComponentType>( spacing[jj] ) ) );
         }
       mag = sqrt(mag);
       if( mag >  max2 )
@@ -934,7 +934,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         TReal      lmag = 0;
         for( unsigned int li = 0; li < ImageDimension; li++ )
           {
-          lmag += (lmupdate[li] / spacing[li]) * (lmupdate[li] / spacing[li]);
+          lmag += static_cast<TReal>( itk::Math::sqr( lmupdate[li] / static_cast<TReal>( spacing[li] ) ) );
           }
         lmag = sqrt(lmag);
         TReal modi = 1;
@@ -944,9 +944,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
           }
         else
           {
-          modi = 1.0 - lmag;
+          modi = itk::NumericTraits<TReal>::OneValue() - lmag;
           }
-        TReal      iwt = 1 * modi;
+        TReal      iwt = modi;
         TReal      lmwt = normalizedWeight;
         VectorType totalv = intensityupdate * iwt + lmupdate * lmwt;
         dIter.Set(totalv);
@@ -971,7 +971,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         mag = 0;
         for( unsigned int jj = 0; jj < ImageDimension; jj++ )
           {
-          mag += vec[jj] / spacing[jj] * vec[jj] / spacing[jj];
+          mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / static_cast<typename VectorType::ComponentType>( spacing[jj] ) ) );
           }
         mag = sqrt(mag);
 //            if (mag > 0. ) std::cout << " mag " << mag << " max " << max << " vec " << vec << std::endl;
@@ -1000,7 +1000,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         mag = 0;
         for( unsigned int jj = 0; jj < ImageDimension; jj++ )
           {
-          mag += vec[jj] / spacing[jj] * vec[jj] / spacing[jj];
+          mag += static_cast<TReal>( itk::Math::sqr( vec[jj] / static_cast<typename VectorType::ComponentType>( spacing[jj] ) ) );
           }
         mag = sqrt(mag);
         if( mag >  max2 )
@@ -1023,7 +1023,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
           TReal      lmag = 0;
           for( unsigned int li = 0; li < ImageDimension; li++ )
             {
-            lmag += (lmupdate[li] / spacing[li]) * (lmupdate[li] / spacing[li]);
+            lmag += static_cast<TReal>( itk::Math::sqr( (lmupdate[li] / static_cast<TReal>( spacing[li]) ) ) );
             }
           lmag = sqrt(lmag);
           TReal modi = 1;
@@ -1033,7 +1033,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
             }
           else
             {
-            modi = 1.0 - lmag;
+            modi = itk::NumericTraits<TReal>::OneValue() - lmag;
             }
           TReal      iwt = 1 * modi;
           TReal      lmwt = normalizedWeight;
@@ -1588,8 +1588,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   // we compose the update with this field.
   DisplacementFieldPointer totalField = this->m_DisplacementField;
 
-  TReal        timestep = 1.0 / (TReal) this->m_NTimeSteps;
-  unsigned int nts = (unsigned int)this->m_NTimeSteps;
+  TReal        timestep = itk::NumericTraits<TReal>::OneValue() / static_cast<TReal>( this->m_NTimeSteps );
+  unsigned int nts = static_cast<unsigned int>( this->m_NTimeSteps );
 
   ImagePointer             wfimage, wmimage;
   PointSetPointer          wfpoints = nullptr, wmpoints = nullptr;
@@ -1937,7 +1937,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typedef TimeVaryingVelocityFieldType tvt;
   typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
 
-  int tpupdate = (unsigned int) ( ( (TReal) this->m_NTimeSteps - 1.0) * timept + 0.5);
+  int tpupdate = static_cast<unsigned int>( static_cast<TReal>(this->m_NTimeSteps - 1) * timept + static_cast<TReal>( 0.5 ) );
   // std::cout <<"  add to " << tpupdate << std::endl;
   TReal           tmag = 0;
   TVFieldIterator m_FieldIter(velocity, velocity->GetLargestPossibleRegion() );
@@ -1957,7 +1957,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         {
         mag += vel[jj] * vel[jj];
         }
-      tmag += sqrt(mag);
+      tmag += static_cast<TReal>( std::sqrt( mag ) );
       m_FieldIter.Set(vel + m_FieldIter.Get() );
       }
     if( velind[ImageDimension] == tpupdate && update2 )
@@ -2052,8 +2052,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     this->m_SyNF->SetPixel( index, this->m_SyNF->GetPixel( index ) + vecf * this->m_GradstepAltered);
     this->m_SyNM->SetPixel( index, this->m_SyNM->GetPixel( index ) + vecm * this->m_GradstepAltered);
 // min field difference => geodesic => DV/dt=0
-    TReal      geowt1 = 0.95;
-    TReal      geowt2 = 1.0 - geowt1;
+    TReal      geowt1 = static_cast<TReal>( 0.95 );
+    TReal      geowt2 = itk::NumericTraits<TReal>::OneValue() - geowt1;
     VectorType synmv = this->m_SyNM->GetPixel( index );
     VectorType synfv   = this->m_SyNF->GetPixel( index );
     this->m_SyNM->SetPixel( index, synmv * geowt1 - synfv * geowt2);
@@ -2120,7 +2120,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     this->m_NTimeSteps = 2;
     }
   gsize[TDimension] = (unsigned long) this->m_NTimeSteps;
-  TReal hitstep = 1.0 / ( (TReal) this->m_NTimeSteps - 1);
+  TReal hitstep = itk::NumericTraits<TReal>::OneValue() / static_cast<TReal>( this->m_NTimeSteps - 1 );
   gspace[TDimension] = 1;
   gregion.SetSize(gsize);
   velocityUpdate->SetSpacing( gspace );
@@ -2316,21 +2316,21 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       beta1 = vec1[ii] * vec1[ii];
       beta2 = vec2[ii] * vec2[ii];
       }
-    if( alpha2 > 0 )
+    if( alpha2 > itk::NumericTraits<TReal>::ZeroValue() )
       {
-      alpha = alpha1 / (A * alpha2 + 0.001);
+      alpha = alpha1 / (A * alpha2 + static_cast<TReal>( 0.001 ) );
       }
-    if( beta2 > 0 )
+    if( beta2 > itk::NumericTraits<TReal>::ZeroValue() )
       {
-      beta = beta1 / (beta2 + 0.001);
+      beta = beta1 / (beta2 + static_cast<TReal>( 0.001 ) );
       }
-    if( beta > 1 )
+    if( beta > itk::NumericTraits<TReal>::OneValue() )
       {
-      beta = 1;
+      beta = itk::NumericTraits<TReal>::OneValue();
       }
-    if( alpha > 1 )
+    if( alpha > itk::NumericTraits<TReal>::OneValue() )
       {
-      alpha = 1;
+      alpha = itk::NumericTraits<TReal>::OneValue();
       }
     //        std::cout <<" beta " << beta << " alpha " << alpha << " it " << this->m_CurrentIteration <<
     // std::endl;
@@ -2350,9 +2350,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       mag += vv[jj] * vv[jj];
       }
-    tmag += sqrt(mag);
+    tmag += static_cast<TReal>( std::sqrt( mag ) );
     }
-  tmag /= ( (TReal) this->m_NTimeSteps * (TReal)numpx);
+  tmag /= ( static_cast<TReal>( this->m_NTimeSteps ) * static_cast<TReal>( numpx ) );
   std::cout << " DiffLength " << tmag << std::endl;
   if(  this->m_TotalSmoothingparam > 0
        || this->m_TotalSmoothingMeshSize[0] > 0 )
@@ -2411,7 +2411,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   intfield->SetSpacing( this->m_CurrentDomainSpacing );
   intfield->SetOrigin(  this->m_DisplacementField->GetOrigin() );
   intfield->SetDirection(  this->m_DisplacementField->GetDirection() );
-  if( starttimein == finishtimein )
+  if( itk::Math::FloatAlmostEqual( starttimein, finishtimein ) )
     {
     return intfield;
     }
@@ -2448,7 +2448,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       IndexType  velind = m_FieldIter.GetIndex();
       VectorType disp;
-      if( mask->GetPixel(velind) > 0.05 )
+      if( mask->GetPixel(velind) > static_cast<RealType>( 0.05 ) )
         {
         disp = this->IntegratePointVelocity(starttimein, finishtimein, velind) * mask->GetPixel(velind);
         }
@@ -2498,7 +2498,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   intfield->SetOrigin(  this->m_DisplacementField->GetOrigin() );
   intfield->SetDirection(  this->m_DisplacementField->GetDirection() );
 
-  if( starttimein == finishtimein )
+  if( itk::Math::FloatAlmostEqual( starttimein, finishtimein ) )
     {
     return intfield;
     }
@@ -2571,7 +2571,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   VectorType zero;
   zero.Fill(0);
-  if( starttimein == finishtimein )
+  if( itk::Math::FloatAlmostEqual( starttimein, finishtimein ) )
     {
     return zero;
     }
@@ -2647,7 +2647,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   while( !timedone )
     {
     TReal itimetn1 = itime - timesign * deltaTime;
-    TReal itimetn1h = itime - timesign * deltaTime * 0.5;
+    TReal itimetn1h = itime - timesign * deltaTime * static_cast<TReal>( 0.5 );
     if( itimetn1h < 0 )
       {
       itimetn1h = 0;
@@ -2700,7 +2700,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       f1 = this->m_VelocityFieldInterpolator->Evaluate( Y1x );
       for( unsigned int jj = 0; jj < TDimension; jj++ )
         {
-        Y2x[jj] += f1[jj] * deltaTime * 0.5;
+        Y2x[jj] += static_cast<TReal>( f1[jj] ) * deltaTime * static_cast<TReal>( 0.5 );
         }
       }
     if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y2x) )
@@ -2708,7 +2708,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       f2 = this->m_VelocityFieldInterpolator->Evaluate( Y2x );
       for( unsigned int jj = 0; jj < TDimension; jj++ )
         {
-        Y3x[jj] += f2[jj] * deltaTime * 0.5;
+        Y3x[jj] += static_cast<TReal>( f2[jj] ) * deltaTime * static_cast<TReal>( 0.5 );
         }
       }
     if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y3x) )
@@ -2716,18 +2716,22 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       f3 = this->m_VelocityFieldInterpolator->Evaluate( Y3x );
       for( unsigned int jj = 0; jj < TDimension; jj++ )
         {
-        Y4x[jj] += f3[jj] * deltaTime;
+        Y4x[jj] += static_cast<TReal>( f3[jj] ) * deltaTime;
         }
       }
     if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y4x) )
       {
       f4 = this->m_VelocityFieldInterpolator->Evaluate( Y4x );
       }
+    using xPointCoordRepType = typename xPointType::CoordRepType;
+    xPointCoordRepType twoValue = static_cast<xPointCoordRepType>( 2.0 );
     for( unsigned int jj = 0; jj < TDimension; jj++ )
       {
-      pointIn3[jj] = pointIn2[jj] + vecsign * deltaTime / 6.0 * ( f1[jj] + 2.0 * f2[jj] + 2.0 * f3[jj] + f4[jj] );
+      pointIn3[jj] = pointIn2[jj] + static_cast<xPointCoordRepType>( vecsign * deltaTime / 6.0f )
+        * ( static_cast<xPointCoordRepType>( f1[jj] ) + twoValue * static_cast<xPointCoordRepType>( f2[jj] )
+        + twoValue * static_cast<xPointCoordRepType>( f3[jj] ) + static_cast<xPointCoordRepType>( f4[jj] ) );
       }
-    pointIn3[TDimension] = itime * (TReal)(m_NumberOfTimePoints - 1);
+    pointIn3[TDimension] = itime * static_cast<TReal>( m_NumberOfTimePoints - 1 );
 
     VectorType out;
     TReal      mag = 0, dmag = 0;
@@ -2740,8 +2744,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
 
 //      std::cout << " p3 " << pointIn3 << std::endl;
-    dmag = sqrt(dmag);
-    totalmag += sqrt(mag);
+    dmag = std::sqrt( dmag );
+    totalmag += static_cast<TReal>( std::sqrt( mag ) );
     ct++;
     thislength += totalmag;
     euclideandist = dmag;
@@ -2753,7 +2757,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         timedone = true;
         }
       }
-    else if( thislength ==  0 )
+    else if( itk::Math::FloatAlmostEqual( thislength, itk::NumericTraits<TReal>::ZeroValue() ) )
       {
       timedone = true;
       }
@@ -2790,22 +2794,22 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     while( !timedone )
       {
       TReal itimetn1 = itime - timesign * deltaTime;
-      TReal itimetn1h = itime - timesign * deltaTime * 0.5;
-      if( itimetn1h < 0 )
+      TReal itimetn1h = itime - timesign * deltaTime * static_cast<TReal>( 0.5 );
+      if( itimetn1h < itk::NumericTraits<TReal>::ZeroValue() )
         {
-        itimetn1h = 0;
+        itimetn1h = itk::NumericTraits<TReal>::ZeroValue();
         }
-      if( itimetn1h > 1 )
+      if( itimetn1h > itk::NumericTraits<TReal>::OneValue() )
         {
-        itimetn1h = 1;
+        itimetn1h = itk::NumericTraits<TReal>::OneValue();
         }
-      if( itimetn1 < 0 )
+      if( itimetn1 < itk::NumericTraits<TReal>::ZeroValue() )
         {
-        itimetn1 = 0;
+        itimetn1 = itk::NumericTraits<TReal>::ZeroValue();
         }
-      if( itimetn1 > 1 )
+      if( itimetn1 > itk::NumericTraits<TReal>::OneValue() )
         {
-        itimetn1 = 1;
+        itimetn1 = itk::NumericTraits<TReal>::OneValue();
         }
 
       //      TReal totalmag=0;
@@ -2842,7 +2846,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         f1 = this->m_VelocityFieldInterpolator->Evaluate( Y1x );
         for( unsigned int jj = 0; jj < TDimension; jj++ )
           {
-          Y2x[jj] += f1[jj] * deltaTime * 0.5;
+          Y2x[jj] += static_cast<TReal>( f1[jj] ) * deltaTime * static_cast<TReal>( 0.5 );
           }
         }
       if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y2x) )
@@ -2850,7 +2854,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         f2 = this->m_VelocityFieldInterpolator->Evaluate( Y2x );
         for( unsigned int jj = 0; jj < TDimension; jj++ )
           {
-          Y3x[jj] += f2[jj] * deltaTime * 0.5;
+          Y3x[jj] += static_cast<TReal>( f2[jj] ) * deltaTime * static_cast<TReal>( 0.5 );
           }
         }
       if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y3x) )
@@ -2858,18 +2862,22 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         f3 = this->m_VelocityFieldInterpolator->Evaluate( Y3x );
         for( unsigned int jj = 0; jj < TDimension; jj++ )
           {
-          Y4x[jj] += f3[jj] * deltaTime;
+          Y4x[jj] += static_cast<TReal>( f3[jj] ) * deltaTime;
           }
         }
       if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y4x) )
         {
         f4 = this->m_VelocityFieldInterpolator->Evaluate( Y4x );
         }
+      using xPointCoordRepType = typename xPointType::CoordRepType;
+      xPointCoordRepType twoValue = static_cast<xPointCoordRepType>( 2.0 );
       for( unsigned int jj = 0; jj < TDimension; jj++ )
         {
-        pointIn3[jj] = pointIn2[jj] + vecsign * deltaTime / 6.0 * ( f1[jj] + 2.0 * f2[jj] + 2.0 * f3[jj] + f4[jj] );
+        pointIn3[jj] = pointIn2[jj] + static_cast<xPointCoordRepType>( vecsign * deltaTime / 6.0f )
+          * ( static_cast<xPointCoordRepType>( f1[jj] ) + twoValue * static_cast<xPointCoordRepType>( f2[jj] )
+          + twoValue * static_cast<xPointCoordRepType>( f3[jj] ) + static_cast<xPointCoordRepType>( f4[jj] ) );
         }
-      pointIn3[TDimension] = itime * (TReal)(m_NumberOfTimePoints - 1);
+      pointIn3[TDimension] = itime * static_cast<TReal>( m_NumberOfTimePoints - 1 );
 
       VectorType out;
       TReal      mag = 0, dmag = 0;
@@ -2899,7 +2907,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       //        bool isingray=true;
       if( this->m_MaskImage )
         {
-        if( this->m_MaskImage->GetPixel(velind) )
+        if( ! itk::Math::FloatAlmostEqual( this->m_MaskImage->GetPixel( velind ), itk::NumericTraits<TReal>::ZeroValue() ) )
           {
           VIndexType thind2;
           IndexType  thind;
@@ -2913,7 +2921,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
             unsigned long lastct = (unsigned long) this->m_HitImage->GetPixel(thind);
             unsigned long newct = lastct + 1;
             TReal         oldthick = this->m_ThickImage->GetPixel(thind);
-            TReal         newthick = (TReal)lastct / (TReal)newct * oldthick + 1.0 / (TReal)newct * euclideandist;
+            TReal         newthick = static_cast<TReal>( lastct ) / static_cast<TReal>( newct ) * oldthick + itk::NumericTraits<TReal>::OneValue() / static_cast<TReal>( newct ) * euclideandist;
             this->m_HitImage->SetPixel( thind,  newct );
             this->m_ThickImage->SetPixel(thind, newthick );
             }

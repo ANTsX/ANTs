@@ -115,7 +115,7 @@ namespace itk
  * \ingroup ThreadUnSafe
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-class SpatialMutualInformationRegistrationFunction :
+class SpatialMutualInformationRegistrationFunction final :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
 public:
@@ -349,7 +349,7 @@ public:
           if( pxy / denom > 0 )
             {
             // true mi
-            mi = pxy * log(pxy / denom);
+            mi = static_cast<double>( pxy * std::log(pxy / denom) );
             // test mi
             // mi = 1.0 + log(pxy/denom);
             ct++;
@@ -378,65 +378,65 @@ public:
         int                pdfMovingIndex = static_cast<int>( jj );
         JointPDFValueType *pdfPtr = m_JointPDF->GetBufferPointer() + ( ii * m_NumberOfHistogramBins ) + pdfMovingIndex;
         pxy = *(pdfPtr);
-        if( fabs(pxy) > 0 )
+        if( std::fabs(pxy) > itk::NumericTraits<float>::ZeroValue() )
           {
-          JointEntropy -= pxy * log(pxy);
+          JointEntropy -= static_cast<double>( pxy * std::log( pxy ) );
           }
 
         pdfPtr = m_JointPDFXuY->GetBufferPointer() + ( ii * m_NumberOfHistogramBins ) + pdfMovingIndex;
         pxy = *(pdfPtr);
-        if( fabs(pxy) > 0 )
+        if( std::fabs(pxy) > itk::NumericTraits<float>::ZeroValue() )
           {
-          JointEntropyXuY -= pxy * log(pxy);
+          JointEntropyXuY -= static_cast<double>( pxy * std::log( pxy ) );
           }
 
         pdfPtr = m_JointPDFXYu->GetBufferPointer() + ( ii * m_NumberOfHistogramBins ) + pdfMovingIndex;
         pxy = *(pdfPtr);
-        if( fabs(pxy) > 0 )
+        if( std::fabs(pxy) > itk::NumericTraits<float>::ZeroValue() )
           {
-          JointEntropyXYu -= pxy * log(pxy);
+          JointEntropyXYu -= static_cast<double>( pxy * std::log( pxy ) );
           }
 
         pdfPtr = m_JointPDFXlY->GetBufferPointer() + ( ii * m_NumberOfHistogramBins ) + pdfMovingIndex;
         pxy = *(pdfPtr);
-        if( fabs(pxy) > 0 )
+        if( std::fabs(pxy) > itk::NumericTraits<float>::ZeroValue() )
           {
-          JointEntropyXlY -= pxy * log(pxy);
+          JointEntropyXlY -= static_cast<double>( pxy * std::log( pxy ) );
           }
 
         pdfPtr = m_JointPDFXYl->GetBufferPointer() + ( ii * m_NumberOfHistogramBins ) + pdfMovingIndex;
         pxy = *(pdfPtr);
-        if( fabs(pxy) > 0 )
+        if( std::fabs(pxy) > itk::NumericTraits<float>::ZeroValue() )
           {
-          JointEntropyXYl -= pxy * log(pxy);
+          JointEntropyXYl -= static_cast<double>( pxy * std::log( pxy ) );
           }
 
         pdfPtr = m_JointPDFXuYl->GetBufferPointer() + ( ii * m_NumberOfHistogramBins ) + pdfMovingIndex;
         pxy = *(pdfPtr);
-        if( fabs(pxy) > 0 )
+        if( std::fabs(pxy) > itk::NumericTraits<float>::ZeroValue() )
           {
-          JointEntropyXuYl -= pxy * log(pxy);
+          JointEntropyXuYl -= static_cast<double>( pxy * std::log( pxy ) );
           }
 
         pdfPtr = m_JointPDFXlYu->GetBufferPointer() + ( ii * m_NumberOfHistogramBins ) + pdfMovingIndex;
         pxy = *(pdfPtr);
-        if( fabs(pxy) > 0 )
+        if( std::fabs(pxy) > itk::NumericTraits<float>::ZeroValue() )
           {
-          JointEntropyXlYu -= pxy * log(pxy);
+          JointEntropyXlYu -= static_cast<double>( pxy * std::log( pxy ) );
           }
 
         pdfPtr = m_JointPDFXrYu->GetBufferPointer() + ( ii * m_NumberOfHistogramBins ) + pdfMovingIndex;
         pxy = *(pdfPtr);
-        if( fabs(pxy) > 0 )
+        if( std::fabs(pxy) > itk::NumericTraits<float>::ZeroValue() )
           {
-          JointEntropyXrYu -= pxy * log(pxy);
+          JointEntropyXrYu -= static_cast<double>( pxy * std::log( pxy ) );
           }
 
         pdfPtr = m_JointPDFXuYr->GetBufferPointer() + ( ii * m_NumberOfHistogramBins ) + pdfMovingIndex;
         pxy = *(pdfPtr);
-        if( fabs(pxy) > 0 )
+        if( std::fabs(pxy) > itk::NumericTraits<float>::ZeroValue() )
           {
-          JointEntropyXuYr -= pxy * log(pxy);
+          JointEntropyXuYr -= static_cast<double>( pxy * std::log( pxy ) );
           }
         }
       }
@@ -484,18 +484,18 @@ public:
     fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( oindex );
     double nccm1 = 0;
     double loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
-    float eps = 10;
+    double eps = 10.0;
     if( loce > eps )
       {
       loce = eps;
       }
-    if( loce < eps * (-1.0) )
+    if( loce < -eps )
       {
-      loce = eps * (-1.0);
+      loce = -eps;
       }
     for( unsigned int imd = 0; imd < ImageDimension; imd++ )
       {
-      update[imd] = loce * fixedGradient[imd] * spacing[imd] * (1);
+      update[imd] = loce * fixedGradient[imd] * spacing[imd];
       }
     if( this->m_MetricImage )
       {
@@ -526,9 +526,8 @@ public:
   {
     unsigned int movingImageParzenWindowIndex  =
       static_cast<unsigned int>( this->m_Padding
-                                 + (unsigned int)( windowTerm
-                                                   * (float)(this->m_NumberOfHistogramBins - 1 - this->m_Padding
-                                                             + 0.5) ) );
+        + static_cast<unsigned int>( static_cast<float>( windowTerm ) *
+          static_cast<float>( this->m_NumberOfHistogramBins - 1 - this->m_Padding ) + 0.5f ) );
 
     // Make sure the extreme values are in valid bins
     if( movingImageParzenWindowIndex < this->m_Padding )
@@ -545,7 +544,7 @@ public:
 
   double FitContIndexInBins( double windowTerm )
   {
-    return (double) this->m_Padding + windowTerm * (float)(this->m_NumberOfHistogramBins - this->m_Padding);
+    return ( static_cast<double>( this->m_Padding ) + windowTerm * static_cast<double>( this->m_NumberOfHistogramBins - this->m_Padding ) );
   }
 
   VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
@@ -583,18 +582,18 @@ public:
     double nccm1 = 0;
     double loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
 
-    float eps = 10;
+    double eps = 10;
     if( loce > eps )
       {
       loce = eps;
       }
-    if( loce < eps * (-1.0) )
+    if( loce < -eps )
       {
-      loce = eps * (-1.0);
+      loce *= -1.0;
       }
     for( unsigned int imd = 0; imd < ImageDimension; imd++ )
       {
-      update[imd] = loce * movingGradient[imd] * spacing[imd] * (1);
+      update[imd] = static_cast<typename VectorType::ComponentType>( loce * movingGradient[imd] * spacing[imd] );
       }
     return update;
   }

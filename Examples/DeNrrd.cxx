@@ -155,10 +155,10 @@ private:
   gradientfile.open(output_gradients_filename);
   gradientfile << "VERSION: 2" << std::endl;
 
-  for ( int i=0; i<reader->GetOutput()->GetNumberOfComponentsPerPixel(); i++ )
+  for ( unsigned short i=0; i < static_cast<unsigned short>( reader->GetOutput()->GetNumberOfComponentsPerPixel() ); i++ )
     {
-    char gradKey[20];
-    sprintf( gradKey, "DWMRI_gradient_%04d", i );
+    char gradKey[40];
+    sprintf( gradKey, "DWMRI_gradient_%04hu", i );
     itk::ExposeMetaData<std::string>(mdd, gradKey, v_string);
     //std::cout << "Gradient = " << v_string << std::endl;
 

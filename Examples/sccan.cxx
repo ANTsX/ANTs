@@ -2215,12 +2215,9 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
   bool                                      getSmall = false;
   itk::ants::CommandLineParser::OptionType::Pointer getsmallopt =
     sccanparser->GetOption( "get-small" );
-  if( !getsmallopt || getsmallopt->GetNumberOfFunctions() == 0 )
+  if( getsmallopt && getsmallopt->GetNumberOfFunctions() > 0 )
     {
-    }
-  else
-    {
-    getSmall = sccanparser->Convert<matPixelType>(
+    getSmall = sccanparser->Convert<bool>(
         getsmallopt->GetFunction()->GetName() );
     }
 

@@ -51,7 +51,7 @@ namespace itk
  */
 
 template <typename TInputImage, typename TOutputImage>
-class WeightedVotingFusionImageFilter
+class WeightedVotingFusionImageFilter final
 : public NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
 {
 public:

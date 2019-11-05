@@ -57,8 +57,8 @@ double CalculateFractionalAnisotropy( TensorType tensor )
   double denominator = 0.0;
   for( unsigned int d = 0; d < TensorType::Dimension; d++ )
     {
-    numerator += itk::Math::sqr ( eigenvalues[d] - mean );
-    denominator += itk::Math::sqr ( eigenvalues[d] );
+    numerator += static_cast<double>( itk::Math::sqr( static_cast<double>( eigenvalues[d] ) - mean ) );
+    denominator += static_cast<double>( itk::Math::sqr( eigenvalues[d] ) );
     }
   fa = std::sqrt( ( 3.0 * numerator ) / ( 2.0 * denominator ) );
 
@@ -294,7 +294,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       for( unsigned int n = 0; n < labels.size(); n++ )
         {
         RealType percentage = percentageVoxels;
-        if( percentage > 1.0 )
+        if( percentage > itk::NumericTraits<RealType>::OneValue() )
           {
           percentage /= static_cast<RealType>( labelGeometry->GetVolume( labels[n] ) );
           }
@@ -335,7 +335,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           }
 
         RealType percentage = percentageVoxels;
-        if( percentage > 1.0 )
+        if( percentage > itk::NumericTraits<RealType>::OneValue() )
           {
           percentage /= static_cast<RealType>( labelGeometry->GetVolume( *it ) );
           }
@@ -420,8 +420,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           else
             {
             M(k, count) = eigenvalues[2];
-            M(k, totalMaskVolume + count) =
-              0.5 * ( eigenvalues[0] + eigenvalues[1] );
+            M(k, totalMaskVolume + count) = static_cast<RealType>( 0.5 )
+              * ( eigenvalues[0] + eigenvalues[1] );
             }
           ++count;
           }
@@ -655,8 +655,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       //
       RealType pathologyLongitudinalChange = 0.0;
       RealType pathologyTransverseChange = 0.0;
-      if( ( n == 0 || n > numberOfControls ) && randomizer->GetUniformVariate(
-            0.0, 1.0 ) <= pathologyParameters(labelIndex, 2) )
+      if( ( n == 0 || n > numberOfControls ) && static_cast<RealType>(
+            randomizer->GetUniformVariate( 0.0, 1.0 ) ) <= pathologyParameters(labelIndex, 2) )
         {
         pathologyLongitudinalChange = pathologyParameters(labelIndex, 0);
         pathologyTransverseChange = pathologyParameters(labelIndex, 1);
@@ -682,11 +682,11 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         newEigenvalues[1] = eigenvalues[1]
           + eigenvalues[1] * pathologyLongitudinalChange
           + isvLongitudinalProjection;
-        newEigenvalues[0] = eigenvalues[0] * ( 1.0 + eigenvalues[0] )
+        newEigenvalues[0] = eigenvalues[0] * ( itk::NumericTraits<RealType>::OneValue() + eigenvalues[0] )
           * pathologyTransverseChange + isvTransverseProjection;
         if( newEigenvalues[0] >= newEigenvalues[1] )
           {
-          newEigenvalues[0] = newEigenvalues[1] - 1.0e-6;
+          newEigenvalues[0] = newEigenvalues[1] - static_cast<RealType>( 1.0e-6 );
           }
         }
       else
@@ -694,13 +694,13 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         newEigenvalues[2] = eigenvalues[2]
           + eigenvalues[2] * pathologyLongitudinalChange
           + isvLongitudinalProjection;
-        RealType eigenAverage = 0.5 * ( eigenvalues[1] + eigenvalues[0] );
-        newEigenvalues[1] = ( 2.0 * eigenAverage
-                              * ( 1.0 + pathologyTransverseChange )
-                              + isvTransverseProjection ) / ( eigenvalues[0] / eigenvalues[1] + 1.0 );
+        RealType eigenAverage = static_cast<RealType>( 0.5 ) * ( eigenvalues[1] + eigenvalues[0] );
+        newEigenvalues[1] = ( static_cast<RealType>( 2.0 ) * eigenAverage
+                              * ( itk::NumericTraits<RealType>::OneValue() + pathologyTransverseChange )
+                              + isvTransverseProjection ) / ( eigenvalues[0] / eigenvalues[1] + itk::NumericTraits<RealType>::OneValue() );
         if( newEigenvalues[1] >= newEigenvalues[2] )
           {
-          newEigenvalues[1] = newEigenvalues[2] - 1.0e-6;
+          newEigenvalues[1] = newEigenvalues[2] - static_cast<RealType>( 1.0e-6 );
           }
         newEigenvalues[0] = ( eigenvalues[0] / eigenvalues[1] )
           * newEigenvalues[1];
@@ -717,7 +717,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         {
         newEigenvalues[0] = newEigenvalues[1];
         }
-      if( ImageDimension == 3 && newEigenvalues[2] < 0 )
+      if( ImageDimension == 3 && newEigenvalues[2] < itk::NumericTraits<RealType>::ZeroValue() )
         {
         newEigenvalues[2] = newEigenvalues[1];
         }
@@ -744,14 +744,14 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
       if( label != 0 && n == 0 )
         {
-        meanFAandMD(labelIndex, 0) +=
-          CalculateFractionalAnisotropy<TensorType>( tensor );
-        meanFAandMD(labelIndex, 1) +=
-          CalculateMeanDiffusivity<TensorType>( tensor );
-        meanFAandMD(labelIndex, 2) +=
-          CalculateFractionalAnisotropy<TensorType>( newTensor );
-        meanFAandMD(labelIndex, 3) +=
-          CalculateMeanDiffusivity<TensorType>( newTensor );
+        meanFAandMD(labelIndex, 0) += static_cast<RealType>(
+          CalculateFractionalAnisotropy<TensorType>( tensor ) );
+        meanFAandMD(labelIndex, 1) += static_cast<RealType>(
+          CalculateMeanDiffusivity<TensorType>( tensor ) );
+        meanFAandMD(labelIndex, 2) += static_cast<RealType>(
+          CalculateFractionalAnisotropy<TensorType>( newTensor ) );
+        meanFAandMD(labelIndex, 3) += static_cast<RealType>(
+          CalculateMeanDiffusivity<TensorType>( newTensor ) );
         meanFAandMD(labelIndex, 4)++;
         }
       else if( n != 0 )
@@ -858,12 +858,12 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           // Add Rician noise
           RealType realNoise = 0.0;
           RealType imagNoise = 0.0;
-          if( noiseSigma > 0.0 )
+          if( noiseSigma > itk::NumericTraits<RealType>::ZeroValue() )
             {
             realNoise = randomizer->GetNormalVariate( 0.0,
-                                                      itk::Math::sqr ( noiseSigma ) );
+                                                      itk::Math::sqr( noiseSigma ) );
             imagNoise = randomizer->GetNormalVariate( 0.0,
-                                                      itk::Math::sqr ( noiseSigma ) );
+                                                      itk::Math::sqr( noiseSigma ) );
             }
           RealType realSignal = signal + realNoise;
           RealType imagSignal = imagNoise;

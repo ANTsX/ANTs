@@ -45,7 +45,7 @@ namespace itk
  */
 
 template <typename TInputImage, typename TOutputImage>
-class DiReCTImageFilter :
+class DiReCTImageFilter final :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

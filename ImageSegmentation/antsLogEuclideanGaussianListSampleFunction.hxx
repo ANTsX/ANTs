@@ -53,8 +53,9 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     {
     RealType L = static_cast<RealType>(
         this->GetInputListSample()->GetMeasurementVectorSize() );
-    unsigned int D = static_cast<unsigned int>( 0.5 * ( -1 + std::sqrt( 1.0
-                                                                       + 8.0 * L ) ) );
+    unsigned int D = static_cast<unsigned int>( static_cast<RealType>( 0.5 ) *
+      ( -NumericTraits<RealType>::OneValue() + std::sqrt( NumericTraits<RealType>::OneValue()
+        + static_cast<RealType>( 8.0 ) * L ) ) );
     this->m_MeanTensor.SetSize( D, D );
     this->m_MeanTensor.Fill( 0.0 );
 
@@ -90,7 +91,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
       ++It;
       }
 
-    if( totalWeight > 0.0 )
+    if( totalWeight > NumericTraits<RealType>::ZeroValue() )
       {
       this->m_MeanTensor /= totalWeight;
       }
@@ -127,7 +128,7 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
         weight = ( *this->GetListSampleWeights() )[N++];
         }
 
-      this->m_Dispersion += ( weight * itk::Math::sqr ( distance ) );
+      this->m_Dispersion += ( weight * itk::Math::sqr( distance ) );
       ++It;
       }
 
@@ -156,13 +157,13 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
   decomposer->EvaluateSymmetricEigenDecomposition( Tc, W, V );
   for( unsigned int i = 0; i < W.Rows(); i++ )
     {
-    if( W( i, i ) > 0.0 )
+    if( W( i, i ) > NumericTraits<typename TensorType::ComponentType>::ZeroValue() )
       {
       W( i, i ) = std::log( W( i, i ) );
       }
     else
       {
-      W( i, i ) = 0.0;
+      W( i, i ) =  NumericTraits<typename TensorType::ComponentType>::ZeroValue();
       }
     }
   W *= V.GetTranspose();
@@ -230,10 +231,10 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
       }
     }
   RealType distance = this->CalculateTensorDistance( T, this->m_MeanTensor );
-  RealType preFactor = 1.0
-    / ( std::sqrt( 2.0 * itk::Math::pi * this->m_Dispersion ) );
-  RealType probability = preFactor * std::exp( -0.5
-                                              * itk::Math::sqr ( distance ) / this->m_Dispersion );
+  RealType preFactor = NumericTraits<RealType>::OneValue()
+    / ( std::sqrt( static_cast<RealType>( 2.0 ) * static_cast<RealType>( itk::Math::pi ) * this->m_Dispersion ) );
+  RealType probability = preFactor * std::exp( static_cast<RealType>( -0.5 )
+                                              * itk::Math::sqr( distance ) / this->m_Dispersion );
 
   return probability;
 }

@@ -862,11 +862,12 @@ ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
   ImagePointer current_image = image;
   for( unsigned int d = 0; d < ImageType::ImageDimension; d++ )
     {
-    RealType scaling = std::min( scalingFactor * minimumSpacing / inputSpacing[d],
-                                     static_cast<RealType>( inputSize[d] ) / 32.0 );
-    outputSpacing[d] = inputSpacing[d] * scaling;
-    outputSize[d] = static_cast<unsigned long>( inputSpacing[d]
-                                                * static_cast<RealType>( inputSize[d] ) / outputSpacing[d] + 0.5 );
+    RealType scaling = static_cast<RealType>( std::min( scalingFactor *
+      static_cast<float>( minimumSpacing ) / static_cast<float>( inputSpacing[d] ),
+      static_cast<float>( inputSize[d] ) / 32.0f ) );
+    outputSpacing[d] = inputSpacing[d] * static_cast<double>( scaling );
+    outputSize[d] = static_cast<unsigned long>( static_cast<RealType>( inputSpacing[d] )
+                                                * static_cast<RealType>( inputSize[d] ) / static_cast<RealType>( outputSpacing[d] ) + static_cast<RealType>( 0.5 ) );
 
     typedef itk::RecursiveGaussianImageFilter<ImageType, ImageType> GaussianFilterType;
     typename GaussianFilterType::Pointer smoother = GaussianFilterType::New();

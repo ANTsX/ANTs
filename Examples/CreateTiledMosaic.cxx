@@ -898,7 +898,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
             {
             PixelType pixel = 255 * ( It.Get() - minIntensityValue ) / ( maxIntensityValue - minIntensityValue );
 
-            if( outputMaskSlice2 && outputMaskSlice2->GetPixel( It.GetIndex() ) != 0 )
+            if( outputMaskSlice2 && ! itk::Math::FloatAlmostEqual( outputMaskSlice2->GetPixel( It.GetIndex() ), itk::NumericTraits<PixelType>::ZeroValue() ) )
               {
               rgbPixel.SetRed( static_cast<RgbComponentType>( ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetRed() ) );
               rgbPixel.SetGreen( static_cast<RgbComponentType>( ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) * pixel + functionalAlpha * rgbPixel.GetGreen() ) );
@@ -930,9 +930,9 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
               RealType backgroundGreen = backgroundRgbPixel.GetGreen() / static_cast<RealType>( 255.0 );
               RealType backgroundBlue  = backgroundRgbPixel.GetBlue() / static_cast<RealType>( 255.0 );
 
-              RealType currentRed   = functionalRed   * functionalAlpha / currentAlpha + backgroundRed   * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
-              RealType currentGreen = functionalGreen * functionalAlpha / currentAlpha + backgroundGreen * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
-              RealType currentBlue  = functionalBlue  * functionalAlpha / currentAlpha + backgroundBlue  * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
+              RealType currentRed   = functionalRed   * functionalAlpha / currentAlpha + backgroundRed   * backgroundAlpha * ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) / currentAlpha;
+              RealType currentGreen = functionalGreen * functionalAlpha / currentAlpha + backgroundGreen * backgroundAlpha * ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) / currentAlpha;
+              RealType currentBlue  = functionalBlue  * functionalAlpha / currentAlpha + backgroundBlue  * backgroundAlpha * ( itk::NumericTraits<RealType>::OneValue() - functionalAlpha ) / currentAlpha;
 
               rgbPixel.SetRed( currentRed * static_cast<RealType>( 255.0 ) );
               rgbPixel.SetGreen( currentGreen * static_cast<RealType>( 255.0 ) );

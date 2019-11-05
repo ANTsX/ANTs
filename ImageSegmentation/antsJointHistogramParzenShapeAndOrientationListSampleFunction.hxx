@@ -21,7 +21,7 @@
 #include "itkContinuousIndex.h"
 #include "itkDecomposeTensorFunction.h"
 #include "itkDiscreteGaussianImageFilter.h"
-#include "itkDivideByConstantImageFilter.h"
+#include "itkDivideImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 
 namespace itk
@@ -80,21 +80,21 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     }
 
   typename JointHistogramImageType::PointType shapePoint;
-  if( eigenvalue1 > 1.0 )
+  if( eigenvalue1 > NumericTraits<RealType>::OneValue() )
     {
-    eigenvalue1 = 1.0;
+    eigenvalue1 = NumericTraits<RealType>::OneValue();
     }
-  if( eigenvalue2 > 1.0 )
+  if( eigenvalue2 > NumericTraits<RealType>::OneValue() )
     {
-    eigenvalue2 = 1.0;
+    eigenvalue2 = NumericTraits<RealType>::OneValue();
     }
-  if( eigenvalue1 < 0.0 )
+  if( eigenvalue1 < NumericTraits<RealType>::ZeroValue() )
     {
-    eigenvalue1 = 0.0;
+    eigenvalue1 = NumericTraits<RealType>::ZeroValue();
     }
-  if( eigenvalue2 < 0 )
+  if( eigenvalue2 < NumericTraits<RealType>::ZeroValue() )
     {
-    eigenvalue2 = 0.0;
+    eigenvalue2 = NumericTraits<RealType>::ZeroValue();
     }
 
   shapePoint[0] = eigenvalue1 * ( this->m_NumberOfShapeJointHistogramBins - 1 );
@@ -124,17 +124,17 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     /** linear addition */
     shapeIdx[0] = static_cast<IndexValueType>( std::floor( shapeCidx[0] ) );
     shapeIdx[1] = static_cast<IndexValueType>( std::floor( shapeCidx[1] ) );
-    RealType distance1 = std::sqrt( itk::Math::sqr ( shapeCidx[0] - shapeIdx[0] )
-                                   + itk::Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
+    RealType distance1 = std::sqrt( Math::sqr ( shapeCidx[0] - shapeIdx[0] )
+                                   + Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
     shapeIdx[0]++;
-    RealType distance2 = std::sqrt( itk::Math::sqr ( shapeCidx[0] - shapeIdx[0] )
-                                   + itk::Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
+    RealType distance2 = std::sqrt( Math::sqr ( shapeCidx[0] - shapeIdx[0] )
+                                   + Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
     shapeIdx[1]++;
-    RealType distance3 = std::sqrt( itk::Math::sqr ( shapeCidx[0] - shapeIdx[0] )
-                                   + itk::Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
+    RealType distance3 = std::sqrt( Math::sqr ( shapeCidx[0] - shapeIdx[0] )
+                                   + Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
     shapeIdx[0]--;
-    RealType distance4 = std::sqrt( itk::Math::sqr ( shapeCidx[0] - shapeIdx[0] )
-                                   + itk::Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
+    RealType distance4 = std::sqrt( Math::sqr ( shapeCidx[0] - shapeIdx[0] )
+                                   + Math::sqr ( shapeCidx[1] - shapeIdx[1] ) );
     RealType sumDistance = distance1 + distance2 + distance3 + distance4;
     distance1 /= sumDistance;
     distance2 /= sumDistance;
@@ -150,7 +150,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       RealType oldWeight =
         this->m_JointHistogramImages[whichHistogram]->GetPixel( shapeIdx );
       this->m_JointHistogramImages[whichHistogram]->SetPixel( shapeIdx,
-                                                              ( 1.0 - distance1 ) * newWeight + oldWeight );
+                                                              ( NumericTraits<RealType>::OneValue() - distance1 ) * newWeight + oldWeight );
       }
     shapeIdx[0]++;
     if( this->m_JointHistogramImages[whichHistogram]->
@@ -159,7 +159,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       RealType oldWeight =
         this->m_JointHistogramImages[whichHistogram]->GetPixel( shapeIdx );
       this->m_JointHistogramImages[whichHistogram]->SetPixel( shapeIdx,
-                                                              ( 1.0 - distance2 ) * newWeight + oldWeight );
+                                                              ( NumericTraits<RealType>::OneValue() - distance2 ) * newWeight + oldWeight );
       }
     shapeIdx[1]++;
     if( this->m_JointHistogramImages[whichHistogram]->
@@ -168,7 +168,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       RealType oldWeight
         = this->m_JointHistogramImages[whichHistogram]->GetPixel( shapeIdx );
       this->m_JointHistogramImages[whichHistogram]->SetPixel( shapeIdx,
-                                                              ( 1.0 - distance3 ) * newWeight + oldWeight );
+                                                              ( NumericTraits<RealType>::OneValue() - distance3 ) * newWeight + oldWeight );
       }
     shapeIdx[0]--;
     if( this->m_JointHistogramImages[whichHistogram]->
@@ -177,7 +177,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       RealType oldWeight =
         this->m_JointHistogramImages[whichHistogram]->GetPixel( shapeIdx );
       this->m_JointHistogramImages[whichHistogram]->SetPixel( shapeIdx,
-                                                              ( 1.0 - distance4) * newWeight + oldWeight );
+                                                              ( NumericTraits<RealType>::OneValue() - distance4) * newWeight + oldWeight );
       }
     }
   return;
@@ -210,7 +210,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     this->m_JointHistogramImages[whichHistogram]->FillBuffer( 0 );
     }
 
-  typename JointHistogramImageType::PointType orientPoint;
+  JointHistogramImagePointType orientPoint;
   RealType tp[2];
   tp[1] = 0.0;
 
@@ -218,7 +218,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   // We do this to avoid redundancy in representation of the eigenvectors,
   // because they are all redundant.
 
-  if( x < 0 )
+  if( x < NumericTraits<RealType>::ZeroValue() )
     {
     x *= -1;
     y *= -1;
@@ -232,50 +232,50 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   // if x and y are 0.0 or very close, return phi == 0
   // we do this to eliminate redundancy in the distribution of orientations.
 
-  if( itk::Math::abs ( x ) + itk::Math::abs ( y ) < 1e-9 )
+  if( Math::abs( x ) + Math::abs( y ) < static_cast<RealType>( 1e-9 ) )
     {
-    tp[1] = 0.0;
+    tp[1] = NumericTraits<RealType>::ZeroValue();
     }
   else
     {
-    if( y == 0.0 )
+    if( Math::FloatAlmostEqual( y, NumericTraits<RealType>::ZeroValue() ) )
       {
-      if( x > 0.0 )
+      if( x > NumericTraits<RealType>::ZeroValue() )
         {
-        tp[1] = 0.0;
+        tp[1] = NumericTraits<RealType>::ZeroValue();
         }
       else
         {
-        tp[1] = itk::Math::pi;
+        tp[1] = Math::pi;
         }
       }
-    else if( x == 0.0 )
+    else if( Math::FloatAlmostEqual( x, NumericTraits<RealType>::ZeroValue() ) )
       {
       // avoid div by zero
-      if( y > 0 )
+      if( y > NumericTraits<RealType>::ZeroValue() )
         {
-        tp[1] = itk::Math::pi_over_2;
+        tp[1] = Math::pi_over_2;
         }
       else
         {
-        tp[1] = -itk::Math::pi_over_2;
+        tp[1] = -Math::pi_over_2;
         }
       }
-    else if( x > 0.0 && y > 0.0 )
+    else if( x > NumericTraits<RealType>::ZeroValue() && y > NumericTraits<RealType>::ZeroValue() )
       {     // first quadrant
       tp[1] = std::atan( y / x );
       }
-    else if( x < 0.0 && y > 0.0 )
+    else if( x < NumericTraits<RealType>::ZeroValue() && y > NumericTraits<RealType>::ZeroValue() )
       {     // second quadrant
-      tp[1] = itk::Math::pi + std::atan( y / x );
+      tp[1] = static_cast<RealType>( Math::pi ) + std::atan( y / x );
       }
-    else if( x < 0.0 && y < 0.0 )
+    else if( x < NumericTraits<RealType>::ZeroValue() && y < NumericTraits<RealType>::ZeroValue() )
       {     // third quadrant
-      tp[1] =  itk::Math::pi + atan( y / x );
+      tp[1] =  static_cast<RealType>( Math::pi ) + std::atan( y / x );
       }
     else
       {     // fourth quadrant
-      tp[1] = atan( y / x );
+      tp[1] = std::atan( y / x );
       }
     }
   RealType psi = tp[0];
@@ -283,10 +283,10 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 
 // note, if a point maps to 0 or 2*pi then it should contribute to both bins -- pretty much only difference between this
 // function and matlab code is the next 15 or so lines, as far as we see
-  orientPoint[0] = psi / (itk::Math::pi ) *
-    ( this->m_NumberOfOrientationJointHistogramBins - 1) + 1;
-  orientPoint[1] = ( theta + itk::Math::pi_over_2 ) / itk::Math::pi
-    * ( this->m_NumberOfOrientationJointHistogramBins - 1 );
+  orientPoint[0] = static_cast<typename JointHistogramImagePointType::CoordRepType>( psi / static_cast<RealType>( Math::pi ) *
+    static_cast<RealType>( this->m_NumberOfOrientationJointHistogramBins - 1 ) + NumericTraits<RealType>::OneValue() );
+  orientPoint[1] = static_cast<typename JointHistogramImagePointType::CoordRepType>( ( theta + static_cast<RealType>( Math::pi_over_2 ) ) / static_cast<RealType>( Math::pi )
+    * static_cast<RealType>( this->m_NumberOfOrientationJointHistogramBins - 1 ) );
 
   ContinuousIndex<double, 2> orientCidx;
   this->m_JointHistogramImages[whichHistogram]->
@@ -315,17 +315,17 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     {
     orientIdx[0] = static_cast<IndexValueType>( std::floor( orientCidx[0] ) );
     orientIdx[1] = static_cast<IndexValueType>( std::floor( orientCidx[1] ) );
-    RealType distance1 = std::sqrt( itk::Math::sqr ( orientCidx[0] - orientIdx[0] )
-                                   + itk::Math::sqr ( orientCidx[1] - orientIdx[1] ) );
+    RealType distance1 = std::sqrt( Math::sqr ( orientCidx[0] - orientIdx[0] )
+                                   + Math::sqr ( orientCidx[1] - orientIdx[1] ) );
     orientIdx[0]++;
-    RealType distance2 = std::sqrt( itk::Math::sqr ( orientCidx[0] - orientIdx[0] )
-                                   + itk::Math::sqr ( orientCidx[1] - orientIdx[1] ) );
+    RealType distance2 = std::sqrt( Math::sqr ( orientCidx[0] - orientIdx[0] )
+                                   + Math::sqr ( orientCidx[1] - orientIdx[1] ) );
     orientIdx[1]++;
-    RealType distance3 = std::sqrt( itk::Math::sqr ( orientCidx[0] - orientIdx[0] )
-                                   + itk::Math::sqr ( orientCidx[1] - orientIdx[1] ) );
+    RealType distance3 = std::sqrt( Math::sqr ( orientCidx[0] - orientIdx[0] )
+                                   + Math::sqr ( orientCidx[1] - orientIdx[1] ) );
     orientIdx[0]--;
-    RealType distance4 = std::sqrt( itk::Math::sqr ( orientCidx[0] - orientIdx[0] )
-                                   + itk::Math::sqr ( orientCidx[1] - orientIdx[1] ) );
+    RealType distance4 = std::sqrt( Math::sqr ( orientCidx[0] - orientIdx[0] )
+                                   + Math::sqr ( orientCidx[1] - orientIdx[1] ) );
     RealType sumDistance = distance1 + distance2 + distance3 + distance4;
     distance1 /= sumDistance;
     distance2 /= sumDistance;
@@ -340,7 +340,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       RealType oldWeight =
         this->m_JointHistogramImages[whichHistogram]->GetPixel( orientIdx );
       this->m_JointHistogramImages[whichHistogram]->SetPixel( orientIdx,
-                                                              ( 1.0 - distance1 ) * newWeight + oldWeight );
+                                                              ( NumericTraits<RealType>::OneValue() - distance1 ) * newWeight + oldWeight );
       }
     orientIdx[0]++;
     if( this->m_JointHistogramImages[whichHistogram]->
@@ -349,7 +349,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       RealType oldWeight =
         this->m_JointHistogramImages[whichHistogram]->GetPixel( orientIdx );
       this->m_JointHistogramImages[whichHistogram]->SetPixel( orientIdx,
-                                                              ( 1.0 - distance2 ) * newWeight + oldWeight );
+                                                              ( NumericTraits<RealType>::OneValue() - distance2 ) * newWeight + oldWeight );
       }
     orientIdx[1]++;
     if( this->m_JointHistogramImages[whichHistogram]->
@@ -358,7 +358,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       RealType oldWeight =
         this->m_JointHistogramImages[whichHistogram]->GetPixel( orientIdx );
       this->m_JointHistogramImages[whichHistogram]->SetPixel( orientIdx,
-                                                              ( 1.0 - distance3 ) * newWeight + oldWeight );
+                                                              ( NumericTraits<RealType>::OneValue() - distance3 ) * newWeight + oldWeight );
       }
     orientIdx[0]--;
     if( this->m_JointHistogramImages[whichHistogram]->
@@ -367,7 +367,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       RealType oldWeight =
         this->m_JointHistogramImages[whichHistogram]->GetPixel(orientIdx );
       this->m_JointHistogramImages[whichHistogram]->SetPixel( orientIdx,
-                                                              ( 1.0 - distance4) * newWeight + oldWeight );
+                                                              ( NumericTraits<RealType>::OneValue() - distance4) * newWeight + oldWeight );
       }
     }
 
@@ -453,11 +453,11 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     {
     this->m_JointHistogramImages[d] = nullptr;
     }
-
   RealType L = static_cast<RealType>(
       this->GetInputListSample()->GetMeasurementVectorSize() );
-  unsigned int D = static_cast<unsigned int>( 0.5 * ( -1 + std::sqrt( 1.0
-                                                                     + 8.0 * L ) ) );
+ unsigned int D = static_cast<unsigned int>( static_cast<RealType>( 0.5 ) *
+   ( -NumericTraits<RealType>::OneValue() + std::sqrt( NumericTraits<RealType>::OneValue()
+     + static_cast<RealType>( 8.0 ) * L ) ) );
 
   It = this->GetInputListSample()->Begin();
   while( It != this->GetInputListSample()->End() )
@@ -587,7 +587,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     stats->SetInput( gaussian->GetOutput() );
     stats->Update();
 
-    typedef DivideByConstantImageFilter<JointHistogramImageType, RealType,
+    typedef DivideImageFilter<JointHistogramImageType, JointHistogramImageType,
                                         JointHistogramImageType> DividerType;
     typename DividerType::Pointer divider = DividerType::New();
     divider->SetInput( gaussian->GetOutput() );
@@ -634,7 +634,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       this->m_Interpolator->SetInputImage( this->m_JointHistogramImages[d] );
       if( this->m_Interpolator->IsInsideBuffer( point ) )
         {
-        probability *= this->m_Interpolator->Evaluate( point );
+        probability *= static_cast<RealType>( this->m_Interpolator->Evaluate( point ) );
         }
       else
         {

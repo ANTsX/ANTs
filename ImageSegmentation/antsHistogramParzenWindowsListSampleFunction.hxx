@@ -21,7 +21,7 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkContinuousIndex.h"
 #include "itkDiscreteGaussianImageFilter.h"
-#include "itkDivideByConstantImageFilter.h"
+#include "itkDivideImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 
 namespace itk
@@ -105,13 +105,17 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     spacing[0] = ( maxValues[d] - minValues[d] )
       / static_cast<RealType>( this->m_NumberOfHistogramBins - 1 );
 
-    typename HistogramImageType::PointType origin;
-    origin[0] = minValues[d] - 3.0 * ( this->m_Sigma * spacing[0] );
+    using HistogramPointType = typename HistogramImageType::PointType;
+    HistogramPointType origin;
+    origin[0] = static_cast<typename HistogramPointType::CoordRepType>( minValues[d] ) -
+      static_cast<typename HistogramPointType::CoordRepType>( 3.0 ) *
+      ( static_cast<typename HistogramPointType::CoordRepType>( this->m_Sigma ) *
+      static_cast<typename HistogramPointType::CoordRepType>( spacing[0] ) );
 
     typename HistogramImageType::SizeType size;
     size[0] = static_cast<unsigned int>(
-        std::ceil( ( maxValues[d] + 3.0 * ( this->m_Sigma * spacing[0] )
-                    - ( minValues[d] - 3.0 * ( this->m_Sigma * spacing[0] ) ) ) / spacing[0] ) );
+        std::ceil( ( maxValues[d] + static_cast<RealType>( 3.0 ) * ( this->m_Sigma * static_cast<RealType>( spacing[0] ) )
+                    - ( minValues[d] - static_cast<RealType>( 3.0 ) * ( this->m_Sigma * static_cast<RealType>( spacing[0] ) ) ) ) / static_cast<RealType>( spacing[0] ) ) );
 
     this->m_HistogramImages[d]->SetOrigin( origin );
     this->m_HistogramImages[d]->SetSpacing( spacing );
@@ -148,15 +152,16 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
         {
         RealType oldWeight = this->m_HistogramImages[d]->GetPixel( idx );
         this->m_HistogramImages[d]->SetPixel( idx,
-                                              ( 1.0 - ( cidx[0] - idx[0] ) ) * newWeight + oldWeight );
+          ( NumericTraits<typename HistogramImageType::PixelType>::OneValue() - static_cast<typename HistogramImageType::PixelType>( cidx[0] - idx[0] ) ) *
+            static_cast<typename HistogramImageType::PixelType>( newWeight ) + static_cast<typename HistogramImageType::PixelType>( oldWeight ) );
         }
-
       idx[0]++;
       if( this->m_HistogramImages[d]->GetLargestPossibleRegion().IsInside( idx ) )
         {
         RealType oldWeight = this->m_HistogramImages[d]->GetPixel( idx );
         this->m_HistogramImages[d]->SetPixel( idx,
-                                              ( 1.0 - ( idx[0] - cidx[0] ) ) * newWeight + oldWeight );
+          ( NumericTraits<typename HistogramImageType::PixelType>::OneValue() - static_cast<typename HistogramImageType::PixelType>( idx[0] - cidx[0] ) ) *
+            static_cast<typename HistogramImageType::PixelType>( newWeight ) + static_cast<typename HistogramImageType::PixelType>( oldWeight ) );
         }
       }
     ++count;
@@ -178,7 +183,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     stats->SetInput( gaussian->GetOutput() );
     stats->Update();
 
-    typedef DivideByConstantImageFilter<HistogramImageType, RealType,
+    typedef DivideImageFilter<HistogramImageType, HistogramImageType,
                                         HistogramImageType> DividerType;
     typename DividerType::Pointer divider = DividerType::New();
     divider->SetInput( gaussian->GetOutput() );
@@ -204,7 +209,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
       this->m_Interpolator->SetInputImage( this->m_HistogramImages[d] );
       if( this->m_Interpolator->IsInsideBuffer( point ) )
         {
-        probability *= this->m_Interpolator->Evaluate( point );
+        probability *= static_cast<RealType>( this->m_Interpolator->Evaluate( point ) );
         }
       else
         {

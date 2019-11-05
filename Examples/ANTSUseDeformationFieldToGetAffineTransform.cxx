@@ -295,7 +295,7 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
       VectorType displacement = field->GetPixel(index);
       for( unsigned int j = 0; j < ImageDimension; j++ )
         {
-        point2[j] = point1[j] + displacement[j];
+        point2[j] = point1[j] + static_cast<typename PointType::CoordRepType>( displacement[j] );
         }
 
       fixedLandmarks.push_back(point1);
