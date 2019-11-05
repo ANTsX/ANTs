@@ -961,7 +961,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
 	      VectorIOType vecout;
 	      vecout.Fill( 0 );
         typename MovingIOImageType::IndexType ind;
-        for( itk::SizeValueType xx = 0; xx < MovingIOImageType::ImageDimension; xx++ )
+        for( itk::SizeValueType xx = 0; xx < ImageDimension-1; xx++ )
           {
           ind[xx] = vfIter2.GetIndex()[xx];
           vecout[xx] = vec[xx];
@@ -1023,7 +1023,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
           VectorIOType vecout;
           vecout.Fill( 0 );
           typename MovingIOImageType::IndexType ind;
-          for( itk::SizeValueType xx = 0; xx < MovingIOImageType::ImageDimension; xx++ )
+          for( itk::SizeValueType xx = 0; xx < ImageDimension-1; xx++ )
             {
             ind[xx] = vfIter2.GetIndex()[xx];
             vecout[xx] = vec[xx];
