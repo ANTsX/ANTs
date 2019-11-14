@@ -140,12 +140,65 @@
 namespace ants
 {
 
+static inline std::string ANTSGetFilePrefix(const char *str)
+{
+  const std::string      filename = str;
+  const std::string::size_type pos = filename.rfind( "." );
+  const std::string            filepre = std::string( filename, 0, pos );
 
-extern std::string ANTSGetFilePrefix(const char *str);
-extern std::map<unsigned int, std::string> RoiList(std::string file);
-extern std::string ANTSOptionValue(const char *str);
-extern std::string ANTSOptionName(const char *str);
+#if 0 // HACK:  This does nothing useful
+  if( pos != std::string::npos )
+    {
+    std::string extension = std::string( filename, pos, filename.length() - 1);
+    if( extension == std::string(".gz") )
+      {
+      pos = filepre.rfind( "." );
+      // extension = std::string( filepre, pos, filepre.length() - 1 );
+      }
+    }
+#endif
+  return filepre;
+}
 
+static inline std::string ANTSOptionName(const char *str)
+{
+  std::string            filename = str;
+  std::string::size_type pos = filename.rfind( "=" );
+  std::string            name = std::string( filename, 0, pos );
+
+  return name;
+}
+
+static inline std::string ANTSOptionValue(const char *str)
+{
+  std::string            filename = str;
+  std::string::size_type pos = filename.rfind( "=" );
+  std::string            value = std::string( filename, pos + 1, filename.length() );
+
+  return value;
+}
+
+
+// int is the key, string the return value
+static inline std::map<unsigned int, std::string> RoiList(std::string file)
+{
+  unsigned int wordindex = 0;
+  std::string  tempstring = "";
+
+  std::map<unsigned int, std::string> RoiList;
+  //  RoiList[0]=std::string("Background");
+  char         str[2000];
+  std::fstream file_op(file.c_str(), std::ios::in);
+
+  while( file_op >> str )
+    {
+    tempstring = std::string(str);
+    RoiList[wordindex] = tempstring;
+    wordindex++;
+    }
+
+  return RoiList; // returns the maximum index
+}
 
 template <typename T>
 bool from_string(T& t,

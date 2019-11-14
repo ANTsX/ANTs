@@ -171,21 +171,21 @@ DecomposeTensorFunction2<TInput, TRealType, TOutput>
 
   bool isidentity = true;
 
-  float tol = 1.e-12;
+  double tol = 1.e-12;
   for( unsigned int i = 0; i < RowDimensions; i++ )
     {
     for( unsigned int j = 0; j < RowDimensions; j++ )
       {
       if( i == j )
         {
-        if( fabs(M[i][j] - 1.0) > tol )
+        if( std::fabs(M[i][j] - 1.0) > tol )
           {
           isidentity = false;
           }
         }
       else
         {
-        if( fabs(M[i][j]) > tol )
+        if( std::fabs(M[i][j]) > tol )
           {
           isidentity = false;
           }

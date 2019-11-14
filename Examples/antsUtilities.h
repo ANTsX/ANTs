@@ -119,7 +119,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 
   StructuringElementType structuringElement;
 
-  structuringElement.SetRadius( (unsigned long) rad );  // 3x3x3 structuring element
+  structuringElement.SetRadius( static_cast<unsigned long>( rad ) );  // 3x3x3 structuring element
 
   structuringElement.CreateStructuringElement();
 
@@ -149,8 +149,8 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
   //  images. This is specified with the methods \code{SetErodeValue()} and
   //  \code{SetDilateValue()}. The value passed to these methods will be
   //  considered the value over which the dilation and erosion rules will apply
-  binaryErode->SetErodeValue( (unsigned int ) dilateval );
-  binaryDilate->SetDilateValue(  (unsigned int ) dilateval );
+  binaryErode->SetErodeValue( static_cast<unsigned int>( dilateval ) );
+  binaryDilate->SetDilateValue( static_cast<unsigned int>( dilateval ) );
 
   typename TImage::Pointer temp;
   if( option == 1 )
@@ -357,8 +357,8 @@ typename TImage::Pointer BinaryThreshold(
     {
     high = 255;
     }
-  inputThresholder->SetLowerThreshold( (PixelType) low );
-  inputThresholder->SetUpperThreshold( (PixelType) high );
+  inputThresholder->SetLowerThreshold( static_cast<PixelType>( low ) );
+  inputThresholder->SetUpperThreshold( static_cast<PixelType>( high ) );
   inputThresholder->Update();
 
   return inputThresholder->GetOutput();
@@ -556,7 +556,7 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
     }
   for( int i = 0; i < ImageDimension; i++ )
     {
-    largest_size[i] = (int) (ceil( (pt_max[i] - pt_min[i]) / spacing[i]) + 1);
+    largest_size[i] = static_cast<int>( (ceil( (pt_max[i] - pt_min[i]) / spacing[i]) + 1) );
     }
 
   origin_warped = pt_min;
