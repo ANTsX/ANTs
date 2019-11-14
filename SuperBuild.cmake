@@ -112,6 +112,9 @@ option(RUN_SHORT_TESTS    "Run the quick unit tests."                           
 option(RUN_LONG_TESTS     "Run the time consuming tests. i.e. real world registrations" ON  )
 option(OLD_BASELINE_TESTS "Use reported metrics from old tests"                         OFF )
 
+set(ANTS_SNAPSHOT_HASH "" CACHE STRING "Git hash to be compiled into binary version info, only used if source is not a git repo")
+mark_as_advanced(ANTS_SNAPSHOT_HASH)
+
 #------------------------------------------------------------------------------
 # ${LOCAL_PROJECT_NAME} dependency list
 #------------------------------------------------------------------------------
@@ -246,6 +249,7 @@ list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
   RUN_SHORT_TESTS:BOOL
   RUN_LONG_TESTS:BOOL
   OLD_BASELINE_TESTS:BOOL
+  ANTS_SNAPSHOT_HASH:STRING
 
   ${LOCAL_PROJECT_NAME}_CLI_LIBRARY_OUTPUT_DIRECTORY:PATH
   ${LOCAL_PROJECT_NAME}_CLI_ARCHIVE_OUTPUT_DIRECTORY:PATH
