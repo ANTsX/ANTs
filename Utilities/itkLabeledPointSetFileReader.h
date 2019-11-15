@@ -11,8 +11,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkLabeledPointSetFileReader_h
-#define __itkLabeledPointSetFileReader_h
+#ifndef itkLabeledPointSetFileReader_h
+#define itkLabeledPointSetFileReader_h
 
 #include "itkMesh.h"
 #include "itkMeshSource.h"
@@ -42,14 +42,14 @@ public:
   typedef SmartPointer<const Self>  ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro( Self )
 
   /** Extract dimension from the output mesh. */
   itkStaticConstMacro( Dimension, unsigned int,
                        TOutputMesh::PointType::Dimension );
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( LabeledPointSetFileReader, MeshSource );
+  itkTypeMacro( LabeledPointSetFileReader, MeshSource )
 
   /** Hold on to the type information specified by the template parameters. */
   typedef TOutputMesh                         OutputMeshType;
@@ -69,18 +69,18 @@ public:
   typedef std::vector<PixelType> LabelSetType;
 
   /** Set/Get the name of the file to be read. */
-  itkSetStringMacro( FileName );
-  itkGetStringMacro( FileName );
+  itkSetStringMacro( FileName )
+  itkGetStringMacro( FileName )
 
-  itkSetMacro( ExtractBoundaryPoints, bool );
-  itkGetMacro( ExtractBoundaryPoints, bool );
-  itkBooleanMacro( ExtractBoundaryPoints );
+  itkSetMacro( ExtractBoundaryPoints, bool )
+  itkGetMacro( ExtractBoundaryPoints, bool )
+  itkBooleanMacro( ExtractBoundaryPoints )
 
   /**
    * Percentage of points selected randomnly
    */
-  itkSetClampMacro( RandomPercentage, double, 0.0, 1.0 );
-  itkGetConstMacro( RandomPercentage, double );
+  itkSetClampMacro( RandomPercentage, double, 0.0, 1.0 )
+  itkGetConstMacro( RandomPercentage, double )
 
   LabelSetType * GetLabelSet()
   {

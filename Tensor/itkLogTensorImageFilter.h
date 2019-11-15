@@ -11,8 +11,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkLogTensorImageFilter_h
-#define __itkLogTensorImageFilter_h
+#ifndef itkLogTensorImageFilter_h
+#define itkLogTensorImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
@@ -58,10 +58,10 @@ public:
   typedef SmartPointer<const Self>                            ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self);
+  itkNewMacro(Self)
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(LogTensorImageFilter, ImageToImageFilter);
+  itkTypeMacro(LogTensorImageFilter, ImageToImageFilter)
 
   /** Image typedef support. */
   typedef typename InputImageType::ConstPointer InputImagePointer;
@@ -85,10 +85,10 @@ public:
   typedef typename OutputImageType::IndexType OutputIndexType;
 
   /** Set the radius of the neighborhood used to compute the mean. */
-  // itkSetMacro(Radius, InputSizeType);
+  // itkSetMacro(Radius, InputSizeType)
 
   /** Get the radius of the neighborhood used to compute the mean */
-  // itkGetConstReferenceMacro(Radius, InputSizeType);
+  // itkGetConstReferenceMacro(Radius, InputSizeType)
 protected:
   LogTensorImageFilter();
   ~LogTensorImageFilter() override = default;
