@@ -1,5 +1,5 @@
-#ifndef _TensorFunctions_cxx_
-#define _TensorFunctions_cxx_
+#ifndef TensorFunctions_cxx
+#define TensorFunctions_cxx
 
 // #include "itkSmallStrainDiffusionTensorReorientationImageFilter.h"
 // #include "itkVectorIndexSelectionCastImageFilter.h"

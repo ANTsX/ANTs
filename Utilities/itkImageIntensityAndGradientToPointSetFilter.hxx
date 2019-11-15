@@ -11,8 +11,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkImageIntensityAndGradientToPointSetFilter_hxx
-#define __itkImageIntensityAndGradientToPointSetFilter_hxx
+#ifndef itkImageIntensityAndGradientToPointSetFilter_hxx
+#define itkImageIntensityAndGradientToPointSetFilter_hxx
 
 #include "itkImageIntensityAndGradientToPointSetFilter.h"
 
