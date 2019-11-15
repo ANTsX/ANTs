@@ -31,12 +31,23 @@ if( NOT ${PROJECT_NAME}_BUILD_DISTRIBUTE AND NOT ${PROJECT_NAME}_VERSION_HASH ST
   set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}-g${${PROJECT_NAME}_VERSION_HASH}")
 endif()
 
-if( ${PROJECT_NAME}_VERSION_HASH STREQUAL "GITDIR-NOTFOUND" AND NOT "${ANTS_SNAPSHOT_HASH}" STREQUAL "" )
+# When building from a snapshot, the git version information does not get populated 
+# Allow the user to specify a hash or version tag on the command line
+if( ${PROJECT_NAME}_VERSION_HASH STREQUAL "GITDIR-NOTFOUND" AND NOT "${ANTS_SNAPSHOT_VERSION}" STREQUAL "" )
   set(${PROJECT_NAME}_VERSION_MAJOR 0)
   set(${PROJECT_NAME}_VERSION_MINOR 0)
   set(${PROJECT_NAME}_VERSION_PATCH 0)
   set(${PROJECT_NAME}_VERSION_TWEAK 0)
-  set(${PROJECT_NAME}_VERSION "snapshot-${ANTS_SNAPSHOT_HASH}")
+  set(${PROJECT_NAME}_VERSION "snapshot-${ANTS_SNAPSHOT_VERSION}")
+endif()
+
+# If no version information exists and the user has not passed version info to cmake, set defaults
+if("${${PROJECT_NAME}_VERSION_MAJOR}" STREQUAL "") 
+  set(${PROJECT_NAME}_VERSION_MAJOR 0)
+  set(${PROJECT_NAME}_VERSION_MINOR 0)
+  set(${PROJECT_NAME}_VERSION_PATCH 0)
+  set(${PROJECT_NAME}_VERSION_TWEAK 0)
+  set(${PROJECT_NAME}_VERSION "0.0.0.0")
 endif()
 
 #-----------------------------------------------------------------------------
