@@ -73,13 +73,13 @@ CommandLineParser
         this->GetOption( option->GetShortName() ) )
       {
       itkWarningMacro( "Duplicate short option '-"
-                       << option->GetShortName() << "'" )
+                       << option->GetShortName() << "'" );
       }
     if( !( option->GetLongName().empty() ) &&
         this->GetOption( option->GetLongName() ) )
       {
       itkWarningMacro( "Duplicate long option '--"
-                       << option->GetLongName() << "'" )
+                       << option->GetLongName() << "'" );
       }
     }
 }
