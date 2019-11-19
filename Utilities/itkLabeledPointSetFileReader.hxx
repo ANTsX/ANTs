@@ -143,7 +143,7 @@ LabeledPointSetFileReader<TOutputMesh>
       this->GetOutput()->GetPoints()->Size() )
     {
     itkWarningMacro( "Number of points does not match number of labels. "
-                     << "Filling point data with label zero." )
+                     << "Filling point data with label zero." );
     typename OutputMeshType::PointsContainerIterator It =
       this->GetOutput()->GetPoints()->Begin();
 

@@ -388,7 +388,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     if( *it < 1 || *it > this->m_NumberOfTissueClasses )
       {
       itkWarningMacro( "The label " << *it << " is outside the specified "
-                                    << "range of the specified tissue class labels." )
+                                    << "range of the specified tissue class labels." );
       return;
       }
     }
