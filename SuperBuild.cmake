@@ -297,7 +297,6 @@ ExternalProject_Add(${proj}
     ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
     ${COMMON_EXTERNAL_PROJECT_ARGS}
     -D${LOCAL_PROJECT_NAME}_SUPERBUILD:BOOL=OFF
-  INSTALL_DIR ${CMAKE_INSTALL_PREFIX}
   )
 
 ## Force rebuilding of the main subproject every time building from super structure
