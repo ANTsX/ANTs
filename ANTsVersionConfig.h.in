@@ -21,14 +21,3 @@
 #define ANTS_VERSION_PATCH @ANTS_VERSION_PATCH@
 #define ANTS_VERSION_TWEAK @ANTS_VERSION_TWEAK@
 #define ANTS_VERSION "@ANTS_VERSION@"
-
-//* via https://stackoverflow.com/questions/3781520/how-to-test-if-preprocessor-symbol-is-defined-but-has-no-value **/
-#define DO_EXPAND(VAL)  VAL ## 1
-#define EXPAND(VAL)     DO_EXPAND(VAL)
-
-#if !defined(ANTS_VERSION_MAJOR) || (EXPAND(ANTS_VERSION_MAJOR) == 1)
-#define ANTS_VERSION_MAJOR 0
-#define ANTS_VERSION_MINOR 0
-#define ANTS_VERSION_PATCH 0
-#define ANTS_VERSION_TWEAK 0
-#endif

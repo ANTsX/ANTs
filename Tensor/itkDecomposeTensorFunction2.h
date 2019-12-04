@@ -11,8 +11,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkDecomposeTensorFunction2_h
-#define __itkDecomposeTensorFunction2_h
+#ifndef itkDecomposeTensorFunction2_h
+#define itkDecomposeTensorFunction2_h
 
 #include "itkVariableSizeMatrix.h"
 

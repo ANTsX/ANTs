@@ -11,8 +11,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkLabeledPointSetFileReader_hxx
-#define __itkLabeledPointSetFileReader_hxx
+#ifndef itkLabeledPointSetFileReader_hxx
+#define itkLabeledPointSetFileReader_hxx
 
 #include "itkLabeledPointSetFileReader.h"
 
@@ -58,7 +58,7 @@ LabeledPointSetFileReader<TOutputMesh>
 {
   if( this->m_FileName == "" )
     {
-    itkExceptionMacro( "No input FileName" );
+    itkExceptionMacro( "No input FileName" )
     return;
     }
 
@@ -70,7 +70,7 @@ LabeledPointSetFileReader<TOutputMesh>
   if( !inputFile.is_open() )
     {
     itkExceptionMacro("Unable to open file\n"
-                      "inputFilename= " << m_FileName );
+                      "inputFilename= " << m_FileName )
     return;
     }
   else
@@ -245,26 +245,26 @@ LabeledPointSetFileReader<TOutputMesh>
       }
     }
 
-  itkDebugMacro( "POINTS line" << line );
+  itkDebugMacro( "POINTS line" << line )
 
   std::string pointLine( line, strlen( "POINTS " ), line.length() );
-  itkDebugMacro( "pointLine " << pointLine );
+  itkDebugMacro( "pointLine " << pointLine )
 
   int numberOfPoints = -1;
 
   if( sscanf( pointLine.c_str(), "%d", &numberOfPoints ) != 1 )
     {
     itkExceptionMacro( "ERROR: Failed to read numberOfPoints\n"
-                       "       pointLine = " << pointLine );
+                       "       pointLine = " << pointLine )
     return;
     }
 
-  itkDebugMacro( "numberOfPoints = " << numberOfPoints );
+  itkDebugMacro( "numberOfPoints = " << numberOfPoints )
 
   if( numberOfPoints < 1 )
     {
     itkExceptionMacro( "numberOfPoints < 1"
-                       << "       numberOfPoints = " << numberOfPoints );
+                       << "       numberOfPoints = " << numberOfPoints )
     return;
     }
 
@@ -277,11 +277,11 @@ LabeledPointSetFileReader<TOutputMesh>
 
   if( isBinary )
     {
-    itkDebugMacro( "Data is binary" );
+    itkDebugMacro( "Data is binary" )
 
     float * ptData = new float[numberOfPoints * 3];
-    inputFile.read( reinterpret_cast<char *>( ptData ), 3 * numberOfPoints * sizeof(float) );
-    ByteSwapper<float>::SwapRangeFromSystemToBigEndian(ptData, numberOfPoints * 3);
+    inputFile.read( reinterpret_cast<char *>( ptData ), static_cast<std::size_t>( 3 ) * numberOfPoints * sizeof(float) );
+    ByteSwapper<float>::SwapRangeFromSystemToBigEndian(ptData, numberOfPoints * static_cast<std::size_t>( 3 ));
     for( long i = 0; i < numberOfPoints; i++ )
       {
       for( long j = 0; j < Dimension; j++ )
@@ -354,7 +354,7 @@ LabeledPointSetFileReader<TOutputMesh>
 
   std::string temp = std::string( line, pos + 1, line.length() - 1 );
 
-  unsigned int numberOfComponents = std::atoi( temp.c_str() );
+  unsigned int numberOfComponents = static_cast<unsigned int>( std::atoi( temp.c_str() ) );
 
   std::getline( inputFile, line );
 
@@ -373,7 +373,7 @@ LabeledPointSetFileReader<TOutputMesh>
         {
         outputMesh->SetPointData( i, scalarData[i] );
         }
-      //    itkExceptionMacro( "Only single label components are readable" );
+      //    itkExceptionMacro( "Only single label components are readable" )
       }
     else
       {
@@ -403,7 +403,7 @@ LabeledPointSetFileReader<TOutputMesh>
         inputFile >> label;
         outputMesh->SetPointData( i, label );
         }
-      //    itkExceptionMacro( "Only single label components are readable" );
+      //    itkExceptionMacro( "Only single label components are readable" )
       }
     else
       {
@@ -465,10 +465,10 @@ LabeledPointSetFileReader<TOutputMesh>
   std::string::size_type pos = line.rfind( " " );
 
   std::string  temp = std::string( line, 6, pos - 1 );
-  unsigned int numberOfLines = std::atoi( temp.c_str() );
+  unsigned int numberOfLines = static_cast<unsigned int>( std::atoi( temp.c_str() ) );
 
   temp = std::string(line, pos, line.length() - 1 );
-  unsigned int numberOfValues = std::atoi( temp.c_str() );
+  unsigned int numberOfValues = static_cast<unsigned int>( std::atoi( temp.c_str() ) );
 
   this->m_Lines = LineSetType::New();
   this->m_Lines->Initialize();
@@ -484,12 +484,12 @@ LabeledPointSetFileReader<TOutputMesh>
     unsigned long lineId = 0;
     while( valueId < numberOfValues )
       {
-      int lineLength = lineData[valueId];
+      itk::SizeValueType lineLength = lineData[valueId];
       ++valueId;
 
       LineType polyLine;
-      polyLine.SetSize( lineLength );
-      for( long i = 0; i < lineLength; i++ )
+      polyLine.SetSize( static_cast<itk::SizeValueType>( lineLength ) );
+      for( itk::SizeValueType i = 0; i < lineLength; i++ )
         {
         polyLine[i] = lineData[valueId];
         ++valueId;

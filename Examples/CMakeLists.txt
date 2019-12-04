@@ -10,7 +10,7 @@ add_library(antsUtilities antsUtilities.cxx
             ../Utilities/antsCommandLineOption.cxx
             ../Utilities/antsCommandLineParser.cxx
             ANTsVersion.cxx
-            ImageMathHelper.cxx ImageMathHelper2D.cxx  ImageMathHelper3D.cxx  ImageMathHelper4D.cxx
+            ImageMathHelper2D.cxx ImageMathHelper3D.cxx ImageMathHelper4D.cxx
             )
 target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
 install(TARGETS antsUtilities

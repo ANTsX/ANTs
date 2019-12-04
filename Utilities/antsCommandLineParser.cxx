@@ -254,7 +254,7 @@ CommandLineParser
         std::size_t leftDelimiterPosition = a.find( this->m_LeftDelimiter );
         if( leftDelimiterPosition != std::string::npos )
           {
-          itkExceptionMacro( "Incorrect command line specification. Missing leftDelimiterPosition? " << a );
+          itkExceptionMacro( "Incorrect command line specification. Missing leftDelimiterPosition? " << a )
           }
 
         std::size_t rightDelimiterPosition = a.find( this->m_RightDelimiter );
@@ -262,7 +262,7 @@ CommandLineParser
           {
           if( rightDelimiterPosition < a.length() - 1 )
             {
-            itkExceptionMacro( "Incorrect command line specification. Missing rightDelimiterPosition? " << a );
+            itkExceptionMacro( "Incorrect command line specification. Missing rightDelimiterPosition? " << a )
             }
           else
             {
@@ -292,7 +292,7 @@ CommandLineParser
             }
           else
             {
-            itkExceptionMacro( "Incorrect command line specification. " << a);
+            itkExceptionMacro( "Incorrect command line specification. " << a)
             }
           }
         else if( leftDelimiterPosition != std::string::npos &&
@@ -301,7 +301,7 @@ CommandLineParser
           {
           if( rightDelimiterPosition < a.length() - 1 )
             {
-            itkExceptionMacro( "Incorrect command line specification. " << a );
+            itkExceptionMacro( "Incorrect command line specification. " << a )
             }
           currentArg += a;
           arguments.push_back( currentArg );
@@ -418,7 +418,7 @@ CommandLineParser
       if( !( (*it)->GetLongName() ).empty() )
         {
         os << ", " << "--" << (*it)->GetLongName() << " " << std::flush;
-        ss << Indent( 5 + ( (*it)->GetLongName() ).length() );
+        ss << Indent( static_cast<std::size_t>( 5 ) + ( (*it)->GetLongName() ).length() );
         }
       else
         {
@@ -429,7 +429,7 @@ CommandLineParser
     else
       {
       os << "--" << (*it)->GetLongName() << " " << std::flush;
-      ss << Indent( 3 + ( (*it)->GetLongName() ).length() );
+      ss << Indent( static_cast<std::size_t>( 3 ) + ( (*it)->GetLongName() ).length() );
       }
     if( (*it)->GetNumberOfUsageOptions() > 0 )
       {
@@ -474,7 +474,7 @@ CommandLineParser
               {
               os << (*it)->GetFunction( 0 )->GetParameter( i ) << ",";
               }
-            os << (*it)->GetFunction( 0 )->GetParameter( (*it)->GetFunction( 0 )->GetParameters().size() - 1 );
+            os << (*it)->GetFunction( 0 )->GetParameter( (*it)->GetFunction( 0 )->GetParameters().size() - static_cast<std::size_t>( 1 ) );
             }
           os << "]";
           }
@@ -501,7 +501,7 @@ CommandLineParser
                 }
               os
                 << (*it)->GetFunction( n )->GetParameter( (*it)->GetFunction( n )->GetParameters().size()
-                                                          - 1 ) << "], ";
+                                                          - static_cast<std::size_t>( 1 ) ) << "], ";
               }
             }
           else
@@ -510,7 +510,7 @@ CommandLineParser
             }
           }
 
-        unsigned int nn = (*it)->GetFunctions().size() - 1;
+        unsigned int nn = (*it)->GetFunctions().size() - static_cast<std::size_t>( 1 );
 
         os << (*it)->GetFunction( nn )->GetName();
         if( (*it)->GetFunction( nn )->GetParameters().size() > 0 )
@@ -526,7 +526,7 @@ CommandLineParser
               {
               os << (*it)->GetFunction( nn )->GetParameter( i ) << ",";
               }
-            os << (*it)->GetFunction( nn )->GetParameter( (*it)->GetFunction( nn )->GetParameters().size() - 1 ) << "]";
+            os << (*it)->GetFunction( nn )->GetParameter( (*it)->GetFunction( nn )->GetParameters().size() - static_cast<std::size_t>( 1 ) ) << "]";
             }
           }
         }
@@ -621,11 +621,11 @@ CommandLineParser
         currentOrder = (*it2)->GetArgOrder();
         if( previousOrder == currentOrder + 1 )
           {
-          (*it2)->SetStageID( functions[it2 - functions.begin() - 1]->GetStageID() );
+          (*it2)->SetStageID( functions[it2 - functions.begin() - static_cast<std::size_t>( 1 )]->GetStageID() );
           }
         else
           {
-          (*it2)->SetStageID( functions[it2 - functions.begin() - 1]->GetStageID() + 1 );
+          (*it2)->SetStageID( functions[it2 - functions.begin() - static_cast<std::size_t>( 1 )]->GetStageID() + 1 );
           }
         previousOrder = currentOrder;
         }

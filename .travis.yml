@@ -10,6 +10,12 @@ dist: bionic
 git:
   depth: false
 
+# Only build the master branch, and pull-requests.
+# This turns off commit builds to other branches
+branches:
+  only: 
+    - master
+
 before_cache:
   - if [ "${TRAVIS_OS_NAME}" = "osx" ]; then brew cleanup; fi
 # Credit https://discourse.brew.sh/t/best-practice-for-homebrew-on-travis-brew-update-is-5min-to-build-time/5215/9
