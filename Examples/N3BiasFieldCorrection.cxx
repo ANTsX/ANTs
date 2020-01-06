@@ -121,7 +121,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
   bool verbose = false;
   if( argc > 9 )
     {
-    verbose = static_cast<bool>(std::stoi( argv[9] );
+    verbose = static_cast<bool>(std::stoi( argv[9] ));
     }
 
   typedef CommandIterationUpdate<CorrecterType> CommandType;
