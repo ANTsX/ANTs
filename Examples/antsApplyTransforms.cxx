@@ -886,8 +886,8 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
     + std::string( "This is a direct typecast; output values are not rescaled. " )
     + std::string( "Default is to use the internal data type (float or double). " )
     + std::string( "uchar is unsigned char; others are signed. " )
-    + std::string( "WARNING: Outputs will be incorrect if values exceed the " )
-    + std::string( "range allowed by your choice. " )
+    + std::string( "WARNING: Outputs will be incorrect (overflowed/reinterpreted) " )
+    + std::string( "if values exceed the range allowed by your choice. " )
     + std::string( "Note that some pixel types are not supported by some image " )
     + std::string( "formats. e.g. int is not supported by jpg. " );
 
