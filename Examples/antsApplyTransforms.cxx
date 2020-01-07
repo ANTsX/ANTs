@@ -892,7 +892,9 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
     + std::string( "formats. e.g. int is not supported by jpg. " );
 
   OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "odt" );
+  option->SetLongName( "output-data-type" );
+  option->SetShortName( 'u' );
+  option->SetUsageOption( 0, "Linear" );
   option->SetUsageOption( 0, "char" );
   option->SetUsageOption( 1, "uchar" );
   option->SetUsageOption( 2, "short" );
@@ -1173,12 +1175,12 @@ private:
       }
     }
 
-  std::string odt( "default" );
-  typename itk::ants::CommandLineParser::OptionType::Pointer odtOption = parser->GetOption( "odt" );
-  if( odtOption && odtOption->GetNumberOfFunctions() )
+  std::string outputDataType( "default" );
+  typename itk::ants::CommandLineParser::OptionType::Pointer outputDataTypeOption = parser->GetOption( "output-data-type" );
+  if( outputDataTypeOption && outputDataTypeOption->GetNumberOfFunctions() )
     {
-    odt = odtOption->GetFunction( 0 )->GetName();
-    ConvertToLowerCase( odt );
+    outputDataType = outputDataTypeOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( outputDataType );
     }
 
   switch( dimension )
@@ -1197,34 +1199,34 @@ private:
         {
         if( useDoublePrecision )
           {
-            if( !std::strcmp( odt.c_str(), "char" ) )
+            if( !std::strcmp( outputDataType.c_str(), "char" ) )
               return antsApplyTransforms<double, 2, char>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "uchar" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
               return antsApplyTransforms<double, 2, unsigned char>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "short" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "short" ) )
               return antsApplyTransforms<double, 2, short>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "int" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "int" ) )
               return antsApplyTransforms<double, 2, int>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "float" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "float" ) )
               return antsApplyTransforms<double, 2, float>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "double" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "double" ) )
               return antsApplyTransforms<double, 2, double>( parser, imageType );
             else
               return antsApplyTransforms<double, 2, double>( parser, imageType );
           }
         else
           {
-            if( !std::strcmp( odt.c_str(), "char" ) )
+            if( !std::strcmp( outputDataType.c_str(), "char" ) )
               return antsApplyTransforms<float, 2, char>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "uchar" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
               return antsApplyTransforms<float, 2, unsigned char>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "short" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "short" ) )
               return antsApplyTransforms<float, 2, short>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "int" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "int" ) )
               return antsApplyTransforms<float, 2, int>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "float" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "float" ) )
               return antsApplyTransforms<float, 2, float>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "double" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "double" ) )
               return antsApplyTransforms<float, 2, double>( parser, imageType );
             else
               return antsApplyTransforms<float, 2, float>( parser, imageType );
@@ -1236,34 +1238,34 @@ private:
       {
       if( useDoublePrecision )
         {
-          if( !std::strcmp( odt.c_str(), "char" ) )
+          if( !std::strcmp( outputDataType.c_str(), "char" ) )
             return antsApplyTransforms<double, 3, char>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "uchar" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
             return antsApplyTransforms<double, 3, unsigned char>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "short" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "short" ) )
             return antsApplyTransforms<double, 3, short>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "int" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "int" ) )
             return antsApplyTransforms<double, 3, int>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "float" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "float" ) )
             return antsApplyTransforms<double, 3, float>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "double" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "double" ) )
             return antsApplyTransforms<double, 3, double>( parser, imageType );
           else
             return antsApplyTransforms<double, 3, double>( parser, imageType );
         }
       else
         {
-          if( !std::strcmp( odt.c_str(), "char" ) )
+          if( !std::strcmp( outputDataType.c_str(), "char" ) )
             return antsApplyTransforms<float, 3, char>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "uchar" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
             return antsApplyTransforms<float, 3, unsigned char>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "short" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "short" ) )
             return antsApplyTransforms<float, 3, short>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "int" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "int" ) )
             return antsApplyTransforms<float, 3, int>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "float" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "float" ) )
             return antsApplyTransforms<float, 3, float>( parser, imageType );
-          else if( !std::strcmp( odt.c_str(), "double" ) )
+          else if( !std::strcmp( outputDataType.c_str(), "double" ) )
             return antsApplyTransforms<float, 3, double>( parser, imageType );
           else
             return antsApplyTransforms<float, 3, float>( parser, imageType );
@@ -1290,34 +1292,34 @@ private:
         {
         if( useDoublePrecision )
           {
-            if( !std::strcmp( odt.c_str(), "char" ) )
+            if( !std::strcmp( outputDataType.c_str(), "char" ) )
               return antsApplyTransforms<double, 4, char>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "uchar" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
               return antsApplyTransforms<double, 4, unsigned char>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "short" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "short" ) )
               return antsApplyTransforms<double, 4, short>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "int" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "int" ) )
               return antsApplyTransforms<double, 4, int>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "float" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "float" ) )
               return antsApplyTransforms<double, 4, float>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "double" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "double" ) )
               return antsApplyTransforms<double, 4, double>( parser, imageType );
             else
               return antsApplyTransforms<double, 4, double>( parser, imageType );
           }
         else
           {
-            if( !std::strcmp( odt.c_str(), "char" ) )
+            if( !std::strcmp( outputDataType.c_str(), "char" ) )
               return antsApplyTransforms<float, 4, char>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "uchar" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
               return antsApplyTransforms<float, 4, unsigned char>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "short" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "short" ) )
               return antsApplyTransforms<float, 4, short>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "int" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "int" ) )
               return antsApplyTransforms<float, 4, int>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "float" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "float" ) )
               return antsApplyTransforms<float, 4, float>( parser, imageType );
-            else if( !std::strcmp( odt.c_str(), "double" ) )
+            else if( !std::strcmp( outputDataType.c_str(), "double" ) )
               return antsApplyTransforms<float, 4, double>( parser, imageType );
             else
               return antsApplyTransforms<float, 4, float>( parser, imageType );
