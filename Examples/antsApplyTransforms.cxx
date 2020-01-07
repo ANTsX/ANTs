@@ -894,7 +894,6 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "output-data-type" );
   option->SetShortName( 'u' );
-  option->SetUsageOption( 0, "Linear" );
   option->SetUsageOption( 0, "char" );
   option->SetUsageOption( 1, "uchar" );
   option->SetUsageOption( 2, "short" );
