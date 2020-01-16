@@ -141,20 +141,24 @@ int N4( itk::ants::CommandLineParser *parser )
   /**
    * check for negative values in the masked region
    */
-  typedef itk::Image<unsigned short, ImageDimension> ShortImageType;
+  typedef itk::Image<int, ImageDimension> IntImageType;
 
-  typedef itk::BinaryThresholdImageFilter<MaskImageType, ShortImageType> ThresholderType;
+  typedef itk::BinaryThresholdImageFilter<MaskImageType, IntImageType> ThresholderType;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
-  thresholder->SetInsideValue( itk::NumericTraits<typename ShortImageType::PixelType>::ZeroValue() );
-  thresholder->SetOutsideValue( itk::NumericTraits<typename ShortImageType::PixelType>::OneValue() );
+  thresholder->SetInsideValue( itk::NumericTraits<typename IntImageType::PixelType>::ZeroValue() );
+  thresholder->SetOutsideValue( itk::NumericTraits<typename IntImageType::PixelType>::OneValue() );
   thresholder->SetLowerThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
   thresholder->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
   thresholder->SetInput( maskImage );
 
-  typedef itk::LabelStatisticsImageFilter<ImageType, ShortImageType> StatsType;
+  typename IntImageType::Pointer thresholdedMask = thresholder->GetOutput();
+  thresholdedMask->Update();
+  thresholdedMask->DisconnectPipeline();
+
+  typedef itk::LabelStatisticsImageFilter<ImageType, IntImageType> StatsType;
   typename StatsType::Pointer statsOriginal = StatsType::New();
   statsOriginal->SetInput( inputImage );
-  statsOriginal->SetLabelInput( thresholder->GetOutput() );
+  statsOriginal->SetLabelInput( thresholdedMask );
   statsOriginal->UseHistogramsOff();
   statsOriginal->Update();
 
@@ -461,15 +465,16 @@ int N4( itk::ants::CommandLineParser *parser )
   /**
    * output
    */
+
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     /**
-                    * Reconstruct the bias field at full image resolution.  Divide
-                    * the original input image by the bias field to get the final
-                    * corrected image.
-                    */
+     * Reconstruct the bias field at full image resolution.  Divide
+     * the original input image by the bias field to get the final
+     * corrected image.
+     */
     typedef itk::BSplineControlPointImageFilter<typename
                                                 CorrecterType::BiasFieldControlPointLatticeType, typename
                                                 CorrecterType::ScalarImageType> BSplinerType;
@@ -503,12 +508,15 @@ int N4( itk::ants::CommandLineParser *parser )
     typename DividerType::Pointer divider = DividerType::New();
     divider->SetInput1( inputImage );
     divider->SetInput2( expFilter->GetOutput() );
-    divider->Update();
+
+    typename ImageType::Pointer dividedImage = divider->GetOutput();
+    dividedImage->Update();
+    dividedImage->DisconnectPipeline();
 
     if( maskImageOption && maskImageOption->GetNumberOfFunctions() > 0 )
       {
-      itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
-                                                        divider->GetOutput()->GetLargestPossibleRegion() );
+      itk::ImageRegionIteratorWithIndex<ImageType> ItD( dividedImage,
+                                                        dividedImage->GetLargestPossibleRegion() );
       itk::ImageRegionIterator<ImageType> ItI( inputImage,
                                                inputImage->GetLargestPossibleRegion() );
       for( ItD.GoToBegin(), ItI.GoToBegin(); !ItD.IsAtEnd(); ++ItD, ++ItI )
@@ -532,11 +540,11 @@ int N4( itk::ants::CommandLineParser *parser )
 
     if( doRescale )
       {
-      thresholder->GetOutput()->SetRegions( divider->GetOutput()->GetLargestPossibleRegion() );
+      thresholdedMask->SetRegions( dividedImage->GetLargestPossibleRegion() );
 
       typename StatsType::Pointer statsBiasCorrected = StatsType::New();
-      statsBiasCorrected->SetInput( divider->GetOutput() );
-      statsBiasCorrected->SetLabelInput( thresholder->GetOutput() );
+      statsBiasCorrected->SetInput( dividedImage );
+      statsBiasCorrected->SetLabelInput( thresholdedMask );
       statsBiasCorrected->UseHistogramsOff();
       statsBiasCorrected->Update();
 
@@ -545,8 +553,8 @@ int N4( itk::ants::CommandLineParser *parser )
 
       RealType slope = ( maxOriginal - minOriginal ) / ( maxBiasCorrected - minBiasCorrected );
 
-      itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
-                                                        divider->GetOutput()->GetLargestPossibleRegion() );
+      itk::ImageRegionIteratorWithIndex<ImageType> ItD( dividedImage,
+                                                        dividedImage->GetLargestPossibleRegion() );
       for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
         if( itk::Math::FloatAlmostEqual( maskImage->GetPixel( ItD.GetIndex() ), static_cast<RealType>( maskLabel ) ) )
@@ -564,7 +572,7 @@ int N4( itk::ants::CommandLineParser *parser )
 
     typedef itk::ExtractImageFilter<ImageType, ImageType> CropperType;
     typename CropperType::Pointer cropper = CropperType::New();
-    cropper->SetInput( divider->GetOutput() );
+    cropper->SetInput( dividedImage );
     cropper->SetExtractionRegion( inputRegion );
     cropper->SetDirectionCollapseToSubmatrix();
     cropper->Update();

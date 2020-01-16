@@ -69,6 +69,13 @@
 #include "itkSimilarity2DTransform.h"
 #include "itkSimilarity3DTransform.h"
 
+// Headers for interpolating functions (to support the --interpolation choice)
+#include "itkBSplineInterpolateImageFunction.h"
+#include "itkLinearInterpolateImageFunction.h"
+#include "itkInterpolateImageFunction.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkWindowedSincInterpolateImageFunction.h"
+
 #include <sstream>
 
 namespace ants
@@ -510,6 +517,78 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     }
 
   if ( verbose ) std::cout << "Registration using " << numberOfStages << " total stages." << std::endl;
+
+  // Get the interpolator and possible parameters
+  std::string whichInterpolator( "linear" );
+  typename OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
+  if( interpolationOption && interpolationOption->GetNumberOfFunctions() )
+    {
+    whichInterpolator = interpolationOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( whichInterpolator );
+    }
+
+  typedef itk::Image<PixelType, ImageDimension>           ImageType; // Used only for templating interp functions
+  typedef itk::InterpolateImageFunction<ImageType, RealType> InterpolatorType;
+  typename InterpolatorType::Pointer interpolator = nullptr;
+
+  if( !std::strcmp( whichInterpolator.c_str(), "linear" ) )
+    {
+    typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
+    typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
+    interpolator = linearInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "nearestneighbor" ) )
+    {
+    typedef itk::NearestNeighborInterpolateImageFunction<ImageType, RealType> NearestNeighborInterpolatorType;
+    typename NearestNeighborInterpolatorType::Pointer nearestNeighborInterpolator = NearestNeighborInterpolatorType::New();
+    interpolator = nearestNeighborInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "bspline" ) )
+    {
+    typedef itk::BSplineInterpolateImageFunction<ImageType, RealType> BSplineInterpolatorType;
+    typename BSplineInterpolatorType::Pointer bSplineInterpolator = BSplineInterpolatorType::New();
+    if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      unsigned int bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetFunction( 0 )->GetParameter( 0 ) );
+      bSplineInterpolator->SetSplineOrder( bsplineOrder );
+      }
+    interpolator = bSplineInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "CosineWindowedSinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::CosineWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType> CosineInterpolatorType;
+    typename CosineInterpolatorType::Pointer cosineInterpolator = CosineInterpolatorType::New();
+    interpolator = cosineInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "hammingwindowedsinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::HammingWindowFunction<3, RealType, RealType >, itk::ConstantBoundaryCondition< ImageType >, RealType> HammingInterpolatorType;
+    typename HammingInterpolatorType::Pointer hammingInterpolator = HammingInterpolatorType::New();
+    interpolator = hammingInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "lanczoswindowedsinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::LanczosWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType > LanczosInterpolatorType;
+    typename LanczosInterpolatorType::Pointer lanczosInterpolator = LanczosInterpolatorType::New();
+    interpolator = lanczosInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "blackmanwindowedsinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::BlackmanWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType > BlackmanInterpolatorType;
+    typename BlackmanInterpolatorType::Pointer blackmanInterpolator = BlackmanInterpolatorType::New();
+    interpolator = blackmanInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "welchwindowedsinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::WelchWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType > WelchInterpolatorType;
+    typename WelchInterpolatorType::Pointer welchInterpolator = WelchInterpolatorType::New();
+    interpolator = welchInterpolator;
+    }
 
   typename OptionType::Pointer metricOption = parser->GetOption( "metric" );
   if( !metricOption || metricOption->GetNumberOfFunctions() != numberOfStages  )
@@ -1429,6 +1508,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       resampler->SetInput( moving_time_slice );
       resampler->SetOutputParametersFromImage( fixed_time_slice );
       resampler->SetDefaultPixelValue( 0 );
+      resampler->SetInterpolator( interpolator );
       resampler->Update();
       if ( verbose ) std::cout << " done resampling timepoint : " << timedim << std::endl;
 
@@ -1819,6 +1899,26 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
   parser->AddOption( option );
   }
 
+  {
+  std::string description =
+    std::string( "Several interpolation options are available in ITK. " )
+    + std::string( "The above are available (default Linear)." );
+
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "interpolation" );
+  // n is already in use by --n-images. Unfortunately flag shortname is inconsistent with antsApplyTransforms.
+  option->SetShortName( 'p' );
+  option->SetUsageOption( 0, "Linear" );
+  option->SetUsageOption( 1, "NearestNeighbor" );
+  option->SetUsageOption( 2, "BSpline[<order=3>]" );
+  option->SetUsageOption( 3, "BlackmanWindowedSinc" );
+  option->SetUsageOption( 4, "CosineWindowedSinc" );
+  option->SetUsageOption( 5, "WelchWindowedSinc" );
+  option->SetUsageOption( 6, "HammingWindowedSinc" );
+  option->SetUsageOption( 7, "LanczosWindowedSinc" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
 
   {
   std::string description = std::string( "Verbose output." );
@@ -1850,6 +1950,7 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
   option->AddFunction( std::string( "0" ) );
   parser->AddOption( option );
   }
+
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to

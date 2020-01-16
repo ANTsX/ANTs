@@ -89,6 +89,8 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
   maskshrinker->SetInput( maskImage );
   maskshrinker->SetShrinkFactors( 1 );
 
+  // 4 is [shrinkFactor]
+  // 5 is [maskImage]
   if( argc > 4 )
     {
     shrinker->SetShrinkFactors( std::stoi( argv[4] ) );
@@ -103,19 +105,23 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
   correcter->SetInput( shrinker->GetOutput() );
   correcter->SetMaskImage( maskshrinker->GetOutput() );
 
+  // 6 is [numberOfIterations]
   if( argc > 6 )
     {
     correcter->SetMaximumNumberOfIterations( std::stoi( argv[6] ) );
     }
+  // 7 is [numberOfFittingLevels]
   if( argc > 7 )
     {
     correcter->SetNumberOfFittingLevels( std::stoi( argv[7] ) );
     }
 
+  // 8 is [outputBiasField]
+  // 9 is [verbose]
   bool verbose = false;
-  if( argc > 7 )
+  if( argc > 9 )
     {
-    verbose = std::stoi( argv[8] );
+    verbose = static_cast<bool>(std::stoi( argv[9] ));
     }
 
   typedef CommandIterationUpdate<CorrecterType> CommandType;
