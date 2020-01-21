@@ -4,6 +4,25 @@ about: Report errors or unexpected results when running ANTs programs
 
 ---
 
+Before opening an issue, please check the ANTs wiki:
+
+https://github.com/ANTsX/ANTs/wiki
+
+The Github wiki search only covers page titles, but you can do a full 
+text search by entering into Google:
+
+```
+<your search terms> site:https://github.com/ANTsX/ANTs/wiki
+```
+
+Please check previous issues on Github at
+
+https://github.com/ANTsX/ANTs/issues
+
+```
+is:issue <your search terms>
+```
+
 **Describe the bug**
 A clear and concise description of what the bug is. 
 
@@ -27,7 +46,13 @@ If applicable, add screenshots to help explain your problem.
 **System information (please complete the following information)**
  - OS: [e.g. Mac OS]
  - OS version: [e.g. 10.15.1]
- - Type of system: [Desktop, laptop, HPC cluster, cloud instance, other]
+ - Type of system: [Desktop, laptop, HPC cluster, cloud instance,
+   other]
+ 
+   If you are building inside a virtual machine, container, Cygwin, 
+   Windows Subsystem for Linux, or other non-native environment, please 
+   let us know and include details of both the virtual Linux and the 
+   host OS.
 
 **ANTs version information**
  - ANTs code version: [output of antsRegistration --version]
