@@ -1106,7 +1106,7 @@ int TileImages(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
 
@@ -5818,7 +5818,7 @@ int TensorFunctions(int argc, char *argv[])
       " Convert a 4D tensor to a 3D tensor --- if there are 7 components to the tensor, we throw away the first component b/c its probably b0 "
       << std::endl;
     itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
     imageIO->SetFileName(fn1.c_str() );
     imageIO->ReadImageInformation();
     unsigned int dim = imageIO->GetNumberOfDimensions();
@@ -11022,7 +11022,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
@@ -11319,7 +11319,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
