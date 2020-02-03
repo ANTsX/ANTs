@@ -23,7 +23,15 @@ Superbuild and let us know if that compiles successfully.
 [ ] Installation (make install)
 
 **Build environment**
- - OS name and version: [e.g. Ubuntu 18.04]
+ - OS: [e.g. Mac OS]
+ - OS version: [e.g. 10.15.1]
+ - Type of system: [Desktop, laptop, HPC cluster, cloud instance,
+   other]
+ 
+   If you are building inside a virtual machine, container, Cygwin, 
+   Windows Subsystem for Linux, or other non-native environment, please 
+   let us know and include details of both the virtual Linux and the 
+   host OS. 
  
 **ANTs version**
 Specify the release tag or commit hash of the code you are building
