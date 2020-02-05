@@ -959,18 +959,18 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
       if( ImageDimension == 2 )
         {
-        fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
-        movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+        fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 ).as_ref();
+        movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 ).as_ref();
 
         B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector );
         }
       else if( ImageDimension == 3 )
         {
-        fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
-        fixedSecondaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+        fixedPrimaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 2 ).as_ref();
+        fixedSecondaryEigenVector = fixedImagePrincipalAxes.GetVnlMatrix().get_row( 1 ).as_ref();
 
-        movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 2 );
-        movingSecondaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 );
+        movingPrimaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 2 ).as_ref();
+        movingSecondaryEigenVector = movingImagePrincipalAxes.GetVnlMatrix().get_row( 1 ).as_ref();
 
         B = outer_product( movingPrimaryEigenVector, fixedPrimaryEigenVector ) +
           outer_product( movingSecondaryEigenVector, fixedSecondaryEigenVector );

@@ -1100,7 +1100,7 @@ private:
       inputFile = imageOption->GetFunction( 0 )->GetParameter( 0 );
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        inputFile.c_str(), itk::ImageIOFactory::FileModeType::ReadMode );
+        inputFile.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
     unsigned int dimension = imageIO->GetNumberOfDimensions();
 
     if( dimension == 3 )
