@@ -39,7 +39,6 @@ ADD . /tmp/ants/source
 RUN mkdir /opt/cmake \
   && sh /cmake-3.11.4-Linux-x86_64.sh --prefix=/opt/cmake --skip-license \
   && ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake \
-    && cd /tmp/ants/source \
     && mkdir -p /tmp/ants/build \
     && cd /tmp/ants/build \
     && mkdir -p /opt/ants-latest \
