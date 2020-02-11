@@ -141,7 +141,7 @@ int N4( itk::ants::CommandLineParser *parser )
   /**
    * check for negative values in the masked region
    */
-  typedef itk::Image<int, ImageDimension> IntImageType;
+  typedef itk::Image<float, ImageDimension> IntImageType;
 
   typedef itk::BinaryThresholdImageFilter<MaskImageType, IntImageType> ThresholderType;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
