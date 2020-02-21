@@ -649,7 +649,7 @@ private:
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::FileModeType::ReadMode );
+        filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
 

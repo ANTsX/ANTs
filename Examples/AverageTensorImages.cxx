@@ -37,7 +37,7 @@ int AverageTensorImages(unsigned int argc, char *argv[])
     std::string fn = std::string(argv[j]);
     std::cout << " fn " << fn << std::endl;
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )

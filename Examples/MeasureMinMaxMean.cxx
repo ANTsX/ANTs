@@ -187,7 +187,7 @@ private:
     }
   int                       dim = std::stoi( argv[1] );
   itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(argv[2], itk::ImageIOFactory::FileModeType::ReadMode);
+    itk::ImageIOFactory::CreateImageIO(argv[2], itk::ImageIOFactory::FileModeEnum::ReadMode);
   imageIO->SetFileName(argv[2]);
   imageIO->ReadImageInformation();
   unsigned int ncomponents = imageIO->GetNumberOfComponents();

@@ -102,7 +102,7 @@ void
 ANTSCenteredAffine2DTransform<TScalarType>
 ::ComputeMatrixParameters( void )
 {
-  typedef vnl_matrix<TScalarType> TMatrix;
+  typedef vnl_matrix_fixed<TScalarType, 2U, 2U> TMatrix;
 
   TMatrix A, Q, R;
 
@@ -112,7 +112,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
   R = myqr.Q();   // Q() is the rotation
   Q = myqr.R();   // R() is the upper triangluar
 
-  TMatrix dq(2, 2, 0);
+  TMatrix dq;
   for( unsigned i = 0; i < 2; i++ )
     {
     dq(i, i) = (Q(i, i) >= 0) ? 1 : -1;

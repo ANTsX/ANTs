@@ -151,14 +151,10 @@ int N4( itk::ants::CommandLineParser *parser )
   thresholder->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
   thresholder->SetInput( maskImage );
 
-  typename IntImageType::Pointer thresholdedMask = thresholder->GetOutput();
-  thresholdedMask->Update();
-  thresholdedMask->DisconnectPipeline();
-
   typedef itk::LabelStatisticsImageFilter<ImageType, IntImageType> StatsType;
   typename StatsType::Pointer statsOriginal = StatsType::New();
   statsOriginal->SetInput( inputImage );
-  statsOriginal->SetLabelInput( thresholdedMask );
+  statsOriginal->SetLabelInput( thresholder->GetOutput() );
   statsOriginal->UseHistogramsOff();
   statsOriginal->Update();
 
@@ -540,11 +536,16 @@ int N4( itk::ants::CommandLineParser *parser )
 
     if( doRescale )
       {
-      thresholdedMask->SetRegions( dividedImage->GetLargestPossibleRegion() );
+      typename ThresholderType::Pointer thresholder2 = ThresholderType::New();
+      thresholder2->SetInsideValue( itk::NumericTraits<typename IntImageType::PixelType>::ZeroValue() );
+      thresholder2->SetOutsideValue( itk::NumericTraits<typename IntImageType::PixelType>::OneValue() );
+      thresholder2->SetLowerThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
+      thresholder2->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
+      thresholder2->SetInput( maskImage );
 
       typename StatsType::Pointer statsBiasCorrected = StatsType::New();
       statsBiasCorrected->SetInput( dividedImage );
-      statsBiasCorrected->SetLabelInput( thresholdedMask );
+      statsBiasCorrected->SetLabelInput( thresholder2->GetOutput() );
       statsBiasCorrected->UseHistogramsOff();
       statsBiasCorrected->Update();
 
@@ -954,7 +955,7 @@ private:
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::FileModeType::ReadMode );
+        filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
 
