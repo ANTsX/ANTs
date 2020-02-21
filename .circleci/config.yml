@@ -1,0 +1,42 @@
+version: 2.1
+
+jobs:
+  build_docker:
+    environment:
+      TZ: "/usr/share/zoneinfo/America/New_York"
+      SCRATCH: "/scratch"
+    docker:
+      - image: docker:18.06.1-ce-git
+    working_directory: /tmp/src/ANTs
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker image
+          no_output_timeout: 3h
+          command: |
+            # Build docker image
+            e=1 && for i in {1..5}; do
+              docker build \
+                --rm=false \
+                -t antsx/ants:latest . \
+              && e=0 && break || sleep 15
+            done && [ "$e" -eq "0" ]
+      - run:
+          name: Deploy to Docker Hub
+          no_output_timeout: 40m
+          command: |
+            if [[ -n "$DOCKER_PASS" ]]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+              docker push antsx/ants:latest
+            fi
+
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build_docker:
+          filters:
+            tags:
+              only: /.*/
