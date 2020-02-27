@@ -632,8 +632,11 @@ private:
     std::cout << "\n  SigmoidImage   : " << std::endl;
     std::cout << "      Usage        : SigmoidImage ImageIn [alpha=1.0] [beta=0.0]" << std::endl;
 
-    std::cout << "\n  Sharpen   : " << std::endl;
+    std::cout << "\n  Sharpen        : Apply a Laplacian sharpening filter" << std::endl;
     std::cout << "      Usage        : Sharpen ImageIn" << std::endl;
+
+    std::cout << "\n  UnsharpMask     Apply an Unsharp Mask filter" << std::endl;
+    std::cout << "      Usage        : UnsharpMask ImageIn [amount=0.5] [radius=1 (mm)] [threshold=0]" << std::endl;
 
     std::cout << "\n  CoordinateComponentImages   : " << std::endl;
     std::cout << "      Usage        : CoordinateComponentImages domainImage" << std::endl;
