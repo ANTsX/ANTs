@@ -44,24 +44,15 @@ int AverageImages1(unsigned int argc, char *argv[])
   typedef itk::ImageFileReader<ImageType>              ImageFileReader;
   typedef itk::ImageFileWriter<ImageType>              writertype;
 
+    
+  const int normalizei = std::stoi(argv[3]);
+    
+  if( ( normalizei < 0 ) || ( normalizei > 2 ) )
     {
-    const std::string temp(argv[1]);
-    if( !( ( temp == "2" ) || ( temp == "3" ) || ( temp == "4" ) ) )
-      {
-      std::cerr << "ERROR:  Dimension option must be 2 or 3 or 4, " << temp << "given" << std::endl;
-      return EXIT_FAILURE;
-      }
+    std::cerr << "ERROR:  Normalize option must be 0 or 1 or 2, " << normalizei << " given" << std::endl;
+    return EXIT_FAILURE;
     }
-    {
-    const std::string temp(argv[3]);
-    if( !( ( temp == "0" ) || ( temp == "1" )  ) )
-      {
-      std::cerr << "ERROR:  Normalize option must be 0 or 1, " << temp << "given" << std::endl;
-      return EXIT_FAILURE;
-      }
-    }
-
-  const bool  normalizei = std::stoi(argv[3]);
+  
   const float numberofimages = static_cast<float>( argc ) - 4.0f;
 
   typename ImageType::SizeType maxSize;
@@ -116,7 +107,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     typename ImageType::Pointer image2 = resampler->GetOutput();
     Iterator      vfIter2( image2,  image2->GetLargestPossibleRegion() );
     unsigned long ct = 0;
-    if( normalizei )
+    if( normalizei > 0 )
       {
       meanval = 0;
       for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -137,7 +128,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
       PixelType val = vfIter2.Get();
-      if( normalizei )
+      if( normalizei > 0)
         {
         val /= meanval;
         }
@@ -150,14 +141,15 @@ int AverageImages1(unsigned int argc, char *argv[])
   //  typedef itk::OptimalSharpeningImageFilter<ImageType,ImageType > sharpeningFilter;
   typedef itk::LaplacianSharpeningImageFilter<ImageType, ImageType> sharpeningFilter;
   typename sharpeningFilter::Pointer shFilter = sharpeningFilter::New();
-  if( normalizei && argc > 3 && vectorlength == 1 )
+  if( (normalizei == 1) && (argc > 3) && (vectorlength == 1) )
     {
+    std::cout << " applying Laplacian sharpening " << std::endl;
     shFilter->SetInput( averageimage );
     //    shFilter->SetSValue(0.5);
     averageimage =  shFilter->GetOutput();
     }
 
-  std::cout << " writing output ";
+  std::cout << " writing output " << std::endl;
     {
     typename writertype::Pointer writer = writertype::New();
     writer->SetFileName(argv[2]);
@@ -309,10 +301,11 @@ private:
     std::cout << " Compulsory arguments: \n" << std::endl;
     std::cout << " ImageDimension: 2 or 3 (for 2 or 3 dimensional input).\n " << std::endl;
     std::cout << " Outputfname.nii.gz: the name of the resulting image.\n" << std::endl;
-    std::cout
-      <<
-      " Normalize: 0 (false) or 1 (true); if true, the 2nd image is divided by its mean. This will select the largest image to average into.\n"
-      << std::endl;
+    std::cout <<   " Normalize: 0 - no normalization\n"  
+              <<   "            1 - input images are divided by their mean before averaging; Laplacian sharpening is applied to the average\n"
+              <<   "            2 - input images are divided by their mean before averaging; no sharpening\n"
+              << std::endl;
+    std::cout <<   " Images are resampled into the space of the largest input image.\n" << std::endl;
     std::cout << " Example Usage:\n" << std::endl;
     std::cout << argv[0] << " 3 average.nii.gz  1  *.nii.gz \n" << std::endl;
     std::cout << " \n" << std::endl;
