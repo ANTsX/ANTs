@@ -219,11 +219,15 @@ function shapeupdatetotemplate() {
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
-    echo "   ${ANTSPATH}/AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
+    echo "   ${ANTSPATH}/AverageImages $dim ${template} 2 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
     echo "--------------------------------------------------------------------------------------"
     # Compute a normalized average
     ${ANTSPATH}/AverageImages $dim ${template} 2 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
 
+    echo "--------------------------------------------------------------------------------------"
+    echo " shapeupdatetotemplate---sharpening of the new template"
+    echo "   ${ANTSPATH}/ImageMath $dim ${template} UnsharpMask ${template}"
+    echo "--------------------------------------------------------------------------------------"
     # Sharpen the average image with UnsharpMask.
     # To use the Laplacian, replace ImageMath function UnsharpMask with Sharpen
     ${ANTSPATH}/ImageMath $dim ${template} UnsharpMask ${template}
