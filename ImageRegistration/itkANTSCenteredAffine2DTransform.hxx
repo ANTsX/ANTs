@@ -112,7 +112,7 @@ ANTSCenteredAffine2DTransform<TScalarType>
   R = myqr.Q();   // Q() is the rotation
   Q = myqr.R();   // R() is the upper triangluar
 
-  TMatrix dq;
+  TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
   for( unsigned i = 0; i < 2; i++ )
     {
     dq(i, i) = (Q(i, i) >= 0) ? 1 : -1;

@@ -650,7 +650,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
     }
   if( itk::Math::FloatAlmostEqual( maxTr, trB ) )
     {
-    TMatrix dq;
+    TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
     dq(0, 0) = 1;
     dq(1, 1) = -1;
     dq(2, 2) = -1;
@@ -660,7 +660,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 
   if( itk::Math::FloatAlmostEqual( maxTr, trC ) )
     {
-    TMatrix dq;
+    TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
     dq(0, 0) = -1;
     dq(1, 1) = 1;
     dq(2, 2) = -1;
@@ -670,7 +670,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 
   if( itk::Math::FloatAlmostEqual( maxTr, trD ) )
     {
-    TMatrix dq;
+    TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
     dq(0, 0) = -1;
     dq(1, 1) = -1;
     dq(2, 2) = 1;
