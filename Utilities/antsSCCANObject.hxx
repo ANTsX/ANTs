@@ -5795,16 +5795,13 @@ void antsSCCANObject<TInputImage, TRealType>
       this->m_MatrixRp = this->NormalizeMatrix(this->m_OriginalMatrixR);
       }
     this->m_MatrixRp = ProjectionMatrix(this->m_MatrixRp);
-    if( this->m_Debug && this->m_VariatesP.cols() > 1 )
+    if( this->m_Debug && this->m_VariatesP.cols() > 1 && ! this->m_Silent )
       {
-      if ( ! this->m_Silent )  std::cout << " corr-pre "
-                       << this->PearsonCorr( (this->m_OriginalMatrixP * this->m_VariatesP).get_column(0),
-                            (this->m_OriginalMatrixP
-                             * this->m_VariatesP).get_column(1) ) << std::endl; if ( ! this->m_Silent )  std::cout << " corr-post "
-                                                                                                 << this->PearsonCorr( (
-                              this->
-                              m_MatrixP
-                              * this->m_VariatesP).get_column(0),
+        std::cout << " corr-pre "
+                  << this->PearsonCorr( (this->m_OriginalMatrixP * this->m_VariatesP).get_column(0),
+                            (this->m_OriginalMatrixP * this->m_VariatesP).get_column(1) ) << std::endl;
+	std::cout << " corr-post "
+                  << this->PearsonCorr( ( this-> m_MatrixP * this->m_VariatesP).get_column(0),
                             (this->m_MatrixP * this->m_VariatesP).get_column(1) ) << std::endl;
       }
 
