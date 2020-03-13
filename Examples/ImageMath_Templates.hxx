@@ -2130,10 +2130,14 @@ int UnsharpMaskImage(int argc, char *argv[])
   typename ImageType::Pointer inputImage = nullptr;
   ReadImage<ImageType>( inputImage, inputFilename.c_str() );
 
+  auto & spacing = inputImage->GetSpacing();
+ 
   // These are from the filter defaults
   float amount = 0.5;
   float radius = 1.0;
   float threshold = 0;
+
+  bool radiusInSpacingUnits = false;
 
   if (argc > 5)
     {
@@ -2147,12 +2151,31 @@ int UnsharpMaskImage(int argc, char *argv[])
     {
     threshold = std::stof( std::string(argv[7]).c_str() );
     }
+  if (argc > 8)
+    {
+    radiusInSpacingUnits = std::stoi( std::string(argv[8]).c_str() );
+    }
 
   typedef itk::UnsharpMaskImageFilter<ImageType, ImageType> FilterType;
   typename FilterType::Pointer filter = FilterType::New();
+  typename FilterType::SigmaArrayType sigmaArray;
 
   filter->SetAmount(amount);
-  filter->SetSigma(radius);
+
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+     if (radiusInSpacingUnits) 
+       {
+       sigmaArray[d] = radius;
+       }
+     else
+       {
+       sigmaArray[d] = radius * spacing[d];
+       }
+    }
+
+  filter->SetSigmas(sigmaArray);
+
   filter->SetThreshold(threshold);
 
   filter->SetInput( inputImage );

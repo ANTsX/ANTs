@@ -636,7 +636,7 @@ private:
     std::cout << "      Usage        : Sharpen ImageIn" << std::endl;
 
     std::cout << "\n  UnsharpMask     Apply an Unsharp Mask filter" << std::endl;
-    std::cout << "      Usage        : UnsharpMask ImageIn [amount=0.5] [radius=1 (mm)] [threshold=0]" << std::endl;
+    std::cout << "      Usage        : UnsharpMask ImageIn [amount=0.5] [radius=1] [threshold=0] [radius in spacing unit (0)/1]" << std::endl;
 
     std::cout << "\n  CoordinateComponentImages   : " << std::endl;
     std::cout << "      Usage        : CoordinateComponentImages domainImage" << std::endl;
