@@ -241,6 +241,8 @@ private:
     std::cout << "  GE Image1.ext s    : Grayscale Erosion with radius s" << std::endl;
     std::cout << "  GO Image1.ext s    : Grayscale Opening with radius s" << std::endl;
     std::cout << "  GC Image1.ext s    : Grayscale Closing with radius s" << std::endl;
+    std::cout << "  Extract contours: extract contours from a label image" << std::endl;
+    std::cout << "    Usage: ExtractContours inputImage [doFullyConnected=1]" << std::endl;
     std::cout
       <<
       "  BlobDetector Image1.ext NumberOfBlobsToExtract  Optional-Input-Image2 Blob-2-out.nii.gz N-Blobs-To-Match  :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) "
