@@ -226,11 +226,11 @@ function shapeupdatetotemplate() {
 
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---sharpening of the new template"
-    echo "   ${ANTSPATH}/ImageMath $dim ${template} UnsharpMask ${template}"
+    echo "   ${ANTSPATH}/ImageMath $dim ${template} UnsharpMask ${template} 0.7 2 0 0"
     echo "--------------------------------------------------------------------------------------"
     # Sharpen the average image with UnsharpMask.
     # To use the Laplacian, replace ImageMath function UnsharpMask with Sharpen
-    ${ANTSPATH}/ImageMath $dim ${template} UnsharpMask ${template}
+    ${ANTSPATH}/ImageMath $dim ${template} UnsharpMask ${template} 0.7 2 0 0
 
     if [[ $whichtemplate -eq 0 ]] ;
       then

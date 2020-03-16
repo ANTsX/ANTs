@@ -275,11 +275,11 @@ function summarizeimageset() {
   case $method in
     0) #mean
       ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}
-      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output
+      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.7 2 0 0
       ;;
     1) #mean of normalized images
       ${ANTSPATH}/AverageImages $dim $output 2 ${images[*]}
-      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output
+      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.7 2 0 0
       ;;
     2) #median
       local image
@@ -289,7 +289,7 @@ function summarizeimageset() {
         done
 
       ${ANTSPATH}/ImageSetStatistics $dim ${output}_list.txt ${output} 0
-      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output
+      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.7 2 0 0
       rm ${output}_list.txt
       ;;
   esac
