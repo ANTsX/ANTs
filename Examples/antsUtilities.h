@@ -654,7 +654,7 @@ typedef enum
   } TRAN_FILE_TYPE;
 
 // TODO: This should be a class.
-typedef struct
+using TRAN_OPT = struct TRAN_OPT_STRUCT
   {
   //    char *filename;
   std::string filename;
@@ -666,17 +666,17 @@ typedef struct
   //        this.do_affine_inv = do_affine_inv;
   //    };
   double weight;   // for average
-  } TRAN_OPT;
+  };
 
 typedef std::vector<TRAN_OPT> TRAN_OPT_QUEUE;
 
-typedef struct
+using MLINTERP_OPT = struct MLINTERP_OPT_STRUCT
   {
   bool physical_units;
   std::vector<double> sigma;
-  } MLINTERP_OPT;
+  };
 
-typedef struct
+using MISC_OPT = struct MISC_OPT_STRUCT
   {
   bool use_NN_interpolator;
   bool use_MultiLabel_interpolator;
@@ -686,7 +686,7 @@ typedef struct
   bool use_RotationHeader;
 
   MLINTERP_OPT opt_ML;
-  } MISC_OPT;
+  };
 
 extern TRAN_FILE_TYPE CheckFileType(const char * const str);
 

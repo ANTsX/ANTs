@@ -40,7 +40,7 @@ GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
   ImageRegionConstIteratorWithIndex<InputImageType>
   It( this->GetInput(), this->GetInput()->GetRequestedRegion() );
 
-  itkDebugMacro( << "Extracting points from input deformation field. " )
+  itkDebugMacro( << "Extracting points from input deformation field. " );
 
   unsigned int N = 0;
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
