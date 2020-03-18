@@ -104,13 +104,11 @@ ANTSCenteredAffine2DTransform<TScalarType>
 {
   typedef vnl_matrix_fixed<TScalarType, 2U, 2U> TMatrix;
 
-  TMatrix A, Q, R;
+  const TMatrix A { this->GetMatrix().GetVnlMatrix() };
+  vnl_qr<ScalarType> myqr(A.as_matrix());
 
-  A = this->GetMatrix().GetVnlMatrix();
-  vnl_qr<ScalarType> myqr(A);
-
-  R = myqr.Q();   // Q() is the rotation
-  Q = myqr.R();   // R() is the upper triangluar
+  TMatrix R = myqr.Q();   // Q() is the rotation
+  TMatrix Q = myqr.R();   // R() is the upper triangluar
 
   TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
   for( unsigned i = 0; i < 2; i++ )

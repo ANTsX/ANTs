@@ -282,10 +282,10 @@ int antsAffineInitializerImp(int argc, char *argv[])
     {
     eigind1 = 2;
     }
-  vnl_vector<RealType> evec1_2ndary =  cpa1.GetVnlMatrix().get_row( eigind2 );
-  vnl_vector<RealType> evec1_primary = cpa1.GetVnlMatrix().get_row( eigind1 );
-  vnl_vector<RealType> evec2_2ndary  = cpa2.GetVnlMatrix().get_row( eigind2 );
-  vnl_vector<RealType> evec2_primary = cpa2.GetVnlMatrix().get_row( eigind1 );
+  vnl_vector<RealType> evec1_primary { cpa1.GetVnlMatrix().get_row( eigind1 ).as_vector()  };
+  vnl_vector<RealType> evec2_primary { cpa2.GetVnlMatrix().get_row( eigind1 ).as_vector()  };
+  vnl_vector<RealType> evec1_2ndary  { cpa1.GetVnlMatrix().get_row( eigind2 ).as_vector()  };
+  vnl_vector<RealType> evec2_2ndary  { cpa2.GetVnlMatrix().get_row( eigind2 ).as_vector()  };
   /** Solve Wahba's problem --- http://en.wikipedia.org/wiki/Wahba%27s_problem */
   vnl_matrix<RealType> B = outer_product( evec2_primary, evec1_primary );
   if( ImageDimension == 3 )

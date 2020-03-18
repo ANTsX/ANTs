@@ -91,7 +91,7 @@ CorrectImageVectorDirection( DisplacementFieldType * movingVectorImage, ImageTyp
         internalVector[d] = vector[d];
         }
 
-      internalVector.pre_multiply( direction );;
+      internalVector.pre_multiply( direction.as_matrix() );
       for( unsigned int d = 0; d < dimension; d++ )
         {
         vector[d] = internalVector[d];

@@ -245,7 +245,7 @@ LabeledPointSetFileReader<TOutputMesh>
       }
     }
 
-  itkDebugMacro( "POINTS line" << line )
+  itkDebugMacro( "POINTS line" << line );
 
   std::string pointLine( line, strlen( "POINTS " ), line.length() );
   itkDebugMacro( "pointLine " << pointLine )
