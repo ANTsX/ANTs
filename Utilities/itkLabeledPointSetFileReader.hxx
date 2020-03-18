@@ -248,7 +248,7 @@ LabeledPointSetFileReader<TOutputMesh>
   itkDebugMacro( "POINTS line" << line );
 
   std::string pointLine( line, strlen( "POINTS " ), line.length() );
-  itkDebugMacro( "pointLine " << pointLine )
+  itkDebugMacro( "pointLine " << pointLine );
 
   int numberOfPoints = -1;
 
@@ -259,7 +259,7 @@ LabeledPointSetFileReader<TOutputMesh>
     return;
     }
 
-  itkDebugMacro( "numberOfPoints = " << numberOfPoints )
+  itkDebugMacro( "numberOfPoints = " << numberOfPoints );
 
   if( numberOfPoints < 1 )
     {
@@ -277,7 +277,7 @@ LabeledPointSetFileReader<TOutputMesh>
 
   if( isBinary )
     {
-    itkDebugMacro( "Data is binary" )
+    itkDebugMacro( "Data is binary" );
 
     float * ptData = new float[numberOfPoints * 3];
     inputFile.read( reinterpret_cast<char *>( ptData ), static_cast<std::size_t>( 3 ) * numberOfPoints * sizeof(float) );
