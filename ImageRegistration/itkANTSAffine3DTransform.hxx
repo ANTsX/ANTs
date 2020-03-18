@@ -606,13 +606,11 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 
   typedef vnl_matrix_fixed<TScalarType, 3U, 3U> TMatrix;
 
-  TMatrix A, R, Q;
+  const TMatrix A{this->GetMatrix().GetVnlMatrix()};
+  vnl_qr<ScalarType> myqr(A.as_matrix());
 
-  A = this->GetMatrix().GetVnlMatrix();
-  vnl_qr<ScalarType> myqr(A);
-
-  Q = myqr.Q();   // Q() is the rotation
-  R = myqr.R();   // R() is the upper triangluar
+  TMatrix Q = myqr.Q();   // Q() is the rotation
+  TMatrix R = myqr.R();   // R() is the upper triangluar
 
   // songgang: anyone added this???
   //      this is not necessary, for the mirror case
