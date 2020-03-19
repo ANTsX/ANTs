@@ -134,7 +134,7 @@ public:
   /** This function returns the angle between the reference tangent
       and the projection onto the tangent plane of the vector between
       the neighborhood focus and its neighbor. */
-  virtual RealType  GetTheta(PointType Neighbor, PointType origin);
+  virtual RealType  GetTheta(PointType Q, PointType origin);
 
   /** Estimate the directional curvature using Shimshoni's method (eq 6).*/
   virtual void EstimateDirectionalCurvature(PointType, PointType);

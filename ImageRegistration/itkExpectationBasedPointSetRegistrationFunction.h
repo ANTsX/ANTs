@@ -160,21 +160,21 @@ public:
   }
 
   /** Release memory for global data structure. */
-  void ReleaseGlobalDataPointer( void *GlobalData ) const override;
+  void ReleaseGlobalDataPointer( void *gd ) const override;
 
   void ExpectationLandmarkField(float weight, bool whichdirection);
 
-  void FastExpectationLandmarkField(float weight, bool whichdirection, long whichlabel, bool dobsp);
+  void FastExpectationLandmarkField(float weight, bool whichdirection, long whichlabel, bool dobspline);
 
   /** Set the object's state before each iteration. */
   void InitializeIteration() override;
 
   /** This method is called by a finite difference solver image filter at
    * each pixel that does not lie on a data set boundary */
-  PixelType  ComputeUpdate(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
+  PixelType  ComputeUpdate(const NeighborhoodType & it, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
                                        0.0) ) override;
 
-  PixelType  ComputeUpdateInv(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
+  PixelType  ComputeUpdateInv(const NeighborhoodType & it, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
                                           0.0) ) override;
 
   /** Get the metric value. The metric value is the mean square difference
