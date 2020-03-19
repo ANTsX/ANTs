@@ -499,8 +499,7 @@ ReadMatrixFromCSVorImageSet( std::string matname, vnl_matrix<PixelType> & p )
     matreader1->Update();
     p = CopyImageToVnlMatrix<MatrixImageType, Scalar>( matreader1->GetOutput() );
     }
-  return;
-}
+  }
 
 template <unsigned int ImageDimension, typename PixelType>
 itk::Array2D<double>

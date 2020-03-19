@@ -134,8 +134,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, double sig)
     ++Iterator;
     }
 
-  return;
-}
+  }
 
 // this has to have never been called because it doesn't actually
 // copy anything
@@ -493,8 +492,7 @@ InvertField( typename TField::Pointer field,
   //    std::cout <<" difmag " << difmag << ": its " << ct <<  " len " << m_MFR->MeasureDeformation(inverseField ) <<
   // std::endl;
 
-  return;
-}
+  }
 
 template <unsigned int ImageDimension>
 int LaplacianThicknessExpDiff2(int argc, char *argv[])
