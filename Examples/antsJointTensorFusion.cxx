@@ -34,7 +34,7 @@ public:
   itkNewMacro( CommandProgressUpdate );
 protected:
 
-  CommandProgressUpdate()  {};
+  CommandProgressUpdate()  = default;;
 
   using FilterType = TFilter;
 
