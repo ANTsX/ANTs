@@ -246,7 +246,7 @@ public:
 
 protected:
   ExpectationBasedPointSetRegistrationFunction();
-  virtual ~ExpectationBasedPointSetRegistrationFunction() override
+  ~ExpectationBasedPointSetRegistrationFunction() override
   {
   }
 
