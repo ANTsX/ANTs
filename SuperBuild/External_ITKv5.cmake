@@ -151,7 +151,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
-  set(${proj}_GIT_TAG  bcd762e7bd743341c2dce84852ced49d8292f293)  # Type -> Enum
+  set(${proj}_GIT_TAG  1e708db2f586997e408cfdc2cea5114ae5575892)  # Type -> Enum  Update to ITKv5rc02 2020-03-18
   set(ITK_VERSION_ID ITK-5.1) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
