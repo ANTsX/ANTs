@@ -1117,7 +1117,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "simply padding with negative voxel-widths.  If one pads (+), the " )
       + std::string( "user can also specify a constant pad value (default = 0). If a mask is " )
       + std::string( "specified, the user can use the mask to define the region, by using " )
-      + std::string( "the keyword \"mask\" plus an offset, e.g. \"-p mask+3\"." );
+      + std::string( R"(the keyword "mask" plus an offset, e.g. "-p mask+3".)" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "pad-or-crop" );
@@ -1139,7 +1139,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "for the numberOfSlicesToIncrement causes rendering in the reverse " )
       + std::string( "order.  For the third option, minSlice < maxSlice.  If a mask is " )
       + std::string( "specified, the user can use the mask to define the region, by using " )
-      + std::string( "the keyword \"mask\" plus an offset, e.g. \"-s [1,mask-3,200]\"." )
+      + std::string( R"(the keyword "mask" plus an offset, e.g. "-s [1,mask-3,200]".)" )
       + std::string( "For the third option, minSlice < maxSlice." );
 
     OptionType::Pointer option = OptionType::New();
@@ -1155,7 +1155,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "Flip individual slice images horizontally and/or vertically, specified " )
-      + std::string( "e.g. as \'0x1\' or \'1x1\'.");
+      + std::string( R"(e.g. as '0x1' or '1x1'.)");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "flip-slice" );

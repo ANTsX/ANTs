@@ -563,7 +563,7 @@ private:
       "Applies the inversion of abcdAffine.txt and then abcdInverseWarpxvec.nii.gz/abcdInverseWarpyvec.nii.gz/abcdInverseWarpzvec.nii.gz. Use this with ANTS to get the reference_image warped into the moving_image domain. "
              << std::endl
              << "Note: " << std::endl
-             << "prefix name \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
+             << R"(prefix name "abcd" without any extension will use ".nii.gz" by default)" << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {

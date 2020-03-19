@@ -100,7 +100,7 @@ private:
     {
     std::cout << "Usage: " << argv[0] << " outputvolume x y z inputvolume(s)" << std::endl;
     std::cout << "  The specific slice is chosen by specifying the index for x, y, xor z." << std::endl;
-    std::cout << "  For example, an \"x y z\" selection of \"30 -1 -1\" will stack slice 30 " << std::endl;
+    std::cout << R"(  For example, an "x y z" selection of "30 -1 -1" will stack slice 30 )" << std::endl;
     std::cout << "  along the first dimension.  Also note that input 4-D volumes are treated " << std::endl;
     std::cout << "  as a series of 3-D volumes." << std::endl;
     if( argc >= 2 &&
