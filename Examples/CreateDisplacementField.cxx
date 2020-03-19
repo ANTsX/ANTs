@@ -15,11 +15,11 @@ namespace ants
 template <unsigned int ImageDimension, unsigned int NumberOfComponents>
 void CreateDisplacementField( int argc, char *argv[] )
 {
-  typedef float                                       ValueType;
-  typedef itk::Image<ValueType, ImageDimension>       ComponentImageType;
-  typedef itk::Vector<ValueType, NumberOfComponents>  VectorPixelType;
-  typedef itk::Image<VectorPixelType, ImageDimension> VectorImageType;
-  typedef itk::ImageFileReader<ComponentImageType>    FileReaderType;
+  using ValueType = float;
+  using ComponentImageType = itk::Image<ValueType, ImageDimension>;
+  using VectorPixelType = itk::Vector<ValueType, NumberOfComponents>;
+  using VectorImageType = itk::Image<VectorPixelType, ImageDimension>;
+  using FileReaderType = itk::ImageFileReader<ComponentImageType>;
 
   typename FileReaderType::Pointer reader = FileReaderType::New();
   typename ComponentImageType::Pointer componentImage;
@@ -31,7 +31,7 @@ void CreateDisplacementField( int argc, char *argv[] )
   reader->SetFileName( argv[3] );
   reader->Update();
   componentImage = reader->GetOutput();
-  typedef typename ComponentImageType::RegionType RegionType;
+  using RegionType = typename ComponentImageType::RegionType;
   RegionType regionOfFirstComponent = componentImage->GetLargestPossibleRegion();
 
   // Create output vector image
@@ -40,8 +40,8 @@ void CreateDisplacementField( int argc, char *argv[] )
   vectorImage->SetRegions( componentImage->GetLargestPossibleRegion() );
 
   itk::ImageRegionIteratorWithIndex<ComponentImageType> comIt( componentImage, regionOfFirstComponent );
-  typedef typename itk::ImageRegionIteratorWithIndex<VectorImageType> VecItType;
-  typedef typename VecItType::IndexValueType                          VecItIndexValueType;
+  using VecItType = typename itk::ImageRegionIteratorWithIndex<VectorImageType>;
+  using VecItIndexValueType = typename VecItType::IndexValueType;
 
   VecItType vecIt( vectorImage, regionOfFirstComponent );
   for( itk::SizeValueType n = 0; n < NumberOfComponents; n++ )

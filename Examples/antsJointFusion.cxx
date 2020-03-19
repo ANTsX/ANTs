@@ -23,15 +23,15 @@ template <typename TFilter>
 class CommandProgressUpdate : public itk::Command
 {
 public:
-  typedef  CommandProgressUpdate                      Self;
-  typedef  itk::Command                               Superclass;
-  typedef  itk::SmartPointer<CommandProgressUpdate>  Pointer;
+  using Self = CommandProgressUpdate<TFilter>;
+  using Superclass = itk::Command;
+  using Pointer = itk::SmartPointer<CommandProgressUpdate<TFilter> >;
   itkNewMacro( CommandProgressUpdate );
 protected:
 
   CommandProgressUpdate() : m_CurrentProgress( 0 ), m_StartNewLine( true ) {};
 
-  typedef TFilter FilterType;
+  using FilterType = TFilter;
 
   unsigned int m_CurrentProgress;
   bool         m_StartNewLine;
@@ -114,12 +114,12 @@ public:
 template <unsigned int ImageDimension>
 int antsJointFusion( itk::ants::CommandLineParser *parser )
 {
-  typedef float                                               RealType;
-  typedef itk::Image<RealType, ImageDimension>                ImageType;
-  typedef itk::Image<unsigned int, ImageDimension>            LabelImageType;
-  typedef LabelImageType                                      MaskImageType;
+  using RealType = float;
+  using ImageType = itk::Image<RealType, ImageDimension>;
+  using LabelImageType = itk::Image<unsigned int, ImageDimension>;
+  using MaskImageType = LabelImageType;
 
-  typedef typename itk::ants::CommandLineParser::OptionType   OptionType;
+  using OptionType = typename itk::ants::CommandLineParser::OptionType;
 
   // Determine verbosity of output
 
@@ -138,9 +138,9 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   // Instantiate the joint fusion filter
 
-  typedef itk::WeightedVotingFusionImageFilter<ImageType, LabelImageType> FusionFilterType;
+  using FusionFilterType = itk::WeightedVotingFusionImageFilter<ImageType, LabelImageType>;
   typename FusionFilterType::Pointer fusionFilter = FusionFilterType::New();
-  typedef typename LabelImageType::PixelType                   LabelType;
+  using LabelType = typename LabelImageType::PixelType;
 
   // Get the alpha and beta parameters
 
@@ -170,7 +170,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
     std::string searchRadiusString = searchRadiusOption->GetFunction( 0 )->GetName();
     if( itksys::SystemTools::FileExists( searchRadiusString.c_str() ) )
       {
-      typedef typename FusionFilterType::RadiusImageType  RadiusImageType;
+      using RadiusImageType = typename FusionFilterType::RadiusImageType;
       typename RadiusImageType::Pointer searchRadiusImage;
       bool fileReadSuccessfully = ReadImage<RadiusImageType>( searchRadiusImage, searchRadiusString.c_str() );
       if( fileReadSuccessfully )
@@ -484,7 +484,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
   if( verbose )
     {
-    typedef CommandProgressUpdate<FusionFilterType> CommandType;
+    using CommandType = CommandProgressUpdate<FusionFilterType>;
     typename CommandType::Pointer observer = CommandType::New();
     fusionFilter->AddObserver( itk::ProgressEvent(), observer );
     }
@@ -630,7 +630,7 @@ int antsJointFusion( itk::ants::CommandLineParser *parser )
 
 void ajfInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
   std::string description =

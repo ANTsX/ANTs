@@ -115,10 +115,10 @@ private:
     return 0;
     }
 
-  typedef itk::Image<float, 3> ImageType;
-  typedef itk::Image<float, 3> floatImageType;
+  using ImageType = itk::Image<float, 3>;
+  using floatImageType = itk::Image<float, 3>;
   enum { ImageDimension = ImageType::ImageDimension };
-  typedef itk::SurfaceImageCurvature<ImageType> ParamType;
+  using ParamType = itk::SurfaceImageCurvature<ImageType>;
   ParamType::Pointer Parameterizer = ParamType::New();
 
   int   opt = 0;

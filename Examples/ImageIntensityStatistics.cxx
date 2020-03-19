@@ -15,11 +15,11 @@ namespace ants
 template <unsigned int ImageDimension>
 int ImageIntensityStatistics( int argc, char *argv[] )
 {
-  typedef int LabelType;
-  typedef float RealType;
+  using LabelType = int;
+  using RealType = float;
 
-  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
-  typedef itk::Image<RealType, ImageDimension> RealImageType;
+  using LabelImageType = itk::Image<LabelType, ImageDimension>;
+  using RealImageType = itk::Image<RealType, ImageDimension>;
 
   typename RealImageType::Pointer intensityImage = RealImageType::New();
   ReadImage<RealImageType>( intensityImage, argv[2] );
@@ -72,7 +72,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
       }
     }
 
-  typedef itk::LabelStatisticsImageFilter<RealImageType, LabelImageType> HistogramGeneratorType;
+  using HistogramGeneratorType = itk::LabelStatisticsImageFilter<RealImageType, LabelImageType>;
   typename HistogramGeneratorType::Pointer stats = HistogramGeneratorType::New();
   stats->SetInput( intensityImage );
   stats->SetLabelInput( labelImage );
@@ -130,7 +130,7 @@ int ImageIntensityStatistics( int argc, char *argv[] )
   std::vector<LabelType>::iterator it;
   for( it = labels.begin(); it != labels.end(); ++it )
     {
-    typedef typename HistogramGeneratorType::HistogramType HistogramType;
+    using HistogramType = typename HistogramGeneratorType::HistogramType;
     const HistogramType *histogram = stats->GetHistogram( *it );
 
     RealType fifthPercentileValue = histogram->Quantile( 0, 0.05 );

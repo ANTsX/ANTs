@@ -59,13 +59,13 @@ namespace ants
 template <unsigned int PointDimension>
 int FitBSplineWarpFieldToPoints( unsigned int argc, char *argv[] )
 {
-  typedef float RealType;
+  using RealType = float;
 
-  typedef itk::Vector<RealType, PointDimension> VectorType;
-  typedef itk::Image<VectorType, PointDimension> DisplacementFieldType;
+  using VectorType = itk::Vector<RealType, PointDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, PointDimension>;
 
-  typedef itk::DisplacementFieldToBSplineImageFilter<DisplacementFieldType>  BSplineFilterType;
-  typedef typename BSplineFilterType::InputPointSetType                      BSplinePointSetType;
+  using BSplineFilterType = itk::DisplacementFieldToBSplineImageFilter<DisplacementFieldType>;
+  using BSplinePointSetType = typename BSplineFilterType::InputPointSetType;
 
   typename BSplineFilterType::WeightsContainerType::Pointer weights =
     BSplineFilterType::WeightsContainerType::New();
@@ -132,7 +132,7 @@ int FitBSplineWarpFieldToPoints( unsigned int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  typedef itk::Image<RealType, PointDimension> ImageType;
+  using ImageType = itk::Image<RealType, PointDimension>;
 
   typename ImageType::Pointer domainImage = nullptr;
 
@@ -191,17 +191,16 @@ int FitBSplineWarpFieldToPoints( unsigned int argc, char *argv[] )
 template <unsigned int PointDimension>
 int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
 {
-  typedef float RealType;
+  using RealType = float;
 
-  typedef itk::Vector<RealType, PointDimension> VectorType;
-  typedef itk::Image<VectorType, 1> CurveImageType;
+  using VectorType = itk::Vector<RealType, PointDimension>;
+  using CurveImageType = itk::Image<VectorType, 1>;
 
-  typedef itk::PointSet<VectorType, 1> PointSetType;
+  using PointSetType = itk::PointSet<VectorType, 1>;
   typename PointSetType::Pointer pointSet = PointSetType::New();
   pointSet->Initialize();
 
-  typedef itk::BSplineScatteredDataPointSetToImageFilter
-     <PointSetType, CurveImageType>  FilterType;
+  using FilterType = itk::BSplineScatteredDataPointSetToImageFilter<PointSetType, CurveImageType>;
   typename FilterType::Pointer filter = FilterType::New();
 
   typename FilterType::WeightsContainerType::Pointer weights = FilterType::WeightsContainerType::New();

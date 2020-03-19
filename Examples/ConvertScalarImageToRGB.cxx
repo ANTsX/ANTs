@@ -35,22 +35,22 @@ namespace ants
 template <unsigned int ImageDimension>
 int ConvertScalarImageToRGB( int argc, char *argv[] )
 {
-  typedef itk::RGBPixel<unsigned char> RGBPixelType;
+  using RGBPixelType = itk::RGBPixel<unsigned char>;
 //  typedef itk::RGBAPixel<unsigned char> RGBPixelType;
 
-  typedef float RealType;
+  using RealType = float;
 
-  typedef itk::Image<float, ImageDimension>        RealImageType;
-  typedef itk::Image<RGBPixelType, ImageDimension> RGBImageType;
+  using RealImageType = itk::Image<float, ImageDimension>;
+  using RGBImageType = itk::Image<RGBPixelType, ImageDimension>;
 
-  typedef itk::ImageFileReader<RealImageType> ReaderType;
+  using ReaderType = itk::ImageFileReader<RealImageType>;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[2] );
   reader->Update();
 
-  typedef itk::Image<unsigned char, ImageDimension> MaskImageType;
+  using MaskImageType = itk::Image<unsigned char, ImageDimension>;
   typename MaskImageType::Pointer maskImage = nullptr;
-  typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
+  using MaskReaderType = itk::ImageFileReader<MaskImageType>;
   typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
   maskreader->SetFileName( argv[4] );
   try
@@ -66,8 +66,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
 
   std::string colormapString( argv[5] );
 
-  typedef itk::ScalarToRGBColormapImageFilter<RealImageType,
-                                              RGBImageType> RGBFilterType;
+  using RGBFilterType = itk::ScalarToRGBColormapImageFilter<RealImageType, RGBImageType>;
   typename RGBFilterType::Pointer rgbfilter = RGBFilterType::New();
   rgbfilter->SetInput( reader->GetOutput() );
 
@@ -137,8 +136,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
     }
   else if( colormapString == "custom"  )
     {
-    typedef itk::Function::CustomColormapFunction<typename RealImageType::PixelType,
-                                                  typename RGBImageType::PixelType> ColormapType;
+    using ColormapType = itk::Function::CustomColormapFunction<typename RealImageType::PixelType, typename RGBImageType::PixelType>;
     typename ColormapType::Pointer colormap = ColormapType::New();
 
     std::ifstream str( argv[6] );
@@ -288,7 +286,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
       }
     }
 
-  typedef itk::ImageFileWriter<RGBImageType> WriterType;
+  using WriterType = itk::ImageFileWriter<RGBImageType>;
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetInput( rgbfilter->GetOutput() );
   writer->SetFileName( argv[3] );

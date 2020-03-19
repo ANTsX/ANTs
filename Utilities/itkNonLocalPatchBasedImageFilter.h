@@ -37,10 +37,10 @@ class NonLocalPatchBasedImageFilter :
 {
 public:
   /** Standard class typedefs. */
-  typedef NonLocalPatchBasedImageFilter                 Self;
-  typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
-  typedef SmartPointer<Self>                            Pointer;
-  typedef SmartPointer<const Self>                      ConstPointer;
+  using Self = NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>;
+  using Superclass = ImageToImageFilter<TInputImage, TOutputImage>;
+  using Pointer = SmartPointer<Self>;
+  using ConstPointer = SmartPointer<const Self>;
 
   /** Runtime information support. */
   itkTypeMacro( NonLocalPatchBasedImageFilter, ImageToImageFilter );
@@ -53,31 +53,31 @@ public:
                        TInputImage::ImageDimension );
 
   /** Some convenient typedefs. */
-  typedef TInputImage                                    InputImageType;
-  typedef typename InputImageType::PixelType             InputPixelType;
-  typedef typename InputImageType::Pointer               InputImagePointer;
-  typedef std::vector<InputImagePointer>                 InputImageList;
-  typedef std::vector<InputImageList>                    InputImageSetList;
-  typedef typename InputImageType::RegionType            RegionType;
+  using InputImageType = TInputImage;
+  using InputPixelType = typename InputImageType::PixelType;
+  using InputImagePointer = typename InputImageType::Pointer;
+  using InputImageList = std::vector<InputImagePointer>;
+  using InputImageSetList = std::vector<InputImageList>;
+  using RegionType = typename InputImageType::RegionType;
 
-  typedef TOutputImage                                   OutputImageType;
-  typedef typename OutputImageType::PixelType            OutputPixelType;
+  using OutputImageType = TOutputImage;
+  using OutputPixelType = typename OutputImageType::PixelType;
 
-  typedef std::vector<InputPixelType>                    InputImagePixelVectorType;
+  using InputImagePixelVectorType = std::vector<InputPixelType>;
 
-  typedef float                                          RealType;
-  typedef Image<RealType, ImageDimension>                RealImageType;
-  typedef typename RealImageType::Pointer                RealImagePointer;
-  typedef typename RealImageType::IndexType              IndexType;
+  using RealType = float;
+  using RealImageType = Image<RealType, ImageDimension>;
+  using RealImagePointer = typename RealImageType::Pointer;
+  using IndexType = typename RealImageType::IndexType;
 
-  typedef Neighborhood<InputPixelType, ImageDimension>         NeighborhoodType;
-  typedef SizeValueType                                        NeighborhoodSizeType;
+  using NeighborhoodType = Neighborhood<InputPixelType, ImageDimension>;
+  using NeighborhoodSizeType = SizeValueType;
 
-  typedef ConstNeighborhoodIterator<InputImageType>            ConstNeighborhoodIteratorType;
-  typedef typename ConstNeighborhoodIteratorType::RadiusType   NeighborhoodRadiusType;
-  typedef typename ConstNeighborhoodIteratorType::OffsetType   NeighborhoodOffsetType;
+  using ConstNeighborhoodIteratorType = ConstNeighborhoodIterator<InputImageType>;
+  using NeighborhoodRadiusType = typename ConstNeighborhoodIteratorType::RadiusType;
+  using NeighborhoodOffsetType = typename ConstNeighborhoodIteratorType::OffsetType;
 
-  typedef std::vector<NeighborhoodOffsetType>                  NeighborhoodOffsetListType;
+  using NeighborhoodOffsetListType = std::vector<NeighborhoodOffsetType>;
   /**
    * Neighborhood patch similarity metric enumerated type
    */

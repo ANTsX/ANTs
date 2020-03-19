@@ -27,63 +27,56 @@ namespace ants
 template <unsigned int ImageDimension, typename PixelType>
 int ResampleImage( int argc, char *argv[] )
 {
-  typedef double                                RealType;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  using RealType = double;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
   typename ImageType::Pointer image = nullptr;
   ReadImage<ImageType>( image, argv[2] );
 
-  typedef itk::IdentityTransform<RealType, ImageDimension> TransformType;
+  using TransformType = itk::IdentityTransform<RealType, ImageDimension>;
   typename TransformType::Pointer transform = TransformType::New();
   transform->SetIdentity();
 
-  typedef itk::LinearInterpolateImageFunction<ImageType, RealType>
-    LinearInterpolatorType;
+  using LinearInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
   typename LinearInterpolatorType::Pointer interpolator
     = LinearInterpolatorType::New();
   interpolator->SetInputImage( image );
 
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, RealType>
-    NearestNeighborInterpolatorType;
+  using NearestNeighborInterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, RealType>;
   typename NearestNeighborInterpolatorType::Pointer nn_interpolator
     = NearestNeighborInterpolatorType::New();
   nn_interpolator->SetInputImage( image );
 
-  typedef itk::BSplineInterpolateImageFunction<ImageType, RealType>
-    BSplineInterpolatorType;
+  using BSplineInterpolatorType = itk::BSplineInterpolateImageFunction<ImageType, RealType>;
   typename BSplineInterpolatorType::Pointer bs_interpolator
     = BSplineInterpolatorType::New();
   bs_interpolator->SetInputImage( image );
 
-  typedef itk::GaussianInterpolateImageFunction<ImageType, RealType>
-    GaussianInterpolatorType;
+  using GaussianInterpolatorType = itk::GaussianInterpolateImageFunction<ImageType, RealType>;
   typename GaussianInterpolatorType::Pointer g_interpolator
     = GaussianInterpolatorType::New();
   g_interpolator->SetInputImage( image );
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3> HammingInterpolatorType;
+  using HammingInterpolatorType = itk::WindowedSincInterpolateImageFunction<ImageType, 3>;
   typename HammingInterpolatorType::Pointer sh_interpolator = HammingInterpolatorType::New();
   sh_interpolator->SetInputImage( image );
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-                                                    itk::Function::CosineWindowFunction<3> > Sinc1InterpolatorType;
+  using Sinc1InterpolatorType = itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::CosineWindowFunction<3> >;
   typename Sinc1InterpolatorType::Pointer sc_interpolator = Sinc1InterpolatorType::New();
   sc_interpolator->SetInputImage( image );
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-                                                    itk::Function::WelchWindowFunction<3> > Sinc2InterpolatorType;
+  using Sinc2InterpolatorType = itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::WelchWindowFunction<3> >;
   typename Sinc2InterpolatorType::Pointer sw_interpolator = Sinc2InterpolatorType::New();
   sw_interpolator->SetInputImage( image );
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-                                                    itk::Function::LanczosWindowFunction<3> > Sinc3InterpolatorType;
+  using Sinc3InterpolatorType = itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::LanczosWindowFunction<3> >;
   typename Sinc3InterpolatorType::Pointer sl_interpolator = Sinc3InterpolatorType::New();
   sl_interpolator->SetInputImage( image );
 
   typename Sinc3InterpolatorType::Pointer sb_interpolator = Sinc3InterpolatorType::New();
   sb_interpolator->SetInputImage( image );
 
-  typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
+  using ResamplerType = itk::ResampleImageFilter<ImageType, ImageType, RealType>;
   typename ResamplerType::Pointer resampler = ResamplerType::New();
   typename ResamplerType::SpacingType spacing;
   typename ResamplerType::SizeType size;

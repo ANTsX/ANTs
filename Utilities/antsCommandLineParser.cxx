@@ -23,7 +23,7 @@ namespace ants
 
   std::string ConvertToHumanReadable(const std::string & input)
     {
-    typedef std::map<std::string,std::string> TypeMapType;
+    using TypeMapType = std::map<std::string, std::string>;
     TypeMapType cnvtMap;
     cnvtMap[typeid(signed char).name()] = "signed int";
     cnvtMap[typeid(unsigned char).name()] = "unsigned int";
@@ -602,7 +602,7 @@ CommandLineParser
 
   for( it = this->m_Options.begin(); it != this->m_Options.end(); ++it )
     {
-    typedef OptionType::FunctionStackType OptionFunctionStackType;
+    using OptionFunctionStackType = OptionType::FunctionStackType;
     OptionFunctionStackType functions = (*it)->GetFunctions();
 
     OptionFunctionStackType::const_iterator it2;

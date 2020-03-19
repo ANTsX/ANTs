@@ -139,20 +139,18 @@ template <int ImageDimension>
 void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *output_vtk_filename,
                                            char *reference_image_filename, TRAN_OPT_QUEUE & opt_queue)
 {
-  typedef itk::Image<float, ImageDimension>      ImageType;
-  typedef itk::Vector<float, ImageDimension>     VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension> AffineTransformType;
+  using ImageType = itk::Image<float, ImageDimension>;
+  using VectorType = itk::Vector<float, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
   // typedef itk::WarpImageMultiTransformFilter<ImageType,ImageType, DisplacementFieldType, AffineTransformType>
   // WarperType;
-  typedef itk::DisplacementFieldFromMultiTransformFilter<DisplacementFieldType,
-                                                         DisplacementFieldType, AffineTransformType> WarperType;
-  typedef itk::LinearInterpolateImageFunction<ImageType> FuncType;
+  using WarperType = itk::DisplacementFieldFromMultiTransformFilter<DisplacementFieldType, DisplacementFieldType, AffineTransformType>;
+  using FuncType = itk::LinearInterpolateImageFunction<ImageType>;
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
-  typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
+  using ImageFileReaderType = itk::ImageFileReader<ImageType>;
   typename ImageFileReaderType::Pointer reader_img =
     ImageFileReaderType::New();
   typename ImageType::Pointer img_ref;
@@ -179,10 +177,9 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
   pad.Fill(0);
   // warper->SetEdgePaddingValue(pad);
 
-  typedef itk::TransformFileReader TranReaderType;
+  using TranReaderType = itk::TransformFileReader;
 
-  typedef itk::ImageFileReader<DisplacementFieldType>
-    FieldReaderType;
+  using FieldReaderType = itk::ImageFileReader<DisplacementFieldType>;
 
   const int kOptQueueSize = opt_queue.size();
   for( int i = 0; i < kOptQueueSize; i++ )
@@ -244,7 +241,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
   typename ImageType::PointType point;
   typename ImageType::PointType warpedPoint;
 
-  typedef itk::Mesh<float, ImageDimension> MeshType;
+  using MeshType = itk::Mesh<float, ImageDimension>;
   //  typedef itk::LabeledPointSetFileReader<MeshType> VTKReaderType;
   vtkPolyDataReader *vtkreader = vtkPolyDataReader::New();
   vtkreader->SetFileName( input_vtk_filename );
@@ -373,16 +370,11 @@ template <int ImageDimension>
 void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
                         char *reference_affine_txt, TRAN_OPT_QUEUE & opt_queue)
 {
-  typedef itk::Image<float,
-                     ImageDimension>                              ImageType;
-  typedef itk::Vector<float,
-                      ImageDimension>                             VectorType;
-  typedef itk::Image<VectorType,
-                     ImageDimension>                              DisplacementFieldType;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension>          AffineTransformType;
-  typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType,
-                                             AffineTransformType> WarperType;
+  using ImageType = itk::Image<float, ImageDimension>;
+  using VectorType = itk::Vector<float, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
+  using WarperType = itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType, AffineTransformType>;
   // typedef itk::DisplacementFieldFromMultiTransformFilter<DisplacementFieldType,
   // DisplacementFieldType, AffineTransformType> WarperType;
 
@@ -401,7 +393,7 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
   pad.Fill(0);
   // warper->SetEdgePaddingValue(pad);
 
-  typedef itk::TransformFileReader TranReaderType;
+  using TranReaderType = itk::TransformFileReader;
 
   int       cnt_affine = 0;
   const int kOptQueueSize = opt_queue.size();
@@ -440,7 +432,7 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
       }
     }
 
-  typedef typename AffineTransformType::CenterType PointType;
+  using PointType = typename AffineTransformType::CenterType;
   PointType aff_center;
 
   typename AffineTransformType::Pointer aff_ref_tmp;
@@ -473,7 +465,7 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
   // typename AffineTransformType::Pointer aff_output = warper->ComposeAffineOnlySequence(aff_center);
   typename AffineTransformType::Pointer aff_output = AffineTransformType::New();
   warper->ComposeAffineOnlySequence(aff_center, aff_output);
-  typedef itk::TransformFileWriter TranWriterType;
+  using TranWriterType = itk::TransformFileWriter;
   typename TranWriterType::Pointer tran_writer = TranWriterType::New();
   tran_writer->SetFileName(output_affine_txt);
   tran_writer->SetInput(aff_output);
