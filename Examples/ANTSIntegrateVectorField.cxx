@@ -132,8 +132,8 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
     {
     float scale = 1;  // *m_DT[timeind]/m_DS[timeind];
     //     std::cout << " scale " << scale << std::endl;
-    double itimetn1 = static_cast<double>( itime - timesign * deltaTime * scale );
-    double itimetn1h = static_cast<double>( itime - timesign * deltaTime * 0.5f * scale );
+    auto itimetn1 = static_cast<double>( itime - timesign * deltaTime * scale );
+    auto itimetn1h = static_cast<double>( itime - timesign * deltaTime * 0.5f * scale );
     if( itimetn1h < 0 )
       {
       itimetn1h = 0;
@@ -231,7 +231,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       f4 = vinterp->EvaluateAtContinuousIndex( Y4 );
       }
     using DPointCoordRepType = typename DPointType::CoordRepType;
-    DPointCoordRepType twoValue = static_cast<DPointCoordRepType>( 2.0 );
+    auto twoValue = static_cast<DPointCoordRepType>( 2.0 );
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
       pointIn3[jj] = pointIn2[jj] + static_cast<DPointCoordRepType>( gradsign * vecsign * deltaTime / 6.0f )

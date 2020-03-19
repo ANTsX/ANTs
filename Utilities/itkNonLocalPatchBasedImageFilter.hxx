@@ -179,8 +179,8 @@ NonLocalPatchBasedImageFilter<TInputImage, TOutputImage>
       bool isInBounds = this->m_TargetImageRegion.IsInside( neighborhoodIndex );
       if( isInBounds && std::isfinite( patchVectorY[count] ) )
         {
-        RealType x = static_cast<RealType>( imageList[i]->GetPixel( neighborhoodIndex ) );
-        RealType y = static_cast<RealType>( patchVectorY[count] );
+        auto x = static_cast<RealType>( imageList[i]->GetPixel( neighborhoodIndex ) );
+        auto y = static_cast<RealType>( patchVectorY[count] );
 
         sumX += x;
         sumOfSquaresX += itk::Math::sqr ( x );
