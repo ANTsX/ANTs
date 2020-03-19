@@ -468,8 +468,6 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   writer->SetFileName(fn.c_str() );
   writer->SetInput(m_FloatImage);
   writer->Write();
-
-  return;
 }
 
 template <unsigned int ImageDimension>

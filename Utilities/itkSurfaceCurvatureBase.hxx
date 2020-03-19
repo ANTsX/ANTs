@@ -483,8 +483,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 //
 //  std::cout << " eval 0 " << m_Kappa1 << " eval 1 " << m_Kappa2 << std::endl;
 
-  return;
-}
+  }
 
 // end jain frame
 

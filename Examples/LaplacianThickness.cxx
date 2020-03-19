@@ -94,8 +94,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
     ++Iterator;
     }
 
-  return;
-}
+  }
 
 template <typename TImage>
 typename TImage::Pointer

@@ -156,8 +156,7 @@ HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInput
     m_InputMovingImage->SetPixel(vfIter.GetIndex(), vfIter.Get() );
     }
 
-  return;
-}
+  }
 
 template <typename TImage>
 void
@@ -234,7 +233,7 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
     vfIter.Set(  localmean->GetPixel( vfIter.GetIndex() ) );
     }
 
-  return; // localmean;
+  // localmean;
 }
 
 template <typename TImage>

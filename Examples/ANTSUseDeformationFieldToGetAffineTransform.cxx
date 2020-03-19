@@ -47,8 +47,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
     return;
     }
 
-  return;
-}
+  }
 
 // //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
@@ -189,8 +188,6 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
   transform->SetCenter(center);
   transform->SetTranslation(translation);
   transform->SetMatrix(matrix);
-
-  return;
 }
 
 template <typename PointContainerType, typename TTransform>
@@ -307,8 +304,6 @@ void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_fi
   std::cout << "total " << cnt << " points loaded from " << deformation_field_file_name << "." << std::endl;
   std::cout << fixedLandmarks.size() << std::endl;
   std::cout << movingLandmarks.size() << std::endl;
-
-  return;
 }
 
 //

@@ -96,8 +96,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
     ++Iterator;
     }
 
-  return;
-}
+  }
 
 template <typename TImage, typename TField, typename TInterp, typename TInterp2>
 float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointer /* thickimage */,

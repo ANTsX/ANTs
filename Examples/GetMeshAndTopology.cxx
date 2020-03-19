@@ -445,7 +445,6 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   inflater->Delete();
   smoother->Delete();
   std::cout << " done writing2 ";
-  return;
 }
 
 template <typename TImage>

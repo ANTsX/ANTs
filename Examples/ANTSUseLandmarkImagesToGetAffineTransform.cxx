@@ -44,8 +44,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
     return;
     }
 
-  return;
-}
+  }
 
 // //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
@@ -175,8 +174,6 @@ void GetAffineTransformFromTwoPointSets(PointContainerType & fixedLandmarks, Poi
   transform->SetCenter(center);
   transform->SetTranslation(translation);
   transform->SetMatrix(matrix);
-
-  return;
 }
 
 //

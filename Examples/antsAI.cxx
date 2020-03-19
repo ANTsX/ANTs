@@ -405,8 +405,7 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
       }
     }
 
-  return;
-}
+  }
 
 template <typename TImage, typename TTransform>
 typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::Pointer fixedImage,

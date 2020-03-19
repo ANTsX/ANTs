@@ -430,7 +430,6 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
     image_avg->SetPixel(spind, fval);
     }
   if ( verbose ) std::cout << " averaging images done " << std::endl;
-  return;
 }
 
 template <unsigned int ImageDimension>
