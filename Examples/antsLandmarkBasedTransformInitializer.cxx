@@ -560,7 +560,7 @@ private:
       << "outputTransform [meshSize[0]xmeshSize[1]x...=1x1x1] [numberOfLevels=4] [order=3] "
       << "[enforceStationaryBoundaries=1] [landmarkWeights] " << std::endl;
     std::cerr << std::endl << "Notes:" << std::endl;
-    std::cerr << " 1) transformType = \"rigid\", \"affine\", or \"bspline\"." << std::endl;
+    std::cerr << R"( 1) transformType = "rigid", "affine", or "bspline".)" << std::endl;
     std::cerr << " 2) The optional arguments only apply to the bspline transform." << std::endl;
     std::cerr << " 3) The landmark weights are read from a text file where each row is either:" << std::endl;
     std::cerr << "     \"label,labelWeight\" or " << std::endl;

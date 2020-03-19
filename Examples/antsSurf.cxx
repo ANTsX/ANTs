@@ -970,7 +970,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description =
     std::string( "Add a scalar bar to the rendering for the final overlay.  One can tailor " )
     + std::string( "the aesthetic by changing the number of labels and/or the orientation and ")
-    + std::string( "size of the scalar bar.  If the \'width\' > \'height\' (in pixels) then the ")
+    + std::string( R"(size of the scalar bar.  If the 'width' > 'height' (in pixels) then the )")
     + std::string( "orientation is horizontal.  Otherwise it is vertical (default)." );
 
     OptionType::Pointer option = OptionType::New();

@@ -771,7 +771,7 @@ private:
       << std::endl;
 
     std::cout << " Important Notes: " << std::endl;
-    std::cout << " Prefixname \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
+    std::cout << R"( Prefixname "abcd" without any extension will use ".nii.gz" by default)" << std::endl;
     std::cout
       <<
       " The abcdWarp and abcdInverseWarp do not exist. They are formed on the basis of abcd(Inverse)Warp.nii.gz when calling "
