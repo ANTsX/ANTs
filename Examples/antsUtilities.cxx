@@ -209,7 +209,7 @@ void DisplayOpt(const TRAN_OPT & opt)
   std::cout << ": " << opt.filename << std::endl;
 }
 
-std::string GetPreferredTransformFileType(void)
+std::string GetPreferredTransformFileType()
 {
   // return ".mat";
   return ".txt";
