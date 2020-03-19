@@ -29,11 +29,11 @@ public:
   itkNewMacro( CommandProgressUpdate );
 protected:
 
-  CommandProgressUpdate() : m_CurrentProgress( 0 ) {};
+  CommandProgressUpdate()  {};
 
   using FilterType = TFilter;
 
-  unsigned int m_CurrentProgress;
+  unsigned int m_CurrentProgress{ 0 };
 
 public:
 
