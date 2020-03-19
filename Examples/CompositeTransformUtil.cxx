@@ -259,7 +259,7 @@ private:
     }
   while( argc != 0 );
 
-  if( transformNames.size() < 1 )
+  if( transformNames.empty() )
     {
     std::cout << "Missing transform names to "
              << "assemble into a composite transform"

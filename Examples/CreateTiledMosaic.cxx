@@ -755,7 +755,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     outputSlice2->Update();
     outputSlice2->DisconnectPipeline();
 
-    if( functionalRgbImages.size() > 0 )
+    if( !functionalRgbImages.empty() )
       {
       RgbSliceType::Pointer compositeRgbSlice = nullptr;
       RealType compositeAlpha = 1.0;
@@ -966,7 +966,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     std::string outputFile = outputOption->GetFunction( 0 )->GetName();
-    if( functionalRgbImages.size() > 0 )
+    if( !functionalRgbImages.empty() )
       {
       rgbTileFilter->Update();
       WriteImage<RgbSliceType>( rgbTileFilter->GetOutput(), outputFile.c_str() );
