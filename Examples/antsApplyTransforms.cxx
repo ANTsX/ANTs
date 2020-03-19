@@ -35,8 +35,8 @@ template <typename TensorImageType, typename ImageType>
 void
 CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * referenceImage )
 {
-  typedef typename TensorImageType::DirectionType    DirectionType;
-  typedef typename DirectionType::InternalMatrixType MatrixType;
+  using DirectionType = typename TensorImageType::DirectionType;
+  using MatrixType = typename DirectionType::InternalMatrixType;
 
   // Assume tensors start in moving voxel space, we want to put them in fixed voxel space
 
@@ -47,8 +47,8 @@ CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * re
     itk::ImageRegionIterator<TensorImageType> It( movingTensorImage, movingTensorImage->GetBufferedRegion() );
     for( It.GoToBegin(); !It.IsAtEnd(); ++It )
       {
-      typedef typename TensorImageType::PixelType                         TensorType;
-      typedef typename TensorImageType::DirectionType::InternalMatrixType TensorMatrixType;
+      using TensorType = typename TensorImageType::PixelType;
+      using TensorMatrixType = typename TensorImageType::DirectionType::InternalMatrixType;
 
       TensorType       tensor = It.Get();
       TensorMatrixType dt;
@@ -68,13 +68,13 @@ template <typename DisplacementFieldType, typename ImageType>
 void
 CorrectImageVectorDirection( DisplacementFieldType * movingVectorImage, ImageType * referenceImage )
 {
-  typedef typename DisplacementFieldType::DirectionType DirectionType;
+  using DirectionType = typename DisplacementFieldType::DirectionType;
 
   // Assume vectors are initially described in the voxel space of the moving image, like tensors
   typename DirectionType::InternalMatrixType direction =
     referenceImage->GetDirection().GetTranspose() * movingVectorImage->GetDirection().GetVnlMatrix();
 
-  typedef typename DisplacementFieldType::PixelType VectorType;
+  using VectorType = typename DisplacementFieldType::PixelType;
 
   const unsigned int dimension = ImageType::ImageDimension;
 
@@ -142,33 +142,33 @@ bool isDiagonalElement(std::vector<unsigned int> diagElements, unsigned int ind)
 template <typename T, unsigned int Dimension, typename OT>
 int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
-  typedef T                                      RealType;
-  typedef T                                      PixelType;
-  typedef itk::Vector<RealType, Dimension>       VectorType;
+  using RealType = T;
+  using PixelType = T;
+  using VectorType = itk::Vector<RealType, Dimension>;
 
-  typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
+  using TensorPixelType = itk::SymmetricSecondRankTensor<RealType, Dimension>;
 
   // typedef unsigned int                     LabelPixelType;
   // typedef itk::Image<PixelType, Dimension> LabelImageType;
 
-  typedef itk::Image<PixelType, Dimension>           ImageType;
-  typedef ImageType                                  ReferenceImageType;
+  using ImageType = itk::Image<PixelType, Dimension>;
+  using ReferenceImageType = ImageType;
 
-  typedef itk::Image<PixelType, Dimension + 1>       TimeSeriesImageType;
-  typedef itk::Image<VectorType, Dimension>          DisplacementFieldType;
-  typedef itk::VectorImage<PixelType, Dimension>     MultiChannelImageType;
-  typedef itk::Image<TensorPixelType, Dimension>     TensorImageType;
+  using TimeSeriesImageType = itk::Image<PixelType, Dimension + 1>;
+  using DisplacementFieldType = itk::Image<VectorType, Dimension>;
+  using MultiChannelImageType = itk::VectorImage<PixelType, Dimension>;
+  using TensorImageType = itk::Image<TensorPixelType, Dimension>;
 
-  typedef OT                                           OutputPixelType;
-  typedef itk::Image<OutputPixelType, Dimension>       OutputImageType;
-  typedef itk::Image<OutputPixelType, Dimension + 1>   OutputTimeSeriesImageType;
-  typedef itk::VectorImage<OutputPixelType, Dimension> OutputMultiChannelImageType;
-  typedef itk::Vector<OutputPixelType, Dimension>      OutputVectorType;
-  typedef itk::Image<OutputVectorType, Dimension>      OutputDisplacementFieldType;
+  using OutputPixelType = OT;
+  using OutputImageType = itk::Image<OutputPixelType, Dimension>;
+  using OutputTimeSeriesImageType = itk::Image<OutputPixelType, Dimension + 1>;
+  using OutputMultiChannelImageType = itk::VectorImage<OutputPixelType, Dimension>;
+  using OutputVectorType = itk::Vector<OutputPixelType, Dimension>;
+  using OutputDisplacementFieldType = itk::Image<OutputVectorType, Dimension>;
 
-  typedef typename ants::RegistrationHelper<T, Dimension>         RegistrationHelperType;
-  typedef typename RegistrationHelperType::AffineTransformType    AffineTransformType;
-  typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
+  using RegistrationHelperType = typename ants::RegistrationHelper<T, Dimension>;
+  using AffineTransformType = typename RegistrationHelperType::AffineTransformType;
+  using CompositeTransformType = typename RegistrationHelperType::CompositeTransformType;
 
   const unsigned int NumberOfTensorElements = numTensorElements<Dimension>();
 
@@ -241,7 +241,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       std::cout << "Input vector image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
       }
 
-    typedef itk::ImageFileReader<DisplacementFieldType> ReaderType;
+    using ReaderType = itk::ImageFileReader<DisplacementFieldType>;
     typename ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName( ( inputOption->GetFunction( 0 )->GetName() ).c_str() );
 
@@ -294,7 +294,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       }
     }
 
-  typedef ImageType ReferenceImageType;
+  using ReferenceImageType = ImageType;
   typename ReferenceImageType::Pointer referenceImage;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer referenceOption =
@@ -322,7 +322,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     CorrectImageVectorDirection<DisplacementFieldType, ReferenceImageType>( vectorImage, referenceImage );
     for( unsigned int i = 0; i < Dimension; i++ )
       {
-      typedef itk::VectorIndexSelectionCastImageFilter<DisplacementFieldType, ImageType> SelectorType;
+      using SelectorType = itk::VectorIndexSelectionCastImageFilter<DisplacementFieldType, ImageType>;
       typename SelectorType::Pointer selector = SelectorType::New();
       selector->SetInput( vectorImage );
       selector->SetIndex( i );
@@ -336,7 +336,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     CorrectImageTensorDirection<TensorImageType, ReferenceImageType>( tensorImage, referenceImage );
     for( unsigned int i = 0; i < NumberOfTensorElements; i++ )
       {
-      typedef itk::VectorIndexSelectionCastImageFilter<TensorImageType, ImageType> SelectorType;
+      using SelectorType = itk::VectorIndexSelectionCastImageFilter<TensorImageType, ImageType>;
       typename SelectorType::Pointer selector = SelectorType::New();
       selector->SetInput( tensorImage );
       selector->SetIndex( i );
@@ -356,7 +356,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       {
       extractRegion.SetIndex( Dimension, startTimeIndex + i );
 
-      typedef itk::ExtractImageFilter<TimeSeriesImageType, ImageType> ExtracterType;
+      using ExtracterType = itk::ExtractImageFilter<TimeSeriesImageType, ImageType>;
       typename ExtracterType::Pointer extracter = ExtracterType::New();
       extracter->SetInput( timeSeriesImage );
       extracter->SetExtractionRegion( extractRegion );
@@ -372,7 +372,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
    */
   // Register the matrix offset transform base class to the
   // transform factory for compatibility with the current ANTs.
-  typedef itk::MatrixOffsetTransformBase<RealType, Dimension, Dimension> MatrixOffsetTransformType;
+  using MatrixOffsetTransformType = itk::MatrixOffsetTransformBase<RealType, Dimension, Dimension>;
   itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
 
   typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
@@ -444,7 +444,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     }
   for( unsigned int n = 0; n < inputImages.size(); n++ )
     {
-    typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
+    using ResamplerType = itk::ResampleImageFilter<ImageType, ImageType, RealType>;
     typename ResamplerType::Pointer resampleFilter = ResamplerType::New();
     resampleFilter->SetInput( inputImages[n] );
     resampleFilter->SetOutputParametersFromImage( referenceImage );
@@ -518,7 +518,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
         typename AffineTransformType::Pointer transform = helper->CollapseLinearTransforms( compositeTransform );
 
-        typedef itk::TransformFileWriterTemplate<T> TransformWriterType;
+        using TransformWriterType = itk::TransformFileWriterTemplate<T>;
         typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
         transformWriter->SetFileName( ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
 
@@ -550,7 +550,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
                   << outputOption->GetFunction( 0 )->GetParameter( 0 ) << std::endl;
         }
 
-      typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType> ConverterType;
+      using ConverterType = typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType>;
       typename ConverterType::Pointer converter = ConverterType::New();
       converter->SetOutputOrigin( referenceImage->GetOrigin() );
       converter->SetOutputStartIndex( referenceImage->GetBufferedRegion().GetIndex() );
@@ -560,7 +560,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       converter->SetTransform( compositeTransform );
       converter->Update();
 
-      typedef  itk::ImageFileWriter<DisplacementFieldType> DisplacementFieldWriterType;
+      using DisplacementFieldWriterType = itk::ImageFileWriter<DisplacementFieldType>;
       typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
       displacementFieldWriter->SetInput( converter->GetOutput() );
       displacementFieldWriter->SetFileName( ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
@@ -615,12 +615,12 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           It.Set( vector );
           }
 
-        typedef itk::CastImageFilter<DisplacementFieldType, OutputDisplacementFieldType> CastFitlerType;
+        using CastFitlerType = itk::CastImageFilter<DisplacementFieldType, OutputDisplacementFieldType>;
         typename CastFitlerType::Pointer caster = CastFitlerType::New();
         caster->SetInput( outputVectorImage );
         caster->Update();
 
-        typedef  itk::ImageFileWriter<OutputDisplacementFieldType> WriterType;
+        using WriterType = itk::ImageFileWriter<OutputDisplacementFieldType>;
         typename WriterType::Pointer writer = WriterType::New();
         writer->SetInput( caster->GetOutput() );
         writer->SetFileName( ( outputFileName ).c_str() );
@@ -722,7 +722,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           }
         if( inputImageType == 3 )  
           {
-          typedef itk::CastImageFilter<TimeSeriesImageType, OutputTimeSeriesImageType> CastFitlerType;
+          using CastFitlerType = itk::CastImageFilter<TimeSeriesImageType, OutputTimeSeriesImageType>;
           typename CastFitlerType::Pointer caster = CastFitlerType::New();
           caster->SetInput( outputTimeSeriesImage );
           caster->Update();
@@ -733,7 +733,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           {
           multiChannelImage = ConvertTimeSeriesImageToMultiChannelImage<TimeSeriesImageType, MultiChannelImageType>( outputTimeSeriesImage );
 
-          typedef itk::CastImageFilter<MultiChannelImageType, OutputMultiChannelImageType> CastFitlerType;
+          using CastFitlerType = itk::CastImageFilter<MultiChannelImageType, OutputMultiChannelImageType>;
           typename CastFitlerType::Pointer caster = CastFitlerType::New();
           caster->SetInput( multiChannelImage );
           caster->Update();
@@ -745,7 +745,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         {
         try
           {
-          typedef itk::CastImageFilter<ImageType, OutputImageType> CastFitlerType;
+          using CastFitlerType = itk::CastImageFilter<ImageType, OutputImageType>;
           typename CastFitlerType::Pointer caster = CastFitlerType::New();
           caster->SetInput( outputImages[0] );
           caster->Update();

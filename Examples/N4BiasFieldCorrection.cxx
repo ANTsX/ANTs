@@ -28,9 +28,9 @@ template <typename TFilter>
 class CommandIterationUpdate final : public itk::Command
 {
 public:
-  typedef CommandIterationUpdate  Self;
-  typedef itk::Command            Superclass;
-  typedef itk::SmartPointer<Self> Pointer;
+  using Self = CommandIterationUpdate<TFilter>;
+  using Superclass = itk::Command;
+  using Pointer = itk::SmartPointer<Self>;
   itkNewMacro( Self );
 protected:
   CommandIterationUpdate() = default;
@@ -69,12 +69,12 @@ public:
 template <unsigned int ImageDimension>
 int N4( itk::ants::CommandLineParser *parser )
 {
-  typedef float RealType;
+  using RealType = float;
 
-  typedef itk::Image<RealType, ImageDimension> ImageType;
+  using ImageType = itk::Image<RealType, ImageDimension>;
   typename ImageType::Pointer inputImage = nullptr;
 
-  typedef itk::Image<RealType, ImageDimension> MaskImageType;
+  using MaskImageType = itk::Image<RealType, ImageDimension>;
   typename MaskImageType::Pointer maskImage = nullptr;
 
   bool verbose = false;
@@ -90,8 +90,7 @@ int N4( itk::ants::CommandLineParser *parser )
              << ImageDimension << "-dimensional images." << std::endl << std::endl;
     }
 
-  typedef itk::N4BiasFieldCorrectionImageFilter<ImageType, MaskImageType,
-                                                ImageType> CorrecterType;
+  using CorrecterType = itk::N4BiasFieldCorrectionImageFilter<ImageType, MaskImageType, ImageType>;
   typename CorrecterType::Pointer correcter = CorrecterType::New();
 
   typename itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
@@ -141,8 +140,7 @@ int N4( itk::ants::CommandLineParser *parser )
   /**
    * check for negative values in the masked region
    */
-
-  typedef itk::BinaryThresholdImageFilter<MaskImageType, MaskImageType> ThresholderType;
+  using ThresholderType = itk::BinaryThresholdImageFilter<MaskImageType, MaskImageType>;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
   thresholder->SetInsideValue( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
   thresholder->SetOutsideValue( itk::NumericTraits<typename MaskImageType::PixelType>::OneValue() );
@@ -150,14 +148,14 @@ int N4( itk::ants::CommandLineParser *parser )
   thresholder->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
   thresholder->SetInput( maskImage );
 
-  typedef itk::LabelStatisticsImageFilter<ImageType, MaskImageType> StatsType;
+  using StatsType = itk::LabelStatisticsImageFilter<ImageType, MaskImageType>;
   typename StatsType::Pointer statsOriginal = StatsType::New();
   statsOriginal->SetInput( inputImage );
   statsOriginal->SetLabelInput( thresholder->GetOutput() );
   statsOriginal->UseHistogramsOff();
   statsOriginal->Update();
 
-  typedef typename StatsType::LabelPixelType StatsLabelType;
+  using StatsLabelType = typename StatsType::LabelPixelType;
   StatsLabelType maskLabel = itk::NumericTraits<StatsLabelType>::OneValue();
 
   RealType minOriginal = statsOriginal->GetMinimum( maskLabel );
@@ -293,7 +291,7 @@ int N4( itk::ants::CommandLineParser *parser )
           numberOfControlPoints[d] = numberOfSpans + correcter->GetSplineOrder();
           }
 
-        typedef itk::ConstantPadImageFilter<ImageType, ImageType> PadderType;
+        using PadderType = itk::ConstantPadImageFilter<ImageType, ImageType>;
         typename PadderType::Pointer padder = PadderType::New();
         padder->SetInput( inputImage );
         padder->SetPadLowerBound( lowerBound );
@@ -304,7 +302,7 @@ int N4( itk::ants::CommandLineParser *parser )
         inputImage = padder->GetOutput();
         inputImage->DisconnectPipeline();
 
-        typedef itk::ConstantPadImageFilter<MaskImageType, MaskImageType> MaskPadderType;
+        using MaskPadderType = itk::ConstantPadImageFilter<MaskImageType, MaskImageType>;
         typename MaskPadderType::Pointer maskPadder = MaskPadderType::New();
         maskPadder->SetInput( maskImage );
         maskPadder->SetPadLowerBound( lowerBound );
@@ -357,12 +355,12 @@ int N4( itk::ants::CommandLineParser *parser )
       }
     }
 
-  typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
+  using ShrinkerType = itk::ShrinkImageFilter<ImageType, ImageType>;
   typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
   shrinker->SetInput( inputImage );
   shrinker->SetShrinkFactors( 1 );
 
-  typedef itk::ShrinkImageFilter<MaskImageType, MaskImageType> MaskShrinkerType;
+  using MaskShrinkerType = itk::ShrinkImageFilter<MaskImageType, MaskImageType>;
   typename MaskShrinkerType::Pointer maskshrinker = MaskShrinkerType::New();
   maskshrinker->SetInput( maskImage );
   maskshrinker->SetShrinkFactors( 1 );
@@ -390,7 +388,7 @@ int N4( itk::ants::CommandLineParser *parser )
   correcter->SetInput( shrinker->GetOutput() );
   correcter->SetMaskImage( maskshrinker->GetOutput() );
 
-  typedef itk::ShrinkImageFilter<ImageType, ImageType> WeightShrinkerType;
+  using WeightShrinkerType = itk::ShrinkImageFilter<ImageType, ImageType>;
   typename WeightShrinkerType::Pointer weightshrinker = WeightShrinkerType::New();
   if( weightImage )
     {
@@ -403,7 +401,7 @@ int N4( itk::ants::CommandLineParser *parser )
 
   if( verbose )
     {
-    typedef CommandIterationUpdate<CorrecterType> CommandType;
+    using CommandType = CommandIterationUpdate<CorrecterType>;
     typename CommandType::Pointer observer = CommandType::New();
     correcter->AddObserver( itk::IterationEvent(), observer );
     }
@@ -470,9 +468,7 @@ int N4( itk::ants::CommandLineParser *parser )
      * the original input image by the bias field to get the final
      * corrected image.
      */
-    typedef itk::BSplineControlPointImageFilter<typename
-                                                CorrecterType::BiasFieldControlPointLatticeType, typename
-                                                CorrecterType::ScalarImageType> BSplinerType;
+    using BSplinerType = itk::BSplineControlPointImageFilter<typename CorrecterType::BiasFieldControlPointLatticeType, typename CorrecterType::ScalarImageType>;
     typename BSplinerType::Pointer bspliner = BSplinerType::New();
     bspliner->SetInput( correcter->GetLogBiasFieldControlPointLattice() );
     bspliner->SetSplineOrder( correcter->GetSplineOrder() );
@@ -494,12 +490,12 @@ int N4( itk::ants::CommandLineParser *parser )
       ItF.Set( ItB.Get()[0] );
       }
 
-    typedef itk::ExpImageFilter<ImageType, ImageType> ExpFilterType;
+    using ExpFilterType = itk::ExpImageFilter<ImageType, ImageType>;
     typename ExpFilterType::Pointer expFilter = ExpFilterType::New();
     expFilter->SetInput( logField );
     expFilter->Update();
 
-    typedef itk::DivideImageFilter<ImageType, ImageType, ImageType> DividerType;
+    using DividerType = itk::DivideImageFilter<ImageType, ImageType, ImageType>;
     typename DividerType::Pointer divider = DividerType::New();
     divider->SetInput1( inputImage );
     divider->SetInput2( expFilter->GetOutput() );
@@ -570,7 +566,7 @@ int N4( itk::ants::CommandLineParser *parser )
     inputRegion.SetIndex( inputImageIndex );
     inputRegion.SetSize( inputImageSize );
 
-    typedef itk::ExtractImageFilter<ImageType, ImageType> CropperType;
+    using CropperType = itk::ExtractImageFilter<ImageType, ImageType>;
     typename CropperType::Pointer cropper = CropperType::New();
     cropper->SetInput( dividedImage );
     cropper->SetExtractionRegion( inputRegion );
@@ -602,7 +598,7 @@ int N4( itk::ants::CommandLineParser *parser )
 
 void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
   std::string description =

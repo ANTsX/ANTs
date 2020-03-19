@@ -31,9 +31,9 @@ namespace ants
 template <unsigned int ImageDimension>
 int CopyImageHeaderInformation(int argc, char *argv[])
 {
-  typedef  float                                     inPixelType;
-  typedef itk::Image<inPixelType, ImageDimension>    ImageType;
-  typedef itk::ImageFileReader<ImageType>            readertype;
+  using inPixelType = float;
+  using ImageType = itk::Image<inPixelType, ImageDimension>;
+  using readertype = itk::ImageFileReader<ImageType>;
 
   typename readertype::Pointer reader = readertype::New();
   reader->SetFileName(argv[1]);
@@ -53,8 +53,8 @@ int CopyImageHeaderInformation(int argc, char *argv[])
     }
   if( istensor )
     {
-    typedef itk::Vector<float, 6>                  TensorType;
-    typedef itk::Image<TensorType, ImageDimension> TensorFieldType;
+    using TensorType = itk::Vector<float, 6>;
+    using TensorFieldType = itk::Image<TensorType, ImageDimension>;
     typename TensorFieldType::Pointer timage;
     ReadTensorImage<TensorFieldType>(timage, argv[2], false);
     //      std::cout<< " tim dir " << timage->GetDirection() << std::endl;

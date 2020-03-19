@@ -21,9 +21,9 @@ namespace ants
 template <unsigned int ImageDimension, unsigned int NVectorComponents>
 int MeasureMinMaxMean(int argc, char *argv[])
 {
-  typedef itk::Vector<float, NVectorComponents>                           PixelType;
-  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  using PixelType = itk::Vector<float, NVectorComponents>;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
 
   typename ImageType::Pointer image = nullptr;
   typename ImageType::Pointer mask = nullptr;

@@ -16,9 +16,9 @@ output prefix file name
 
 namespace ants
 {
-typedef  ants::RegistrationHelper<double, 3>                    RegistrationHelperType;
-typedef  RegistrationHelperType::ImageType              ImageType;
-typedef  RegistrationHelperType::CompositeTransformType CompositeTransformType;
+using RegistrationHelperType = ants::RegistrationHelper<double, 3>;
+using ImageType = RegistrationHelperType::ImageType;
+using CompositeTransformType = RegistrationHelperType::CompositeTransformType;
 
 CompositeTransformType::TransformTypePointer
 simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
@@ -116,7 +116,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_st
   ImageType::Pointer fixedImage;
   ImageType::Pointer movingImage;
   // ========read the fixed image
-  typedef itk::ImageFileReader<ImageType> ImageReaderType;
+  using ImageReaderType = itk::ImageFileReader<ImageType>;
   ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
   fixedImageReader->SetFileName( args[0] );
   fixedImageReader->Update();
@@ -149,7 +149,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_st
   std::cout << "  moving image: " << args[1] << std::endl;
 
   // ===========Read the initial transform and write that in a composite transform
-  typedef RegistrationHelperType::TransformType TransformType;
+  using TransformType = RegistrationHelperType::TransformType;
   TransformType::Pointer initialTransform = itk::ants::ReadTransform<double, 3>( args[2] );
   if( initialTransform.IsNull() )
     {
@@ -177,13 +177,13 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_st
   const bool writeInverse(true);
   if( writeInverse )
     {
-    typedef RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
+    using DisplacementFieldTransformType = RegistrationHelperType::DisplacementFieldTransformType;
     DisplacementFieldTransformType::Pointer dispTransform =
       dynamic_cast<DisplacementFieldTransformType *>(outputTransform.GetPointer() );
-    typedef DisplacementFieldTransformType::DisplacementFieldType DisplacementFieldType;
+    using DisplacementFieldType = DisplacementFieldTransformType::DisplacementFieldType;
     std::stringstream outputInverseFileName;
     outputInverseFileName << args[3] << "InverseWarp.nii.gz";
-    typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
+    using InverseWriterType = itk::ImageFileWriter<DisplacementFieldType>;
     InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
     inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
     inverseWriter->SetFileName( outputInverseFileName.str().c_str() );

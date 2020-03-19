@@ -39,11 +39,11 @@ typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
   // Initialize the Moving to the displacement field
-  typedef TImage ImageType;
+  using ImageType = TImage;
 
   typename ImageType::Pointer sfield = AllocImage<ImageType>(field);
 
-  typedef itk::ImageRegionIteratorWithIndex<TField> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<TField>;
   Iterator vfIter( field,  field->GetLargestPossibleRegion() );
   for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
@@ -63,10 +63,9 @@ MaurerDistanceMap(
 {
   // std::cout << " DDMap " << std::endl;
 
-  typedef TImage ImageType;
+  using ImageType = TImage;
 
-  typedef itk::SignedMaurerDistanceMapImageFilter<
-      ImageType, ImageType>  FilterType;
+  using FilterType = itk::SignedMaurerDistanceMapImageFilter<ImageType, ImageType>;
 
   typename  FilterType::Pointer filter = FilterType::New();
   filter->SetSquaredDistance(false);
@@ -85,7 +84,7 @@ typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, double sig)
 {
 // find min value
-  typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<TImage>;
   Iterator vfIter(image, image->GetLargestPossibleRegion() );
   for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
@@ -95,7 +94,7 @@ SmoothImage(typename TImage::Pointer image, double sig)
       vfIter.Set(0);
       }
     }
-  typedef itk::DiscreteGaussianImageFilter<TImage, TImage> dgf;
+  using dgf = itk::DiscreteGaussianImageFilter<TImage, TImage>;
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(sig);
   filter->SetUseImageSpacingOn();
@@ -112,9 +111,9 @@ void
 SmoothDeformation(typename TImage::Pointer vectorimage, double sig)
 {
   enum { ImageDimension = TImage::ImageDimension };
-  typedef typename TImage::PixelType            RealType;
-  typedef itk::Vector<RealType, ImageDimension> VectorType;
-  typedef itk::Image<RealType, ImageDimension>  ImageType;
+  using RealType = typename TImage::PixelType;
+  using VectorType = itk::Vector<RealType, ImageDimension>;
+  using ImageType = itk::Image<RealType, ImageDimension>;
   typename ImageType::Pointer subimgx = GetVectorComponent<TImage, ImageType>(vectorimage, 0);
   subimgx = SmoothImage<ImageType>(subimgx, sig);
   typename ImageType::Pointer subimgy = GetVectorComponent<TImage, ImageType>(vectorimage, 1);
@@ -122,7 +121,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, double sig)
   typename ImageType::Pointer subimgz = GetVectorComponent<TImage, ImageType>(vectorimage, 2);
   subimgz = SmoothImage<ImageType>(subimgz, sig);
 
-  typedef itk::ImageRegionIteratorWithIndex<TImage> IteratorType;
+  using IteratorType = itk::ImageRegionIteratorWithIndex<TImage>;
   IteratorType Iterator( vectorimage, vectorimage->GetLargestPossibleRegion().GetSize() );
   Iterator.GoToBegin();
   while(  !Iterator.IsAtEnd()  )
@@ -147,8 +146,8 @@ CopyImage(TDisplacementField* field )
   enum { ImageDimension = TImage::ImageDimension };
   //  unsigned int row=0;
   // unsigned int col=0;
-  typedef typename TImage::PixelType            PixelType;
-  typedef itk::Image<PixelType, ImageDimension> RealImageType;
+  using PixelType = typename TImage::PixelType;
+  using RealImageType = itk::Image<PixelType, ImageDimension>;
 
   typename RealImageType::Pointer m_RealImage = nullptr;
   m_RealImage = AllocImage<RealImageType>(field, 0);
@@ -162,13 +161,13 @@ LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input, double distthresh )
 {
   std::cout << " Label Surf " << std::endl;
-  typedef TImage ImageType;
+  using ImageType = TImage;
   enum { ImageDimension = ImageType::ImageDimension };
   // ORIENTATION ALERT: Original code set origin & spacing from
   // examplar without also setting directions.
   typename   ImageType::Pointer Image = AllocImage<ImageType>(input, 0.0);
 
-  typedef itk::NeighborhoodIterator<ImageType> iteratorType;
+  using iteratorType = itk::NeighborhoodIterator<ImageType>;
 
   typename iteratorType::RadiusType rad;
   for( int j = 0; j < ImageDimension; j++ )
@@ -221,19 +220,18 @@ template <typename TImage, typename TField>
 typename TField::Pointer
 LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double sig)
 {
-  typedef  typename TImage::IndexType IndexType;
+  using IndexType = typename TImage::IndexType;
   IndexType ind;
-  typedef TImage ImageType;
-  typedef TField GradientImageType;
-  typedef itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType>
-    GradientImageFilterType;
-  typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
+  using ImageType = TImage;
+  using GradientImageType = TField;
+  using GradientImageFilterType = itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType>;
+  using GradientImageFilterPointer = typename GradientImageFilterType::Pointer;
 
   typename TField::Pointer sfield = AllocImage<TField>(wm);
 
   typename TImage::Pointer laplacian = SmoothImage<TImage>(wm, 3);
   laplacian->FillBuffer(0);
-  typedef itk::ImageRegionIteratorWithIndex<TImage> IteratorType;
+  using IteratorType = itk::ImageRegionIteratorWithIndex<TImage>;
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
   Iterator.GoToBegin();
 
@@ -282,9 +280,9 @@ template <typename TImage, typename TField>
 typename TField::Pointer
 ExpDiffMap(typename TField::Pointer velofield,  typename TImage::Pointer wm,  double sign, unsigned int numtimepoints )
 {
-  typedef TImage                     ImageType;
-  typedef TField                     DisplacementFieldType;
-  typedef typename TField::PixelType PixelType;
+  using ImageType = TImage;
+  using DisplacementFieldType = TField;
+  using PixelType = typename TField::PixelType;
   typename TField::PixelType zero, disp;
   enum { ImageDimension = TImage::ImageDimension };
   disp.Fill(0);
@@ -293,7 +291,7 @@ ExpDiffMap(typename TField::Pointer velofield,  typename TImage::Pointer wm,  do
   typename DisplacementFieldType::Pointer incrfield =
     AllocImage<DisplacementFieldType>(velofield, zero);
 
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
+  using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
   Iterator.GoToBegin();
   while(  !Iterator.IsAtEnd()  )
@@ -303,8 +301,8 @@ ExpDiffMap(typename TField::Pointer velofield,  typename TImage::Pointer wm,  do
     }
 
   // generate phi
-  typedef itk::MatrixOffsetTransformBase<PixelType, ImageDimension, ImageDimension>           AffineTransformType;
-  typedef itk::DisplacementFieldFromMultiTransformFilter<TField, TField, AffineTransformType> WarperType;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<PixelType, ImageDimension, ImageDimension>;
+  using WarperType = itk::DisplacementFieldFromMultiTransformFilter<TField, TField, AffineTransformType>;
   typename WarperType::Pointer warper = WarperType::New();
   warper->SetOutputParametersFromImage(velofield );
   warper->DetermineFirstDeformNoInterp();
@@ -324,14 +322,14 @@ template <typename TImage, typename TField>
 typename TField::Pointer
 DiReCTCompose(typename TField::Pointer velofield, typename TField::Pointer diffmap )
 {
-  typedef typename TField::PixelType PixelType;
+  using PixelType = typename TField::PixelType;
   typename TField::PixelType zero, disp;
   enum { ImageDimension = TImage::ImageDimension };
   disp.Fill(0);
   zero.Fill(0);
 
-  typedef itk::MatrixOffsetTransformBase<PixelType, ImageDimension, ImageDimension>           AffineTransformType;
-  typedef itk::DisplacementFieldFromMultiTransformFilter<TField, TField, AffineTransformType> WarperType;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<PixelType, ImageDimension, ImageDimension>;
+  using WarperType = itk::DisplacementFieldFromMultiTransformFilter<TField, TField, AffineTransformType>;
   typename WarperType::Pointer warper = WarperType::New();
   warper->SetOutputParametersFromImage( velofield );
   warper->DetermineFirstDeformNoInterp();
@@ -348,11 +346,11 @@ InvertField( typename TField::Pointer field,
              double toler = 0.1, int maxiter = 20, bool /* print */ = false)
 {
   enum { ImageDimension = TImage::ImageDimension };
-  typedef TField                     DisplacementFieldType;
-  typedef typename TField::Pointer   DisplacementFieldPointer;
-  typedef typename TField::PixelType VectorType;
-  typedef TImage                     ImageType;
-  typedef typename TImage::Pointer   ImagePointer;
+  using DisplacementFieldType = TField;
+  using DisplacementFieldPointer = typename TField::Pointer;
+  using VectorType = typename TField::PixelType;
+  using ImageType = TImage;
+  using ImagePointer = typename TImage::Pointer;
   double       mytoler = toler;
   unsigned int mymaxiter = maxiter;
 
@@ -361,11 +359,11 @@ InvertField( typename TField::Pointer field,
 
   ImagePointer realImage = AllocImage<ImageType>(field);
 
-  typedef typename DisplacementFieldType::PixelType                VectorType;
-  typedef typename DisplacementFieldType::IndexType                IndexType;
-  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
+  using VectorType = typename DisplacementFieldType::PixelType;
+  using IndexType = typename DisplacementFieldType::IndexType;
+  using Iterator = itk::ImageRegionIteratorWithIndex<DisplacementFieldType>;
 
-  typedef itk::ANTSImageRegistrationOptimizer<ImageDimension, double> ROType;
+  using ROType = itk::ANTSImageRegistrationOptimizer<ImageDimension, double>;
   typename ROType::Pointer m_MFR = ROType::New();
 
   DisplacementFieldPointer inverseField =
@@ -377,7 +375,7 @@ InvertField( typename TField::Pointer field,
   DisplacementFieldPointer eulerianInitCond =
     AllocImage<DisplacementFieldType>(field);
 
-  typedef typename DisplacementFieldType::SizeType SizeType;
+  using SizeType = typename DisplacementFieldType::SizeType;
   SizeType size = field->GetLargestPossibleRegion().GetSize();
 
   typename ImageType::SpacingType spacing = field->GetSpacing();
@@ -509,7 +507,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   std::string  outname = std::string(argv[argct]); argct++;
   unsigned int numtimepoints = 10;
 
-  typedef double RealType;
+  using RealType = double;
   RealType gradstep = (RealType)(-1.0) * 0.5; // (ImageDimension-1);
   if( argc > argct )
     {
@@ -547,12 +545,12 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   //   }
   argct++;
   std::cout << " smooth " << smoothingsigma << " thp " << thickprior << " gs " << gradstep << std::endl;
-  typedef RealType                                                      PixelType;
-  typedef itk::Vector<RealType, ImageDimension>                         VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                        DisplacementFieldType;
-  typedef itk::Image<PixelType, ImageDimension>                         ImageType;
-  typedef typename  ImageType::IndexType                                IndexType;
-  typedef itk::ANTSImageRegistrationOptimizer<ImageDimension, RealType> ROType;
+  using PixelType = RealType;
+  using VectorType = itk::Vector<RealType, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using IndexType = typename ImageType::IndexType;
+  using ROType = itk::ANTSImageRegistrationOptimizer<ImageDimension, RealType>;
   typename ROType::Pointer m_MFR = ROType::New();
 
   typename ImageType::Pointer segmentationimage;
@@ -617,19 +615,18 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   //  WriteImage<ImageType>(gmsurf,"surfdefgm.nii.gz");
   //  WriteImage<ImageType>(bsurf,"surfdefwm.nii.gz");
 
-  typedef   DisplacementFieldType
-    TimeVaryingVelocityFieldType;
-  typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, RealType> DefaultInterpolatorType;
+  using TimeVaryingVelocityFieldType = DisplacementFieldType;
+  using DefaultInterpolatorType = itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, RealType>;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   vinterp->SetInputImage(lapgrad);
-  typedef itk::LinearInterpolateImageFunction<ImageType, RealType> ScalarInterpolatorType;
+  using ScalarInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
   typename ScalarInterpolatorType::Pointer ginterp =  ScalarInterpolatorType::New();
   typename ScalarInterpolatorType::Pointer winterp =  ScalarInterpolatorType::New();
   winterp->SetInputImage(wm);
   ginterp->SetInputImage(gm);
 
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>             IteratorType;
-  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
+  using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
+  using VIteratorType = itk::ImageRegionIteratorWithIndex<DisplacementFieldType>;
   VIteratorType VIterator( lapgrad, lapgrad->GetLargestPossibleRegion().GetSize() );
   VIterator.GoToBegin();
   while(  !VIterator.IsAtEnd()  )
@@ -740,10 +737,9 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         wpriorim = m_MFR->WarpImageBackward(priorim, invfield);
         }
 
-      typedef DisplacementFieldType GradientImageType;
-      typedef itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType>
-        GradientImageFilterType;
-      typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
+      using GradientImageType = DisplacementFieldType;
+      using GradientImageFilterType = itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType>;
+      using GradientImageFilterPointer = typename GradientImageFilterType::Pointer;
       GradientImageFilterPointer gfilter = GradientImageFilterType::New();
       gfilter->SetInput(  surfdef );
       gfilter->SetSigma( smoothingsigma );

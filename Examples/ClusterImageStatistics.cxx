@@ -41,15 +41,15 @@ namespace ants
 template <unsigned int ImageDimension>
 int  ClusterStatistics(unsigned int argc, char *argv[])
 {
-  typedef float PixelType;
+  using PixelType = float;
 //  const unsigned int ImageDimension = AvantsImageDimension;
-  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
   // typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
-  typedef unsigned long                                                    ULPixelType;
-  typedef itk::Image<ULPixelType, ImageDimension>                          labelimagetype;
-  typedef itk::ConnectedComponentImageFilter<ImageType, labelimagetype>    FilterType;
-  typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype> RelabelType;
+  using ULPixelType = unsigned long;
+  using labelimagetype = itk::Image<ULPixelType, ImageDimension>;
+  using FilterType = itk::ConnectedComponentImageFilter<ImageType, labelimagetype>;
+  using RelabelType = itk::RelabelComponentImageFilter<labelimagetype, labelimagetype>;
 
   // want the average value in each cluster as defined by the mask and the value thresh and the clust thresh
 
@@ -67,7 +67,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
   ReadImage<ImageType>(roiimage, roimaskfn.c_str() );
   ReadImage<ImageType>(labelimage, labelimagefn.c_str() );
 
-  typedef itk::MinimumMaximumImageFilter<ImageType> MinMaxFilterType;
+  using MinMaxFilterType = itk::MinimumMaximumImageFilter<ImageType>;
   typename MinMaxFilterType::Pointer minMaxFilter = MinMaxFilterType::New();
   minMaxFilter->SetInput( labelimage );
   minMaxFilter->Update();
@@ -81,7 +81,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     ReadImage<ImageType>(valimage, argv[filecount]);
 
     //  first, threshold the value image then get the clusters of min size
-    typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholdFilterType;
+    using ThresholdFilterType = itk::BinaryThresholdImageFilter<ImageType, ImageType>;
     typename ThresholdFilterType::Pointer threshold = ThresholdFilterType::New();
     threshold->SetInput(valimage);
     threshold->SetInsideValue(1);
@@ -90,8 +90,8 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     threshold->SetUpperThreshold(1.e9);
     threshold->Update();
     typename ImageType::Pointer thresh = threshold->GetOutput();
-    typedef itk::ImageRegionIteratorWithIndex<ImageType>      fIterator;
-    typedef itk::ImageRegionIteratorWithIndex<labelimagetype> Iterator;
+    using fIterator = itk::ImageRegionIteratorWithIndex<ImageType>;
+    using Iterator = itk::ImageRegionIteratorWithIndex<labelimagetype>;
     fIterator tIter( thresh, thresh->GetLargestPossibleRegion() );
     for(  tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter )
       {

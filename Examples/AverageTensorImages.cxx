@@ -14,10 +14,10 @@ template <unsigned int ImageDimension>
 int AverageTensorImages(unsigned int argc, char *argv[])
 {
   // typedef itk::Vector<float,6> TensorType;
-  typedef itk::SymmetricSecondRankTensor<float, 3> TensorType;
+  using TensorType = itk::SymmetricSecondRankTensor<float, 3>;
 
-  typedef itk::Image<TensorType, ImageDimension>       ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
+  using ImageType = itk::Image<TensorType, ImageDimension>;
+  using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
 
   char * outputName = argv[2];
   int    mathtype = std::stoi(argv[3]);

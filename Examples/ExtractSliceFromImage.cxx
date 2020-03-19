@@ -9,10 +9,10 @@ namespace ants
 template <unsigned int ImageDimension>
 int ExtractSliceFromImage( int argc, char *argv[] )
 {
-  typedef float PixelType;
+  using PixelType = float;
 
-  typedef itk::Image<PixelType, ImageDimension>     ImageType;
-  typedef itk::Image<PixelType, ImageDimension - 1> SliceType;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using SliceType = itk::Image<PixelType, ImageDimension - 1>;
 
   typename ImageType::Pointer inputImage;
   ReadImage<ImageType>( inputImage, argv[2] );
@@ -34,7 +34,7 @@ int ExtractSliceFromImage( int argc, char *argv[] )
     region.SetIndex( index );
     region.SetSize( size );
 
-    typedef itk::ExtractImageFilter<ImageType, SliceType> ExtracterType;
+    using ExtracterType = itk::ExtractImageFilter<ImageType, SliceType>;
     typename ExtracterType::Pointer extracter = ExtracterType::New();
     extracter->SetInput( inputImage );
     extracter->SetExtractionRegion( region );
@@ -62,7 +62,7 @@ int ExtractSliceFromImage( int argc, char *argv[] )
     region.SetIndex( index );
     region.SetSize( size );
 
-    typedef itk::ExtractImageFilter<ImageType, ImageType> ExtracterType;
+    using ExtracterType = itk::ExtractImageFilter<ImageType, ImageType>;
     typename ExtracterType::Pointer extracter = ExtracterType::New();
     extracter->SetInput( inputImage );
     extracter->SetExtractionRegion( region );
@@ -84,7 +84,7 @@ int ExtractSliceFromImage( int argc, char *argv[] )
     outImage->FillBuffer(0);
 
     // paste image slice to higher dimensionl image
-    typedef itk::PasteImageFilter<ImageType> PasteFilterType;
+    using PasteFilterType = itk::PasteImageFilter<ImageType>;
     typename PasteFilterType::Pointer pasteFilter = PasteFilterType::New();
     pasteFilter->SetSourceImage( extracter->GetOutput() );
     pasteFilter->SetDestinationImage( outImage );

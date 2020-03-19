@@ -22,9 +22,9 @@ namespace ants
 template <unsigned int ImageDimension>
 int ExtractRegionFromImage( int argc, char *argv[] )
 {
-  typedef float PixelType;
+  using PixelType = float;
 
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
   typename ImageType::Pointer inputImage = ImageType::New();
   ReadImage<ImageType>( inputImage, argv[2] );
@@ -50,14 +50,13 @@ int ExtractRegionFromImage( int argc, char *argv[] )
     {
     typename ImageType::Pointer labimg;
     ReadImage<ImageType>( labimg, argv[5] );
-    typedef itk::Image<unsigned short, ImageDimension>      ShortImageType;
-    typedef itk::CastImageFilter<ImageType, ShortImageType> CasterType;
+    using ShortImageType = itk::Image<unsigned short, ImageDimension>;
+    using CasterType = itk::CastImageFilter<ImageType, ShortImageType>;
     typename CasterType::Pointer caster = CasterType::New();
     caster->SetInput( labimg );
     caster->Update();
 
-    typedef itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>
-      StatsFilterType;
+    using StatsFilterType = itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>;
     typename StatsFilterType::Pointer stats = StatsFilterType::New();
     stats->SetLabelInput( caster->GetOutput() );
     stats->SetInput( caster->GetOutput() );
@@ -117,14 +116,13 @@ int ExtractRegionFromImage( int argc, char *argv[] )
       }
     else
       {
-      typedef itk::Image<unsigned short, ImageDimension>      ShortImageType;
-      typedef itk::CastImageFilter<ImageType, ShortImageType> CasterType;
+      using ShortImageType = itk::Image<unsigned short, ImageDimension>;
+      using CasterType = itk::CastImageFilter<ImageType, ShortImageType>;
       typename CasterType::Pointer caster = CasterType::New();
       caster->SetInput( inputImage );
       caster->Update();
 
-      typedef itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>
-        StatsFilterType;
+      using StatsFilterType = itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>;
       typename StatsFilterType::Pointer stats = StatsFilterType::New();
       stats->SetLabelInput( caster->GetOutput() );
       stats->SetInput( caster->GetOutput() );
@@ -134,7 +132,7 @@ int ExtractRegionFromImage( int argc, char *argv[] )
       }
     }
 
-  typedef itk::ExtractImageFilter<ImageType, ImageType> CropperType;
+  using CropperType = itk::ExtractImageFilter<ImageType, ImageType>;
   typename CropperType::Pointer cropper = CropperType::New();
   cropper->SetInput( inputImage );
   cropper->SetExtractionRegion( region );

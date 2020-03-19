@@ -119,7 +119,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     sz1 = this->m_MovingPointSet->GetNumberOfPoints();
     }
 
-  typedef vnl_matrix<double> MatrixType;
+  using MatrixType = vnl_matrix<double>;
   MatrixType EucDist(sz1, sz2);
   EucDist.fill(0);
 
