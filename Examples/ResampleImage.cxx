@@ -131,8 +131,8 @@ typename ImageType::IndexType newStartIndex;
       }
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      RealType spacing_old = static_cast<RealType>( image->GetSpacing()[i] );
-      RealType size_old = static_cast<RealType>( image->GetLargestPossibleRegion().GetSize()[i] );
+      auto spacing_old = static_cast<RealType>( image->GetSpacing()[i] );
+      auto size_old = static_cast<RealType>( image->GetLargestPossibleRegion().GetSize()[i] );
       RealType ratio = ( static_cast<RealType>( size_old ) - itk::NumericTraits<RealType>::OneValue() )
                   / ( static_cast<RealType>( size[i] ) - itk::NumericTraits<RealType>::OneValue() );
       spacing[i] = spacing_old * ratio;

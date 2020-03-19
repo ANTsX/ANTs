@@ -549,7 +549,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     typename BSplineInterpolatorType::Pointer bSplineInterpolator = BSplineInterpolatorType::New();
     if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      unsigned int bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetFunction( 0 )->GetParameter( 0 ) );
+      auto bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetFunction( 0 )->GetParameter( 0 ) );
       bSplineInterpolator->SetSplineOrder( bsplineOrder );
       }
     interpolator = bSplineInterpolator;
