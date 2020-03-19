@@ -29,12 +29,12 @@ public:
   itkNewMacro( CommandProgressUpdate );
 protected:
 
-  CommandProgressUpdate() : m_CurrentProgress( 0 ), m_StartNewLine( true ) {};
+  CommandProgressUpdate()  {};
 
   using FilterType = TFilter;
 
-  unsigned int m_CurrentProgress;
-  bool         m_StartNewLine;
+  unsigned int m_CurrentProgress{ 0 };
+  bool         m_StartNewLine{ true };
 
 public:
 
