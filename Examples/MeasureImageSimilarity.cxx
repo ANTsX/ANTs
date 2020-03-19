@@ -188,7 +188,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       {
       samplingStrategy = RegistrationHelperType::regular;
       }
-    else if( ( strategy == "none" ) || ( strategy == "" ) )
+    else if( ( strategy == "none" ) || ( strategy.empty() ) )
       {
       samplingStrategy = RegistrationHelperType::none;
       }

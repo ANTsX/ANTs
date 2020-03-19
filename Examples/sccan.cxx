@@ -310,7 +310,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       }
     }
 
-  if( u_mat.size() > 0 )
+  if( !u_mat.empty() )
     {
     // write out the array2D object for U matrix
     ColumnHeaders.clear();

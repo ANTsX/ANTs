@@ -102,7 +102,7 @@ static bool WarpTimeSeriesImageMultiTransform_ParseInput(int argc, char * *argv,
       std::string prefix = argv[ind];
       std::string path, name, ext;
       FilePartsWithgz(prefix, path, name, ext);
-      if( ext == "" )
+      if( ext.empty() )
         {
         ext = ".nii.gz";
         }
@@ -140,7 +140,7 @@ static bool WarpTimeSeriesImageMultiTransform_ParseInput(int argc, char * *argv,
       std::string prefix = argv[ind];
       std::string path, name, ext;
       FilePartsWithgz(prefix, path, name, ext);
-      if( ext == "" )
+      if( ext.empty() )
         {
         ext = ".nii.gz";
         }

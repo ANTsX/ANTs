@@ -422,7 +422,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   this->m_DerivativeMovingField->SetOrigin( this->GetMovingImage()->GetOrigin() );
 
 // acquire labels
-  if( this->m_LabelSet.size() < 1 )
+  if( this->m_LabelSet.empty() )
     {
     this->m_LabelSet.clear();
     unsigned long sz1 = this->m_FixedPointSet->GetNumberOfPoints();
