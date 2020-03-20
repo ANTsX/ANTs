@@ -859,12 +859,11 @@ private:
       parser->GetOptions();
     for( unsigned int n = 0; n < longHelpOption->GetNumberOfFunctions(); n++ )
       {
-      std::string                                                  value = longHelpOption->GetFunction( n )->GetName();
-      itk::ants::CommandLineParser::OptionListType::const_iterator it;
-      for( it = options.begin(); it != options.end(); ++it )
+      const std::string & value = longHelpOption->GetFunction( n )->GetName();
+      for( auto it = options.cbegin(); it != options.cend(); ++it )
         {
-        const char *longName = ( ( *it )->GetLongName() ).c_str();
-        if( strstr( longName, value.c_str() ) == longName  )
+        const std::string & longname = ( *it )->GetLongName();
+        if ( longname.rfind(value, 0) == 0 )  // determining if `longname` starts with `value`
           {
           parser->PrintMenu( std::cout, 5, false );
           }

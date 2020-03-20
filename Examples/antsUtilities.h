@@ -24,8 +24,13 @@
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryDilateImageFilter.h"
 #include "itkBinaryErodeImageFilter.h"
+#include "itkBinaryMorphologicalClosingImageFilter.h"
+#include "itkBinaryMorphologicalOpeningImageFilter.h"
+
 #include "itkGrayscaleDilateImageFilter.h"
 #include "itkGrayscaleErodeImageFilter.h"
+#include "itkGrayscaleMorphologicalClosingImageFilter.h"
+#include "itkGrayscaleMorphologicalOpeningImageFilter.h"
 
 #include "itkMath.h"
 
@@ -114,8 +119,21 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
       TImage,
       TImage,
       StructuringElementType>  DilateFilterType;
+
+  typedef itk::BinaryMorphologicalClosingImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType>  ClosingFilterType;
+
+  typedef itk::BinaryMorphologicalOpeningImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType>  OpeningFilterType;
+
   typename ErodeFilterType::Pointer  binaryErode  = ErodeFilterType::New();
   typename DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
+  typename OpeningFilterType::Pointer  binaryOpen  = OpeningFilterType::New();
+  typename ClosingFilterType::Pointer binaryClose = ClosingFilterType::New();
 
   StructuringElementType structuringElement;
 
@@ -125,11 +143,9 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 
   binaryErode->SetKernel(  structuringElement );
   binaryDilate->SetKernel( structuringElement );
-  // binaryOpen->SetKernal( structuringElement );
-  // binaryClose->SetKernel( structuringElement );
-  //
-  // typename OpeningFilterType::Pointer  binaryOpen  = OpeningFilterType::New();
-  // typename ClosingFilterType::Pointer binaryClose = ClosingFilterType::New();
+  binaryOpen->SetKernel( structuringElement );
+  binaryClose->SetKernel( structuringElement );
+
   typedef itk::GrayscaleErodeImageFilter<
       TImage,
       TImage,
@@ -140,86 +156,90 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
       TImage,
       StructuringElementType> GrayscaleDilateFilterType;
 
+  typedef itk::GrayscaleMorphologicalClosingImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType>  GrayscaleClosingFilterType;
+
+  typedef itk::GrayscaleMorphologicalOpeningImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType>  GrayscaleOpeningFilterType;
+
   typename GrayscaleErodeFilterType::Pointer grayscaleErode = GrayscaleErodeFilterType::New();
   typename GrayscaleDilateFilterType::Pointer grayscaleDilate = GrayscaleDilateFilterType::New();
+  typename GrayscaleOpeningFilterType::Pointer grayscaleOpen = GrayscaleOpeningFilterType::New();
+  typename GrayscaleClosingFilterType::Pointer grayscaleClose = GrayscaleClosingFilterType::New();
   grayscaleErode->SetKernel( structuringElement );
   grayscaleDilate->SetKernel( structuringElement );
+  grayscaleOpen->SetKernel( structuringElement );
+  grayscaleClose->SetKernel( structuringElement );
 
   //  It is necessary to define what could be considered objects on the binary
   //  images. This is specified with the methods \code{SetErodeValue()} and
   //  \code{SetDilateValue()}. The value passed to these methods will be
   //  considered the value over which the dilation and erosion rules will apply
-  binaryErode->SetErodeValue( static_cast<unsigned int>( dilateval ) );
-  binaryDilate->SetDilateValue( static_cast<unsigned int>( dilateval ) );
+  binaryErode->SetErodeValue( static_cast<PixelType>( dilateval ) );
+  binaryDilate->SetDilateValue( static_cast<PixelType>( dilateval ) );
+  binaryOpen->SetForegroundValue( static_cast<PixelType>( dilateval ) );
+  binaryClose->SetForegroundValue( static_cast<PixelType>( dilateval ) );
 
   typename TImage::Pointer temp;
   if( option == 1 )
     {
-//    std::cout << " Dilate " << rad << std::endl;
+//    std::cout << " Binary Dilate " << rad << std::endl;
     binaryDilate->SetInput( input );
     binaryDilate->Update();
     temp = binaryDilate->GetOutput();
     }
   else if( option == 0 )
     {
-//    std::cout << " Erode " << rad << std::endl;
-    binaryErode->SetInput( input );  // binaryDilate->GetOutput() );
+//    std::cout << " Binary Erode " << rad << std::endl;
+    binaryErode->SetInput( input );
     binaryErode->Update();
     temp = binaryErode->GetOutput();
     }
   else if( option == 2 )
     {
-    // dilate(erode(img))
 //    std::cout << " Binary Open " << rad << std::endl;
-    // binaryOpen->SetInput( input );//binaryDilate->GetOutput() );
-    // binaryOpen->Update();
-    binaryErode->SetInput( input );
-    binaryDilate->SetInput( binaryErode->GetOutput() );
-    binaryDilate->Update();
-    temp = binaryDilate->GetOutput();
+    binaryOpen->SetInput( input );
+    binaryOpen->Update();
+    temp = binaryOpen->GetOutput();
     }
   else if( option == 3 )
     {
 //    std::cout << " Binary Close " << rad << std::endl;
-    // binaryClose->SetInput( input );//binaryDilate->GetOutput() );
-    // binaryClose->Update();
-    binaryDilate->SetInput( input );
-    binaryErode->SetInput( binaryDilate->GetOutput() );
-    binaryErode->Update();
-    temp = binaryErode->GetOutput();
+    binaryClose->SetInput( input );
+    binaryClose->Update();
+    temp = binaryClose->GetOutput();
     }
   else if( option == 4 )
     {
 //    std::cout << " Grayscale Erode " << rad << std::endl;
-    grayscaleErode->SetInput( input ); // binaryDilate->GetOutput() );
+    grayscaleErode->SetInput( input );
     grayscaleErode->Update();
     temp = grayscaleErode->GetOutput();
     }
   else if( option == 5 )
     {
 //    std::cout << " Grayscale Dilate " << rad << std::endl;
-    grayscaleDilate->SetInput( input ); // binaryDilate->GetOutput() );
+    grayscaleDilate->SetInput( input );
     grayscaleDilate->Update();
     temp = grayscaleDilate->GetOutput();
-//    std::cout << " Grayscale Dilate Done " << temp << std::endl;
     }
   else if( option == 6 )
     {
 //    std::cout << " Grayscale Open " << rad << std::endl;
-    grayscaleErode->SetInput( input ); // binaryDilate->GetOutput() );
-    grayscaleErode->Update();
-    grayscaleDilate->SetInput( grayscaleErode->GetOutput() );
-    grayscaleDilate->Update();
-    temp = grayscaleDilate->GetOutput();
+    grayscaleOpen->SetInput( input );
+    grayscaleOpen->Update();
+    temp = grayscaleOpen->GetOutput();
     }
   else if( option == 7 )
     {
 //    std::cout << " Grayscale Close " << rad << std::endl;
-    grayscaleDilate->SetInput( input ); // binaryDilate->GetOutput() );
-    grayscaleDilate->Update();
-    grayscaleErode->SetInput( grayscaleDilate->GetOutput() );
-    grayscaleErode->Update();
-    temp = grayscaleErode->GetOutput();
+    grayscaleClose->SetInput( input );
+    grayscaleClose->Update();
+    temp = grayscaleClose->GetOutput();
     }
 
   if( option == 0 )

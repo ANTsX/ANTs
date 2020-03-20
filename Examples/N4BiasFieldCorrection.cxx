@@ -84,7 +84,6 @@ int N4( itk::ants::CommandLineParser *parser )
     {
     verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
     }
-
   if( verbose )
     {
     std::cout << std::endl << "Running N4 for "
@@ -94,6 +93,7 @@ int N4( itk::ants::CommandLineParser *parser )
   typedef itk::N4BiasFieldCorrectionImageFilter<ImageType, MaskImageType,
                                                 ImageType> CorrecterType;
   typename CorrecterType::Pointer correcter = CorrecterType::New();
+
   typename itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
   if( inputImageOption && inputImageOption->GetNumberOfFunctions() )
@@ -120,12 +120,12 @@ int N4( itk::ants::CommandLineParser *parser )
     parser->GetOption( "mask-image" );
   if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
     {
-    std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
-    ReadImage<MaskImageType>( maskImage, inputFile.c_str() );
+    std::string inputMaskFile = maskImageOption->GetFunction( 0 )->GetName();
+    ReadImage<MaskImageType>( maskImage, inputMaskFile.c_str() );
 
     isMaskImageSpecified = true;
     }
-  if( !maskImage )
+  if( maskImage.IsNull() )
     {
     if( verbose )
       {
@@ -134,24 +134,23 @@ int N4( itk::ants::CommandLineParser *parser )
     maskImage = MaskImageType::New();
     maskImage->CopyInformation( inputImage );
     maskImage->SetRegions( inputImage->GetRequestedRegion() );
-    maskImage->Allocate( false );
+    maskImage->Allocate();
     maskImage->FillBuffer( itk::NumericTraits<typename MaskImageType::PixelType>::OneValue() );
     }
 
   /**
    * check for negative values in the masked region
    */
-  typedef itk::Image<int, ImageDimension> IntImageType;
 
-  typedef itk::BinaryThresholdImageFilter<MaskImageType, IntImageType> ThresholderType;
+  typedef itk::BinaryThresholdImageFilter<MaskImageType, MaskImageType> ThresholderType;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
-  thresholder->SetInsideValue( itk::NumericTraits<typename IntImageType::PixelType>::ZeroValue() );
-  thresholder->SetOutsideValue( itk::NumericTraits<typename IntImageType::PixelType>::OneValue() );
+  thresholder->SetInsideValue( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
+  thresholder->SetOutsideValue( itk::NumericTraits<typename MaskImageType::PixelType>::OneValue() );
   thresholder->SetLowerThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
   thresholder->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
   thresholder->SetInput( maskImage );
 
-  typedef itk::LabelStatisticsImageFilter<ImageType, IntImageType> StatsType;
+  typedef itk::LabelStatisticsImageFilter<ImageType, MaskImageType> StatsType;
   typename StatsType::Pointer statsOriginal = StatsType::New();
   statsOriginal->SetInput( inputImage );
   statsOriginal->SetLabelInput( thresholder->GetOutput() );
@@ -537,8 +536,8 @@ int N4( itk::ants::CommandLineParser *parser )
     if( doRescale )
       {
       typename ThresholderType::Pointer thresholder2 = ThresholderType::New();
-      thresholder2->SetInsideValue( itk::NumericTraits<typename IntImageType::PixelType>::ZeroValue() );
-      thresholder2->SetOutsideValue( itk::NumericTraits<typename IntImageType::PixelType>::OneValue() );
+      thresholder2->SetInsideValue( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
+      thresholder2->SetOutsideValue( itk::NumericTraits<typename MaskImageType::PixelType>::OneValue() );
       thresholder2->SetLowerThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
       thresholder2->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
       thresholder2->SetInput( maskImage );
