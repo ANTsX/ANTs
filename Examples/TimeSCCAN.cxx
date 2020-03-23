@@ -56,9 +56,9 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
                 unsigned int nLabels, unsigned int minRegionSize, unsigned int n_evec, unsigned int iterct, float sparsity,
                 bool robust, bool useL1, float gradstep, bool keepPositive, unsigned int minClusterSize )
 {
-  typedef itk::ants::antsSCCANObject<NetworkType, double>  SCCANType;
-  typedef typename SCCANType::MatrixType                   MatrixType;
-  typedef typename SCCANType::VectorType                   VectorType;
+  using SCCANType = itk::ants::antsSCCANObject<NetworkType, double>;
+  using MatrixType = typename SCCANType::MatrixType;
+  using VectorType = typename SCCANType::VectorType;
 
   // Determine the number of regions to examine
   std::set<unsigned int> labelset;
@@ -261,8 +261,8 @@ bool RegionAveraging(typename NetworkType::Pointer network, typename NetworkType
                      unsigned int nLabels, unsigned int minSize )
 {
 
-  typedef vnl_vector<float>                                     VectorType;
-  typedef vnl_matrix<float>                                     MatrixType;
+  using VectorType = vnl_vector<float>;
+  using MatrixType = vnl_matrix<float>;
 
   // Determine the number of regions to examine
   std::set<unsigned int> labelset;
@@ -384,7 +384,7 @@ for (unsigned int i=0; i<N; i++)
 int timesccan( itk::ants::CommandLineParser *parser )
 {
 
-  typedef itk::Image<float,2>               NetworkType;
+  using NetworkType = itk::Image<float, 2>;
 
 
   std::string                                       outname = "output.nii.gz";
@@ -585,7 +585,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   /** in this function, list all the operations you will perform */
 
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
   std::string         description = std::string( "Print the help menu (short version)." );

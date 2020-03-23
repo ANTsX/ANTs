@@ -34,15 +34,15 @@ int LabelOverlapMeasures( int argc, char * argv[] )
     outputCSVFormat = true;
     }
 
-  typedef unsigned int                          PixelType;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  using PixelType = unsigned int;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
   typename ImageType::Pointer sourceImage = ImageType::New();
   ReadImage<ImageType>( sourceImage, argv[2] );
   typename ImageType::Pointer targetImage = ImageType::New();
   ReadImage<ImageType>( targetImage, argv[3] );
 
-  typedef itk::LabelOverlapMeasuresImageFilter<ImageType> FilterType;
+  using FilterType = itk::LabelOverlapMeasuresImageFilter<ImageType>;
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetSourceImage( sourceImage );
   filter->SetTargetImage( targetImage );
@@ -110,7 +110,7 @@ int LabelOverlapMeasures( int argc, char * argv[] )
       rowIndex++;
       }
 
-    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
+    using WriterType = itk::CSVNumericObjectFileWriter<double, 1, 1>;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( argv[4] );
     writer->SetColumnHeaders( columnHeaders );

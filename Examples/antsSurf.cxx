@@ -191,13 +191,13 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 {
   constexpr unsigned int ImageDimension = 3;
 
-  typedef float                                      RealType;
-  typedef itk::Image<RealType, ImageDimension>       ImageType;
-  typedef itk::Image<int, ImageDimension>            MaskImageType;
+  using RealType = float;
+  using ImageType = itk::Image<RealType, ImageDimension>;
+  using MaskImageType = itk::Image<int, ImageDimension>;
 
-  typedef unsigned char                              RgbComponentType;
-  typedef itk::RGBPixel<RgbComponentType>            RgbPixelType;
-  typedef itk::Image<RgbPixelType, ImageDimension>   RgbImageType;
+  using RgbComponentType = unsigned char;
+  using RgbPixelType = itk::RGBPixel<RgbComponentType>;
+  using RgbImageType = itk::Image<RgbPixelType, ImageDimension>;
 
   ImageType::PointType zeroOrigin;
   zeroOrigin.Fill( 0.0 );
@@ -272,7 +272,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
   //   and
   // http://www.vtk.org/Wiki/VTK/ExamplesBoneYard/Cxx/VolumeRendering/itkVtkImageConvert
 
-  typedef itk::AffineTransform<RealType> RigidTransformType;
+  using RigidTransformType = itk::AffineTransform<RealType>;
   RigidTransformType::Pointer meshToItkImageTransform = RigidTransformType::New();
   RigidTransformType::OutputVectorType offset;
   offset[0] = -inputImage->GetOrigin()[0];
@@ -300,7 +300,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
     antiAliasRmseParameter = parser->Convert<RealType>( antiAliasRmseOption->GetFunction( 0 )->GetName() );
     }
 
-  typedef itk::AntiAliasBinaryImageFilter<ImageType, ImageType> AntiAliasFilterType;
+  using AntiAliasFilterType = itk::AntiAliasBinaryImageFilter<ImageType, ImageType>;
   AntiAliasFilterType::Pointer antiAlias = AntiAliasFilterType::New();
   antiAlias->SetMaximumRMSError( antiAliasRmseParameter );
   antiAlias->SetInput( inputImage );
@@ -308,7 +308,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
   // Reconstruct binary surface.
 
-  typedef itk::ImageToVTKImageFilter<ImageType> ConnectorType;
+  using ConnectorType = itk::ImageToVTKImageFilter<ImageType>;
   ConnectorType::Pointer connector = ConnectorType::New();
   connector->SetInput( antiAlias->GetOutput() );
   connector->Update();
@@ -357,7 +357,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
       std::string rgbFileName = functionalOverlayOption->GetFunction( n )->GetParameter( 0 );
 
-      typedef itk::ImageFileReader<RgbImageType> RgbReaderType;
+      using RgbReaderType = itk::ImageFileReader<RgbImageType>;
       RgbReaderType::Pointer rgbReader = RgbReaderType::New();
       rgbReader->SetFileName( rgbFileName.c_str() );
       try
@@ -376,7 +376,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
       std::string maskFileName = functionalOverlayOption->GetFunction( n )->GetParameter( 1 );
 
-      typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
+      using MaskReaderType = itk::ImageFileReader<MaskImageType>;
       MaskReaderType::Pointer maskReader = MaskReaderType::New();
       maskReader->SetFileName( maskFileName.c_str() );
       try
@@ -854,7 +854,7 @@ int antsSurfaceToImage( itk::ants::CommandLineParser *parser )
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
     {
     std::string description =
@@ -970,7 +970,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description =
     std::string( "Add a scalar bar to the rendering for the final overlay.  One can tailor " )
     + std::string( "the aesthetic by changing the number of labels and/or the orientation and ")
-    + std::string( "size of the scalar bar.  If the \'width\' > \'height\' (in pixels) then the ")
+    + std::string( R"(size of the scalar bar.  If the 'width' > 'height' (in pixels) then the )")
     + std::string( "orientation is horizontal.  Otherwise it is vertical (default)." );
 
     OptionType::Pointer option = OptionType::New();

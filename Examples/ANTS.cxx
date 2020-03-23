@@ -81,7 +81,7 @@ void PrintCommandLineHelp( const std::string & progName )
 template <unsigned int ImageDimension>
 int ANTSex(int argc, char *argv[])
 {
-  typedef itk::PICSLAdvancedNormalizationToolKit<ImageDimension, float> RegistrationType;
+  using RegistrationType = itk::PICSLAdvancedNormalizationToolKit<ImageDimension, float>;
   typename RegistrationType::Pointer registration = RegistrationType::New();
   registration->ParseCommandLine( argc, argv );
   std::cout << " Run Reg " << std::endl;

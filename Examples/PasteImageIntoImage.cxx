@@ -16,13 +16,13 @@ namespace ants
 template <unsigned int ImageDimension>
 int PasteImageIntoImage( unsigned int argc, char *argv[] )
 {
-  typedef float                                 PixelType;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  using PixelType = float;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
   std::vector<unsigned int> startIndex =
     ConvertVector<unsigned int>( std::string( argv[5] ) );
 
-  typedef itk::ImageFileReader<ImageType> ReaderType;
+  using ReaderType = itk::ImageFileReader<ImageType>;
   typename ReaderType::Pointer reader1 = ReaderType::New();
   reader1->SetFileName( argv[2] );
   reader1->Update();
@@ -78,7 +78,7 @@ int PasteImageIntoImage( unsigned int argc, char *argv[] )
       }
     }
 
-  typedef itk::ImageFileWriter<ImageType> WriterType;
+  using WriterType = itk::ImageFileWriter<ImageType>;
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( argv[4] );
   writer->SetInput( reader1->GetOutput() );

@@ -36,7 +36,7 @@ int IntegrateVelocityField(int argc, char *argv[])
   std::string vectorfn = std::string(argv[argct]); argct++;
   std::string outname = std::string(argv[argct]); argct++;
 
-  typedef float PixelType;
+  using PixelType = float;
   PixelType timezero = 0;
   PixelType timeone = 1;
   PixelType dT = 0.01;
@@ -58,15 +58,15 @@ int IntegrateVelocityField(int argc, char *argv[])
   std::cout << " time-0 " << timezero << " dt " << dT << " time-1 " << timeone << std::endl;
   PixelType starttime = timezero;
   PixelType finishtime = timeone;
-  typedef float                                       PixelType;
-  typedef itk::Vector<PixelType, ImageDimension>      VectorType;
-  typedef itk::Image<VectorType, ImageDimension>      DisplacementFieldType;
-  typedef itk::Image<VectorType, ImageDimension + 1>  TimeVaryingVelocityFieldType;
-  typedef itk::Image<PixelType, ImageDimension>       ImageType;
+  using PixelType = float;
+  using VectorType = itk::Vector<PixelType, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+  using TimeVaryingVelocityFieldType = itk::Image<VectorType, ImageDimension + 1>;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
   typename ImageType::Pointer image;
   ReadImage<ImageType>(image, imgfn.c_str() );
-  typedef TimeVaryingVelocityFieldType                tvt;
+  using tvt = TimeVaryingVelocityFieldType;
   typename tvt::Pointer timeVaryingVelocity;
   ReadImage<tvt>(timeVaryingVelocity, vectorfn.c_str() );
 
@@ -97,8 +97,7 @@ int IntegrateVelocityField(int argc, char *argv[])
     finishtime = 1;
     }
 
-  typedef itk::TimeVaryingVelocityFieldIntegrationImageFilter
-    <TimeVaryingVelocityFieldType, DisplacementFieldType> IntegratorType;
+  using IntegratorType = itk::TimeVaryingVelocityFieldIntegrationImageFilter<TimeVaryingVelocityFieldType, DisplacementFieldType>;
   typename IntegratorType::Pointer integrator = IntegratorType::New();
   integrator->SetInput( timeVaryingVelocity );
   integrator->SetLowerTimeBound( starttime );

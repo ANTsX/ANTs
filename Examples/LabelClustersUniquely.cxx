@@ -40,18 +40,17 @@ namespace ants
 template <unsigned int ImageDimension>
 int  LabelUniquely(int argc, char *argv[])
 {
-  typedef float PixelType;
+  using PixelType = float;
 
-  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  typedef unsigned int                                     ULPixelType;
-  typedef itk::Image<ULPixelType, ImageDimension>          labelimagetype;
-  typedef itk::CastImageFilter<ImageType, labelimagetype>  CastFilterType;
-  typedef itk::CastImageFilter< labelimagetype, ImageType> CastFilterType2;
+  using ULPixelType = unsigned int;
+  using labelimagetype = itk::Image<ULPixelType, ImageDimension>;
+  using CastFilterType = itk::CastImageFilter<ImageType, labelimagetype>;
+  using CastFilterType2 = itk::CastImageFilter<labelimagetype, ImageType>;
 
-  typedef itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype,
-    labelimagetype > FilterType;
-  typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype>   RelabelType;
+  using FilterType = itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype, labelimagetype>;
+  using RelabelType = itk::RelabelComponentImageFilter<labelimagetype, labelimagetype>;
 
   // want the average value in each cluster as defined by the mask and the value thresh and the clust thresh
 

@@ -25,12 +25,12 @@ typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
   // Initialize the Moving to the displacement field
-  typedef TImage ImageType;
+  using ImageType = TImage;
 
   typename ImageType::Pointer sfield =
     AllocImage<ImageType>(field);
 
-  typedef itk::ImageRegionIteratorWithIndex<TField> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<TField>;
   Iterator vfIter( field,  field->GetLargestPossibleRegion() );
   for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
@@ -46,7 +46,7 @@ typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, float sig)
 {
 // find min value
-  typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<TImage>;
   Iterator vfIter(image, image->GetLargestPossibleRegion() );
   for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
@@ -56,7 +56,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
       vfIter.Set(0);
       }
     }
-  typedef itk::DiscreteGaussianImageFilter<TImage, TImage> dgf;
+  using dgf = itk::DiscreteGaussianImageFilter<TImage, TImage>;
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(sig);
   filter->SetUseImageSpacingOn();
@@ -72,8 +72,8 @@ template <typename TImage>
 void
 SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
 {
-  typedef itk::Vector<float, 3> VectorType;
-  typedef itk::Image<float, 3>  ImageType;
+  using VectorType = itk::Vector<float, 3>;
+  using ImageType = itk::Image<float, 3>;
   typename ImageType::Pointer subimgx = GetVectorComponent<TImage, ImageType>(vectorimage, 0);
   subimgx = SmoothImage<ImageType>(subimgx, sig);
   typename ImageType::Pointer subimgy = GetVectorComponent<TImage, ImageType>(vectorimage, 1);
@@ -81,7 +81,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
   typename ImageType::Pointer subimgz = GetVectorComponent<TImage, ImageType>(vectorimage, 2);
   subimgz = SmoothImage<ImageType>(subimgz, sig);
 
-  typedef itk::ImageRegionIteratorWithIndex<TImage> IteratorType;
+  using IteratorType = itk::ImageRegionIteratorWithIndex<TImage>;
   IteratorType Iterator( vectorimage, vectorimage->GetLargestPossibleRegion().GetSize() );
   Iterator.GoToBegin();
   while(  !Iterator.IsAtEnd()  )
@@ -94,8 +94,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
     ++Iterator;
     }
 
-  return;
-}
+  }
 
 template <typename TImage>
 typename TImage::Pointer
@@ -103,14 +102,14 @@ LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input, float distthresh )
 {
   std::cout << " Label Surf " << std::endl;
-  typedef TImage ImageType;
+  using ImageType = TImage;
   enum { ImageDimension = ImageType::ImageDimension };
   // ORIENTATION ALERT -- original code set spacing & origin without
   // also setting orientation.
   typename   ImageType::Pointer     Image =
     AllocImage<ImageType>(input);
 
-  typedef itk::NeighborhoodIterator<ImageType> iteratorType;
+  using iteratorType = itk::NeighborhoodIterator<ImageType>;
 
   typename iteratorType::RadiusType rad;
   for( int j = 0; j < ImageDimension; j++ )
@@ -162,9 +161,9 @@ LabelSurface(typename TImage::PixelType foreground,
 template <typename TImage>
 typename TImage::Pointer  Morphological( typename TImage::Pointer input, float rad, bool option)
 {
-  typedef TImage ImageType;
+  using ImageType = TImage;
   enum { ImageDimension = TImage::ImageDimension };
-  typedef typename TImage::PixelType PixelType;
+  using PixelType = typename TImage::PixelType;
 
   if( !option )
     {
@@ -174,20 +173,12 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     {
     std::cout << " dilating the image " << std::endl;
     }
-  typedef itk::BinaryBallStructuringElement<
-      PixelType,
-      ImageDimension>             StructuringElementType;
+  using StructuringElementType = itk::BinaryBallStructuringElement<PixelType, ImageDimension>;
 
   // Software Guide : BeginCodeSnippet
-  typedef itk::BinaryErodeImageFilter<
-      TImage,
-      TImage,
-      StructuringElementType>  ErodeFilterType;
+  using ErodeFilterType = itk::BinaryErodeImageFilter<TImage, TImage, StructuringElementType>;
 
-  typedef itk::BinaryDilateImageFilter<
-      TImage,
-      TImage,
-      StructuringElementType>  DilateFilterType;
+  using DilateFilterType = itk::BinaryDilateImageFilter<TImage, TImage, StructuringElementType>;
 
   typename ErodeFilterType::Pointer  binaryErode  = ErodeFilterType::New();
   typename DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
@@ -221,7 +212,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     binaryErode->Update();
     temp = binaryErode->GetOutput();
 
-    typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
+    using ImageIteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
     ImageIteratorType o_iter( temp, temp->GetLargestPossibleRegion() );
     o_iter.GoToBegin();
     while( !o_iter.IsAtEnd() )
@@ -245,21 +236,21 @@ template <typename TImage, typename TField>
 typename TField::Pointer
 FMMGrad(typename TImage::Pointer wm, typename TImage::Pointer gm )
 {
-  typedef TImage ImageType;
+  using ImageType = TImage;
   enum { ImageDimension = TImage::ImageDimension };
   typename TField::Pointer sfield = AllocImage<TField>(wm);
 
   typename ImageType::Pointer surf = LabelSurface<ImageType>(1, 1, wm, 1.9 );
 
-  typedef itk::FastMarchingUpwindGradientImageFilter<ImageType, ImageType> FloatFMType;
+  using FloatFMType = itk::FastMarchingUpwindGradientImageFilter<ImageType, ImageType>;
   typename FloatFMType::Pointer marcher = FloatFMType::New();
-  typedef typename FloatFMType::NodeType      NodeType;
-  typedef typename FloatFMType::NodeContainer NodeContainer;
+  using NodeType = typename FloatFMType::NodeType;
+  using NodeContainer = typename FloatFMType::NodeContainer;
   // setup alive points
   typename NodeContainer::Pointer alivePoints = NodeContainer::New();
   typename NodeContainer::Pointer targetPoints = NodeContainer::New();
   typename NodeContainer::Pointer trialPoints = NodeContainer::New();
-  typedef itk::ImageRegionIteratorWithIndex<TImage> IteratorType;
+  using IteratorType = itk::ImageRegionIteratorWithIndex<TImage>;
   IteratorType thIt( wm, wm->GetLargestPossibleRegion().GetSize() );
   thIt.GoToBegin();
   unsigned long bb = 0, cc = 0, dd = 0;
@@ -321,20 +312,19 @@ template <typename TImage, typename TField>
 typename TField::Pointer
 LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float sig, unsigned int numits, float tolerance)
 {
-  typedef  typename TImage::IndexType IndexType;
+  using IndexType = typename TImage::IndexType;
   IndexType ind;
-  typedef TImage ImageType;
-  typedef TField GradientImageType;
-  typedef itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType>
-    GradientImageFilterType;
-  typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
+  using ImageType = TImage;
+  using GradientImageType = TField;
+  using GradientImageFilterType = itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType>;
+  using GradientImageFilterPointer = typename GradientImageFilterType::Pointer;
 
   typename TField::Pointer sfield =
     AllocImage<TField>(wm);
 
   typename TImage::Pointer laplacian = SmoothImage<TImage>(wm, 1);
   laplacian->FillBuffer(0);
-  typedef itk::ImageRegionIteratorWithIndex<TImage> IteratorType;
+  using IteratorType = itk::ImageRegionIteratorWithIndex<TImage>;
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
   Iterator.GoToBegin();
 
@@ -408,9 +398,9 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
                        float priorthickval,  typename TImage::Pointer smooththick, bool printprobability,
                        typename TImage::Pointer /* sulci */ )
 {
-  typedef typename TField::PixelType                               VectorType;
-  typedef typename TField::PointType                               DPointType;
-  typedef itk::VectorLinearInterpolateImageFunction<TField, float> DefaultInterpolatorType;
+  using VectorType = typename TField::PixelType;
+  using DPointType = typename TField::PointType;
+  using DefaultInterpolatorType = itk::VectorLinearInterpolateImageFunction<TField, float>;
 
   VectorType zero;
   zero.Fill(0);
@@ -422,7 +412,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
   typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
   DPointType pointIn3;
   enum { ImageDimension = TImage::ImageDimension };
-  typedef typename TImage::IndexType IndexType;
+  using IndexType = typename TImage::IndexType;
   for( unsigned int jj = 0; jj < ImageDimension; jj++ )
     {
     IndexType index;
@@ -446,8 +436,8 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
       {
       float scale = 1; // *m_DT[timeind]/m_DS[timeind];
       //     std::cout << " scale " << scale << std::endl;
-      double itimetn1 = static_cast<double>( itime - timesign * deltaTime * scale );
-      double itimetn1h = static_cast<double>( itime - timesign * deltaTime * 0.5f * scale );
+      auto itimetn1 = static_cast<double>( itime - timesign * deltaTime * scale );
+      auto itimetn1h = static_cast<double>( itime - timesign * deltaTime * 0.5f * scale );
       if( itimetn1h < 0 )
         {
         itimetn1h = 0;
@@ -548,7 +538,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
         f4 = vinterp->EvaluateAtContinuousIndex( Y4 );
         }
       using DPointCoordRepType = typename DPointType::CoordRepType;
-      DPointCoordRepType twoValue = static_cast<DPointCoordRepType>( 2.0 );
+      auto twoValue = static_cast<DPointCoordRepType>( 2.0 );
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
         pointIn3[jj] = pointIn2[jj] + static_cast<DPointCoordRepType>( gradsign * vecsign * deltaTime / 6.0f )
@@ -655,11 +645,11 @@ int LaplacianThickness(int argc, char *argv[])
     }
   argct++;
   std::cout << " using tolerance " << tolerance << std::endl;
-  typedef float                                      PixelType;
-  typedef itk::Vector<float, ImageDimension>         VectorType;
-  typedef itk::Image<VectorType, ImageDimension>     DisplacementFieldType;
-  typedef itk::Image<PixelType, ImageDimension>      ImageType;
-  typedef typename  ImageType::SpacingType           SpacingType;
+  using PixelType = float;
+  using VectorType = itk::Vector<float, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using SpacingType = typename ImageType::SpacingType;
 
   //  typename tvt::Pointer gWarp;
   // ReadImage<tvt>( gWarp, ifn.c_str() );
@@ -675,7 +665,7 @@ int LaplacianThickness(int argc, char *argv[])
   typename ImageType::Pointer gm;
   ReadImage<ImageType>(gm, gfn.c_str() );
   SpacingType spacing = wm->GetSpacing();
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
+  using IteratorType = itk::ImageRegionIteratorWithIndex<ImageType>;
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
   typename ImageType::Pointer wmb = BinaryThreshold<ImageType>(0.5, 1.e9, 1, wm);
   typename DisplacementFieldType::Pointer lapgrad = nullptr;
@@ -687,7 +677,7 @@ int LaplacianThickness(int argc, char *argv[])
   if( dosulc > 0 )
     {
     std::cout << "  using sulcal prior " << std::endl;
-    typedef itk::DanielssonDistanceMapImageFilter<ImageType, ImageType> FilterType;
+    using FilterType = itk::DanielssonDistanceMapImageFilter<ImageType, ImageType>;
     typename  FilterType::Pointer distmap = FilterType::New();
     distmap->InputIsBinaryOn();
     distmap->SetUseImageSpacing(true);
@@ -695,13 +685,13 @@ int LaplacianThickness(int argc, char *argv[])
     distmap->Update();
     typename ImageType::Pointer distwm = distmap->GetOutput();
 
-    typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType, ImageType> dgf;
+    using dgf = itk::LaplacianRecursiveGaussianImageFilter<ImageType, ImageType>;
     typename dgf::Pointer lfilter = dgf::New();
     lfilter->SetSigma(smoothparam);
     lfilter->SetInput(distwm);
     lfilter->Update();
     typename ImageType::Pointer image2 = lfilter->GetOutput();
-    typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+    using RescaleFilterType = itk::RescaleIntensityImageFilter<ImageType, ImageType>;
     typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
     rescaler->SetOutputMinimum(   0 );
     rescaler->SetOutputMaximum( 1 );
@@ -731,9 +721,8 @@ int LaplacianThickness(int argc, char *argv[])
     std::cout << " modified gm prior by sulcus prior " << std::endl;
     WriteImage<ImageType>(sulci, "sulcigm.nii");
 
-    typedef itk::GradientRecursiveGaussianImageFilter<ImageType, DisplacementFieldType>
-      GradientImageFilterType;
-    typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
+    using GradientImageFilterType = itk::GradientRecursiveGaussianImageFilter<ImageType, DisplacementFieldType>;
+    using GradientImageFilterPointer = typename GradientImageFilterType::Pointer;
     GradientImageFilterPointer filter = GradientImageFilterType::New();
     filter->SetInput(  distwm );
     filter->SetSigma(smoothparam);
@@ -774,10 +763,10 @@ int LaplacianThickness(int argc, char *argv[])
     timesign = -1.0;
     }
   unsigned int m_NumberOfTimePoints = 2;
-  typedef   DisplacementFieldType                                                        TimeVaryingVelocityFieldType;
-  typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float> DefaultInterpolatorType;
+  using TimeVaryingVelocityFieldType = DisplacementFieldType;
+  using DefaultInterpolatorType = itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float>;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
-  typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
+  using ScalarInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, float>;
   typename ScalarInterpolatorType::Pointer sinterp =  ScalarInterpolatorType::New();
   sinterp->SetInputImage(gm);
   if( sulci )
@@ -787,7 +776,7 @@ int LaplacianThickness(int argc, char *argv[])
   VectorType zero;
   zero.Fill(0);
 
-  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
+  using VIteratorType = itk::ImageRegionIteratorWithIndex<DisplacementFieldType>;
   VIteratorType VIterator( lapgrad, lapgrad->GetLargestPossibleRegion().GetSize() );
   VIterator.GoToBegin();
   while(  !VIterator.IsAtEnd()  )

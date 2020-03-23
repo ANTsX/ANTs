@@ -24,8 +24,8 @@ namespace ants
 template <unsigned int ImageDimension>
 int SmoothImage(int argc, char *argv[])
 {
-  typedef float                                                           PixelType;
-  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  using PixelType = float;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
   std::vector<float> sigmaVector = ConvertVector<float>( argv[3] );
 
@@ -33,8 +33,8 @@ int SmoothImage(int argc, char *argv[])
   typename ImageType::Pointer varimage = nullptr;
   ReadImage<ImageType>(image1, argv[2]);
 
-  typedef itk::SmoothingRecursiveGaussianImageFilter<ImageType, ImageType> rgf;
-  typedef itk::MedianImageFilter<ImageType, ImageType>           medf;
+  using rgf = itk::SmoothingRecursiveGaussianImageFilter<ImageType, ImageType>;
+  using medf = itk::MedianImageFilter<ImageType, ImageType>;
   typename rgf::Pointer filter = rgf::New();
   typename medf::Pointer filter2 = medf::New();
   typename rgf::SigmaArrayType sigmaArray;

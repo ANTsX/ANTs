@@ -39,17 +39,17 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 {
   constexpr unsigned int ImageDimension = 3;
 
-  typedef float                                      RealType;
-  typedef itk::Image<RealType, ImageDimension>       ImageType;
-  typedef itk::Image<unsigned int, ImageDimension>   MaskImageType;
+  using RealType = float;
+  using ImageType = itk::Image<RealType, ImageDimension>;
+  using MaskImageType = itk::Image<unsigned int, ImageDimension>;
 
-  typedef unsigned char                              RgbComponentType;
+  using RgbComponentType = unsigned char;
 
-  typedef itk::RGBPixel<RgbComponentType>            RgbPixelType;
-  typedef itk::Image<RgbPixelType, ImageDimension>   RgbImageType;
+  using RgbPixelType = itk::RGBPixel<RgbComponentType>;
+  using RgbImageType = itk::Image<RgbPixelType, ImageDimension>;
 
-  typedef itk::RGBAPixel<RgbComponentType>            RgbaPixelType;
-  typedef itk::Image<RgbaPixelType, ImageDimension>   RgbaImageType;
+  using RgbaPixelType = itk::RGBAPixel<RgbComponentType>;
+  using RgbaImageType = itk::Image<RgbaPixelType, ImageDimension>;
 
   // Read in input image
 
@@ -82,13 +82,13 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
     ImageType::Pointer readImage = nullptr;
     ReadImage<ImageType>( readImage, inputFile.c_str() );
 
-    typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+    using RescaleFilterType = itk::RescaleIntensityImageFilter<ImageType, ImageType>;
     RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
     rescaler->SetOutputMinimum( 0.0 );
     rescaler->SetOutputMaximum( 1.0 );
     rescaler->SetInput( readImage );
 
-    typedef itk::IntensityWindowingImageFilter<ImageType, ImageType> IntensityWindowingImageFilterType;
+    using IntensityWindowingImageFilterType = itk::IntensityWindowingImageFilter<ImageType, ImageType>;
     IntensityWindowingImageFilterType::Pointer windower = IntensityWindowingImageFilterType::New();
     windower->SetInput( rescaler->GetOutput() );
     windower->SetWindowMinimum( clipPercentage[0] );
@@ -146,7 +146,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
           }
         }
 
-      typedef itk::ImageFileReader<RgbImageType> RgbReaderType;
+      using RgbReaderType = itk::ImageFileReader<RgbImageType>;
       RgbReaderType::Pointer rgbReader = RgbReaderType::New();
       rgbReader->SetFileName( rgbFileName.c_str() );
       try
@@ -162,7 +162,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 
       if( ! maskFileName.empty() )
         {
-        typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
+        using MaskReaderType = itk::ImageFileReader<MaskImageType>;
         MaskReaderType::Pointer maskReader = MaskReaderType::New();
         maskReader->SetFileName( maskFileName.c_str() );
         maskReader->Update();
@@ -323,7 +323,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 
   // Do volumetric rendering
 
-  typedef itk::ImageToVTKImageFilter<RgbaImageType> ConnectorType;
+  using ConnectorType = itk::ImageToVTKImageFilter<RgbaImageType>;
   ConnectorType::Pointer connector = ConnectorType::New();
   connector->SetInput( rgbaImage );
   connector->Update();
@@ -385,7 +385,7 @@ int antsVolumetricRendering( itk::ants::CommandLineParser *parser )
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
     {
     std::string description =

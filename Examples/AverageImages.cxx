@@ -38,11 +38,11 @@ namespace ants
 template <unsigned int ImageDimension, unsigned int NVectorComponents>
 int AverageImages1(unsigned int argc, char *argv[])
 {
-  typedef float                                        PixelType;
-  typedef itk::Image<PixelType, ImageDimension>        ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  typedef itk::ImageFileReader<ImageType>              ImageFileReader;
-  typedef itk::ImageFileWriter<ImageType>              writertype;
+  using PixelType = float;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
+  using ImageFileReader = itk::ImageFileReader<ImageType>;
+  using writertype = itk::ImageFileWriter<ImageType>;
 
     {
     const std::string temp(argv[1]);
@@ -105,7 +105,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     typename ImageFileReader::Pointer rdr = ImageFileReader::New();
     rdr->SetFileName(argv[j]);
     rdr->Update();
-    typedef itk::ResampleImageFilter<ImageType, ImageType, float> ResamplerType;
+    using ResamplerType = itk::ResampleImageFilter<ImageType, ImageType, float>;
     typename ResamplerType::Pointer resampler = ResamplerType::New();
     // default to identity resampler->SetTransform( transform );
     // default to linearinterp resampler->SetInterpolator( interpolator );
@@ -148,7 +148,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     }
 
   //  typedef itk::OptimalSharpeningImageFilter<ImageType,ImageType > sharpeningFilter;
-  typedef itk::LaplacianSharpeningImageFilter<ImageType, ImageType> sharpeningFilter;
+  using sharpeningFilter = itk::LaplacianSharpeningImageFilter<ImageType, ImageType>;
   typename sharpeningFilter::Pointer shFilter = sharpeningFilter::New();
   if( normalizei && argc > 3 && vectorlength == 1 )
     {
@@ -171,11 +171,11 @@ int AverageImages1(unsigned int argc, char *argv[])
 template <unsigned int ImageDimension, unsigned int NVectorComponents>
 int AverageImages(unsigned int argc, char *argv[])
 {
-  typedef itk::Vector<float, NVectorComponents>        PixelType;
-  typedef itk::Image<PixelType, ImageDimension>        ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  typedef itk::ImageFileReader<ImageType>              ImageFileReader;
-  typedef itk::ImageFileWriter<ImageType>              writertype;
+  using PixelType = itk::Vector<float, NVectorComponents>;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
+  using ImageFileReader = itk::ImageFileReader<ImageType>;
+  using writertype = itk::ImageFileWriter<ImageType>;
 
   //  bool  normalizei = std::stoi(argv[3]);
   float numberofimages = static_cast<float>( argc ) - 4.0f;

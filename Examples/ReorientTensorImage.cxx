@@ -76,15 +76,15 @@ static bool ReorientTensorImage_ParseInput(int argc, char * *argv, char *& movin
 template <int ImageDimension>
 void ReorientTensorImage(char *moving_image_filename, char *output_image_filename, TRAN_OPT_QUEUE & opt_queue)
 {
-  typedef itk::DiffusionTensor3D<double>                                         PixelType;
-  typedef itk::Image<PixelType, ImageDimension>                                  TensorImageType;
-  typedef itk::Image<float, ImageDimension>                                      ImageType;
-  typedef itk::Vector<double, ImageDimension>                                    VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                                 DisplacementFieldType;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
+  using PixelType = itk::DiffusionTensor3D<double>;
+  using TensorImageType = itk::Image<PixelType, ImageDimension>;
+  using ImageType = itk::Image<float, ImageDimension>;
+  using VectorType = itk::Vector<double, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
-  typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
+  using ImageFileReaderType = itk::ImageFileReader<ImageType>;
   typename TensorImageType::Pointer img_mov;
 
   // No reason to use log-euclidean space
@@ -94,8 +94,8 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
 
   typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
 
-  typedef itk::TransformFileReader                    TranReaderType;
-  typedef itk::ImageFileReader<DisplacementFieldType> FieldReaderType;
+  using TranReaderType = itk::TransformFileReader;
+  using FieldReaderType = itk::ImageFileReader<DisplacementFieldType>;
   typename DisplacementFieldType::Pointer field = nullptr;
   typename AffineTransformType::Pointer aff = nullptr;
 
@@ -107,8 +107,7 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
     return;
     }
 
-  typedef itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType,
-                                                                              DisplacementFieldType> PPDReorientType;
+  using PPDReorientType = itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType, DisplacementFieldType>;
   typename PPDReorientType::Pointer reo = PPDReorientType::New();
   reo->SetInput( img_mov );
 

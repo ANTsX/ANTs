@@ -14,19 +14,19 @@ namespace ants
 template <unsigned int ImageDimension>
 int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
 {
-  typedef double                                            TComputeType;
+  using TComputeType = double;
 
-  typedef typename ants::RegistrationHelper<TComputeType, ImageDimension> RegistrationHelperType;
-  typedef typename RegistrationHelperType::ImageType                      ImageType;
-  typedef typename RegistrationHelperType::DisplacementFieldType          DisplacementFieldType;
-  typedef typename DisplacementFieldType::PixelType                       DisplacementVectorType;
-  typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
+  using RegistrationHelperType = typename ants::RegistrationHelper<TComputeType, ImageDimension>;
+  using ImageType = typename RegistrationHelperType::ImageType;
+  using DisplacementFieldType = typename RegistrationHelperType::DisplacementFieldType;
+  using DisplacementVectorType = typename DisplacementFieldType::PixelType;
+  using DisplacementFieldTransformType = typename RegistrationHelperType::DisplacementFieldTransformType;
 
-  typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>  ImageMetricType;
-  typedef itk::ImageMaskSpatialObject<ImageDimension>                               ImageMaskSpatialObjectType;
-  typedef typename ImageMaskSpatialObjectType::ImageType                            MaskImageType;
+  using ImageMetricType = itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>;
+  using ImageMaskSpatialObjectType = itk::ImageMaskSpatialObject<ImageDimension>;
+  using MaskImageType = typename ImageMaskSpatialObjectType::ImageType;
 
-  typedef typename RegistrationHelperType::LabeledPointSetType            LabeledPointSetType;
+  using LabeledPointSetType = typename RegistrationHelperType::LabeledPointSetType;
 
 
   bool verbose = false;
@@ -188,14 +188,14 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       {
       samplingStrategy = RegistrationHelperType::regular;
       }
-    else if( ( strategy == "none" ) || ( strategy == "" ) )
+    else if( ( strategy == "none" ) || ( strategy.empty() ) )
       {
       samplingStrategy = RegistrationHelperType::none;
       }
 
     typename ImageMetricType::Pointer imageMetric = nullptr;
 
-    typedef itk::LabeledPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, TComputeType> LabeledPointSetMetricType;
+    using LabeledPointSetMetricType = itk::LabeledPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, TComputeType>;
     typename LabeledPointSetMetricType::Pointer labeledPointSetMetric = nullptr;
 
     switch( currentMetric )
@@ -208,7 +208,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           std::cout << "  using the CC metric (radius = "
                       << radiusOption << ", weight = " << metricWeighting << ")" << std::endl;
           }
-        typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> CorrelationMetricType;
+        using CorrelationMetricType = itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>;
         typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
         typename CorrelationMetricType::RadiusType radius;
         radius.Fill( radiusOption );
@@ -227,7 +227,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           std::cout << "  using the Mattes MI metric (number of bins = "
                       << binOption << ", weight = " << metricWeighting << ")" << std::endl;
           }
-        typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MutualInformationMetricType;
+        using MutualInformationMetricType = itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
         //mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
@@ -246,8 +246,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           std::cout << "  using the joint histogram MI metric (number of bins = "
                       << binOption << ", weight = " << metricWeighting << ")" << std::endl;
           }
-        typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType,
-                                                                        TComputeType> MutualInformationMetricType;
+        using MutualInformationMetricType = itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
         //mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
@@ -266,7 +265,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           std::cout << "  using the MeanSquares metric (weight = " << metricWeighting << ")" << std::endl;
           }
 
-        typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MeanSquaresMetricType;
+        using MeanSquaresMetricType = itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>;
         typename MeanSquaresMetricType::Pointer meanSquaresMetric = MeanSquaresMetricType::New();
         //meanSquaresMetric = meanSquaresMetric;
         imageMetric = meanSquaresMetric;
@@ -279,7 +278,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           std::cout << "  using the Demons metric (weight = " << metricWeighting << ")" << std::endl;
           }
 
-        typedef itk::DemonsImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> DemonsMetricType;
+        using DemonsMetricType = itk::DemonsImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>;
         typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
 
         imageMetric = demonsMetric;
@@ -291,7 +290,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           {
           std::cout << "  using the global correlation metric (weight = " << metricWeighting << ")" << std::endl;
           }
-        typedef itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> corrMetricType;
+        using corrMetricType = itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>;
         typename corrMetricType::Pointer corrMetric = corrMetricType::New();
 
         imageMetric = corrMetric;
@@ -321,13 +320,13 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       {
       const typename ImageType::SpacingType oneThirdVirtualSpacing = fixedImage->GetSpacing() / 3.0;
 
-      typedef typename ImageMetricType::FixedSampledPointSetType MetricSamplePointSetType;
+      using MetricSamplePointSetType = typename ImageMetricType::FixedSampledPointSetType;
       typename MetricSamplePointSetType::Pointer samplePointSet = MetricSamplePointSetType::New();
       samplePointSet->Initialize();
 
-      typedef typename MetricSamplePointSetType::PointType SamplePointType;
+      using SamplePointType = typename MetricSamplePointSetType::PointType;
 
-      typedef typename itk::Statistics::MersenneTwisterRandomVariateGenerator RandomizerType;
+      using RandomizerType = typename itk::Statistics::MersenneTwisterRandomVariateGenerator;
       typename RandomizerType::Pointer randomizer = RandomizerType::New();
       randomizer->SetSeed( 1234 );
 
@@ -425,7 +424,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
 
       imageMetric->Initialize();
 
-      typedef typename ImageMetricType::DerivativeType MetricDerivativeType;
+      using MetricDerivativeType = typename ImageMetricType::DerivativeType;
       const typename MetricDerivativeType::SizeValueType metricDerivativeSize =
         fixedImage->GetLargestPossibleRegion().GetNumberOfPixels() * ImageDimension;
       MetricDerivativeType metricDerivative( metricDerivativeSize );
@@ -482,7 +481,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
       return EXIT_FAILURE;
       }
 
-    typedef itk::LabeledPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, TComputeType> LabeledPointSetMetricType;
+    using LabeledPointSetMetricType = itk::LabeledPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, TComputeType>;
     typename LabeledPointSetMetricType::Pointer labeledPointSetMetric = LabeledPointSetMetricType::New();
 
     switch( currentMetric )
@@ -493,7 +492,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           {
           std::cout << "  using the ICP metric (weight = " << metricWeighting << ")" << std::endl;
           }
-        typedef itk::EuclideanDistancePointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, TComputeType> IcpPointSetMetricType;
+        using IcpPointSetMetricType = itk::EuclideanDistancePointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, TComputeType>;
         typename IcpPointSetMetricType::Pointer icpMetric = IcpPointSetMetricType::New();
 
         labeledPointSetMetric->SetPointSetMetric( icpMetric.GetPointer() );
@@ -516,7 +515,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           {
           std::cout << "  using the PSE metric (weight = " << metricWeighting << ")" << std::endl;
           }
-        typedef itk::ExpectationBasedPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, TComputeType> PsePointSetMetricType;
+        using PsePointSetMetricType = itk::ExpectationBasedPointSetToPointSetMetricv4<LabeledPointSetType, LabeledPointSetType, TComputeType>;
         typename PsePointSetMetricType::Pointer pseMetric = PsePointSetMetricType::New();
         pseMetric->SetPointSetSigma( pointSetSigma );
         pseMetric->SetEvaluationKNeighborhood(  kNeighborhood );
@@ -551,7 +550,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
           {
           std::cout << "  using the JHCT metric (weight = " << metricWeighting << ")" << std::endl;
           }
-        typedef itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<LabeledPointSetType, TComputeType> JhctPointSetMetricType;
+        using JhctPointSetMetricType = itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<LabeledPointSetType, TComputeType>;
         typename JhctPointSetMetricType::Pointer jhctMetric = JhctPointSetMetricType::New();
         jhctMetric->SetPointSetSigma( pointSetSigma );
         jhctMetric->SetKernelSigma( 10.0 );

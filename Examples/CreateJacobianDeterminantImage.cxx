@@ -12,15 +12,15 @@ namespace ants
 template <unsigned int ImageDimension>
 int CreateJacobianDeterminantImage( int argc, char *argv[] )
 {
-  typedef double RealType;
-  typedef itk::Image<RealType, ImageDimension> ImageType;
-  typedef itk::Vector<RealType, ImageDimension> VectorType;
-  typedef itk::Image<VectorType, ImageDimension> VectorImageType;
+  using RealType = double;
+  using ImageType = itk::Image<RealType, ImageDimension>;
+  using VectorType = itk::Vector<RealType, ImageDimension>;
+  using VectorImageType = itk::Image<VectorType, ImageDimension>;
 
   /**
    * Read in vector field
    */
-  typedef itk::ImageFileReader<VectorImageType> ReaderType;
+  using ReaderType = itk::ImageFileReader<VectorImageType>;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[2] );
   reader->Update();
@@ -47,8 +47,7 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
 
   if( calculateGeometricJacobian )
     {
-    typedef itk::GeometricJacobianDeterminantImageFilter
-      <VectorImageType, RealType, ImageType> JacobianFilterType;
+    using JacobianFilterType = itk::GeometricJacobianDeterminantImageFilter<VectorImageType, RealType, ImageType>;
     typename JacobianFilterType::Pointer jacobianFilter = JacobianFilterType::New();
     jacobianFilter->SetInput( reader->GetOutput() );
 
@@ -58,7 +57,7 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
     }
   else
     {
-    typedef itk::DeformationFieldGradientTensorImageFilter<VectorImageType, RealType> JacobianFilterType;
+    using JacobianFilterType = itk::DeformationFieldGradientTensorImageFilter<VectorImageType, RealType>;
     typename JacobianFilterType::Pointer jacobianFilter = JacobianFilterType::New();
     jacobianFilter->SetInput( reader->GetOutput() );
     jacobianFilter->SetCalculateJacobian( true );
@@ -66,15 +65,14 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
     jacobianFilter->SetOrder( 2 );
     jacobianFilter->SetUseCenteredDifference( true );
 
-    typedef itk::DeterminantTensorImageFilter<typename JacobianFilterType::OutputImageType, RealType>
-      DeterminantFilterType;
+    using DeterminantFilterType = itk::DeterminantTensorImageFilter<typename JacobianFilterType::OutputImageType, RealType>;
     typename DeterminantFilterType::Pointer determinantFilter = DeterminantFilterType::New();
     determinantFilter->SetInput( jacobianFilter->GetOutput() );
     determinantFilter->Update();
 
     minimumConstantImage->FillBuffer( 0.0 );
 
-    typedef itk::MaximumImageFilter<ImageType, ImageType, ImageType> MaxFilterType;
+    using MaxFilterType = itk::MaximumImageFilter<ImageType, ImageType, ImageType>;
     typename MaxFilterType::Pointer maxFilter = MaxFilterType::New();
     maxFilter->SetInput1( determinantFilter->GetOutput() );
     maxFilter->SetInput2( minimumConstantImage );
@@ -88,12 +86,12 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
     {
     minimumConstantImage->FillBuffer( 0.001 );
 
-    typedef itk::MaximumImageFilter<ImageType, ImageType, ImageType> MaxFilterType;
+    using MaxFilterType = itk::MaximumImageFilter<ImageType, ImageType, ImageType>;
     typename MaxFilterType::Pointer maxFilter = MaxFilterType::New();
     maxFilter->SetInput1( jacobian );
     maxFilter->SetInput2( minimumConstantImage );
 
-    typedef itk::LogImageFilter<ImageType, ImageType> LogFilterType;
+    using LogFilterType = itk::LogImageFilter<ImageType, ImageType>;
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
     logFilter->SetInput( maxFilter->GetOutput() );
     logFilter->Update();

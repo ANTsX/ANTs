@@ -105,14 +105,14 @@ class RigidTransformTraits
 // Don't worry about the fact that the default option is the
 // affine Transform, that one will not actually be instantiated.
 public:
-  typedef itk::AffineTransform<double, ImageDimension> TransformType;
+  using TransformType = itk::AffineTransform<double, ImageDimension>;
 };
 
 template <>
 class RigidTransformTraits<2>
 {
 public:
-  typedef itk::Euler2DTransform<double> TransformType;
+  using TransformType = itk::Euler2DTransform<double>;
 };
 
 template <>
@@ -121,7 +121,7 @@ class RigidTransformTraits<3>
 public:
   // typedef itk::VersorRigid3DTransform<double> TransformType;
   // typedef itk::QuaternionRigidTransform<double>  TransformType;
-  typedef itk::Euler3DTransform<double> TransformType;
+  using TransformType = itk::Euler3DTransform<double>;
 };
 
 template <unsigned int ImageDimension>
@@ -130,21 +130,21 @@ class SimilarityTransformTraits
 // Don't worry about the fact that the default option is the
 // affine Transform, that one will not actually be instantiated.
 public:
-  typedef itk::AffineTransform<double, ImageDimension> TransformType;
+  using TransformType = itk::AffineTransform<double, ImageDimension>;
 };
 
 template <>
 class SimilarityTransformTraits<2>
 {
 public:
-  typedef itk::Similarity2DTransform<double> TransformType;
+  using TransformType = itk::Similarity2DTransform<double>;
 };
 
 template <>
 class SimilarityTransformTraits<3>
 {
 public:
-  typedef itk::Similarity3DTransform<double> TransformType;
+  using TransformType = itk::Similarity3DTransform<double>;
 };
 
 
@@ -153,25 +153,25 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
   constexpr unsigned int ImageDimension = 3;
 
-  typedef double                                    RealType;
-  typedef itk::Image<RealType, ImageDimension>      FixedImageType;
-  typedef itk::ImageFileReader<FixedImageType>      ImageReaderType;
-  typedef vnl_matrix<RealType>                      vMatrix;
+  using RealType = double;
+  using FixedImageType = itk::Image<RealType, ImageDimension>;
+  using ImageReaderType = itk::ImageFileReader<FixedImageType>;
+  using vMatrix = vnl_matrix<RealType>;
   vMatrix param_values;
-  typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;
+  using CompositeTransformType = itk::CompositeTransform<RealType, ImageDimension>;
 
   std::vector<CompositeTransformType::Pointer> CompositeTransformVector;
 
-  typedef itk::Euler3DTransform<RealType>                   RigidTransformType;
-  typedef itk::AffineTransform<RealType, ImageDimension>    AffineTransformType;
+  using RigidTransformType = itk::Euler3DTransform<RealType>;
+  using AffineTransformType = itk::AffineTransform<RealType, ImageDimension>;
 
-  typedef itk::ants::CommandLineParser ParserType;
-  typedef ParserType::OptionType       OptionType;
+  using ParserType = itk::ants::CommandLineParser;
+  using OptionType = ParserType::OptionType;
 
-  typedef double                                        ParameterValueType;
-  typedef itk::CSVArray2DFileReader<ParameterValueType> MocoReaderType;
-  typedef MocoReaderType::Array2DDataObjectType         MocoDataArrayType;
-  typedef itk::Array2D<ParameterValueType>              DirectionArrayType;
+  using ParameterValueType = double;
+  using MocoReaderType = itk::CSVArray2DFileReader<ParameterValueType>;
+  using MocoDataArrayType = MocoReaderType::Array2DDataObjectType;
+  using DirectionArrayType = itk::Array2D<ParameterValueType>;
 
   std::string outputName = "";
   std::string mocoName = "";
@@ -493,7 +493,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
 void antsMotionCorrDiffusionDirectionInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
     {
     std::string description = std::string( "Camino scheme file specificy acquisition parameters." );
