@@ -37,12 +37,12 @@ namespace ants
 template <unsigned int ImageDimension>
 int SetSpacing(int argc, char *argv[])
 {
-  typedef  float                                     outPixelType;
-  typedef  float                                     inPixelType;
-  typedef itk::Image<inPixelType, ImageDimension>    ImageType;
-  typedef itk::Image<outPixelType, ImageDimension>   OutImageType;
-  typedef itk::ImageFileReader<ImageType>            readertype;
-  typedef itk::ImageFileWriter<OutImageType>         writertype;
+  using outPixelType = float;
+  using inPixelType = float;
+  using ImageType = itk::Image<inPixelType, ImageDimension>;
+  using OutImageType = itk::Image<outPixelType, ImageDimension>;
+  using readertype = itk::ImageFileReader<ImageType>;
+  using writertype = itk::ImageFileWriter<OutImageType>;
 
   typename readertype::Pointer reader = readertype::New();
   reader->SetFileName(argv[1]);
@@ -66,7 +66,7 @@ int SetSpacing(int argc, char *argv[])
     }
   std::cout << "  New Spacing " << spacing << std::endl;
 
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
   typename ImageType::Pointer varimage = AllocImage<ImageType>(outim);
   varimage->SetSpacing(spacing);
 

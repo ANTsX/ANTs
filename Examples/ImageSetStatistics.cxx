@@ -45,7 +45,7 @@ template <typename TImageType>
 void ReadImage(itk::SmartPointer<TImageType> & target, const char *file, bool copy)
 {
   //  std::cout << " reading b " << std::string(file) << std::endl;
-  typedef itk::ImageFileReader<TImageType> readertype;
+  using readertype = itk::ImageFileReader<TImageType>;
   typename readertype::Pointer reader = readertype::New();
   reader->SetFileName(file);
   reader->Update();
@@ -55,7 +55,7 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file, bool co
     }
   else
     {
-    typedef itk::ImageRegionIteratorWithIndex<TImageType> Iterator;
+    using Iterator = itk::ImageRegionIteratorWithIndex<TImageType>;
     Iterator vfIter2( target,  target->GetLargestPossibleRegion() );
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
@@ -121,7 +121,7 @@ template <typename TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, float sig)
 {
-  typedef itk::DiscreteGaussianImageFilter<TImage, TImage> dgf;
+  using dgf = itk::DiscreteGaussianImageFilter<TImage, TImage>;
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(sig);
   filter->SetUseImageSpacingOn();
@@ -138,7 +138,7 @@ HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInput
 {
   std::cout << " MATCHING INTENSITIES " << std::endl;
 
-  typedef itk::HistogramMatchingImageFilter<TInputImage, TInputImage> FilterType;
+  using FilterType = itk::HistogramMatchingImageFilter<TInputImage, TInputImage>;
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( m_InputMovingImage );
   filter->SetReferenceImage( m_InputFixedImage );
@@ -149,15 +149,14 @@ HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInput
   filter->Update();
   typename TInputImage::Pointer img =  filter->GetOutput();
 
-  typedef itk::ImageRegionIteratorWithIndex<TInputImage> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<TInputImage>;
   Iterator vfIter( img,   img->GetLargestPossibleRegion() );
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     m_InputMovingImage->SetPixel(vfIter.GetIndex(), vfIter.Get() );
     }
 
-  return;
-}
+  }
 
 template <typename TImage>
 void
@@ -165,11 +164,11 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
 {
   typename TImage::Pointer localmean = MakeNewImage<TImage>(image, 0);
 
-  typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<TImage>;
   Iterator outIter(image, image->GetLargestPossibleRegion() );
   typename TImage::SizeType imagesize = image->GetLargestPossibleRegion().GetSize();
 
-  typedef itk::NeighborhoodIterator<TImage> iteratorType;
+  using iteratorType = itk::NeighborhoodIterator<TImage>;
   typename iteratorType::RadiusType rad;
   rad.Fill( static_cast<itk::SizeValueType>( nhood ) );
 
@@ -227,14 +226,14 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
     localmean->SetPixel( oindex, val );
     }
 
-  typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<TImage>;
   Iterator vfIter( image,   image->GetLargestPossibleRegion() );
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     vfIter.Set(  localmean->GetPixel( vfIter.GetIndex() ) );
     }
 
-  return; // localmean;
+  // localmean;
 }
 
 template <typename TImage>
@@ -243,12 +242,12 @@ float
 GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int minSize, unsigned int whichstat,
                std::string outfn, bool TRUTH)
 {
-  typedef float                                                                  InternalPixelType;
-  typedef TImage                                                                 InternalImageType;
-  typedef TImage                                                                 OutputImageType;
-  typedef itk::BinaryThresholdImageFilter<InternalImageType, InternalImageType>  ThresholdFilterType;
-  typedef itk::ConnectedComponentImageFilter<InternalImageType, OutputImageType> FilterType;
-  typedef itk::RelabelComponentImageFilter<OutputImageType, OutputImageType>     RelabelType;
+  using InternalPixelType = float;
+  using InternalImageType = TImage;
+  using OutputImageType = TImage;
+  using ThresholdFilterType = itk::BinaryThresholdImageFilter<InternalImageType, InternalImageType>;
+  using FilterType = itk::ConnectedComponentImageFilter<InternalImageType, OutputImageType>;
+  using RelabelType = itk::RelabelComponentImageFilter<OutputImageType, OutputImageType>;
 
   typename ThresholdFilterType::Pointer threshold = ThresholdFilterType::New();
   typename FilterType::Pointer filter = FilterType::New();
@@ -287,7 +286,7 @@ GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int mi
 
   typename TImage::Pointer Clusters = MakeNewImage<TImage>(relabel->GetOutput(), 0);
   // typename TImage::Pointer Clusters=relabel->GetOutput();
-  typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<TImage>;
   Iterator vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
 
   /*
@@ -374,7 +373,7 @@ GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int mi
 
   if( TRUTH )
     {
-    typedef itk::ImageFileWriter<InternalImageType> writertype;
+    using writertype = itk::ImageFileWriter<InternalImageType>;
     typename writertype::Pointer writer = writertype::New();
     writer->SetFileName(  (outfn + std::string("Clusters.nii") ).c_str() );
     writer->SetInput( Clusters );
@@ -421,7 +420,7 @@ GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int mi
 
 float median(std::vector<float> vec)
 {
-  typedef  std::vector<float>::size_type vec_sz;
+  using vec_sz = std::vector<float>::size_type;
   vec_sz size = vec.size();
 
   if( size == 0 )
@@ -441,7 +440,7 @@ float median(std::vector<float> vec)
 
 float npdf(std::vector<float> vec, bool opt,  float www)
 {
-  typedef  std::vector<float>::size_type vec_sz;
+  using vec_sz = std::vector<float>::size_type;
   vec_sz size = vec.size();
 
   if( size == 0 )
@@ -536,7 +535,7 @@ float npdf(std::vector<float> vec, bool opt,  float www)
 
 float trimmean(std::vector<float> vec)
 {
-  typedef  std::vector<float>::size_type vec_sz;
+  using vec_sz = std::vector<float>::size_type;
   vec_sz size = vec.size();
 
   if( size == 0 )
@@ -560,7 +559,7 @@ float trimmean(std::vector<float> vec)
 
 float myantsmax(std::vector<float> vec)
 {
-  typedef  std::vector<float>::size_type vec_sz;
+  using vec_sz = std::vector<float>::size_type;
   vec_sz size = vec.size();
   if( size == 0 )
     {
@@ -581,7 +580,7 @@ float myantsmax(std::vector<float> vec)
 
 float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> similarityvec, bool opt)
 {
-  typedef  std::vector<float>::size_type vec_sz;
+  using vec_sz = std::vector<float>::size_type;
   vec_sz size = labelvec.size();
   if( size == 0 )
     {
@@ -621,11 +620,11 @@ float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> s
 template <unsigned int ImageDimension>
 int ImageSetStatistics(int argc, char *argv[])
 {
-  typedef float                                                           PixelType;
-  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageFileReader<ImageType>                                 readertype;
-  typedef typename ImageType::IndexType                                   IndexType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  using PixelType = float;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using readertype = itk::ImageFileReader<ImageType>;
+  using IndexType = typename ImageType::IndexType;
+  using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
   unsigned int mch = 0;
   int          argct = 2;
   std::string  fn1 = std::string(argv[argct]); argct++;

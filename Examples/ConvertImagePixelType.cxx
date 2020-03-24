@@ -30,14 +30,14 @@ namespace ants
 template <unsigned int ImageDimension, typename TPIXELTYPE>
 int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
 {
-  typedef  TPIXELTYPE                                outPixelType;
-  typedef  float                                     floatPixelType;
-  typedef  float                                     inPixelType;
-  typedef itk::Image<inPixelType, ImageDimension>    ImageType;
-  typedef itk::Image<floatPixelType, ImageDimension> IntermediateType;
-  typedef itk::Image<outPixelType, ImageDimension>   OutImageType;
-  typedef itk::ImageFileReader<ImageType>            readertype;
-  typedef itk::ImageFileWriter<OutImageType>         writertype;
+  using outPixelType = TPIXELTYPE;
+  using floatPixelType = float;
+  using inPixelType = float;
+  using ImageType = itk::Image<inPixelType, ImageDimension>;
+  using IntermediateType = itk::Image<floatPixelType, ImageDimension>;
+  using OutImageType = itk::Image<outPixelType, ImageDimension>;
+  using readertype = itk::ImageFileReader<ImageType>;
+  using writertype = itk::ImageFileWriter<OutImageType>;
 
   typename readertype::Pointer reader = readertype::New();
   if( argc < 2 )
@@ -49,13 +49,13 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   reader->Update();
   std::cout << " Updated reader " << std::endl;
 
-  typedef itk::CastImageFilter<ImageType, IntermediateType> castertype;
+  using castertype = itk::CastImageFilter<ImageType, IntermediateType>;
   typename   castertype::Pointer caster = castertype::New();
   caster->SetInput(reader->GetOutput() );
   caster->Update();
 
   // Rescale the image intensities so that they fall between 0 and 255
-  typedef itk::RescaleIntensityImageFilter<IntermediateType, IntermediateType> FilterType;
+  using FilterType = itk::RescaleIntensityImageFilter<IntermediateType, IntermediateType>;
   typename   FilterType::Pointer fixedrescalefilter = FilterType::New();
   fixedrescalefilter->SetInput(caster->GetOutput() );
   const double desiredMinimum =  MINVAL;
@@ -64,7 +64,7 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   fixedrescalefilter->SetOutputMaximum( desiredMaximum );
   fixedrescalefilter->UpdateLargestPossibleRegion();
 
-  typedef itk::CastImageFilter<IntermediateType, OutImageType> castertype2;
+  using castertype2 = itk::CastImageFilter<IntermediateType, OutImageType>;
   typename castertype2::Pointer caster2 = castertype2::New();
   caster2->SetInput(fixedrescalefilter->GetOutput() );
   caster2->Update();

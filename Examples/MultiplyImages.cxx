@@ -31,11 +31,11 @@ namespace ants
 template <unsigned int ImageDimension, unsigned int NVectorComponents>
 int MultiplyImages(int argc, char *argv[])
 {
-  typedef itk::Vector<float, NVectorComponents>        PixelType;
-  typedef itk::Image<PixelType, ImageDimension>        ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  typedef itk::ImageFileReader<ImageType>              readertype;
-  typedef itk::ImageFileWriter<ImageType>              writertype;
+  using PixelType = itk::Vector<float, NVectorComponents>;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
+  using readertype = itk::ImageFileReader<ImageType>;
+  using writertype = itk::ImageFileWriter<ImageType>;
 
   if( argc < 3 )
     {

@@ -27,11 +27,11 @@ namespace ants
 template <unsigned int ImageDimension>
 int MemoryTest(unsigned int argc, char *argv[])
 {
-  typedef float                                                  PixelType;
-  typedef itk::Vector<float, ImageDimension>                     VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                 FieldType;
-  typedef itk::Image<PixelType, ImageDimension>                  ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>           Iterator;
+  using PixelType = float;
+  using VectorType = itk::Vector<float, ImageDimension>;
+  using FieldType = itk::Image<VectorType, ImageDimension>;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
 
 // get command line params
   unsigned int argct = 2;
@@ -66,15 +66,13 @@ int MemoryTest(unsigned int argc, char *argv[])
     AllocImage<ImageType>(image1, 0);
   Iterator iter( metricimg,  metricimg->GetLargestPossibleRegion() );
 
-  typedef ImageType FixedImageType;
-  typedef ImageType MovingImageType;
-  typedef FieldType DisplacementFieldType;
+  using FixedImageType = ImageType;
+  using MovingImageType = ImageType;
+  using DisplacementFieldType = FieldType;
 
   // Choose the similarity metric
-  typedef itk::AvantsMutualInformationRegistrationFunction<FixedImageType, MovingImageType,
-                                                           DisplacementFieldType> MIMetricType;
-  typedef itk::CrossCorrelationRegistrationFunction<FixedImageType, MovingImageType,
-                                                    DisplacementFieldType>        CCMetricType;
+  using MIMetricType = itk::AvantsMutualInformationRegistrationFunction<FixedImageType, MovingImageType, DisplacementFieldType>;
+  using CCMetricType = itk::CrossCorrelationRegistrationFunction<FixedImageType, MovingImageType, DisplacementFieldType>;
   // typedef itk::LandmarkCrossCorrelationRegistrationFunction<FixedImageType,MovingImageType,DisplacementFieldType>
   // MetricType;
   // typename

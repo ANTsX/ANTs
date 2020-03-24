@@ -119,7 +119,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     sz1 = this->m_MovingPointSet->GetNumberOfPoints();
     }
 
-  typedef vnl_matrix<double> MatrixType;
+  using MatrixType = vnl_matrix<double>;
   MatrixType EucDist(sz1, sz2);
   EucDist.fill(0);
 
@@ -217,7 +217,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
           mag += static_cast<double>( itk::Math::sqr( distance[j] / spacing[j] ) );
           force[j] = distance[j] * inweight;
           }
-        double sigma = static_cast<double>( this->m_FixedPointSetSigma );
+        auto sigma = static_cast<double>( this->m_FixedPointSetSigma );
         if( !whichdirection )
           {
           sigma = static_cast<double>( this->m_MovingPointSetSigma );
@@ -341,7 +341,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         mag += static_cast<double>( itk::Math::sqr( distance[j] / spacing[j] ) );
         force[j] = distance[j] * inweight;
         }
-      double sigma = static_cast<double>( this->m_FixedPointSetSigma );
+      auto sigma = static_cast<double>( this->m_FixedPointSetSigma );
       if( !whichdirection )
         {
         sigma = static_cast<double>( this->m_MovingPointSetSigma );
@@ -422,7 +422,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   this->m_DerivativeMovingField->SetOrigin( this->GetMovingImage()->GetOrigin() );
 
 // acquire labels
-  if( this->m_LabelSet.size() < 1 )
+  if( this->m_LabelSet.empty() )
     {
     this->m_LabelSet.clear();
     unsigned long sz1 = this->m_FixedPointSet->GetNumberOfPoints();
@@ -459,7 +459,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   for( it = this->m_LabelSet.begin(); it != this->m_LabelSet.end(); ++it )
     {
     lct++;
-    PointDataType label = (PointDataType) * it;
+    auto label = (PointDataType) * it;
 //     std::cout << " doing label " << label << std::endl;
     this->SetUpKDTrees(label);
     bool dobsp = false;
@@ -513,7 +513,7 @@ void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ReleaseGlobalDataPointer( void *gd ) const
 {
-  GlobalDataStruct * globalData = (GlobalDataStruct *) gd;
+  auto * globalData = (GlobalDataStruct *) gd;
 
   m_SumOfSquaredDifference  += globalData->m_SumOfSquaredDifference;
   m_NumberOfPixelsProcessed += globalData->m_NumberOfPixelsProcessed;
@@ -705,7 +705,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
           {
           _mag += static_cast<double>( itk::Math::sqr(fixedpoint[qq] - npt[qq]) );
           }
-        double sigma = static_cast<double>( this->m_FixedPointSetSigma );
+        auto sigma = static_cast<double>( this->m_FixedPointSetSigma );
         if( !whichdirection )
           {
           sigma = static_cast<double>( this->m_MovingPointSetSigma );
@@ -744,7 +744,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         force[j] = distance[j] * inweight;
         bpoint[j] = fixedpoint[j];
         }
-      double sigma = static_cast<double>( this->m_FixedPointSetSigma );
+      auto sigma = static_cast<double>( this->m_FixedPointSetSigma );
       if( !whichdirection )
         {
         sigma = static_cast<double>( this->m_MovingPointSetSigma );

@@ -187,7 +187,7 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
       std::string prefix = argv[ind];
       std::string path, name, ext;
       FilePartsWithgz(prefix, path, name, ext);
-      if( ext == "" )
+      if( ext.empty() )
         {
         ext = ".nii.gz";
         }
@@ -225,7 +225,7 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
       std::string prefix = argv[ind];
       std::string path, name, ext;
       FilePartsWithgz(prefix, path, name, ext);
-      if( ext == "" )
+      if( ext.empty() )
         {
         ext = ".nii.gz";
         }
@@ -304,7 +304,7 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
 template <typename AffineTransformPointer>
 void GetIdentityTransform(AffineTransformPointer & aff)
 {
-  typedef typename AffineTransformPointer::ObjectType AffineTransform;
+  using AffineTransform = typename AffineTransformPointer::ObjectType;
   aff = AffineTransform::New();
   aff->SetIdentity();
 }
@@ -313,27 +313,19 @@ template <int ImageDimension, unsigned int NVectorComponents>
 void WarpImageMultiTransform(char *moving_image_filename, char *output_image_filename,
                              TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
 {
-  typedef float RealType;
-  typedef itk::Vector<RealType,
-                      NVectorComponents>                                                             PixelType;
-  typedef itk::Image<PixelType,
-                     ImageDimension>                                                                ImageType;
-  typedef itk::VectorImage<RealType,
-                           ImageDimension>                                                           RefImageType;
-  typedef itk::Vector<RealType,
-                      ImageDimension>                                                                VectorType;
-  typedef itk::Image<VectorType,
-                     ImageDimension>
-    DisplacementFieldType;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension>                               AffineTransformType;
-  typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType,
-                                             AffineTransformType> WarperType;
+  using RealType = float;
+  using PixelType = itk::Vector<RealType, NVectorComponents>;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using RefImageType = itk::VectorImage<RealType, ImageDimension>;
+  using VectorType = itk::Vector<RealType, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
+  using WarperType = itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType, AffineTransformType>;
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
-  typedef itk::ImageFileReader<ImageType>    ImageFileReaderType;
-  typedef itk::ImageFileReader<RefImageType> VectorImageFileReaderType;
+  using ImageFileReaderType = itk::ImageFileReader<ImageType>;
+  using VectorImageFileReaderType = itk::ImageFileReader<RefImageType>;
   typename ImageFileReaderType::Pointer reader_img = ImageFileReaderType::New();
   reader_img->SetFileName(moving_image_filename);
   reader_img->Update();
@@ -358,8 +350,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
   if( misc_opt.use_NN_interpolator )
     {
-    typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,
-                                                                  typename WarperType::CoordRepType> NNInterpolateType;
+    using NNInterpolateType = typename itk::NearestNeighborInterpolateImageFunction<ImageType, typename WarperType::CoordRepType>;
     typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
     std::cout << "User nearest neighbor interpolation (was Haha) " << std::endl;
     warper->SetInterpolator(interpolator_NN);
@@ -404,15 +395,14 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     }
   else
     {
-    typedef typename itk::LinearInterpolateImageFunction<ImageType,
-                                                         typename WarperType::CoordRepType> LinInterpolateType;
+    using LinInterpolateType = typename itk::LinearInterpolateImageFunction<ImageType, typename WarperType::CoordRepType>;
     typename LinInterpolateType::Pointer interpolator_LN = LinInterpolateType::New();
     std::cout << "User Linear interpolation " << std::endl;
     warper->SetInterpolator(interpolator_LN);
     }
 
-  typedef itk::TransformFileReader                    TranReaderType;
-  typedef itk::ImageFileReader<DisplacementFieldType> FieldReaderType;
+  using TranReaderType = itk::TransformFileReader;
+  using FieldReaderType = itk::ImageFileReader<DisplacementFieldType>;
   bool         takeaffinv = false;
   unsigned int transcount = 0;
   const int    kOptQueueSize = opt_queue.size();
@@ -614,7 +604,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
   typename ImageType::Pointer img_output = warper->GetOutput();
 
-  typedef itk::ImageFileWriter<ImageType> ImageFileWriterType;
+  using ImageFileWriterType = itk::ImageFileWriter<ImageType>;
   typename ImageFileWriterType::Pointer writer_img = ImageFileWriterType::New();
   if( img_ref )
     {
@@ -781,7 +771,7 @@ private:
       << std::endl;
 
     std::cout << " Important Notes: " << std::endl;
-    std::cout << " Prefixname \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
+    std::cout << R"( Prefixname "abcd" without any extension will use ".nii.gz" by default)" << std::endl;
     std::cout
       <<
       " The abcdWarp and abcdInverseWarp do not exist. They are formed on the basis of abcd(Inverse)Warp.nii.gz when calling "

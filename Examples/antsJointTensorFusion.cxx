@@ -28,17 +28,17 @@ template <typename TFilter>
 class CommandProgressUpdate : public itk::Command
 {
 public:
-  typedef  CommandProgressUpdate                      Self;
-  typedef  itk::Command                               Superclass;
-  typedef  itk::SmartPointer<CommandProgressUpdate>  Pointer;
+  using Self = CommandProgressUpdate<TFilter>;
+  using Superclass = itk::Command;
+  using Pointer = itk::SmartPointer<CommandProgressUpdate<TFilter> >;
   itkNewMacro( CommandProgressUpdate );
 protected:
 
-  CommandProgressUpdate() : m_CurrentProgress( 0 ) {};
+  CommandProgressUpdate()  = default;;
 
-  typedef TFilter FilterType;
+  using FilterType = TFilter;
 
-  unsigned int m_CurrentProgress;
+  unsigned int m_CurrentProgress{ 0 };
 
 public:
 
@@ -91,17 +91,17 @@ public:
 template <unsigned int ImageDimension>
 int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
 {
-  typedef float                                                 RealType;
-  typedef itk::DiffusionTensor3D<RealType>                      TensorType;
-  typedef itk::Image<RealType, ImageDimension>                  ImageType;
-  typedef itk::Image<TensorType, ImageDimension>                TensorImageType;
-  typedef itk::NthElementImageAdaptor<TensorImageType,RealType> TensorAdaptorType;
-  typedef itk::CastImageFilter<TensorAdaptorType,ImageType>     CastFilterType;
+  using RealType = float;
+  using TensorType = itk::DiffusionTensor3D<RealType>;
+  using ImageType = itk::Image<RealType, ImageDimension>;
+  using TensorImageType = itk::Image<TensorType, ImageDimension>;
+  using TensorAdaptorType = itk::NthElementImageAdaptor<TensorImageType, RealType>;
+  using CastFilterType = itk::CastImageFilter<TensorAdaptorType, ImageType>;
 
-  typedef itk::Image<unsigned int, ImageDimension>              LabelImageType;
-  typedef LabelImageType                                        MaskImageType;
+  using LabelImageType = itk::Image<unsigned int, ImageDimension>;
+  using MaskImageType = LabelImageType;
 
-  typedef typename itk::ants::CommandLineParser::OptionType     OptionType;
+  using OptionType = typename itk::ants::CommandLineParser::OptionType;
 
   // Determine verbosity of output
 
@@ -120,9 +120,9 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
 
   // Instantiate the joint fusion filter
 
-  typedef itk::WeightedVotingFusionImageFilter<ImageType, LabelImageType> FusionFilterType;
+  using FusionFilterType = itk::WeightedVotingFusionImageFilter<ImageType, LabelImageType>;
   typename FusionFilterType::Pointer fusionFilter = FusionFilterType::New();
-  typedef typename LabelImageType::PixelType                   LabelType;
+  using LabelType = typename LabelImageType::PixelType;
 
 
   // Get the alpha and beta parameters
@@ -428,7 +428,7 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
 
   if( verbose )
     {
-    typedef CommandProgressUpdate<FusionFilterType> CommandType;
+    using CommandType = CommandProgressUpdate<FusionFilterType>;
     typename CommandType::Pointer observer = CommandType::New();
     fusionFilter->AddObserver( itk::ProgressEvent(), observer );
     }
@@ -594,7 +594,7 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
   std::string description =

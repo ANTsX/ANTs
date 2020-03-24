@@ -64,10 +64,10 @@ private:
              << std::endl;
     return 0;
     }
-  typedef itk::Image<float, 3> ImageType;
+  using ImageType = itk::Image<float, 3>;
   enum { ImageDimension = ImageType::ImageDimension };
-  typedef itk::Image<float, ImageDimension>     floatImageType;
-  typedef itk::SurfaceImageCurvature<ImageType> ParamType;
+  using floatImageType = itk::Image<float, ImageDimension>;
+  using ParamType = itk::SurfaceImageCurvature<ImageType>;
   ParamType::Pointer Parameterizer = ParamType::New();
 
 

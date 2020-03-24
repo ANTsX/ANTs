@@ -14,10 +14,10 @@ namespace ants
 template <unsigned int ImageDimension>
 int TileImages( unsigned int argc, char *argv[] )
 {
-  typedef float                                 PixelType;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  using PixelType = float;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  typedef itk::TileImageFilter<ImageType, ImageType> FilterType;
+  using FilterType = itk::TileImageFilter<ImageType, ImageType>;
   typename FilterType::Pointer filter = FilterType::New();
   typename FilterType::LayoutArrayType array;
 
@@ -51,9 +51,9 @@ int CreateMosaic( unsigned int argc, char *argv[] )
 
   constexpr unsigned int ImageDimension = 3;
 
-  typedef float                                   PixelType;
-  typedef itk::Image<PixelType, ImageDimension>   ImageType;
-  typedef itk::Image<PixelType, ImageDimension-1> SliceType;
+  using PixelType = float;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using SliceType = itk::Image<PixelType, ImageDimension - 1>;
 
   ImageType::Pointer inputImage;
   ReadImage<ImageType>( inputImage, argv[4] );
@@ -110,7 +110,7 @@ int CreateMosaic( unsigned int argc, char *argv[] )
   std::cout << "Rows:  " << numberOfRows << std::endl;
   std::cout << "Columns:  " << numberOfColumns << std::endl;
 
-  typedef itk::TileImageFilter<SliceType, SliceType> FilterType;
+  using FilterType = itk::TileImageFilter<SliceType, SliceType>;
   FilterType::LayoutArrayType array;
 
   array[0] = numberOfColumns;
@@ -130,7 +130,7 @@ int CreateMosaic( unsigned int argc, char *argv[] )
     region.SetIndex( index );
     region.SetSize( size );
 
-    typedef itk::ExtractImageFilter<ImageType, SliceType> ExtracterType;
+    using ExtracterType = itk::ExtractImageFilter<ImageType, SliceType>;
     ExtracterType::Pointer extracter = ExtracterType::New();
     extracter->SetInput( inputImage );
     extracter->SetExtractionRegion( region );

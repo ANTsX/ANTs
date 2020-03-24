@@ -110,9 +110,9 @@ get_rai_code(itk::SpatialOrientation::ValidCoordinateOrientationFlags code)
 template <unsigned int ImageDimension>
 int PrintHeader(int argc, char *argv[])
 {
-  typedef  float                                     inPixelType;
-  typedef itk::Image<inPixelType, ImageDimension>    ImageType;
-  typedef itk::ImageFileReader<ImageType>            readertype;
+  using inPixelType = float;
+  using ImageType = itk::Image<inPixelType, ImageDimension>;
+  using readertype = itk::ImageFileReader<ImageType>;
 
   typename readertype::Pointer reader = readertype::New();
   if( argc < 2 )

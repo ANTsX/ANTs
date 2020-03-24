@@ -310,9 +310,9 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
                   float aaParm, std::string offscreen , unsigned int inflate )
 {
   //  std::cout << " parname " << std::string(paramname) << std::endl;
-  typedef TImage      ImageType;
+  using ImageType = TImage;
 
-  typedef BinaryImageToMeshFilter<ImageType> FilterType;
+  using FilterType = BinaryImageToMeshFilter<ImageType>;
   typename  FilterType::Pointer fltMesh = FilterType::New();
   fltMesh->SetInput( image );
   fltMesh->SetAntiAliasMaxRMSError( aaParm ); // to do nothing, set negative
@@ -445,16 +445,15 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   inflater->Delete();
   smoother->Delete();
   std::cout << " done writing2 ";
-  return;
 }
 
 template <typename TImage>
 float GetImageTopology(typename TImage::Pointer image)
 {
-  typedef TImage      ImageType;
+  using ImageType = TImage;
 
   double aaParm = 0.024;
-  typedef BinaryImageToMeshFilter<ImageType> FilterType;
+  using FilterType = BinaryImageToMeshFilter<ImageType>;
   typename  FilterType::Pointer fltMesh = FilterType::New();
   fltMesh->SetInput(image);
   fltMesh->SetAntiAliasMaxRMSError(aaParm);
@@ -530,9 +529,9 @@ private:
 
   // Define the dimension of the images
   constexpr unsigned int Dimension = 3;
-  typedef float PixelType;
+  using PixelType = float;
   // Declare the types of the output images
-  typedef itk::Image<PixelType, Dimension> ImageType;
+  using ImageType = itk::Image<PixelType, Dimension>;
 
   // Declare the type of the Mesh
 

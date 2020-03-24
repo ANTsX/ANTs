@@ -88,9 +88,9 @@ private:
 
   constexpr unsigned int ImageDimension = 2;
 
-  typedef double PixelType;
+  using PixelType = double;
 
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
   // read in test image
 
@@ -128,14 +128,14 @@ private:
   double rotationDelta = ( 2.0 * itk::Math::pi - 0.0 ) / static_cast<double>( rotationNumberOfSamples - 1 );
 
   // Set up metric
-  typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType> ImageMetricType;
-  typedef ImageMetricType::FixedSampledPointSetType PointSetType;
+  using ImageMetricType = itk::ImageToImageMetricv4<ImageType, ImageType, ImageType>;
+  using PointSetType = ImageMetricType::FixedSampledPointSetType;
 
   ImageMetricType::Pointer imageMetric = nullptr;
 
   if( strcmp( argv[2], "Mattes" ) == 0 )
     {
-    typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType> MattesMetricType;
+    using MattesMetricType = itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType>;
     MattesMetricType::Pointer mattesMetric = MattesMetricType::New();
     mattesMetric->SetNumberOfHistogramBins( 20 );
 
@@ -143,14 +143,14 @@ private:
     }
   else if( strcmp( argv[2], "GC" ) == 0 )
     {
-    typedef itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType> GCMetricType;
+    using GCMetricType = itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType>;
     GCMetricType::Pointer gcMetric = GCMetricType::New();
 
     imageMetric = gcMetric;
     }
   else if( strcmp( argv[2], "MI" ) == 0 )
     {
-    typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType> MIMetricType;
+    using MIMetricType = itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType>;
     MIMetricType::Pointer miMetric = MIMetricType::New();
     miMetric->SetNumberOfHistogramBins( 20 );
 
@@ -169,7 +169,7 @@ private:
 
   // identity transform for fixed image
 
-  typedef itk::IdentityTransform<double, ImageDimension> IdentityTransformType;
+  using IdentityTransformType = itk::IdentityTransform<double, ImageDimension>;
   IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
   identityTransform->SetIdentity();
 
@@ -200,8 +200,8 @@ private:
 
   // Now go through the rotations + scalings to find the optimal pose.
 
-  typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
-  typedef itk::Similarity2DTransform<double> SimilarityTransformType;
+  using AffineTransformType = itk::AffineTransform<double, ImageDimension>;
+  using SimilarityTransformType = itk::Similarity2DTransform<double>;
 
   double optimalMetricValue = itk::NumericTraits<double>::max();
   SimilarityTransformType::Pointer optimalTransform = nullptr;
@@ -220,7 +220,7 @@ private:
 
     AffineTransformType::Pointer initialTransform = AffineTransformType::New();
 
-    typedef itk::CenteredTransformInitializer<AffineTransformType, ImageType, ImageType> TransformInitializerType;
+    using TransformInitializerType = itk::CenteredTransformInitializer<AffineTransformType, ImageType, ImageType>;
     TransformInitializerType::Pointer initializer = TransformInitializerType::New();
     initializer->SetTransform( initialTransform );
     initializer->SetFixedImage( testImage );
@@ -251,12 +251,12 @@ private:
 
         if( numberOfIterations > 0 )
           {
-          typedef itk::RegistrationParameterScalesFromPhysicalShift<ImageMetricType> ScalesEstimatorType;
+          using ScalesEstimatorType = itk::RegistrationParameterScalesFromPhysicalShift<ImageMetricType>;
           ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
           scalesEstimator->SetMetric( imageMetric );
           scalesEstimator->SetTransformForward( true );
 
-          typedef itk::ConjugateGradientLineSearchOptimizerv4Template<double> ConjugateGradientDescentOptimizerType;
+          using ConjugateGradientDescentOptimizerType = itk::ConjugateGradientLineSearchOptimizerv4Template<double>;
           ConjugateGradientDescentOptimizerType::Pointer optimizer = ConjugateGradientDescentOptimizerType::New();
           optimizer->SetLowerLimit( 0 );
           optimizer->SetUpperLimit( 2 );
@@ -322,7 +322,7 @@ private:
 
   if( strcmp( argv[7], "none" ) != 0 )
     {
-    typedef itk::TransformFileWriter TransformWriterType;
+    using TransformWriterType = itk::TransformFileWriter;
     TransformWriterType::Pointer transformWriter = TransformWriterType::New();
     transformWriter->SetInput( optimalTransform );
     transformWriter->SetFileName( argv[7] );

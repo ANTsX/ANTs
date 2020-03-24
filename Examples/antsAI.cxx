@@ -43,7 +43,7 @@ class RigidTransformTraits
   // Don't worry about the fact that the default option is the
   // affine Transform, that one will not actually be instantiated.
 public:
-typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
+using TransformType = itk::AffineTransform<TComputeType, ImageDimension>;
 };
 
 template <typename TComputeType, unsigned int ImageDimension>
@@ -52,21 +52,21 @@ class LandmarkRigidTransformTraits
   // Don't worry about the fact that the default option is the
   // affine Transform, that one will not actually be instantiated.
 public:
-typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
+using TransformType = itk::AffineTransform<TComputeType, ImageDimension>;
 };
 
 template <>
 class RigidTransformTraits<double, 2>
 {
 public:
-typedef itk::Euler2DTransform<double> TransformType;
+using TransformType = itk::Euler2DTransform<double>;
 };
 
 template <>
 class RigidTransformTraits<float, 2>
 {
 public:
-typedef itk::Euler2DTransform<float> TransformType;
+using TransformType = itk::Euler2DTransform<float>;
 };
 
 template <>
@@ -75,7 +75,7 @@ class RigidTransformTraits<double, 3>
 public:
   // typedef itk::VersorRigid3DTransform<double>    TransformType;
   // typedef itk::QuaternionRigidTransform<double>  TransformType;
-typedef itk::Euler3DTransform<double> TransformType;
+using TransformType = itk::Euler3DTransform<double>;
 };
 
 template <>
@@ -84,35 +84,35 @@ class RigidTransformTraits<float, 3>
 public:
   // typedef itk::VersorRigid3DTransform<float>    TransformType;
   // typedef itk::QuaternionRigidTransform<float>  TransformType;
-typedef itk::Euler3DTransform<float> TransformType;
+using TransformType = itk::Euler3DTransform<float>;
 };
 
 template <>
 class LandmarkRigidTransformTraits<double, 2>
 {
 public:
-typedef itk::Rigid2DTransform<double> TransformType;
+using TransformType = itk::Rigid2DTransform<double>;
 };
 
 template <>
 class LandmarkRigidTransformTraits<float, 2>
 {
 public:
-typedef itk::Rigid2DTransform<float> TransformType;
+using TransformType = itk::Rigid2DTransform<float>;
 };
 
 template <>
 class LandmarkRigidTransformTraits<double, 3>
 {
 public:
-typedef itk::VersorRigid3DTransform<double> TransformType;
+using TransformType = itk::VersorRigid3DTransform<double>;
 };
 
 template <>
 class LandmarkRigidTransformTraits<float, 3>
 {
 public:
-typedef itk::VersorRigid3DTransform<float> TransformType;
+using TransformType = itk::VersorRigid3DTransform<float>;
 };
 
 template <typename TComputeType, unsigned int ImageDimension>
@@ -121,35 +121,35 @@ class SimilarityTransformTraits
 // Don't worry about the fact that the default option is the
 // affine Transform, that one will not actually be instantiated.
 public:
-typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
+using TransformType = itk::AffineTransform<TComputeType, ImageDimension>;
 };
 
 template <>
 class SimilarityTransformTraits<double, 2>
 {
 public:
-typedef itk::Similarity2DTransform<double> TransformType;
+using TransformType = itk::Similarity2DTransform<double>;
 };
 
 template <>
 class SimilarityTransformTraits<float, 2>
 {
 public:
-typedef itk::Similarity2DTransform<float> TransformType;
+using TransformType = itk::Similarity2DTransform<float>;
 };
 
 template <>
 class SimilarityTransformTraits<double, 3>
 {
 public:
-typedef itk::Similarity3DTransform<double> TransformType;
+using TransformType = itk::Similarity3DTransform<double>;
 };
 
 template <>
 class SimilarityTransformTraits<float, 3>
 {
 public:
-typedef itk::Similarity3DTransform<float> TransformType;
+using TransformType = itk::Similarity3DTransform<float>;
 };
 
 // ##########################################################################
@@ -163,15 +163,15 @@ TReal PatchCorrelation( itk::NeighborhoodIterator<TImage> fixedNeighborhood,
                         typename TGradientImage::Pointer movingGradientImage,
                         typename TInterpolator::Pointer movingInterpolator )
 {
-  typedef TReal                                          RealType;
-  typedef TImage                                         ImageType;
+  using RealType = TReal;
+  using ImageType = TImage;
 
   const unsigned int ImageDimension = ImageType::ImageDimension;
 
-  typedef typename ImageType::PointType                  PointType;
-  typedef itk::CovariantVector<RealType, ImageDimension> GradientPixelType;
-  typedef vnl_vector<RealType>                           VectorType;
-  typedef typename ImageType::IndexType                  IndexType;
+  using PointType = typename ImageType::PointType;
+  using GradientPixelType = itk::CovariantVector<RealType, ImageDimension>;
+  using VectorType = vnl_vector<RealType>;
+  using IndexType = typename ImageType::IndexType;
 
   unsigned int           numberOfIndices = activeIndex.size();
   std::vector<PointType> movingImagePatchPoints;
@@ -308,18 +308,17 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
                                   float sigma, unsigned int radiusValue,
                                   vnl_matrix<float> & correspondenceMatrix )
 {
-  typedef TImage                                 ImageType;
-  typedef float                                  RealType;
-  typedef typename ImageType::IndexType          IndexType;
-  typedef itk::NeighborhoodIterator<ImageType>   NeighborhoodIteratorType;
+  using ImageType = TImage;
+  using RealType = float;
+  using IndexType = typename ImageType::IndexType;
+  using NeighborhoodIteratorType = itk::NeighborhoodIterator<ImageType>;
 
   const unsigned int ImageDimension = ImageType::ImageDimension;
 
-  typedef itk::CovariantVector<RealType, ImageDimension>       GradientVectorType;
-  typedef itk::Image<GradientVectorType, ImageDimension>       GradientImageType;
-  typedef itk::GradientRecursiveGaussianImageFilter<ImageType,
-                                            GradientImageType> GradientImageFilterType;
-  typedef typename GradientImageFilterType::Pointer            GradientImageFilterPointer;
+  using GradientVectorType = itk::CovariantVector<RealType, ImageDimension>;
+  using GradientImageType = itk::Image<GradientVectorType, ImageDimension>;
+  using GradientImageFilterType = itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType>;
+  using GradientImageFilterPointer = typename GradientImageFilterType::Pointer;
 
   typename GradientImageFilterType::Pointer fixedGradientFilter = GradientImageFilterType::New();
   fixedGradientFilter->SetInput( fixedImage );
@@ -375,7 +374,7 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
     weight /= weightSum;
     }
 
-  typedef itk::LinearInterpolateImageFunction<ImageType, RealType> ScalarInterpolatorType;
+  using ScalarInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
   typename ScalarInterpolatorType::Pointer movingInterpolator =  ScalarInterpolatorType::New();
   movingInterpolator->SetInputImage( movingImage );
 
@@ -406,17 +405,16 @@ void GetBlobCorrespondenceMatrix( typename TImage::Pointer fixedImage,  typename
       }
     }
 
-  return;
-}
+  }
 
 template <typename TImage, typename TTransform>
 typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::Pointer fixedImage,
   typename TImage::Pointer movingImage, unsigned int numberOfBlobsToExtract, unsigned int numberOfBlobsToMatch )
 {
-  typedef float                                     RealType;
-  typedef TImage                                    ImageType;
-  typedef TTransform                                TransformType;
-  typedef typename ImageType::PointType             PointType;
+  using RealType = float;
+  using ImageType = TImage;
+  using TransformType = TTransform;
+  using PointType = typename ImageType::PointType;
 
   /////////////////////////////////////////////////////////////////
   //
@@ -436,10 +434,10 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
 
   ///////////////////////////////////////////////////////////////
 
-  typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
-  typedef typename BlobFilterType::BlobPointer                       BlobPointer;
-  typedef std::pair<BlobPointer, BlobPointer>                        BlobPairType;
-  typedef typename BlobFilterType::BlobsListType                     BlobsListType;
+  using BlobFilterType = itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType>;
+  using BlobPointer = typename BlobFilterType::BlobPointer;
+  using BlobPairType = std::pair<BlobPointer, BlobPointer>;
+  using BlobsListType = typename BlobFilterType::BlobsListType;
 
   typename BlobFilterType::Pointer blobFixedImageFilter = BlobFilterType::New();
   blobFixedImageFilter->SetStartT( minScale );
@@ -555,9 +553,9 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
 
   typename TransformType::Pointer transform = TransformType::New();
 
-  typedef itk::LandmarkBasedTransformInitializer<TransformType, ImageType, ImageType> TransformInitializerType;
+  using TransformInitializerType = itk::LandmarkBasedTransformInitializer<TransformType, ImageType, ImageType>;
 
-  typedef typename TransformInitializerType::LandmarkPointContainer PointsContainerType;
+  using PointsContainerType = typename TransformInitializerType::LandmarkPointContainer;
   PointsContainerType fixedLandmarks;
   PointsContainerType movingLandmarks;
 
@@ -602,17 +600,17 @@ typename TTransform::Pointer GetTransformFromFeatureMatching( typename TImage::P
 template <unsigned int ImageDimension>
 int antsAI( itk::ants::CommandLineParser *parser )
 {
-  typedef double RealType;
-  typedef float  PixelType;
-  typedef float  FloatType;
+  using RealType = double;
+  using PixelType = float;
+  using FloatType = float;
 
-  typedef itk::Vector<FloatType, ImageDimension>      VectorType;
-  typedef itk::Image<PixelType, ImageDimension>       ImageType;
+  using VectorType = itk::Vector<FloatType, ImageDimension>;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  typedef itk::AffineTransform<RealType, ImageDimension>                                 AffineTransformType;
-  typedef typename RigidTransformTraits<RealType, ImageDimension>::TransformType         RigidTransformType;
-  typedef typename SimilarityTransformTraits<RealType, ImageDimension>::TransformType    SimilarityTransformType;
-  typedef typename LandmarkRigidTransformTraits<RealType, ImageDimension>::TransformType LandmarkRigidTransformType;
+  using AffineTransformType = itk::AffineTransform<RealType, ImageDimension>;
+  using RigidTransformType = typename RigidTransformTraits<RealType, ImageDimension>::TransformType;
+  using SimilarityTransformType = typename SimilarityTransformTraits<RealType, ImageDimension>::TransformType;
+  using LandmarkRigidTransformType = typename LandmarkRigidTransformTraits<RealType, ImageDimension>::TransformType;
 
   enum SamplingStrategyType { NONE, REGULAR, RANDOM };
 
@@ -814,7 +812,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   else if( strcmp( transform.c_str(), "aligngeometriccenters" ) == 0 ||
     strcmp( transform.c_str(), "aligncentersofmass" ) == 0 )
     {
-    typedef itk::CenteredTransformInitializer<AffineTransformType, ImageType, ImageType> TransformInitializerType;
+    using TransformInitializerType = itk::CenteredTransformInitializer<AffineTransformType, ImageType, ImageType>;
     typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
 
     initializer->SetTransform( initialTransform );
@@ -920,8 +918,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
         doAlignPrincipalAxes = parser->Convert<bool>( axesOption->GetFunction( 0 )->GetName() );
         }
 
-      typedef typename itk::ImageMomentsCalculator<ImageType> ImageMomentsCalculatorType;
-      typedef typename ImageMomentsCalculatorType::MatrixType MatrixType;
+      using ImageMomentsCalculatorType = typename itk::ImageMomentsCalculator<ImageType>;
+      using MatrixType = typename ImageMomentsCalculatorType::MatrixType;
 
       typename ImageMomentsCalculatorType::Pointer fixedImageMomentsCalculator = ImageMomentsCalculatorType::New();
       typename ImageMomentsCalculatorType::Pointer movingImageMomentsCalculator = ImageMomentsCalculatorType::New();
@@ -1049,7 +1047,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
         {
         outputName = outputOption->GetFunction( 0 )->GetParameter( 0 );
         }
-      typedef itk::TransformFileWriter TransformWriterType;
+      using TransformWriterType = itk::TransformFileWriter;
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
 
       if( strcmp( transform.c_str(), "affine" ) == 0 )
@@ -1078,7 +1076,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
         }
       else if( initialTransformInitializedWithImages == true )
         {
-        typedef itk::TranslationTransform<RealType, ImageDimension> TranslationTransformType;
+        using TranslationTransformType = itk::TranslationTransform<RealType, ImageDimension>;
         typename TranslationTransformType::Pointer bestTranslationTransform = TranslationTransformType::New();
         bestTranslationTransform->SetOffset( initialTransform->GetOffset() );
         transformWriter->SetInput( bestTranslationTransform );
@@ -1100,8 +1098,8 @@ int antsAI( itk::ants::CommandLineParser *parser )
   //
   /////////////////////////////////////////////////////////////////
 
-  typedef itk::ImageMaskSpatialObject<ImageDimension> ImageMaskSpatialObjectType;
-  typedef typename ImageMaskSpatialObjectType::ImageType MaskImageType;
+  using ImageMaskSpatialObjectType = itk::ImageMaskSpatialObject<ImageDimension>;
+  using MaskImageType = typename ImageMaskSpatialObjectType::ImageType;
 
   typename MaskImageType::Pointer fixedMask = nullptr;
   typename MaskImageType::Pointer movingMask = nullptr;
@@ -1144,7 +1142,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   //
   /////////////////////////////////////////////////////////////////
 
-  typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType> ImageMetricType;
+  using ImageMetricType = itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>;
   typename ImageMetricType::Pointer imageMetric = nullptr;
 
   if( std::strcmp( metric.c_str(), "mattes" ) == 0 )
@@ -1153,7 +1151,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       {
       std::cout << "Using the Mattes MI metric (number of bins = " << numberOfBins << ")" << std::endl;
       }
-    typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, RealType> MutualInformationMetricType;
+    using MutualInformationMetricType = itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>;
     typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
     //mutualInformationMetric = mutualInformationMetric;
     mutualInformationMetric->SetNumberOfHistogramBins( numberOfBins );
@@ -1168,8 +1166,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       {
       std::cout << "Using the joint histogram MI metric (number of bins = " << numberOfBins << ")" << std::endl;
       }
-    typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType,
-                                                                     RealType> MutualInformationMetricType;
+    using MutualInformationMetricType = itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>;
     typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
     //mutualInformationMetric = mutualInformationMetric;
     mutualInformationMetric->SetNumberOfHistogramBins( numberOfBins );
@@ -1185,7 +1182,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       {
       std::cout << "Using the global correlation metric " << std::endl;
       }
-    typedef itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, RealType> corrMetricType;
+    using corrMetricType = itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>;
     typename corrMetricType::Pointer corrMetric = corrMetricType::New();
 
     imageMetric = corrMetric;
@@ -1212,13 +1209,13 @@ int antsAI( itk::ants::CommandLineParser *parser )
     {
     const typename ImageType::SpacingType oneThirdVirtualSpacing = fixedImage->GetSpacing() / 3.0;
 
-    typedef typename ImageMetricType::FixedSampledPointSetType MetricSamplePointSetType;
+    using MetricSamplePointSetType = typename ImageMetricType::FixedSampledPointSetType;
     typename MetricSamplePointSetType::Pointer samplePointSet = MetricSamplePointSetType::New();
     samplePointSet->Initialize();
 
-    typedef typename MetricSamplePointSetType::PointType SamplePointType;
+    using SamplePointType = typename MetricSamplePointSetType::PointType;
 
-    typedef typename itk::Statistics::MersenneTwisterRandomVariateGenerator RandomizerType;
+    using RandomizerType = typename itk::Statistics::MersenneTwisterRandomVariateGenerator;
     typename RandomizerType::Pointer randomizer = RandomizerType::New();
 
     int antsRandomSeed = 1234;
@@ -1328,7 +1325,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   //
   /////////////////////////////////////////////////////////////////
 
-  typedef itk::RegistrationParameterScalesFromPhysicalShift<ImageMetricType> RegistrationParameterScalesFromPhysicalShiftType;
+  using RegistrationParameterScalesFromPhysicalShiftType = itk::RegistrationParameterScalesFromPhysicalShift<ImageMetricType>;
   typename RegistrationParameterScalesFromPhysicalShiftType::Pointer scalesEstimator = RegistrationParameterScalesFromPhysicalShiftType::New();
   scalesEstimator->SetMetric( imageMetric );
   scalesEstimator->SetTransformForward( true );
@@ -1336,7 +1333,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   typename RegistrationParameterScalesFromPhysicalShiftType::ScalesType movingScales( numberOfTransformParameters );
   scalesEstimator->EstimateScales( movingScales );
 
-  typedef  itk::ConjugateGradientLineSearchOptimizerv4 LocalOptimizerType;
+  using LocalOptimizerType = itk::ConjugateGradientLineSearchOptimizerv4;
   typename LocalOptimizerType::Pointer localOptimizer = LocalOptimizerType::New();
   localOptimizer->SetLowerLimit( 0 );
   localOptimizer->SetUpperLimit( 2 );
@@ -1351,7 +1348,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
   localOptimizer->SetScales( movingScales );
   localOptimizer->SetMetric( imageMetric );
 
-  typedef itk::MultiStartOptimizerv4 MultiStartOptimizerType;
+  using MultiStartOptimizerType = itk::MultiStartOptimizerv4;
   typename MultiStartOptimizerType::Pointer multiStartOptimizer = MultiStartOptimizerType::New();
   multiStartOptimizer->SetScales( movingScales );
   multiStartOptimizer->SetMetric( imageMetric );
@@ -1501,7 +1498,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
       outputName = outputOption->GetFunction( 0 )->GetParameter( 0 );
       }
 
-    typedef itk::TransformFileWriter TransformWriterType;
+    using TransformWriterType = itk::TransformFileWriter;
     typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
 
     if( strcmp( transform.c_str(), "affine" ) == 0 )
@@ -1535,7 +1532,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
   std::string description =
@@ -1761,7 +1758,7 @@ int antsAI( std::vector<std::string> args, std::ostream* /*out_stream = nullptr 
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
   // antscout->set_stream( out_stream );
-  typedef itk::ants::CommandLineParser ParserType;
+  using ParserType = itk::ants::CommandLineParser;
 
   ParserType::Pointer parser = ParserType::New();
   parser->SetCommand( argv[0] );

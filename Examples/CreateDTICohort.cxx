@@ -91,27 +91,26 @@ double CalculateMeanDiffusivity( TensorType tensor )
 template <unsigned int ImageDimension>
 int CreateDTICohort( itk::ants::CommandLineParser *parser )
 {
-  typedef float                                                    RealType;
-  typedef itk::SymmetricSecondRankTensor<RealType, ImageDimension> TensorType;
-  typedef itk::VariableSizeMatrix<typename TensorType::ValueType>  MatrixType;
+  using RealType = float;
+  using TensorType = itk::SymmetricSecondRankTensor<RealType, ImageDimension>;
+  using MatrixType = itk::VariableSizeMatrix<typename TensorType::ValueType>;
 
-  typedef itk::Image<RealType, ImageDimension> ImageType;
+  using ImageType = itk::Image<RealType, ImageDimension>;
 
-  typedef unsigned int                          LabelType;
-  typedef itk::Image<LabelType, ImageDimension> MaskImageType;
+  using LabelType = unsigned int;
+  using MaskImageType = itk::Image<LabelType, ImageDimension>;
   typename MaskImageType::Pointer maskImage = nullptr;
 
-  typedef itk::Image<TensorType, ImageDimension> TensorImageType;
+  using TensorImageType = itk::Image<TensorType, ImageDimension>;
   typename TensorImageType::Pointer inputAtlas = nullptr;
 
-  typedef itk::ImageFileReader<TensorImageType> TensorReaderType;
+  using TensorReaderType = itk::ImageFileReader<TensorImageType>;
   typename TensorReaderType::Pointer reader = TensorReaderType::New();
 
-  typedef itk::DecomposeTensorFunction<MatrixType,
-                                       typename MatrixType::ValueType, MatrixType> DecomposerType;
+  using DecomposerType = itk::DecomposeTensorFunction<MatrixType, typename MatrixType::ValueType, MatrixType>;
   typename DecomposerType::Pointer decomposer = DecomposerType::New();
 
-  typedef itk::Statistics::MersenneTwisterRandomVariateGenerator RandomizerType;
+  using RandomizerType = itk::Statistics::MersenneTwisterRandomVariateGenerator;
   typename RandomizerType::Pointer randomizer = RandomizerType::New();
   randomizer->Initialize();
 
@@ -180,7 +179,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
     {
     std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
-    typedef itk::ImageFileReader<MaskImageType> ReaderType;
+    using ReaderType = itk::ImageFileReader<MaskImageType>;
     typename ReaderType::Pointer maskreader = ReaderType::New();
     maskreader->SetFileName( inputFile.c_str() );
     try
@@ -212,8 +211,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       ItF.Set( CalculateFractionalAnisotropy<TensorType>( ItA.Get() ) );
       }
 
-    typedef itk::BinaryThresholdImageFilter<ImageType, MaskImageType>
-      ThresholderType;
+    using ThresholderType = itk::BinaryThresholdImageFilter<ImageType, MaskImageType>;
     typename ThresholderType::Pointer thresholder = ThresholderType::New();
     thresholder->SetInput( faImage );
     thresholder->SetInsideValue( 1 );
@@ -229,8 +227,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   //
   // Get label information for pathology option
   //
-  typedef itk::LabelGeometryImageFilter<MaskImageType, ImageType>
-    LabelGeometryFilterType;
+  using LabelGeometryFilterType = itk::LabelGeometryImageFilter<MaskImageType, ImageType>;
   typename LabelGeometryFilterType::Pointer labelGeometry =
     LabelGeometryFilterType::New();
   labelGeometry->SetInput( maskImage );
@@ -476,7 +473,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   if( dwiOption && dwiOption->GetNumberOfFunctions() &&
       dwiOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
     {
-    typedef itk::ImageFileReader<ImageType> ReaderType;
+    using ReaderType = itk::ImageFileReader<ImageType>;
     typename ReaderType::Pointer reader2 = ReaderType::New();
     reader2->SetFileName( dwiOption->GetFunction( 0 )->GetParameter( 0 ) );
     reader2->Update();
@@ -591,7 +588,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       }
 
     // copy atlas
-    typedef itk::ImageDuplicator<TensorImageType> DuplicatorType;
+    using DuplicatorType = itk::ImageDuplicator<TensorImageType>;
     typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
     duplicator->SetInputImage( inputAtlas );
     duplicator->Update();
@@ -877,7 +874,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
             ItD.Set( finalSignal );
             }
           }
-        typedef itk::ImageFileWriter<ImageType> WriterType;
+        using WriterType = itk::ImageFileWriter<ImageType>;
         typename WriterType::Pointer writer = WriterType::New();
         writer->SetFileName( dwiImageNames[d].c_str() );
         writer->SetInput( dwi );
@@ -890,7 +887,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
     {
     std::string description =

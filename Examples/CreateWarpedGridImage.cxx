@@ -14,20 +14,20 @@ namespace ants
 template <unsigned int ImageDimension>
 int CreateWarpedGridImage( int argc, char *argv[] )
 {
-  typedef float                                  RealType;
-  typedef itk::Image<RealType, ImageDimension>   RealImageType;
-  typedef itk::Vector<RealType, ImageDimension>  VectorType;
-  typedef itk::Image<VectorType, ImageDimension> VectorImageType;
+  using RealType = float;
+  using RealImageType = itk::Image<RealType, ImageDimension>;
+  using VectorType = itk::Vector<RealType, ImageDimension>;
+  using VectorImageType = itk::Image<VectorType, ImageDimension>;
 
   /**
    * Read in vector field
    */
-  typedef itk::ImageFileReader<VectorImageType> ReaderType;
+  using ReaderType = itk::ImageFileReader<VectorImageType>;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[2] );
   reader->Update();
 
-  typedef itk::GridImageSource<RealImageType> GridSourceType;
+  using GridSourceType = itk::GridImageSource<RealImageType>;
   typename GridSourceType::Pointer gridder = GridSourceType::New();
   gridder->SetSpacing( reader->GetOutput()->GetSpacing() );
   gridder->SetOrigin( reader->GetOutput()->GetOrigin() );
@@ -116,10 +116,8 @@ int CreateWarpedGridImage( int argc, char *argv[] )
   grid->SetOrigin(reader->GetOutput()->GetOrigin() );
   grid->SetSpacing(reader->GetOutput()->GetSpacing() );
 
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension>
-    TransformType;
-  typedef itk::WarpImageMultiTransformFilter<RealImageType, RealImageType, VectorImageType, TransformType> WarperType;
+  using TransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
+  using WarperType = itk::WarpImageMultiTransformFilter<RealImageType, RealImageType, VectorImageType, TransformType>;
   typename WarperType::Pointer  warper = WarperType::New();
   warper->SetInput(grid);
   warper->SetEdgePaddingValue( 0);
@@ -129,7 +127,7 @@ int CreateWarpedGridImage( int argc, char *argv[] )
   warper->Update();
 
   std::string file = std::string( argv[3] );
-  typedef itk::ImageFileWriter<RealImageType> ImageWriterType;
+  using ImageWriterType = itk::ImageFileWriter<RealImageType>;
   typename ImageWriterType::Pointer gridWriter = ImageWriterType::New();
   gridWriter->SetFileName( file.c_str() );
   gridWriter->SetInput( warper->GetOutput() );

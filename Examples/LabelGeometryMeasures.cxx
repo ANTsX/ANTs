@@ -32,11 +32,11 @@ namespace ants
 template <unsigned int ImageDimension>
 int LabelGeometryMeasures( int argc, char * argv[] )
 {
-  typedef unsigned int                          LabelType;
-  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
+  using LabelType = unsigned int;
+  using LabelImageType = itk::Image<LabelType, ImageDimension>;
 
-  typedef float                                RealType;
-  typedef itk::Image<RealType, ImageDimension> RealImageType;
+  using RealType = float;
+  using RealImageType = itk::Image<RealType, ImageDimension>;
 
   typename LabelImageType::Pointer labelImage = LabelImageType::New();
   ReadImage<LabelImageType>( labelImage, argv[2] );
@@ -60,7 +60,7 @@ int LabelGeometryMeasures( int argc, char * argv[] )
     {
     outputCSVFormat = true;
     }
-  typedef itk::LabelGeometryImageFilter<LabelImageType, RealImageType> FilterType;
+  using FilterType = itk::LabelGeometryImageFilter<LabelImageType, RealImageType>;
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( labelImage );
   if( intensityImageUsed )
@@ -77,15 +77,15 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 
   filter->Update();
 
-  typedef itk::ShapeLabelObject<LabelType, ImageDimension> LabelObjectType;
-  typedef itk::LabelMap< LabelObjectType > LabelMapType;
+  using LabelObjectType = itk::ShapeLabelObject<LabelType, ImageDimension>;
+  using LabelMapType = itk::LabelMap<LabelObjectType>;
 
   // convert the image in a collection of objects
-  typedef itk::LabelImageToShapeLabelMapFilter<LabelImageType, LabelMapType> ConverterType;
+  using ConverterType = itk::LabelImageToShapeLabelMapFilter<LabelImageType, LabelMapType>;
   typename ConverterType::Pointer converter = ConverterType::New();
   converter->SetInput( labelImage );
 
-  typedef itk::ShapeLabelMapFilter< LabelMapType > ValuatorType;
+  using ValuatorType = itk::ShapeLabelMapFilter<LabelMapType>;
   typename ValuatorType::Pointer valuator = ValuatorType::New();
   valuator->SetInput( converter->GetOutput() );
 
@@ -220,7 +220,7 @@ int LabelGeometryMeasures( int argc, char * argv[] )
       rowIndex++;
       }
 
-    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
+    using WriterType = itk::CSVNumericObjectFileWriter<double, 1, 1>;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( argv[4] );
     writer->SetColumnHeaders( columnHeaders );

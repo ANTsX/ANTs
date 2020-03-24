@@ -483,8 +483,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 //
 //  std::cout << " eval 0 " << m_Kappa1 << " eval 1 " << m_Kappa2 << std::endl;
 
-  return;
-}
+  }
 
 // end jain frame
 
@@ -1318,8 +1317,8 @@ float  SurfaceCurvatureBase<TSurface, TDimension>
   cc = a(1) * a(1) + b(1) * b(1) + c(1) * c(1);
 
   vnl_vector<double> func = svd.solve(funcvals);
-  float             Ux = static_cast<float>( func(0) );
-  float             Uy = static_cast<float>( func(1) );
+  auto             Ux = static_cast<float>( func(0) );
+  auto             Uy = static_cast<float>( func(1) );
   float              dx = meanu1; // m_dX;//m_Eval1;//m_dX;
   float              dy = meanu2; // m_dY;//m_Eval2;//m_dY;
   m_MetricTensor[0] = aa;

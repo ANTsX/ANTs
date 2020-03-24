@@ -18,12 +18,12 @@ template <unsigned int ImageDimension>
 int TextureCooccurrenceFeatures( int argc, char *argv[] )
 {
 
-  typedef float PixelType;
-  typedef float RealType;
+  using PixelType = float;
+  using RealType = float;
 
 
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typedef itk::Image<RealType, ImageDimension> RealImageType;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using RealImageType = itk::Image<RealType, ImageDimension>;
 
   typename ImageType::Pointer inputImage = ImageType::New();
   ReadImage<ImageType>( inputImage, argv[2] );
@@ -32,17 +32,16 @@ int TextureCooccurrenceFeatures( int argc, char *argv[] )
   // adds 1 to the upper bound of the joint histogram and small ranges
   // will be greatly affected by this.
 
-  typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescalerType;
+  using RescalerType = itk::RescaleIntensityImageFilter<ImageType, ImageType>;
   typename RescalerType::Pointer rescaler = RescalerType::New();
   rescaler->SetInput( inputImage );
   rescaler->SetOutputMinimum( 0 );
   rescaler->SetOutputMaximum( 10000 );
   rescaler->Update();
 
-  typedef itk::Statistics::DenseFrequencyContainer2 HistogramFrequencyContainerType;
+  using HistogramFrequencyContainerType = itk::Statistics::DenseFrequencyContainer2;
 
-  typedef itk::Statistics::ScalarImageToTextureFeaturesFilter
-    <RealImageType, HistogramFrequencyContainerType> TextureFilterType;
+  using TextureFilterType = itk::Statistics::ScalarImageToTextureFeaturesFilter<RealImageType, HistogramFrequencyContainerType>;
   typename TextureFilterType::Pointer textureFilter = TextureFilterType::New();
   textureFilter->SetInput( rescaler->GetOutput() );
 

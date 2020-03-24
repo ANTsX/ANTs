@@ -7891,6 +7891,39 @@ int MorphImage(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int ExtractContours(int argc, char *argv[])
+{
+  typedef float                                    PixelType;
+  typedef itk::Image<PixelType, ImageDimension>    ImageType;
+
+  int argct = 2;
+  const std::string outname = std::string( argv[argct] );
+  argct += 2;
+  std::string fn1 = std::string( argv[argct] );
+  argct++;
+  bool doFullyConnected = true;
+  if( argc > 5 )
+    {
+    doFullyConnected = static_cast<bool>( std::stoi( argv[5] ) );
+    }
+
+  typename ImageType::Pointer inputImage = nullptr;
+  ReadImage<ImageType>( inputImage, fn1.c_str() );
+
+  typedef itk::LabelContourImageFilter<ImageType, ImageType> ContourFilterType;
+  typename ContourFilterType::Pointer contour = ContourFilterType::New();
+  contour->SetInput( inputImage );
+  contour->SetFullyConnected( doFullyConnected );
+  contour->SetBackgroundValue( itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() );
+  contour->Update();
+
+  WriteImage<ImageType>( contour->GetOutput(), outname.c_str() );
+
+  return EXIT_SUCCESS;
+}
+
+
+template <unsigned int ImageDimension>
 int FastMarchingSegmentation( unsigned int argc, char *argv[] )
 {
   unsigned int      argct = 2;
@@ -14685,6 +14718,11 @@ ImageMathHelperAll(int argc, char **argv)
   if( operation == "ConvertVectorToImage" )
     {
     ConvertVectorToImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ExtractContours" )
+    {
+    ExtractContours<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
   if( operation == "PropagateLabelsThroughMask" )

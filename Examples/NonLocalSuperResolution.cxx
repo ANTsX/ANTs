@@ -27,17 +27,17 @@ template <typename TFilter>
 class CommandProgressUpdate : public itk::Command
 {
 public:
-  typedef  CommandProgressUpdate                      Self;
-  typedef  itk::Command                               Superclass;
-  typedef  itk::SmartPointer<CommandProgressUpdate>  Pointer;
+  using Self = CommandProgressUpdate<TFilter>;
+  using Superclass = itk::Command;
+  using Pointer = itk::SmartPointer<CommandProgressUpdate<TFilter> >;
   itkNewMacro( CommandProgressUpdate );
 protected:
 
-  CommandProgressUpdate() : m_CurrentProgress( 0 ) {};
+  CommandProgressUpdate()  = default;;
 
-  typedef TFilter FilterType;
+  using FilterType = TFilter;
 
-  unsigned int m_CurrentProgress;
+  unsigned int m_CurrentProgress{ 0 };
 
 public:
 
@@ -114,9 +114,9 @@ public:
 template <unsigned int ImageDimension>
 int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
 {
-  typedef float RealType;
+  using RealType = float;
 
-  typedef typename itk::ants::CommandLineParser::OptionType   OptionType;
+  using OptionType = typename itk::ants::CommandLineParser::OptionType;
 
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
@@ -132,7 +132,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
              << ImageDimension << "-dimensional images." << std::endl << std::endl;
     }
 
-  typedef itk::Image<RealType, ImageDimension> ImageType;
+  using ImageType = itk::Image<RealType, ImageDimension>;
   typename ImageType::Pointer inputImage = nullptr;
 
   typename OptionType::Pointer inputImageOption = parser->GetOption( "input-image" );
@@ -159,7 +159,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     {
     std::string inputFile = referenceImageOption->GetFunction( 0 )->GetName();
 
-    typedef itk::ImageFileReader<ImageType> ReaderType;
+    using ReaderType = itk::ImageFileReader<ImageType>;
     typename ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName( inputFile.c_str() );
 
@@ -171,7 +171,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
       {
       std::string inputFile = interpolatedImageOption->GetFunction( 0 )->GetName();
 
-      typedef itk::ImageFileReader<ImageType> ReaderType;
+      using ReaderType = itk::ImageFileReader<ImageType>;
       typename ReaderType::Pointer reader = ReaderType::New();
       reader->SetFileName( inputFile.c_str() );
 
@@ -188,7 +188,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
 
-  typedef itk::NonLocalSuperresolutionImageFilter<ImageType, ImageType> SuperresoluterType;
+  using SuperresoluterType = itk::NonLocalSuperresolutionImageFilter<ImageType, ImageType>;
   typename SuperresoluterType::Pointer superresoluter = SuperresoluterType::New();
 
   superresoluter->SetLowResolutionInputImage( inputImage );
@@ -340,7 +340,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
 
   if( verbose )
     {
-    typedef CommandProgressUpdate<SuperresoluterType> CommandType;
+    using CommandType = CommandProgressUpdate<SuperresoluterType>;
     typename CommandType::Pointer observer = CommandType::New();
     superresoluter->AddObserver( itk::ProgressEvent(), observer );
     superresoluter->AddObserver( itk::IterationEvent(), observer );
@@ -387,7 +387,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
   std::string description =

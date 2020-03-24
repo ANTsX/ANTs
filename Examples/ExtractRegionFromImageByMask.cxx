@@ -21,10 +21,10 @@ namespace ants
 template <unsigned int ImageDimension>
 int ExtractRegionFromImageByMask(int argc, char *argv[])
 {
-  typedef float PixelType;
+  using PixelType = float;
 
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typedef itk::ImageFileReader<ImageType>       ReaderType;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using ReaderType = itk::ImageFileReader<ImageType>;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName(argv[2]);
   reader->Update();
@@ -49,20 +49,19 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
     }
   else
     {
-    typedef itk::Image<unsigned short, ImageDimension> ShortImageType;
+    using ShortImageType = itk::Image<unsigned short, ImageDimension>;
 //    typedef itk::CastImageFilter<ImageType, ShortImageType> CasterType;
 //    typename CasterType::Pointer caster = CasterType::New();
 //    caster->SetInput(reader->GetOutput());
 //    caster->Update();
 
-    typedef itk::ImageFileReader<ShortImageType> ShortImageReaderType;
+    using ShortImageReaderType = itk::ImageFileReader<ShortImageType>;
     typename ShortImageReaderType::Pointer shortReader = ShortImageReaderType::New();
     shortReader->SetFileName(argv[4]);
     shortReader->Update();
 
     // typedef itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>
-    typedef itk::LabelStatisticsImageFilter<ImageType, ShortImageType>
-      StatsFilterType;
+    using StatsFilterType = itk::LabelStatisticsImageFilter<ImageType, ShortImageType>;
     typename StatsFilterType::Pointer stats = StatsFilterType::New();
 //    stats->SetLabelInput(caster->GetOutput());
     stats->SetLabelInput(shortReader->GetOutput() );
@@ -91,14 +90,14 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
 
   std::cout << "final cropped region: " << region << std::endl;
 
-  typedef itk::ExtractImageFilter<ImageType, ImageType> CropperType;
+  using CropperType = itk::ExtractImageFilter<ImageType, ImageType>;
   typename CropperType::Pointer cropper = CropperType::New();
   cropper->SetInput(reader->GetOutput() );
   cropper->SetExtractionRegion(region);
   cropper->SetDirectionCollapseToSubmatrix();
   cropper->Update();
 
-  typedef itk::ImageFileWriter<ImageType> WriterType;
+  using WriterType = itk::ImageFileWriter<ImageType>;
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetInput(cropper->GetOutput() );
   writer->SetFileName(argv[3]);

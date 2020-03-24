@@ -46,10 +46,9 @@ MultiplyImage(typename TImage::Pointer image1, typename TImage::Pointer image2)
 {
   std::cout << " Multiply " << std::endl;
   // Begin Multiply Images
-  typedef TImage tImageType;
+  using tImageType = TImage;
   //  output will be the speed image for FMM
-  typedef itk::MultiplyImageFilter<tImageType,
-                                   tImageType, tImageType>  MultFilterType;
+  using MultFilterType = itk::MultiplyImageFilter<tImageType, tImageType, tImageType>;
   typename MultFilterType::Pointer filter = MultFilterType::New();
   filter->SetInput1( image1 );
   filter->SetInput2( image2 );
@@ -68,9 +67,9 @@ typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   typename TImage::Pointer input )
 {
 
-  typedef typename TImage::PixelType PixelType;
+  using PixelType = typename TImage::PixelType;
   // Begin Threshold Image
-  typedef itk::BinaryThresholdImageFilter<TImage, TImage> InputThresholderType;
+  using InputThresholderType = itk::BinaryThresholdImageFilter<TImage, TImage>;
   typename InputThresholderType::Pointer inputThresholder =
     InputThresholderType::New();
 
@@ -91,13 +90,13 @@ LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input)
 {
   std::cout << " Label Surf " << std::endl;
-  typedef TImage ImageType;
+  using ImageType = TImage;
   enum { ImageDimension = ImageType::ImageDimension };
   // ORIENTATION ALERT: Original code set spacing & origin without
   // setting directions.
   typename   ImageType::Pointer Image = AllocImage<ImageType>(input);
 
-  typedef itk::NeighborhoodIterator<ImageType> iteratorType;
+  using iteratorType = itk::NeighborhoodIterator<ImageType>;
 
   typename iteratorType::RadiusType rad;
   for( int j = 0; j < ImageDimension; j++ )
@@ -155,7 +154,7 @@ typename TImage::Pointer OtsuThreshold(
   if( maskImage.IsNull() )
     {
     // Begin Threshold Image
-    typedef itk::OtsuMultipleThresholdsImageFilter<TImage, TImage> InputThresholderType;
+    using InputThresholderType = itk::OtsuMultipleThresholdsImageFilter<TImage, TImage>;
     typename InputThresholderType::Pointer inputThresholder =
       InputThresholderType::New();
 
@@ -174,9 +173,9 @@ typename TImage::Pointer OtsuThreshold(
     }
   else
     {
-    typedef TImage                                    ImageType;
-    typedef TMaskImage                                MaskImageType;
-    typedef float                                     PixelType;
+    using ImageType = TImage;
+    using MaskImageType = TMaskImage;
+    using PixelType = float;
 
     unsigned int numberOfBins = 200;
     int maskLabel = 1;
@@ -202,7 +201,7 @@ typename TImage::Pointer OtsuThreshold(
         }
       }
 
-    typedef itk::LabelStatisticsImageFilter<ImageType, MaskImageType> StatsType;
+    using StatsType = itk::LabelStatisticsImageFilter<ImageType, MaskImageType>;
     typename StatsType::Pointer stats = StatsType::New();
     stats->SetInput( input );
     stats->SetLabelInput( maskImage );
@@ -210,8 +209,7 @@ typename TImage::Pointer OtsuThreshold(
     stats->SetHistogramParameters( numberOfBins, minValue, maxValue );
     stats->Update();
 
-    typedef itk::OtsuMultipleThresholdsCalculator<typename StatsType::HistogramType>
-      OtsuType;
+    using OtsuType = itk::OtsuMultipleThresholdsCalculator<typename StatsType::HistogramType>;
     typename OtsuType::Pointer otsu = OtsuType::New();
     otsu->SetInputHistogram( stats->GetHistogram( maskLabel ) );
     otsu->SetNumberOfThresholds( NumberOfThresholds );
@@ -272,15 +270,14 @@ typename TImage::Pointer KmeansThreshold(
 {
   std::cout << " Kmeans with " << NumberOfThresholds << " thresholds" << std::endl;
 
-  typedef TImage                                    ImageType;
-  typedef TImage                                    LabelImageType;
-  typedef TMaskImage                                MaskImageType;
-  typedef float                                     RealType;
-  typedef int                                       LabelType;
+  using ImageType = TImage;
+  using LabelImageType = TImage;
+  using MaskImageType = TMaskImage;
+  using RealType = float;
+  using LabelType = int;
 
-  typedef itk::Array<RealType>                            MeasurementVectorType;
-  typedef typename itk::Statistics::ListSample
-    <MeasurementVectorType>                               SampleType;
+  using MeasurementVectorType = itk::Array<RealType>;
+  using SampleType = typename itk::Statistics::ListSample<MeasurementVectorType>;
 
   int maskLabel = 1;
   if( maskImage.IsNull() )
@@ -291,7 +288,7 @@ typename TImage::Pointer KmeansThreshold(
   unsigned int numberOfTissueClasses = NumberOfThresholds + 1;
   typename LabelImageType::Pointer output = AllocImage<LabelImageType>( input, 0 );
 
-  typedef itk::LabelStatisticsImageFilter<ImageType, MaskImageType> StatsType;
+  using StatsType = itk::LabelStatisticsImageFilter<ImageType, MaskImageType>;
   typename StatsType::Pointer stats = StatsType::New();
   stats->SetInput( input );
   stats->SetLabelInput( maskImage );
@@ -320,14 +317,14 @@ typename TImage::Pointer KmeansThreshold(
       }
     }
 
-  typedef itk::Statistics::WeightedCentroidKdTreeGenerator<SampleType> TreeGeneratorType;
+  using TreeGeneratorType = itk::Statistics::WeightedCentroidKdTreeGenerator<SampleType>;
   typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
   treeGenerator->SetSample( sample );
   treeGenerator->SetBucketSize( 16 );
   treeGenerator->Update();
 
-  typedef typename TreeGeneratorType::KdTreeType                TreeType;
-  typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
+  using TreeType = typename TreeGeneratorType::KdTreeType;
+  using EstimatorType = itk::Statistics::KdTreeBasedKmeansEstimator<TreeType>;
   typename EstimatorType::Pointer estimator = EstimatorType::New();
   estimator->SetKdTree( treeGenerator->GetOutput() );
   estimator->SetMaximumIteration( 200 );
@@ -347,10 +344,10 @@ typename TImage::Pointer KmeansThreshold(
   //
   // Classify the samples
   //
-  typedef itk::Statistics::MinimumDecisionRule DecisionRuleType;
+  using DecisionRuleType = itk::Statistics::MinimumDecisionRule;
   typename DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
 
-  typedef itk::Statistics::SampleClassifierFilter<SampleType> ClassifierType;
+  using ClassifierType = itk::Statistics::SampleClassifierFilter<SampleType>;
   typename ClassifierType::Pointer classifier = ClassifierType::New();
   classifier->SetDecisionRule( decisionRule );
   classifier->SetInput( sample );
@@ -373,8 +370,7 @@ typename TImage::Pointer KmeansThreshold(
     }
   std::sort( estimatorParameters.begin(), estimatorParameters.end() );
 
-  typedef itk::Statistics::DistanceToCentroidMembershipFunction
-    <MeasurementVectorType> MembershipFunctionType;
+  using MembershipFunctionType = itk::Statistics::DistanceToCentroidMembershipFunction<MeasurementVectorType>;
   typename ClassifierType::MembershipFunctionVectorObjectType::Pointer
   membershipFunctions = ClassifierType::MembershipFunctionVectorObjectType::New();
   typename ClassifierType::MembershipFunctionVectorType & membershipFunctionsVector =
@@ -402,8 +398,8 @@ typename TImage::Pointer KmeansThreshold(
   //
   // Classify the voxels
   //
-  typedef typename ClassifierType::MembershipSampleType ClassifierOutputType;
-  typedef typename ClassifierOutputType::ConstIterator  LabelIterator;
+  using ClassifierOutputType = typename ClassifierType::MembershipSampleType;
+  using LabelIterator = typename ClassifierOutputType::ConstIterator;
 
   itk::ImageRegionIteratorWithIndex<LabelImageType> ItO( output,
                                                          output->GetRequestedRegion() );
@@ -430,10 +426,10 @@ template <unsigned int InImageDimension>
 int ThresholdImage( int argc, char * argv[] )
 {
   //  const     unsigned int   InImageDimension = AvantsImageDimension;
-  typedef   float                                   PixelType;
-  typedef   itk::Image<PixelType, InImageDimension> FixedImageType;
-  typedef   int                                     LabelType;
-  typedef   itk::Image<LabelType, InImageDimension> MaskImageType;
+  using PixelType = float;
+  using FixedImageType = itk::Image<PixelType, InImageDimension>;
+  using LabelType = int;
+  using MaskImageType = itk::Image<LabelType, InImageDimension>;
 
   typename FixedImageType::Pointer fixed;
   ReadImage<FixedImageType>( fixed, argv[2] );

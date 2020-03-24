@@ -32,10 +32,10 @@ template <unsigned int ImageDimension>
 int SmoothDisplacementField( int argc, char *argv[] )
 {
 
-  typedef float RealType;
-  typedef itk::Image<RealType, ImageDimension> RealImageType;
-  typedef itk::Vector<RealType, ImageDimension> VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
+  using RealType = float;
+  using RealImageType = itk::Image<RealType, ImageDimension>;
+  using VectorType = itk::Vector<RealType, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
 
   typename DisplacementFieldType::Pointer field = nullptr;
   ReadImage<DisplacementFieldType>( field, argv[2] );
@@ -49,12 +49,12 @@ int SmoothDisplacementField( int argc, char *argv[] )
     {
     float variance = var[0];
 
-    typedef itk::GaussianOperator<float, ImageDimension>                                             GaussianSmoothingOperatorType;
-    typedef itk::VectorNeighborhoodOperatorImageFilter<DisplacementFieldType, DisplacementFieldType> GaussianSmoothingSmootherType;
+    using GaussianSmoothingOperatorType = itk::GaussianOperator<float, ImageDimension>;
+    using GaussianSmoothingSmootherType = itk::VectorNeighborhoodOperatorImageFilter<DisplacementFieldType, DisplacementFieldType>;
 
     GaussianSmoothingOperatorType gaussianSmoothingOperator;
 
-    typedef itk::ImageDuplicator<DisplacementFieldType> DuplicatorType;
+    using DuplicatorType = itk::ImageDuplicator<DisplacementFieldType>;
     typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
     duplicator->SetInputImage( field );
     duplicator->Update();
@@ -127,7 +127,7 @@ int SmoothDisplacementField( int argc, char *argv[] )
     }
   else if( var.size() == ImageDimension )
     {
-    typedef itk::DisplacementFieldToBSplineImageFilter<DisplacementFieldType> BSplineFilterType;
+    using BSplineFilterType = itk::DisplacementFieldToBSplineImageFilter<DisplacementFieldType>;
 
     unsigned int numberOfLevels = 1;
     if( argc > 5 )

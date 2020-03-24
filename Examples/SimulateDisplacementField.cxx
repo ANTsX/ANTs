@@ -27,10 +27,10 @@ namespace ants
 template <unsigned int ImageDimension>
 int SimulateDisplacementField( int argc, char *argv[] )
 {
-  typedef double RealType;
-  typedef itk::Image<RealType, ImageDimension> RealImageType;
-  typedef itk::Vector<RealType, ImageDimension> VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
+  using RealType = double;
+  using RealImageType = itk::Image<RealType, ImageDimension>;
+  using VectorType = itk::Vector<RealType, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
 
   typename RealImageType::Pointer domainImage;
   ReadImage<RealImageType>( domainImage, argv[3] );
@@ -63,7 +63,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
 
   if( strcmp( argv[2], "BSpline" ) == 0 || strcmp( argv[2], "bspline" ) == 0 )
     {
-    typedef itk::SimulatedBSplineDisplacementFieldSource<DisplacementFieldType> BSplineSimulatorType;
+    using BSplineSimulatorType = itk::SimulatedBSplineDisplacementFieldSource<DisplacementFieldType>;
 
     itk::SizeValueType numberOfFittingLevels = 4;
     if( argc > 8 )
@@ -116,7 +116,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
       standardDeviationSmoothing = static_cast<RealType>( std::stoi( argv[8] ) );
       }
 
-    typedef itk::SimulatedExponentialDisplacementFieldSource<DisplacementFieldType> ExponentialSimulatorType;
+    using ExponentialSimulatorType = itk::SimulatedExponentialDisplacementFieldSource<DisplacementFieldType>;
     typename ExponentialSimulatorType::Pointer exponentialSimulator = ExponentialSimulatorType::New();
     exponentialSimulator->SetDisplacementFieldDomainFromImage( domainImage );
     exponentialSimulator->SetNumberOfRandomPoints( numberOfRandomPoints );
