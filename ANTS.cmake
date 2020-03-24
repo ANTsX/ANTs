@@ -164,7 +164,8 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ANTsVersionConfig.h.in"
 
 add_subdirectory(Examples)
 
-install(PROGRAMS Scripts/ANTSpexec.sh
+if (NOT ANTS_INSTALL_LIBS_ONLY) 
+  install(PROGRAMS Scripts/ANTSpexec.sh
      Scripts/antsASLProcessing.sh
      Scripts/antsAtroposN4.sh
      Scripts/antsBOLDNetworkAnalysis.R
@@ -189,7 +190,8 @@ install(PROGRAMS Scripts/ANTSpexec.sh
                 PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
                 CONFIGURATIONS  Release
                 COMPONENT SCRIPTS
-        )
+     )
+endif()
 
 #Only install ITK/VTK libraries if shared build and superbuild is used
 if(BUILD_SHARED_LIBS AND ((NOT USE_SYSTEM_ITK) OR ((NOT USE_SYSTEM_VTK) AND USE_VTK)))
