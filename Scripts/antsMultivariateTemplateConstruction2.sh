@@ -269,17 +269,13 @@ function summarizeimageset() {
   shift
   local images=( "${@}" "" )
 
-  # Unsharp mask used below to reduce halo artifacts
-  # To use Laplacian sharpening, use ${ANTSPATH}/ImageMath $dim $output Sharpen $output 
-
   case $method in
     0) #mean
       ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}
-      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.7 2 0 0
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
       ;;
-    1) #mean of normalized images
-      ${ANTSPATH}/AverageImages $dim $output 2 ${images[*]}
-      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.7 2 0 0
+    1) #mean of normalized images, sharpens automatically
+      ${ANTSPATH}/AverageImages $dim $output 1 ${images[*]}
       ;;
     2) #median
       local image
@@ -289,7 +285,7 @@ function summarizeimageset() {
         done
 
       ${ANTSPATH}/ImageSetStatistics $dim ${output}_list.txt ${output} 0
-      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.7 2 0 0
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
       rm ${output}_list.txt
       ;;
   esac
