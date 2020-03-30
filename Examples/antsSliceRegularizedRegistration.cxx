@@ -1087,17 +1087,17 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     option->SetShortName( 'm' );
     option->SetUsageOption(
       0,
-      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random,None}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       1,
-      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random,None}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       2,
 
-      "MeanSquares[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "MeanSquares[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random,None}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       3,
-      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random,None}>,<samplingPercentage=[0,1]>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
