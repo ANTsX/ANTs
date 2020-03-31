@@ -144,8 +144,14 @@ int N4( itk::ants::CommandLineParser *parser )
     {
         std::cout << std::endl << "Reading in Mask file: " << inputMaskFile << std::endl;
     }    
-    ReadImage<MaskImageType>( maskImage, inputMaskFile.c_str() );
-    
+    // ReadImage<MaskImageType>( maskImage, inputMaskFile.c_str() );
+    using MaskImageReaderType = itk::ImageFileReader<MaskImageType>;
+    typename MaskImageReaderType::Pointer maskImageReader = MaskImageReaderType::New();
+    maskImageReader->SetFileName( inputMaskFile.c_str() );
+    maskImage = maskImageReader->GetOutput();
+    maskImage->Update();
+    maskImage->DisconnectPipeline();
+
     if( verbose )
     {
         std::cout << std::endl << "maskImage is read" << std::endl;
