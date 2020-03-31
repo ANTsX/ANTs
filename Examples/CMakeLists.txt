@@ -65,11 +65,6 @@ macro(DYNAMIC_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   message(STATUS "${ANTS_FUNCTION_NAME} ${EXTRA_LIBS}")
   target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${EXTRA_LIBS} )
   configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
-<<<<<<< HEAD
-  # add_executable( ${ANTS_FUNCTION_NAME} cli_${ANTS_FUNCTION_NAME}.cxx )
-  # target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME} )
-=======
->>>>>>> upstream/master
 
   if (ANTS_INSTALL_LIBS_ONLY)
     install(TARGETS l_${ANTS_FUNCTION_NAME}
