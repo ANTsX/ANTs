@@ -145,9 +145,18 @@ int N4( itk::ants::CommandLineParser *parser )
         std::cout << std::endl << "Reading in Mask file: " << inputMaskFile << std::endl;
     }    
     ReadImage<MaskImageType>( maskImage, inputMaskFile.c_str() );
-
+    
+    if( verbose )
+    {
+        std::cout << std::endl << "maskImage is read" << std::endl;
+    }    
     isMaskImageSpecified = true;
     }
+    
+  if( verbose )
+  {
+      std::cout << std::endl << "Checking mask NULL" << std::endl;
+  }     
   if( maskImage.IsNull() )
     {
     if( verbose )
