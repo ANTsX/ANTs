@@ -146,7 +146,7 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>
   RealType variance = std::pow( this->m_SmoothingStandardDeviation, 2 );
   if( variance > 0.0 )
     {
-    using GaussianSmoothingOperatorType = GaussianOperator<RealType, ImageDimension>;
+    using GaussianSmoothingOperatorType = GaussianOperator<OutputPixelComponentType, ImageDimension>;
     GaussianSmoothingOperatorType gaussianSmoothingOperator;
 
     using GaussianSmoothingSmootherType = VectorNeighborhoodOperatorImageFilter<OutputImageType, OutputImageType>;
