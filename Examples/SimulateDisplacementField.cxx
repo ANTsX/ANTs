@@ -16,6 +16,7 @@
 #include <algorithm>
 #include "ReadWriteData.h"
 
+#include "itkCastImageFilter.h"
 #include "itkSimulatedBSplineDisplacementFieldSource.h"
 #include "itkSimulatedExponentialDisplacementFieldSource.h"
 
@@ -27,13 +28,13 @@ namespace ants
 template <unsigned int ImageDimension>
 int SimulateDisplacementField( int argc, char *argv[] )
 {
-  using RealType = double;
-  using RealImageType = itk::Image<RealType, ImageDimension>;
+  using RealType = float;
+  using ImageType = itk::Image<RealType, ImageDimension>;
   using VectorType = itk::Vector<RealType, ImageDimension>;
   using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
 
-  typename RealImageType::Pointer domainImage;
-  ReadImage<RealImageType>( domainImage, argv[3] );
+  typename ImageType::Pointer domainImage;
+  ReadImage<ImageType>( domainImage, argv[3] );
 
   if ( argc < 5 )
     {
@@ -95,8 +96,14 @@ int SimulateDisplacementField( int argc, char *argv[] )
         }
       }
 
+    using RealImageType = typename BSplineSimulatorType::RealImageType;
+    using CastImageFilterType = itk::CastImageFilter<ImageType, RealImageType>;
+    typename CastImageFilterType::Pointer caster = CastImageFilterType::New();
+    caster->SetInput( domainImage );
+    caster->Update();
+
     typename BSplineSimulatorType::Pointer bsplineSimulator = BSplineSimulatorType::New();
-    bsplineSimulator->SetDisplacementFieldDomainFromImage( domainImage );
+    bsplineSimulator->SetDisplacementFieldDomainFromImage( caster->GetOutput() );
     bsplineSimulator->SetNumberOfRandomPoints( numberOfRandomPoints );
     bsplineSimulator->SetEnforceStationaryBoundary( enforceStationaryBoundary );
     bsplineSimulator->SetDisplacementNoiseStandardDeviation( standardDeviationDisplacementField );
@@ -117,8 +124,15 @@ int SimulateDisplacementField( int argc, char *argv[] )
       }
 
     using ExponentialSimulatorType = itk::SimulatedExponentialDisplacementFieldSource<DisplacementFieldType>;
+
+    using RealImageType = typename ExponentialSimulatorType::RealImageType;
+    using CastImageFilterType = itk::CastImageFilter<ImageType, RealImageType>;
+    typename CastImageFilterType::Pointer caster = CastImageFilterType::New();
+    caster->SetInput( domainImage );
+    caster->Update();
+
     typename ExponentialSimulatorType::Pointer exponentialSimulator = ExponentialSimulatorType::New();
-    exponentialSimulator->SetDisplacementFieldDomainFromImage( domainImage );
+    exponentialSimulator->SetDisplacementFieldDomainFromImage( caster->GetOutput() );
     exponentialSimulator->SetNumberOfRandomPoints( numberOfRandomPoints );
     exponentialSimulator->SetEnforceStationaryBoundary( enforceStationaryBoundary );
     exponentialSimulator->SetDisplacementNoiseStandardDeviation( standardDeviationDisplacementField );
