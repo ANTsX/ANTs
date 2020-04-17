@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ANTsPy Issues
+    url: https://github.com/ANTsX/ANTsPy/issues
+    about: Please report issues with ANTsPy here.
+  - name: ANTsR Issues
+    url: https://github.com/ANTsX/ANTsR/issues
+    about: Please report issues with ANTsR here.
