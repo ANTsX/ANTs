@@ -63,6 +63,8 @@
 
 #include "antsLandmarkBasedTransformInitializer.h"
 
+#include "AddNoiseToImage.h"
+
 #include "Atropos.h"
 
 #include "AverageAffineTransform.h"
