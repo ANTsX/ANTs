@@ -140,10 +140,11 @@ int AddNoise( itk::ants::CommandLineParser *parser )
     std::string noiseModel = noiseModelOption->GetFunction( 0 )->GetName();
     ConvertToLowerCase( noiseModel );
 
-    if( std::strcmp( noiseModel.c_str(), "additivegaussian" ) )
+    if( std::strcmp( noiseModel.c_str(), "additivegaussian" ) == 0 )
       {
       using NoiseFilterType = itk::AdditiveGaussianNoiseImageFilter<ImageType, ImageType>;
       typename NoiseFilterType::Pointer noiser = NoiseFilterType::New();
+      noiser->SetInput( inputImage );
 
       RealType mean = 0.0;
       if( noiseModelOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
@@ -161,14 +162,22 @@ int AddNoise( itk::ants::CommandLineParser *parser )
       noiser->SetMean( mean );
       noiser->SetStandardDeviation( sd );
       
+      if( verbose )  
+        {
+        std::cout << "Noise model: Additive Gaussian" << std::endl;
+        std::cout << "  mean = " << noiser->GetMean() << std::endl;
+        std::cout << "  standard deviation = " << noiser->GetStandardDeviation() << std::endl;
+        }
+
       outputImage = noiser->GetOutput();
       outputImage->Update();
       outputImage->DisconnectPipeline();
       }
-    else if( std::strcmp( noiseModel.c_str(), "saltandpepper" ) )
+    else if( std::strcmp( noiseModel.c_str(), "saltandpepper" ) == 0 )
       {
       using NoiseFilterType = itk::SaltAndPepperNoiseImageFilter<ImageType, ImageType>;
       typename NoiseFilterType::Pointer noiser = NoiseFilterType::New();
+      noiser->SetInput( inputImage );
 
       RealType probability = 0.01;
       if( noiseModelOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
@@ -190,17 +199,25 @@ int AddNoise( itk::ants::CommandLineParser *parser )
         pepper = parser->Convert<RealType>( pepperString );  
         noiser->SetPepperValue( pepper );
         }
-
       noiser->SetProbability( probability );
       
+      if( verbose )  
+        {
+        std::cout << "Noise model: Salt and pepper" << std::endl;
+        std::cout << "  probability = " << noiser->GetProbability() << std::endl;
+        std::cout << "  salt = " << noiser->GetSaltValue() << std::endl;
+        std::cout << "  pepper = " << noiser->GetPepperValue() << std::endl;
+        }
+
       outputImage = noiser->GetOutput();
       outputImage->Update();
       outputImage->DisconnectPipeline();
       }
-    else if( std::strcmp( noiseModel.c_str(), "shot" ) )
+    else if( std::strcmp( noiseModel.c_str(), "shot" ) == 0 )
       {
       using NoiseFilterType = itk::ShotNoiseImageFilter<ImageType, ImageType>;
       typename NoiseFilterType::Pointer noiser = NoiseFilterType::New();
+      noiser->SetInput( inputImage );
 
       RealType scale = 1.0;
       if( noiseModelOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
@@ -210,24 +227,36 @@ int AddNoise( itk::ants::CommandLineParser *parser )
         }
 
       noiser->SetScale( scale );
-      
+
+      if( verbose )  
+        {
+        std::cout << "Noise model: Shot" << std::endl;
+        std::cout << "  scale = " << noiser->GetScale() << std::endl;
+        }
+
       outputImage = noiser->GetOutput();
       outputImage->Update();
       outputImage->DisconnectPipeline();
       }
-    else if( std::strcmp( noiseModel.c_str(), "speckle" ) )
+    else if( std::strcmp( noiseModel.c_str(), "speckle" ) == 0 )
       {
       using NoiseFilterType = itk::SpeckleNoiseImageFilter<ImageType, ImageType>;
       typename NoiseFilterType::Pointer noiser = NoiseFilterType::New();
+      noiser->SetInput( inputImage );
 
       RealType sd = 1.0;
-      if( noiseModelOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+      if( noiseModelOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
-        std::string sdString = noiseModelOption->GetFunction( 0 )->GetParameter( 1 );
+        std::string sdString = noiseModelOption->GetFunction( 0 )->GetParameter( 0 );
         sd = parser->Convert<RealType>( sdString );  
         }
-
       noiser->SetStandardDeviation( sd );
+
+      if( verbose )  
+        {
+        std::cout << "Noise model: Speckle" << std::endl;
+        std::cout << "  standard deviation = " << noiser->GetStandardDeviation() << std::endl;
+        }
 
       outputImage = noiser->GetOutput();
       outputImage->Update();
