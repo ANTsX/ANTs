@@ -123,6 +123,7 @@ set(MORE_ANTS_APPS
     antsJointTensorFusion
     ImageMath
     iMath
+    AddNoiseToImage
     ANTS
     ANTSJacobian
     CreateJacobianDeterminantImage
