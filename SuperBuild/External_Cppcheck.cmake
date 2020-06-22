@@ -64,7 +64,7 @@ if(NOT ( DEFINED "${extProjName}_DIR" OR ( DEFINED "${USE_SYSTEM_${extProjName}}
     LOG_INSTALL   0  # Wrap install in script to to ignore log output from dashboards
     ${cmakeversion_external_update} "${cmakeversion_external_update_value}"
     CONFIGURE_COMMAND ""
-    BUILD_COMMAND HAVE_RULES=no CC=${CMAKE_C_COMPILER} CXX=$CMAKE_CXX_COMPILER{} ${CMAKE_MAKE_PROGRAM}
+    BUILD_COMMAND HAVE_RULES=no CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} ${CMAKE_MAKE_PROGRAM}
     INSTALL_COMMAND HAVE_RULES=no DESTDIR=${CMAKE_BINARY_DIR}/ PREFIX=Utils ${CMAKE_MAKE_PROGRAM} install
     DEPENDS
       ${${proj}_DEPENDENCIES}
