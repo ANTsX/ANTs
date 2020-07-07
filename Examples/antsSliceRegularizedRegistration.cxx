@@ -361,8 +361,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   using vMatrix = vnl_matrix<RealType>;
   using vVector = vnl_vector<RealType>;
   vMatrix param_values;
-  using ParserType = typename itk::ants::CommandLineParser;
-  using OptionType = typename ParserType::OptionType;
+  using OptionType = typename itk::ants::CommandLineParser::OptionType;
 
   typename OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfFunctions() )

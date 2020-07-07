@@ -23,7 +23,7 @@ int CreateZeroImage( int argc, char *argv[] )
   using PixelType = float;
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  using GeneratorType = typename itk::Statistics::MersenneTwisterRandomVariateGenerator;
+  using GeneratorType = itk::Statistics::MersenneTwisterRandomVariateGenerator;
   typename GeneratorType::Pointer generator = GeneratorType::New();
   generator->Initialize();
   generator->SetSeed();

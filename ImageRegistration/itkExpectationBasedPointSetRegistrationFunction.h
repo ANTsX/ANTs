@@ -129,7 +129,7 @@ public:
   /** Other typedef */
   using RealType = float;
   using OutputType = float;
-  using RandomizerType = typename Statistics::MersenneTwisterRandomVariateGenerator;
+  using RandomizerType = Statistics::MersenneTwisterRandomVariateGenerator;
   using GaussianType = typename Statistics::GaussianMembershipFunction<VectorType>;
 
   /** Fixed image gradient calculator type. */
