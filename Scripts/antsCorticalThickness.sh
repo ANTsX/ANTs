@@ -1364,23 +1364,22 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
 
     # Resample images
 
-    resample0="${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${BRAIN_EXTRACTION_MASK}"
-    resample0="${resample0} ${BRAIN_EXTRACTION_MASK_RESAMPLED} 1 1"
-    resample1="${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${HEAD_N4_IMAGE}"
-    resample1="${resample1} ${HEAD_N4_IMAGE_RESAMPLED} 1 1"
-    resample2="${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE}"
-    resample2="${resample2} ${CORTICAL_THICKNESS_IMAGE_RESAMPLED} 1 1"
-    resample3="${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${BRAIN_SEGMENTATION}"
-    resample3="${resample3} ${BRAIN_SEGMENTATION_IMAGE_RESAMPLED} 1 1"
+    resample0="${ANTSPATH}/ResampleImage ${DIMENSION} ${BRAIN_EXTRACTION_MASK} ${BRAIN_EXTRACTION_MASK_RESAMPLED}"
+    resample1="${ANTSPATH}/ResampleImage ${DIMENSION} ${HEAD_N4_IMAGE} ${HEAD_N4_IMAGE_RESAMPLED}"
+    resample2="${ANTSPATH}/ResampleImage ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE} ${CORTICAL_THICKNESS_IMAGE_RESAMPLED}"
+    resample3="${ANTSPATH}/ResampleImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${BRAIN_SEGMENTATION_IMAGE_RESAMPLED}"
+
     if [[ ${DIMENSION} -eq 3 ]];
       then
-        resample0="${resample0} 1 0 0 1"
-        resample1="${resample1} 1"
-        resample2="${resample2} 1"
-        resample3="${resample3} 1 0 0 1"
+        resample0="${resample0} 1x1x1 0 1 6"
+        resample1="${resample1} 1x1x1 0 0 6"
+        resample2="${resample2} 1x1x1 0 0 6"
+        resample3="${resample3} 1x1x1 0 1 6"
       else
-        resample0="${resample0} 0 0 1"
-        resample3="${resample3} 0 0 1"
+        resample0="${resample0} 1x1 0 1 6"
+        resample1="${resample1} 1x1 0 0 6"
+        resample2="${resample2} 1x1 0 0 6"
+        resample3="${resample3} 1x1 0 1 6"
       fi
     logCmd $resample0
     logCmd $resample1

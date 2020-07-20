@@ -129,35 +129,6 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
 }
 
 /**
- * Set the output image spacing.
- *
- */
-template <typename TInputImage, typename TOutputImage, typename TDisplacementField, typename TTransform>
-void
-WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
-::SetOutputSpacing( const double* spacing)
-{
-  SpacingType s(spacing);
-
-  this->SetOutputSpacing( s );
-}
-
-/**
- * Set the output image origin.
- *
- */
-template <typename TInputImage, typename TOutputImage, typename TDisplacementField, typename TTransform>
-void
-WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
-::SetOutputOrigin(
-  const double* origin)
-{
-  PointType p(origin);
-
-  this->SetOutputOrigin(p);
-}
-
-/**
  * Setup state of filter before multi-threading.
  * InterpolatorType::SetInputImage is not thread-safe and hence
  * has to be setup before ThreadedGenerateData

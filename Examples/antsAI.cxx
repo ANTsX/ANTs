@@ -1215,7 +1215,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
 
     using SamplePointType = typename MetricSamplePointSetType::PointType;
 
-    using RandomizerType = typename itk::Statistics::MersenneTwisterRandomVariateGenerator;
+    using RandomizerType = itk::Statistics::MersenneTwisterRandomVariateGenerator;
     typename RandomizerType::Pointer randomizer = RandomizerType::New();
 
     int antsRandomSeed = 1234;
