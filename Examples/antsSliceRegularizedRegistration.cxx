@@ -845,7 +845,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
   {
   /** FIXME - this should be vectorized: DRY */
   typename TXType::ParametersType pOld = transformList[i]->GetParameters();
-  typename TXType::ParametersType p = transformList[i]->GetParameters();
+  typename TXType::ParametersType p = transformUList[i]->GetParameters();
   if ( polydegree[ 0 ] > 0 ) p[ 0 ] = solnx[ i ];
   if ( polydegree[ 1 ] > 0 ) p[ 1 ] = solny[ i ];
   param_values( i, 0 ) = p[ 0 ];
