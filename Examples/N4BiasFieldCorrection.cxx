@@ -14,6 +14,7 @@
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkN4BiasFieldCorrectionImageFilter.h"
 #include "itkShrinkImageFilter.h"
+#include "itkBinShrinkImageFilter.h"
 #include "itkTimeProbe.h"
 
 #include <string>
@@ -355,12 +356,12 @@ int N4( itk::ants::CommandLineParser *parser )
       }
     }
 
-  using ShrinkerType = itk::ShrinkImageFilter<ImageType, ImageType>;
+  using ShrinkerType = itk::BinShrinkImageFilter<ImageType, ImageType>;
   typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
   shrinker->SetInput( inputImage );
   shrinker->SetShrinkFactors( 1 );
 
-  using MaskShrinkerType = itk::ShrinkImageFilter<MaskImageType, MaskImageType>;
+  using MaskShrinkerType = itk::BinShrinkImageFilter<MaskImageType, MaskImageType>;
   typename MaskShrinkerType::Pointer maskshrinker = MaskShrinkerType::New();
   maskshrinker->SetInput( maskImage );
   maskshrinker->SetShrinkFactors( 1 );
@@ -388,7 +389,7 @@ int N4( itk::ants::CommandLineParser *parser )
   correcter->SetInput( shrinker->GetOutput() );
   correcter->SetMaskImage( maskshrinker->GetOutput() );
 
-  using WeightShrinkerType = itk::ShrinkImageFilter<ImageType, ImageType>;
+  using WeightShrinkerType = itk::BinShrinkImageFilter<ImageType, ImageType>;
   typename WeightShrinkerType::Pointer weightshrinker = WeightShrinkerType::New();
   if( weightImage )
     {
