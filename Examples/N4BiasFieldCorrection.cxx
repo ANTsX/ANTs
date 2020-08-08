@@ -71,6 +71,12 @@ int N4( itk::ants::CommandLineParser *parser )
 {
   using RealType = float;
 
+  using ImageType = itk::Image<RealType, ImageDimension>;
+  typename ImageType::Pointer inputImage = nullptr;
+
+  using MaskImageType = itk::Image<RealType, ImageDimension>;
+  typename MaskImageType::Pointer maskImage = nullptr;
+
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
     parser->GetOption( "verbose" );
@@ -80,35 +86,13 @@ int N4( itk::ants::CommandLineParser *parser )
     }
   if( verbose )
     {
-    std::cout << std::endl << "Creating ImageType" << std::endl;
-    }
-  using ImageType = itk::Image<RealType, ImageDimension>;
-  typename ImageType::Pointer inputImage = nullptr;
-
-  if( verbose )
-    {
-    std::cout << std::endl << "Creating MaskImageType" << std::endl;
-    }
-  using MaskImageType = itk::Image<RealType, ImageDimension>;
-  typename MaskImageType::Pointer maskImage = nullptr;
-
-  if( verbose )
-    {
     std::cout << std::endl << "Running N4 for "
              << ImageDimension << "-dimensional images." << std::endl << std::endl;
     }
 
-  if( verbose )
-    {
-    std::cout << std::endl << "Getting CorrecterType" << std::endl;
-    }
   using CorrecterType = itk::N4BiasFieldCorrectionImageFilter<ImageType, MaskImageType, ImageType>;
   typename CorrecterType::Pointer correcter = CorrecterType::New();
 
-  if( verbose )
-    {
-    std::cout << std::endl << "Reading in Input Image" << std::endl;
-    }
   typename itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
   if( inputImageOption && inputImageOption->GetNumberOfFunctions() )
@@ -133,36 +117,13 @@ int N4( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
     parser->GetOption( "mask-image" );
-  if( verbose )
-    {
-    std::cout << std::endl << "maskImageOption: " << maskImageOption << std::endl;
-    }    
   if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
-    { 
+    {
     std::string inputMaskFile = maskImageOption->GetFunction( 0 )->GetName();
-    if( verbose )
-    {
-        std::cout << std::endl << "Reading in Mask file: " << inputMaskFile << std::endl;
-    }    
-    // ReadImage<MaskImageType>( maskImage, inputMaskFile.c_str() );
-    using MaskImageReaderType = itk::ImageFileReader<MaskImageType>;
-    typename MaskImageReaderType::Pointer maskImageReader = MaskImageReaderType::New();
-    maskImageReader->SetFileName( inputMaskFile.c_str() );
-    maskImage = maskImageReader->GetOutput();
-    maskImage->Update();
-    maskImage->DisconnectPipeline();
+    ReadImage<MaskImageType>( maskImage, inputMaskFile.c_str() );
 
-    if( verbose )
-    {
-        std::cout << std::endl << "maskImage is read" << std::endl;
-    }    
     isMaskImageSpecified = true;
     }
-    
-  if( verbose )
-  {
-      std::cout << std::endl << "Checking mask NULL" << std::endl;
-  }     
   if( maskImage.IsNull() )
     {
     if( verbose )
@@ -179,10 +140,6 @@ int N4( itk::ants::CommandLineParser *parser )
   /**
    * check for negative values in the masked region
    */
-    if( verbose )
-    {
-        std::cout << std::endl << "Checking for Negative Values" << std::endl;
-    }
   using ThresholderType = itk::BinaryThresholdImageFilter<MaskImageType, MaskImageType>;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
   thresholder->SetInsideValue( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
@@ -191,10 +148,6 @@ int N4( itk::ants::CommandLineParser *parser )
   thresholder->SetUpperThreshold( itk::NumericTraits<typename MaskImageType::PixelType>::ZeroValue() );
   thresholder->SetInput( maskImage );
 
-    if( verbose )
-    {
-        std::cout << std::endl << "Running LabelStatisticsImageFilter" << std::endl;
-    }
   using StatsType = itk::LabelStatisticsImageFilter<ImageType, MaskImageType>;
   typename StatsType::Pointer statsOriginal = StatsType::New();
   statsOriginal->SetInput( inputImage );
