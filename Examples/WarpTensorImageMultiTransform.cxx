@@ -105,7 +105,7 @@ static bool WarpTensorImageMultiTransform_ParseInput(int argc, char * *argv, cha
       std::string prefix = argv[ind];
       std::string path, name, ext;
       FilePartsWithgz(prefix, path, name, ext);
-      if( ext == "" )
+      if( ext.empty() )
         {
         ext = ".nii.gz";
         }
@@ -143,7 +143,7 @@ static bool WarpTensorImageMultiTransform_ParseInput(int argc, char * *argv, cha
       std::string prefix = argv[ind];
       std::string path, name, ext;
       FilePartsWithgz(prefix, path, name, ext);
-      if( ext == "" )
+      if( ext.empty() )
         {
         ext = ".nii.gz";
         }
@@ -273,24 +273,17 @@ static void WarpImageMultiTransform(char *moving_image_filename, char *output_im
                                     TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
 {
   // typedef itk::Vector<float,6> PixelType;
-  typedef itk::SymmetricSecondRankTensor<float,
-                                         3>                       PixelType;
-  typedef itk::Image<PixelType,
-                     ImageDimension>                              TensorImageType;
-  typedef itk::Image<float,
-                     ImageDimension>                              ImageType;
-  typedef itk::Vector<float,
-                      ImageDimension>                             VectorType;
-  typedef itk::Image<VectorType,
-                     ImageDimension>                              DisplacementFieldType;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension>          AffineTransformType;
-  typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType,
-                                             AffineTransformType> WarperType;
+  using PixelType = itk::SymmetricSecondRankTensor<float, 3>;
+  using TensorImageType = itk::Image<PixelType, ImageDimension>;
+  using ImageType = itk::Image<float, ImageDimension>;
+  using VectorType = itk::Vector<float, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
+  using WarperType = itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType, AffineTransformType>;
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
-  typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
+  using ImageFileReaderType = itk::ImageFileReader<ImageType>;
   // typename ImageFileReaderType::Pointer reader_img = ImageFileReaderType::New();
   // reader_img->SetFileName(moving_image_filename);
   // reader_img->Update();
@@ -316,7 +309,7 @@ static void WarpImageMultiTransform(char *moving_image_filename, char *output_im
     AllocImage<TensorImageType>(img_ref);
   for( unsigned int tensdim = 0;  tensdim < 6;  tensdim++ )
     {
-    typedef itk::VectorIndexSelectionCastImageFilter<TensorImageType, ImageType> IndexSelectCasterType;
+    using IndexSelectCasterType = itk::VectorIndexSelectionCastImageFilter<TensorImageType, ImageType>;
     typename IndexSelectCasterType::Pointer fieldCaster = IndexSelectCasterType::New();
     fieldCaster->SetInput( img_mov );
     fieldCaster->SetIndex( tensdim );
@@ -334,16 +327,14 @@ static void WarpImageMultiTransform(char *moving_image_filename, char *output_im
 
     if( misc_opt.use_NN_interpolator )
       {
-      typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,
-                                                                    typename WarperType::CoordRepType>
-        NNInterpolateType;
+      using NNInterpolateType = typename itk::NearestNeighborInterpolateImageFunction<ImageType, typename WarperType::CoordRepType>;
       typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
       std::cout << "Haha" << std::endl;
       warper->SetInterpolator(interpolator_NN);
       }
 
-    typedef itk::TransformFileReader                    TranReaderType;
-    typedef itk::ImageFileReader<DisplacementFieldType> FieldReaderType;
+    using TranReaderType = itk::TransformFileReader;
+    using FieldReaderType = itk::ImageFileReader<DisplacementFieldType>;
 
     unsigned int transcount = 0;
     const int    kOptQueueSize = opt_queue.size();
@@ -464,7 +455,7 @@ static void WarpImageMultiTransform(char *moving_image_filename, char *output_im
     warper->DetermineFirstDeformNoInterp();
     warper->Update();
 
-    typedef itk::ImageRegionIteratorWithIndex<TensorImageType> Iterator;
+    using Iterator = itk::ImageRegionIteratorWithIndex<TensorImageType>;
     Iterator vfIter2( img_output, img_output->GetLargestPossibleRegion() );
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
@@ -572,7 +563,7 @@ private:
       "Applies the inversion of abcdAffine.txt and then abcdInverseWarpxvec.nii.gz/abcdInverseWarpyvec.nii.gz/abcdInverseWarpzvec.nii.gz. Use this with ANTS to get the reference_image warped into the moving_image domain. "
              << std::endl
              << "Note: " << std::endl
-             << "prefix name \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
+             << R"(prefix name "abcd" without any extension will use ".nii.gz" by default)" << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {

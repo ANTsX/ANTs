@@ -21,9 +21,9 @@ namespace ants
 template <unsigned int ImageDimension>
 int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
 {
-  typedef int PixelType;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typedef itk::Image<float, ImageDimension> RealImageType;
+  using PixelType = int;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
+  using RealImageType = itk::Image<float, ImageDimension>;
 
   typename ImageType::Pointer inputImage = nullptr;
   ReadImage<ImageType>( inputImage, argv[2] );
@@ -53,14 +53,14 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
     prefactor *= static_cast<float>( spacing[d] );
     }
 
-  typedef itk::RelabelComponentImageFilter<ImageType, ImageType> RelabelerType;
+  using RelabelerType = itk::RelabelComponentImageFilter<ImageType, ImageType>;
   typename RelabelerType::Pointer relabeler = RelabelerType::New();
   relabeler->SetInput( inputImage );
   relabeler->Update();
 
   for( unsigned int i = 1; i <= relabeler->GetNumberOfObjects(); i++ )
     {
-    typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
+    using ThresholderType = itk::BinaryThresholdImageFilter<ImageType, ImageType>;
     typename ThresholderType::Pointer thresholder = ThresholderType::New();
     thresholder->SetInput( relabeler->GetOutput() );
     thresholder->SetLowerThreshold( i );
@@ -69,7 +69,7 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
     thresholder->SetOutsideValue( 0 );
     thresholder->Update();
 
-    typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> ConnectedComponentType;
+    using ConnectedComponentType = itk::ConnectedComponentImageFilter<ImageType, ImageType>;
     typename ConnectedComponentType::Pointer filter = ConnectedComponentType::New();
     filter->SetInput( thresholder->GetOutput() );
     filter->Update();
@@ -78,7 +78,7 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
     relabeler2->SetInput( filter->GetOutput() );
     relabeler2->Update();
 
-    typedef itk::LabelGeometryImageFilter<ImageType, RealImageType> GeometryFilterType;
+    using GeometryFilterType = itk::LabelGeometryImageFilter<ImageType, RealImageType>;
     typename GeometryFilterType::Pointer geometry = GeometryFilterType::New();
     geometry->SetInput( relabeler2->GetOutput() );
     geometry->CalculatePixelIndicesOff();
@@ -86,7 +86,7 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
     geometry->CalculateOrientedLabelRegionsOff();
     geometry->Update();
 
-    typedef itk::LabelPerimeterEstimationCalculator<ImageType> AreaFilterType;
+    using AreaFilterType = itk::LabelPerimeterEstimationCalculator<ImageType>;
     typename AreaFilterType::Pointer area = AreaFilterType::New();
     area->SetImage( relabeler2->GetOutput() );
     area->Compute();

@@ -48,6 +48,7 @@ public:
 
   using OutputImageType = TOutputImage;
   using OutputImagePointer = typename OutputImageType::Pointer;
+  using OutputPixelComponentType = typename Superclass::OutputPixelComponentType;
 
   /** Method for creation through the object factory. */
   itkNewMacro( Self );

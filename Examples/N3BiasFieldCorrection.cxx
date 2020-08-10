@@ -18,9 +18,9 @@ template <typename TFilter>
 class CommandIterationUpdate final : public itk::Command
 {
 public:
-  typedef CommandIterationUpdate  Self;
-  typedef itk::Command            Superclass;
-  typedef itk::SmartPointer<Self> Pointer;
+  using Self = CommandIterationUpdate<TFilter>;
+  using Superclass = itk::Command;
+  using Pointer = itk::SmartPointer<Self>;
   itkNewMacro( Self );
 protected:
   CommandIterationUpdate() = default;
@@ -53,14 +53,14 @@ public:
 template <unsigned int ImageDimension>
 int N3BiasFieldCorrection( int argc, char *argv[] )
 {
-  typedef float RealType;
+  using RealType = float;
 
-  typedef itk::Image<RealType, ImageDimension>      ImageType;
-  typedef itk::Image<unsigned char, ImageDimension> MaskImageType;
+  using ImageType = itk::Image<RealType, ImageDimension>;
+  using MaskImageType = itk::Image<unsigned char, ImageDimension>;
   typename ImageType::Pointer image;
   ReadImage<ImageType>( image, argv[2] );
 
-  typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
+  using ShrinkerType = itk::ShrinkImageFilter<ImageType, ImageType>;
   typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
   shrinker->SetInput( image );
   shrinker->SetShrinkFactors( 1 );
@@ -73,8 +73,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
     }
   if( !maskImage )
     {
-    typedef itk::OtsuThresholdImageFilter<ImageType, MaskImageType>
-      ThresholderType;
+    using ThresholderType = itk::OtsuThresholdImageFilter<ImageType, MaskImageType>;
     typename ThresholderType::Pointer otsu = ThresholderType::New();
     otsu->SetInput( image );
     otsu->SetNumberOfHistogramBins( 200 );
@@ -84,11 +83,13 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
     maskImage = otsu->GetOutput();
     }
-  typedef itk::ShrinkImageFilter<MaskImageType, MaskImageType> MaskShrinkerType;
+  using MaskShrinkerType = itk::ShrinkImageFilter<MaskImageType, MaskImageType>;
   typename MaskShrinkerType::Pointer maskshrinker = MaskShrinkerType::New();
   maskshrinker->SetInput( maskImage );
   maskshrinker->SetShrinkFactors( 1 );
 
+  // 4 is [shrinkFactor]
+  // 5 is [maskImage]
   if( argc > 4 )
     {
     shrinker->SetShrinkFactors( std::stoi( argv[4] ) );
@@ -97,28 +98,31 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
   shrinker->Update();
   maskshrinker->Update();
 
-  typedef itk::N3MRIBiasFieldCorrectionImageFilter<ImageType, MaskImageType,
-                                                   ImageType> CorrecterType;
+  using CorrecterType = itk::N3MRIBiasFieldCorrectionImageFilter<ImageType, MaskImageType, ImageType>;
   typename CorrecterType::Pointer correcter = CorrecterType::New();
   correcter->SetInput( shrinker->GetOutput() );
   correcter->SetMaskImage( maskshrinker->GetOutput() );
 
+  // 6 is [numberOfIterations]
   if( argc > 6 )
     {
     correcter->SetMaximumNumberOfIterations( std::stoi( argv[6] ) );
     }
+  // 7 is [numberOfFittingLevels]
   if( argc > 7 )
     {
     correcter->SetNumberOfFittingLevels( std::stoi( argv[7] ) );
     }
 
+  // 8 is [outputBiasField]
+  // 9 is [verbose]
   bool verbose = false;
-  if( argc > 7 )
+  if( argc > 9 )
     {
-    verbose = std::stoi( argv[8] );
+    verbose = static_cast<bool>(std::stoi( argv[9] ));
     }
 
-  typedef CommandIterationUpdate<CorrecterType> CommandType;
+  using CommandType = CommandIterationUpdate<CorrecterType>;
   typename CommandType::Pointer observer = CommandType::New();
   if ( verbose )
     {
@@ -141,9 +145,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
    * the original input image by the bias field to get the final
    * corrected image.
    */
-  typedef itk::BSplineControlPointImageFilter<typename
-                                              CorrecterType::BiasFieldControlPointLatticeType, typename
-                                              CorrecterType::ScalarImageType> BSplinerType;
+  using BSplinerType = itk::BSplineControlPointImageFilter<typename CorrecterType::BiasFieldControlPointLatticeType, typename CorrecterType::ScalarImageType>;
   typename BSplinerType::Pointer bspliner = BSplinerType::New();
   bspliner->SetInput( correcter->GetLogBiasFieldControlPointLattice() );
   bspliner->SetSplineOrder( correcter->GetSplineOrder() );
@@ -167,18 +169,18 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
     ItF.Set( ItB.Get()[0] );
     }
 
-  typedef itk::ExpImageFilter<ImageType, ImageType> ExpFilterType;
+  using ExpFilterType = itk::ExpImageFilter<ImageType, ImageType>;
   typename ExpFilterType::Pointer expFilter = ExpFilterType::New();
   expFilter->SetInput( logField );
   expFilter->Update();
 
-  typedef itk::DivideImageFilter<ImageType, ImageType, ImageType> DividerType;
+  using DividerType = itk::DivideImageFilter<ImageType, ImageType, ImageType>;
   typename DividerType::Pointer divider = DividerType::New();
   divider->SetInput1( image );
   divider->SetInput2( expFilter->GetOutput() );
   divider->Update();
 
-  typedef itk::ImageFileWriter<ImageType> WriterType;
+  using WriterType = itk::ImageFileWriter<ImageType>;
   typename WriterType::Pointer writer = WriterType::New();
   if( argc < 4 )
     {

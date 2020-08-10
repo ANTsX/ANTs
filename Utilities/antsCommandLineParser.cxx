@@ -23,7 +23,7 @@ namespace ants
 
   std::string ConvertToHumanReadable(const std::string & input)
     {
-    typedef std::map<std::string,std::string> TypeMapType;
+    using TypeMapType = std::map<std::string, std::string>;
     TypeMapType cnvtMap;
     cnvtMap[typeid(signed char).name()] = "signed int";
     cnvtMap[typeid(unsigned char).name()] = "unsigned int";
@@ -125,12 +125,12 @@ CommandLineParser
       {
       continue;
       }
-    if ( name.size() > 0 )
+    if ( !name.empty() )
       {
       allFlagsAreValid &= this->ValidateFlag( name );
       }
     if( ( !( name.empty() ) ) &&
-        ( name.size() > 0 )
+        ( !name.empty() )
       )
       {
       OptionType::Pointer option = this->GetOption( name );
@@ -374,7 +374,7 @@ ValidateFlag(const std::string & currentFlag)
       }
     }
 
-  if ( ( ! validFlagFound ) && ( currentFlag.size() > 0 ) && ( itk::Math::FloatAlmostEqual( atof( currentFlag.c_str() ), 0.0 ) ) )
+  if ( ( ! validFlagFound ) && ( !currentFlag.empty() ) && ( itk::Math::FloatAlmostEqual( atof( currentFlag.c_str() ), 0.0 ) ) )
     {
     std::cout << "ERROR:  Invalid flag provided " << currentFlag << std::endl;
     }
@@ -461,7 +461,7 @@ CommandLineParser
       if( (*it)->GetFunctions().size() == 1 )
         {
         os << indent << indent << "<VALUES>: " << (*it)->GetFunction( 0 )->GetName();
-        if( (*it)->GetFunction( 0 )->GetParameters().size() > 0 )
+        if( !(*it)->GetFunction( 0 )->GetParameters().empty() )
           {
           os << "[";
           if( (*it)->GetFunction( 0 )->GetParameters().size() == 1 )
@@ -486,7 +486,7 @@ CommandLineParser
         for( unsigned int n = 0; n < (*it)->GetFunctions().size() - 1; n++ )
           {
           os << (*it)->GetFunction( n )->GetName();
-          if( (*it)->GetFunction( n )->GetParameters().size() > 0 )
+          if( !(*it)->GetFunction( n )->GetParameters().empty() )
             {
             os << "[";
             if( (*it)->GetFunction( n )->GetParameters().size() == 1 )
@@ -513,7 +513,7 @@ CommandLineParser
         unsigned int nn = (*it)->GetFunctions().size() - static_cast<std::size_t>( 1 );
 
         os << (*it)->GetFunction( nn )->GetName();
-        if( (*it)->GetFunction( nn )->GetParameters().size() > 0 )
+        if( !(*it)->GetFunction( nn )->GetParameters().empty() )
           {
           os << "[";
           if( (*it)->GetFunction( nn )->GetParameters().size() == 1 )
@@ -602,7 +602,7 @@ CommandLineParser
 
   for( it = this->m_Options.begin(); it != this->m_Options.end(); ++it )
     {
-    typedef OptionType::FunctionStackType OptionFunctionStackType;
+    using OptionFunctionStackType = OptionType::FunctionStackType;
     OptionFunctionStackType functions = (*it)->GetFunctions();
 
     OptionFunctionStackType::const_iterator it2;
@@ -651,7 +651,7 @@ CommandLineParser
     (*it)->Print( os, indent );
     }
 
-  if( this->m_UnknownOptions.size() )
+  if( !this->m_UnknownOptions.empty() )
     {
     os << indent << "Unknown Options: " << std::endl;
     OptionListType::const_iterator its;

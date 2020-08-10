@@ -35,9 +35,9 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
     std::cerr << "inputImageType is not used, therefore only mode 0 is supported at the momemnt." << std::endl;
     return EXIT_FAILURE;
     }
-  typedef double                           PixelType;
+  using PixelType = double;
 
-  typedef itk::Image<PixelType, Dimension> ImageType;
+  using ImageType = itk::Image<PixelType, Dimension>;
 
   typename ImageType::Pointer inputImage;
   typename ImageType::Pointer outputImage;
@@ -59,7 +59,7 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
 
     std::cout << "Input image: " << inputOption->GetFunction()->GetName() << std::endl;
 
-    typedef itk::ImageFileReader<ImageType> ReaderType;
+    using ReaderType = itk::ImageFileReader<ImageType>;
     typename ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName( ( inputOption->GetFunction()->GetName() ).c_str() );
     reader->Update();
@@ -91,7 +91,7 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
     */
 
   // read in the image as char since we only need the header information.
-  typedef itk::Image<char, Dimension> ReferenceImageType;
+  using ReferenceImageType = itk::Image<char, Dimension>;
   typename ReferenceImageType::Pointer referenceImage;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer referenceOption =
@@ -101,7 +101,7 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
     std::cout << "Reference image: " << referenceOption->GetFunction()->GetName() << std::endl;
 
     // read in the image as char since we only need the header information.
-    typedef itk::ImageFileReader<ReferenceImageType> ReferenceReaderType;
+    using ReferenceReaderType = itk::ImageFileReader<ReferenceImageType>;
     typename ReferenceReaderType::Pointer referenceReader =
       ReferenceReaderType::New();
     referenceReader->SetFileName( ( referenceOption->GetFunction()->GetName() ).c_str() );
@@ -120,7 +120,7 @@ int antsAlignOriginImplementation( itk::ants::CommandLineParser::Pointer & parse
   translation = referenceImage->GetDirection() * inputImage->GetDirection() * translation;
   std::cout << "offset = " << translation << std::endl;
 
-  typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> TransformType;
+  using TransformType = itk::MatrixOffsetTransformBase<double, Dimension, Dimension>;
   typename TransformType::Pointer transform = TransformType::New();
   transform->SetIdentity();
   transform->SetTranslation( translation );
@@ -323,7 +323,7 @@ private:
     parser->GetOption( "input-image-type" );
 
   itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-      filename.c_str(), itk::ImageIOFactory::FileModeType::ReadMode );
+      filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
   unsigned int dimension = imageIO->GetNumberOfDimensions();
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =

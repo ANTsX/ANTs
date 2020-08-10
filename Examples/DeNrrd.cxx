@@ -103,11 +103,10 @@ private:
   const char * const output_image_filename = argv[2];
   const char * const output_gradients_filename = argv[3];
 
-  typedef float                             PixelType;
-  typedef itk::VectorImage<PixelType,3>	    DiffusionImageType;
+  using PixelType = float;
+  using DiffusionImageType = itk::VectorImage<PixelType, 3>;
 
-  typedef itk::ImageFileReader<DiffusionImageType,
-  itk::DefaultConvertPixelTraits< PixelType > > FileReaderType;
+  using FileReaderType = itk::ImageFileReader<DiffusionImageType, itk::DefaultConvertPixelTraits<PixelType> >;
   FileReaderType::Pointer reader = FileReaderType::New();
   reader->SetFileName(input_image_filename);
   reader->Update();
@@ -232,7 +231,7 @@ private:
 */
 
 
-  typedef itk::ImageFileWriter<DiffusionImageType> FileWriterType;
+  using FileWriterType = itk::ImageFileWriter<DiffusionImageType>;
   FileWriterType::Pointer writer = FileWriterType::New();
   writer->SetFileName(output_image_filename);
   writer->SetInput( reader->GetOutput() );

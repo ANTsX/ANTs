@@ -113,12 +113,11 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
 //    typedef itk::Vector<float, ImageDimension> VectorType;
 //    typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
 
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension> AffineTransformType;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
 //    typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType,
 //            DisplacementFieldType, AffineTransformType> WarperType;
 
-  typedef itk::AverageAffineTransformNoRigidFunction<AffineTransformType> WarperType;
+  using WarperType = itk::AverageAffineTransformNoRigidFunction<AffineTransformType>;
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
@@ -135,7 +134,7 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
 //    pad.Fill(0);
 // warper->SetEdgePaddingValue(pad);
 
-  typedef itk::TransformFileReader TranReaderType;
+  using TranReaderType = itk::TransformFileReader;
 
 //    typedef itk::ImageFileReader<DisplacementFieldType> FieldReaderType;
 
@@ -178,7 +177,7 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
       }
     }
 
-  typedef typename WarperType::PointType PointType;
+  using PointType = typename WarperType::PointType;
   PointType aff_center;
 
   typename AffineTransformType::Pointer aff_ref_tmp;
@@ -214,7 +213,7 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
 
   average_func.AverageMultipleAffineTransform(aff_center, aff_output);
 
-  typedef itk::TransformFileWriter TranWriterType;
+  using TranWriterType = itk::TransformFileWriter;
   typename TranWriterType::Pointer tran_writer = TranWriterType::New();
   tran_writer->SetFileName(output_affine_txt);
   tran_writer->SetInput(aff_output);

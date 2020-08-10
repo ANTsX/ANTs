@@ -454,7 +454,7 @@ int StudentsTestOnImages(int argc, char *argv[])
   // Get the image dimension
   std::string               fn = std::string(argv[5]);
   itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+    itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
   imageIO->SetFileName(fn.c_str() );
   imageIO->ReadImageInformation();
   typename ImageType::SizeType size;

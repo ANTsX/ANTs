@@ -604,15 +604,13 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 
 //     InternalMatrixType A, Q, R;
 
-  typedef vnl_matrix<TScalarType> TMatrix;
+  typedef vnl_matrix_fixed<TScalarType, 3U, 3U> TMatrix;
 
-  TMatrix A, R, Q;
+  const TMatrix A{this->GetMatrix().GetVnlMatrix()};
+  vnl_qr<ScalarType> myqr(A.as_matrix());
 
-  A = this->GetMatrix().GetVnlMatrix();
-  vnl_qr<ScalarType> myqr(A);
-
-  Q = myqr.Q();   // Q() is the rotation
-  R = myqr.R();   // R() is the upper triangluar
+  TMatrix Q = myqr.Q();   // Q() is the rotation
+  TMatrix R = myqr.R();   // R() is the upper triangluar
 
   // songgang: anyone added this???
   //      this is not necessary, for the mirror case
@@ -650,7 +648,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
     }
   if( itk::Math::FloatAlmostEqual( maxTr, trB ) )
     {
-    TMatrix dq(3, 3, 0);
+    TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
     dq(0, 0) = 1;
     dq(1, 1) = -1;
     dq(2, 2) = -1;
@@ -660,7 +658,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 
   if( itk::Math::FloatAlmostEqual( maxTr, trC ) )
     {
-    TMatrix dq(3, 3, 0);
+    TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
     dq(0, 0) = -1;
     dq(1, 1) = 1;
     dq(2, 2) = -1;
@@ -670,7 +668,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 
   if( itk::Math::FloatAlmostEqual( maxTr, trD ) )
     {
-    TMatrix dq(3, 3, 0);
+    TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
     dq(0, 0) = -1;
     dq(1, 1) = -1;
     dq(2, 2) = 1;

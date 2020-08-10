@@ -23,17 +23,17 @@ template <typename TFilter>
 class CommandProgressUpdate : public itk::Command
 {
 public:
-  typedef  CommandProgressUpdate                      Self;
-  typedef  itk::Command                               Superclass;
-  typedef  itk::SmartPointer<CommandProgressUpdate>  Pointer;
+  using Self = CommandProgressUpdate<TFilter>;
+  using Superclass = itk::Command;
+  using Pointer = itk::SmartPointer<CommandProgressUpdate<TFilter> >;
   itkNewMacro( CommandProgressUpdate );
 protected:
 
-  CommandProgressUpdate() : m_CurrentProgress( 0 ) {};
+  CommandProgressUpdate()  = default;;
 
-  typedef TFilter FilterType;
+  using FilterType = TFilter;
 
-  unsigned int m_CurrentProgress;
+  unsigned int m_CurrentProgress{ 0 };
 
 public:
 
@@ -86,9 +86,9 @@ public:
 template <unsigned int ImageDimension>
 int Denoise( itk::ants::CommandLineParser *parser )
 {
-  typedef float RealType;
+  using RealType = float;
 
-  typedef typename itk::ants::CommandLineParser::OptionType   OptionType;
+  using OptionType = typename itk::ants::CommandLineParser::OptionType;
 
   bool verbose = false;
   typename itk::ants::CommandLineParser::OptionType::Pointer verboseOption =
@@ -104,7 +104,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
              << ImageDimension << "-dimensional images." << std::endl << std::endl;
     }
 
-  typedef itk::Image<RealType, ImageDimension> ImageType;
+  using ImageType = itk::Image<RealType, ImageDimension>;
   typename ImageType::Pointer inputImage = nullptr;
 
   //typedef itk::Image<RealType, ImageDimension> MaskImageType;
@@ -127,10 +127,10 @@ int Denoise( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
 
-  typedef itk::AdaptiveNonLocalMeansDenoisingImageFilter<ImageType, ImageType> DenoiserType;
+  using DenoiserType = itk::AdaptiveNonLocalMeansDenoisingImageFilter<ImageType, ImageType>;
   typename DenoiserType::Pointer denoiser = DenoiserType::New();
 
-  typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
+  using ShrinkerType = itk::ShrinkImageFilter<ImageType, ImageType>;
   typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
   shrinker->SetInput( inputImage );
   shrinker->SetShrinkFactors( 1 );
@@ -180,7 +180,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
   /**
    * handle the mask image
    */
-  typedef typename DenoiserType::MaskImageType MaskImageType;
+  using MaskImageType = typename DenoiserType::MaskImageType;
   typename MaskImageType::Pointer maskImage = nullptr;
 
   typename OptionType::Pointer maskImageOption = parser->GetOption( "mask-image" );
@@ -281,7 +281,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
   if( verbose )
     {
-    typedef CommandProgressUpdate<DenoiserType> CommandType;
+    using CommandType = CommandProgressUpdate<DenoiserType>;
     typename CommandType::Pointer observer = CommandType::New();
     denoiser->AddObserver( itk::ProgressEvent(), observer );
     }
@@ -322,21 +322,21 @@ int Denoise( itk::ants::CommandLineParser *parser )
     /**
      * Get the noise image and resample to full resolution
      */
-    typedef itk::SubtractImageFilter<ImageType, ImageType, ImageType> SubtracterType;
+    using SubtracterType = itk::SubtractImageFilter<ImageType, ImageType, ImageType>;
     typename SubtracterType::Pointer subtracter = SubtracterType::New();
     subtracter->SetInput1( denoiser->GetInput() );
     subtracter->SetInput2( denoiser->GetOutput() );
 
-    typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
+    using ResamplerType = itk::ResampleImageFilter<ImageType, ImageType, RealType>;
     typename ResamplerType::Pointer resampler = ResamplerType::New();
     {
-      typedef itk::IdentityTransform<RealType, ImageDimension> TransformType;
+      using TransformType = itk::IdentityTransform<RealType, ImageDimension>;
       typename TransformType::Pointer transform = TransformType::New();
       transform->SetIdentity();
       resampler->SetTransform( transform );
     }
     {
-      typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
+      using LinearInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
       typename LinearInterpolatorType::Pointer interpolator = LinearInterpolatorType::New();
       interpolator->SetInputImage( subtracter->GetOutput() );
       resampler->SetInterpolator( interpolator );
@@ -374,7 +374,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
+  using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
   std::string description =
@@ -649,7 +649,7 @@ private:
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::FileModeType::ReadMode );
+        filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
 

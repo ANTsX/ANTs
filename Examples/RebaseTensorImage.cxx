@@ -91,9 +91,9 @@ private:
     return EXIT_FAILURE;
     }
 
-  typedef itk::DiffusionTensor3D<double> PixelType;
-  typedef itk::Image<PixelType, 3>       TensorImageType;
-  typedef itk::Image<float, 3>           ImageType;
+  using PixelType = itk::DiffusionTensor3D<double>;
+  using TensorImageType = itk::Image<PixelType, 3>;
+  using ImageType = itk::Image<float, 3>;
 
 
   // No reason to use log-euclidean space

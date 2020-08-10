@@ -20,11 +20,11 @@ namespace ants
 template <unsigned int ImageDimension>
 int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 {
-  typedef float                                 RealType;
-  typedef unsigned int                          LabelType;
-  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
+  using RealType = float;
+  using LabelType = unsigned int;
+  using LabelImageType = itk::Image<LabelType, ImageDimension>;
 
-  typedef itk::ImageFileReader<LabelImageType> ImageReaderType;
+  using ImageReaderType = itk::ImageFileReader<LabelImageType>;
   typename ImageReaderType::Pointer fixedReader = ImageReaderType::New();
   fixedReader->SetFileName( argv[1] );
   fixedReader->Update();
@@ -41,7 +41,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 
   const bool filterHandlesMemory = false;
 
-  typedef itk::ImportImageFilter<LabelType, ImageDimension> ImporterType;
+  using ImporterType = itk::ImportImageFilter<LabelType, ImageDimension>;
   typename ImporterType::Pointer importer = ImporterType::New();
   importer->SetImportPointer( const_cast<LabelType *>( fixedImage->GetBufferPointer() ), numberOfPixels, filterHandlesMemory );
   importer->SetRegion( fixedImage->GetBufferedRegion() );
@@ -59,10 +59,10 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-  typedef itk::Vector<RealType, ImageDimension>  VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
+  using VectorType = itk::Vector<RealType, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
 
-  typedef itk::PointSet<LabelType, ImageDimension> PointSetType;
+  using PointSetType = itk::PointSet<LabelType, ImageDimension>;
 
   typename PointSetType::Pointer fixedPoints = PointSetType::New();
   fixedPoints->Initialize();
@@ -246,10 +246,9 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 
   // Now match up the center points
 
-  typedef itk::PointSet<VectorType, ImageDimension> DisplacementFieldPointSetType;
-  typedef itk::BSplineScatteredDataPointSetToImageFilter
-    <DisplacementFieldPointSetType, DisplacementFieldType> BSplineFilterType;
-  typedef typename BSplineFilterType::WeightsContainerType WeightsContainerType;
+  using DisplacementFieldPointSetType = itk::PointSet<VectorType, ImageDimension>;
+  using BSplineFilterType = itk::BSplineScatteredDataPointSetToImageFilter<DisplacementFieldPointSetType, DisplacementFieldType>;
+  using WeightsContainerType = typename BSplineFilterType::WeightsContainerType;
 
   typename WeightsContainerType::Pointer weights = WeightsContainerType::New();
   weights->Initialize();
@@ -413,7 +412,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   bspliner->SetPointWeights( weights );
   bspliner->Update();
 
-  typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, RealType> InterpolatorType;
+  using InterpolatorType = itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, RealType>;
   typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
   interpolator->SetInputImage( bspliner->GetOutput() );
 
@@ -458,7 +457,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
     ++mIt;
     }
 
-  typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
+  using WriterType = itk::ImageFileWriter<DisplacementFieldType>;
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( argv[3] );
   writer->SetInput( bspliner->GetOutput() );
@@ -541,7 +540,7 @@ private:
   // Get the image dimension
   std::string               fn = std::string(argv[1]);
   itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+    itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
   imageIO->SetFileName(fn.c_str() );
   imageIO->ReadImageInformation();
 

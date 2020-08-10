@@ -42,10 +42,10 @@ class SurfaceCurvatureBase : public ProcessObject
 public:
 
   /** Standard class typedefs. */
-  typedef SurfaceCurvatureBase     Self;
-  typedef ProcessObject            Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  using Self = SurfaceCurvatureBase<TSurface, TDimension>;
+  using Superclass = ProcessObject;
+  using Pointer = SmartPointer<Self>;
+  using ConstPointer = SmartPointer<const Self>;
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(SurfaceCurvatureBase, ProcessObject);
@@ -54,22 +54,20 @@ public:
   itkNewMacro(Self);
 
   /** Image types. */
-  typedef TSurface SurfaceType;
+  using SurfaceType = TSurface;
 
   /** Image dimension. */
 //  static constexpr unsigned int ImageDimension = TImage::ImageDimension;
   static constexpr unsigned int ImageDimension = TDimension;
   static constexpr unsigned int SurfaceDimension = TDimension;
 
-  typedef float                RealType;
-  typedef vnl_vector<RealType> VectorType;
-  typedef vnl_vector_fixed<RealType, itkGetStaticConstMacro(ImageDimension)>
-    FixedVectorType;
-  typedef vnl_vector_fixed<RealType, itkGetStaticConstMacro(ImageDimension)>
-    PointType;
-  typedef vnl_matrix<double>     MatrixType;
-  typedef std::vector<PointType> PointContainerType;
-  typedef std::vector<float>     FunctionContainerType;
+  using RealType = float;
+  using VectorType = vnl_vector<RealType>;
+  using FixedVectorType = vnl_vector_fixed<RealType, (Self::ImageDimension)>;
+  using PointType = vnl_vector_fixed<RealType, (Self::ImageDimension)>;
+  using MatrixType = vnl_matrix<double>;
+  using PointContainerType = std::vector<PointType>;
+  using FunctionContainerType = std::vector<float>;
 
   /** Set input parameter file */
   itkSetStringMacro( ParameterFileName );
@@ -136,7 +134,7 @@ public:
   /** This function returns the angle between the reference tangent
       and the projection onto the tangent plane of the vector between
       the neighborhood focus and its neighbor. */
-  virtual RealType  GetTheta(PointType Neighbor, PointType origin);
+  virtual RealType  GetTheta(PointType Q, PointType origin);
 
   /** Estimate the directional curvature using Shimshoni's method (eq 6).*/
   virtual void EstimateDirectionalCurvature(PointType, PointType);

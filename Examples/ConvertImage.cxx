@@ -14,13 +14,13 @@ namespace ants
 template <typename TPixel, unsigned int ImageDimension>
 int ConvertImage( int argc, char *argv[] )
 {
-  typedef TPixel OutputPixelType;
+  using OutputPixelType = TPixel;
 
   if( argc > 4 && std::stoi( argv[4] ) == 9 )
     {
-    typedef itk::Vector<OutputPixelType, ImageDimension> VectorType;
-    typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
-    typedef itk::Image<OutputPixelType, ImageDimension> ComponentImageType;
+    using VectorType = itk::Vector<OutputPixelType, ImageDimension>;
+    using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+    using ComponentImageType = itk::Image<OutputPixelType, ImageDimension>;
 
     typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
 
@@ -71,16 +71,16 @@ int ConvertImage( int argc, char *argv[] )
     }
   else if( argc > 4 && std::stoi( argv[4] ) == 10 )
     {
-    typedef itk::Vector<OutputPixelType, ImageDimension> VectorType;
-    typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
-    typedef itk::Image<OutputPixelType, ImageDimension> ComponentImageType;
+    using VectorType = itk::Vector<OutputPixelType, ImageDimension>;
+    using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+    using ComponentImageType = itk::Image<OutputPixelType, ImageDimension>;
 
     typename DisplacementFieldType::Pointer inputImage;
     ReadImage<DisplacementFieldType>( inputImage, argv[2] );
 
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      typedef itk::VectorIndexSelectionCastImageFilter<DisplacementFieldType, ComponentImageType> SelectorType;
+      using SelectorType = itk::VectorIndexSelectionCastImageFilter<DisplacementFieldType, ComponentImageType>;
       typename SelectorType::Pointer selector = SelectorType::New();
       selector->SetInput( inputImage );
       selector->SetIndex( d );
@@ -105,11 +105,11 @@ int ConvertImage( int argc, char *argv[] )
     }
   else if( argc > 4 && std::stoi( argv[4] ) == 11 )
     {
-    typedef itk::Vector<OutputPixelType, ImageDimension> VectorType;
-    typedef itk::Image<VectorType, ImageDimension+1> VelocityFieldType;
-    typedef itk::Image<OutputPixelType, ImageDimension+1> ComponentImageType;
+    using VectorType = itk::Vector<OutputPixelType, ImageDimension>;
+    using VelocityFieldType = itk::Image<VectorType, ImageDimension + 1>;
+    using ComponentImageType = itk::Image<OutputPixelType, ImageDimension + 1>;
 
-    typedef itk::ImageFileReader<VelocityFieldType> ReaderType;
+    using ReaderType = itk::ImageFileReader<VelocityFieldType>;
     typename ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName( argv[2] );
     reader->Update();
@@ -119,7 +119,7 @@ int ConvertImage( int argc, char *argv[] )
 
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      typedef itk::VectorIndexSelectionCastImageFilter<VelocityFieldType, ComponentImageType> SelectorType;
+      using SelectorType = itk::VectorIndexSelectionCastImageFilter<VelocityFieldType, ComponentImageType>;
       typename SelectorType::Pointer selector = SelectorType::New();
       selector->SetInput( reader->GetOutput() );
       selector->SetIndex( d );
@@ -143,8 +143,8 @@ int ConvertImage( int argc, char *argv[] )
     }
   else if( argc > 4 && std::stoi( argv[4] ) == 12 )
     {
-    typedef itk::Vector<OutputPixelType, ImageDimension> VectorType;
-    typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
+    using VectorType = itk::Vector<OutputPixelType, ImageDimension>;
+    using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
 
     typename DisplacementFieldType::Pointer displacementField;
     ReadImage<DisplacementFieldType>( displacementField, argv[2] );
@@ -153,9 +153,9 @@ int ConvertImage( int argc, char *argv[] )
     }
   else if( argc == 4 || ( argc > 4 && std::stoi( argv[4] ) < 9 ) )
     {
-    typedef typename itk::NumericTraits<OutputPixelType>::RealType RealType;
-    typedef itk::Image<RealType, ImageDimension> InputImageType;
-    typedef itk::Image<OutputPixelType, ImageDimension> OutputImageType;
+    using RealType = typename itk::NumericTraits<OutputPixelType>::RealType;
+    using InputImageType = itk::Image<RealType, ImageDimension>;
+    using OutputImageType = itk::Image<OutputPixelType, ImageDimension>;
 
     typename InputImageType::Pointer inputImage;
     ReadImage<InputImageType>( inputImage, argv[2] );
@@ -180,7 +180,7 @@ int ConvertImage( int argc, char *argv[] )
 
     if( isRescaleType )
       {
-      typedef itk::RescaleIntensityImageFilter<InputImageType, OutputImageType> FilterType;
+      using FilterType = itk::RescaleIntensityImageFilter<InputImageType, OutputImageType>;
       typename FilterType::Pointer filter = FilterType::New();
       filter->SetInput( inputImage );
       filter->SetOutputMinimum( itk::NumericTraits<OutputPixelType>::min() );
@@ -191,7 +191,7 @@ int ConvertImage( int argc, char *argv[] )
       }
     else
       {
-      typedef itk::CastImageFilter<InputImageType, OutputImageType> CasterType;
+      using CasterType = itk::CastImageFilter<InputImageType, OutputImageType>;
       typename CasterType::Pointer caster = CasterType::New();
       caster->SetInput( inputImage );
       caster->Update();

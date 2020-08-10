@@ -41,12 +41,12 @@ int ResetDirection(int argc, char *argv[])
     return EXIT_FAILURE;
     }
 
-  typedef  float                                     outPixelType;
-  typedef  float                                     inPixelType;
-  typedef itk::Image<inPixelType, ImageDimension>    ImageType;
-  typedef itk::Image<outPixelType, ImageDimension>   OutImageType;
-  typedef itk::ImageFileReader<ImageType>            readertype;
-  typedef itk::ImageFileWriter<OutImageType>         writertype;
+  using outPixelType = float;
+  using inPixelType = float;
+  using ImageType = itk::Image<inPixelType, ImageDimension>;
+  using OutImageType = itk::Image<outPixelType, ImageDimension>;
+  using readertype = itk::ImageFileReader<ImageType>;
+  using writertype = itk::ImageFileWriter<OutImageType>;
 
   typename readertype::Pointer reader = readertype::New();
   reader->SetFileName(argv[1]);
@@ -56,7 +56,7 @@ int ResetDirection(int argc, char *argv[])
   typename OutImageType::DirectionType direction = outim->GetDirection();
   direction.SetIdentity();
 
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
   typename ImageType::Pointer varimage = AllocImage<ImageType>(outim);
   varimage->SetDirection( direction );
 
@@ -136,7 +136,7 @@ private:
   std::string               fn = std::string(argv[1]);
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(
-      fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
   imageIO->SetFileName(fn.c_str() );
   imageIO->ReadImageInformation();
 

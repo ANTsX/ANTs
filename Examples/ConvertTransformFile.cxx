@@ -80,14 +80,14 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
 {
   const unsigned int ImageDimension = TTransform::InputSpaceDimension;
 
-  typedef typename TTransform::ScalarType ScalarType;
+  using ScalarType = typename TTransform::ScalarType;
 
   matrix.Fill( itk::NumericTraits<typename TTransform::ScalarType>::ZeroValue() );
   bool done = false;
 
   // Matrix-offset derived
     {
-    typedef itk::MatrixOffsetTransformBase<ScalarType, ImageDimension, ImageDimension> CastTransformType;
+    using CastTransformType = itk::MatrixOffsetTransformBase<ScalarType, ImageDimension, ImageDimension>;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
@@ -100,7 +100,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
   // Translation
   if( !done )
     {
-    typedef itk::TranslationTransform<ScalarType, ImageDimension> CastTransformType;
+    using CastTransformType = itk::TranslationTransform<ScalarType, ImageDimension>;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
@@ -116,7 +116,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
   // Identity
   if( !done )
     {
-    typedef itk::IdentityTransform<ScalarType, ImageDimension> CastTransformType;
+    using CastTransformType = itk::IdentityTransform<ScalarType, ImageDimension>;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
@@ -147,7 +147,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
       v_lps_to_ras[1] = -1.0;
       }
     vnl_diag_matrix<ScalarType> m_lps_to_ras(v_lps_to_ras);
-    vnl_matrix<ScalarType>      mold = matrix.GetVnlMatrix();
+    vnl_matrix<ScalarType>      mold = matrix.GetVnlMatrix().as_matrix();
     matrix.GetVnlMatrix().update(m_lps_to_ras * mold * m_lps_to_ras);
     }
 
@@ -162,7 +162,7 @@ bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatr
 {
   const unsigned int ImageDimension = TTransform::InputSpaceDimension;
 
-  typedef typename TTransform::ScalarType ScalarType;
+  using ScalarType = typename TTransform::ScalarType;
 
   hMatrix.Fill( itk::NumericTraits<ScalarType>::ZeroValue() );
 
@@ -192,7 +192,7 @@ bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatr
 
   // Identity
     {
-    typedef itk::IdentityTransform<ScalarType, ImageDimension> CastTransformType;
+    using CastTransformType = itk::IdentityTransform<ScalarType, ImageDimension>;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
@@ -207,7 +207,7 @@ bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatr
 
   // Matrix-offset derived
     {
-    typedef itk::MatrixOffsetTransformBase<ScalarType, ImageDimension, ImageDimension> CastTransformType;
+    using CastTransformType = itk::MatrixOffsetTransformBase<ScalarType, ImageDimension, ImageDimension>;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
@@ -220,7 +220,7 @@ bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatr
   // Translation
   if( !done )
     {
-    typedef itk::TranslationTransform<ScalarType, ImageDimension> CastTransformType;
+    using CastTransformType = itk::TranslationTransform<ScalarType, ImageDimension>;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
@@ -322,9 +322,9 @@ int ConvertTransformFile(int argc, char* argv[])
   std::string outFilename = std::string( argv[outFilenamePos] );
 
   // Read the transform
-  typedef itk::Transform<double, ImageDimension, ImageDimension> TransformType;
+  using TransformType = itk::Transform<double, ImageDimension, ImageDimension>;
   typename TransformType::Pointer transform;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> baseTransformType;
+  using baseTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
   itk::TransformFactory<baseTransformType>::RegisterTransform();
   transform = itk::ants::ReadTransform<double, ImageDimension>( inputFilename );
   if( transform.IsNull() )
@@ -349,7 +349,7 @@ int ConvertTransformFile(int argc, char* argv[])
 
     if( outputMatrix )
       {
-      typedef itk::Matrix<typename TransformType::ScalarType, ImageDimension, ImageDimension> MatrixType;
+      using MatrixType = itk::Matrix<typename TransformType::ScalarType, ImageDimension, ImageDimension>;
       MatrixType matrix;
       if( GetMatrix<TransformType>( transform, matrix, outputRAS ) )
         {
@@ -365,7 +365,7 @@ int ConvertTransformFile(int argc, char* argv[])
     else
       {
       // Homogeneous matrix
-      typedef itk::Matrix<typename TransformType::ScalarType, ImageDimension + 1, ImageDimension + 1> MatrixType;
+      using MatrixType = itk::Matrix<typename TransformType::ScalarType, ImageDimension + 1, ImageDimension + 1>;
       MatrixType hMatrix;
 
       if( GetHomogeneousMatrix<TransformType, MatrixType>( transform, hMatrix, outputRAS ) )
@@ -388,8 +388,7 @@ int ConvertTransformFile(int argc, char* argv[])
     // Convert to Affine and output as binary.
     // This is done by taking the matrix and offset from the transform
     // and assigning them to a new affine transform.
-    typedef itk::MatrixOffsetTransformBase<typename TransformType::ScalarType, ImageDimension,
-                                           ImageDimension> CastTransformType;
+    using CastTransformType = itk::MatrixOffsetTransformBase<typename TransformType::ScalarType, ImageDimension, ImageDimension>;
     typename CastTransformType::Pointer matrixOffsetTransform =
       dynamic_cast<CastTransformType *>(transform.GetPointer() );
     if( matrixOffsetTransform.IsNull() )
@@ -404,7 +403,7 @@ int ConvertTransformFile(int argc, char* argv[])
       std::cout << "Output filename '" << outFilename << "' must end in '.mat' for binary output." << std::endl;
       return EXIT_FAILURE;
       }
-    typedef itk::AffineTransform<typename TransformType::ScalarType, ImageDimension> AffineTransformType;
+    using AffineTransformType = itk::AffineTransform<typename TransformType::ScalarType, ImageDimension>;
     typename AffineTransformType::Pointer newAffineTransform = AffineTransformType::New();
     newAffineTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
     newAffineTransform->SetOffset( matrixOffsetTransform->GetOffset() );

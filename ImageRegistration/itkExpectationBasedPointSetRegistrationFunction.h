@@ -64,12 +64,10 @@ class ExpectationBasedPointSetRegistrationFunction final :
 {
 public:
   /** Standard class typedefs. */
-  typedef ExpectationBasedPointSetRegistrationFunction Self;
-  typedef PDEDeformableRegistrationFunction<TFixedImage,
-                                            TMovingImage, TDisplacementField
-                                            >    Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  using Self = ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>;
+  using Superclass = PDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>;
+  using Pointer = SmartPointer<Self>;
+  using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -79,77 +77,69 @@ public:
                 PDEDeformableRegistrationFunction );
 
   /** MovingImage image type. */
-  typedef typename Superclass::MovingImageType    MovingImageType;
-  typedef typename Superclass::MovingImagePointer MovingImagePointer;
+  using MovingImageType = typename Superclass::MovingImageType;
+  using MovingImagePointer = typename Superclass::MovingImagePointer;
 
   /** FixedImage image type. */
-  typedef typename Superclass::FixedImageType    FixedImageType;
-  typedef typename Superclass::FixedImagePointer FixedImagePointer;
-  typedef typename FixedImageType::PointType     ImagePointType;
-  typedef typename FixedImageType::IndexType     IndexType;
-  typedef typename FixedImageType::SizeType      SizeType;
-  typedef typename FixedImageType::SpacingType   SpacingType;
+  using FixedImageType = typename Superclass::FixedImageType;
+  using FixedImagePointer = typename Superclass::FixedImagePointer;
+  using ImagePointType = typename FixedImageType::PointType;
+  using IndexType = typename FixedImageType::IndexType;
+  using SizeType = typename FixedImageType::SizeType;
+  using SpacingType = typename FixedImageType::SpacingType;
 
   /** Deformation field type. */
-  typedef typename Superclass::DisplacementFieldType DisplacementFieldType;
-  typedef typename Superclass::DisplacementFieldTypePointer
-    DisplacementFieldTypePointer;
-  typedef typename DisplacementFieldType::PixelType VectorType;
+  using DisplacementFieldType = typename Superclass::DisplacementFieldType;
+  using DisplacementFieldTypePointer = typename Superclass::DisplacementFieldTypePointer;
+  using VectorType = typename DisplacementFieldType::PixelType;
 
   /** Inherit some enums from the superclass. */
   static constexpr unsigned  int ImageDimension = Superclass::ImageDimension;
   static constexpr unsigned  int MeasurementDimension = Superclass::ImageDimension;
 
   /** Inherit some enums from the superclass. */
-  typedef typename Superclass::PixelType        PixelType;
-  typedef typename Superclass::RadiusType       RadiusType;
-  typedef typename Superclass::NeighborhoodType NeighborhoodType;
-  typedef typename Superclass::FloatOffsetType  FloatOffsetType;
-  typedef typename Superclass::TimeStepType     TimeStepType;
+  using PixelType = typename Superclass::PixelType;
+  using RadiusType = typename Superclass::RadiusType;
+  using NeighborhoodType = typename Superclass::NeighborhoodType;
+  using FloatOffsetType = typename Superclass::FloatOffsetType;
+  using TimeStepType = typename Superclass::TimeStepType;
 
   /** Covariant vector type. */
-  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> CovariantVectorType;
+  using CovariantVectorType = CovariantVector<double, (Self::ImageDimension)>;
 
   /**  PointSet Types */
-  typedef  TPointSet                       PointSetType;
-  typedef  typename PointSetType::Pointer  PointSetPointer;
-  typedef typename PointSetType::PointType PointType;
-  typedef typename PointSetType::PixelType PointDataType;
-  typedef std::vector<PointDataType>       LabelSetType;
+  using PointSetType = TPointSet;
+  using PointSetPointer = typename PointSetType::Pointer;
+  using PointType = typename PointSetType::PointType;
+  using PointDataType = typename PointSetType::PixelType;
+  using LabelSetType = std::vector<PointDataType>;
 //  typedef long PointDataType;
-  typedef Vector<typename PointSetType::CoordRepType, MeasurementDimension> MeasurementVectorType;
-  typedef typename Statistics::ListSample<MeasurementVectorType>            SampleType;
-  typedef typename
-    Statistics::WeightedCentroidKdTreeGenerator<SampleType>   TreeGeneratorType;
-  typedef typename TreeGeneratorType::KdTreeType::
-    InstanceIdentifierVectorType                              NeighborhoodIdentifierType;
+  using MeasurementVectorType = Vector<typename PointSetType::CoordRepType, MeasurementDimension>;
+  using SampleType = typename Statistics::ListSample<MeasurementVectorType>;
+  using TreeGeneratorType = typename Statistics::WeightedCentroidKdTreeGenerator<SampleType>;
+  using NeighborhoodIdentifierType = typename TreeGeneratorType::KdTreeType::InstanceIdentifierVectorType;
 
   /** Bspline stuff */
-  typedef PointSet<VectorType,
-                   itkGetStaticConstMacro( ImageDimension )>              BSplinePointSetType;
-  typedef BSplineScatteredDataPointSetToImageFilter
-    <BSplinePointSetType, DisplacementFieldType>            BSplineFilterType;
-  typedef typename BSplineFilterType::WeightsContainerType BSplineWeightsType;
-  typedef typename BSplineFilterType::PointDataImageType   ControlPointLatticeType;
-  typedef typename BSplineFilterType::ArrayType            ArrayType;
+  using BSplinePointSetType = PointSet<VectorType, (Self::ImageDimension)>;
+  using BSplineFilterType = BSplineScatteredDataPointSetToImageFilter<BSplinePointSetType, DisplacementFieldType>;
+  using BSplineWeightsType = typename BSplineFilterType::WeightsContainerType;
+  using ControlPointLatticeType = typename BSplineFilterType::PointDataImageType;
+  using ArrayType = typename BSplineFilterType::ArrayType;
 
   /** Other typedef */
-  typedef  float RealType;
-  typedef  float OutputType;
-  typedef typename Statistics
-    ::MersenneTwisterRandomVariateGenerator                  RandomizerType;
-  typedef typename Statistics
-    ::GaussianMembershipFunction<VectorType>          GaussianType;
+  using RealType = float;
+  using OutputType = float;
+  using RandomizerType = Statistics::MersenneTwisterRandomVariateGenerator;
+  using GaussianType = typename Statistics::GaussianMembershipFunction<VectorType>;
 
   /** Fixed image gradient calculator type. */
-  typedef CentralDifferenceImageFunction<FixedImageType> GradientCalculatorType;
-  typedef typename GradientCalculatorType::Pointer       GradientCalculatorPointer;
+  using GradientCalculatorType = CentralDifferenceImageFunction<FixedImageType>;
+  using GradientCalculatorPointer = typename GradientCalculatorType::Pointer;
 
   /** Moving image gradient calculator type. */
 
-  typedef CentralDifferenceImageFunction<MovingImageType> MovingImageGradientCalculatorType;
-  typedef typename MovingImageGradientCalculatorType::Pointer
-    MovingImageGradientCalculatorPointer;
+  using MovingImageGradientCalculatorType = CentralDifferenceImageFunction<MovingImageType>;
+  using MovingImageGradientCalculatorPointer = typename MovingImageGradientCalculatorType::Pointer;
 
   /** This class uses a constant timestep of 1. */
   TimeStepType ComputeGlobalTimeStep(void * itkNotUsed(GlobalData) ) const override
@@ -161,7 +151,7 @@ public:
    * this object from the solver at each calculation.  */
   void * GetGlobalDataPointer() const override
   {
-    GlobalDataStruct *global = new GlobalDataStruct();
+    auto *global = new GlobalDataStruct();
 
     global->m_SumOfSquaredDifference  = 0.0;
     global->m_NumberOfPixelsProcessed = 0L;
@@ -170,21 +160,21 @@ public:
   }
 
   /** Release memory for global data structure. */
-  void ReleaseGlobalDataPointer( void *GlobalData ) const override;
+  void ReleaseGlobalDataPointer( void *gd ) const override;
 
   void ExpectationLandmarkField(float weight, bool whichdirection);
 
-  void FastExpectationLandmarkField(float weight, bool whichdirection, long whichlabel, bool dobsp);
+  void FastExpectationLandmarkField(float weight, bool whichdirection, long whichlabel, bool dobspline);
 
   /** Set the object's state before each iteration. */
   void InitializeIteration() override;
 
   /** This method is called by a finite difference solver image filter at
    * each pixel that does not lie on a data set boundary */
-  PixelType  ComputeUpdate(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
+  PixelType  ComputeUpdate(const NeighborhoodType & it, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
                                        0.0) ) override;
 
-  PixelType  ComputeUpdateInv(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
+  PixelType  ComputeUpdateInv(const NeighborhoodType & it, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
                                           0.0) ) override;
 
   /** Get the metric value. The metric value is the mean square difference
@@ -246,14 +236,13 @@ public:
 
 protected:
   ExpectationBasedPointSetRegistrationFunction();
-  virtual ~ExpectationBasedPointSetRegistrationFunction() override
-  {
-  }
+  ~ExpectationBasedPointSetRegistrationFunction() override
+  = default;
 
   void PrintSelf(std::ostream& os, Indent indent) const override;
 
   /** FixedImage image neighborhood iterator type. */
-  typedef ConstNeighborhoodIterator<FixedImageType> FixedImageNeighborhoodIteratorType;
+  using FixedImageNeighborhoodIteratorType = ConstNeighborhoodIterator<FixedImageType>;
 
   /** A global data type for this class of equation. Used to store
    * information for computing the metric. */

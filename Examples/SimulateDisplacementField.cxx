@@ -16,6 +16,7 @@
 #include <algorithm>
 #include "ReadWriteData.h"
 
+#include "itkCastImageFilter.h"
 #include "itkSimulatedBSplineDisplacementFieldSource.h"
 #include "itkSimulatedExponentialDisplacementFieldSource.h"
 
@@ -27,13 +28,13 @@ namespace ants
 template <unsigned int ImageDimension>
 int SimulateDisplacementField( int argc, char *argv[] )
 {
-  typedef double RealType;
-  typedef itk::Image<RealType, ImageDimension> RealImageType;
-  typedef itk::Vector<RealType, ImageDimension> VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
+  using RealType = float;
+  using ImageType = itk::Image<RealType, ImageDimension>;
+  using VectorType = itk::Vector<RealType, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
 
-  typename RealImageType::Pointer domainImage;
-  ReadImage<RealImageType>( domainImage, argv[3] );
+  typename ImageType::Pointer domainImage;
+  ReadImage<ImageType>( domainImage, argv[3] );
 
   if ( argc < 5 )
     {
@@ -63,7 +64,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
 
   if( strcmp( argv[2], "BSpline" ) == 0 || strcmp( argv[2], "bspline" ) == 0 )
     {
-    typedef itk::SimulatedBSplineDisplacementFieldSource<DisplacementFieldType> BSplineSimulatorType;
+    using BSplineSimulatorType = itk::SimulatedBSplineDisplacementFieldSource<DisplacementFieldType>;
 
     itk::SizeValueType numberOfFittingLevels = 4;
     if( argc > 8 )
@@ -95,8 +96,14 @@ int SimulateDisplacementField( int argc, char *argv[] )
         }
       }
 
+    using RealImageType = typename BSplineSimulatorType::RealImageType;
+    using CastImageFilterType = itk::CastImageFilter<ImageType, RealImageType>;
+    typename CastImageFilterType::Pointer caster = CastImageFilterType::New();
+    caster->SetInput( domainImage );
+    caster->Update();
+
     typename BSplineSimulatorType::Pointer bsplineSimulator = BSplineSimulatorType::New();
-    bsplineSimulator->SetDisplacementFieldDomainFromImage( domainImage );
+    bsplineSimulator->SetDisplacementFieldDomainFromImage( caster->GetOutput() );
     bsplineSimulator->SetNumberOfRandomPoints( numberOfRandomPoints );
     bsplineSimulator->SetEnforceStationaryBoundary( enforceStationaryBoundary );
     bsplineSimulator->SetDisplacementNoiseStandardDeviation( standardDeviationDisplacementField );
@@ -116,9 +123,16 @@ int SimulateDisplacementField( int argc, char *argv[] )
       standardDeviationSmoothing = static_cast<RealType>( std::stoi( argv[8] ) );
       }
 
-    typedef itk::SimulatedExponentialDisplacementFieldSource<DisplacementFieldType> ExponentialSimulatorType;
+    using ExponentialSimulatorType = itk::SimulatedExponentialDisplacementFieldSource<DisplacementFieldType>;
+
+    using RealImageType = typename ExponentialSimulatorType::RealImageType;
+    using CastImageFilterType = itk::CastImageFilter<ImageType, RealImageType>;
+    typename CastImageFilterType::Pointer caster = CastImageFilterType::New();
+    caster->SetInput( domainImage );
+    caster->Update();
+
     typename ExponentialSimulatorType::Pointer exponentialSimulator = ExponentialSimulatorType::New();
-    exponentialSimulator->SetDisplacementFieldDomainFromImage( domainImage );
+    exponentialSimulator->SetDisplacementFieldDomainFromImage( caster->GetOutput() );
     exponentialSimulator->SetNumberOfRandomPoints( numberOfRandomPoints );
     exponentialSimulator->SetEnforceStationaryBoundary( enforceStationaryBoundary );
     exponentialSimulator->SetDisplacementNoiseStandardDeviation( standardDeviationDisplacementField );

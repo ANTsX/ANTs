@@ -81,7 +81,7 @@ void PrintCommandLineHelp( const std::string & progName )
 template <unsigned int ImageDimension>
 int ANTSex(int argc, char *argv[])
 {
-  typedef itk::PICSLAdvancedNormalizationToolKit<ImageDimension, float> RegistrationType;
+  using RegistrationType = itk::PICSLAdvancedNormalizationToolKit<ImageDimension, float>;
   typename RegistrationType::Pointer registration = RegistrationType::New();
   registration->ParseCommandLine( argc, argv );
   std::cout << " Run Reg " << std::endl;
@@ -190,14 +190,14 @@ private:
   if( argc == 3 && ( std::stoi( argv[1] ) != '-' || std::stoi( argv[1] ) != 2 || std::stoi( argv[1] ) != 3 ) )
     {
     itk::ImageIOBase::Pointer fixedImageIO
-      = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::FileModeType::ReadMode );
+      = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::FileModeEnum::ReadMode );
     if( fixedImageIO.IsNull() )
       {
       std::cerr << "Invalid fixed image: " << argv[1] << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer movingImageIO
-      = itk::ImageIOFactory::CreateImageIO( argv[2], itk::ImageIOFactory::FileModeType::ReadMode );
+      = itk::ImageIOFactory::CreateImageIO( argv[2], itk::ImageIOFactory::FileModeEnum::ReadMode );
     if( movingImageIO.IsNull() )
       {
       std::cerr << "Invalid moving image: " << argv[2] << std::endl;

@@ -7,6 +7,8 @@
 =========================================================
 
 [![Build Status](https://travis-ci.org/ANTsX/ANTs.svg?branch=master)](https://travis-ci.org/ANTsX/ANTs)
+[![ANTsX](https://circleci.com/gh/ANTsX/ANTs.svg?style=shield)](https://app.circleci.com/pipelines/github/ANTsX/ANTs)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
 ANTs computes high-dimensional mappings to capture the statistics of brain
 structure and function.  See the [collection of examples at this page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd).
@@ -33,7 +35,7 @@ ANTs and related tools have won several international and unbiased competitions.
 
 [ANTsPy](https://github.com/ANTsX/ANTsPy) is pythonic ANTs/ANTsR. See [this content too](https://github.com/stnava/ANTsRPy).
 
-Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2) ... also read our [guide to evaluation strategies and addressing new problems with ANTs or other software](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3766821/).  
+Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2) ... also read our [guide to evaluation strategies and addressing new problems with ANTs or other software](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3766821/).
 
 The [ANTs handout](https://github.com/stnava/ANTsTutorial/raw/master/handout/antsHandout.pdf), part of forthcoming [ANTs tutorial](https://github.com/stnava/ANTsTutorial) material [here](https://github.com/stnava/ANTsTutorial) and [here](https://rpubs.com/antsr/).
 

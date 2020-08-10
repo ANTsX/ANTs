@@ -20,11 +20,10 @@ namespace ants
 template <int ImageDimension>
 int CreateZeroImage( int argc, char *argv[] )
 {
-  typedef float                                 PixelType;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  using PixelType = float;
+  using ImageType = itk::Image<PixelType, ImageDimension>;
 
-  typedef typename
-    itk::Statistics::MersenneTwisterRandomVariateGenerator GeneratorType;
+  using GeneratorType = itk::Statistics::MersenneTwisterRandomVariateGenerator;
   typename GeneratorType::Pointer generator = GeneratorType::New();
   generator->Initialize();
   generator->SetSeed();
@@ -105,7 +104,7 @@ int CreateZeroImage( int argc, char *argv[] )
       ++count;
       }
 
-    typedef itk::ImageFileWriter<ImageType> WriterType;
+    using WriterType = itk::ImageFileWriter<ImageType>;
     typename WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( argv[2] );
     writer->SetInput( image );
@@ -113,7 +112,7 @@ int CreateZeroImage( int argc, char *argv[] )
     }
   else if( pos != std::string::npos )
     {
-    typedef itk::ImageFileReader<ImageType> ReaderType;
+    using ReaderType = itk::ImageFileReader<ImageType>;
     typename ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName( argv[2] );
     reader->Update();
@@ -153,7 +152,7 @@ int CreateZeroImage( int argc, char *argv[] )
         }
       }
 
-    typedef itk::ImageFileWriter<ImageType> WriterType;
+    using WriterType = itk::ImageFileWriter<ImageType>;
     typename WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( argv[3] );
     writer->SetInput( image );
@@ -233,7 +232,7 @@ int CreateZeroImage( int argc, char *argv[] )
         }
       }
 
-    typedef itk::ImageFileWriter<ImageType> WriterType;
+    using WriterType = itk::ImageFileWriter<ImageType>;
     typename WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( argv[2] );
     writer->SetInput( image );

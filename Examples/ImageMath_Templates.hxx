@@ -114,6 +114,7 @@
 #include "itkTileImageFilter.h"
 #include "itkTimeProbe.h"
 #include "itkTranslationTransform.h"
+#include "itkUnsharpMaskImageFilter.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
@@ -1106,7 +1107,7 @@ int TileImages(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
 
@@ -2108,7 +2109,82 @@ int SharpenImage(int argc, char *argv[])
   filter->Update();
 
   WriteImage<ImageType>( filter->GetOutput(), outputFilename.c_str() );
-  return 0;
+  return EXIT_SUCCESS;
+}
+
+template <unsigned int ImageDimension>
+int UnsharpMaskImage(int argc, char *argv[])
+{
+  if( argc < 5 )
+    {
+    // std::cout << "Error.  Not enough arguments.  See help menu." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+
+  const std::string outputFilename = std::string( argv[2] );
+  const std::string inputFilename = std::string( argv[4] );
+
+  typename ImageType::Pointer inputImage = nullptr;
+  ReadImage<ImageType>( inputImage, inputFilename.c_str() );
+
+  auto & spacing = inputImage->GetSpacing();
+ 
+  // These are from the filter defaults
+  float amount = 0.5;
+  float radius = 1.0;
+  float threshold = 0;
+
+  bool radiusInSpacingUnits = false;
+
+  if (argc > 5)
+    {
+    amount = std::stof( std::string(argv[5]).c_str() );
+    }
+  if (argc > 6)
+    {
+    radius = std::stof( std::string(argv[6]).c_str() );
+    }
+  if (argc > 7)
+    {
+    threshold = std::stof( std::string(argv[7]).c_str() );
+    }
+  if (argc > 8)
+    {
+    radiusInSpacingUnits = std::stoi( std::string(argv[8]).c_str() );
+    }
+
+  typedef itk::UnsharpMaskImageFilter<ImageType, ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  typename FilterType::SigmaArrayType sigmaArray;
+
+  filter->SetAmount(amount);
+
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+     if (radiusInSpacingUnits) 
+       {
+       sigmaArray[d] = radius;
+       }
+     else
+       {
+       sigmaArray[d] = radius * spacing[d];
+       }
+    }
+
+  filter->SetSigmas(sigmaArray);
+
+  filter->SetThreshold(threshold);
+
+  filter->SetInput( inputImage );
+  filter->Update();
+
+  WriteImage<ImageType>( filter->GetOutput(), outputFilename.c_str() );
+
+  return EXIT_SUCCESS;
+
 }
 
 template <unsigned int ImageDimension>
@@ -5818,7 +5894,7 @@ int TensorFunctions(int argc, char *argv[])
       " Convert a 4D tensor to a 3D tensor --- if there are 7 components to the tensor, we throw away the first component b/c its probably b0 "
       << std::endl;
     itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
     imageIO->SetFileName(fn1.c_str() );
     imageIO->ReadImageInformation();
     unsigned int dim = imageIO->GetNumberOfDimensions();
@@ -7813,6 +7889,39 @@ int MorphImage(int argc, char *argv[])
 
   return 0;
 }
+
+template <unsigned int ImageDimension>
+int ExtractContours(int argc, char *argv[])
+{
+  typedef float                                    PixelType;
+  typedef itk::Image<PixelType, ImageDimension>    ImageType;
+
+  int argct = 2;
+  const std::string outname = std::string( argv[argct] );
+  argct += 2;
+  std::string fn1 = std::string( argv[argct] );
+  argct++;
+  bool doFullyConnected = true;
+  if( argc > 5 )
+    {
+    doFullyConnected = static_cast<bool>( std::stoi( argv[5] ) );
+    }
+
+  typename ImageType::Pointer inputImage = nullptr;
+  ReadImage<ImageType>( inputImage, fn1.c_str() );
+
+  typedef itk::LabelContourImageFilter<ImageType, ImageType> ContourFilterType;
+  typename ContourFilterType::Pointer contour = ContourFilterType::New();
+  contour->SetInput( inputImage );
+  contour->SetFullyConnected( doFullyConnected );
+  contour->SetBackgroundValue( itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() );
+  contour->Update();
+
+  WriteImage<ImageType>( contour->GetOutput(), outname.c_str() );
+
+  return EXIT_SUCCESS;
+}
+
 
 template <unsigned int ImageDimension>
 int FastMarchingSegmentation( unsigned int argc, char *argv[] )
@@ -11022,7 +11131,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
@@ -11319,7 +11428,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeType::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
@@ -14525,6 +14634,12 @@ ImageMathHelperAll(int argc, char **argv)
     SharpenImage<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
+  if( operation == "UnsharpMask" )
+    {
+    UnsharpMaskImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+
   if( operation == "MakeImage" )
     {
     MakeImage<DIM>(argc, argv);
@@ -14603,6 +14718,11 @@ ImageMathHelperAll(int argc, char **argv)
   if( operation == "ConvertVectorToImage" )
     {
     ConvertVectorToImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ExtractContours" )
+    {
+    ExtractContours<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
   if( operation == "PropagateLabelsThroughMask" )

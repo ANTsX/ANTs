@@ -25,6 +25,7 @@
 #include "itkExponentialDisplacementFieldImageFilter.h"
 #include "itkGaussianOperator.h"
 #include "itkGrayscaleDilateImageFilter.h"
+#include "itkImageDuplicator.h"
 #include "itkMultiplyImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkVectorNeighborhoodOperatorImageFilter.h"
@@ -63,7 +64,7 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>
   for( SizeValueType i = 0; i < ImageDimension; i++ )
     {
 
-    // The grayscale morphology filter ignores the negative values so we 
+    // The grayscale morphology filter ignores the negative values so we
     // have to handle the positive and negative values separately and put
     // them together at the end.
 
@@ -72,21 +73,21 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>
     componentImagePositive->CopyInformation( randomField );
     componentImagePositive->Allocate( true );
     componentImagePositive->FillBuffer( 0.0 );
-    
+
     typename RealImageType::Pointer componentImageNegative = RealImageType::New();
     componentImageNegative->SetRegions( this->GetOutputSize() );
     componentImageNegative->CopyInformation( randomField );
     componentImageNegative->Allocate( true );
     componentImageNegative->FillBuffer( 0.0 );
 
-    for( SizeValueType n = 0; n < this->GetNumberOfRandomPoints(); n++ ) 
+    for( SizeValueType n = 0; n < this->GetNumberOfRandomPoints(); n++ )
       {
       typename RealImageType::IndexType randomIndex;
       for( SizeValueType d = 0; d < ImageDimension; d++ )
         {
         randomIndex[d] = this->GetRandomizer()->GetIntegerVariate( outputSize[d] - 1 );
         }
-      RealType voxelValue = static_cast<RealType>( this->GetRandomizer()->GetNormalVariate( 
+      RealType voxelValue = static_cast<RealType>( this->GetRandomizer()->GetNormalVariate(
         NumericTraits<double>::ZeroValue(), std::pow( this->m_DisplacementNoiseStandardDeviation[i], 2 ) ) );
 
       if( voxelValue > 0 )
@@ -100,16 +101,16 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>
     StructuringElementType structuringElement;
     structuringElement.SetRadius( this->m_DilationRadius );
     structuringElement.CreateStructuringElement();
-  
-    using GrayscaleDilateImageFilterType = 
+
+    using GrayscaleDilateImageFilterType =
       GrayscaleDilateImageFilter<RealImageType, RealImageType, StructuringElementType>;
-  
-    typename GrayscaleDilateImageFilterType::Pointer dilateFilterPositive = 
+
+    typename GrayscaleDilateImageFilterType::Pointer dilateFilterPositive =
       GrayscaleDilateImageFilterType::New();
     dilateFilterPositive->SetInput( componentImagePositive );
     dilateFilterPositive->SetKernel( structuringElement );
 
-    typename GrayscaleDilateImageFilterType::Pointer dilateFilterNegative = 
+    typename GrayscaleDilateImageFilterType::Pointer dilateFilterNegative =
       GrayscaleDilateImageFilterType::New();
     dilateFilterNegative->SetInput( componentImageNegative );
     dilateFilterNegative->SetKernel( structuringElement );
@@ -145,7 +146,7 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>
   RealType variance = std::pow( this->m_SmoothingStandardDeviation, 2 );
   if( variance > 0.0 )
     {
-    using GaussianSmoothingOperatorType = GaussianOperator<RealType, ImageDimension>;
+    using GaussianSmoothingOperatorType = GaussianOperator<OutputPixelComponentType, ImageDimension>;
     GaussianSmoothingOperatorType gaussianSmoothingOperator;
 
     using GaussianSmoothingSmootherType = VectorNeighborhoodOperatorImageFilter<OutputImageType, OutputImageType>;
@@ -177,7 +178,7 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>
       randomFieldSmooth->Update();
       randomFieldSmooth->DisconnectPipeline();
       }
-    }  
+    }
 
   using ExponentiatorType = ExponentialDisplacementFieldImageFilter<OutputImageType, OutputImageType>;
   typename ExponentiatorType::Pointer exponentiator = ExponentiatorType::New();
@@ -217,9 +218,9 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>
     const SizeType size = region.GetSize();
     const typename OutputImageType::IndexType startIndex = region.GetIndex();
 
-    ImageRegionConstIteratorWithIndex<OutputImageType> ItF( 
+    ImageRegionConstIteratorWithIndex<OutputImageType> ItF(
       exponentiatedField, exponentiatedField->GetLargestPossibleRegion() );
-    ImageRegionIteratorWithIndex<OutputImageType> ItS( 
+    ImageRegionIteratorWithIndex<OutputImageType> ItS(
       exponentiatedFieldSmooth, exponentiatedFieldSmooth->GetLargestPossibleRegion() );
     for( ItF.GoToBegin(), ItS.GoToBegin(); !ItF.IsAtEnd(); ++ItF, ++ItS )
       {

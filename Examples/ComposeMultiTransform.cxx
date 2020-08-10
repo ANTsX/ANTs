@@ -79,19 +79,17 @@ template <int ImageDimension>
 void ComposeMultiTransform(char *output_image_filename,
                            char *reference_image_filename, TRAN_OPT_QUEUE & opt_queue)
 {
-  typedef itk::Image<float, ImageDimension>      ImageType;
-  typedef itk::Vector<float, ImageDimension>     VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension> AffineTransformType;
+  using ImageType = itk::Image<float, ImageDimension>;
+  using VectorType = itk::Vector<float, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
   // typedef itk::WarpImageMultiTransformFilter<ImageType,ImageType, DisplacementFieldType, AffineTransformType>
   // WarperType;
-  typedef itk::DisplacementFieldFromMultiTransformFilter<DisplacementFieldType,
-                                                         DisplacementFieldType, AffineTransformType> WarperType;
+  using WarperType = itk::DisplacementFieldFromMultiTransformFilter<DisplacementFieldType, DisplacementFieldType, AffineTransformType>;
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
-  typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
+  using ImageFileReaderType = itk::ImageFileReader<ImageType>;
   typename ImageFileReaderType::Pointer reader_img =
     ImageFileReaderType::New();
   typename ImageType::Pointer img_ref;
@@ -118,10 +116,9 @@ void ComposeMultiTransform(char *output_image_filename,
   pad.Fill(0);
   // warper->SetEdgePaddingValue(pad);
 
-  typedef itk::TransformFileReader TranReaderType;
+  using TranReaderType = itk::TransformFileReader;
 
-  typedef itk::ImageFileReader<DisplacementFieldType>
-    FieldReaderType;
+  using FieldReaderType = itk::ImageFileReader<DisplacementFieldType>;
 
   const int kOptQueueSize = opt_queue.size();
   for( int i = 0; i < kOptQueueSize; i++ )
@@ -181,7 +178,7 @@ void ComposeMultiTransform(char *output_image_filename,
   std::cout << "output extension is: " << extension << std::endl;
 
     {
-    typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
+    using WriterType = itk::ImageFileWriter<DisplacementFieldType>;
     typename WriterType::Pointer writer = WriterType::New();
     writer->SetFileName(output_image_filename);
     writer->SetInput(field_output);
@@ -193,20 +190,19 @@ template <int ImageDimension>
 void ComposeMultiAffine(char *output_affine_txt,
                         char *reference_affine_txt, TRAN_OPT_QUEUE & opt_queue)
 {
-  typedef itk::Image<float, ImageDimension>      ImageType;
-  typedef itk::Vector<float, ImageDimension>     VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
+  using ImageType = itk::Image<float, ImageDimension>;
+  using VectorType = itk::Vector<float, ImageDimension>;
+  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
 
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
+  using AffineTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
   // MatrixOffsetTransformBase is not usually registered, so register it here.
   // MatrixOffsetTransformBase should NOT be a valid transform type for writting,
   // but it is needed for historical reading purposes.
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
-  typedef itk::TransformFileReader TranReaderType;
+  using TranReaderType = itk::TransformFileReader;
 
-  typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType,
-                                             AffineTransformType> WarperType;
+  using WarperType = itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType, AffineTransformType>;
   typename WarperType::Pointer warper = WarperType::New();
   bool      has_affine_transform = false;
   const int kOptQueueSize = opt_queue.size();
@@ -266,13 +262,13 @@ void ComposeMultiAffine(char *output_affine_txt,
       }
     }
     {
-    typedef typename AffineTransformType::CenterType PointType;
+    using PointType = typename AffineTransformType::CenterType;
     const PointType aff_center = aff_ref_tmp->GetCenter();
     std::cout << "new center is : " << aff_center << std::endl;
       {
       typename AffineTransformType::Pointer aff_output = AffineTransformType::New();
       warper->ComposeAffineOnlySequence(aff_center, aff_output);
-      typedef itk::TransformFileWriter TranWriterType;
+      using TranWriterType = itk::TransformFileWriter;
       typename TranWriterType::Pointer tran_writer = TranWriterType::New();
       tran_writer->SetFileName(output_affine_txt);
       tran_writer->SetInput(aff_output);
