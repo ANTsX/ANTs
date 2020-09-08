@@ -116,11 +116,11 @@ set(CORE_ANTS_APPS
   LabelClustersUniquely
   Atropos
   antsApplyTransformsToPoints
-  ANTSIntegrateVelocityField
 )
 
 set(MORE_ANTS_APPS
     antsAI
+    ANTSIntegrateVelocityField
     antsJointTensorFusion
     ImageMath
     iMath
