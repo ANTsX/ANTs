@@ -35,8 +35,8 @@
 #include "itkFiniteDifferenceFunction.h"
 #include "itkFixedArray.h"
 #include "itkANTSSimilarityMetric.h"
-#include "itkExpandImageFilter.h"
 #include "itkPDEDeformableRegistrationFilter.h"
+#include "itkResampleImageFilter.h"
 #include "itkWarpImageFilter.h"
 #include "itkWarpImageMultiTransformFilter.h"
 #include "itkDisplacementFieldFromMultiTransformFilter.h"
@@ -350,71 +350,59 @@ public:
 
   TimeVaryingVelocityFieldPointer ExpandVelocity()
   {
-    float expandFactors[ImageDimension + 1];
+    using VelocityFieldSpacingType = typename TimeVaryingVelocityFieldType::SpacingType;
+    using VelocityFieldSizeType = typename TimeVaryingVelocityFieldType::SizeType;
 
-    expandFactors[ImageDimension] = 1;
-//     m_Debug = false;
-    for( unsigned int idim = 0; idim < ImageDimension; idim++ )
+    VelocityFieldSpacingType outputSpacing;
+    VelocityFieldSizeType outputSize;
+
+    VelocityFieldSpacingType inputSpacing = this->m_TimeVaryingVelocity->GetSpacing();
+    VelocityFieldSizeType inputSize = this->m_TimeVaryingVelocity->GetLargestPossibleRegion().GetSize();
+
+    for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      expandFactors[idim] = (float) this->m_CurrentDomainSize[idim]
-        / (TReal) this->m_TimeVaryingVelocity->GetLargestPossibleRegion().GetSize()[idim];
-      if( expandFactors[idim] < 1 )
-        {
-        expandFactors[idim] = 1;
-        }
-      if( this->m_Debug )
-        {
-        std::cout << " ExpFac " << expandFactors[idim] << " curdsz " << this->m_CurrentDomainSize[idim]
-                         << std::endl;
-        }
+      outputSize[d] = static_cast<typename VelocityFieldSizeType::SizeValueType>( this->m_CurrentDomainSize[d] );
+      outputSpacing[d] = inputSpacing[d] * static_cast<double>( inputSize[d] ) / static_cast<double>( outputSize[d] );
       }
-    VectorType pad;  pad.Fill(0);
-    typedef ExpandImageFilter<TimeVaryingVelocityFieldType, TimeVaryingVelocityFieldType> ExpanderType;
-    typename ExpanderType::Pointer m_FieldExpander = ExpanderType::New();
-    m_FieldExpander->SetInput(this->m_TimeVaryingVelocity);
-    m_FieldExpander->SetExpandFactors( expandFactors );
-//        m_FieldExpander->SetEdgePaddingValue( pad );
-    m_FieldExpander->UpdateLargestPossibleRegion();
-    return m_FieldExpander->GetOutput();
+
+    using ResamplerType = ResampleImageFilter<TimeVaryingVelocityFieldType, TimeVaryingVelocityFieldType>;
+    typename ResamplerType::Pointer resampler = ResamplerType::New();
+    resampler->SetInput( this->m_TimeVaryingVelocity );
+    resampler->SetOutputOrigin( this->m_TimeVaryingVelocity->GetOrigin() );
+    resampler->SetOutputDirection( this->m_TimeVaryingVelocity->GetDirection() );
+    resampler->SetOutputSpacing( outputSpacing );
+    resampler->SetSize( outputSize );
+    resampler->Update();
+
+    typename TimeVaryingVelocityFieldType::Pointer expandedField = resampler->GetOutput();
+    expandedField->DisconnectPipeline();
+
+    return( expandedField );
   }
 
-  DisplacementFieldPointer ExpandField(DisplacementFieldPointer field,  typename ImageType::SpacingType targetSpacing)
-  {
-//      this->m_Debug=true;
-    float expandFactors[ImageDimension];
+  DisplacementFieldPointer ExpandField( DisplacementFieldPointer field,  typename ImageType::SpacingType targetSpacing )
+    {
+    using DisplacementFieldSizeType = typename DisplacementFieldType::SizeType;
 
-    for( unsigned int idim = 0; idim < ImageDimension; idim++ )
+    DisplacementFieldSizeType outputSize;
+    for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      expandFactors[idim] = (TReal) this->m_CurrentDomainSize[idim]
-        / (TReal)field->GetLargestPossibleRegion().GetSize()[idim];
-      if( expandFactors[idim] < 1 )
-        {
-        expandFactors[idim] = 1;
-        }
-      //             if (this->m_Debug)  std::cout << " ExpFac " << expandFactors[idim] << " curdsz " <<
-      // this->m_CurrentDomainSize[idim] << std::endl;
+      outputSize[d] = static_cast<typename DisplacementFieldSizeType::SizeValueType>( this->m_CurrentDomainSize[d] );
       }
 
-    VectorType pad;
-    pad.Fill(0);
-    typedef ExpandImageFilter<DisplacementFieldType, DisplacementFieldType> ExpanderType;
-    typename ExpanderType::Pointer m_FieldExpander = ExpanderType::New();
-    m_FieldExpander->SetInput(field);
-    m_FieldExpander->SetExpandFactors( expandFactors );
-    // use default
-//        m_FieldExpander->SetEdgePaddingValue( pad );
-    m_FieldExpander->UpdateLargestPossibleRegion();
+    using ResamplerType = ResampleImageFilter<DisplacementFieldType, DisplacementFieldType>;
+    typename ResamplerType::Pointer resampler = ResamplerType::New();
+    resampler->SetInput( field );
+    resampler->SetOutputOrigin( field->GetOrigin() );
+    resampler->SetOutputDirection( field->GetDirection() );
+    resampler->SetOutputSpacing( targetSpacing );
+    resampler->SetSize( outputSize );
+    resampler->Update();
 
-    typename DisplacementFieldType::Pointer fieldout = m_FieldExpander->GetOutput();
-    fieldout->SetSpacing(targetSpacing);
-    fieldout->SetOrigin(field->GetOrigin() );
-    if( this->m_Debug )
-      {
-      std::cout << " Field size " << fieldout->GetLargestPossibleRegion().GetSize() << std::endl;
-      }
-    // this->m_Debug=false;
+    typename DisplacementFieldType::Pointer expandedField = resampler->GetOutput();
+    expandedField->DisconnectPipeline();
 
-    return fieldout;
+    return( expandedField );
   }
 
   ImagePointer GetVectorComponent(DisplacementFieldPointer field, unsigned int index)
