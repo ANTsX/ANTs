@@ -116,6 +116,7 @@ set(CORE_ANTS_APPS
   LabelClustersUniquely
   Atropos
   antsApplyTransformsToPoints
+  ANTSIntegrateVelocityField
 )
 
 set(MORE_ANTS_APPS
@@ -181,7 +182,6 @@ set(MORE_ANTS_APPS
     antsMotionCorrDiffusionDirection
     antsSliceRegularizedRegistration
     ANTSIntegrateVectorField
-    ANTSIntegrateVelocityField
     antsTransformInfo
     antsUtilitiesTesting
     AverageAffineTransform
@@ -259,4 +259,3 @@ endif()
 if(BUILD_TESTING)
     add_subdirectory(TestSuite)
 endif()
-
