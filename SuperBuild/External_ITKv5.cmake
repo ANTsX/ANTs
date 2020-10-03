@@ -153,7 +153,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
   set(${proj}_GIT_TAG e21a56d1227c5433066237060368cb4532b8a9d2)  # Adaptive denoising module 10/2/2020
-  set(ITK_VERSION_ID ITK-5.2 ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
+  set(ITK_VERSION_ID ITK-5.2) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
