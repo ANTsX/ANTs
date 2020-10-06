@@ -322,8 +322,8 @@ int N3( itk::ants::CommandLineParser *parser )
       std::cout << "which could cause failure or problematic results.  A" << std::endl;
       std::cout << "possible workaround would be to:" << std::endl;
       std::cout << "   1. rescale your image to positive values e.g., [10,100]." << std::endl;
-      std::cout << "   2. run N4 on your rescaled image." << std::endl;
-      std::cout << "   3. (optional) rescale the N4 output to the original" << std::endl;
+      std::cout << "   2. run N3 on your rescaled image." << std::endl;
+      std::cout << "   3. (optional) rescale the N3 output to the original" << std::endl;
       std::cout << "      intensity range." << std::endl;
       std::cout << "***********************************************************" << std::endl;
       std::cout << std::endl;
@@ -358,21 +358,15 @@ int N3( itk::ants::CommandLineParser *parser )
       correcter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
       correcter->SetConvergenceThreshold( 0.0 );
       }
-    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
-      {
-      correcter->SetNumberOfFittingLevels( parser->Convert<unsigned int>(
-                                            convergenceOption->GetFunction( 0 )->GetParameter( 1 ) ) );
-      }
-    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
+    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
       correcter->SetConvergenceThreshold( parser->Convert<float>(
-                                            convergenceOption->GetFunction( 0 )->GetParameter( 2 ) ) );
+                                            convergenceOption->GetFunction( 0 )->GetParameter( 1 ) ) );
       }
     }
   else // set default values
     {
     correcter->SetMaximumNumberOfIterations( 50 );
-    correcter->SetNumberOfFittingLevels( 4 );
     correcter->SetConvergenceThreshold( 0.0 );
     }
 
@@ -392,10 +386,15 @@ int N3( itk::ants::CommandLineParser *parser )
     parser->GetOption( "bspline-fitting" );
   if( bsplineOption && bsplineOption->GetNumberOfFunctions() )
     {
-    if( bsplineOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+    if( bsplineOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
       {
       correcter->SetSplineOrder( parser->Convert<unsigned int>(
-                                   bsplineOption->GetFunction( 0 )->GetParameter( 1 ) ) );
+                                   bsplineOption->GetFunction( 0 )->GetParameter( 2 ) ) );
+      }
+    if( bsplineOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+      {
+      correcter->SetNumberOfFittingLevels( parser->Convert<unsigned int>(
+                                            bsplineOption->GetFunction( 0 )->GetParameter( 1 ) ) );
       }
     if( bsplineOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
@@ -753,7 +752,7 @@ void N3InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   {
   std::string description =
     std::string( "A scalar image is expected as input for bias correction.  " )
-    + std::string( "Since N4 log transforms the intensities, negative values " )
+    + std::string( "Since N3 log transforms the intensities, negative values " )
     + std::string( "or values close to zero should be processed prior to " )
     + std::string( "correction." );
 
@@ -854,7 +853,7 @@ void N3InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "convergence" );
   option->SetShortName( 'c' );
-  option->SetUsageOption( 0, "[<numberOfIterations=50>,<numberOfFittingLevels=4>,<convergenceThreshold=0.0>]" );
+  option->SetUsageOption( 0, "[<numberOfIterations=50>,<convergenceThreshold=0.0>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
@@ -869,13 +868,13 @@ void N3InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     + std::string( "of the mesh elements. The latter option is typically preferred. " )
     + std::string( "The default setting " )
     + std::string( "is to employ a single mesh element over the entire domain, i.e., " )
-    + std::string( "-b [1x1x1,3]." );
+    + std::string( "-b [1x1x1,4,3]." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "bspline-fitting" );
   option->SetShortName( 'b' );
-  option->SetUsageOption( 0, "[splineDistance,<splineOrder=3>]" );
-  option->SetUsageOption( 1, "[meshResolution,<splineOrder=3>]" );
+  option->SetUsageOption( 0, "[splineDistance,<numberOfFittingLevels=4>,<splineOrder=3>]" );
+  option->SetUsageOption( 1, "[meshResolution,<numberOfFittingLevels=4>,<splineOrder=3>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
