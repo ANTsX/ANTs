@@ -38,5 +38,7 @@ workflows:
     jobs:
       - build_docker:
           filters:
+            branch:
+              only: master
             tags:
               only: /.*/
