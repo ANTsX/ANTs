@@ -952,10 +952,10 @@ void N3InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 int N3BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
 {
 
-  if( args.size() >= 1 && std::string( args[0] ) == std::string( "x" ) )
+  if( args.size() >= 1 && std::string( args[0] ) != std::string( "2" ) &&
+                          std::string( args[0] ) != std::string( "3" ) &&
+                          std::string( args[0] ) != std::string( "4" ) )
     {
-    args.erase( args.begin() );
-
     // put the arguments coming in as 'args' into standard (argc,argv) format;
     // 'args' doesn't have the command name as first, argument, so add it manually;
     // 'args' may have adjacent arguments concatenated into one argument,
