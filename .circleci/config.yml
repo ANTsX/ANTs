@@ -26,7 +26,7 @@ jobs:
           name: Deploy to Docker Hub
           no_output_timeout: 40m
           command: |
-            if [[ -n "$DOCKER_PASS" ]]; then
+            if [[ -n "$DOCKER_PASS" ]] && [[ "${CIRCLE_BRANCH}" == "master" ]] ; then
               docker login -u $DOCKER_USER -p $DOCKER_PASS
               docker push antsx/ants:latest
             fi
