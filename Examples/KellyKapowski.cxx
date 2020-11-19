@@ -626,7 +626,7 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "time-points" );
-  option->SetShortName( 'p' );
+  option->SetShortName( 'q' );
   option->SetUsageOption( 0, "1" );
   option->SetDescription( description );
   parser->AddOption( option );
