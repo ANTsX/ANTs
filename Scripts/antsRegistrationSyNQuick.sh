@@ -80,6 +80,8 @@ Optional arguments:
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
+     -g:  gradient step size for SyN and B-spline SyN (default = 0.1)
+
      -x:  mask(s) for the fixed image space.  Should specify either a single image to be used for
           all stages or one should specify a mask image for each "stage" (cf -t option).  If
           no mask is to be used for a particular stage, the keyword 'NULL' should be used
@@ -160,6 +162,8 @@ Optional arguments:
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
+     -g:  gradient step size for SyN and B-spline SyN (default = 0.1)
+
      -x:  mask(s) for the fixed image space.  Should specify either a single image to be used for
           all stages or one should specify a mask image for each "stage" (cf -t option).  If
           no mask is to be used for a particular stage, the keyword 'NULL' should be used
@@ -186,7 +190,7 @@ Optional arguments:
 --------------------------------------------------------------------------------------
 Get the latest ANTs version at:
 --------------------------------------------------------------------------------------
-https://github.com/stnava/ANTs/
+https://github.com/ANTsX/ANTs/
 
 --------------------------------------------------------------------------------------
 Read the ANTS documentation at:
@@ -227,6 +231,7 @@ function reportMappingParameters {
  Initial transforms:       ${INITIALTRANSFORMS[@]}
  Number of threads:        $NUMBEROFTHREADS
  Spline distance:          $SPLINEDISTANCE
+ SyN gradient step:        $SYNGRADIENTSTEP
  Transform type:           $TRANSFORMTYPE
  MI histogram bins:        $NUMBEROFBINS
  Precision:                $PRECISIONTYPE
@@ -278,6 +283,7 @@ INITIALTRANSFORMS=()
 OUTPUTNAME=output
 NUMBEROFTHREADS=0
 SPLINEDISTANCE=26
+SYNGRADIENTSTEP=0.1
 TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
 NUMBEROFBINS=32
@@ -287,7 +293,7 @@ COLLAPSEOUTPUTTRANSFORMS=1
 RANDOMSEED=0
 
 # reading command line arguments
-while getopts "d:e:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
+while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
   do
   case $OPT in
       h) #help
@@ -305,6 +311,9 @@ while getopts "d:e:f:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
    ;;
       f)  # fixed image
    FIXEDIMAGES[${#FIXEDIMAGES[@]}]=$OPTARG
+   ;;
+      g)  # SyN gradient step
+   SYNGRADIENTSTEP=$OPTARG
    ;;
       j)  # histogram matching
    USEHISTOGRAMMATCHING=$OPTARG
@@ -523,13 +532,13 @@ if [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'br' ]];
 
 if [[ $TRANSFORMTYPE == 'b' ]] || [[ $TRANSFORMTYPE == 'br' ]] || [[ $TRANSFORMTYPE == 'bo' ]];
   then
-    SYNSTAGE="--transform BSplineSyN[ 0.1,${SPLINEDISTANCE},0,3 ] \
+    SYNSTAGE="--transform BSplineSyN[ ${SYNGRADIENTSTEP},${SPLINEDISTANCE},0,3 ] \
              $SYNSTAGE"
   fi
 
 if [[ $TRANSFORMTYPE == 's' ]] || [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'so' ]];
   then
-    SYNSTAGE="--transform SyN[ 0.1,3,0 ] \
+    SYNSTAGE="--transform SyN[ ${SYNGRADIENTSTEP},3,0 ] \
              $SYNSTAGE"
   fi
 
