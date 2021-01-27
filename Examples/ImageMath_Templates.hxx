@@ -6086,7 +6086,7 @@ int TensorFunctions(int argc, char *argv[])
 
       componentImage->SetPixel( ind, pix6[which] );
       }
-    WriteTensorImage<TensorImageType>( timage, outname.c_str(), false );
+    WriteImage<ImageType>( componentImage, outname.c_str() );
     return 0;
     }
 
