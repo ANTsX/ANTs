@@ -461,8 +461,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   vMatrix param_values;
   using CompositeTransformType = itk::CompositeTransform<RealType, ImageDimension>;
   std::vector<typename CompositeTransformType::Pointer> CompositeTransformVector;
-  using ParserType = typename itk::ants::CommandLineParser;
-  using OptionType = typename ParserType::OptionType;
+  using OptionType = typename itk::ants::CommandLineParser::OptionType;
 
   typename OptionType::Pointer averageOption = parser->GetOption( "average-image" );
   if( averageOption && averageOption->GetNumberOfFunctions() )

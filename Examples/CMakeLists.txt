@@ -120,9 +120,11 @@ set(CORE_ANTS_APPS
 
 set(MORE_ANTS_APPS
     antsAI
+    ANTSIntegrateVelocityField
     antsJointTensorFusion
     ImageMath
     iMath
+    AddNoiseToImage
     ANTS
     ANTSJacobian
     CreateJacobianDeterminantImage
@@ -180,7 +182,6 @@ set(MORE_ANTS_APPS
     antsMotionCorrDiffusionDirection
     antsSliceRegularizedRegistration
     ANTSIntegrateVectorField
-    ANTSIntegrateVelocityField
     antsTransformInfo
     antsUtilitiesTesting
     AverageAffineTransform
@@ -258,4 +259,3 @@ endif()
 if(BUILD_TESTING)
     add_subdirectory(TestSuite)
 endif()
-

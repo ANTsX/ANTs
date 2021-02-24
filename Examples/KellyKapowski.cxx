@@ -521,7 +521,7 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "convergence" );
   option->SetShortName( 'c' );
-  option->SetUsageOption( 0, "[<numberOfIterations=50>,<convergenceThreshold=0.001>,<convergenceWindowSize=10>]" );
+  option->SetUsageOption( 0, "[<numberOfIterations=45>,<convergenceThreshold=0.0>,<convergenceWindowSize=10>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
@@ -626,7 +626,7 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "time-points" );
-  option->SetShortName( 'p' );
+  option->SetShortName( 'q' );
   option->SetUsageOption( 0, "1" );
   option->SetDescription( description );
   parser->AddOption( option );

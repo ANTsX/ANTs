@@ -361,8 +361,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   using vMatrix = vnl_matrix<RealType>;
   using vVector = vnl_vector<RealType>;
   vMatrix param_values;
-  using ParserType = typename itk::ants::CommandLineParser;
-  using OptionType = typename ParserType::OptionType;
+  using OptionType = typename itk::ants::CommandLineParser::OptionType;
 
   typename OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfFunctions() )
@@ -846,7 +845,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
   {
   /** FIXME - this should be vectorized: DRY */
   typename TXType::ParametersType pOld = transformList[i]->GetParameters();
-  typename TXType::ParametersType p = transformList[i]->GetParameters();
+  typename TXType::ParametersType p = transformUList[i]->GetParameters();
   if ( polydegree[ 0 ] > 0 ) p[ 0 ] = solnx[ i ];
   if ( polydegree[ 1 ] > 0 ) p[ 1 ] = solny[ i ];
   param_values( i, 0 ) = p[ 0 ];
@@ -1087,17 +1086,17 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     option->SetShortName( 'm' );
     option->SetUsageOption(
       0,
-      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random,None}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       1,
-      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random,None}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       2,
 
-      "MeanSquares[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "MeanSquares[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random,None}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       3,
-      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random,None}>,<samplingPercentage=[0,1]>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

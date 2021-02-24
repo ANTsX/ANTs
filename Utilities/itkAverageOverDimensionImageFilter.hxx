@@ -39,6 +39,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 #endif
 {
   Superclass::InPlaceOff();
+  this->DynamicMultiThreadingOff();
 }
 
 /**
