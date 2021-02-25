@@ -96,6 +96,8 @@ Optional arguments:
           1 = mean of normalized intensities
           2 = median
 
+          Normalization here means dividing each image by its mean intensity.
+
      -A   sharpening applied to template at each iteration (default 1)
           0 = none
           1 = Laplacian
@@ -258,9 +260,10 @@ function reportMappingParameters {
  Template update steps:    $ITERATIONLIMIT
  Template population:      $IMAGESETVARIABLE
  Number of modalities:     $NUMBEROFMODALITIES
- Madality weights:         $MODALITYWEIGHTSTRING
+ Modality weights:         $MODALITYWEIGHTSTRING
  Image statistic:          $STATSMETHOD
  Sharpening method:        $SHARPENMETHOD
+ Shape update full affine: $AFFINE_UPDATE_FULL
 --------------------------------------------------------------------------------------
 REPORTMAPPINGPARAMETERS
 }
@@ -271,16 +274,13 @@ function summarizeimageset() {
   shift
   local output=$1
   shift
-  local method=$1
+  local summarizemethod=$1
   shift
   local sharpenmethod=$1
   shift
   local images=( "${@}" "" )
 
-  # Unsharp mask used below to reduce halo artifacts
-  # To use Laplacian sharpening, use ${ANTSPATH}/ImageMath $dim $output Sharpen $output 
-
-  case $method in
+  case $summarizemethod in
     0) #mean
       ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}  
       ;;
@@ -551,7 +551,7 @@ while getopts "A:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
       A) # Sharpening method
       SHARPENMETHOD=$OPTARG 
    ;;
-      a) # summarizing statisitic
+      a) # summarizing statistic
       STATSMETHOD=$OPTARG
    ;;
       b) #backup each iteration
@@ -1284,7 +1284,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
     rm -f ${OUTPUTNAME}*GenericAffine.mat
     rm -f ${outdir}/job*.sh
     # Used to save time by only running coarse registration for the first couple of iterations
-    # But with decent initialization, this is probably not worthwhile.
+    # This may also help convergence, but because there's no way to turn it off, it makes it harder
+    # to refine templates with multiple calls to this script.
     # If you uncomment this, replace MAXITERATIONS with ITERATIONS in the call to ants below
     #
     # if [[ $i -gt $((NUMLEVELS - 1)) ]];

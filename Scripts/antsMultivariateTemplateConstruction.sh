@@ -90,6 +90,18 @@ should be invoked from that directory.
 
 Optional arguments:
 
+     -a   image statistic used to summarize images (default 1)
+          0 = mean
+          1 = mean of normalized intensities
+          2 = median
+
+          Normalization here means dividing each image by its mean intensity.
+
+     -A   sharpening applied to template at each iteration (default 1)
+          0 = none
+          1 = Laplacian
+          2 = Unsharp mask 
+
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM
 
@@ -188,7 +200,9 @@ function reportMappingParameters {
  Template population:               $IMAGESETVARIABLE
  Number of Modalities:              $NUMBEROFMODALITIES
  Modality weights:                  $MODALITYWEIGHTSTRING
- Shape update with full affine:     $AFFINE_UPDATE_FULL
+ Image statistic:                   $STATSMETHOD
+ Sharpening method:                 $SHARPENMETHOD
+ Shape update full affine:          $AFFINE_UPDATE_FULL
 --------------------------------------------------------------------------------------
 REPORTMAPPINGPARAMETERS
 }
@@ -203,7 +217,9 @@ function shapeupdatetotemplate() {
     templatename=$3
     outputname=$4
     gradientstep=-$5
-    whichtemplate=$6
+    summarizemethod=$6
+    sharpenmethod=$7
+    whichtemplate=$8
 
 # debug only
 # echo $dim
@@ -219,10 +235,44 @@ function shapeupdatetotemplate() {
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
-    echo "   ${ANTSPATH}/AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
     echo "--------------------------------------------------------------------------------------"
-    ${ANTSPATH}/AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
 
+    case $summarizemethod in
+    0) #mean
+      ${ANTSPATH}/AverageImages $dim ${template} 0 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz  
+      ;;
+    1) #mean of normalized images
+      ${ANTSPATH}/AverageImages $dim ${template} 2 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
+      ;;
+    2) #median
+      local image
+      for image in ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz;
+        do
+          echo $image >> ${templatename}${whichtemplate}_list.txt
+        done
+      ${ANTSPATH}/ImageSetStatistics $dim ${templatename}${whichtemplate}_list.txt ${template} 0
+      rm ${templatename}${whichtemplate}_list.txt
+      ;;
+  esac
+
+    echo "--------------------------------------------------------------------------------------"
+    echo " shapeupdatetotemplate---sharpening of the new template"
+    echo "--------------------------------------------------------------------------------------"
+
+    case $sharpenmethod in 
+    0)
+      echo "Sharpening method none"
+      ;;
+    1)
+      echo "Laplacian sharpening"
+      ${ANTSPATH}/ImageMath $dim $template Sharpen $template 
+      ;;
+    2)
+      echo "Unsharp mask sharpening"
+      ${ANTSPATH}/ImageMath $dim $template UnsharpMask $template 0.5 1 0 0
+      ;;
+  esac
+    
     if [[ $whichtemplate -eq 0 ]] ;
       then
         echo
@@ -370,6 +420,10 @@ BACKUP_EACH_ITERATION=0
 
 AFFINE_UPDATE_FULL=1
 
+# Methods for averaging warped images and sharpening next template
+STATSMETHOD=1
+SHARPENMETHOD=1
+
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
 # RAMfree=`cat /proc/meminfo | sed -n -e '/MemFree/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -390,12 +444,18 @@ if [[ "$1" == "-h" ]];
 fi
 
 # reading command line arguments
-while getopts "b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
+while getopts "A:a:b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
   do
   case $OPT in
       h) #help
    echo "$USAGE"
    exit 0
+   ;;
+      A) # Sharpening method
+      SHARPENMETHOD=$OPTARG 
+   ;;
+      a) # summarizing statistic
+      STATSMETHOD=$OPTARG
    ;;
       b) #backup each iteration (default = 0)
    BACKUP_EACH_ITERATION=$OPTARG
@@ -556,6 +616,18 @@ shift $shiftsize
 IMAGESETVARIABLE=$*
 NINFILES=$(($nargs - $shiftsize))
 IMAGESETARRAY=()
+
+if [[ $STATSMETHOD -lt 0 ]] || [[ $STATSMETHOD -gt 2 ]];
+  then
+  echo "Invalid stats type: using normalized mean (1)"
+  STATSMETHOD=1
+fi
+
+if [[ $SHARPENMETHOD -lt 0 ]] || [[ $SHARPENMETHOD -gt 2 ]];
+  then
+  echo "Invalid sharpening method: using Laplacian (1)"
+  SHARPENMETHOD=1
+fi
 
 AVERAGE_AFFINE_PROGRAM="AverageAffineTransform"
 
@@ -758,7 +830,8 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
         echo "   ${CURRENTIMAGESET[@]}"
         echo "--------------------------------------------------------------------------------------"
-        ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
+        # Normalize but don't sharpen at this stage
+        ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 2 ${CURRENTIMAGESET[@]}
     fi
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
@@ -955,9 +1028,10 @@ if [[ "$RIGID" -eq 1 ]];
             IMAGERIGIDSET[${#IMAGERIGIDSET[@]}]=$RIGID
         done
         echo
-        echo  "${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}"
-
-    ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
+        echo  "${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[@]}"
+    
+    # Don't sharpen after rigid alignment
+    ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[@]}
     done
 
     # cleanup and save output in seperate folder
@@ -1092,7 +1166,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
     rm -f ${OUTPUTNAME}*Warp*.nii*
     rm -f ${outdir}/job*.sh
     # Used to save time by only running coarse registration for the first couple of iterations
-    # But with decent initialization, this is probably not worthwhile.
+    # This may also help convergence, but because there's no way to turn it off, it makes it harder
+    # to refine templates with multiple calls to this script. 
     # If you uncomment this, replace MAXITERATIONS with ITERATIONS in the call to ants below
     #
     # # For the first couple of iterations, use high-level registration only
@@ -1318,7 +1393,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
     fi
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
         do
-        shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j}
+        shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${STATSMETHOD} ${SHARPENMETHOD} ${j}
     done
     if [[ BACKUP_EACH_ITERATION -eq 1 ]];
       then
