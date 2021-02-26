@@ -990,8 +990,13 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
   do
     setCurrentImageSet $i
 
-    if [[ -s ${REGTEMPLATES[$i]} ]];
+    if [[ -n "${REGTEMPLATES[$i]}" ]];
       then
+        if [[ ! -r "${REGTEMPLATES[$i]}" ]]; 
+          then
+            echo "Initial template ${REGTEMPLATES[$i]} cannot be read"
+            exit 1
+          fi
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " Initial template $i found.  This will be used for guiding the registration. use : ${REGTEMPLATES[$i]} and ${TEMPLATES[$i]} "
@@ -1009,7 +1014,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
       then
-        echo "Your initial template : $TEMPLATES[$i ] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
+        echo "Your initial template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
         exit 1
       fi
 done
