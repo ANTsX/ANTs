@@ -74,10 +74,10 @@ Usage:
 `basename $0` -d ImageDimension -o OutputPrefix <other options> <images>
 
 Compulsory arguments (minimal command line requires SGE/PBS cluster, otherwise use -c and
-  -j options):
+-j options):
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
-   ImageDimension: 4 (for template generation of time-series data)
+          ImageDimension: 4 (for template generation of time-series data)
 
 <images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
           of the command.  Optionally, one can specify a .csv or .txt file where each
@@ -95,6 +95,13 @@ Optional arguments:
           0 = mean
           1 = mean of normalized intensities
           2 = median
+
+          Normalization here means dividing each image by its mean intensity.
+
+     -A   sharpening applied to template at each iteration (default 1)
+          0 = none
+          1 = Laplacian
+          2 = Unsharp mask 
 
      -b:  Backup images and results from all iterations (default = 0):  Boolean to save
           the transform files, bias corrected, and warped images for each iteration.
@@ -253,8 +260,10 @@ function reportMappingParameters {
  Template update steps:    $ITERATIONLIMIT
  Template population:      $IMAGESETVARIABLE
  Number of modalities:     $NUMBEROFMODALITIES
- Madality weights:         $MODALITYWEIGHTSTRING
+ Modality weights:         $MODALITYWEIGHTSTRING
  Image statistic:          $STATSMETHOD
+ Sharpening method:        $SHARPENMETHOD
+ Shape update full affine: $AFFINE_UPDATE_FULL
 --------------------------------------------------------------------------------------
 REPORTMAPPINGPARAMETERS
 }
@@ -265,17 +274,18 @@ function summarizeimageset() {
   shift
   local output=$1
   shift
-  local method=$1
+  local summarizemethod=$1
+  shift
+  local sharpenmethod=$1
   shift
   local images=( "${@}" "" )
 
-  case $method in
+  case $summarizemethod in
     0) #mean
-      ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}
-      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
+      ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}  
       ;;
-    1) #mean of normalized images, sharpens automatically
-      ${ANTSPATH}/AverageImages $dim $output 1 ${images[*]}
+    1) #mean of normalized images
+      ${ANTSPATH}/AverageImages $dim $output 2 ${images[*]}
       ;;
     2) #median
       local image
@@ -283,13 +293,24 @@ function summarizeimageset() {
         do
           echo $image >> ${output}_list.txt
         done
-
       ${ANTSPATH}/ImageSetStatistics $dim ${output}_list.txt ${output} 0
-      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
       rm ${output}_list.txt
       ;;
   esac
 
+  case $sharpenmethod in 
+    0)
+      echo "Sharpening method none"
+      ;;
+    1)
+      echo "Laplacian sharpening"
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output 
+      ;;
+    2)
+      echo "Unsharp mask sharpening"
+      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.5 1 0 0
+      ;;
+  esac
   }
 
 function shapeupdatetotemplate() {
@@ -304,6 +325,7 @@ function shapeupdatetotemplate() {
     gradientstep=-$5
     whichtemplate=$6
     statsmethod=$7
+    sharpenmethod=$8
 
 # debug only
 # echo $dim
@@ -330,7 +352,7 @@ function shapeupdatetotemplate() {
       exit 1
     fi
 
-    summarizeimageset $dim $template $statsmethod ${imagelist[@]}
+    summarizeimageset $dim $template $statsmethod $sharpenmethod ${imagelist[@]}
 
     WARPLIST=( `ls ${outputname}*[0-9]Warp.nii.gz 2> /dev/null` )
     NWARPS=${#WARPLIST[*]}
@@ -466,6 +488,7 @@ currentdir=`pwd`
 nargs=$#
 
 STATSMETHOD=1
+SHARPENMETHOD=1
 USEFLOAT=1
 BACKUPEACHITERATION=0
 MAXITERATIONS=100x100x70x20
@@ -518,14 +541,17 @@ if [[ "$1" == "-h" ]];
   fi
 
 # reading command line arguments
-while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
+while getopts "A:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
   do
   case $OPT in
       h) #help
       Usage >&2
       exit 0
    ;;
-      a) # summarizing statisitic
+      A) # Sharpening method
+      SHARPENMETHOD=$OPTARG 
+   ;;
+      a) # summarizing statistic
       STATSMETHOD=$OPTARG
    ;;
       b) #backup each iteration
@@ -759,10 +785,16 @@ else
   exit 1
 fi
 
-if [[ $STATSMETHOD -gt 2 ]];
+if [[ $STATSMETHOD -lt 0 ]] || [[ $STATSMETHOD -gt 2 ]];
   then
   echo "Invalid stats type: using normalized mean (1)"
   STATSMETHOD=1
+fi
+
+if [[ $SHARPENMETHOD -lt 0 ]] || [[ $SHARPENMETHOD -gt 2 ]];
+  then
+  echo "Invalid sharpening method: using Laplacian (1)"
+  SHARPENMETHOD=1
 fi
 
 AVERAGE_AFFINE_PROGRAM="AverageAffineTransform"
@@ -958,8 +990,13 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
   do
     setCurrentImageSet $i
 
-    if [[ -s ${REGTEMPLATES[$i]} ]];
+    if [[ -n "${REGTEMPLATES[$i]}" ]];
       then
+        if [[ ! -r "${REGTEMPLATES[$i]}" ]]; 
+          then
+            echo "Initial template ${REGTEMPLATES[$i]} cannot be read"
+            exit 1
+          fi
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " Initial template $i found.  This will be used for guiding the registration. use : ${REGTEMPLATES[$i]} and ${TEMPLATES[$i]} "
@@ -972,13 +1009,12 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
         echo "   ${CURRENTIMAGESET[@]}"
         echo "--------------------------------------------------------------------------------------"
-        summarizeimageset $DIM ${TEMPLATES[$i]} $STATSMETHOD ${CURRENTIMAGESET[@]}
-        #${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
+        summarizeimageset $DIM ${TEMPLATES[$i]} 2 0 ${CURRENTIMAGESET[@]}
       fi
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
       then
-        echo "Your initial template : $TEMPLATES[$i ] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
+        echo "Your initial template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
         exit 1
       fi
 done
@@ -1180,7 +1216,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo
         echo  "${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}"
 
-      summarizeimageset $DIM ${TEMPLATES[$j]} $STATSMETHOD ${IMAGERIGIDSET[@]}
+      summarizeimageset $DIM ${TEMPLATES[$j]} $STATSMETHOD $SHARPENMETHOD ${IMAGERIGIDSET[@]}
       #${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
       done
 
@@ -1253,7 +1289,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
     rm -f ${OUTPUTNAME}*GenericAffine.mat
     rm -f ${outdir}/job*.sh
     # Used to save time by only running coarse registration for the first couple of iterations
-    # But with decent initialization, this is probably not worthwhile.
+    # This may also help convergence, but because there's no way to turn it off, it makes it harder
+    # to refine templates with multiple calls to this script.
     # If you uncomment this, replace MAXITERATIONS with ITERATIONS in the call to ants below
     #
     # if [[ $i -gt $((NUMLEVELS - 1)) ]];
@@ -1541,7 +1578,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
       do
-        shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j} ${STATSMETHOD}
+        shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j} ${STATSMETHOD} ${SHARPENMETHOD}
       done
 
     if [[ $BACKUPEACHITERATION -eq 1 ]];
