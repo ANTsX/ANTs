@@ -37,6 +37,10 @@ RUN mkdir -p /tmp/ants/build \
 FROM ubuntu:bionic-20200112
 COPY --from=builder /opt/ants /opt/ants
 
+LABEL maintainer="ANTsX team" \
+      description="ANTs is part of the ANTsX ecosystem (https://github.com/ANTsX). \
+ANTs Citation: https://pubmed.ncbi.nlm.nih.gov/24879923"
+
 ENV ANTSPATH="/opt/ants/bin" \
     PATH="/opt/ants/bin:$PATH" \
     LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
