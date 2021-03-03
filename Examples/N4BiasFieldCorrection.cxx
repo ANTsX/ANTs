@@ -660,7 +660,8 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     + std::string( "new intensity range to be within certain values.  The " )
     + std::string( "result is that the range can \"drift\" from the original " )
     + std::string( "at each iteration.  This option rescales to the [min,max] " )
-    + std::string( "range of the original image intensities within the user-specified mask." );
+    + std::string( "range of the original image intensities within the user-specified mask. " )
+    + std::string( "A mask is required to perform rescaling." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "rescale-intensities" );
