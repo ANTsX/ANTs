@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build_docker:
     environment:
-      TZ: "/usr/share/zoneinfo/America/New_York"
+      TZ: "America/New_York"
       SCRATCH: "/scratch"
     docker:
       - image: docker:18.06.1-ce-git
@@ -19,7 +19,7 @@ jobs:
             e=1 && for i in {1..5}; do
               docker build \
                 --rm=false \
-                --label version="CircleCI automated build commit ${CIRCLE_SHA1}" \
+                --label version="CircleCI automated build of commit ${CIRCLE_SHA1}" \
                 -t antsx/ants:latest . \
               && e=0 && break || sleep 15
             done && [ "$e" -eq "0" ]
