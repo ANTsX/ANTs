@@ -2,9 +2,6 @@ version: 2.1
 
 jobs:
   build_docker:
-    environment:
-      TZ: "America/New_York"
-      SCRATCH: "/scratch"
     docker:
       - image: docker:18.06.1-ce-git
     working_directory: /tmp/src/ANTs
@@ -14,6 +11,9 @@ jobs:
       - run:
           name: Build Docker image
           no_output_timeout: 3h
+          environment:
+            TZ: "America/New_York"
+            SCRATCH: "/scratch"
           command: |
             # Build docker image
             e=1 && for i in {1..5}; do
