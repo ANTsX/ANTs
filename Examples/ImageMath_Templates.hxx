@@ -43,6 +43,7 @@
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
+#include "itkDecomposeTensorFunction.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkExpImageFilter.h"
 #include "itkExtractImageFilter.h"
@@ -116,6 +117,7 @@
 #include "itkTranslationTransform.h"
 #include "itkUnsharpMaskImageFilter.h"
 #include "itkVariableSizeMatrix.h"
+#include "itkVectorFieldGradientImageFunction.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
 #include "itkWhiteTopHatImageFilter.h"
@@ -2131,7 +2133,7 @@ int UnsharpMaskImage(int argc, char *argv[])
   ReadImage<ImageType>( inputImage, inputFilename.c_str() );
 
   auto & spacing = inputImage->GetSpacing();
- 
+
   // These are from the filter defaults
   float amount = 0.5;
   float radius = 1.0;
@@ -2164,7 +2166,7 @@ int UnsharpMaskImage(int argc, char *argv[])
 
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
-     if (radiusInSpacingUnits) 
+     if (radiusInSpacingUnits)
        {
        sigmaArray[d] = radius;
        }
@@ -13986,6 +13988,152 @@ int MatchBlobs( int argc, char *argv[] )
   return EXIT_SUCCESS;
 }
 
+template <unsigned int ImageDimension>
+int KinematicTensor( int argc, char *argv[] )
+{
+  if( argc < 5 )
+    {
+    // std::cout << " Not enough inputs " << std::endl;
+    return EXIT_SUCCESS;
+    }
+
+  int argCount = 2;
+  const std::string outputFilename = std::string( argv[argCount] );
+  argCount += 2;
+
+  typedef float                                                       RealType;
+  typedef itk::Vector<RealType, ImageDimension>                       VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                      VectorImageType;
+  typedef itk::SymmetricSecondRankTensor<RealType, ImageDimension>    TensorType;
+  typedef itk::Image<TensorType, ImageDimension>                      TensorImageType;
+
+  typedef itk::VectorFieldGradientImageFunction<VectorImageType> FunctionType;
+  typename FunctionType::Pointer function = FunctionType::New();
+
+  typedef itk::ImageFileReader<VectorImageType> ReaderType;
+  typename ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( argv[argCount] );
+  reader->Update();
+
+  function->SetInputImage( reader->GetOutput() );
+
+  argCount++;
+
+  enum StrainTensorType { DeformationFieldGradient = 0,
+                          Lagrangian,
+                          Eulerian,
+                          RightCauchyGreenDeformation,
+                          LeftCauchyGreenDeformation,
+                          RightStretch,
+                          LeftStretch };
+
+
+  StrainTensorType whichStrainTensor = DeformationFieldGradient;
+  if( argc > 4 )
+    {
+    if( std::strcmp( argv[argCount], "d" ) == 0 )
+      {
+      whichStrainTensor = DeformationFieldGradient;
+      }
+    else if( std::strcmp( argv[argCount], "l" ) == 0 )
+      {
+      whichStrainTensor = Lagrangian;
+      }
+    else if( std::strcmp( argv[argCount], "e" ) == 0 )
+      {
+      whichStrainTensor = Eulerian;
+      }
+    else if( std::strcmp( argv[argCount], "rc" ) == 0 )
+      {
+      whichStrainTensor = RightCauchyGreenDeformation;
+      }
+    else if( std::strcmp( argv[argCount], "lc" ) == 0 )
+      {
+      whichStrainTensor = LeftCauchyGreenDeformation;
+      }
+    else if( std::strcmp( argv[argCount], "rs" ) == 0 )
+      {
+      whichStrainTensor = RightStretch;
+      }
+    else if( std::strcmp( argv[argCount], "ls" ) == 0 )
+      {
+      whichStrainTensor = LeftStretch;
+      }
+    else
+      {
+      return EXIT_FAILURE;
+      }
+    }
+
+  typedef typename FunctionType::MatrixType MatrixType;
+
+  typename TensorImageType::Pointer strain = TensorImageType::New();
+  strain->CopyInformation( reader->GetOutput() );
+  strain->SetRegions( reader->GetOutput()->GetLargestPossibleRegion() );
+  strain->Allocate();
+
+  itk::ImageRegionIteratorWithIndex<TensorImageType> It
+    ( strain, strain->GetLargestPossibleRegion() );
+
+  MatrixType strainTensor;
+
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+    {
+    switch( whichStrainTensor )
+      {
+      case DeformationFieldGradient: default:
+        strainTensor = function->EvaluateDeformationGradientTensorAtIndex( It.GetIndex() );
+        break;
+      case Lagrangian:
+        strainTensor = function->EvaluateLagrangianStrainTensorAtIndex( It.GetIndex() );
+        break;
+      case Eulerian:
+        strainTensor = function->EvaluateEulerianStrainTensorAtIndex( It.GetIndex() );
+        break;
+      case RightCauchyGreenDeformation:
+        strainTensor = function->EvaluateRightCauchyGreenDeformationTensorAtIndex( It.GetIndex() );
+        break;
+      case LeftCauchyGreenDeformation:
+        strainTensor = function->EvaluateLeftCauchyGreenDeformationTensorAtIndex( It.GetIndex() );
+        break;
+      case RightStretch:
+        strainTensor = function->EvaluateRightStretchTensorAtIndex( It.GetIndex() );
+        break;
+      case LeftStretch:
+        strainTensor = function->EvaluateRightStretchTensorAtIndex( It.GetIndex() );
+        break;
+      }
+
+    unsigned int count = 0;
+    TensorType tensor;
+    for( unsigned int i = 0; i < ImageDimension; i++ )
+      {
+      for( unsigned int j = i; j < ImageDimension; j++ )
+        {
+        // if( ! itk::Math::FloatAlmostEqual( strainTensor[i][j], strainTensor[j][i] ) )
+        //   {
+        //   return EXIT_FAILURE;
+        //   }
+        // else
+        //   {
+          tensor[count++] = strainTensor[i][j];
+          // }
+        }
+      }
+
+    It.Set( tensor );
+    }
+
+  typedef itk::ImageFileWriter<TensorImageType> WriterType;
+  typename WriterType::Pointer writer = WriterType::New();
+  writer->SetFileName( outputFilename );
+  writer->SetInput( strain );
+  writer->Update();
+
+  return EXIT_SUCCESS;
+}
+
+
 //
 // ImageMath was a gigantic switch statement that had 3 duplicated
 // lists of 'if (operation == <op>)' clauses for 2d, 3d, and 4d. I
@@ -14045,6 +14193,11 @@ ImageMathHelper2DOr3D(int argc, char **argv)
   if( operation == "STAPLE" )
     {
     STAPLE<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "KinematicTensor" )
+    {
+    KinematicTensor<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
   return EXIT_FAILURE;
