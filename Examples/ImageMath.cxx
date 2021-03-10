@@ -722,8 +722,18 @@ private:
       "      Usage        : TruncateImageIntensity InputImage.ext {lowerQuantile=0.05} {upperQuantile=0.95} {numberOfBins=65} {binary-maskImage}"
       << std::endl;
 
-    std::cout << "\n  Where            : The where function from IDL" << std::endl;
-    std::cout << "      Usage        : Where Image ValueToLookFor maskImage-option tolerance" << std::endl;
+    std::cout << "\n  KinematicTensor    : Evaluation kinematic tensor from a displacement field" << std::endl;
+    std::cout
+      <<
+      "      Usage        : StrainTensor displacementField whichTensor ["
+      << "'d'=DeformationFieldGradient, "
+      << "'l'=Lagrangian, "
+      << "'e'=Eulerian, "
+      << "'rc'=RightCauchyGreen, "
+      << "'lc'=LeftCauchyGreen, "
+      << "'rs'=RightStretch, "
+      << "'ls'=LeftStretch]"
+      << std::endl;
 
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
