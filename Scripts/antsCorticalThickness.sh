@@ -111,8 +111,8 @@ Optional arguments:
                                                 This template is used to produce a final, high-quality registration between
                                                 the bias-corrected, skull-stripped subject anatomical image and the template.
                                                 This template will commonly be a skull-stripped version of the template passed
-                                                with -e. We perform the registration with fixed image = this template
-                                                and moving image = input anatomical image.
+                                                with -e. We perform the registration with fixed image = (this template)
+                                                and moving image = (input anatomical image).
                                                 The output from this step is
                                                   * Forward warps:
                                                     - ${OUTPUT_PREFIX}SubjectToTemplate1Warp.nii.gz
