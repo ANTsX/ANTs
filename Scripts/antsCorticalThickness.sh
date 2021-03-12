@@ -67,10 +67,17 @@ We use *label* to denote a label image with values in range 0 to N.
                                                 only the first image is used in the registration of priors.
                                                 We recommend using the T1 as the first image.
 
-     -e:  Brain template                        Anatomical *intensity* template This template is *not* skull-stripped.
+     -e:  Brain segmentation template           Anatomical *intensity* template. This template is *not* skull-stripped.
+                                                The following images must be in the same space as this template:
+                                                    * Brain probability mask (-m)
+                                                    * Segmentation priors (-p).
+                                                If used, the following optional images must also be in the same space as
+                                                this template:
+                                                    * Registration metric mask (-f)
+                                                    * Thickness prior image (-r).
 
-     -m:  Brain extraction probability mask     Brain *probability* mask. A binary mask is an acceptable probability
-                                                image.
+     -m:  Brain extraction probability mask     Brain *probability* mask in the segmentation template space. A binary mask 
+                                                is an acceptable probability image.
 
      -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
                                                 with the -e option.  Specified using c-style formatting, e.g.
@@ -98,7 +105,7 @@ We use *label* to denote a label image with values in range 0 to N.
 
 Optional arguments:
 
-     -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
+     -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd.
 
      -t:  template for t1 registration          Anatomical *intensity* template. This template *must* be skull-stripped.
                                                 This template is used to produce a final, high-quality registration between
@@ -119,9 +126,9 @@ Optional arguments:
                                                 More information on the how to use these images can be found on the ANTs Wiki
                                                 https://github.com/ANTsX/ANTs/wiki.
 
-     -f:  extraction registration mask          Binary metric mask defined in the brain template space (-e), used during registration
-                                                for brain extraction. During the registration, the similarity metric is only computed
-                                                within this mask.
+     -f:  extraction registration mask          Binary metric mask defined in the segmentation template space (-e). During the
+                                                registration for brain extraction, the similarity metric is only computed within 
+                                                this mask.
 
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = 0).
 
@@ -159,14 +166,15 @@ Optional arguments:
                                                 range of the distance prior.  To apply to all label values, simply omit
                                                 specifying the label, i.e. '-l "[ lambda,boundaryProbability ]"'.
 
-     -c:  Additional priors for thickness       Add segmentation priors to be treated as gray or white matter for thickness
-                                                computation. For example, when calling KellyKapowski for normal subjects, we
+     -c:  Additional priors for thickness       Add segmentation classes to be treated as gray or white matter for thickness
+                                                estimation. For example, when calling KellyKapowski for normal subjects, we
                                                 combine the deep gray matter segmentation/posteriors (class 4) with the white
                                                 matter segmentation/posteriors (class 3).
                                                 Another example would be computing cortical thickness in the presence
                                                 of white matter lesions. We can accommodate this by specifying a lesion mask
-                                                posterior as an additional posterior (suppose label '7'), and then combine
-                                                this with white matter by specifying '-c "WM[ 7 ]"' or '-c "3[ 7 ]"'.
+                                                posterior as an additional posterior (suppose label '7'), combining this with
+                                                normal white matter in the thickness estimation by specifying '-c "WM[ 7 ]"' 
+                                                or '-c "3[ 7 ]"'.
 
      -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
                                                 during brain extraction, brain segmentation, and (optional) normalization
