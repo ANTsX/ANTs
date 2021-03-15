@@ -32,16 +32,19 @@ function Usage {
 
 `basename $0` performs a longitudinal cortical thickness estimation.  The following steps
 are performed:
-  1. Create a single-subject template (SST) from all the data
+  1. Create a single-subject template (SST) from all the anatomical images.
   2. Create priors for the SST
-     a. Run the SST through the individual cortical thickness pipeline.
+     a. Run the SST through the individual cortical thickness pipeline using the group
+        template and associated priors.
      b. The brain extraction SST prior is created by smoothing the brain extraction
         mask created during 2a.
      c. If labeled atlases are not provided, we smooth the posteriors from 2a to create
         the SST segmentation priors, otherwise we use antsJointFusion to create a set of
         posteriors (https://github.com/ntustison/antsCookTemplatePriorsExample).
-  3. Using the SST + priors, we run each subject through the antsCorticalThickness
+  3. Using the SST + priors, we run each time point image through the antsCorticalThickness
      pipeline.
+  4. Compose (time point) -> SST and SST -> (group template) warps to deform images from the
+     native anatomical space to the group template.
 
 Usage:
 
@@ -60,12 +63,18 @@ Example:
 Required arguments:
 
      -d:  Image dimension                       2 or 3 (for 2- or 3-dimensional image)
-     -e:  Brain template                        Anatomical *intensity* template (possibly created using a population
-                                                data set with buildtemplateparallel.sh in ANTs).  This template is
-                                                *not* skull-stripped.
-     -m:  Brain extraction probability mask     Brain *probability* mask created using e.g. LPBA40 labels which
-                                                have brain masks defined, and warped to anatomical template and
-                                                averaged resulting in a probability image.
+
+     -e:  Brain segmentation template           Anatomical *intensity* template. This template is *not* skull-stripped.
+                                                The following images must be in the same space as this template:
+                                                    * Brain probability mask (-m)
+                                                    * Segmentation priors (-p).
+                                                If used, the following optional images must also be in the same space as
+                                                this template:
+                                                    * Registration metric mask (-f).
+
+     -m:  Brain extraction probability mask     Brain *probability* mask in the segmentation template space. A binary mask
+                                                is an acceptable probability image.
+
      -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
                                                 with the -e option.  Specified using c-style formatting, e.g.
                                                 -p labelsPriors%02d.nii.gz.  We assume that the first four priors
@@ -73,11 +82,13 @@ Required arguments:
                                                   1:  csf
                                                   2:  cortical gm
                                                   3:  wm
-                                                  4:  deep gm
+                                                  4:  deep gm.
+
      -o:  Output prefix                         The following subdirectory and images are created for the single
                                                 subject template
                                                   * \${OUTPUT_PREFIX}SingleSubjectTemplate/
                                                   * \${OUTPUT_PREFIX}SingleSubjectTemplate/T_template*.nii.gz
+                                                A subdirectory is created for each anatomical image.
 
      anatomical images                          Set of multimodal input data assumed to be specified ordered as
                                                 follows:
@@ -88,63 +99,85 @@ Required arguments:
                                                   .
                                                   \${timeN_modality1} ...
 
-						A single modality is expected by default, in which case the input images
-						are simply ordered by time:
+                                                A single modality is expected by default, in which case the input images
+                                                are simply ordered by time:
 
-						  \${time1_modality1} \${time2_modality1} ... \${timeN_modality1}
+                                                  \${time1_modality1} \${time2_modality1} ... \${timeN_modality1}
 
-						If there are multiple modalities, use the -k option to specify how many.
+                                                If there are multiple modalities, use the -k option to specify how many.
 
 Optional arguments:
 
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
+
      -c:  control type                          Control for parallel computation (default 0):
                                                   0 = run serially
                                                   1 = SGE qsub
                                                   2 = use PEXEC (localhost)
                                                   3 = Apple XGrid
                                                   4 = PBS qsub
-                                                  5 = SLURM
-     -t:  template for t1 registration          Anatomical *intensity* template (assumed to be skull-stripped).  A common
-                                                use case would be where this would be the same template as specified in the
-                                                -e option which is not skull stripped.
-     -a:                                        Atlases (assumed to be skull-stripped) used to cook template priors.  If atlases
+                                                  5 = SLURM.
+
+     -t:  template for t1 registration          Anatomical *intensity* template. This template *must* be skull-stripped.
+                                                This template is used to produce a final, high-quality registration between
+                                                the skull-stripped single-subject template and this template.
+
+     -a:                                        Atlases (assumed to be skull-stripped) used to cook template priors. If atlases
                                                 aren't used then we simply smooth the single-subject template posteriors after
                                                 passing through antsCorticalThickness.sh. Example:
 
- 						                                         -a atlas1.nii.gz -a atlas2.nii.gz ... -a atlasN.nii.gz
+                                                  -a atlas1.nii.gz -a atlas2.nii.gz ... -a atlasN.nii.gz
 
      -l:                                        Labels associated with each atlas, in the same order as they are specified
-						with the -a option. The number of labels in each image is assumed to be equal
+                                                with the -a option. The number of labels in each image is assumed to be equal
                                                 to the number of priors.
-     -f:  extraction registration mask          Mask (defined in the template space) used during registration
-                                                for brain extraction.
+
+     -f:  extraction registration mask          Binary metric mask defined in the segmentation template space (-e). During the
+                                                registration for brain extraction, the similarity metric is only computed within
+                                                this mask.
+
      -g:  denoise anatomical images             Denoise anatomical images (default = 0).
-     -j:  number of cpu cores                   Number of cpu cores to use locally for pexec option (default 2; requires "-c 2")
+
+     -j:  number of cpu cores                   Number of cpu cores to use locally for pexec option (default 2; requires "-c 2").
+
      -k:  number of modalities                  Number of modalities used to construct the template (default 1):  For example,
                                                 if one wanted to use multiple modalities consisting of T1, T2, and FA
                                                 components ("-k 3").
+
      -n:  use SST cortical thickness prior      If set to '1', the cortical thickness map from the single-subject template is used
                                                 as a prior constraint for each of the individual calls to antsCorticalThickness.sh
                                                 (default = 0).
-     -u:  use floating-point precision          Use floating point precision in registrations (default = 0)
-     -v:  Atropos segmentation weight (SST)     Atropos spatial prior *probability* weight for the segmentation for the single
-                                                subject template (default = 0.25)
-     -w:  Atropos segmentation weight (Indiv.)  Atropos spatial prior *probability* weight for the segmentation for the individual
-                                                time points (default = 0.5)
+
+     -u:  use single float precision            If 1, use single float precision in registrations (default = 0).
+
+     -v:  Atropos segmentation weight (SST)     Atropos spatial prior *probability* weight for the segmentation of the
+                                                single-subject template (default = 0.25).
+
+     -w:  Atropos segmentation weight (Indiv.)  Atropos spatial prior *probability* weight for the segmentation of the individual
+                                                time points (default = 0.5).
+
      -x:                                        Number of iterations within Atropos (default 5).
-     -q:  Use quick registration parameters     If 'yes' then we use antsRegistrationSyNQuick.sh as the basis for registration.
-                                                Otherwise use antsRegistrationSyN.sh.  The options are as follows:
-                                                '-q 0' = antsRegistrationSyN for everything (default)
-                                                '-q 1' = Fast antsCorticalThickness to SST
-                                                '-q 2' = Fast JLF cooking
-                                                '-q 3' = Fast everything
-     -r:  rigid alignment to SST                This option dictates if the individual subjects are registered to the single
-                                                subject template before running through antsCorticalThickness.  This potentially
-                                                reduces bias caused by subject orientation and voxel spacing (default = 0).
+
+     -q:  Use quick registration parameters     Use antsRegistrationSyNQuick.sh for some or all of the registrations.
+                                                The higher the number, the more registrations are performed quickly. The options are
+                                                as follows:
+                                                  '-q 0' = antsRegistrationSyN.sh for everything (default)
+                                                  '-q 1' = Quick registration of time points to the SST
+                                                  '-q 2' = Adds quick registrations for prior cooking
+                                                  '-q 3' = Quick registrations throughout.
+
+     -r:  rigid alignment to SST                If 1, register anatomical images to the single-subject template before processing
+                                                with antsCorticalThickness. This potentially reduces bias caused by variable
+                                                orientation and voxel spacing (default = 0).
+
      -b:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = 0).
-     -y:  averge rigid transform component      Update the template with the full affine transform (default 0). If 1, the rigid
-                                                component of the affine transform will be used to update the template.
+
+     -y:  rigid template update component       Update the single-subject template with the full affine transform (default 0).
+                                                If 1, the rigid component of the affine transform will be used to update the
+                                                template. Using the rigid component is desireable to reduce bias, but variations
+                                                in the origin or head position across time points can cause the template head to
+                                                drift out of the field of view.
+
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0
                                                 in the antsCorticalThickness.sh script (i.e., no random seeding).
                                                 Requires single thread computation for complete reproducibility.
