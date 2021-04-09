@@ -88,7 +88,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "save-state" );
   option->SetShortName( 'j' );
-  option->SetUsageOption( 0, "saveSateAsTransform" );
+  option->SetUsageOption( 0, "saveStateAsTransform" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
@@ -123,7 +123,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
 
 // This is currently not functioning properly for all linear transforms.  If I
 // restrict the linear transforms to rigid transforms, then it seems to work.
-// I think there's something in working with images that doesn't work properly
+// I think there's something in working with images that don't work properly
 // with a generic affine transform in the header.  You can certainly store it
 // and read it from the header but perhaps this interferes with something fundamental
 // like transforming indices to physical coordinates.  I'll have to investigate
