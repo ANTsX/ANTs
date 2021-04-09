@@ -100,7 +100,7 @@ Optional arguments:
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
           pair correspondence is given by the order specified on the command line.
-          Only the first fixed and moving image pair is used for the linear resgitration
+          Only the first fixed and moving image pair is used for the linear registration
           stages.
 
 Example:
@@ -184,7 +184,7 @@ Optional arguments:
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
           pair correspondence is given by the order specified on the command line.
-          Only the first fixed and moving image pair is used for the linear resgitration
+          Only the first fixed and moving image pair is used for the linear registration
           stages.
 
 --------------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ University of Pennsylvania
 
 Relevent references for this script include:
    * http://www.ncbi.nlm.nih.gov/pubmed/20851191
-   * http://www.frontiersin.org/Journal/10.3389/fninf.2013.00039/abstract
+   * http://www.frontiersin.org/Journal/10.3389/fninf.2013.00039/abstract 
 --------------------------------------------------------------------------------------
 script by Nick Tustison
 --------------------------------------------------------------------------------------
@@ -235,7 +235,7 @@ function reportMappingParameters {
  Transform type:           $TRANSFORMTYPE
  MI histogram bins:        $NUMBEROFBINS
  Precision:                $PRECISIONTYPE
- Use histogram matching    $USEHISTOGRAMMATCHING
+ Use histogram matching:   $USEHISTOGRAMMATCHING
 ======================================================================================
 REPORTMAPPINGPARAMETERS
 }
