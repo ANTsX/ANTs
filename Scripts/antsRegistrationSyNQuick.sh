@@ -95,6 +95,8 @@ Optional arguments:
         0: false
         1: true
 
+     -y:  use 'repro' mode.  GC for linear stages and fixed seed
+
      -z:  collapse output transforms (default = 1)
 
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
@@ -177,6 +179,8 @@ Optional arguments:
         0: false
         1: true
 
+     -y:  use 'repro' mode.  GC for linear stages and fixed seed
+
      -z:  collapse output transforms (default = 1)
 
      -e:  Fix random seed to an int value (default = system time)
@@ -206,7 +210,7 @@ University of Pennsylvania
 
 Relevent references for this script include:
    * http://www.ncbi.nlm.nih.gov/pubmed/20851191
-   * http://www.frontiersin.org/Journal/10.3389/fninf.2013.00039/abstract 
+   * http://www.frontiersin.org/Journal/10.3389/fninf.2013.00039/abstract
 --------------------------------------------------------------------------------------
 script by Nick Tustison
 --------------------------------------------------------------------------------------
@@ -236,6 +240,7 @@ function reportMappingParameters {
  MI histogram bins:        $NUMBEROFBINS
  Precision:                $PRECISIONTYPE
  Use histogram matching:   $USEHISTOGRAMMATCHING
+ Repro                     $REPRO
 ======================================================================================
 REPORTMAPPINGPARAMETERS
 }
@@ -291,9 +296,10 @@ MASKIMAGES=()
 USEHISTOGRAMMATCHING=0
 COLLAPSEOUTPUTTRANSFORMS=1
 RANDOMSEED=0
+REPRO=0
 
 # reading command line arguments
-while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
+while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:y:z:" OPT
   do
   case $OPT in
       h) #help
@@ -341,6 +347,9 @@ while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
    ;;
       t)  # transform type
    TRANSFORMTYPE=$OPTARG
+   ;;
+      y)  # reproducibility
+   REPRO=$OPTARG
    ;;
       z)  # collapse output transforms
    COLLAPSEOUTPUTTRANSFORMS=$OPTARG
@@ -480,6 +489,15 @@ if [[ $ISLARGEIMAGE -eq 1 ]];
     SYNSMOOTHINGSIGMAS="5x3x2x1x0vox"
   fi
 
+LINEARMETRIC="MI"
+LINEARMETRICPARAMETER=32
+if [[ $REPRO -eq 1 ]];
+  then
+    LINEARMETRIC="GC"
+    LINEARMETRICPARAMETER=1
+    RANDOMSEED=1
+  fi
+
 INITIALSTAGE="--initial-moving-transform [ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1 ]"
 
 if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
@@ -497,13 +515,13 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
 fi
 
 RIGIDSTAGE="--transform ${tx}[ 0.1 ] \
-            --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
+            --metric ${LINEARMETRIC}[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,${LINEARMETRICPARAMETER},Regular,0.25 ] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
             --smoothing-sigmas $RIGIDSMOOTHINGSIGMAS"
 
 AFFINESTAGE="--transform Affine[ 0.1 ] \
-             --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
+             --metric ${LINEARMETRIC}[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,${LINEARMETRICPARAMETER},Regular,0.25 ] \
              --convergence $AFFINECONVERGENCE \
              --shrink-factors $AFFINESHRINKFACTORS \
              --smoothing-sigmas $AFFINESMOOTHINGSIGMAS"
@@ -511,7 +529,12 @@ AFFINESTAGE="--transform Affine[ 0.1 ] \
 SYNMETRICS=''
 for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
   do
-    SYNMETRICS="$SYNMETRICS --metric MI[ ${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${NUMBEROFBINS}]"
+    if [[ REPRO -eq 1 ]]
+      then
+      SYNMETRICS="$SYNMETRICS --metric CC[ ${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,2]"
+      else
+      SYNMETRICS="$SYNMETRICS --metric MI[ ${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${NUMBEROFBINS}]"
+      fi
   done
 
 SYNSTAGE="${SYNMETRICS} \
