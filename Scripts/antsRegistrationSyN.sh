@@ -95,6 +95,8 @@ Optional arguments:
         0: false
         1: true
 
+     -y:  use 'repro' mode.  GC for linear stages and fixed seed
+
      -z:  collapse output transforms (default = 1)
 
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
@@ -177,6 +179,8 @@ Optional arguments:
         0: false
         1: true
 
+     -y:  use 'repro' mode.  GC for linear stages and fixed seed
+
      -z:  collapse output transforms (default = 1)
 
      -e:  Fix random seed to an int value (default = system time)
@@ -236,6 +240,7 @@ function reportMappingParameters {
  CC radius:                $CCRADIUS
  Precision:                $PRECISIONTYPE
  Use histogram matching    $USEHISTOGRAMMATCHING
+ Repro                     $REPRO
 ======================================================================================
 REPORTMAPPINGPARAMETERS
 }
@@ -291,9 +296,10 @@ MASKIMAGES=()
 USEHISTOGRAMMATCHING=0
 COLLAPSEOUTPUTTRANSFORMS=1
 RANDOMSEED=0
+REPRO=0
 
 # reading command line arguments
-while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
+while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:y:z:" OPT
   do
   case $OPT in
       h) #help
@@ -302,7 +308,7 @@ while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
    ;;
       d)  # dimensions
    DIM=$OPTARG
-   ;; 
+   ;;
       e)  # seed
    RANDOMSEED=$OPTARG
    ;;
@@ -341,6 +347,9 @@ while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:z:" OPT
    ;;
       t)  # transform type
    TRANSFORMTYPE=$OPTARG
+   ;;
+      y)  # reproducibility
+   REPRO=$OPTARG
    ;;
       z)  # collapse output transforms
    COLLAPSEOUTPUTTRANSFORMS=$OPTARG
@@ -403,10 +412,10 @@ if [[ ${#MASKIMAGES[@]} -gt 0 ]];
 ORIGINALNUMBEROFTHREADS=${ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS}
 
 # NUMBEROFTHREADS is > 0 if the option has been set to a positive value
-if [[ $NUMBEROFTHREADS -lt 1 ]]; 
+if [[ $NUMBEROFTHREADS -lt 1 ]];
   then
     # Number of threads not set on the command line, try ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
-    if [[ $ORIGINALNUMBEROFTHREADS -gt 0 ]]; 
+    if [[ $ORIGINALNUMBEROFTHREADS -gt 0 ]];
       then
 	NUMBEROFTHREADS=$ORIGINALNUMBEROFTHREADS
       else
@@ -480,6 +489,15 @@ if [[ $ISLARGEIMAGE -eq 1 ]];
     SYNSMOOTHINGSIGMAS="5x3x2x1x0vox"
   fi
 
+LINEARMETRIC="MI"
+LINEARMETRICPARAMETER=32
+if [[ $REPRO -eq 1 ]];
+  then
+    LINEARMETRIC="GC"
+    LINEARMETRICPARAMETER=1
+    RANDOMSEED=1
+  fi
+
 INITIALSTAGE="--initial-moving-transform [ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1 ]"
 
 if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
@@ -497,13 +515,13 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
 fi
 
 RIGIDSTAGE="--transform ${tx}[ 0.1 ] \
-            --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
+            --metric ${LINEARMETRIC}[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,${LINEARMETRICPARAMETER},Regular,0.25 ] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
             --smoothing-sigmas $RIGIDSMOOTHINGSIGMAS"
 
 AFFINESTAGE="--transform Affine[ 0.1 ] \
-             --metric MI[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25 ] \
+             --metric ${LINEARMETRIC}[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,${LINEARMETRICPARAMETER},Regular,0.25 ] \
              --convergence $AFFINECONVERGENCE \
              --shrink-factors $AFFINESHRINKFACTORS \
              --smoothing-sigmas $AFFINESMOOTHINGSIGMAS"
