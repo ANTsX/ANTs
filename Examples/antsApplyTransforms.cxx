@@ -157,12 +157,14 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   using TimeSeriesImageType = itk::Image<PixelType, Dimension + 1>;
   using DisplacementFieldType = itk::Image<VectorType, Dimension>;
   using MultiChannelImageType = itk::VectorImage<PixelType, Dimension>;
+  using FiveDimensionalImageType = itk::Image<PixelType, 5>;
   using TensorImageType = itk::Image<TensorPixelType, Dimension>;
 
   using OutputPixelType = OT;
   using OutputImageType = itk::Image<OutputPixelType, Dimension>;
   using OutputTimeSeriesImageType = itk::Image<OutputPixelType, Dimension + 1>;
   using OutputMultiChannelImageType = itk::VectorImage<OutputPixelType, Dimension>;
+  using OutputFiveDimensionalImageType = itk::Image<OutputPixelType, 5>;
   using OutputVectorType = itk::Vector<OutputPixelType, Dimension>;
   using OutputDisplacementFieldType = itk::Image<OutputVectorType, Dimension>;
 
@@ -177,6 +179,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typename TimeSeriesImageType::Pointer timeSeriesImage = nullptr;
   typename TensorImageType::Pointer tensorImage = nullptr;
   typename MultiChannelImageType::Pointer multiChannelImage = nullptr;
+  typename FiveDimensionalImageType::Pointer fiveDimensionalImage = nullptr;
   typename DisplacementFieldType::Pointer vectorImage = nullptr;
 
   std::vector<typename ImageType::Pointer> inputImages;
@@ -199,7 +202,16 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption( "input" );
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
 
-  if( inputImageType == 4 && inputOption && inputOption->GetNumberOfFunctions() )
+  if( inputImageType == 5 && inputOption && inputOption->GetNumberOfFunctions() )
+    {
+    if( verbose )
+      {
+      std::cout << "Input 5-dimensional image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+      }
+    ReadImage<FiveDimensionalImageType>( fiveDimensionalImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str() );
+    timeSeriesImage = ConvertFiveDimensionalImageToTimeSeriesImage<FiveDimensionalImageType, TimeSeriesImageType>( fiveDimensionalImage );
+    }
+  else if( inputImageType == 4 && inputOption && inputOption->GetNumberOfFunctions() )
     {
     if( verbose )
       {
@@ -266,12 +278,12 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
       {
       // Here we have no input image, valid usage is
-      // -o [warp.nii.gz, 1] or -o Linear[affine.mat, 0]  
+      // -o [warp.nii.gz, 1] or -o Linear[affine.mat, 0]
       // Exit failure with -o [outputImage.nii.gz,0] but no input to warp
       std::string outputOptionName = outputOption->GetFunction( 0 )->GetName();
       ConvertToLowerCase( outputOptionName );
       if( std::strcmp( outputOptionName.c_str(), "linear" ) )
-        {      
+        {
         if( verbose )
           {
           std::cerr << "An input image is required." << std::endl;
@@ -345,7 +357,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       inputImages.push_back( selector->GetOutput() );
       }
     }
-  else if( inputImageType == 3 || inputImageType == 4 )
+  else if( inputImageType == 3 || inputImageType == 4 || inputImageType == 5 )
     {
     typename TimeSeriesImageType::RegionType extractRegion = timeSeriesImage->GetLargestPossibleRegion();
     unsigned int numberOfTimePoints = extractRegion.GetSize()[Dimension];
@@ -457,7 +469,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         // defaultValue == MD of isotropic tensor. Resampling is done in log space
         resampleFilter->SetDefaultPixelValue( log( defaultValue ) );
         }
-             else
+      else
         {
         resampleFilter->SetDefaultPixelValue( 0 );
         }
@@ -477,18 +489,11 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         std::cout << "Interpolation type: " << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
         }
       }
-    if( inputImageType == 3 )
+    if( inputImageType == 3 || inputImageType == 4 || inputImageType == 5 )
       {
       if( verbose )
         {
-        std::cout << "  Applying transform(s) to time point " << n << " (out of " << inputImages.size() << ")." << std::endl;
-        }
-      }
-    else if( inputImageType == 4 )
-      {
-      if( verbose )
-        {
-        std::cout << "  Applying transform(s) to channel " << n << " (out of " << inputImages.size() << ")." << std::endl;
+        std::cout << "  Applying transform(s) to timePoint/channel/dimension5 " << n << " (out of " << inputImages.size() << ")." << std::endl;
         }
       }
     resampleFilter->Update();
@@ -615,8 +620,8 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           It.Set( vector );
           }
 
-        using CastFitlerType = itk::CastImageFilter<DisplacementFieldType, OutputDisplacementFieldType>;
-        typename CastFitlerType::Pointer caster = CastFitlerType::New();
+        using CastFilterType = itk::CastImageFilter<DisplacementFieldType, OutputDisplacementFieldType>;
+        typename CastFilterType::Pointer caster = CastFilterType::New();
         caster->SetInput( outputVectorImage );
         caster->Update();
 
@@ -660,7 +665,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           }
         WriteTensorImage<TensorImageType>( outputTensorImage, ( outputFileName ).c_str(), true );
         }
-      else if( inputImageType == 3 || inputImageType == 4 )
+      else if( inputImageType == 3 || inputImageType == 4 || inputImageType == 5 )
         {
         unsigned int numberOfTimePoints = timeSeriesImage->GetLargestPossibleRegion().GetSize()[Dimension];
 
@@ -720,33 +725,44 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
             }
           It.Set( outputImages[timeImageIndex[Dimension] - startTimeIndex]->GetPixel( referenceIndex ) );
           }
-        if( inputImageType == 3 )  
+        if( inputImageType == 3 )
           {
-          using CastFitlerType = itk::CastImageFilter<TimeSeriesImageType, OutputTimeSeriesImageType>;
-          typename CastFitlerType::Pointer caster = CastFitlerType::New();
+          using CastFilterType = itk::CastImageFilter<TimeSeriesImageType, OutputTimeSeriesImageType>;
+          typename CastFilterType::Pointer caster = CastFilterType::New();
           caster->SetInput( outputTimeSeriesImage );
           caster->Update();
 
           WriteImage<OutputTimeSeriesImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
           }
-        else // inputImageType == 4
+        else if( inputImageType == 4 )
           {
           multiChannelImage = ConvertTimeSeriesImageToMultiChannelImage<TimeSeriesImageType, MultiChannelImageType>( outputTimeSeriesImage );
 
-          using CastFitlerType = itk::CastImageFilter<MultiChannelImageType, OutputMultiChannelImageType>;
-          typename CastFitlerType::Pointer caster = CastFitlerType::New();
+          using CastFilterType = itk::CastImageFilter<MultiChannelImageType, OutputMultiChannelImageType>;
+          typename CastFilterType::Pointer caster = CastFilterType::New();
           caster->SetInput( multiChannelImage );
           caster->Update();
 
           WriteImage<OutputMultiChannelImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
+          }
+        else //  if( inputImageType == 5 )
+          {
+          fiveDimensionalImage = ConvertTimeSeriesImageToFiveDimensionalImage<TimeSeriesImageType, FiveDimensionalImageType>( outputTimeSeriesImage );
+
+          using CastFilterType = itk::CastImageFilter<FiveDimensionalImageType, OutputFiveDimensionalImageType>;
+          typename CastFilterType::Pointer caster = CastFilterType::New();
+          caster->SetInput( fiveDimensionalImage );
+          caster->Update();
+
+          WriteImage<OutputFiveDimensionalImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
           }
         }
       else
         {
         try
           {
-          using CastFitlerType = itk::CastImageFilter<ImageType, OutputImageType>;
-          typename CastFitlerType::Pointer caster = CastFitlerType::New();
+          using CastFilterType = itk::CastImageFilter<ImageType, OutputImageType>;
+          typename CastFilterType::Pointer caster = CastFilterType::New();
           caster->SetInput( outputImages[0] );
           caster->Update();
 
@@ -797,16 +813,17 @@ static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandL
   {
   std::string description =
     std::string( "Option specifying the input image type of scalar (default), " )
-    + std::string( "vector, tensor, time series, or multi-channel.  A time series " ) 
-    + std::string( "image is a scalar image defined by an additional dimension " ) 
-    + std::string( "for the time component whereas a multi-channel image is a ")
-    + std::string( "vector image with only spatial dimensions.");
+    + std::string( "vector, tensor, time series, or multi-channel.  A time series " )
+    + std::string( "image is a scalar image defined by an additional dimension " )
+    + std::string( "for the time component whereas a multi-channel image is a " )
+    + std::string( "vector image with only spatial dimensions.  Five-dimensional" )
+    + std::string( "images are e.g., AFNI stats image." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "input-image-type" );
   option->SetShortName( 'e' );
-  option->SetUsageOption( 0, "0/1/2/3/4 " );
-  option->SetUsageOption( 1, "scalar/vector/tensor/time-series/multichannel " );
+  option->SetUsageOption( 0, "0/1/2/3/4/5" );
+  option->SetUsageOption( 1, "scalar/vector/tensor/time-series/multichannel/five-dimensional" );
   option->AddFunction( std::string( "0" ) );
   option->SetDescription( description );
   parser->AddOption( option );
@@ -1137,7 +1154,8 @@ private:
     VECTOR,
     TENSOR,
     TIME_SERIES,
-    MULTICHANNEL
+    MULTICHANNEL,
+    FIVEDIMENSIONAL
     };
 
   InputImageType imageType = SCALAR;
@@ -1163,6 +1181,10 @@ private:
     else if( !std::strcmp( inputImageType.c_str(), "multichannel" ) || !std::strcmp( inputImageType.c_str(), "4" ) )
       {
       imageType = MULTICHANNEL;
+      }
+    else if( !std::strcmp( inputImageType.c_str(), "five-dimensional" ) || !std::strcmp( inputImageType.c_str(), "5" ) )
+      {
+      imageType = FIVEDIMENSIONAL;
       }
     else
       {
@@ -1198,37 +1220,37 @@ private:
         {
         if( useDoublePrecision )
           {
-            if( !std::strcmp( outputDataType.c_str(), "char" ) )
-              return antsApplyTransforms<double, 2, char>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
-              return antsApplyTransforms<double, 2, unsigned char>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "short" ) )
-              return antsApplyTransforms<double, 2, short>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "int" ) )
-              return antsApplyTransforms<double, 2, int>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "float" ) )
-              return antsApplyTransforms<double, 2, float>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "double" ) )
-              return antsApplyTransforms<double, 2, double>( parser, imageType );
-            else
-              return antsApplyTransforms<double, 2, double>( parser, imageType );
+          if( !std::strcmp( outputDataType.c_str(), "char" ) )
+            return antsApplyTransforms<double, 2, char>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
+            return antsApplyTransforms<double, 2, unsigned char>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "short" ) )
+            return antsApplyTransforms<double, 2, short>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "int" ) )
+            return antsApplyTransforms<double, 2, int>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "float" ) )
+            return antsApplyTransforms<double, 2, float>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "double" ) )
+            return antsApplyTransforms<double, 2, double>( parser, imageType );
+          else
+            return antsApplyTransforms<double, 2, double>( parser, imageType );
           }
         else
           {
-            if( !std::strcmp( outputDataType.c_str(), "char" ) )
-              return antsApplyTransforms<float, 2, char>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
-              return antsApplyTransforms<float, 2, unsigned char>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "short" ) )
-              return antsApplyTransforms<float, 2, short>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "int" ) )
-              return antsApplyTransforms<float, 2, int>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "float" ) )
-              return antsApplyTransforms<float, 2, float>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "double" ) )
-              return antsApplyTransforms<float, 2, double>( parser, imageType );
-            else
-              return antsApplyTransforms<float, 2, float>( parser, imageType );
+          if( !std::strcmp( outputDataType.c_str(), "char" ) )
+            return antsApplyTransforms<float, 2, char>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
+            return antsApplyTransforms<float, 2, unsigned char>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "short" ) )
+            return antsApplyTransforms<float, 2, short>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "int" ) )
+            return antsApplyTransforms<float, 2, int>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "float" ) )
+            return antsApplyTransforms<float, 2, float>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "double" ) )
+            return antsApplyTransforms<float, 2, double>( parser, imageType );
+          else
+            return antsApplyTransforms<float, 2, float>( parser, imageType );
           }
         }
       }
@@ -1237,37 +1259,37 @@ private:
       {
       if( useDoublePrecision )
         {
-          if( !std::strcmp( outputDataType.c_str(), "char" ) )
-            return antsApplyTransforms<double, 3, char>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
-            return antsApplyTransforms<double, 3, unsigned char>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "short" ) )
-            return antsApplyTransforms<double, 3, short>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "int" ) )
-            return antsApplyTransforms<double, 3, int>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "float" ) )
-            return antsApplyTransforms<double, 3, float>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "double" ) )
-            return antsApplyTransforms<double, 3, double>( parser, imageType );
-          else
-            return antsApplyTransforms<double, 3, double>( parser, imageType );
+        if( !std::strcmp( outputDataType.c_str(), "char" ) )
+          return antsApplyTransforms<double, 3, char>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
+          return antsApplyTransforms<double, 3, unsigned char>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "short" ) )
+          return antsApplyTransforms<double, 3, short>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "int" ) )
+          return antsApplyTransforms<double, 3, int>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "float" ) )
+          return antsApplyTransforms<double, 3, float>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "double" ) )
+          return antsApplyTransforms<double, 3, double>( parser, imageType );
+        else
+          return antsApplyTransforms<double, 3, double>( parser, imageType );
         }
       else
         {
-          if( !std::strcmp( outputDataType.c_str(), "char" ) )
-            return antsApplyTransforms<float, 3, char>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
-            return antsApplyTransforms<float, 3, unsigned char>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "short" ) )
-            return antsApplyTransforms<float, 3, short>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "int" ) )
-            return antsApplyTransforms<float, 3, int>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "float" ) )
-            return antsApplyTransforms<float, 3, float>( parser, imageType );
-          else if( !std::strcmp( outputDataType.c_str(), "double" ) )
-            return antsApplyTransforms<float, 3, double>( parser, imageType );
-          else
-            return antsApplyTransforms<float, 3, float>( parser, imageType );
+        if( !std::strcmp( outputDataType.c_str(), "char" ) )
+          return antsApplyTransforms<float, 3, char>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
+          return antsApplyTransforms<float, 3, unsigned char>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "short" ) )
+          return antsApplyTransforms<float, 3, short>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "int" ) )
+          return antsApplyTransforms<float, 3, int>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "float" ) )
+          return antsApplyTransforms<float, 3, float>( parser, imageType );
+        else if( !std::strcmp( outputDataType.c_str(), "double" ) )
+          return antsApplyTransforms<float, 3, double>( parser, imageType );
+        else
+          return antsApplyTransforms<float, 3, float>( parser, imageType );
         }
       }
       break;
@@ -1291,37 +1313,37 @@ private:
         {
         if( useDoublePrecision )
           {
-            if( !std::strcmp( outputDataType.c_str(), "char" ) )
-              return antsApplyTransforms<double, 4, char>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
-              return antsApplyTransforms<double, 4, unsigned char>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "short" ) )
-              return antsApplyTransforms<double, 4, short>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "int" ) )
-              return antsApplyTransforms<double, 4, int>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "float" ) )
-              return antsApplyTransforms<double, 4, float>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "double" ) )
-              return antsApplyTransforms<double, 4, double>( parser, imageType );
-            else
-              return antsApplyTransforms<double, 4, double>( parser, imageType );
+          if( !std::strcmp( outputDataType.c_str(), "char" ) )
+            return antsApplyTransforms<double, 4, char>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
+            return antsApplyTransforms<double, 4, unsigned char>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "short" ) )
+            return antsApplyTransforms<double, 4, short>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "int" ) )
+            return antsApplyTransforms<double, 4, int>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "float" ) )
+            return antsApplyTransforms<double, 4, float>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "double" ) )
+            return antsApplyTransforms<double, 4, double>( parser, imageType );
+          else
+            return antsApplyTransforms<double, 4, double>( parser, imageType );
           }
         else
           {
-            if( !std::strcmp( outputDataType.c_str(), "char" ) )
-              return antsApplyTransforms<float, 4, char>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
-              return antsApplyTransforms<float, 4, unsigned char>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "short" ) )
-              return antsApplyTransforms<float, 4, short>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "int" ) )
-              return antsApplyTransforms<float, 4, int>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "float" ) )
-              return antsApplyTransforms<float, 4, float>( parser, imageType );
-            else if( !std::strcmp( outputDataType.c_str(), "double" ) )
-              return antsApplyTransforms<float, 4, double>( parser, imageType );
-            else
-              return antsApplyTransforms<float, 4, float>( parser, imageType );
+          if( !std::strcmp( outputDataType.c_str(), "char" ) )
+            return antsApplyTransforms<float, 4, char>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "uchar" ) )
+            return antsApplyTransforms<float, 4, unsigned char>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "short" ) )
+            return antsApplyTransforms<float, 4, short>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "int" ) )
+            return antsApplyTransforms<float, 4, int>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "float" ) )
+            return antsApplyTransforms<float, 4, float>( parser, imageType );
+          else if( !std::strcmp( outputDataType.c_str(), "double" ) )
+            return antsApplyTransforms<float, 4, double>( parser, imageType );
+          else
+            return antsApplyTransforms<float, 4, float>( parser, imageType );
           }
         }
       }
