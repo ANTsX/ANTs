@@ -95,9 +95,16 @@ Optional arguments:
         0: false
         1: true
 
-     -y:  use 'repro' mode.  GC for linear stages and fixed seed
+     -y:  use 'repro' mode for exact reproducibility of output.  Uses GC metric for linear
+          stages, CC metric for deformable stages, and a fixed random seed (default = 0).
+        0: false
+        1: true
 
      -z:  collapse output transforms (default = 1)
+        0: false
+        1: true
+
+     -e:  Fix random seed to an int value
 
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
@@ -179,11 +186,16 @@ Optional arguments:
         0: false
         1: true
 
-     -y:  use 'repro' mode.  GC for linear stages and fixed seed
+     -y:  use 'repro' mode for exact reproducibility of output.  Uses GC metric for linear
+          stages, CC metric for deformable stages, and a fixed random seed (default = 0).
+        0: false
+        1: true
 
      -z:  collapse output transforms (default = 1)
+        0: false
+        1: true
 
-     -e:  Fix random seed to an int value (default = system time)
+     -e:  Fix random seed to an int value
 
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
@@ -491,11 +503,26 @@ if [[ $ISLARGEIMAGE -eq 1 ]];
 
 LINEARMETRIC="MI"
 LINEARMETRICPARAMETER=32
+
+# Precedence for random seeding
+# 1. Command line option -e
+# 2. Environment variable ANTS_RANDOM_SEED
+# 3. Fixed seed = 1 if run in repro mode
+# 4. ITK default (system time)
+
+if [[ -n ${ANTS_RANDOM_SEED} ]] && [[ ${RANDOMSEED} -eq 0 ]];
+  then
+    RANDOMSEED=${ANTS_RANDOM_SEED}
+  fi
+
 if [[ $REPRO -eq 1 ]];
   then
     LINEARMETRIC="GC"
     LINEARMETRICPARAMETER=1
-    RANDOMSEED=1
+    if [[ ${RANDOMSEED} -eq 0 ]];
+      then
+        RANDOMSEED=1
+      fi
   fi
 
 INITIALSTAGE="--initial-moving-transform [ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1 ]"
