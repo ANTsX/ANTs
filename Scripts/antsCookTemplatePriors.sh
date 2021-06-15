@@ -605,6 +605,8 @@ if [[ ${TEMPLATE_PRIORS_EXIST} -eq 0 ]];
         TMP_CSF_POSTERIOR=${OUTPUT_PREFIX}BrainSegmentationCsfPosteriorTmp.${OUTPUT_SUFFIX}
         logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${TEMPLATE_POSTERIORS[0]} 1 ${TMP_CSF_POSTERIOR} 1
         logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[0]} max ${TEMPLATE_PRIORS[0]} ${TMP_CSF_POSTERIOR}
+        # Clip priors to remove precision errors
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[0]} WindowImage ${TEMPLATE_PRIORS[0]} 0 1 0 1
 
         # Brian's finishing touches on "cooking"---subtract out CSF from all other priors
         for (( j = 1; j < ${#TEMPLATE_PRIORS[@]}; j++ ))
@@ -612,8 +614,8 @@ if [[ ${TEMPLATE_PRIORS_EXIST} -eq 0 ]];
             let PRIOR_LABEL=$j+1
 
             logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[$j]} - ${TEMPLATE_PRIORS[$j]} ${TEMPLATE_PRIORS[0]}
-            logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR} 0 1 1 0
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[$j]} m ${TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR}
+            # Clip priors to range [0,1]
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[$j]} WindowImage ${TEMPLATE_PRIORS[$j]} 0 1 0 1
           done
 
         logCmd rm -f $TMP_CSF_POSTERIOR
