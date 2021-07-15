@@ -116,7 +116,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   if( this->m_UseROI )
     {
     outimage = this->MakeSubImage(outimage);
-//       WriteImage<ImageType>(outimage,"temps.hdr");
+//       ANTs::WriteImage<ImageType>(outimage,"temps.hdr");
     // warp with affine & deformable
     }
 
@@ -663,17 +663,17 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     /*
     if (this->m_TimeVaryingVelocity && ! this->m_MaskImage ) {
       std::string outname=this->localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str())+std::string("thick.nii.gz");
-      ///      WriteImage<ImageType>(wmimage,outname.c_str());
+      ///      ANTs::WriteImage<ImageType>(wmimage,outname.c_str());
       outname=this->localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str())+std::string("thick2.nii.gz");
-      WriteImage<ImageType>(wfimage,outname.c_str());
+      ANTs::WriteImage<ImageType>(wfimage,outname.c_str());
     }
     */
     //      std::string
     // outname=this->localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str())+std::string("temp.nii.gz");
-    //      WriteImage<ImageType>(wmimage,outname.c_str());
+    //      ANTs::WriteImage<ImageType>(wmimage,outname.c_str());
     //      std::string
     // outname2=this->localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str())+std::string("temp2.nii.gz");
-    //      WriteImage<ImageType>(wfimage,outname2.c_str());
+    //      ANTs::WriteImage<ImageType>(wfimage,outname2.c_str());
 
 /** MV Loop END -- Would have to collect update fields then add them
 * together somehow -- Would also have to eliminate the similarity
@@ -2473,7 +2473,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     std::string outname = this->localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str() ) + std::string(
         "thick.nii.gz");
     std::cout << " write " << outname << std::endl;
-    WriteImage<ImageType>(this->m_ThickImage, outname.c_str() );
+    ANTs::WriteImage<ImageType>(this->m_ThickImage, outname.c_str() );
     }
 
   return intfield;

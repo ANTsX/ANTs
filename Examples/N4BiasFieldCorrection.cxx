@@ -581,14 +581,14 @@ int N4( itk::ants::CommandLineParser *parser )
 
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
+      ANTs::WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
       if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        WriteImage<ImageType>( biasFieldCropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
+        ANTs::WriteImage<ImageType>( biasFieldCropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
         }
       }
     }

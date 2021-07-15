@@ -128,7 +128,7 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
   flipper->Update();
 
   typename InputImageType::Pointer image = flipper->GetOutput();
-  WriteImage<OutputImageType>(image, argv[2]);
+  ANTs::WriteImage<OutputImageType>(image, argv[2]);
 
   return EXIT_SUCCESS;
 }

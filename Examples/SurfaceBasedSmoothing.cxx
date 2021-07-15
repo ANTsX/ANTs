@@ -124,7 +124,7 @@ private:
   std::cout << " writing result " << ofn <<  std::endl;
   // writer->SetFileName(ofn.c_str());
   //  writer->SetInput( smooth );
-  WriteImage<ImageType>(smooth, ofn.c_str() );
+  ANTs::WriteImage<ImageType>(smooth, ofn.c_str() );
   std::cout << " done writing ";
 
   return 1;

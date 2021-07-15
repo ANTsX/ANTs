@@ -95,11 +95,11 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
     logFilter->SetInput( maxFilter->GetOutput() );
     logFilter->Update();
-    WriteImage<ImageType>(logFilter->GetOutput(), argv[3] );
+    ANTs::WriteImage<ImageType>(logFilter->GetOutput(), argv[3] );
     }
   else
     {
-    WriteImage<ImageType>(jacobian, argv[3] );
+    ANTs::WriteImage<ImageType>(jacobian, argv[3] );
     }
   return EXIT_SUCCESS;
 }

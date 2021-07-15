@@ -949,7 +949,7 @@ int ImageSetStatistics(int argc, char *argv[])
       StatImage->SetPixel(ind, 0);
       }
     }
-  WriteImage<ImageType>(StatImage, outfn.c_str() );
+  ANTs::WriteImage<ImageType>(StatImage, outfn.c_str() );
 
   std::cout << " Done " << std::endl;
   return EXIT_SUCCESS;

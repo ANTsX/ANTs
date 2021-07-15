@@ -77,7 +77,7 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   typename TImage::Pointer weights =  sccanobj->ConvertVariateToSpatialImage(  w_p,  mask );
   std::string fn1 = filepre + post + extension;
-  WriteImage<TImage>( weights, fn1.c_str() );
+  ANTs::WriteImage<TImage>( weights, fn1.c_str() );
 }
 
 template <typename T>

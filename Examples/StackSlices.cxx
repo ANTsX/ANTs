@@ -325,7 +325,7 @@ private:
       }
     }
 
-  WriteImage<ImageType>( stack, stackName );
+  ANTs::WriteImage<ImageType>( stack, stackName );
 
   // Input parameters
 //   char * inputName  = argv[1];

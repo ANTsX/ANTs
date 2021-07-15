@@ -270,7 +270,7 @@ int SuperResolution( unsigned int argc, char *argv[] )
   adder->SetConstant2( averageIntensity );
   adder->Update();
 
-  WriteImage<ImageType>( adder->GetOutput(), argv[2] );
+  ANTs::WriteImage<ImageType>( adder->GetOutput(), argv[2] );
 
   return EXIT_SUCCESS;
 }
