@@ -499,7 +499,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     std::vector<unsigned int> timelist;
     AverageTimeImages<MovingIOImageType, FixedIOImageType>( movingImage, avgImage, timelist );
     if ( verbose ) std::cout << "average out " << outputPrefix <<  std::endl;
-    WriteImage<FixedIOImageType>( avgImage, outputPrefix.c_str() );
+    ANTs::WriteImage<FixedIOImageType>( avgImage, outputPrefix.c_str() );
     return EXIT_SUCCESS;
     }
 
@@ -1591,7 +1591,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         outputPrefix = outputOption->GetFunction( 0 )->GetName();
         }
       if ( verbose ) std::cout << "motion corrected out " << fileName <<  std::endl;
-      WriteImage<MovingIOImageType>( outputImage, fileName.c_str()  );
+      ANTs::WriteImage<MovingIOImageType>( outputImage, fileName.c_str()  );
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 && outputImage && currentStage ==
         0 )
@@ -1629,15 +1629,15 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       AverageTimeImages<MovingIOImageType, FixedIOImageType>( outputImage, fixed_time_slice, timelistsort );
       if ( verbose ) std::cout << " write average post " << fileName << std::endl;
-      WriteImage<FixedIOImageType>( fixed_time_slice, fileName.c_str() );
+      ANTs::WriteImage<FixedIOImageType>( fixed_time_slice, fileName.c_str() );
       }
     }
   if ( writeDisplacementField > 0 )
     {
     std::string dfn = outputPrefix + std::string("Warp.nii.gz");
-    WriteImage<DisplacementIOFieldType>( displacementout, dfn.c_str()  );
+    ANTs::WriteImage<DisplacementIOFieldType>( displacementout, dfn.c_str()  );
     dfn = outputPrefix + std::string("InverseWarp.nii.gz");
-    WriteImage<DisplacementIOFieldType>( displacementinv, dfn.c_str()  );
+    ANTs::WriteImage<DisplacementIOFieldType>( displacementinv, dfn.c_str()  );
     }
 
   totalTimer.Stop();

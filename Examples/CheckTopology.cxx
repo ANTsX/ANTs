@@ -374,11 +374,11 @@ private:
         }
       }
 
-    WriteImage<ImageType>(simage, argv[2]);
+    ANTs::WriteImage<ImageType>(simage, argv[2]);
     }
   else if( argc > 2 )
     {
-    WriteImage<ImageType>(image, argv[2]);
+    ANTs::WriteImage<ImageType>(image, argv[2]);
     }
   return EXIT_SUCCESS;
 }

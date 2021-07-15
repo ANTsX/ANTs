@@ -67,7 +67,7 @@ int ConvertImage( int argc, char *argv[] )
         ItD.Set( V );
         }
       }
-    WriteImage<DisplacementFieldType>( displacementField, argv[3] );
+    ANTs::WriteImage<DisplacementFieldType>( displacementField, argv[3] );
     }
   else if( argc > 4 && std::stoi( argv[4] ) == 10 )
     {
@@ -99,7 +99,7 @@ int ConvertImage( int argc, char *argv[] )
         {
         filename += std::string( "zvec.nii.gz" );
         }
-      WriteImage<ComponentImageType>( selector->GetOutput(), filename.c_str() );
+      ANTs::WriteImage<ComponentImageType>( selector->GetOutput(), filename.c_str() );
       }
 
     }
@@ -138,7 +138,7 @@ int ConvertImage( int argc, char *argv[] )
         {
         filename += std::string( "zvec.nii.gz" );
         }
-      WriteImage<ComponentImageType>( selector->GetOutput(), filename.c_str() );
+      ANTs::WriteImage<ComponentImageType>( selector->GetOutput(), filename.c_str() );
       }
     }
   else if( argc > 4 && std::stoi( argv[4] ) == 12 )
@@ -149,7 +149,7 @@ int ConvertImage( int argc, char *argv[] )
     typename DisplacementFieldType::Pointer displacementField;
     ReadImage<DisplacementFieldType>( displacementField, argv[2] );
 
-    WriteImage<DisplacementFieldType>( displacementField, argv[3] );
+    ANTs::WriteImage<DisplacementFieldType>( displacementField, argv[3] );
     }
   else if( argc == 4 || ( argc > 4 && std::stoi( argv[4] ) < 9 ) )
     {
@@ -187,7 +187,7 @@ int ConvertImage( int argc, char *argv[] )
       filter->SetOutputMaximum( itk::NumericTraits<OutputPixelType>::max() );
       filter->Update();
 
-      WriteImage<OutputImageType>( filter->GetOutput(), argv[3] );
+      ANTs::WriteImage<OutputImageType>( filter->GetOutput(), argv[3] );
       }
     else
       {
@@ -196,7 +196,7 @@ int ConvertImage( int argc, char *argv[] )
       caster->SetInput( inputImage );
       caster->Update();
 
-      WriteImage<OutputImageType>( caster->GetOutput(), argv[3] );
+      ANTs::WriteImage<OutputImageType>( caster->GetOutput(), argv[3] );
       }
     }
 

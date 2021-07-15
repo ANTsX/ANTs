@@ -1040,7 +1040,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
         {
         outputPrefix = outputOption->GetFunction( 0 )->GetName();
         }
-      WriteImage<MovingIOImageType>( outputImage, fileName.c_str()  );
+      ANTs::WriteImage<MovingIOImageType>( outputImage, fileName.c_str()  );
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2
         && outputImage && currentStage == 0 )

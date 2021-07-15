@@ -504,7 +504,7 @@ void  SurfaceImageCurvature<TSurface>
       laplacian = filter->GetOutput();
       Iterator.GoToBegin();
       }
-//    WriteImage<TSurface>(laplacian,"lap.hdr");
+//    ANTs::WriteImage<TSurface>(laplacian,"lap.hdr");
     GradientImageFilterPointer filter = GradientImageFilterType::New();
     filter->SetInput( laplacian );
     RealType sigma = this->m_Sigma;

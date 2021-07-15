@@ -969,12 +969,12 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     if( !functionalRgbImages.empty() )
       {
       rgbTileFilter->Update();
-      WriteImage<RgbSliceType>( rgbTileFilter->GetOutput(), outputFile.c_str() );
+      ANTs::WriteImage<RgbSliceType>( rgbTileFilter->GetOutput(), outputFile.c_str() );
       }
     else
       {
       tileFilter->Update();
-      WriteImage<SliceType>( tileFilter->GetOutput(), outputFile.c_str() );
+      ANTs::WriteImage<SliceType>( tileFilter->GetOutput(), outputFile.c_str() );
       }
     }
   else

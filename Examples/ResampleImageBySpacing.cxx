@@ -209,7 +209,7 @@ private:
     transform->SetIdentity();
     resampler->SetTransform( transform );
     resampler->Update();
-    WriteImage<OutputImageType>( resampler->GetOutput(), argv[3] );
+    ANTs::WriteImage<OutputImageType>( resampler->GetOutput(), argv[3] );
     }
 
   if( Dimension == 3 )
@@ -342,7 +342,7 @@ private:
     transform->SetIdentity();
     resampler->SetTransform( transform );
     resampler->Update();
-    WriteImage<OutputImageType>( resampler->GetOutput(), argv[3] );
+    ANTs::WriteImage<OutputImageType>( resampler->GetOutput(), argv[3] );
    }
 /*ADDING 4-dimensional images */
 if( Dimension == 4 )
@@ -459,7 +459,7 @@ TransformType::Pointer transform = TransformType::New();
 transform->SetIdentity();
 resampler->SetTransform( transform );
 resampler->Update();
-WriteImage<OutputImageType>( resampler->GetOutput(), argv[3] );
+ANTs::WriteImage<OutputImageType>( resampler->GetOutput(), argv[3] );
 }
 
   return EXIT_SUCCESS;

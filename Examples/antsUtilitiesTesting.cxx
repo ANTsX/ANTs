@@ -300,7 +300,7 @@ private:
 //         resampleFilter->SetTransform( similarityTransform );
 //         resampleFilter->SetDefaultPixelValue( 255 );
 //         resampleFilter->Update();
-//         WriteImage<ImageType>( resampleFilter->GetOutput(), "training.nii.gz" );
+//         ANTs::WriteImage<ImageType>( resampleFilter->GetOutput(), "training.nii.gz" );
 
         double metricValue = imageMetric->GetValue();
 

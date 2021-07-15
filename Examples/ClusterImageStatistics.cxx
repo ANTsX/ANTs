@@ -180,8 +180,8 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
         }
       }
 
-    //  WriteImage<ImageType>(Values,std::string("temp.nii.gz").c_str());
-    // WriteImage<ImageType>(Clusters,std::string("temp2.nii.gz").c_str());
+    //  ANTs::WriteImage<ImageType>(Values,std::string("temp.nii.gz").c_str());
+    // ANTs::WriteImage<ImageType>(Clusters,std::string("temp2.nii.gz").c_str());
 
     float maximgval = 0;
     for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
@@ -202,9 +202,9 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
         }
       }
 
-//  WriteImage<ImageType>(Values,(outname+"values.nii.gz").c_str());
-//  WriteImage<ImageType>(Labels,(outname+"labels.nii.gz").c_str());
-    WriteImage<ImageType>(Clusters, (outname + "sizes.nii.gz").c_str() );
+//  ANTs::WriteImage<ImageType>(Values,(outname+"values.nii.gz").c_str());
+//  ANTs::WriteImage<ImageType>(Labels,(outname+"labels.nii.gz").c_str());
+    ANTs::WriteImage<ImageType>(Clusters, (outname + "sizes.nii.gz").c_str() );
 
     // now begin output
     //  std::cout << " Writing Text File " << outname << std::endl;

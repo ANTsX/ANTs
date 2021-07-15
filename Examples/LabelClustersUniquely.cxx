@@ -108,7 +108,7 @@ int  LabelUniquely(int argc, char *argv[])
   typename CastFilterType2::Pointer castRegions = CastFilterType2::New();
   castRegions->SetInput( relabel->GetOutput() );
   castRegions->Update();
-  WriteImage<ImageType>(   castRegions->GetOutput() , argv[2] );
+  ANTs::WriteImage<ImageType>(   castRegions->GetOutput() , argv[2] );
 
   return EXIT_SUCCESS;
 }

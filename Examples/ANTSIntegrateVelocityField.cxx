@@ -105,7 +105,7 @@ int IntegrateVelocityField(int argc, char *argv[])
   integrator->SetNumberOfIntegrationSteps( (unsigned int ) 1 / dT );
   integrator->Update();
 
-  WriteImage<DisplacementFieldType>( integrator->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<DisplacementFieldType>( integrator->GetOutput(), outname.c_str() );
   return 0;
 }
 

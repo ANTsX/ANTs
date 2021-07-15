@@ -183,7 +183,7 @@ int FitBSplineWarpFieldToPoints( unsigned int argc, char *argv[] )
   bspliner->SetEstimateInverse( false );
   bspliner->Update();
 
-  WriteImage<DisplacementFieldType>( bspliner->GetOutput(), argv[5] );
+  ANTs::WriteImage<DisplacementFieldType>( bspliner->GetOutput(), argv[5] );
 
   return EXIT_SUCCESS;
 }

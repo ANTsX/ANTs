@@ -105,7 +105,7 @@ int SmoothImage(int argc, char *argv[])
     filter2->Update();
     varimage = filter2->GetOutput();
     }
-  WriteImage<ImageType>( varimage, argv[4] );
+  ANTs::WriteImage<ImageType>( varimage, argv[4] );
   return EXIT_SUCCESS;
 }
 

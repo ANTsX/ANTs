@@ -732,7 +732,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           caster->SetInput( outputTimeSeriesImage );
           caster->Update();
 
-          WriteImage<OutputTimeSeriesImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
+          ANTs::WriteImage<OutputTimeSeriesImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
           }
         else if( inputImageType == 4 )
           {
@@ -743,7 +743,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           caster->SetInput( multiChannelImage );
           caster->Update();
 
-          WriteImage<OutputMultiChannelImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
+          ANTs::WriteImage<OutputMultiChannelImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
           }
         else //  if( inputImageType == 5 )
           {
@@ -754,7 +754,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           caster->SetInput( fiveDimensionalImage );
           caster->Update();
 
-          WriteImage<OutputFiveDimensionalImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
+          ANTs::WriteImage<OutputFiveDimensionalImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
           }
         }
       else
@@ -766,7 +766,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           caster->SetInput( outputImages[0] );
           caster->Update();
 
-          WriteImage<OutputImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
+          ANTs::WriteImage<OutputImageType>( caster->GetOutput(), ( outputFileName ).c_str()  );
           }
         catch( itk::ExceptionObject & err )
           {

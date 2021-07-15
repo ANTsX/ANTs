@@ -113,7 +113,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
 
     bsplineSimulator->Print( std::cout, 5 );
 
-    WriteImage<DisplacementFieldType>( bsplineSimulator->GetOutput(), argv[4] );
+    ANTs::WriteImage<DisplacementFieldType>( bsplineSimulator->GetOutput(), argv[4] );
     }
   else if( strcmp( argv[2], "Exponential" ) == 0 || strcmp( argv[2], "exponential" ) == 0 )
     {
@@ -138,7 +138,7 @@ int SimulateDisplacementField( int argc, char *argv[] )
     exponentialSimulator->SetDisplacementNoiseStandardDeviation( standardDeviationDisplacementField );
     exponentialSimulator->SetSmoothingStandardDeviation( standardDeviationSmoothing );
     exponentialSimulator->Update();
-    WriteImage<DisplacementFieldType>( exponentialSimulator->GetOutput(), argv[4] );
+    ANTs::WriteImage<DisplacementFieldType>( exponentialSimulator->GetOutput(), argv[4] );
     }
   else
     {

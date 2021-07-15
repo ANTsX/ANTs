@@ -1686,7 +1686,7 @@ public:
       writer->UpdateLargestPossibleRegion();
       //    writer->Write();
       std::cout << " write tv field " << outname << std::endl;
-      //        WriteImage<TimeVaryingVelocityFieldType>( this->m_TimeVaryingVelocity , outname.c_str());
+      //        ANTs::WriteImage<TimeVaryingVelocityFieldType>( this->m_TimeVaryingVelocity , outname.c_str());
       }
   }
 

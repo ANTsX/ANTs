@@ -245,7 +245,7 @@ int antsApplyTransformsToPoints(
             ind[1] = dd;
             pointimage->SetPixel( ind , points_out( d, dd ) );
             }
-        WriteImage<ImageType>(pointimage, outputFileName.c_str() );
+        ANTs::WriteImage<ImageType>(pointimage, outputFileName.c_str() );
         }
       }
     }

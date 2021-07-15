@@ -1090,11 +1090,11 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     {
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      WriteImage<LabelImageType>(segmenter->GetOutput(), ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<LabelImageType>(segmenter->GetOutput(), ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      WriteImage<LabelImageType>(segmenter->GetOutput(), ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
+      ANTs::WriteImage<LabelImageType>(segmenter->GetOutput(), ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
       }
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {

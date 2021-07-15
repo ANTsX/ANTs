@@ -48,7 +48,7 @@ int ExtractSliceFromImage( int argc, char *argv[] )
       }
     extracter->Update();
 
-    WriteImage<SliceType>( extracter->GetOutput(), argv[3] );
+    ANTs::WriteImage<SliceType>( extracter->GetOutput(), argv[3] );
     }
   else
     {
@@ -92,7 +92,7 @@ int ExtractSliceFromImage( int argc, char *argv[] )
     pasteFilter->SetSourceRegion( extracter->GetOutput()->GetBufferedRegion() );
     pasteFilter->Update();
 
-    WriteImage<ImageType>( pasteFilter->GetOutput(), argv[3] );
+    ANTs::WriteImage<ImageType>( pasteFilter->GetOutput(), argv[3] );
     }
 
   return EXIT_SUCCESS;

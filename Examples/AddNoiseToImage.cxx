@@ -281,7 +281,7 @@ int AddNoise( itk::ants::CommandLineParser *parser )
     {
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      WriteImage<ImageType>( outputImage, ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<ImageType>( outputImage, ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     }
 

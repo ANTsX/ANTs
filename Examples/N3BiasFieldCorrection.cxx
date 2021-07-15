@@ -201,11 +201,11 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
     std::cout << "missing divider image filename" << std::endl;
     throw;
     }
-  WriteImage<ImageType>( divider->GetOutput(), argv[3] );
+  ANTs::WriteImage<ImageType>( divider->GetOutput(), argv[3] );
 
   if( argc > 8 )
     {
-    WriteImage<ImageType>( expFilter->GetOutput(), argv[8] );
+    ANTs::WriteImage<ImageType>( expFilter->GetOutput(), argv[8] );
     }
 
   return EXIT_SUCCESS;
@@ -717,14 +717,14 @@ int N3( itk::ants::CommandLineParser *parser )
 
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
+      ANTs::WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
       if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        WriteImage<ImageType>( biasFieldCropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
+        ANTs::WriteImage<ImageType>( biasFieldCropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
         }
       }
     }

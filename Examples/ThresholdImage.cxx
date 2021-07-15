@@ -468,7 +468,7 @@ int ThresholdImage( int argc, char * argv[] )
                                                                          fixed );
     }
 
-  WriteImage<FixedImageType>( thresh, argv[3] );
+  ANTs::WriteImage<FixedImageType>( thresh, argv[3] );
   return EXIT_SUCCESS;
 }
 

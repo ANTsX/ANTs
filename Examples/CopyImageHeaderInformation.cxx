@@ -115,7 +115,7 @@ int CopyImageHeaderInformation(int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(newimage, argv[3]);
+  ANTs::WriteImage<ImageType>(newimage, argv[3]);
 
   return EXIT_FAILURE;
 }

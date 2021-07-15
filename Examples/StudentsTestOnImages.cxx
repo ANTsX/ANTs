@@ -551,7 +551,7 @@ int StudentsTestOnImages(int argc, char *argv[])
   typedef itk::Statistics::TDistribution DistributionType;
   typename DistributionType::Pointer distributionFunction = DistributionType::New();
 
-  WriteImage(StatImage, outname.c_str() );
+  ANTs::WriteImage(StatImage, outname.c_str() );
 
   delete [] feature;
   delete [] groupLabel;

@@ -157,7 +157,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -193,7 +193,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -227,7 +227,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -261,7 +261,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -294,7 +294,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -327,7 +327,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -360,7 +360,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -393,7 +393,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -425,7 +425,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -463,7 +463,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -500,7 +500,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -538,7 +538,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -607,7 +607,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -675,7 +675,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -742,7 +742,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -809,7 +809,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -842,7 +842,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -868,7 +868,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -897,7 +897,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -935,7 +935,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -961,7 +961,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }
@@ -1001,7 +1001,7 @@ iMathHelperAll(int argc, char **argv)
     typename ImageType::Pointer output
       = iMathPropagateLabelsThroughMask<ImageType>(mask,labels,stoppingValue,propagationMethod);
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
 
@@ -1051,7 +1051,7 @@ iMathHelperAll(int argc, char **argv)
       std::cout << excep << std::endl;
       }
 
-    WriteImage<ImageType>( output, outName.c_str() );
+    ANTs::WriteImage<ImageType>( output, outName.c_str() );
 
     return EXIT_SUCCESS;
     }

@@ -489,13 +489,12 @@ bool WritePointSet( itk::SmartPointer<TPointSet> pointSet, const char *file )
   return true;
 }
 
+namespace ANTs {
 template <typename TImageType>
-bool WriteImage(const itk::SmartPointer<TImageType> image, const char *file)
-{
-  if( std::string(file).length() < 3 )
-    {
+bool WriteImage(const itk::SmartPointer<TImageType> image, const char *file) {
+  if (std::string(file).length() < 3) {
     return false;
-    }
+  }
 
   //  typename TImageType::DirectionType dir;
   // dir.SetIdentity();
@@ -505,27 +504,24 @@ bool WriteImage(const itk::SmartPointer<TImageType> image, const char *file)
   // if (writer->GetImageIO->GetNumberOfComponents() == 6)
   // NiftiDTICheck<TImageType>(image,file);
 
-  if( file[0] == '0' && file[1] == 'x' )
-    {
-    void* ptr;
+  if (file[0] == '0' && file[1] == 'x') {
+    void *ptr;
     sscanf(file, "%p", (void **)&ptr);
-    *( static_cast<typename TImageType::Pointer *>( ptr ) ) = image;
-    }
-  else
-    {
+    *(static_cast<typename TImageType::Pointer *>(ptr)) = image;
+  } else {
     typename itk::ImageFileWriter<TImageType>::Pointer writer =
-      itk::ImageFileWriter<TImageType>::New();
+        itk::ImageFileWriter<TImageType>::New();
     writer->SetFileName(file);
-    if( !image )
-      {
+    if (!image) {
       std::cerr << "Image is nullptr." << std::endl;
       std::exception();
-      }
-    writer->SetInput(image);
-    writer->SetUseCompression( true );
-    writer->Update();
     }
+    writer->SetInput(image);
+    writer->SetUseCompression(true);
+    writer->Update();
+  }
   return true;
+}
 }
 
 template <typename TImageType>
@@ -678,7 +674,7 @@ WriteDisplacementField(TField* field, std::string filename)
     fieldcomponent->SetOrigin(field->GetOrigin() );
     fieldcomponent->SetDirection(field->GetDirection() );
 
-    WriteImage<RealImageType>(fieldcomponent, outfile.c_str() );
+    ANTs::WriteImage<RealImageType>(fieldcomponent, outfile.c_str() );
     }
   std::cout << "...done" << std::endl;
   return;
@@ -711,7 +707,7 @@ WriteDisplacementField2(TField* field, std::string filename, std::string app)
     fieldcomponent->SetSpacing(field->GetSpacing() );
     fieldcomponent->SetOrigin(field->GetOrigin() );
 
-    WriteImage<RealImageType>(fieldcomponent, outfile.c_str() );
+    ANTs::WriteImage<RealImageType>(fieldcomponent, outfile.c_str() );
     }
   std::cout << "...done" << std::endl;
   return;

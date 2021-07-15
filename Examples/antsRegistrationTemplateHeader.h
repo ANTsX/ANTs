@@ -1490,7 +1490,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
     if( warpedImage.IsNotNull() )
       {
-      WriteImage<ImageType>( warpedImage, outputWarpedImageName.c_str()  );
+      ANTs::WriteImage<ImageType>( warpedImage, outputWarpedImageName.c_str()  );
      }
     }
 
@@ -1499,7 +1499,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     typename ImageType::Pointer inverseWarpedImage = regHelper->GetInverseWarpedImage();
     if( inverseWarpedImage.IsNotNull() )
       {
-      WriteImage<ImageType>( inverseWarpedImage, outputInverseWarpedImageName.c_str()  );
+      ANTs::WriteImage<ImageType>( inverseWarpedImage, outputInverseWarpedImageName.c_str()  );
       }
     }
 

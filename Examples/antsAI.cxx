@@ -1006,7 +1006,7 @@ int antsAI( itk::ants::CommandLineParser *parser )
             std::cout << "New determinant = " << det << std::endl;
             }
           }
-        initialTransform->SetMatrix( A );
+        initialTransform->SetMatrix( typename AffineTransformType::MatrixType(A) );
         }
       initialTransform->SetCenter( center );
 

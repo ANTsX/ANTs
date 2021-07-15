@@ -389,7 +389,7 @@ int IntegrateVectorField(int argc, char *argv[])
     ++Iterator;
     }
 
-  WriteImage<ImageType>(thickimage, lenoutname.c_str() );
+  ANTs::WriteImage<ImageType>(thickimage, lenoutname.c_str() );
 
   return EXIT_SUCCESS;
 }

@@ -218,7 +218,7 @@ int SmoothDisplacementField( int argc, char *argv[] )
     std::cout << "  rmse[" << d << "] = " << std::sqrt( rmse_comp[d] / N ) << std::endl;
     }
 
-  WriteImage<DisplacementFieldType>( smoothField, argv[3] );
+  ANTs::WriteImage<DisplacementFieldType>( smoothField, argv[3] );
 
   return EXIT_SUCCESS;
 }

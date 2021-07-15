@@ -365,7 +365,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
 
   if (writeMap)
     {
-    WriteImage<ImageType>( map, spatialOption->GetFunction(0)->GetName().c_str()  );
+    ANTs::WriteImage<ImageType>( map, spatialOption->GetFunction(0)->GetName().c_str()  );
     }
 
   if(timeseriesDisplacement){
@@ -374,7 +374,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     if (lastdot != std::string::npos)
     	tsOutImageName = outputName.substr(0, lastdot);
     tsOutImageName += ".nii.gz";
-    WriteImage<TimeSeriesImageType>(timeseriesDisplacementImage, tsOutImageName.c_str());
+    ANTs::WriteImage<TimeSeriesImageType>(timeseriesDisplacementImage, tsOutImageName.c_str());
   }
 
   return EXIT_SUCCESS;

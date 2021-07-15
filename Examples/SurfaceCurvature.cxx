@@ -196,7 +196,7 @@ private:
   // SmoothImage(Parameterizer->GetFunctionImage(),smooth,3);
   // NormalizeImage(smooth,output,mn);
   //  NormalizeImage(Parameterizer->GetFunctionImage(),output,mn);
-  WriteImage<floatImageType>( output, argv[2]);
+  ANTs::WriteImage<floatImageType>( output, argv[2]);
   return 0;
 }
 } // namespace ants

@@ -420,14 +420,14 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     {
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetParameter() ).c_str() );
+      ANTs::WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetParameter() ).c_str() );
       if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        WriteImage<ImageType>( direct->GetOutput( 1 ), ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
+        ANTs::WriteImage<ImageType>( direct->GetOutput( 1 ), ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
         }
       }
     }
@@ -443,7 +443,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   if( outputOption && outputOption->GetNumberOfFunctions() > 1 )
     {
-    WriteImage<ImageType>(  direct->GetOutput( 1 ), ( outputOption->GetFunction( 1 )->GetName() ).c_str() );
+    ANTs::WriteImage<ImageType>(  direct->GetOutput( 1 ), ( outputOption->GetFunction( 1 )->GetName() ).c_str() );
     }
 
   return EXIT_SUCCESS;

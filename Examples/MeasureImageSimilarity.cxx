@@ -451,7 +451,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         ItG.Set( displacement );
         }
 
-      WriteImage<DisplacementFieldType>( gradientField, ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<DisplacementFieldType>( gradientField, ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
 
     return EXIT_SUCCESS;

@@ -504,7 +504,7 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
 
     if( !labelFusionName.empty() )
       {
-      WriteImage<LabelImageType>( fusionFilter->GetOutput(), labelFusionName.c_str() );
+      ANTs::WriteImage<LabelImageType>( fusionFilter->GetOutput(), labelFusionName.c_str() );
       }
     if( !intensityFusionName.empty() )
       {
@@ -562,7 +562,7 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
 
         char buffer[256];
         std::snprintf( buffer, sizeof( buffer ), labelPosteriorName.c_str(), *labelIt );
-        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), buffer );
+        ANTs::WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), buffer );
         }
       }
     if( !atlasVotingName.empty() && fusionFilter->GetRetainAtlasVotingWeightImages() )
@@ -579,7 +579,7 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
           {
           std::cout << "  Writing atlas voting image (atlas " << i+1 << ")" << std::endl;
           }
-        WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ), imageNames[i].c_str() );
+        ANTs::WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ), imageNames[i].c_str() );
         }
       }
     }
