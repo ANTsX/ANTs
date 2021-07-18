@@ -139,7 +139,7 @@ int ExtractRegionFromImage( int argc, char *argv[] )
   cropper->SetDirectionCollapseToSubmatrix();
   cropper->Update();
 
-  WriteImage<ImageType>( cropper->GetOutput(), argv[3] );
+  ANTs::WriteImage<ImageType>( cropper->GetOutput(), argv[3] );
 
   return EXIT_SUCCESS;
 }

@@ -320,7 +320,7 @@ void ClosestSimplifiedHeaderMatrix(int argc, char *argv[])
     origin[d] = rndflt;
     }
   image1->SetOrigin( origin );
-  WriteImage<ImageType>( image1, outname.c_str() );
+  ANTs::WriteImage<ImageType>( image1, outname.c_str() );
   return;
 }
 
@@ -475,7 +475,7 @@ int GetLargestComponent(int argc, char *argv[])
     // std::cout << excep << std::endl;
     }
 
-  //  WriteImage<ImageType>(relabel->GetOutput(),outname.c_str());
+  //  ANTs::WriteImage<ImageType>(relabel->GetOutput(),outname.c_str());
   //  return 0;
   typename ImageType::Pointer Clusters = MakeNewImage<ImageType>(relabel->GetOutput(), 0);
   // typename ImageType::Pointer Clusters=relabel->GetOutput();
@@ -541,7 +541,7 @@ int GetLargestComponent(int argc, char *argv[])
 
   if( outname.length() > 3 )
     {
-    WriteImage<ImageType>(image1, outname.c_str() );
+    ANTs::WriteImage<ImageType>(image1, outname.c_str() );
     }
 
   return 0;
@@ -649,7 +649,7 @@ int ClusterThresholdVariate(int argc, char *argv[])
 
   if( outname.length() > 3 )
     {
-    WriteImage<ImageType>( image, outname.c_str() );
+    ANTs::WriteImage<ImageType>( image, outname.c_str() );
     }
 
   return EXIT_SUCCESS;
@@ -722,7 +722,7 @@ int ExtractSlice(int argc, char *argv[])
   */
   if( outname.length() > 3 )
     {
-    WriteImage<OutImageType>(outimage, outname.c_str() );
+    ANTs::WriteImage<OutImageType>(outimage, outname.c_str() );
     }
   else
     {
@@ -763,7 +763,7 @@ int Finite(int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(image1, outname.c_str() );
+  ANTs::WriteImage<ImageType>(image1, outname.c_str() );
   return 0;
 }
 
@@ -818,7 +818,7 @@ int ThresholdAtMean(int argc, char *argv[])
   threshold->SetLowerThreshold(mean * percentofmean);
   threshold->SetUpperThreshold(max);
   threshold->Update();
-  WriteImage<ImageType>(threshold->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ImageType>(threshold->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -845,7 +845,7 @@ int SetTimeSpacing(int argc, char *argv[])
   typename ImageType::SpacingType spacing = image1->GetSpacing();
   spacing[ ImageDimension - 1 ] = timespacing;
   image1->SetSpacing( spacing );
-  WriteImage<ImageType>( image1 , outname.c_str() );
+  ANTs::WriteImage<ImageType>( image1 , outname.c_str() );
   return 0;
 }
 
@@ -872,7 +872,7 @@ int SetTimeSpacingWarp(int argc, char *argv[])
   typename ImageType::SpacingType spacing = image1->GetSpacing();
   spacing[ ImageDimension - 1 ] = timespacing;
   image1->SetSpacing( spacing );
-  WriteImage<ImageType>( image1 , outname.c_str() );
+  ANTs::WriteImage<ImageType>( image1 , outname.c_str() );
   return 0;
 }
 
@@ -924,7 +924,7 @@ int FlattenImage(int argc, char *argv[])
     }
 
   // std::cout << " Flattening to :  " << percentofmax << std::endl;
-  WriteImage<ImageType>(out, outname.c_str() );
+  ANTs::WriteImage<ImageType>(out, outname.c_str() );
   return 0;
 }
 
@@ -1073,7 +1073,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
 
   if( outname.length() > 3 )
     {
-    WriteImage<RealImageType>( image, argv[2] );
+    ANTs::WriteImage<RealImageType>( image, argv[2] );
     }
 
   return EXIT_SUCCESS;
@@ -1197,7 +1197,7 @@ int TileImages(unsigned int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(tiledimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>(tiledimage, outname.c_str() );
   return 0;
   typedef itk::Image<unsigned char, ImageDimension>                  ByteImageType;
   typedef itk::RescaleIntensityImageFilter<ImageType, ByteImageType> RescaleFilterType;
@@ -1207,7 +1207,7 @@ int TileImages(unsigned int argc, char *argv[])
   rescaler->SetInput( tiledimage );
 
   // std::cout << " writing output ";
-  WriteImage<ByteImageType>( rescaler->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ByteImageType>( rescaler->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -1273,7 +1273,7 @@ int TriPlanarView(unsigned int argc, char *argv[])
   // std::cout << " file name " << maskfn << std::endl;
   typename ImageType::Pointer mask = nullptr;
   ReadImage<ImageType>(mask, maskfn.c_str() );
-  //  WriteImage<ImageType>(mask,"temp.nii");
+  //  ANTs::WriteImage<ImageType>(mask,"temp.nii");
   float clamppercent1 = 0.1;
   if( argc > argct )
     {
@@ -1415,7 +1415,7 @@ int TriPlanarView(unsigned int argc, char *argv[])
   rescaler2->SetInput( matimage );
   rescaler2->Update();
   // std::cout << " writing output ";
-  WriteImage<ByteImageType>( rescaler2->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ByteImageType>( rescaler2->GetOutput(), outname.c_str() );
 
   return 0;
 }
@@ -1473,7 +1473,7 @@ int ConvertVectorToImage(unsigned int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(outimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>(outimage, outname.c_str() );
 
   return 0;
 }
@@ -1523,7 +1523,7 @@ int CorruptImage(int argc, char *argv[])
       image1 = filter->GetOutput();
       }
     }
-  WriteImage<ImageType>(image1, outname.c_str() );
+  ANTs::WriteImage<ImageType>(image1, outname.c_str() );
   return 0;
 }
 
@@ -1673,7 +1673,7 @@ int SetOrGetPixel(int argc, char *argv[])
       // std::cout << " SetValue at " << index << " value " << value << " replaces " <<  image1->GetPixel(index)
       //         << std::endl;
       image2->SetPixel(index, value);
-      WriteImage<ImageType>(image2, outname.c_str() );
+      ANTs::WriteImage<ImageType>(image2, outname.c_str() );
       }
     }
   else
@@ -1729,7 +1729,7 @@ int HistogramMatching(int argc, char * argv[])
   match->SetNumberOfMatchPoints( points );
   match->Update();
 
-  WriteImage<ImageType>( match->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ImageType>( match->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -1762,7 +1762,7 @@ int RescaleImage( int argc, char * argv[] )
   rescaler->SetInput( input );
   rescaler->Update();
 
-  WriteImage<ImageType>( rescaler->GetOutput(), outputName.c_str() );
+  ANTs::WriteImage<ImageType>( rescaler->GetOutput(), outputName.c_str() );
   return 0;
 }
 
@@ -1799,7 +1799,7 @@ int WindowImage( int argc, char * argv[] )
   rescaler->SetInput( input );
   rescaler->Update();
 
-  WriteImage<ImageType>( rescaler->GetOutput(), outputName.c_str() );
+  ANTs::WriteImage<ImageType>( rescaler->GetOutput(), outputName.c_str() );
   return 0;
 }
 
@@ -1884,7 +1884,7 @@ int NeighborhoodStats( int itkNotUsed( argc ), char * argv[] )
     }
   indexSelectionFilter->Update();
 
-  WriteImage<ImageType>( indexSelectionFilter->GetOutput(), outputName.c_str() );
+  ANTs::WriteImage<ImageType>( indexSelectionFilter->GetOutput(), outputName.c_str() );
 
   return 0;
 }
@@ -1988,7 +1988,7 @@ int PadImage(int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(padimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>(padimage, outname.c_str() );
 
   return 0;
 }
@@ -2030,7 +2030,7 @@ int SigmoidImage(int argc, char *argv[])
   filter->SetOutputMaximum( 1.0 );
   filter->Update();
 
-  WriteImage<ImageType>( filter->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ImageType>( filter->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -2082,7 +2082,7 @@ int CoordinateComponentImages( int argc, char *argv[] )
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
     std::string outputFile = outPrefix + std::to_string( d ) + std::string( ".nii.gz" );
-    WriteImage<ImageType>( coordinateImages[d], outputFile.c_str() );
+    ANTs::WriteImage<ImageType>( coordinateImages[d], outputFile.c_str() );
     }
   return 0;
 }
@@ -2110,7 +2110,7 @@ int SharpenImage(int argc, char *argv[])
   filter->SetInput( inputImage );
   filter->Update();
 
-  WriteImage<ImageType>( filter->GetOutput(), outputFilename.c_str() );
+  ANTs::WriteImage<ImageType>( filter->GetOutput(), outputFilename.c_str() );
   return EXIT_SUCCESS;
 }
 
@@ -2183,7 +2183,7 @@ int UnsharpMaskImage(int argc, char *argv[])
   filter->SetInput( inputImage );
   filter->Update();
 
-  WriteImage<ImageType>( filter->GetOutput(), outputFilename.c_str() );
+  ANTs::WriteImage<ImageType>( filter->GetOutput(), outputFilename.c_str() );
 
   return EXIT_SUCCESS;
 
@@ -2269,7 +2269,7 @@ int CenterImage2inImage1(int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(image1, outname.c_str() );
+  ANTs::WriteImage<ImageType>(image1, outname.c_str() );
   return 0;
 }
 
@@ -2324,7 +2324,7 @@ int TimeSeriesMask( int argc, char *argv[] )
     ++it;
     }
 
-  WriteImage<ImageType>(timeseries, outname.c_str());
+  ANTs::WriteImage<ImageType>(timeseries, outname.c_str());
   return 0;
 
 }
@@ -2396,7 +2396,7 @@ int TimeSeriesDisassemble(int argc, char *argv[])
     extractFilter->Update();
     outimage = extractFilter->GetOutput();
     outimage->SetOrigin( outOrigin );
-    WriteImage<OutImageType>(outimage, kname.c_str() );
+    ANTs::WriteImage<OutImageType>(outimage, kname.c_str() );
     }
 
   return 0;
@@ -2480,7 +2480,7 @@ int TimeSeriesAssemble(int argc, char *argv[])
       }
     }
 
-  WriteImage<OutImageType>( outimage, outname.c_str() );
+  ANTs::WriteImage<OutImageType>( outimage, outname.c_str() );
 
   return 0;
 }
@@ -2552,7 +2552,7 @@ int TimeSeriesSubset(int argc, char *argv[])
     extractFilter->SetExtractionRegion( extractRegion );
     extractFilter->Update();
     outimage = extractFilter->GetOutput();
-    WriteImage<OutImageType>(outimage, kname.c_str() );
+    ANTs::WriteImage<OutImageType>(outimage, kname.c_str() );
     }
 
   return 0;
@@ -2606,11 +2606,11 @@ int TimeSeriesSimpleSubtraction(int argc, char *argv[])
     meanFilter->SetAveragingDimension( ImageDimension - 1 );
     meanFilter->SetDirectionCollapseToSubmatrix();
     meanFilter->Update();
-    WriteImage<OutputImageType>(meanFilter->GetOutput(), outname.c_str() );
+    ANTs::WriteImage<OutputImageType>(meanFilter->GetOutput(), outname.c_str() );
     }
   else
     {
-    WriteImage<InputImageType>(filter->GetOutput(), outname.c_str() );
+    ANTs::WriteImage<InputImageType>(filter->GetOutput(), outname.c_str() );
     }
 
   return 0;
@@ -2701,22 +2701,22 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
     meanFilter->SetAveragingDimension( ImageDimension - 1 );
     meanFilter->SetDirectionCollapseToSubmatrix();
     meanFilter->Update();
-    WriteImage<OutputImageType>(meanFilter->GetOutput(), outname.c_str() );
+    ANTs::WriteImage<OutputImageType>(meanFilter->GetOutput(), outname.c_str() );
     }
   else
     {
-    WriteImage<InputImageType>(filter->GetOutput(), outname.c_str() );
+    ANTs::WriteImage<InputImageType>(filter->GetOutput(), outname.c_str() );
     }
 
   if( argc >= 8  )
     {
     std::string control_out = argv[argct++];
-    WriteImage<InputImageType>(filter->GetModifiableControlOutputImage(), control_out.c_str() );
+    ANTs::WriteImage<InputImageType>(filter->GetModifiableControlOutputImage(), control_out.c_str() );
     }
   if( argc >= 8  )
     {
     std::string label_out = argv[argct++];
-    WriteImage<InputImageType>(filter->GetModifiableLabelOutputImage(), label_out.c_str() );
+    ANTs::WriteImage<InputImageType>(filter->GetModifiableLabelOutputImage(), label_out.c_str() );
     }
 
   return 0;
@@ -2768,8 +2768,8 @@ int SplitAlternatingTimeSeries(int argc, char *argv[])
   filter->SetInput( image1 );
   filter->Update();
 
-  WriteImage<ImageType>(filter->GetOutput(0), outname0.c_str() );
-  WriteImage<ImageType>(filter->GetOutput(1), outname1.c_str() );
+  ANTs::WriteImage<ImageType>(filter->GetOutput(0), outname0.c_str() );
+  ANTs::WriteImage<ImageType>(filter->GetOutput(1), outname1.c_str() );
   return 0;
 
 }
@@ -2892,7 +2892,7 @@ int SliceTimingCorrection(int argc, char *argv[])
       }
   //filter->Update();
 
-  WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
 
   return 0;
 }
@@ -2934,7 +2934,7 @@ int AverageOverDimension(int argc, char *argv[])
   filter->SetDirectionCollapseToSubmatrix();
   filter->Update();
 
-  WriteImage<AverageImageType>( filter->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<AverageImageType>( filter->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -3108,7 +3108,7 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
       }
     }
 
-  WriteImage<InputImageType>(connmat, outname.c_str() );
+  ANTs::WriteImage<InputImageType>(connmat, outname.c_str() );
 
   delete []labelCounts;
 
@@ -3246,7 +3246,7 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
       }
     }
 
-  WriteImage<InputImageType>(connmat, outname.c_str() );
+  ANTs::WriteImage<InputImageType>(connmat, outname.c_str() );
 
   return 0;
 }
@@ -3332,7 +3332,7 @@ int PASLQuantifyCBF(int argc, char *argv[])
   getCBF->SetReferenceImage( m0 );
   getCBF->Update();
 
-  WriteImage<TimeImageType>( getCBF->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<TimeImageType>( getCBF->GetOutput(), outname.c_str() );
 
   return 0;
 }
@@ -3414,7 +3414,7 @@ int PCASLQuantifyCBF(int argc, char *  /*NOT USED argv*/[])
   getCBF->SetReferenceImage( m0 );
   getCBF->Update();
 
-  WriteImage<TimeImageType>( getCBF->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<TimeImageType>( getCBF->GetOutput(), outname.c_str() );
   */
   return 0;
 }
@@ -3707,7 +3707,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
     }
   if ( tomha )
     {
-    WriteImage<MatrixImageType>( matriximage , outname.c_str() );
+    ANTs::WriteImage<MatrixImageType>( matriximage , outname.c_str() );
     }
   return 0;
 }
@@ -3900,7 +3900,7 @@ The term, M_{0B} is calculated as follows (Wong1998),
     M_{0WM} is the mean value in an homogenous white matter region from a image acquired with short TE long TR.
   */
 
-  WriteImage<OutImageType>(outimage, outname.c_str() );
+  ANTs::WriteImage<OutImageType>(outimage, outname.c_str() );
 
   return 0;
 }
@@ -4084,7 +4084,7 @@ The term, M_{0B} is calculated as follows (Wong1998),
     M_{0WM} is the mean value in an homogenous white matter region from a image acquired with short TE long TR.
   */
 
-  WriteImage<OutImageType>(outimage, outname.c_str() );
+  ANTs::WriteImage<OutImageType>(outimage, outname.c_str() );
 
   return 0;
 }
@@ -4147,7 +4147,7 @@ int MTR(int argc, char *argv[])
     ++it;
     }
 
-  WriteImage<ImageType>( MTR, argv[2] );
+  ANTs::WriteImage<ImageType>( MTR, argv[2] );
   return 0;
 }
 
@@ -4437,9 +4437,9 @@ int CompCorrAuto(int argc, char *argv[])
       }
     }
   kname = tempname + std::string("_corrected") + extension;
-  WriteImage<ImageType>(image1, kname.c_str() );
+  ANTs::WriteImage<ImageType>(image1, kname.c_str() );
   kname = tempname + std::string("_variance") + extension;
-  WriteImage<OutImageType>(var_image, kname.c_str() );
+  ANTs::WriteImage<OutImageType>(var_image, kname.c_str() );
   return 0;
 }
 
@@ -4642,7 +4642,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
     }
 
   // std::cout << " maxvar " << maxvar << " varval_csf " << varval_csf << std::endl;
-  //  WriteImage<OutImageType>(var_image,"varimage.nii.gz");
+  //  ANTs::WriteImage<OutImageType>(var_image,"varimage.nii.gz");
   //
   ct_nuis = 0;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -4797,14 +4797,14 @@ int ThreeTissueConfounds(int argc, char *argv[])
     }
   // std::cout << "write results" << std::endl;
   kname = tempname + std::string("first_evec") + extension;
-  WriteImage<OutImageType>(outimage, kname.c_str() );
+  ANTs::WriteImage<OutImageType>(outimage, kname.c_str() );
   //  kname=tempname+std::string("second_evec")+extension;
   kname = tempname + std::string("power") + extension;
-  WriteImage<OutImageType>(outimage2, kname.c_str() );
+  ANTs::WriteImage<OutImageType>(outimage2, kname.c_str() );
   kname = tempname + std::string("_corrected") + extension;
-  WriteImage<ImageType>(image1, kname.c_str() );
+  ANTs::WriteImage<ImageType>(image1, kname.c_str() );
   kname = tempname + std::string("_variance") + extension;
-  WriteImage<OutImageType>(var_image, kname.c_str() );
+  ANTs::WriteImage<OutImageType>(var_image, kname.c_str() );
   return 0;
 }
 
@@ -4951,7 +4951,7 @@ int StackImage(int argc, char *argv[])
     offset += image1->GetLargestPossibleRegion().GetSize()[nDims-1];
     }
 
-  WriteImage<ImageType>(stackImage, outname.c_str() );
+  ANTs::WriteImage<ImageType>(stackImage, outname.c_str() );
 
   return 0;
 }
@@ -5000,7 +5000,7 @@ int Stack2Images(int argc, char *argv[])
   tileFilter->SetInput( inputImageNumber++, image2 );
   tileFilter->SetDefaultPixelValue( 0 );
   tiledimage = tileFilter->GetOutput();
-  WriteImage<ImageType>(tiledimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>(tiledimage, outname.c_str() );
   return 0;
 }
 
@@ -5047,7 +5047,7 @@ int MakeImage(int argc, char *argv[])
   newregion.SetSize(size);
 
   typename ImageType::Pointer padimage = AllocImage<ImageType>(newregion, 0);
-  WriteImage<ImageType>(padimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>(padimage, outname.c_str() );
 
   return 0;
 }
@@ -5166,7 +5166,7 @@ int LabelSurfaceArea(int argc, char *argv[])
     areaImage->SetPixel( ind, area );
     ++GHood;
     }
-  WriteImage<ImageType>( areaImage, outname.c_str() );
+  ANTs::WriteImage<ImageType>( areaImage, outname.c_str() );
   return 0;
 }
 
@@ -5393,9 +5393,9 @@ int FitSphere(int argc, char *argv[])
       if (npx % 10000 == 0)
         {
           // std::cout <<" prog " << (float)npx/(float)numpx << std::endl;
-          //          WriteImage<ImageType>(radimage,outname.c_str());
-          //          WriteImage<ImageType>(radimage2,(std::string("Sphere")+outname).c_str());
-          //WriteImage<ImageType>(priorimage,(std::string("Prior")+outname).c_str());
+          //          ANTs::WriteImage<ImageType>(radimage,outname.c_str());
+          //          ANTs::WriteImage<ImageType>(radimage2,(std::string("Sphere")+outname).c_str());
+          //ANTs::WriteImage<ImageType>(priorimage,(std::string("Prior")+outname).c_str());
         }
     }
 
@@ -5456,9 +5456,9 @@ int FitSphere(int argc, char *argv[])
     }
 
 
-  //  WriteImage<ImageType>(radimage,outname.c_str());
-  WriteImage<ImageType>(radimage2,outname.c_str());
-  //WriteImage<ImageType>(priorimage,(std::string("Prior")+outname).c_str());
+  //  ANTs::WriteImage<ImageType>(radimage,outname.c_str());
+  ANTs::WriteImage<ImageType>(radimage2,outname.c_str());
+  //ANTs::WriteImage<ImageType>(priorimage,(std::string("Prior")+outname).c_str());
  */
   return 0;
 }
@@ -5526,7 +5526,7 @@ int ImageMath(int argc, char *argv[])
     resample->UpdateLargestPossibleRegion();
     image2 = resample->GetOutput();
 
-    WriteImage<ImageType>(image2, outname.c_str() );
+    ANTs::WriteImage<ImageType>(image2, outname.c_str() );
     return 0;
     }
 
@@ -5634,7 +5634,7 @@ int ImageMath(int argc, char *argv[])
     }
   if( outname.length() > 3 )
     {
-    WriteImage<ImageType>(varimage, outname.c_str() );
+    ANTs::WriteImage<ImageType>(varimage, outname.c_str() );
     }
 
   return 0;
@@ -5686,7 +5686,7 @@ int FuseNImagesIntoNDVectorField(int argc, char *argv[])
     if ( ImageDimension >  2 ) vec[2] = image3->GetPixel(ind);
     vfIter2.Set(vec);
     }
-  WriteImage<FieldType>(vimage, outname.c_str() );
+  ANTs::WriteImage<FieldType>(vimage, outname.c_str() );
   return EXIT_SUCCESS;
 }
 
@@ -5756,7 +5756,7 @@ int VImageMath(int argc, char *argv[])
     resample->UpdateLargestPossibleRegion();
     image2 = resample->GetOutput();
 
-    WriteImage<ImageType>(image2, outname.c_str() );
+    ANTs::WriteImage<ImageType>(image2, outname.c_str() );
     return 0;
     }
 
@@ -5816,7 +5816,7 @@ int VImageMath(int argc, char *argv[])
     }
   if( outname.length() > 3 )
     {
-    WriteImage<ImageType>(varimage, outname.c_str() );
+    ANTs::WriteImage<ImageType>(varimage, outname.c_str() );
     }
 
   return 0;
@@ -6088,7 +6088,7 @@ int TensorFunctions(int argc, char *argv[])
 
       componentImage->SetPixel( ind, pix6[which] );
       }
-    WriteImage<ImageType>( componentImage, outname.c_str() );
+    ANTs::WriteImage<ImageType>( componentImage, outname.c_str() );
     return 0;
     }
 
@@ -6398,7 +6398,7 @@ int TensorFunctions(int argc, char *argv[])
     }
   else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
     {
-    WriteImage<VectorImageType>(vecimage, outname.c_str() );
+    ANTs::WriteImage<VectorImageType>(vecimage, outname.c_str() );
     }
   else if( (strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
            (strcmp(operation.c_str(), "TensorToLocalSpace") == 0 ) ||
@@ -6410,7 +6410,7 @@ int TensorFunctions(int argc, char *argv[])
   else
     {
     // std::cout << "Writing scalar image" << std::endl;
-    WriteImage<ImageType>(vimage, outname.c_str() );
+    ANTs::WriteImage<ImageType>(vimage, outname.c_str() );
     }
 
   return 0;
@@ -6675,7 +6675,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
     image2->SetDirection(image1->GetDirection() );
     }
   // write repaired images
-  WriteImage<ImageType>( image2, outname.c_str() );
+  ANTs::WriteImage<ImageType>( image2, outname.c_str() );
   // std::cout << "  FailureState: " << failure << " for " << fn2  << std::endl;
   return failure;
 }
@@ -7145,7 +7145,7 @@ int NegativeImage(int /*argc */, char *argv[])
     vfIter2.Set(pix);
     }
 
-  WriteImage<ImageType>( image1, outname.c_str() );
+  ANTs::WriteImage<ImageType>( image1, outname.c_str() );
 
   return 0;
 }
@@ -7348,8 +7348,8 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
 
 //    bool SaveImages = false;
 
-  //  WriteImage<ImageType>(image,"temp1.nii");
-  //  WriteImage<ImageType>(labelimage,"temp2.nii");
+  //  ANTs::WriteImage<ImageType>(image,"temp1.nii");
+  //  ANTs::WriteImage<ImageType>(labelimage,"temp2.nii");
 
   // class statistics for two classes: a bright sphere and background
   // 3 or 1 classes ? SD
@@ -7366,11 +7366,11 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
   typename ImageType::Pointer outputmask = BinaryThreshold<TImage>(0.1, 1.e9, 1, image);
   // ******** get output mask from image SD
 
-  //  WriteImage<TImage>(mask,"outMK1.nii");
+  //  ANTs::WriteImage<TImage>(mask,"outMK1.nii");
   // SD play with mask to see if we can move the artifact line
   //  mask=MorphologicalErosion<TImage>(1.5, mask);
   // mask=MorphologicalErosion<TImage>(3.5, mask);
-  // WriteImage<TImage>(mask,"outMK2.nii");
+  // ANTs::WriteImage<TImage>(mask,"outMK2.nii");
 
   ImageIteratorType o_iter( labelimage, labelimage->GetLargestPossibleRegion() );
   o_iter.GoToBegin();
@@ -7457,10 +7457,10 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
   //  filter->SetOutputMask( labelimage ) ;
   filter->SetOutputMask( outputmask );
   //  filter->SetDebug( true );
-  //    WriteImage<ImageType>(mask,"mask.nii");
-  //    WriteImage<ImageType>(outputmask,"outputmask.nii");
-  //    WriteImage<ImageType>(image,"image.nii");
-  //    WriteImage<ImageType>(labelimage,"labelimage.nii");
+  //    ANTs::WriteImage<ImageType>(mask,"mask.nii");
+  //    ANTs::WriteImage<ImageType>(outputmask,"outputmask.nii");
+  //    ANTs::WriteImage<ImageType>(image,"image.nii");
+  //    ANTs::WriteImage<ImageType>(labelimage,"labelimage.nii");
   // ******** Try different output mask SD
 
   // default schedule is 2 2 2 - 1 1 1, let's change this
@@ -7822,7 +7822,7 @@ int SmoothImage(int argc, char *argv[])
   filter->SetInput(image1);
   filter->Update();
   varimage = filter->GetOutput();
-  WriteImage<ImageType>( varimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>( varimage, outname.c_str() );
   return 0;
 }
 
@@ -7886,7 +7886,7 @@ int MorphImage(int argc, char *argv[])
 
   if( outname.length() > 3 )
     {
-    WriteImage<ImageType>(image1, outname.c_str() );
+    ANTs::WriteImage<ImageType>(image1, outname.c_str() );
     }
 
   return 0;
@@ -7919,7 +7919,7 @@ int ExtractContours(int argc, char *argv[])
   contour->SetBackgroundValue( itk::NumericTraits<typename ImageType::PixelType>::ZeroValue() );
   contour->Update();
 
-  WriteImage<ImageType>( contour->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ImageType>( contour->GetOutput(), outname.c_str() );
 
   return EXIT_SUCCESS;
 }
@@ -8097,14 +8097,14 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
   std::string extension = outname.substr(idx, outname.length() );
   std::string kname = tempname + std::string("_speed") + extension;
   std::string lname = tempname + std::string("_label") + extension;
-  WriteImage<ImageType>(fastimage, kname.c_str() );
-  WriteImage<ImageType>(outlabimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>(fastimage, kname.c_str() );
+  ANTs::WriteImage<ImageType>(outlabimage, outname.c_str() );
 
 // this nonsense fixes a type error
   typedef itk::CastImageFilter<LabelImageType, LabelImageType>                 CastFilterType;
   typename CastFilterType::Pointer castRegions = CastFilterType::New();
   castRegions->SetInput( fastMarching->GetLabelImage() );
-  WriteImage<LabelImageType>( castRegions->GetOutput(), lname.c_str() );
+  ANTs::WriteImage<LabelImageType>( castRegions->GetOutput(), lname.c_str() );
   return 0;
 }
 
@@ -8214,7 +8214,7 @@ int FastMarchingExtension(int argc, char *argv[])
   fastMarching->SetAuxiliaryAliveValues( auxAliveValues );
   fastMarching->SetStoppingCriterion( criterion );
   fastMarching->Update();
-  WriteImage<ImageType>( fastMarching->GetAuxiliaryImage(0), outname.c_str() );
+  ANTs::WriteImage<ImageType>( fastMarching->GetAuxiliaryImage(0), outname.c_str() );
   return 0;
 }
 
@@ -8369,7 +8369,7 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(outlabimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>(outlabimage, outname.c_str() );
 /*
   // Write debug images, but string manipulation breaks on any path containing periods
 
@@ -8379,13 +8379,13 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
   std::string extension = outname.substr(idx, outname.length() );
   std::string kname = tempname + std::string("_speed") + extension;
   std::string lname = tempname + std::string("_label") + extension;
-  WriteImage<ImageType>(fastimage, kname.c_str() );
+  ANTs::WriteImage<ImageType>(fastimage, kname.c_str() );
 
   // this nonsense fixes a type error
   typedef itk::CastImageFilter<LabelImageType, LabelImageType>                 CastFilterType;
   typename CastFilterType::Pointer castRegions = CastFilterType::New();
   castRegions->SetInput( fastMarching->GetLabelImage() );
-  WriteImage<LabelImageType>( castRegions->GetOutput(), lname.c_str() );
+  ANTs::WriteImage<LabelImageType>( castRegions->GetOutput(), lname.c_str() );
 */
 
   return 0;
@@ -8424,7 +8424,7 @@ int DistanceMap(int argc, char *argv[])
 
   if( outname.length() > 3 )
     {
-    WriteImage<ImageType>(filter->GetOutput(), outname.c_str() );
+    ANTs::WriteImage<ImageType>(filter->GetOutput(), outname.c_str() );
     }
 
   return 0;
@@ -8466,7 +8466,7 @@ int GenerateMaurerDistanceImage( int argc, char *argv[] )
   filter->SetInsideIsPositive( false );
   filter->Update();
 
-  WriteImage<ImageType>( filter->GetOutput(), outputName.c_str() );
+  ANTs::WriteImage<ImageType>( filter->GetOutput(), outputName.c_str() );
 
   return 0;
 }
@@ -8537,7 +8537,7 @@ int FillHoles(int argc, char *argv[])
     // std::cout << excep << std::endl;
     }
 
-  // WriteImage<ImageType>(relabel->GetOutput(),"test.nii");
+  // ANTs::WriteImage<ImageType>(relabel->GetOutput(),"test.nii");
 
   if( itk::Math::FloatAlmostEqual( holeparam, 2.0f ) )
     {
@@ -8552,7 +8552,7 @@ int FillHoles(int argc, char *argv[])
         }
       }
 
-    WriteImage<ImageType>(imageout, outname.c_str() );
+    ANTs::WriteImage<ImageType>(imageout, outname.c_str() );
 
     return 0;
     }
@@ -8625,7 +8625,7 @@ int FillHoles(int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(imageout, outname.c_str() );
+  ANTs::WriteImage<ImageType>(imageout, outname.c_str() );
 
   return 0;
 }
@@ -8687,7 +8687,7 @@ int NormalizeImage(int argc, char *argv[])
 
     if( outname.length() > 3 )
       {
-      WriteImage<ImageType>( image, outname.c_str() );
+      ANTs::WriteImage<ImageType>( image, outname.c_str() );
       }
     }
   else
@@ -8730,7 +8730,7 @@ int NormalizeImage(int argc, char *argv[])
 
     if( outname.length() > 3 )
       {
-      WriteImage<ImageType>( image, outname.c_str() );
+      ANTs::WriteImage<ImageType>( image, outname.c_str() );
       }
     }
 
@@ -8809,7 +8809,7 @@ int GradientImage(      int argc, char *argv[])
 
   if( !normalize )
     {
-    WriteImage<ImageType>( image2, outname.c_str() );
+    ANTs::WriteImage<ImageType>( image2, outname.c_str() );
     return 0;
     }
 
@@ -8819,7 +8819,7 @@ int GradientImage(      int argc, char *argv[])
   rescaler->SetOutputMaximum( 1 );
   rescaler->SetInput( image2 );
   rescaler->Update();
-  WriteImage<ImageType>( rescaler->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ImageType>( rescaler->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -8860,7 +8860,7 @@ int LaplacianImage(      int argc, char *argv[])
   image2 = filter->GetOutput();
   if( !normalize )
     {
-    WriteImage<ImageType>( image2, outname.c_str() );
+    ANTs::WriteImage<ImageType>( image2, outname.c_str() );
     return 0;
     }
 
@@ -8870,7 +8870,7 @@ int LaplacianImage(      int argc, char *argv[])
   rescaler->SetOutputMaximum( 1 );
   rescaler->SetInput( image2 );
   rescaler->Update();
-  WriteImage<ImageType>( rescaler->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ImageType>( rescaler->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -8918,7 +8918,7 @@ int CannyImage(      int argc, char *argv[])
   filter->SetLowerThreshold( (PixelType) (lowerThreshold) );
   }
   filter->Update();
-  WriteImage<ImageType>( filter->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ImageType>( filter->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -9067,7 +9067,7 @@ int PoissonDiffusion( int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>( output, argv[2] );
+  ANTs::WriteImage<ImageType>( output, argv[2] );
 
   return 0;
 }
@@ -9124,7 +9124,7 @@ RemoveLabelInterfaces(int argc, char *argv[])
     ++GHood;
     }
 
-  WriteImage<ImageType>(input, outname.c_str() );
+  ANTs::WriteImage<ImageType>(input, outname.c_str() );
 
   return;
 }
@@ -9173,7 +9173,7 @@ ReplaceVoxelValue( int argc, char *argv[] )
       }
     }
 
-  WriteImage<ImageType>( outputImage, outputFile.c_str() );
+  ANTs::WriteImage<ImageType>( outputImage, outputFile.c_str() );
 }
 
 template <unsigned int ImageDimension>
@@ -9419,11 +9419,11 @@ EnumerateLabelInterfaces(int argc, char *argv[])
     ++o_iter;
     }
 
-  WriteImage<ImageType>(output, outname.c_str() );
-  WriteImage<myInterfaceImageType>(faceimage, (std::string("face") + outname).c_str() );
+  ANTs::WriteImage<ImageType>(output, outname.c_str() );
+  ANTs::WriteImage<myInterfaceImageType>(faceimage, (std::string("face") + outname).c_str() );
   if( outname2.length() > 3 )
     {
-    WriteImage<ImageType>(colored, outname2.c_str() );
+    ANTs::WriteImage<ImageType>(colored, outname2.c_str() );
     }
 
   return;
@@ -9600,7 +9600,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
     if( outdist )
       {
       surf = LabelSurface<ImageType>(mask1, mask1);
-      //    WriteImage<ImageType>(surf,outdistfn.c_str());
+      //    ANTs::WriteImage<ImageType>(surf,outdistfn.c_str());
       // throw std::exception();
       typedef itk::DanielssonDistanceMapImageFilter<ImageType, ImageType> FilterType;
       typename  FilterType::Pointer dfilter1 = FilterType::New();
@@ -9666,7 +9666,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
     if( outdist )
       {
-      WriteImage<ImageType>(outdist, outdistfn.c_str() );
+      ANTs::WriteImage<ImageType>(outdist, outdistfn.c_str() );
       }
 
     if( count2 + count1 > 0 )
@@ -9815,8 +9815,8 @@ int DiceAndMinDistSum(      int argc, char *argv[])
       }
     }
 
-  WriteImage<TwoDImageType>(squareimage, mdsimagename.c_str() );
-  WriteImage<TwoDImageType>(squareimage2, diceimagename.c_str() );
+  ANTs::WriteImage<TwoDImageType>(squareimage, mdsimagename.c_str() );
+  ANTs::WriteImage<TwoDImageType>(squareimage2, diceimagename.c_str() );
 
   return 0;
 }
@@ -9936,7 +9936,7 @@ int Lipschitz( int argc, char *argv[] )
 
   if( outname.length() > 3 )
     {
-    WriteImage<RealImageType>( lipcon, outname.c_str() );
+    ANTs::WriteImage<RealImageType>( lipcon, outname.c_str() );
     }
 
   return 0;
@@ -9979,7 +9979,7 @@ int ExtractVectorComponent( int argc, char *argv[] )
       {
       component->SetPixel(It1.GetIndex(), It1.Get()[whichvec]);
       }
-    WriteImage<RealImageType>( component, outname.c_str() );
+    ANTs::WriteImage<RealImageType>( component, outname.c_str() );
     }
   return EXIT_SUCCESS;
 }
@@ -10079,7 +10079,7 @@ int InvId( int argc, char *argv[] )
   timer.Stop();
 //    // std::cout << "Elapsed time: " << timer.GetMeanTime()  << std::endl;
 
-  WriteImage<RealImageType>( invid, outname.c_str() );
+  ANTs::WriteImage<RealImageType>( invid, outname.c_str() );
 
   return 0;
 }
@@ -10173,7 +10173,7 @@ int ReplicateDisplacement( int argc, char *argv[] )
       outputImage->SetPixel( indp1, vec );
       }
     }
-  WriteImage<VectorRImageType>( outputImage, outname.c_str() );
+  ANTs::WriteImage<VectorRImageType>( outputImage, outname.c_str() );
   return 0;
 }
 
@@ -10210,7 +10210,7 @@ int ShiftImageSlicesInTime( int argc, char *argv[] )
   myshift.Fill( 0 );
   myshift[shiftdim]=shiftamount;
   cyfilter->SetShift( myshift );
-  WriteImage<ImageType>(cyfilter->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ImageType>(cyfilter->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -10298,7 +10298,7 @@ int ReplicateImage( int argc, char *argv[] )
       outputImage->SetPixel( indp1, vecx );
       }
     }
-  WriteImage<RImageType>( outputImage, outname.c_str() );
+  ANTs::WriteImage<RImageType>( outputImage, outname.c_str() );
   return 0;
 }
 
@@ -10447,7 +10447,7 @@ int LabelStats(      int argc, char *argv[])
 
   logfile.close();
 
-  //WriteImage<TwoDImageType>(squareimage, imagename.c_str() );
+  //ANTs::WriteImage<TwoDImageType>(squareimage, imagename.c_str() );
 
   return 0;
 }
@@ -10567,7 +10567,7 @@ int LabelThickness(      int argc, char *argv[])
       eimage->SetPixel( iIt.GetIndex(), thicknessprior );
       }
     }
-  WriteImage<ImageType>( eimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>( eimage, outname.c_str() );
   return EXIT_SUCCESS;
 }
 
@@ -10654,7 +10654,7 @@ int LabelThickness2( int argc, char *argv[] )
     thicknessPriorImage->SetPixel( It.GetIndex(), thicknessPrior );
     }
 
-  WriteImage<RealImageType>( thicknessPriorImage, outname.c_str() );
+  ANTs::WriteImage<RealImageType>( thicknessPriorImage, outname.c_str() );
   return EXIT_SUCCESS;
 }
 
@@ -11030,7 +11030,7 @@ int ByteImage(      int /*argc */, char *argv[])
   rescaler->SetOutputMaximum( 255 );
   rescaler->SetInput( image );
 
-  WriteImage<ByteImageType>( rescaler->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<ByteImageType>( rescaler->GetOutput(), outname.c_str() );
 
   return 0;
 }
@@ -11087,7 +11087,7 @@ int PValueImage(      int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(image, outname.c_str() );
+  ANTs::WriteImage<ImageType>(image, outname.c_str() );
 
   return 0;
 }
@@ -11284,7 +11284,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
       }
 
     // std::cout << " mat size " << matimage->GetLargestPossibleRegion().GetSize() << std::endl;
-    WriteImage<MatrixImageType>(matimage, outname.c_str() );
+    ANTs::WriteImage<MatrixImageType>(matimage, outname.c_str() );
     }
   return 0;
 }
@@ -11700,7 +11700,7 @@ int CorrelationUpdate(      int argc, char *argv[])
     ++GHood;
     }
 
-  WriteImage<ImageType>(imageout, outname.c_str() );
+  ANTs::WriteImage<ImageType>(imageout, outname.c_str() );
 
   return 0;
 }
@@ -11831,7 +11831,7 @@ int MajorityVoting( int argc, char *argv[] )
     ++itM;
     }
 
-  WriteImage<ImageType>( output, outputName.c_str() );
+  ANTs::WriteImage<ImageType>( output, outputName.c_str() );
 
   if( ! doUsage1 )
     {
@@ -11855,7 +11855,7 @@ int MajorityVoting( int argc, char *argv[] )
       // std::cout << " Unrecognized output file extension. " << std::endl;
       return 1;
       }
-    WriteImage<ImageType>( outputMask, outputMaskName.c_str() );
+    ANTs::WriteImage<ImageType>( outputMask, outputMaskName.c_str() );
     }
 
   return 0;
@@ -11918,7 +11918,7 @@ int MostLikely( int argc, char *argv[] )
       }
     }
 
-  WriteImage<LabeledImageType>( output, outputName.c_str() );
+  ANTs::WriteImage<LabeledImageType>( output, outputName.c_str() );
   return 0;
 }
 
@@ -11978,7 +11978,7 @@ int STAPLE( int argc, char *argv[] )
     std::string oname = tempname + num + extension;
     stapler->SetForegroundValue( label );
     stapler->Update();
-    WriteImage<OutputImageType>( stapler->GetOutput(), oname.c_str() );
+    ANTs::WriteImage<OutputImageType>( stapler->GetOutput(), oname.c_str() );
     }
 
   return 0;
@@ -12058,7 +12058,7 @@ int AverageLabels( int argc, char *argv[] )
     sprintf( num, "%04d", label ); //NOTE: %04d is between 4 and 10 bytes
 
     std::string oname = tempname + num + extension;
-    WriteImage<OutputImageType>( outimages[label - 1], oname.c_str() );
+    ANTs::WriteImage<OutputImageType>( outimages[label - 1], oname.c_str() );
     }
 
   return 0;
@@ -12228,7 +12228,7 @@ int CorrelationVoting( int argc, char *argv[] )
     ++it;
     } // iterate over output image
 
-  WriteImage<LabelImageType>( output, outputName.c_str() );
+  ANTs::WriteImage<LabelImageType>( output, outputName.c_str() );
   return 0;
 }
 
@@ -12475,7 +12475,7 @@ int Project( int argc, char *argv[] )
     filter->SetInput( imagein );
     filter->Update();
     imageout = filter->GetOutput();
-    WriteImage<ImageType>( imageout, outname.c_str() );
+    ANTs::WriteImage<ImageType>( imageout, outname.c_str() );
     }
   if( which == 1 )
     {
@@ -12485,7 +12485,7 @@ int Project( int argc, char *argv[] )
     filter->SetInput( imagein );
     filter->Update();
     imageout = filter->GetOutput();
-    WriteImage<ImageType>( imageout, outname.c_str() );
+    ANTs::WriteImage<ImageType>( imageout, outname.c_str() );
     }
   if( which == 2 )
     {
@@ -12495,7 +12495,7 @@ int Project( int argc, char *argv[] )
     filter->SetInput( imagein );
     filter->Update();
     imageout = filter->GetOutput();
-    WriteImage<ImageType>( imageout, outname.c_str() );
+    ANTs::WriteImage<ImageType>( imageout, outname.c_str() );
     }
   return EXIT_SUCCESS;
 }
@@ -12535,7 +12535,7 @@ int Translate( int argc, char *argv[] )
   resample->SetDefaultPixelValue( 0 );
   resample->Update();
 
-  WriteImage<ImageType>( resample->GetOutput(), argv[2] );
+  ANTs::WriteImage<ImageType>( resample->GetOutput(), argv[2] );
 
   return EXIT_SUCCESS;
 }
@@ -12823,7 +12823,7 @@ int PureTissueN4WeightMask( int argc, char *argv[] )
     ItO.Set( probability );
     }
 
-  WriteImage<ImageType>( output, argv[2] );
+  ANTs::WriteImage<ImageType>( output, argv[2] );
 
   return EXIT_SUCCESS;
 }
@@ -12871,7 +12871,7 @@ int PMSmoothImage(int argc, char *argv[])
   filter->SetConductanceParameter( conductance ); // might need to change this
   filter->Update();
   varimage = filter->GetOutput();
-  WriteImage<ImageType>( varimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>( varimage, outname.c_str() );
   return EXIT_SUCCESS;
 }
 
@@ -12911,7 +12911,7 @@ int ConvolveImage( int argc, char *argv[] )
   outputImage->Update();
   outputImage->DisconnectPipeline();
 
-  WriteImage<ImageType>( outputImage, outputFileName.c_str() );
+  ANTs::WriteImage<ImageType>( outputImage, outputFileName.c_str() );
   return EXIT_SUCCESS;
 }
 
@@ -13025,7 +13025,7 @@ int InPaint(int argc, char *argv[])
       if ( pixval > 0 ) vfIter.Set( pixval );
       }
     }
-  WriteImage<ImageType>( varimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>( varimage, outname.c_str() );
   return EXIT_SUCCESS;
 }
 
@@ -13139,7 +13139,7 @@ int InPaint2(int argc, char *argv[])
       if ( pixval > 0 ) vfIter.Set( pixval );
       }
     }
-  WriteImage<ImageType>( varimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>( varimage, outname.c_str() );
   return EXIT_SUCCESS;
 }
 
@@ -13310,8 +13310,8 @@ int Check3TissueLabeling( int argc, char *argv[] )
         }
       else
         {
-        WriteImage<ImageType>( posteriors[movingLabels[d] - 1], argv[7 + d] );
-        WriteImage<ImageType>( posteriors[movingLabels[movingLabels[d] - 1] - 1], argv[7 + movingLabels[d] - 1] );
+        ANTs::WriteImage<ImageType>( posteriors[movingLabels[d] - 1], argv[7 + d] );
+        ANTs::WriteImage<ImageType>( posteriors[movingLabels[movingLabels[d] - 1] - 1], argv[7 + movingLabels[d] - 1] );
 
         LabelType tmp = movingLabels[d];
         movingLabels[d] = movingLabels[tmp - 1];
@@ -13339,7 +13339,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
           }
 
         // std::cout << "Relabeling segmentation image." << std::endl;
-        WriteImage<LabelImageType>( permutedLabelImage, argv[2] );
+        ANTs::WriteImage<LabelImageType>( permutedLabelImage, argv[2] );
         }
       }
     }
@@ -13550,7 +13550,7 @@ int BlobDetector( int argc, char *argv[] )
   typedef typename BlobFilterType::BlobRadiusImageType BlobRadiusImageType;
   typename BlobRadiusImageType::Pointer labimg = blobFilter->GetBlobRadiusImage();
   typename BlobRadiusImageType::Pointer labimg2;
-  WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
+  ANTs::WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
   typedef typename BlobFilterType::BlobsListType BlobsListType;
   BlobsListType blobs1 =  blobFilter->GetBlobs();
 
@@ -13574,7 +13574,7 @@ int BlobDetector( int argc, char *argv[] )
     blobFilter2->SetInput( image2 );
     blobFilter2->Update();
     labimg2 = blobFilter2->GetBlobRadiusImage();
-    WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
+    ANTs::WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
     labimg->FillBuffer( 0 );
     labimg2->FillBuffer( 0 );
     blobs2 =  blobFilter2->GetBlobs();
@@ -13731,8 +13731,8 @@ int BlobDetector( int argc, char *argv[] )
       writer->SetInput( &distratiomat );
       writer->Write();
       }
-    WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
-    WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
+    ANTs::WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
+    ANTs::WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
     // std::cout << " Matched " << matchpt << " blobs " << std::endl;
     }
   return EXIT_SUCCESS;
@@ -13980,11 +13980,11 @@ int MatchBlobs( int argc, char *argv[] )
     writer->Write();
     }
   std::string outname1 = outname + std::string("lm1.nii.gz");
-  WriteImage<BlobRadiusImageType>( labimg, outname1.c_str() );
+  ANTs::WriteImage<BlobRadiusImageType>( labimg, outname1.c_str() );
   std::string outname2 = outname + std::string("lm2.nii.gz");
-  WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
+  ANTs::WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
   std::string outname3 = outname + std::string("conf2.nii.gz");
-  WriteImage<BlobRadiusImageType>( confimg2, outname3.c_str() );
+  ANTs::WriteImage<BlobRadiusImageType>( confimg2, outname3.c_str() );
   return EXIT_SUCCESS;
 }
 

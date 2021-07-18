@@ -451,7 +451,7 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
       }
     }
   std::cout << " 100 % complete " << std::endl;
-  WriteImage<VectorImageType>( transformedvecimage, output_image_filename);
+  ANTs::WriteImage<VectorImageType>( transformedvecimage, output_image_filename);
 }
 
 template <int ImageDimension>
@@ -619,7 +619,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       vfIter2.Set(tens);
       }
     }
-  WriteImage<VectorImageType>(img_output, output_image_filename);
+  ANTs::WriteImage<VectorImageType>(img_output, output_image_filename);
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to

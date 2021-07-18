@@ -121,22 +121,22 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
 
   {
   std::string filename = std::string( argv[3] ) + std::string( "PHYSICAL_VOLUME.nii.gz" );
-  WriteImage<RealImageType>( outputImages[0], filename.c_str() );
+  ANTs::WriteImage<RealImageType>( outputImages[0], filename.c_str() );
   }
 
   {
   std::string filename = std::string( argv[3] ) + std::string( "VOLUME_TO_SURFACE_AREA_RATIO.nii.gz" );
-  WriteImage<RealImageType>( outputImages[1], filename.c_str() );
+  ANTs::WriteImage<RealImageType>( outputImages[1], filename.c_str() );
   }
 
   {
   std::string filename = std::string( argv[3] ) + std::string( "ECCENTRICITY.nii.gz" );
-  WriteImage<RealImageType>( outputImages[2], filename.c_str() );
+  ANTs::WriteImage<RealImageType>( outputImages[2], filename.c_str() );
   }
 
   {
   std::string filename = std::string( argv[3] ) + std::string( "ELONGATION.nii.gz" );
-  WriteImage<RealImageType>( outputImages[3], filename.c_str() );
+  ANTs::WriteImage<RealImageType>( outputImages[3], filename.c_str() );
   }
 
   return EXIT_SUCCESS;
