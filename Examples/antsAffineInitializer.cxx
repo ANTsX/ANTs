@@ -340,6 +340,9 @@ int antsAffineInitializerImp(int argc, char *argv[])
     std::cerr << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
              <<   vnl_determinant( wahba.U() )  << " new " << vnl_determinant( A_solution  ) << std::endl;
     }
+
+  typename AffineType::MatrixType AA_solution = typename AffineType::MatrixType( A_solution );
+
   typename AffineType::Pointer affine1 = AffineType::New(); // translation to center
   typename AffineType::OffsetType trans = affine1->GetOffset();
   itk::Point<double, ImageDimension> trans2;
@@ -352,7 +355,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   affine1->SetOffset( trans );
   if( useprincaxis )
     {
-    affine1->SetMatrix( A_solution );
+    affine1->SetMatrix( AA_solution );
     }
   affine1->SetCenter( trans2 );
     {
@@ -483,7 +486,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
       {
       if( useprincaxis )
       {
-        affinesearch->SetMatrix( A_solution );
+        affinesearch->SetMatrix( AA_solution );
       }
       if( ImageDimension == 3 )
       {
@@ -496,7 +499,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
         affinesearch->SetOffset( trans );
         if( useprincaxis )
           {
-          affinesearch->SetMatrix( A_solution );
+          affinesearch->SetMatrix( AA_solution );
           }
         affinesearch->Rotate3D(axis1, ang1, 1);
         affinesearch->Rotate3D(axis2, ang2, 1);
@@ -511,7 +514,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
         affinesearch->SetOffset( trans );
         if( useprincaxis )
         {
-        affinesearch->SetMatrix( A_solution );
+        affinesearch->SetMatrix( AA_solution );
         }
         affinesearch->Rotate2D( ang1, 1);
         affinesearch->Scale( bestscale );
