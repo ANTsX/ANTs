@@ -30,6 +30,12 @@
 #include "itkExtractImageFilter.h"
 #include "ReadWriteData.h"
 
+// For random number generation.
+#if __cplusplus >= 201402L
+#include <random>
+#endif
+
+
 namespace ants
 {
 // namespace antssccan {
@@ -398,7 +404,13 @@ PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
     {
     permvec.push_back(i);
     }
+// std::random_shuffle is deprecated since C++14,
+// see: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4190.htm 
+#if __cplusplus >= 201402L
+  std::shuffle(permvec.begin(), permvec.end(), std::random_device());
+#else
   std::random_shuffle(permvec.begin(), permvec.end(), sccanRandom);
+#endif  
   //    for (unsigned long i=0; i < q.rows(); i++)
   //  // std::cout << " permv " << i << " is " << permvec[i] << std::endl;
   // for (unsigned long i=0; i < q.rows(); i++)
