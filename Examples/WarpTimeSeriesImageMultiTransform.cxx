@@ -469,7 +469,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
   typename VectorImageType::Pointer img_mov;
   typename itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(moving_image_filename, itk::ImageIOFactory::FileModeEnum::ReadMode);
+    itk::ImageIOFactory::CreateImageIO(moving_image_filename, itk::IOFileModeEnum::ReadMode);
   imageIO->SetFileName(moving_image_filename);
   imageIO->ReadImageInformation();
   //    std::cout << " Dimension " << imageIO->GetNumberOfDimensions()  << " Components "

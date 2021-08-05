@@ -59,10 +59,10 @@ public:
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self )
+  itkNewMacro( Self );
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( CommandLineParser, DataObject )
+  itkTypeMacro( CommandLineParser, DataObject );
 
   typedef CommandLineOption              OptionType;
   typedef std::list<OptionType::Pointer> OptionListType;
@@ -84,11 +84,11 @@ public:
 
   void PrintMenu( std::ostream& os, Indent indent, bool printShortVersion = false ) const;
 
-  itkSetStringMacro( Command )
-  itkGetStringMacro( Command )
+  itkSetStringMacro( Command );
+  itkGetStringMacro( Command );
 
-  itkSetStringMacro( CommandDescription )
-  itkGetStringMacro( CommandDescription )
+  itkSetStringMacro( CommandDescription );
+  itkGetStringMacro( CommandDescription );
 
   OptionListType GetOptions() const
   {
@@ -123,7 +123,7 @@ public:
       std::string internalTypeName( typeid(value).name() );
       itkExceptionMacro( "ERROR: Parse error occured during command line argument processing\n"
         << "ERROR: Unable to convert '" << optionString
-        << "' to type '" << internalTypeName << "' as " << ConvertToHumanReadable(internalTypeName) << std::endl)
+        << "' to type '" << internalTypeName << "' as " << ConvertToHumanReadable(internalTypeName) << std::endl);
       }
     return value;
     }

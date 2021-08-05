@@ -815,7 +815,7 @@ private:
     ConjugateGradientDescentOptimizerType *optimizer, const unsigned int numberOfLevels,
     const std::vector<ShrinkFactorsPerDimensionContainerType> shrinkFactorsPerDimensionForAllLevels,
     const typename RegistrationMethodType::SmoothingSigmasArrayType smoothingSigmasPerLevel,
-    typename AffineRegistrationType::MetricSamplingStrategyType metricSamplingStrategy,
+    typename AffineRegistrationType::MetricSamplingStrategyEnum metricSamplingStrategy,
     const float samplingPercentage
     )
   {
@@ -860,7 +860,7 @@ private:
     registrationMethod->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
       this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
     registrationMethod->SetMetricSamplingStrategy(
-      static_cast<typename RegistrationMethodType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+      static_cast<typename RegistrationMethodType::MetricSamplingStrategyEnum>( metricSamplingStrategy ) );
     registrationMethod->SetMetricSamplingPercentage( samplingPercentage );
 
     if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
@@ -934,7 +934,7 @@ private:
     ConjugateGradientDescentOptimizerType *optimizer, const unsigned int numberOfLevels,
     const std::vector<ShrinkFactorsPerDimensionContainerType> shrinkFactorsPerDimensionForAllLevels,
     const typename RegistrationMethodType::SmoothingSigmasArrayType smoothingSigmasPerLevel,
-    typename AffineRegistrationType::MetricSamplingStrategyType metricSamplingStrategy,
+    typename AffineRegistrationType::MetricSamplingStrategyEnum metricSamplingStrategy,
     const float samplingPercentage
     )
   {

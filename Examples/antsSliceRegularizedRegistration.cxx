@@ -649,7 +649,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         samplingStrategy = metricOption->GetFunction( currentStage )->GetParameter(  4 );
         }
       ConvertToLowerCase( samplingStrategy );
-      typename TranslationRegistrationType::MetricSamplingStrategyType metricSamplingStrategy =
+      typename TranslationRegistrationType::MetricSamplingStrategyEnum metricSamplingStrategy =
         TranslationRegistrationType::NONE;
       if( std::strcmp( samplingStrategy.c_str(), "random" ) == 0 )
         {

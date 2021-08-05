@@ -727,7 +727,7 @@ antsSCCANObject<TInputImage, TRealType>
     {
     typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
     typename dgf::Pointer filter = dgf::New();
-    filter->SetUseImageSpacingOn();
+    filter->SetUseImageSpacing(true);
     filter->SetVariance(  this->m_Smoother * spacingsize );
     filter->SetMaximumError( .01f );
     filter->SetInput( image );

@@ -172,7 +172,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     using SmootherType = itk::DiscreteGaussianImageFilter<LabelImageType, ImageType>;
     typename SmootherType::Pointer smoother = SmootherType::New();
     smoother->SetVariance( 1.0 );
-    smoother->SetUseImageSpacingOn();
+    smoother->SetUseImageSpacing(true);
     smoother->SetMaximumError( 0.01 );
     smoother->SetInput( thresholder->GetOutput() );
     smoother->Update();
@@ -209,7 +209,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     using SmootherType = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
     typename SmootherType::Pointer smoother = SmootherType::New();
     smoother->SetVariance( 1.0 );
-    smoother->SetUseImageSpacingOn();
+    smoother->SetUseImageSpacing(true);
     smoother->SetMaximumError( 0.01 );
     smoother->SetInput( thresholder->GetOutput() );
     smoother->Update();
@@ -833,7 +833,7 @@ private:
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
+        filename.c_str(), itk::IOFileModeEnum::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
 

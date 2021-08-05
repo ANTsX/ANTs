@@ -604,14 +604,14 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     jointPDFXuYrIterator.Value() /= static_cast<PDFValueType>( jointPDFSum );
     }
 
-  bool smoothjh = false;
+  constexpr bool smoothjh = false;
   if( smoothjh )
     {
     typedef DiscreteGaussianImageFilter<JointPDFType, JointPDFType> dgtype;
     typename dgtype::Pointer dg = dgtype::New();
     dg->SetInput(this->m_JointPDF);
     dg->SetVariance(1.);
-    dg->SetUseImageSpacingOff();
+    dg->SetUseImageSpacing(false);
     dg->SetMaximumError(.01f);
     dg->Update();
     this->m_JointPDF = dg->GetOutput();

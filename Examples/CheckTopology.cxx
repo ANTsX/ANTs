@@ -131,7 +131,7 @@ typename TImage::Pointer SmoothImage( typename TImage::Pointer image, float sig 
   using dgf = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(sig);
-  filter->SetUseImageSpacingOff();
+  filter->SetUseImageSpacing(false);
   filter->SetMaximumError(.01f);
   filter->SetInput(image);
   filter->Update();

@@ -319,7 +319,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
   // Therefore check reference image is 3D, and fail if not
   //
  itk::ImageIOBase::Pointer imageIO =
-   itk::ImageIOFactory::CreateImageIO(physicalName.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+   itk::ImageIOFactory::CreateImageIO(physicalName.c_str(), itk::IOFileModeEnum::ReadMode);
  imageIO->SetFileName(physicalName.c_str() );
  try
    {

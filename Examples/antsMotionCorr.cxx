@@ -959,14 +959,14 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         samplingStrategy = metricOption->GetFunction( currentStage )->GetParameter(  4 );
         }
       ConvertToLowerCase( samplingStrategy );
-      typename AffineRegistrationType::MetricSamplingStrategyType metricSamplingStrategy = AffineRegistrationType::NONE;
+      typename AffineRegistrationType::MetricSamplingStrategyEnum metricSamplingStrategy = AffineRegistrationType::MetricSamplingStrategyEnum::NONE;
       if( std::strcmp( samplingStrategy.c_str(), "random" ) == 0 )
         {
         if( timedim == 0 )
           {
           if ( verbose ) std::cout << "  random sampling (percentage = " << samplingPercentage << ")" << std::endl;
           }
-        metricSamplingStrategy = AffineRegistrationType::RANDOM;
+        metricSamplingStrategy = AffineRegistrationType::MetricSamplingStrategyEnum::RANDOM;
         }
       if( std::strcmp( samplingStrategy.c_str(), "regular" ) == 0 )
         {
@@ -974,7 +974,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           if ( verbose ) std::cout << "  regular sampling (percentage = " << samplingPercentage << ")" << std::endl;
           }
-        metricSamplingStrategy = AffineRegistrationType::REGULAR;
+        metricSamplingStrategy = AffineRegistrationType::MetricSamplingStrategyEnum::REGULAR;
         }
 
       if( std::strcmp( whichMetric.c_str(), "cc" ) == 0 )
@@ -1232,7 +1232,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         rigidRegistration->SetMetric( metric );
         rigidRegistration->SetMetricSamplingStrategy(
-          static_cast<typename RigidRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          static_cast<typename RigidRegistrationType::MetricSamplingStrategyEnum>( metricSamplingStrategy ) );
         rigidRegistration->SetMetricSamplingPercentage( samplingPercentage );
         rigidRegistration->SetOptimizer( optimizer );
         if( compositeTransform->GetNumberOfTransforms() > 0 )
@@ -1332,7 +1332,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( false );
         displacementFieldRegistration->SetMetricSamplingStrategy(
-          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyEnum>( metricSamplingStrategy ) );
         displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
         displacementFieldRegistration->SetOptimizer( optimizer );
         displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );

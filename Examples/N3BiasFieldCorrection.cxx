@@ -1083,7 +1083,7 @@ int N3BiasFieldCorrection( std::vector<std::string> args, std::ostream* /*out_st
         return EXIT_FAILURE;
         }
       itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-          filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
+          filename.c_str(), itk::IOFileModeEnum::ReadMode );
       dimension = imageIO->GetNumberOfDimensions();
       }
 

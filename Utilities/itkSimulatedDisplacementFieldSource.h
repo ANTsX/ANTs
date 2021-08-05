@@ -40,7 +40,7 @@ class SimulatedDisplacementFieldSource:
   public ImageSource<TOutputImage>
 {
 public:
-  ITK_DISALLOW_COPY_AND_ASSIGN( SimulatedDisplacementFieldSource );
+  ITK_DISALLOW_COPY_AND_MOVE( SimulatedDisplacementFieldSource );
 
   /** Standard class type aliases. */
   using Self = SimulatedDisplacementFieldSource;

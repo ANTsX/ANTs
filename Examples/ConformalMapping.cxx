@@ -246,7 +246,7 @@ SmoothImage( typename TImage::Pointer input, double var)
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(var);
   filter->SetMaximumError(.01f);
-  filter->SetUseImageSpacingOn();
+  filter->SetUseImageSpacing(true);
   filter->SetInput(input);
   filter->Update();
 

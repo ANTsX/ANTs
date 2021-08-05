@@ -97,7 +97,7 @@ SmoothImage(typename TImage::Pointer image, double sig)
   using dgf = itk::DiscreteGaussianImageFilter<TImage, TImage>;
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(sig);
-  filter->SetUseImageSpacingOn();
+  filter->SetUseImageSpacing(true);
   filter->SetMaximumError(.01f);
   filter->SetInput(image);
   filter->Update();

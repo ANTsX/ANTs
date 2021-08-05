@@ -798,7 +798,7 @@ private:
   if( is_parsing_ok )
     {
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(moving_image_filename,
-                                                                           itk::ImageIOFactory::FileModeEnum::ReadMode);
+                                                                           itk::IOFileModeEnum::ReadMode);
     imageIO->SetFileName(moving_image_filename);
     imageIO->ReadImageInformation();
     unsigned int ncomponents = imageIO->GetNumberOfComponents();
