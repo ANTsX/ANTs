@@ -40,7 +40,7 @@ class SimulatedBSplineDisplacementFieldSource final :
   public SimulatedDisplacementFieldSource<TOutputImage>
 {
 public:
-  ITK_DISALLOW_COPY_AND_ASSIGN( SimulatedBSplineDisplacementFieldSource );
+  ITK_DISALLOW_COPY_AND_MOVE( SimulatedBSplineDisplacementFieldSource );
 
   /** Standard class type aliases. */
   using Self = SimulatedBSplineDisplacementFieldSource;

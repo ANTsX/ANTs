@@ -408,14 +408,14 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
     jointPDFIterator.Value() /= static_cast<PDFValueType>( jointPDFSum );
     }
 
-  bool smoothjh = true;
+  constexpr bool smoothjh = true;
   if( smoothjh )
     {
     typedef DiscreteGaussianImageFilter<JointPDFType, JointPDFType> dgtype;
     typename dgtype::Pointer dg = dgtype::New();
     dg->SetInput(this->m_JointPDF);
     dg->SetVariance(1.5);
-    dg->SetUseImageSpacingOff();
+    dg->SetUseImageSpacing(false);
     dg->SetMaximumError(.01f);
     dg->Update();
     this->m_JointPDF = dg->GetOutput();

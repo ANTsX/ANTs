@@ -497,7 +497,7 @@ void  SurfaceImageCurvature<TSurface>
       typedef itk::DiscreteGaussianImageFilter<TSurface, TSurface> dgf;
       typename dgf::Pointer filter = dgf::New();
       filter->SetVariance(0.5);
-      filter->SetUseImageSpacingOn();
+      filter->SetUseImageSpacing(true);
       filter->SetMaximumError(.01f);
       filter->SetInput(laplacian);
       filter->Update();

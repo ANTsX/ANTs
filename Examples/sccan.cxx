@@ -701,7 +701,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     using dgf = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
     typename dgf::Pointer filter = dgf::New();
     filter->SetVariance(space_smoother);
-    filter->SetUseImageSpacingOn();
+    filter->SetUseImageSpacing(true);
     filter->SetMaximumError(.01f);
     filter->SetInput(image1);
     filter->Update();
@@ -722,7 +722,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     using dgf = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
     typename dgf::Pointer filter = dgf::New();
     filter->SetVariance(time_smoother);
-    filter->SetUseImageSpacingOn();
+    filter->SetUseImageSpacing(true);
     filter->SetMaximumError(.01f);
     filter->SetInput(image1);
     filter->Update();

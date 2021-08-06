@@ -49,6 +49,7 @@
 #include "itkExtractImageFilter.h"
 #include "itkFastMarchingExtensionImageFilterBase.h"
 #include "itkFastMarchingExtensionImageFilter.h"
+#include "itkFastMarchingBase.h"
 #include "itkGaussianImageSource.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
@@ -1109,7 +1110,7 @@ int TileImages(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::IOFileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
 
@@ -1516,7 +1517,7 @@ int CorruptImage(int argc, char *argv[])
       typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
       typename dgf::Pointer filter = dgf::New();
       filter->SetVariance(smoothlevel);
-      filter->SetUseImageSpacingOff();
+      filter->SetUseImageSpacing(false);
       filter->SetMaximumError(.01f);
       filter->SetInput(image1);
       filter->Update();
@@ -5896,7 +5897,7 @@ int TensorFunctions(int argc, char *argv[])
       " Convert a 4D tensor to a 3D tensor --- if there are 7 components to the tensor, we throw away the first component b/c its probably b0 "
       << std::endl;
     itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::IOFileModeEnum::ReadMode);
     imageIO->SetFileName(fn1.c_str() );
     imageIO->ReadImageInformation();
     unsigned int dim = imageIO->GetNumberOfDimensions();
@@ -7082,7 +7083,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
 //       ExtractedComponentImageType, ExtractedComponentImageType >  SmoothingFilterType2;
 //     typename SmoothingFilterType::Pointer smoother = SmoothingFilterType::New();
 //     smoother->SetVariance(1.0);
-//     smoother->SetUseImageSpacingOff();
+//     smoother->SetUseImageSpacing(false);
 //     //smoother->SetDomainSigma(1);
 //     //smoother->SetRangeSigma(1);
 //     filter->SetSmoothingFilter( smoother );
@@ -7812,11 +7813,11 @@ int SmoothImage(int argc, char *argv[])
   bool usespacing = true;
   if( !usespacing )
     {
-    filter->SetUseImageSpacingOff();
+    filter->SetUseImageSpacing(false);
     }
   else
     {
-    filter->SetUseImageSpacingOn();
+    filter->SetUseImageSpacing(true);
     }
   filter->SetMaximumError(.01f);
   filter->SetInput(image1);
@@ -8020,16 +8021,16 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
 
     fastMarching = FastMarchingFilterType::New();
     fastMarching->SetInput( speedimage );
-    fastMarching->SetTopologyCheck( FastMarchingFilterType::None );
+    fastMarching->SetTopologyCheck( FastMarchingFilterType::TopologyCheckType::Nothing );
     if( topocheck == 1 )  // Strict
       {
       // std::cout << " strict " << std::endl;
-      fastMarching->SetTopologyCheck( FastMarchingFilterType::Strict );
+      fastMarching->SetTopologyCheck( itk::FastMarchingTraitsEnums::TopologyCheck::Strict );
       }
     if( topocheck == 2 )  // No handles
       {
       // std::cout << " no handles " << std::endl;
-      fastMarching->SetTopologyCheck( FastMarchingFilterType::NoHandles );
+      fastMarching->SetTopologyCheck( itk::FastMarchingTraitsEnums::TopologyCheck::NoHandles );
       }
     typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
     typedef typename FastMarchingFilterType::NodeType      NodeType;
@@ -8314,12 +8315,12 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
     if( topocheck == 1 )  // Strict
       {
       // std::cout << " strict " << std::endl;
-      fastMarching->SetTopologyCheck( FastMarchingFilterType::Strict );
+      fastMarching->SetTopologyCheck( itk::FastMarchingTraitsEnums::TopologyCheck::Strict );
       }
     if( topocheck == 2 )  // No handles
       {
       // std::cout << " no handles " << std::endl;
-      fastMarching->SetTopologyCheck( FastMarchingFilterType::NoHandles );
+      fastMarching->SetTopologyCheck( itk::FastMarchingTraitsEnums::TopologyCheck::NoHandles );
       }
     typedef typename FastMarchingFilterType::NodePairContainerType NodeContainer;
     typedef typename FastMarchingFilterType::NodePairType      NodePairType;
@@ -11133,7 +11134,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::IOFileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
@@ -11430,7 +11431,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
     // Get the image dimension
     std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::IOFileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )

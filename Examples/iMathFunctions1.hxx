@@ -515,12 +515,12 @@ iMathPropagateLabelsThroughMask( typename ImageType::Pointer speedimage,      /*
     if( propagationMethod == 1 )  // Strict
       {
       // std::cout << " strict " << std::endl;
-      fastMarching->SetTopologyCheck( FastMarchingFilterType::Strict );
+      fastMarching->SetTopologyCheck( itk::FastMarchingTraitsEnums::TopologyCheck::Strict );
       }
     if( propagationMethod == 2 )  // No handles
       {
       // std::cout << " no handles " << std::endl;
-      fastMarching->SetTopologyCheck( FastMarchingFilterType::NoHandles );
+      fastMarching->SetTopologyCheck( itk::FastMarchingTraitsEnums::TopologyCheck::NoHandles );
       }
 
     typename NodeContainer::Pointer seeds = NodeContainer::New();

@@ -931,7 +931,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   using SmootherType = DiscreteGaussianImageFilter<RealImageType, RealImageType>;
   typename SmootherType::Pointer smoother = SmootherType::New();
   smoother->SetVariance( variance );
-  smoother->SetUseImageSpacingOff();
+  smoother->SetUseImageSpacing(false);
   smoother->SetMaximumError( 0.01 );
   smoother->SetInput( inputImage );
 

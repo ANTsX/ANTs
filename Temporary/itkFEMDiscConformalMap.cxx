@@ -1220,7 +1220,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::MakeFlatImage()
     typedef itk::DiscreteGaussianImageFilter<FlatImageType, FlatImageType> dgf;
     typename dgf::Pointer filter = dgf::New();
     filter->SetVariance(1.0);
-    filter->SetUseImageSpacingOff();
+    filter->SetUseImageSpacing(false);
     filter->SetMaximumError(.01f);
     filter->SetInput(m_FlatImage);
     filter->Update();

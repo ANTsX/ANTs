@@ -38,7 +38,7 @@ class SimulatedExponentialDisplacementFieldSource final:
   public SimulatedDisplacementFieldSource<TOutputImage>
 {
 public:
-  ITK_DISALLOW_COPY_AND_ASSIGN( SimulatedExponentialDisplacementFieldSource );
+  ITK_DISALLOW_COPY_AND_MOVE( SimulatedExponentialDisplacementFieldSource );
 
   /** Standard class type aliases. */
   using Self = SimulatedExponentialDisplacementFieldSource;

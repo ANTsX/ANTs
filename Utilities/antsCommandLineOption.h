@@ -59,21 +59,21 @@ public:
   typedef DataObject         Superclass;
   typedef SmartPointer<Self> Pointer;
 
-  itkNewMacro( Self )
+  itkNewMacro( Self );
 
-  itkTypeMacro( Option, DataObject )
+  itkTypeMacro( Option, DataObject );
 
   typedef std::deque<std::string> ParameterStackType;
 
-  itkSetStringMacro( Name )
-  itkGetStringMacro( Name )
-  itkGetMacro( Name, std::string )
+  itkSetStringMacro( Name );
+  itkGetStringMacro( Name );
+  itkGetMacro( Name, std::string );
 
-  itkSetMacro( ArgOrder, unsigned int )
-  itkGetConstMacro( ArgOrder, unsigned int )
+  itkSetMacro( ArgOrder, unsigned int );
+  itkGetConstMacro( ArgOrder, unsigned int );
 
-  itkSetMacro( StageID, unsigned int )
-  itkGetConstMacro( StageID, unsigned int )
+  itkSetMacro( StageID, unsigned int );
+  itkGetConstMacro( StageID, unsigned int );
 
   ParameterStackType GetParameters()
   {
@@ -119,9 +119,9 @@ public:
   typedef DataObject         Superclass;
   typedef SmartPointer<Self> Pointer;
 
-  itkNewMacro( Self )
+  itkNewMacro( Self );
 
-  itkTypeMacro( Option, DataObject )
+  itkTypeMacro( Option, DataObject );
 
   typedef OptionFunction OptionFunctionType;
 
@@ -172,14 +172,14 @@ public:
       }
   }
 
-  itkSetMacro( ShortName, char )
-  itkGetConstMacro( ShortName, char )
+  itkSetMacro( ShortName, char );
+  itkGetConstMacro( ShortName, char );
 
-  itkSetStringMacro( LongName )
-  itkGetConstMacro( LongName, std::string )
+  itkSetStringMacro( LongName );
+  itkGetConstMacro( LongName, std::string );
 
-  itkSetStringMacro( Description )
-  itkGetMacro( Description, std::string )
+  itkSetStringMacro( Description );
+  itkGetMacro( Description, std::string );
 
   void AddFunction( std::string, char, char, unsigned int order = 0 );
 

@@ -84,7 +84,7 @@ LabeledPointSetFileWriter<TInputMesh>
 {
   if( this->m_FileName == "" )
     {
-    itkExceptionMacro( "No FileName" )
+    itkExceptionMacro( "No FileName" );
     return;
     }
 
@@ -113,7 +113,7 @@ LabeledPointSetFileWriter<TInputMesh>
   if( !outputFile.is_open() )
     {
     itkExceptionMacro( "Unable to open file\n"
-                       "outputFilename= " << m_FileName )
+                       "outputFilename= " << m_FileName );
     return;
     }
   else
@@ -144,7 +144,7 @@ LabeledPointSetFileWriter<TInputMesh>
       }
     catch( ... )
       {
-      itkExceptionMacro( "Unknown extension: " << extension )
+      itkExceptionMacro( "Unknown extension: " << extension );
       }
     }
 }

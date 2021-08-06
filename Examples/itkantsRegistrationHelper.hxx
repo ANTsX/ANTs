@@ -441,7 +441,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 {
   TransformMethod init;
 
-  init.m_XfrmMethod = TimeVaryingBSplineVelocityField;;
+  init.m_XfrmMethod = TimeVaryingBSplineVelocityField;
   init.m_GradientStep = GradientStep;
   init.m_VelocityFieldMeshSize = VelocityFieldMeshSize;
   init.m_NumberOfTimePointSamples = NumberOfTimePointSamples;
@@ -1266,16 +1266,16 @@ RegistrationHelper<TComputeType, VImageDimension>
     const float samplingPercentage = stageMetricList[0].m_SamplingPercentage;
 
     const SamplingStrategy samplingStrategy = stageMetricList[0].m_SamplingStrategy;
-    typename AffineRegistrationType::MetricSamplingStrategyType metricSamplingStrategy = AffineRegistrationType::NONE;
+    typename AffineRegistrationType::MetricSamplingStrategyEnum metricSamplingStrategy = AffineRegistrationType::MetricSamplingStrategyEnum::NONE;
     if( samplingStrategy == random )
       {
       this->Logger() << "  random sampling (percentage = " << samplingPercentage << ")" << std::endl;
-      metricSamplingStrategy = AffineRegistrationType::RANDOM;
+      metricSamplingStrategy = AffineRegistrationType::MetricSamplingStrategyEnum::RANDOM;
       }
     else if( samplingStrategy == regular )
       {
       this->Logger() << "  regular sampling (percentage = " << samplingPercentage << ")" << std::endl;
-      metricSamplingStrategy = AffineRegistrationType::REGULAR;
+      metricSamplingStrategy = AffineRegistrationType::MetricSamplingStrategyEnum::REGULAR;
       }
     else if( samplingStrategy == none )
       {
@@ -2373,7 +2373,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         velocityFieldRegistration->SetNumberOfLevels( numberOfLevels );
         velocityFieldRegistration->SetMetricSamplingStrategy(
-          static_cast<typename VelocityFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          static_cast<typename VelocityFieldRegistrationType::MetricSamplingStrategyEnum>( metricSamplingStrategy ) );
         velocityFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
         velocityFieldRegistration->SetLearningRate( learningRate );
         velocityFieldRegistration->SetConvergenceThreshold( convergenceThreshold );
@@ -2934,7 +2934,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         displacementFieldRegistration->SetMetricSamplingStrategy(
-          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyEnum>( metricSamplingStrategy ) );
         displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
         displacementFieldRegistration->SetOptimizer( optimizer2 );
 
@@ -3120,7 +3120,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetFixedInitialTransform( this->m_FixedInitialTransform );
           }
         displacementFieldRegistration->SetMetricSamplingStrategy(
-          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyEnum>( metricSamplingStrategy ) );
         displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
         displacementFieldRegistration->SetOptimizer( optimizer2 );
         displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
@@ -3778,7 +3778,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
   typedef typename RigidTransformTraits<TComputeType, VImageDimension>::TransformType RigidTransformType;
 
-  std::string previousTxFileType = "";
+  std::string previousTxFileType;
   const typename TransformType::ConstPointer preTransform = compositeTransform->GetBackTransform();
   if( preTransform.IsNotNull() )
     {

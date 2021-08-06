@@ -51,7 +51,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 
   this->m_NeighborhoodSearchRadiusImage = nullptr;
 
-  this->SetSimilarityMetric( Superclass::PEARSON_CORRELATION );
+  this->SetSimilarityMetric( itk::NonLocalPatchBasedImageFilterEnums::SimilarityMetric::PEARSON_CORRELATION );
 }
 
 template <typename TInputImage, typename TOutputImage>

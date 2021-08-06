@@ -58,7 +58,7 @@ LabeledPointSetFileReader<TOutputMesh>
 {
   if( this->m_FileName == "" )
     {
-    itkExceptionMacro( "No input FileName" )
+    itkExceptionMacro( "No input FileName" );
     return;
     }
 
@@ -70,7 +70,7 @@ LabeledPointSetFileReader<TOutputMesh>
   if( !inputFile.is_open() )
     {
     itkExceptionMacro("Unable to open file\n"
-                      "inputFilename= " << m_FileName )
+                      "inputFilename= " << m_FileName );
     return;
     }
   else
@@ -255,7 +255,7 @@ LabeledPointSetFileReader<TOutputMesh>
   if( sscanf( pointLine.c_str(), "%d", &numberOfPoints ) != 1 )
     {
     itkExceptionMacro( "ERROR: Failed to read numberOfPoints\n"
-                       "       pointLine = " << pointLine )
+                       "       pointLine = " << pointLine );
     return;
     }
 
@@ -264,7 +264,7 @@ LabeledPointSetFileReader<TOutputMesh>
   if( numberOfPoints < 1 )
     {
     itkExceptionMacro( "numberOfPoints < 1"
-                       << "       numberOfPoints = " << numberOfPoints )
+                       << "       numberOfPoints = " << numberOfPoints );
     return;
     }
 
@@ -373,7 +373,7 @@ LabeledPointSetFileReader<TOutputMesh>
         {
         outputMesh->SetPointData( i, scalarData[i] );
         }
-      //    itkExceptionMacro( "Only single label components are readable" )
+      //    itkExceptionMacro( "Only single label components are readable" );
       }
     else
       {
@@ -403,7 +403,7 @@ LabeledPointSetFileReader<TOutputMesh>
         inputFile >> label;
         outputMesh->SetPointData( i, label );
         }
-      //    itkExceptionMacro( "Only single label components are readable" )
+      //    itkExceptionMacro( "Only single label components are readable" );
       }
     else
       {

@@ -61,7 +61,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   using dgf = itk::DiscreteGaussianImageFilter<TImage, TImage>;
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(sig);
-  filter->SetUseImageSpacingOn();
+  filter->SetUseImageSpacing(true);
   filter->SetMaximumError(.01f);
   filter->SetInput(image);
   filter->Update();
@@ -463,7 +463,7 @@ private:
 
   std::string               ifn = std::string(argv[1]);
   itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(ifn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+    itk::ImageIOFactory::CreateImageIO(ifn.c_str(), itk::IOFileModeEnum::ReadMode);
   imageIO->SetFileName(ifn.c_str() );
   imageIO->ReadImageInformation();
   unsigned int dim =  imageIO->GetNumberOfDimensions();
