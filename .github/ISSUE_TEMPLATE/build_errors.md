@@ -1,12 +1,11 @@
 ---
 name:  Build problems
 about: Report a problem compiling or installing ANTs from source
-
 ---
 
 <!--
 Text in these brackets are comments, and won't be visible when you submit your
-pull request. Please read before submitting.
+issue. Please read before submitting.
 
 Before opening an issue, please review the build documentation here
 

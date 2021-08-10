@@ -1,9 +1,7 @@
 ---
 name: Other questions
 about: General questions about ANTs.
-
 ---
-
 
 <!--
 Text in these brackets are comments, and won't be visible when you submit your
