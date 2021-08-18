@@ -347,8 +347,8 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
 
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
-    if [[ ${#imagelist[@]} -eq 0 ]] ; then
-      echo ERROR shapeupdatedtotemplate - imagelist length is 0
+    if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]] ; then
+      echo "ERROR shapeupdatedtotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
       exit 1
     fi
 
@@ -989,6 +989,9 @@ if [[ $NUMBEROFMODALITIES -gt 1 ]];
       done
     echo "--------------------------------------------------------------------------------------"
 fi
+
+# Useful to check the right number of images exist for various ops
+IMAGESPERMODALITY=$(( ${#IMAGESETARRAY[@]} / ${NUMBEROFMODALITIES} ))
 
 # check for initial template images
 for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))

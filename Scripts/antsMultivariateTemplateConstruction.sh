@@ -245,9 +245,15 @@ function shapeupdatetotemplate() {
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
     echo "--------------------------------------------------------------------------------------"
 
+    imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
+    if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]] ; then
+      echo "ERROR shapeupdatedtotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
+      exit 1
+    fi
+
     case $summarizemethod in
     0) #mean
-      ${ANTSPATH}/AverageImages $dim ${template} 0 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz  
+      ${ANTSPATH}/AverageImages $dim ${template} 0 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
       ;;
     1) #mean of normalized images
       ${ANTSPATH}/AverageImages $dim ${template} 2 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
@@ -824,6 +830,9 @@ if [[ $NUMBEROFMODALITIES -gt 1 ]];
     echo "--------------------------------------------------------------------------------------"
 fi
 
+# Useful to check the right number of images exist for various ops
+IMAGESPERMODALITY=$(( ${#IMAGESETARRAY[@]} / ${NUMBEROFMODALITIES} ))
+
 # check for initial template images
 for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
     do
@@ -1209,7 +1218,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
     rm -f ${outdir}/job*.sh
     # Used to save time by only running coarse registration for the first couple of iterations
     # This may also help convergence, but because there's no way to turn it off, it makes it harder
-    # to refine templates with multiple calls to this script. 
+    # to refine templates with multiple calls to this script.
     # If you uncomment this, replace MAXITERATIONS with ITERATIONS in the call to ants below
     #
     # # For the first couple of iterations, use high-level registration only
