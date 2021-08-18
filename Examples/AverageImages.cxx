@@ -84,7 +84,7 @@ int AverageImages1(unsigned int argc, char *argv[])
   reader->SetFileName(argv[bigimage]);
   reader->Update();
   typename ImageType::Pointer averageimage = reader->GetOutput();
-  std::cout << " Setting physcal space of output average image based on largest image " << std::endl;
+  std::cout << " Setting physical space of output average image based on largest image " << std::endl;
   unsigned int vectorlength = reader->GetImageIO()->GetNumberOfComponents();
   std::cout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
            << vectorlength << std::endl;

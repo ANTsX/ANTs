@@ -100,7 +100,7 @@ Optional arguments:
      -A   sharpening applied to template at each iteration (default 1)
           0 = none
           1 = Laplacian
-          2 = Unsharp mask 
+          2 = Unsharp mask
 
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM
@@ -128,7 +128,15 @@ Optional arguments:
 
      -s:  Type of similarity metric used for registration.
 
-     -t:  Type of transformation model used for registration.
+     -t:  Type of transformation model used for registration. Supported options are case sensitive.
+             GR             : Greedy SyN (default for scalar data)
+             GR_Constrained : Greedy SyN with regularization on the total deformation (default for time series)
+             EL             : Elastic
+             EX             : Exponential
+             DD             : Greedy exponential, diffemorphic-demons-style optimization
+             SY             : LDDMM-style SyN with symmetric time-dependent gradient estimation
+             LDDMM          : Like SY, but with asymmetric time-dependent gradient estimation
+             S2             : Like SY, but with no time-dependent gradient estimation
 
      -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
 
@@ -259,20 +267,20 @@ function shapeupdatetotemplate() {
     echo " shapeupdatetotemplate---sharpening of the new template"
     echo "--------------------------------------------------------------------------------------"
 
-    case $sharpenmethod in 
+    case $sharpenmethod in
     0)
       echo "Sharpening method none"
       ;;
     1)
       echo "Laplacian sharpening"
-      ${ANTSPATH}/ImageMath $dim $template Sharpen $template 
+      ${ANTSPATH}/ImageMath $dim $template Sharpen $template
       ;;
     2)
       echo "Unsharp mask sharpening"
       ${ANTSPATH}/ImageMath $dim $template UnsharpMask $template 0.5 1 0 0
       ;;
   esac
-    
+
     if [[ $whichtemplate -eq 0 ]] ;
       then
         echo
@@ -452,7 +460,7 @@ while getopts "A:a:b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
    exit 0
    ;;
       A) # Sharpening method
-      SHARPENMETHOD=$OPTARG 
+      SHARPENMETHOD=$OPTARG
    ;;
       a) # summarizing statistic
       STATSMETHOD=$OPTARG
@@ -540,12 +548,17 @@ elif [[ $nargs -lt 6 ]]
     Usage >&2
 fi
 
-OUTPUT_DIR=${OUTPUTNAME%\/*}
+OUTPUT_DIR=`dirname ${OUTPUTNAME}`
 if [[ ! -d $OUTPUT_DIR ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
     mkdir -p $OUTPUT_DIR
   fi
+
+# Intermediate template output. Keep the template for each iteration and also the average warp if defined.
+# Useful for debugging and monitoring convergence
+intermediateTemplateDir=${OUTPUT_DIR}/intermediateTemplates
+mkdir -p $intermediateTemplateDir
 
 if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
   then
@@ -818,7 +831,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
 
     if [[ -n "${REGTEMPLATES[$i]}" ]];
       then
-        if [[ ! -r "${REGTEMPLATES[$i]}" ]]; 
+        if [[ ! -r "${REGTEMPLATES[$i]}" ]];
           then
             echo "Initial template {REGTEMPLATES[$i]} cannot be read"
             exit 1
@@ -837,6 +850,22 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo "--------------------------------------------------------------------------------------"
         # Normalize but don't sharpen at this stage
         ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 2 ${CURRENTIMAGESET[@]}
+        # Quickly align COM of input images to average, and then recompute average
+        IMAGECOMSET=()
+        for (( j = 0; j < ${#CURRENTIMAGESET[@]}; j+=1 ))
+          do
+            IMGbase=`basename ${CURRENTIMAGESET[$j]}`
+            BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
+            COM="${OUTPUT_DIR}/initialCOM${i}_${j}_${IMGbase}"
+            COMTRANSFORM="${OUTPUT_DIR}/initialCOM${i}_${j}_${BASENAME}.mat"
+            antsAI -d 3 --convergence 0 --verbose 1 -m Mattes[${TEMPLATES[$i]},${CURRENTIMAGESET[$j]},32,None] -o ${COMTRANSFORM} -t AlignCentersOfMass
+            antsApplyTransforms -d 3 -r ${TEMPLATES[$i]} -i ${CURRENTIMAGESET[$j]} -t ${COMTRANSFORM} -o ${COM} --verbose
+            rm -f $COMTRANSFORM
+            IMAGECOMSET[${#IMAGECOMSET[@]}]=$COM
+          done
+          ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 2 ${IMAGECOMSET[@]}
+          # Clean up
+          rm -f ${IMAGECOMSET[@]}
     fi
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
@@ -844,6 +873,11 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo "Your template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
         exit
     fi
+
+    # Back up template
+    intermediateTemplateBase=`basename ${TEMPLATES[$i]}`
+    cp ${TEMPLATES[$i]} ${intermediateTemplateDir}/initial_${intermediateTemplateBase}
+
 done
 
 # remove old job bash scripts
@@ -1034,9 +1068,12 @@ if [[ "$RIGID" -eq 1 ]];
         done
         echo
         echo  "${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[@]}"
-    
-    # Don't sharpen after rigid alignment
-    ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[@]}
+
+      # Don't sharpen after rigid alignment
+      ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[@]}
+      intermediateTemplateBase=`basename ${TEMPLATES[$j]}`
+      cp ${TEMPLATES[$j]} ${intermediateTemplateDir}/initialRigid_${intermediateTemplateBase}
+
     done
 
     # cleanup and save output in seperate folder
@@ -1396,10 +1433,19 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             exit 1;
         fi
     fi
+
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
-        do
+      do
         shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${STATSMETHOD} ${SHARPENMETHOD} ${j}
-    done
+        intermediateTemplateBase=`basename ${TEMPLATES[$j]}`
+        cp ${TEMPLATES[$j]} ${intermediateTemplateDir}/${TRANSFORMATIONTYPE}_iteration${i}_${intermediateTemplateBase}
+      done
+
+    if [[ -f "${TEMPLATENAME}0warp.nii.gz" ]]
+      then
+        cp ${TEMPLATENAME}0warp.nii.gz ${intermediateTemplateDir}/${TRANSFORMATIONTYPE}_iteration${i}_shapeUpdateWarp.nii.gz
+      fi
+
     if [[ BACKUP_EACH_ITERATION -eq 1 ]];
       then
         echo

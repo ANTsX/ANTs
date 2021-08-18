@@ -101,7 +101,7 @@ Optional arguments:
      -A   sharpening applied to template at each iteration (default 1)
           0 = none
           1 = Laplacian
-          2 = Unsharp mask 
+          2 = Unsharp mask
 
      -b:  Backup images and results from all iterations (default = 0):  Boolean to save
           the transform files, bias corrected, and warped images for each iteration.
@@ -119,7 +119,7 @@ Optional arguments:
      -g:  Gradient step size (default 0.25): smaller in magnitude results in more
           cautious steps.  Use smaller steps to refine template details.
           0.25 is an upper (aggressive) limit for this parameter.
-          
+
      -i:  Iteration limit (default 4): iterations of the template construction
           (Iteration limit)*NumImages registrations.
 
@@ -172,11 +172,11 @@ Optional arguments:
             BSplineSyN = Greedy B-spline SyN
             TimeVaryingVelocityField = Time-varying velocity field
             TimeVaryingBSplineVelocityField = Time-varying B-spline velocity field
-             
+
             The transformations above are used after linear registration. To use use linear registration only:
 
             Affine = Rigid + Affine.
-            Rigid = Rigid only. 
+            Rigid = Rigid only.
 
      -u:  Walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
           per pairwise registration.
@@ -282,7 +282,7 @@ function summarizeimageset() {
 
   case $summarizemethod in
     0) #mean
-      ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}  
+      ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}
       ;;
     1) #mean of normalized images
       ${ANTSPATH}/AverageImages $dim $output 2 ${images[*]}
@@ -298,13 +298,13 @@ function summarizeimageset() {
       ;;
   esac
 
-  case $sharpenmethod in 
+  case $sharpenmethod in
     0)
       echo "Sharpening method none"
       ;;
     1)
       echo "Laplacian sharpening"
-      ${ANTSPATH}/ImageMath $dim $output Sharpen $output 
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
       ;;
     2)
       echo "Unsharp mask sharpening"
@@ -549,7 +549,7 @@ while getopts "A:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
       exit 0
    ;;
       A) # Sharpening method
-      SHARPENMETHOD=$OPTARG 
+      SHARPENMETHOD=$OPTARG
    ;;
       a) # summarizing statistic
       STATSMETHOD=$OPTARG
@@ -664,6 +664,11 @@ if [[ ! -d $OUTPUT_DIR ]];
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
     mkdir -p $OUTPUT_DIR
   fi
+
+# Intermediate template output. Keep the template for each iteration and also the average warp if defined.
+# Useful for debugging and monitoring convergence
+intermediateTemplateDir=${OUTPUT_DIR}/intermediateTemplates
+mkdir -p $intermediateTemplateDir
 
 if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
   then
@@ -992,7 +997,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
 
     if [[ -n "${REGTEMPLATES[$i]}" ]];
       then
-        if [[ ! -r "${REGTEMPLATES[$i]}" ]]; 
+        if [[ ! -r "${REGTEMPLATES[$i]}" ]];
           then
             echo "Initial template ${REGTEMPLATES[$i]} cannot be read"
             exit 1
@@ -1009,7 +1014,25 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
         echo "   ${CURRENTIMAGESET[@]}"
         echo "--------------------------------------------------------------------------------------"
-        summarizeimageset $DIM ${TEMPLATES[$i]} 2 0 ${CURRENTIMAGESET[@]}
+        # Normalized mean, no sharpening
+        summarizeimageset $DIM ${TEMPLATES[$i]} 1 0 ${CURRENTIMAGESET[@]}
+        # Quickly align COM of input images to average, and then recompute average
+        IMAGECOMSET=()
+        for (( j = 0; j < ${#CURRENTIMAGESET[@]}; j+=1 ))
+          do
+            IMGbase=`basename ${CURRENTIMAGESET[$j]}`
+            BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
+            COM="${OUTPUT_DIR}/initialCOM${i}_${j}_${IMGbase}"
+            COMTRANSFORM="${OUTPUT_DIR}/initialCOM${i}_${j}_${BASENAME}.mat"
+            antsAI -d 3 --convergence 0 --verbose 1 -m Mattes[${TEMPLATES[$i]},${CURRENTIMAGESET[$j]},32,None] -o ${COMTRANSFORM} -t AlignCentersOfMass
+            antsApplyTransforms -d 3 -r ${TEMPLATES[$i]} -i ${CURRENTIMAGESET[$j]} -t ${COMTRANSFORM} -o ${COM} --verbose
+            rm -f $COMTRANSFORM
+            IMAGECOMSET[${#IMAGECOMSET[@]}]=$COM
+          done
+        # Could let user control statmethod here, but set to normalized mean for consistency with antsMultivariateTemplate.sh
+        summarizeimageset $DIM ${TEMPLATES[$i]} 1 0 ${IMAGECOMSET[@]}
+        # Clean up
+        rm -f ${IMAGECOMSET[@]}
       fi
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
@@ -1017,6 +1040,11 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo "Your initial template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
         exit 1
       fi
+
+    # Back up template
+    intermediateTemplateBase=`basename ${TEMPLATES[$i]}`
+    cp ${TEMPLATES[$i]} ${intermediateTemplateDir}/initial_${intermediateTemplateBase}
+
 done
 
 
@@ -1214,13 +1242,16 @@ if [[ "$RIGID" -eq 1 ]];
             IMAGERIGIDSET[${#IMAGERIGIDSET[@]}]=$RIGID
           done
         echo
-        echo  "${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}"
+        echo  "Building rigid template from ${IMAGERIGIDSET[@]}"
 
-      summarizeimageset $DIM ${TEMPLATES[$j]} $STATSMETHOD $SHARPENMETHOD ${IMAGERIGIDSET[@]}
-      #${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
+        # Could let user control statmethod here, but set to normalized mean for consistency with antsMultivariateTemplate.sh
+        # No sharpening at rigid stage
+        summarizeimageset $DIM ${TEMPLATES[$j]} 1 0 ${IMAGERIGIDSET[@]}
+        intermediateTemplateBase=`basename ${TEMPLATES[$j]}`
+        cp ${TEMPLATES[$j]} ${intermediateTemplateDir}/initialRigid_${intermediateTemplateBase}
+
       done
 
-    # cleanup and save output in seperate folder
     if [[ BACKUPEACHITERATION -eq 1 ]];
       then
         echo
@@ -1264,8 +1295,18 @@ fi # endif RIGID
 #
 ##########################################################################
 
-ITERATLEVEL=(` echo $MAXITERATIONS | tr 'x' ' ' `)
+ITERATLEVEL=( $(echo $MAXITERATIONS | tr 'x' ' ') )
 NUMLEVELS=${#ITERATLEVEL[@]}
+
+SHRINKLEVEL=( $(echo $SHRINKFACTORS | tr 'x' ' ') )
+NUMSHRINK=${#SHRINKLEVEL[@]}
+
+if [[ $NUMLEVELS -ne $NUMSHRINK ]]
+  then
+    echo "Number of shrink factors in [ $SHRINKFACTORS ] does not match number of iteration levels in [ $MAXITERATIONS ]"
+    exit 1
+  fi
+
 #
 # debugging only
 #echo $ITERATLEVEL
@@ -1421,7 +1462,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             pexe="$pexe ${basecall} ${stageId} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
           elif [[ $NOWARP -eq 1 ]];
             then
-    	      if [[ ${TRANSFORMATION} == "Affine"* ]]; 
+    	      if [[ ${TRANSFORMATION} == "Affine"* ]];
 	        then
           	  # If affine, do standard rigid, then affine with levels, etc from command line
 		  exe="$exebase ${basecall} ${stage0} ${stage1} ${stage3}\n";
@@ -1575,11 +1616,18 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         exit 1
     fi
 
-
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
       do
         shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j} ${STATSMETHOD} ${SHARPENMETHOD}
+        # Back up templates and average warps if defined
+        intermediateTemplateBase=`basename ${TEMPLATES[$j]}`
+        cp ${TEMPLATES[$j]} ${intermediateTemplateDir}/${TRANSFORMATIONTYPE}_iteration${i}_${intermediateTemplateBase}
       done
+
+    if [[ -f "${TEMPLATENAME}0warp.nii.gz" ]]
+      then
+        cp ${TEMPLATENAME}0warp.nii.gz ${intermediateTemplateDir}/${TRANSFORMATIONTYPE}_iteration${i}_shapeUpdateWarp.nii.gz
+      fi
 
     if [[ $BACKUPEACHITERATION -eq 1 ]];
       then
