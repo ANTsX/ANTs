@@ -104,7 +104,9 @@ Optional arguments:
           2 = Unsharp mask
 
      -b:  Backup images and results from all iterations (default = 0):  Boolean to save
-          the transform files, bias corrected, and warped images for each iteration.
+          the transform files, bias corrected inputs, templates, transforms, and warped images
+          for each iteration. By default, only the templates and the shape update warp field
+          are saved.
 
      -c:  Control for parallel computation (default 0):
           0 = run serially
@@ -152,31 +154,41 @@ Optional arguments:
      -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set
           paths, etc)
 
-     -r:  Do rigid-body registration of inputs before creating template (default 0):
-          0 == off 1 == on. Only useful when you do not have an initial template
+     -r:  Do rigid-body registration of inputs to the initial template, before doing the main
+          pairwise registration. 0 == off 1 == on (default 0). If you are trying to refine or update
+          an existing template, you would use '-r 0'.
+          Rigid initialization is useful when you do not have an initial template, or you want to use
+          a single image as a reference for rigid alignment only. For example,
+            "-z tpl-MNI152NLin2009cAsym_res-01_T1w.nii.gz -y 0 -r 1"
+          will rigidly align the inputs to the MNI template, and then use their average to begin the
+          template building process.
 
      -l:  Use linear image registration stages during the pairwise (template/subject)
           deformable registration.  Otherwise, registration is limited to SyN or
           B-spline SyN (see '-t' option).  This is '1' by default.
 
-     -m:  Type of similarity metric used for registration (default = CC):  Options are
+     -m:  Type of similarity metric used for pairwise registration (default = CC). Options are case
+          sensitive.
             CC = cross-correlation
             MI = mutual information
             MSQ = mean square difference
             DEMONS = demon's metric
           A similarity metric per modality can be specified.  If the CC metric is chosen,
-          one can also specify the radius in brackets, e.g. '-m CC[ 4 ]'.
+          one can also specify the radius in brackets, e.g. "-m CC[ 4 ]". This option controls
+          the metric for the transformation specified with "-t", so "-m CC -t SyN" means the SyN
+          stage is run with the CC metric; preceding linear stages use MI.
 
-     -t:  Type of transformation model used for registration (default = SyN):  Options are
+     -t:  Type of transformation model used for registration (default = SyN):  Options are case
+          sensitive.
             SyN = Greedy SyN
             BSplineSyN = Greedy B-spline SyN
             TimeVaryingVelocityField = Time-varying velocity field
             TimeVaryingBSplineVelocityField = Time-varying B-spline velocity field
 
-            The transformations above are used after linear registration. To use use linear registration only:
-
-            Affine = Rigid + Affine.
-            Rigid = Rigid only.
+          The transformations above are used after Rigid + Affine linear registration, unless linear
+          registration is disabled with "-l". To use linear registration only, options are:
+            Affine = Affine (runs Rigid + Affine)
+            Rigid = Rigid (runs Rigid only).
 
      -u:  Walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
           per pairwise registration.
@@ -188,21 +200,21 @@ Optional arguments:
 
      -y:  Update the template with the full affine transform (default 1). If 0, the rigid
           component of the affine transform will not be used to update the template. If your
-          template drifts in translation or orientation try -y 0.
+          template drifts in translation or orientation try "-y 0".
 
-     -z:  Use this this volume as the target of all inputs. When not used, the script
-          will create an unbiased starting point by averaging all inputs. Use the full
-          path.
+     -z:  Use this this volume as the target of all inputs. When not used, the script will create an unbiased
+          starting point by averaging all inputs, then aligning the center of mass of all inputs to that of
+          the initial average. If you do not use -z, it is recommended to use "-r 1". Use the full path.
           For multiple modalities, specify -z modality1.nii.gz -z modality2.nii.gz ...
           in the same modality order as the input images.
 
 Example:
 
-`basename $0` -d 3 -i 3 -k 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN  -m CC -c 0 -o MY sub*avg.nii.gz
+`basename $0` -d 3 -i 3 -k 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN -m CC -c 0 -r 1 -o MY sub*avg.nii.gz
 
 Multimodal example:
 
-`basename $0` -d 3 -i 3 -k 2 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN -z t1.nii.gz -z t2.nii.gz \
+`basename $0` -d 3 -i 3 -k 2 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN -z t1.nii.gz -z t2.nii.gz \\
  -m CC -c 0 -o MY templateInput.csv
 
 where templateInput.csv contains
@@ -210,6 +222,38 @@ where templateInput.csv contains
 subjectA_t1.nii.gz,subjectA_t2.nii.gz
 subjectB_t1.nii.gz,subjectB_t2.nii.gz
 ...
+
+Example of first building an affine template, then refining it with SyN:
+
+`basename $0` -d 3 -i 2 -A 2 -k 1 -f 6x4x2x1 -s 4x2x1x0vox -q 200x100x50x0 -t Affine -m MI -c 0 \\
+  -r 1 -o MY_Affine_ sub*avg.nii.gz
+
+`basename $0` -d 3 -i 5 -k 1 -f 6x4x2x1 -s 4x2x1x0vox -q 50x100x70x20 -t SyN -m CC -c 0 \\
+  -r 0 -o MY_Deformable_ -z MY_Affine_template0.nii.gz sub*avg.nii.gz
+
+
+Output
+
+{OutputPrefix}template{m}.nii.gz
+  final template for each modality m.
+
+{OutputPrefix}template{m}{inputFile}{n}WarpedToTemplate.nii.gz
+{OutputPrefix}template{m}{inputFile}{n}0GenericAffine.mat
+{OutputPrefix}template{m}{inputFile}{n}1Warp.nii.gz
+{OutputPrefix}template{m}{inputFile}{n}1InverseWarp.nii.gz
+  each of n input images warped to the penultimate template m, with transforms. If the template has converged,
+  these should be well aligned to {OutputPrefix}template{m}.nii.gz.
+
+intermediateTemplates/
+                     initial_{OutputPrefix}template{m}.nii.gz :
+                       initial template
+                     initialRigid_{OutputPrefix}template{m}.nii.gz :
+                       initial rigid template if requested with "-r 1"
+                     {transform}_iteration{i}_{OutputPrefix}template{m}.nii.gz
+                       Template computed with {transform} (-t) for each iteration (-i) and modality.
+                     {transform}_iteration{i}_shapeUpdateWarp.nii.gz
+                       Shape update warp applied to the template at iteration i. As the template converges,
+                       the magnitude of the update warp will converge to a minimal value.
 
 --------------------------------------------------------------------------------------
 ANTS was created by:

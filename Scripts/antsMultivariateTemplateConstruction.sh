@@ -123,12 +123,23 @@ Optional arguments:
 
      -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set paths, etc)
 
-     -r:  Do rigid-body registration of inputs before creating template (default 0) -- 0 == off 1 == on. Only useful when
-          you do not have an initial template
+     -r:  Do rigid-body registration of inputs to the initial template, before doing the main
+          pairwise registration. 0 == off 1 == on (default 0). If you are trying to refine or update
+          an existing template, you would use '-r 0'.
+          Rigid initialization is useful when you do not have an initial template, or you want to use
+          a single image as a reference for rigid alignment only. For example,
+            "-z tpl-MNI152NLin2009cAsym_res-01_T1w.nii.gz -y 0 -r 1"
+          will rigidly align the inputs to the MNI template, and then use their average to begin the
+          template building process.
 
-     -s:  Type of similarity metric used for registration.
+     -s:  Type of similarity metric used for nonlinear registration (affine is always MI). Default = CC.
+          Options are case sensitive.
+             CC  : Cross-correlation
+             MI  : Mutual information
+             MSQ : Mean squared differences
+             PR  : CC after subtraction of local mean from the image (deprecated)
 
-     -t:  Type of transformation model used for registration. Supported options are case sensitive.
+     -t:  Type of transformation model used for nonlinear registration. Options are case sensitive.
              GR             : Greedy SyN (default for scalar data)
              GR_Constrained : Greedy SyN with regularization on the total deformation (default for time series)
              EL             : Elastic
@@ -144,10 +155,15 @@ Optional arguments:
           component of the affine transform will not be used to update the template. If your
           template drifts in translation or orientation try -y 0.
 
-     -z:  Use this this volume as the target of all inputs. When not used, the script
-          will create an unbiased starting point by averaging all inputs. Use the full path!
+     -z:  Use this this volume as the target of all inputs. When not used, the script will create an unbiased
+          starting point by averaging all inputs, then aligning the center of mass of all inputs to that of
+          the initial average. If you do not use -z, it is recommended to use "-r 1". Use the full path.
+          For multiple modalities, specify -z modality1.nii.gz -z modality2.nii.gz ...
+          in the same modality order as the input images.
 
-     -b:  Boolean for saving iteration output to directories (default = 0).
+     -b:  Boolean for saving full iteration output to directories (default = 0). If 1, images and warps
+          are saved for each pairwise registration at each iteration. Otherwise, only templates and the shape
+          update warps are saved.
 
 Example:
 
@@ -158,6 +174,30 @@ Example:
 - Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional).
 - The -c option is set to 1, which will result in using the Sun Grid Engine (SGE) to distribute the computation.
 - if you do not have SGE, read the help for multi-core computation on the local machine, or Apple X-grid options.
+
+Output:
+
+{OutputPrefix}template{m}.nii.gz
+  final template for each modality m.
+
+{OutputPrefix}template{m}{inputFile}{n}WarpedToTemplate.nii.gz
+{OutputPrefix}template{m}{inputFile}{n}0GenericAffine.mat
+{OutputPrefix}template{m}{inputFile}{n}1Warp.nii.gz
+{OutputPrefix}template{m}{inputFile}{n}1InverseWarp.nii.gz
+  each of n input images warped to the penultimate template m, with transforms. If the template has converged,
+  these should be well aligned to {OutputPrefix}template{m}.nii.gz.
+
+intermediateTemplates/
+                     initial_{OutputPrefix}template{m}.nii.gz :
+                       initial template
+                     initialRigid_{OutputPrefix}template{m}.nii.gz :
+                       initial rigid template if requested with "-r 1"
+                     {transform}_iteration{i}_{OutputPrefix}template{m}.nii.gz
+                       Template computed with {transform} (-t) for each iteration (-i) and modality.
+                     {transform}_iteration{i}_shapeUpdateWarp.nii.gz
+                       Shape update warp applied to the template at iteration i. As the template converges,
+                       the magnitude of the update warp will converge to a minimal value.
+
 
 --------------------------------------------------------------------------------------
 ANTS was created by:
