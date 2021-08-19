@@ -1348,9 +1348,18 @@ NUMLEVELS=${#ITERATLEVEL[@]}
 SHRINKLEVEL=( $(echo $SHRINKFACTORS | tr 'x' ' ') )
 NUMSHRINK=${#SHRINKLEVEL[@]}
 
+SMOOTHLEVEL=( $(echo $SMOOTHINGFACTORS | tr 'x' ' ') )
+NUMSMOOTH=${#SMOOTHLEVEL[@]}
+
 if [[ $NUMLEVELS -ne $NUMSHRINK ]]
   then
     echo "Number of shrink factors in [ $SHRINKFACTORS ] does not match number of iteration levels in [ $MAXITERATIONS ]"
+    exit 1
+  fi
+
+if [[ $NUMLEVELS -ne $NUMSMOOTH ]]
+  then
+    echo "Number of smoothing levels in [ $SMOOTHINGFACTORS ] does not match number of iteration levels in [ $MAXITERATIONS ]"
     exit 1
   fi
 
