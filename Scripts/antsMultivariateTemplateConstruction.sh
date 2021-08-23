@@ -255,6 +255,75 @@ function reportMappingParameters {
 REPORTMAPPINGPARAMETERS
 }
 
+function summarizeimageset() {
+
+  local dim=$1
+  shift
+  local output=$1
+  shift
+  local summarizemethod=$1
+  shift
+  local sharpenmethod=$1
+  shift
+  local images=( "${@}" )
+
+  if [[ ${#images[@]} -ne ${IMAGESPERMODALITY} ]]
+    then
+      echo "ERROR summarizeimageset - imagelist length is ${#images[@]}, expected ${IMAGESPERMODALITY}"
+      exit 1
+    fi
+
+  rm -f "$output"
+
+  case $summarizemethod in
+    0) #mean
+      ${ANTSPATH}/AverageImages $dim $output 0 ${images[@]}
+      ;;
+    1) #mean of normalized images
+      ${ANTSPATH}/AverageImages $dim $output 2 ${images[@]}
+      ;;
+    2) #median
+      local image
+      for image in "${images[@]}";
+        do
+          echo $image >> ${output}_list.txt
+        done
+      ${ANTSPATH}/ImageSetStatistics $dim ${output}_list.txt ${output} 0
+      rm ${output}_list.txt
+      ;;
+  esac
+
+  if [[ ! -f "$output" ]];
+    then
+      echo "summarizeimageset: ERROR - output file $output could not be created"
+      exit 1
+    fi
+
+  case $sharpenmethod in
+    0)
+      echo "Sharpening method none"
+      ;;
+    1)
+      echo "Laplacian sharpening"
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
+      ;;
+    2)
+      echo "Unsharp mask sharpening"
+      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.5 1 0 0
+      ;;
+  esac
+
+  local sharpenExit=$?
+
+  if [[ $? -ne 0 ]]
+    then
+      echo "summarizeimageset: ERROR - template sharpening failed with status $?"
+      exit 1
+    fi
+
+}
+
+
 function shapeupdatetotemplate() {
 
    echo "shapeupdatetotemplate()"
@@ -286,46 +355,13 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
 
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
-    if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]] ; then
-      echo "ERROR shapeupdatedtotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
-      exit 1
-    fi
+    if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]]
+      then
+        echo "ERROR shapeupdatedtotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
+        exit 1
+      fi
 
-    case $summarizemethod in
-    0) #mean
-      ${ANTSPATH}/AverageImages $dim ${template} 0 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
-      ;;
-    1) #mean of normalized images
-      ${ANTSPATH}/AverageImages $dim ${template} 2 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
-      ;;
-    2) #median
-      local image
-      for image in ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz;
-        do
-          echo $image >> ${templatename}${whichtemplate}_list.txt
-        done
-      ${ANTSPATH}/ImageSetStatistics $dim ${templatename}${whichtemplate}_list.txt ${template} 0
-      rm ${templatename}${whichtemplate}_list.txt
-      ;;
-  esac
-
-    echo "--------------------------------------------------------------------------------------"
-    echo " shapeupdatetotemplate---sharpening of the new template"
-    echo "--------------------------------------------------------------------------------------"
-
-    case $sharpenmethod in
-    0)
-      echo "Sharpening method none"
-      ;;
-    1)
-      echo "Laplacian sharpening"
-      ${ANTSPATH}/ImageMath $dim $template Sharpen $template
-      ;;
-    2)
-      echo "Unsharp mask sharpening"
-      ${ANTSPATH}/ImageMath $dim $template UnsharpMask $template 0.5 1 0 0
-      ;;
-  esac
+    summarizeimageset ${dim} ${template} ${summarizemethod} ${sharpenmethod} ${imagelist[@]}
 
     if [[ $whichtemplate -eq 0 ]] ;
       then
@@ -897,8 +933,9 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
         echo "   ${CURRENTIMAGESET[@]}"
         echo "--------------------------------------------------------------------------------------"
-        # Normalize but don't sharpen at this stage
-        ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 2 ${CURRENTIMAGESET[@]}
+        # Normalized mean, no sharpening
+        # This forces a call to AverageImages, which resizes images to match the largest input
+        summarizeimageset $DIM ${TEMPLATES[$i]} 1 0 ${CURRENTIMAGESET[@]}
         # Quickly align COM of input images to average, and then recompute average
         IMAGECOMSET=()
         for (( j = 0; j < ${#CURRENTIMAGESET[@]}; j+=1 ))
@@ -912,7 +949,8 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
             rm -f $COMTRANSFORM
             IMAGECOMSET[${#IMAGECOMSET[@]}]=$COM
           done
-          ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 2 ${IMAGECOMSET[@]}
+          # Now safe to let user control stat method
+          summarizeimageset $DIM ${TEMPLATES[$i]} ${STATSMETHOD} 0 ${IMAGECOMSET[@]}
           # Clean up
           rm -f ${IMAGECOMSET[@]}
     fi
@@ -1119,7 +1157,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo  "${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[@]}"
 
       # Don't sharpen after rigid alignment
-      ${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[@]}
+      summarizeimageset $DIM ${TEMPLATES[$j]} ${STATSMETHOD} 0 ${IMAGERIGIDSET[@]}
       intermediateTemplateBase=`basename ${TEMPLATES[$j]}`
       cp ${TEMPLATES[$j]} ${intermediateTemplateDir}/initialRigid_${intermediateTemplateBase}
 
