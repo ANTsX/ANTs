@@ -1,6 +1,6 @@
 ---
-name: Bugs or other run time problems
-about: Report potential bugs or other problems running ANTs programs.
+name: Bugs, unexpected results or other run time problems
+about: Please help us solve your problem by providing the requested info  
 ---
 
 <!--
@@ -12,22 +12,8 @@ ANTs Wiki is at:
 
 https://github.com/ANTsX/ANTs/wiki
 
-The Github wiki search only covers page titles, but you can do a full
-text search by entering into Google:
-
-```
-<your search terms> site:https://github.com/ANTsX/ANTs/wiki
-```
-
-Previous issues on Github are at
-
-https://github.com/ANTsX/ANTs/issues
-
-and can be searched with
-
-```
-is:issue <your search terms>
-```
+The main Github search bar can search issues and wikis simultaneously. Type 
+search times and select "In this repository".
 
 If you find related issues but still have questions, you can open a new issue
 and reference them with #number. Eg, "This is similar to #1234, but my data..."
