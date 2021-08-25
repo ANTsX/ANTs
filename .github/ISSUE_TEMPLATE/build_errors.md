@@ -11,6 +11,9 @@ Before opening an issue, please review the build documentation here
 
 https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS
 
+You can also search the wiki and previous issues using the main Github search
+bar. Enter search terms and select "In this repository".
+
 If you are using system ITK or VTK, please verify you have the correct
 versions (see the Wiki link above). If you can, please also attempt a
 Superbuild and let us know if that compiles successfully.
