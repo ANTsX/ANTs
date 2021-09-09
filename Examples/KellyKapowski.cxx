@@ -564,7 +564,7 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   {
   std::string description =
-    std::string( "Defines the Gaussian smoothing of the hit and total images.  Default = 1.0." );
+    std::string( "Defines the Gaussian smoothing of the hit and total images.  Default = 1.0 mm." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "smoothing-variance" );
@@ -576,9 +576,9 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   {
   std::string description =
-    std::string( "Defines the Gaussian smoothing of the velocity field (default = 1.5)." )
+    std::string( "Defines the Gaussian smoothing of the velocity field (default = 1.5 voxels)." )
     + std::string( "If the b-spline smoothing option is chosen, then this " )
-    + std::string( "defines the isotropic mesh spacing for the smoothing spline (default = 15)." );
+    + std::string( "defines the isotropic mesh spacing for the smoothing spline (default = 15 mm)." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "smoothing-velocity-field-parameter" );
