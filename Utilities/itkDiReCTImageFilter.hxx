@@ -972,6 +972,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     os << indent << "Smoothing velocity field variance = "
                      << this->m_SmoothingVelocityFieldVariance << std::endl;
     }
+  os << indent << "Use masked smoothing = "
+                   << static_cast<int>( this->m_UseMaskedSmoothing ) << std::endl;
   os << indent << "Number of integration points = "
                    << this->m_NumberOfIntegrationPoints << std::endl;
   os << indent << "Maximum number of invert displacement field iterations = "
