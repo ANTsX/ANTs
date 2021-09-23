@@ -32,13 +32,17 @@ include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFVAR _GIT_VERSION_HASH)
 
 # if there is not git directory we should be in a distributed package
-# we will use version provided in Version.cmake
+# we will use version info in the file ProjectSourceVersionVars.cmake.
+# This file should be included in tagged source distributions
 if(_GIT_VERSION_HASH STREQUAL "GITDIR-NOTFOUND")
+  include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ProjectSourceVersionVars.cmake")
   return()
 endif()
 
 if(_GIT_VERSION_HASH MATCHES "[a-fA-F0-9]+")
-  string(SUBSTRING "${_GIT_VERSION_HASH}" 0 5 _GIT_VERSION_HASH)
+  # Get first seven chars of hash, following git convention
+  # https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection
+  string(SUBSTRING "${_GIT_VERSION_HASH}" 0 7 _GIT_VERSION_HASH)
 endif()
 
 # find the closest anotated tag with the v prefix for version

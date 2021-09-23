@@ -112,9 +112,6 @@ option(RUN_SHORT_TESTS    "Run the quick unit tests."                           
 option(RUN_LONG_TESTS     "Run the time consuming tests. i.e. real world registrations" ON  )
 option(OLD_BASELINE_TESTS "Use reported metrics from old tests"                         OFF )
 
-set(ANTS_SNAPSHOT_VERSION "" CACHE STRING "Version info for binaries. Only used if source is not a git repo. Identify source snapshot by commit hash or release tag")
-mark_as_advanced(ANTS_SNAPSHOT_VERSION)
-
 option(ANTS_INSTALL_LIBS_ONLY "Do not install binaries" OFF)
 mark_as_advanced(ANTS_INSTALL_LIBS_ONLY)
 
