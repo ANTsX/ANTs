@@ -31,11 +31,14 @@ include(GetGitRevisionDescription)
 
 get_git_head_revision(GIT_REFVAR _GIT_VERSION_HASH)
 
-# if there is not git directory we should be in a distributed package
-# we will use version info in the file ProjectSourceVersionVars.cmake.
+# if there is not git directory we should be in a release package
+# we will use version info in the file ReleaseSourceVersionVars.cmake.
 # This file should be included in tagged source distributions
 if(_GIT_VERSION_HASH STREQUAL "GITDIR-NOTFOUND")
-  include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ProjectSourceVersionVars.cmake")
+  include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ReleaseSourceVersionVars.cmake" OPTIONAL)
+  # write these to a config file in the build dir
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ProjectSourceVersionVars.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/ProjectSourceVersionVars.cmake"  @ONLY)
   return()
 endif()
 
@@ -48,7 +51,8 @@ endif()
 # find the closest anotated tag with the v prefix for version
 git_describe(_GIT_TAG "--match=v*")
 
-git_commits_since("${PROJECT_SOURCE_DIR}/Version.cmake" _GIT_VERSION_COUNT)
+# We don't use Version.cmake in this way, it remains constant and is updated at compile time
+# git_commits_since("${PROJECT_SOURCE_DIR}/Version.cmake" _GIT_VERSION_COUNT)
 
 set(VERSION_REGEX "^v([0-9]+)\\.([0-9]+)+(\\.([0-9]+))?(\\.([0-9]+))?((a|b|c|rc)[0-9]*)?(-[0-9]+)?")
 
@@ -78,40 +82,8 @@ if(NOT "${CMAKE_MATCH_9}" STREQUAL "")
   set(_GIT_TAG_COUNT "${CMAKE_MATCH_9}")
 endif()
 
-
-set(_GIT_VERSION "${_GIT_VERSION_MAJOR}.${_GIT_VERSION_MINOR}")
-if(DEFINED _GIT_VERSION_PATCH)
-  set(_GIT_VERSION "${_GIT_VERSION}.${_GIT_VERSION_PATCH}")
-  if(DEFINED _GIT_VERSION_TWEAK)
-    set(_GIT_VERSION "${_GIT_VERSION}.${_GIT_VERSION_TWEAK}")
-  elseif(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_TWEAK)
-    set(_GIT_VERSION "${_GIT_VERSION}.0")
-  endif()
-elseif(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_PATCH)
-  set(_GIT_VERSION "${_GIT_VERSION}.0")
-  if(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_TWEAK)
-    set(_GIT_VERSION "${_GIT_VERSION}.0")
-  endif()
-endif()
-
-set(_${CMAKE_PROJECT_NAME}_VERSION "${${CMAKE_PROJECT_NAME}_VERSION_MAJOR}.${${CMAKE_PROJECT_NAME}_VERSION_MINOR}")
-if(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_PATCH)
-  set(_${CMAKE_PROJECT_NAME}_VERSION "${_${CMAKE_PROJECT_NAME}_VERSION}.${${CMAKE_PROJECT_NAME}_VERSION_PATCH}")
-  if(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_TWEAK)
-    set(_${CMAKE_PROJECT_NAME}_VERSION "${_${CMAKE_PROJECT_NAME}_VERSION}.${${CMAKE_PROJECT_NAME}_VERSION_TWEAK}")
-  endif()
-endif()
-
-
-if(_GIT_VERSION VERSION_EQUAL _${CMAKE_PROJECT_NAME}_VERSION)
-  if(_GIT_TAG_COUNT) #ignore if 0
-    set(_GIT_VERSION_POST "${_GIT_TAG_COUNT}")
-  endif()
-else()
-  # The first commit after a tag should increase the project version
-  # number in Version.cmake and be "dev1"
-  math(EXPR _GIT_VERSION_COUNT "${_GIT_VERSION_COUNT}+1")
-  set(_GIT_VERSION_DEV "${_GIT_VERSION_COUNT}")
+if(_GIT_TAG_COUNT) #ignore if 0
+  set(_GIT_VERSION_POST "${_GIT_TAG_COUNT}")
 endif()
 
 # save variable in a configuration file in case we have no git directory

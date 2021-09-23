@@ -12,35 +12,8 @@ set(CMAKE_MODULE_PATH
 
 set (CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
 #-----------------------------------------------------------------------------
-# Version information
+# ANTs version information
 include(Version.cmake)
-
-if(DEFINED ${PROJECT_NAME}_VERSION_RC)
-  set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}${${PROJECT_NAME}_VERSION_RC}")
-endif()
-if(DEFINED ${PROJECT_NAME}_VERSION_POST)
-  set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}.post${${PROJECT_NAME}_VERSION_POST}")
-elseif(DEFINED ${PROJECT_NAME}_VERSION_DEV)
-  set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}.dev${${PROJECT_NAME}_VERSION_DEV}")
-endif()
-
-
-option( ${PROJECT_NAME}_BUILD_DISTRIBUTE "Remove '-g#####' from version. ( for official distribution only )" OFF )
-mark_as_advanced( ${PROJECT_NAME}_BUILD_DISTRIBUTE )
-if( NOT ${PROJECT_NAME}_BUILD_DISTRIBUTE AND NOT ${PROJECT_NAME}_VERSION_HASH STREQUAL "GITDIR-NOTFOUND" )
-  set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}-g${${PROJECT_NAME}_VERSION_HASH}")
-endif()
-
-# If no version information exists and the user has not passed version info to cmake, set defaults
-# This should only happen for development snapshots, releases should have a cmake file describing
-# the version
-if("${${PROJECT_NAME}_VERSION_MAJOR}" STREQUAL "")
-  set(${PROJECT_NAME}_VERSION_MAJOR 0)
-  set(${PROJECT_NAME}_VERSION_MINOR 0)
-  set(${PROJECT_NAME}_VERSION_PATCH 0)
-  set(${PROJECT_NAME}_VERSION_TWEAK 0)
-  set(${PROJECT_NAME}_VERSION "0.0.0.0")
-endif()
 
 #-----------------------------------------------------------------------------
 # CPACK Version

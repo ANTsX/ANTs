@@ -1,13 +1,13 @@
-#
-# ONLY MODIFY TO CHANGE VERSION
-#
-# The number of commits since last this file has changed it used to
-# define "dev" and "post", modification of this file will reset that
-# version.
-#
-
 # Version info
 include(ProjectSourceVersion)
+
+set(_GIT_VERSION "${_GIT_VERSION_MAJOR}.${_GIT_VERSION_MINOR}")
+if(DEFINED _GIT_VERSION_PATCH)
+  set(_GIT_VERSION "${_GIT_VERSION}.${_GIT_VERSION_PATCH}")
+  if(DEFINED _GIT_VERSION_TWEAK)
+    set(_GIT_VERSION "${_GIT_VERSION}.${_GIT_VERSION_TWEAK}")
+  endif()
+endif()
 
 # pre-release codes are defined based on suffix of most recent tags.
 
@@ -21,18 +21,32 @@ set(${PROJECT_NAME}_VERSION_MAJOR "${_GIT_VERSION_MAJOR}")
 set(${PROJECT_NAME}_VERSION_MINOR "${_GIT_VERSION_MINOR}")
 set(${PROJECT_NAME}_VERSION_PATCH "${_GIT_VERSION_PATCH}")
 set(${PROJECT_NAME}_VERSION_TWEAK "${_GIT_VERSION_TWEAK}")
-
-# The hash is the current git sha1 hash tag of the HEAD.
 set(${PROJECT_NAME}_VERSION_HASH "${_GIT_VERSION_HASH}")
 
-
-# DEV or POST is set to the number of commits since this file has been
-# changed. If the MAJOR.MINOR.[PATCH[.TWEAK]] matches "closest"
-# version tag then its consider in the release branch and POST is set
-# while DEV is undefined, otherwise we are considered under
-# development and DEV is set and POST is undefined.
 if(DEFINED _GIT_VERSION_POST)
   set(${PROJECT_NAME}_VERSION_POST "${_GIT_VERSION_POST}")
-elseif(DEFINED _GIT_VERSION_DEV)
-  set(${PROJECT_NAME}_VERSION_DEV "${_GIT_VERSION_DEV}")
+endif()
+
+if(DEFINED ${PROJECT_NAME}_VERSION_RC)
+  set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}${${PROJECT_NAME}_VERSION_RC}")
+endif()
+
+if(DEFINED ${PROJECT_NAME}_VERSION_POST)
+  set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}.post${${PROJECT_NAME}_VERSION_POST}")
+endif()
+
+if( (NOT ANTS_BUILD_DISTRIBUTE) AND (NOT ${PROJECT_NAME}_VERSION_HASH STREQUAL "GITDIR-NOTFOUND") )
+  set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION}-g${${PROJECT_NAME}_VERSION_HASH}")
+endif()
+
+# If no version information exists and the user has not passed version info to cmake, set defaults
+# This should only happen for development snapshots, releases should have a cmake file describing
+# the version
+if("${${PROJECT_NAME}_VERSION_MAJOR}" STREQUAL "")
+  set(${PROJECT_NAME}_VERSION_MAJOR 0)
+  set(${PROJECT_NAME}_VERSION_MINOR 0)
+  set(${PROJECT_NAME}_VERSION_PATCH 0)
+  set(${PROJECT_NAME}_VERSION_TWEAK 0)
+  set(${PROJECT_NAME}_VERSION "0.0.0.0")
+  message(status "No version information found - using placeholder ${PROJECT_NAME}_VERSION")
 endif()
