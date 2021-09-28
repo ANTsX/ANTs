@@ -29,6 +29,9 @@ endif()
 option(BUILD_SHARED_LIBS "Build ITK with shared libraries." OFF)
 set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
+option(ITK_USE_SYSTEM_PNG "Use system png library if found" OFF)
+mark_as_advanced(ITK_USE_SYSTEM_PNG)
+
 ######################################################################################################
 # BA - add this stuff to help installation of ANTsR
 # set(CMAKE_SKIP_BUILD_RPATH  FALSE)
