@@ -38,7 +38,9 @@ if(_GIT_VERSION_HASH STREQUAL "GITDIR-NOTFOUND")
 endif()
 
 if(_GIT_VERSION_HASH MATCHES "[a-fA-F0-9]+")
-  string(SUBSTRING "${_GIT_VERSION_HASH}" 0 5 _GIT_VERSION_HASH)
+  # Get first seven chars of hash (git default for short hash)
+  # https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection
+  string(SUBSTRING "${_GIT_VERSION_HASH}" 0 7 _GIT_VERSION_HASH)
 endif()
 
 # find the closest anotated tag with the v prefix for version
