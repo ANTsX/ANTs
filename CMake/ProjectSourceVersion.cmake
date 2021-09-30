@@ -90,26 +90,3 @@ elseif(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_PATCH)
   endif()
 endif()
 
-set(_${CMAKE_PROJECT_NAME}_VERSION "${${CMAKE_PROJECT_NAME}_VERSION_MAJOR}.${${CMAKE_PROJECT_NAME}_VERSION_MINOR}")
-if(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_PATCH)
-  set(_${CMAKE_PROJECT_NAME}_VERSION "${_${CMAKE_PROJECT_NAME}_VERSION}.${${CMAKE_PROJECT_NAME}_VERSION_PATCH}")
-  if(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_TWEAK)
-    set(_${CMAKE_PROJECT_NAME}_VERSION "${_${CMAKE_PROJECT_NAME}_VERSION}.${${CMAKE_PROJECT_NAME}_VERSION_TWEAK}")
-  endif()
-endif()
-
-
-if(_GIT_VERSION VERSION_EQUAL _${CMAKE_PROJECT_NAME}_VERSION)
-  if(_GIT_TAG_COUNT) #ignore if 0
-    set(_GIT_VERSION_POST "${_GIT_TAG_COUNT}")
-  endif()
-else()
-  # The first commit after a tag should increase the project version
-  # number in Version.cmake and be "dev1"
-  math(EXPR _GIT_VERSION_COUNT "${_GIT_VERSION_COUNT}+1")
-  set(_GIT_VERSION_DEV "${_GIT_VERSION_COUNT}")
-endif()
-
-# save variable in a configuration file in case we have no git directory
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ProjectSourceVersionVars.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/ProjectSourceVersionVars.cmake"  @ONLY)
