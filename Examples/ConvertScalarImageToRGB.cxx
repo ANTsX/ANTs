@@ -72,51 +72,51 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
 
   if( colormapString == "red" )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Red );
+      rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Red );
     }
   else if( colormapString == "green"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Green );
+      rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Green );
     }
   else if( colormapString == "blue"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Blue );
+      rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Blue );
     }
   else if( colormapString == "grey"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Grey );
+      rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Grey );
     }
   else if( colormapString == "cool"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Cool );
+      rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Cool );
     }
   else if( colormapString == "hot"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Hot );
+      rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Hot );
     }
   else if( colormapString == "spring"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Spring );
+      rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Spring );
     }
   else if( colormapString == "autumn"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Autumn );
+      rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Autumn );
     }
   else if( colormapString == "winter"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Winter );
+      rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Winter );
     }
   else if( colormapString == "copper"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Copper );
+    rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Copper );
     }
   else if( colormapString == "summer"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Summer );
+    rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Summer );
     }
   else if( colormapString == "jet"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::Jet );
+    rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::Jet );
 //    typedef itk::Function::JetColormapFunction<typename RealImageType::PixelType,
 //      typename RGBImageType::PixelType> ColormapType;
 //    typename ColormapType::Pointer colormap = ColormapType::New();
@@ -124,7 +124,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
     }
   else if( colormapString == "hsv"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::HSV );
+    rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::HSV );
 //    typedef itk::Function::HSVColormapFunction<typename RealImageType::PixelType,
 //      typename RGBImageType::PixelType> ColormapType;
 //    typename ColormapType::Pointer colormap = ColormapType::New();
@@ -132,7 +132,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
     }
   else if( colormapString == "overunder"  )
     {
-    rgbfilter->SetColormap( RGBFilterType::ColormapEnumType::OverUnder );
+    rgbfilter->SetColormap( RGBFilterType::RGBColormapFilterEnum::OverUnder );
     }
   else if( colormapString == "custom"  )
     {

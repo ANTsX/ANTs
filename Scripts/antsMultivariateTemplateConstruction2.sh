@@ -74,10 +74,10 @@ Usage:
 `basename $0` -d ImageDimension -o OutputPrefix <other options> <images>
 
 Compulsory arguments (minimal command line requires SGE/PBS cluster, otherwise use -c and
-  -j options):
+-j options):
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
-   ImageDimension: 4 (for template generation of time-series data)
+          ImageDimension: 4 (for template generation of time-series data)
 
 <images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
           of the command.  Optionally, one can specify a .csv or .txt file where each
@@ -96,8 +96,17 @@ Optional arguments:
           1 = mean of normalized intensities
           2 = median
 
+          Normalization here means dividing each image by its mean intensity.
+
+     -A   sharpening applied to template at each iteration (default 1)
+          0 = none
+          1 = Laplacian
+          2 = Unsharp mask
+
      -b:  Backup images and results from all iterations (default = 0):  Boolean to save
-          the transform files, bias corrected, and warped images for each iteration.
+          the transform files, bias corrected inputs, templates, transforms, and warped images
+          for each iteration. By default, only the templates and the shape update warp field
+          are saved.
 
      -c:  Control for parallel computation (default 0):
           0 = run serially
@@ -112,7 +121,7 @@ Optional arguments:
      -g:  Gradient step size (default 0.25): smaller in magnitude results in more
           cautious steps.  Use smaller steps to refine template details.
           0.25 is an upper (aggressive) limit for this parameter.
-          
+
      -i:  Iteration limit (default 4): iterations of the template construction
           (Iteration limit)*NumImages registrations.
 
@@ -145,31 +154,41 @@ Optional arguments:
      -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set
           paths, etc)
 
-     -r:  Do rigid-body registration of inputs before creating template (default 0):
-          0 == off 1 == on. Only useful when you do not have an initial template
+     -r:  Do rigid-body registration of inputs to the initial template, before doing the main
+          pairwise registration. 0 == off 1 == on (default 0). If you are trying to refine or update
+          an existing template, you would use '-r 0'.
+          Rigid initialization is useful when you do not have an initial template, or you want to use
+          a single image as a reference for rigid alignment only. For example,
+            "-z tpl-MNI152NLin2009cAsym_res-01_T1w.nii.gz -y 0 -r 1"
+          will rigidly align the inputs to the MNI template, and then use their average to begin the
+          template building process.
 
      -l:  Use linear image registration stages during the pairwise (template/subject)
           deformable registration.  Otherwise, registration is limited to SyN or
           B-spline SyN (see '-t' option).  This is '1' by default.
 
-     -m:  Type of similarity metric used for registration (default = CC):  Options are
+     -m:  Type of similarity metric used for pairwise registration (default = CC). Options are case
+          sensitive.
             CC = cross-correlation
             MI = mutual information
             MSQ = mean square difference
             DEMONS = demon's metric
           A similarity metric per modality can be specified.  If the CC metric is chosen,
-          one can also specify the radius in brackets, e.g. '-m CC[ 4 ]'.
+          one can also specify the radius in brackets, e.g. "-m CC[ 4 ]". This option controls
+          the metric for the transformation specified with "-t", so "-m CC -t SyN" means the SyN
+          stage is run with the CC metric; preceding linear stages use MI.
 
-     -t:  Type of transformation model used for registration (default = SyN):  Options are
+     -t:  Type of transformation model used for registration (default = SyN):  Options are case
+          sensitive.
             SyN = Greedy SyN
             BSplineSyN = Greedy B-spline SyN
             TimeVaryingVelocityField = Time-varying velocity field
             TimeVaryingBSplineVelocityField = Time-varying B-spline velocity field
-             
-            The transformations above are used after linear registration. To use use linear registration only:
 
-            Affine = Rigid + Affine.
-            Rigid = Rigid only. 
+          The transformations above are used after Rigid + Affine linear registration, unless linear
+          registration is disabled with "-l". To use linear registration only, options are:
+            Affine = Affine (runs Rigid + Affine)
+            Rigid = Rigid (runs Rigid only).
 
      -u:  Walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
           per pairwise registration.
@@ -181,21 +200,21 @@ Optional arguments:
 
      -y:  Update the template with the full affine transform (default 1). If 0, the rigid
           component of the affine transform will not be used to update the template. If your
-          template drifts in translation or orientation try -y 0.
+          template drifts in translation or orientation try "-y 0".
 
-     -z:  Use this this volume as the target of all inputs. When not used, the script
-          will create an unbiased starting point by averaging all inputs. Use the full
-          path.
+     -z:  Use this this volume as the target of all inputs. When not used, the script will create an unbiased
+          starting point by averaging all inputs, then aligning the center of mass of all inputs to that of
+          the initial average. If you do not use -z, it is recommended to use "-r 1". Use the full path.
           For multiple modalities, specify -z modality1.nii.gz -z modality2.nii.gz ...
           in the same modality order as the input images.
 
 Example:
 
-`basename $0` -d 3 -i 3 -k 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN  -m CC -c 0 -o MY sub*avg.nii.gz
+`basename $0` -d 3 -i 3 -k 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN -m CC -c 0 -r 1 -o MY sub*avg.nii.gz
 
 Multimodal example:
 
-`basename $0` -d 3 -i 3 -k 2 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN -z t1.nii.gz -z t2.nii.gz \
+`basename $0` -d 3 -i 3 -k 2 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN -z t1.nii.gz -z t2.nii.gz \\
  -m CC -c 0 -o MY templateInput.csv
 
 where templateInput.csv contains
@@ -203,6 +222,38 @@ where templateInput.csv contains
 subjectA_t1.nii.gz,subjectA_t2.nii.gz
 subjectB_t1.nii.gz,subjectB_t2.nii.gz
 ...
+
+Example of first building an affine template, then refining it with SyN:
+
+`basename $0` -d 3 -i 2 -A 2 -k 1 -f 6x4x2x1 -s 4x2x1x0vox -q 200x100x50x0 -t Affine -m MI -c 0 \\
+  -r 1 -o MY_Affine_ sub*avg.nii.gz
+
+`basename $0` -d 3 -i 5 -k 1 -f 6x4x2x1 -s 4x2x1x0vox -q 50x100x70x20 -t SyN -m CC -c 0 \\
+  -r 0 -o MY_Deformable_ -z MY_Affine_template0.nii.gz sub*avg.nii.gz
+
+
+Output
+
+{OutputPrefix}template{m}.nii.gz
+  final template for each modality m.
+
+{OutputPrefix}template{m}{inputFile}{n}WarpedToTemplate.nii.gz
+{OutputPrefix}template{m}{inputFile}{n}0GenericAffine.mat
+{OutputPrefix}template{m}{inputFile}{n}1Warp.nii.gz
+{OutputPrefix}template{m}{inputFile}{n}1InverseWarp.nii.gz
+  each of n input images warped to the penultimate template m, with transforms. If the template has converged,
+  these should be well aligned to {OutputPrefix}template{m}.nii.gz.
+
+intermediateTemplates/
+                     initial_{OutputPrefix}template{m}.nii.gz :
+                       initial template
+                     initialRigid_{OutputPrefix}template{m}.nii.gz :
+                       initial rigid template if requested with "-r 1"
+                     {transform}_iteration{i}_{OutputPrefix}template{m}.nii.gz
+                       Template computed with {transform} (-t) for each iteration (-i) and modality.
+                     {transform}_iteration{i}_shapeUpdateWarp.nii.gz
+                       Shape update warp applied to the template at iteration i. As the template converges,
+                       the magnitude of the update warp will converge to a minimal value.
 
 --------------------------------------------------------------------------------------
 ANTS was created by:
@@ -253,8 +304,10 @@ function reportMappingParameters {
  Template update steps:    $ITERATIONLIMIT
  Template population:      $IMAGESETVARIABLE
  Number of modalities:     $NUMBEROFMODALITIES
- Madality weights:         $MODALITYWEIGHTSTRING
+ Modality weights:         $MODALITYWEIGHTSTRING
  Image statistic:          $STATSMETHOD
+ Sharpening method:        $SHARPENMETHOD
+ Shape update full affine: $AFFINE_UPDATE_FULL
 --------------------------------------------------------------------------------------
 REPORTMAPPINGPARAMETERS
 }
@@ -265,17 +318,26 @@ function summarizeimageset() {
   shift
   local output=$1
   shift
-  local method=$1
+  local summarizemethod=$1
   shift
-  local images=( "${@}" "" )
+  local sharpenmethod=$1
+  shift
+  local images=( "${@}" )
 
-  case $method in
+  if [[ ${#images[@]} -ne ${IMAGESPERMODALITY} ]]
+    then
+      echo "ERROR summarizeimageset - imagelist length is ${#images[@]}, expected ${IMAGESPERMODALITY}"
+      exit 1
+    fi
+
+  rm -f "$output"
+
+  case $summarizemethod in
     0) #mean
-      ${ANTSPATH}/AverageImages $dim $output 0 ${images[*]}
-      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
+      ${ANTSPATH}/AverageImages $dim $output 0 ${images[@]}
       ;;
-    1) #mean of normalized images, sharpens automatically
-      ${ANTSPATH}/AverageImages $dim $output 1 ${images[*]}
+    1) #mean of normalized images
+      ${ANTSPATH}/AverageImages $dim $output 2 ${images[@]}
       ;;
     2) #median
       local image
@@ -283,14 +345,40 @@ function summarizeimageset() {
         do
           echo $image >> ${output}_list.txt
         done
-
       ${ANTSPATH}/ImageSetStatistics $dim ${output}_list.txt ${output} 0
-      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
       rm ${output}_list.txt
       ;;
   esac
 
-  }
+  if [[ ! -f "$output" ]];
+    then
+      echo "summarizeimageset: ERROR - output file $output could not be created"
+      exit 1
+    fi
+
+  case $sharpenmethod in
+    0)
+      echo "Sharpening method none"
+      ;;
+    1)
+      echo "Laplacian sharpening"
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
+      ;;
+    2)
+      echo "Unsharp mask sharpening"
+      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.5 1 0 0
+      ;;
+  esac
+
+  local sharpenExit=$?
+
+  if [[ $? -ne 0 ]]
+    then
+      echo "summarizeimageset: ERROR - template sharpening failed with status $?"
+      exit 1
+    fi
+
+}
 
 function shapeupdatetotemplate() {
 
@@ -304,6 +392,7 @@ function shapeupdatetotemplate() {
     gradientstep=-$5
     whichtemplate=$6
     statsmethod=$7
+    sharpenmethod=$8
 
 # debug only
 # echo $dim
@@ -325,12 +414,13 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
 
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
-    if [[ ${#imagelist[@]} -eq 0 ]] ; then
-      echo ERROR shapeupdatedtotemplate - imagelist length is 0
-      exit 1
-    fi
+    if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]]
+      then
+        echo "ERROR shapeupdatedtotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
+        exit 1
+      fi
 
-    summarizeimageset $dim $template $statsmethod ${imagelist[@]}
+    summarizeimageset $dim $template $statsmethod $sharpenmethod ${imagelist[@]}
 
     WARPLIST=( `ls ${outputname}*[0-9]Warp.nii.gz 2> /dev/null` )
     NWARPS=${#WARPLIST[*]}
@@ -466,6 +556,7 @@ currentdir=`pwd`
 nargs=$#
 
 STATSMETHOD=1
+SHARPENMETHOD=1
 USEFLOAT=1
 BACKUPEACHITERATION=0
 MAXITERATIONS=100x100x70x20
@@ -518,14 +609,17 @@ if [[ "$1" == "-h" ]];
   fi
 
 # reading command line arguments
-while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
+while getopts "A:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
   do
   case $OPT in
       h) #help
       Usage >&2
       exit 0
    ;;
-      a) # summarizing statisitic
+      A) # Sharpening method
+      SHARPENMETHOD=$OPTARG
+   ;;
+      a) # summarizing statistic
       STATSMETHOD=$OPTARG
    ;;
       b) #backup each iteration
@@ -638,6 +732,11 @@ if [[ ! -d $OUTPUT_DIR ]];
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
     mkdir -p $OUTPUT_DIR
   fi
+
+# Intermediate template output. Keep the template for each iteration and also the average warp if defined.
+# Useful for debugging and monitoring convergence
+intermediateTemplateDir=${OUTPUT_DIR}/intermediateTemplates
+mkdir -p $intermediateTemplateDir
 
 if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
   then
@@ -759,10 +858,16 @@ else
   exit 1
 fi
 
-if [[ $STATSMETHOD -gt 2 ]];
+if [[ $STATSMETHOD -lt 0 ]] || [[ $STATSMETHOD -gt 2 ]];
   then
   echo "Invalid stats type: using normalized mean (1)"
   STATSMETHOD=1
+fi
+
+if [[ $SHARPENMETHOD -lt 0 ]] || [[ $SHARPENMETHOD -gt 2 ]];
+  then
+  echo "Invalid sharpening method: using Laplacian (1)"
+  SHARPENMETHOD=1
 fi
 
 AVERAGE_AFFINE_PROGRAM="AverageAffineTransform"
@@ -953,13 +1058,21 @@ if [[ $NUMBEROFMODALITIES -gt 1 ]];
     echo "--------------------------------------------------------------------------------------"
 fi
 
+# Useful to check the right number of images exist for various ops
+IMAGESPERMODALITY=$(( ${#IMAGESETARRAY[@]} / ${NUMBEROFMODALITIES} ))
+
 # check for initial template images
 for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
   do
     setCurrentImageSet $i
 
-    if [[ -s ${REGTEMPLATES[$i]} ]];
+    if [[ -n "${REGTEMPLATES[$i]}" ]];
       then
+        if [[ ! -r "${REGTEMPLATES[$i]}" ]];
+          then
+            echo "Initial template ${REGTEMPLATES[$i]} cannot be read"
+            exit 1
+          fi
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " Initial template $i found.  This will be used for guiding the registration. use : ${REGTEMPLATES[$i]} and ${TEMPLATES[$i]} "
@@ -972,15 +1085,38 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
         echo "   ${CURRENTIMAGESET[@]}"
         echo "--------------------------------------------------------------------------------------"
-        summarizeimageset $DIM ${TEMPLATES[$i]} $STATSMETHOD ${CURRENTIMAGESET[@]}
-        #${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
+        # Normalized mean, no sharpening
+        # This forces a call to AverageImages, which resizes images to match the largest input
+        summarizeimageset $DIM ${TEMPLATES[$i]} 1 0 ${CURRENTIMAGESET[@]}
+        # Quickly align COM of input images to average, and then recompute average
+        IMAGECOMSET=()
+        for (( j = 0; j < ${#CURRENTIMAGESET[@]}; j+=1 ))
+          do
+            IMGbase=`basename ${CURRENTIMAGESET[$j]}`
+            BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
+            COM="${OUTPUT_DIR}/initialCOM${i}_${j}_${IMGbase}"
+            COMTRANSFORM="${OUTPUT_DIR}/initialCOM${i}_${j}_${BASENAME}.mat"
+            antsAI -d 3 --convergence 0 --verbose 1 -m Mattes[${TEMPLATES[$i]},${CURRENTIMAGESET[$j]},32,None] -o ${COMTRANSFORM} -t AlignCentersOfMass
+            antsApplyTransforms -d 3 -r ${TEMPLATES[$i]} -i ${CURRENTIMAGESET[$j]} -t ${COMTRANSFORM} -o ${COM} --verbose
+            rm -f $COMTRANSFORM
+            IMAGECOMSET[${#IMAGECOMSET[@]}]=$COM
+          done
+        # Now safe to let user control stat method
+        summarizeimageset $DIM ${TEMPLATES[$i]} $STATSMETHOD 0 ${IMAGECOMSET[@]}
+        # Clean up
+        rm -f ${IMAGECOMSET[@]}
       fi
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
       then
-        echo "Your initial template : $TEMPLATES[$i ] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
+        echo "Your initial template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
         exit 1
       fi
+
+    # Back up template
+    intermediateTemplateBase=`basename ${TEMPLATES[$i]}`
+    cp ${TEMPLATES[$i]} ${intermediateTemplateDir}/initial_${intermediateTemplateBase}
+
 done
 
 
@@ -1178,13 +1314,15 @@ if [[ "$RIGID" -eq 1 ]];
             IMAGERIGIDSET[${#IMAGERIGIDSET[@]}]=$RIGID
           done
         echo
-        echo  "${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}"
+        echo  "Building rigid template from ${IMAGERIGIDSET[@]}"
 
-      summarizeimageset $DIM ${TEMPLATES[$j]} $STATSMETHOD ${IMAGERIGIDSET[@]}
-      #${ANTSPATH}/AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
+        # No sharpening at rigid stage
+        summarizeimageset $DIM ${TEMPLATES[$j]} $STATSMETHOD 0 ${IMAGERIGIDSET[@]}
+        intermediateTemplateBase=`basename ${TEMPLATES[$j]}`
+        cp ${TEMPLATES[$j]} ${intermediateTemplateDir}/initialRigid_${intermediateTemplateBase}
+
       done
 
-    # cleanup and save output in seperate folder
     if [[ BACKUPEACHITERATION -eq 1 ]];
       then
         echo
@@ -1228,8 +1366,27 @@ fi # endif RIGID
 #
 ##########################################################################
 
-ITERATLEVEL=(` echo $MAXITERATIONS | tr 'x' ' ' `)
+ITERATLEVEL=( $(echo $MAXITERATIONS | tr 'x' ' ') )
 NUMLEVELS=${#ITERATLEVEL[@]}
+
+SHRINKLEVEL=( $(echo $SHRINKFACTORS | tr 'x' ' ') )
+NUMSHRINK=${#SHRINKLEVEL[@]}
+
+SMOOTHLEVEL=( $(echo $SMOOTHINGFACTORS | tr 'x' ' ') )
+NUMSMOOTH=${#SMOOTHLEVEL[@]}
+
+if [[ $NUMLEVELS -ne $NUMSHRINK ]]
+  then
+    echo "Number of shrink factors in [ $SHRINKFACTORS ] does not match number of iteration levels in [ $MAXITERATIONS ]"
+    exit 1
+  fi
+
+if [[ $NUMLEVELS -ne $NUMSMOOTH ]]
+  then
+    echo "Number of smoothing levels in [ $SMOOTHINGFACTORS ] does not match number of iteration levels in [ $MAXITERATIONS ]"
+    exit 1
+  fi
+
 #
 # debugging only
 #echo $ITERATLEVEL
@@ -1253,7 +1410,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
     rm -f ${OUTPUTNAME}*GenericAffine.mat
     rm -f ${outdir}/job*.sh
     # Used to save time by only running coarse registration for the first couple of iterations
-    # But with decent initialization, this is probably not worthwhile.
+    # This may also help convergence, but because there's no way to turn it off, it makes it harder
+    # to refine templates with multiple calls to this script.
     # If you uncomment this, replace MAXITERATIONS with ITERATIONS in the call to ants below
     #
     # if [[ $i -gt $((NUMLEVELS - 1)) ]];
@@ -1384,7 +1542,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             pexe="$pexe ${basecall} ${stageId} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
           elif [[ $NOWARP -eq 1 ]];
             then
-    	      if [[ ${TRANSFORMATION} == "Affine"* ]]; 
+    	      if [[ ${TRANSFORMATION} == "Affine"* ]];
 	        then
           	  # If affine, do standard rigid, then affine with levels, etc from command line
 		  exe="$exebase ${basecall} ${stage0} ${stage1} ${stage3}\n";
@@ -1538,11 +1696,18 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         exit 1
     fi
 
-
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
       do
-        shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j} ${STATSMETHOD}
+        shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j} ${STATSMETHOD} ${SHARPENMETHOD}
+        # Back up templates and average warps if defined
+        intermediateTemplateBase=`basename ${TEMPLATES[$j]}`
+        cp ${TEMPLATES[$j]} ${intermediateTemplateDir}/${TRANSFORMATIONTYPE}_iteration${i}_${intermediateTemplateBase}
       done
+
+    if [[ -f "${TEMPLATENAME}0warp.nii.gz" ]]
+      then
+        cp ${TEMPLATENAME}0warp.nii.gz ${intermediateTemplateDir}/${TRANSFORMATIONTYPE}_iteration${i}_shapeUpdateWarp.nii.gz
+      fi
 
     if [[ $BACKUPEACHITERATION -eq 1 ]];
       then

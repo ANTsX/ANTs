@@ -184,7 +184,7 @@ iMathGetLargestComponent( typename ImageType::Pointer image,                    
     // std::cout << excep << std::endl;
     }
 
-  //  WriteImage<ImageType>(relabel->GetOutput(),outname.c_str());
+  //  ANTs::WriteImage<ImageType>(relabel->GetOutput(),outname.c_str());
   //  return 0;
   typename ImageType::Pointer Clusters = MakeNewImage<ImageType>(relabel->GetOutput(), 0);
   // typename ImageType::Pointer Clusters=relabel->GetOutput();

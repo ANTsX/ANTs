@@ -115,7 +115,7 @@ int CopyImageHeaderInformation(int argc, char *argv[])
       }
     }
 
-  WriteImage<ImageType>(newimage, argv[3]);
+  ANTs::WriteImage<ImageType>(newimage, argv[3]);
 
   return EXIT_FAILURE;
 }
@@ -184,7 +184,7 @@ private:
   std::string               fn = std::string(argv[1]);
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(
-      fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+      fn.c_str(), itk::IOFileModeEnum::ReadMode);
   imageIO->SetFileName(fn.c_str() );
   imageIO->ReadImageInformation();
   unsigned int dim = imageIO->GetNumberOfDimensions();

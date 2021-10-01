@@ -281,7 +281,7 @@ int AddNoise( itk::ants::CommandLineParser *parser )
     {
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      WriteImage<ImageType>( outputImage, ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<ImageType>( outputImage, ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     }
 
@@ -507,7 +507,7 @@ private:
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
+        filename.c_str(), itk::IOFileModeEnum::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
 

@@ -248,7 +248,7 @@ typename ImageType::IndexType newStartIndex;
 //  typename ImageType::RegionType region = outimage->GetLargestPossibleRegion();
 //  region.SetIndex( newStartIndex );
 //  outimage->SetLargestPossibleRegion( region );
-  WriteImage<ImageType>( outimage , argv[3] );
+  ANTs::WriteImage<ImageType>( outimage , argv[3] );
   return EXIT_SUCCESS;
 }
 

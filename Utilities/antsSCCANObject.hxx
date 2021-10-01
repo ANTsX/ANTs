@@ -178,7 +178,7 @@ antsSCCANObject<TInputImage, TRealType>
   extractFilter->SetExtractionRegion( extractRegion );
   extractFilter->Update();
   maskdm1 = extractFilter->GetOutput();
-  //  WriteImage<RealImageTypeDminus1>( maskdm1, "maskdm1.nii.gz" );
+  //  ANTs::WriteImage<RealImageTypeDminus1>( maskdm1, "maskdm1.nii.gz" );
 
   // overwrite weights with vector values;
   unsigned long vecind = 0;
@@ -727,13 +727,13 @@ antsSCCANObject<TInputImage, TRealType>
     {
     typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
     typename dgf::Pointer filter = dgf::New();
-    filter->SetUseImageSpacingOn();
+    filter->SetUseImageSpacing(true);
     filter->SetVariance(  this->m_Smoother * spacingsize );
     filter->SetMaximumError( .01f );
     filter->SetInput( image );
     filter->Update();
     typename ImageType::Pointer imgout = filter->GetOutput();
-    //    WriteImage<ImageType>( imgout , "ccaout_s.nii.gz" );
+    //    ANTs::WriteImage<ImageType>( imgout , "ccaout_s.nii.gz" );
     VectorType gradvec = this->ConvertImageToVariate( imgout,  mask );
     gradvec = gradvec * vecnorm / gradvec.two_norm();
     //    if ( ! this->m_Silent )  std::cout << ImageDimension << " gvec " << gradvec[1] << " " << gradvec[100] << " " << gradvec[1000] << std::endl;

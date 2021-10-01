@@ -92,14 +92,14 @@ public:
 
   /** Use the image spacing information in calculations. Use this option if you
    *  want derivatives in physical space. Default is UseImageSpacingOn. */
-  void SetUseImageSpacingOn()
+  void UseImageSpacingOn()
   {
     this->SetUseImageSpacing(true);
   }
 
   /** Ignore the image spacing. Use this option if you want derivatives in
       isotropic pixel space.  Default is UseImageSpacingOn. */
-  void SetUseImageSpacingOff()
+  void UseImageSpacingOff()
   {
     this->SetUseImageSpacing(false);
   }

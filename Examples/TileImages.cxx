@@ -36,7 +36,7 @@ int TileImages( unsigned int argc, char *argv[] )
     }
   filter->Update();
 
-  WriteImage<ImageType>( filter->GetOutput(), argv[2] );
+  ANTs::WriteImage<ImageType>( filter->GetOutput(), argv[2] );
 
   return EXIT_SUCCESS;
 }
@@ -141,7 +141,7 @@ int CreateMosaic( unsigned int argc, char *argv[] )
     }
   filter->Update();
 
-  WriteImage<SliceType>( filter->GetOutput(), argv[2] );
+  ANTs::WriteImage<SliceType>( filter->GetOutput(), argv[2] );
 
   return EXIT_SUCCESS;
 }

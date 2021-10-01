@@ -379,7 +379,7 @@ int NonLocalSuperResolution( itk::ants::CommandLineParser *parser )
     parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
-    WriteImage<ImageType>( superresoluter->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+    ANTs::WriteImage<ImageType>( superresoluter->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
     }
 
   return EXIT_SUCCESS;
@@ -717,7 +717,7 @@ private:
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
+        filename.c_str(), itk::IOFileModeEnum::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
 

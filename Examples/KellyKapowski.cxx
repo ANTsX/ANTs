@@ -172,7 +172,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     using SmootherType = itk::DiscreteGaussianImageFilter<LabelImageType, ImageType>;
     typename SmootherType::Pointer smoother = SmootherType::New();
     smoother->SetVariance( 1.0 );
-    smoother->SetUseImageSpacingOn();
+    smoother->SetUseImageSpacing(true);
     smoother->SetMaximumError( 0.01 );
     smoother->SetInput( thresholder->GetOutput() );
     smoother->Update();
@@ -209,7 +209,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     using SmootherType = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
     typename SmootherType::Pointer smoother = SmootherType::New();
     smoother->SetVariance( 1.0 );
-    smoother->SetUseImageSpacingOn();
+    smoother->SetUseImageSpacing(true);
     smoother->SetMaximumError( 0.01 );
     smoother->SetInput( thresholder->GetOutput() );
     smoother->Update();
@@ -420,14 +420,14 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     {
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetParameter() ).c_str() );
+      ANTs::WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetParameter() ).c_str() );
       if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        WriteImage<ImageType>( direct->GetOutput( 1 ), ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
+        ANTs::WriteImage<ImageType>( direct->GetOutput( 1 ), ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
         }
       }
     }
@@ -443,7 +443,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   if( outputOption && outputOption->GetNumberOfFunctions() > 1 )
     {
-    WriteImage<ImageType>(  direct->GetOutput( 1 ), ( outputOption->GetFunction( 1 )->GetName() ).c_str() );
+    ANTs::WriteImage<ImageType>(  direct->GetOutput( 1 ), ( outputOption->GetFunction( 1 )->GetName() ).c_str() );
     }
 
   return EXIT_SUCCESS;
@@ -521,7 +521,7 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "convergence" );
   option->SetShortName( 'c' );
-  option->SetUsageOption( 0, "[<numberOfIterations=50>,<convergenceThreshold=0.001>,<convergenceWindowSize=10>]" );
+  option->SetUsageOption( 0, "[<numberOfIterations=45>,<convergenceThreshold=0.0>,<convergenceWindowSize=10>]" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
@@ -564,7 +564,7 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   {
   std::string description =
-    std::string( "Defines the Gaussian smoothing of the hit and total images.  Default = 1.0." );
+    std::string( "Defines the Gaussian smoothing of the hit and total images.  Default = 1.0 mm." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "smoothing-variance" );
@@ -576,9 +576,9 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   {
   std::string description =
-    std::string( "Defines the Gaussian smoothing of the velocity field (default = 1.5)." )
+    std::string( "Defines the Gaussian smoothing of the velocity field (default = 1.5 voxels)." )
     + std::string( "If the b-spline smoothing option is chosen, then this " )
-    + std::string( "defines the isotropic mesh spacing for the smoothing spline (default = 15)." );
+    + std::string( "defines the isotropic mesh spacing for the smoothing spline (default = 15 mm)." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "smoothing-velocity-field-parameter" );
@@ -626,7 +626,7 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "time-points" );
-  option->SetShortName( 'p' );
+  option->SetShortName( 'q' );
   option->SetUsageOption( 0, "1" );
   option->SetDescription( description );
   parser->AddOption( option );
@@ -833,7 +833,7 @@ private:
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
+        filename.c_str(), itk::IOFileModeEnum::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
 

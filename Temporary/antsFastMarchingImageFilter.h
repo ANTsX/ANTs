@@ -276,7 +276,7 @@ private:
   itkGetConstReferenceMacro( CollectPoints, bool );
   itkBooleanMacro( CollectPoints );
 
-  enum TopologyCheckType { None, NoHandles, Strict };
+  using TopologyCheckType = itk::FastMarchingTraitsEnums::TopologyCheck;
 
   /** Set/Get boolean macro indicating whether the user wants to check topology. */
   itkSetMacro( TopologyCheck, TopologyCheckType );

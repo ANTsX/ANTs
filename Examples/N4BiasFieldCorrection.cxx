@@ -581,14 +581,14 @@ int N4( itk::ants::CommandLineParser *parser )
 
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
+      ANTs::WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
       if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        WriteImage<ImageType>( biasFieldCropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
+        ANTs::WriteImage<ImageType>( biasFieldCropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
         }
       }
     }
@@ -660,7 +660,8 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     + std::string( "new intensity range to be within certain values.  The " )
     + std::string( "result is that the range can \"drift\" from the original " )
     + std::string( "at each iteration.  This option rescales to the [min,max] " )
-    + std::string( "range of the original image intensities within the user-specified mask." );
+    + std::string( "range of the original image intensities within the user-specified mask. " )
+    + std::string( "A mask is required to perform rescaling." );
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "rescale-intensities" );
@@ -950,7 +951,7 @@ private:
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
+        filename.c_str(), itk::IOFileModeEnum::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
 

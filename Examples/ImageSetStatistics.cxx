@@ -124,7 +124,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   using dgf = itk::DiscreteGaussianImageFilter<TImage, TImage>;
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(sig);
-  filter->SetUseImageSpacingOn();
+  filter->SetUseImageSpacing(true);
   filter->SetMaximumError(.01f);
   filter->SetInput(image);
   filter->Update();
@@ -949,7 +949,7 @@ int ImageSetStatistics(int argc, char *argv[])
       StatImage->SetPixel(ind, 0);
       }
     }
-  WriteImage<ImageType>(StatImage, outfn.c_str() );
+  ANTs::WriteImage<ImageType>(StatImage, outfn.c_str() );
 
   std::cout << " Done " << std::endl;
   return EXIT_SUCCESS;

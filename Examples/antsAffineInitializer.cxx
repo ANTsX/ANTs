@@ -157,11 +157,39 @@ public:
   using TransformType = itk::Similarity3DTransform<float>;
 };
 
+using RealType = double;
+
+// Specializations try to rotate around tertiary and secondary axis
+
+static void
+l_rotate_around_tertiatry_and_secondary_axis(vnl_vector_fixed<RealType, 3> &       evec_tert,
+                                             const vnl_vector_fixed<RealType, 3> & evec1_primary,
+                                             vnl_vector_fixed<RealType, 3> &       evec1_2ndary)
+{
+  evec_tert = vnl_cross_3d(evec1_primary, evec1_2ndary);
+}
+
+static void
+l_rotate_around_tertiatry_and_secondary_axis(vnl_vector_fixed<RealType, 2> &       evec_tert,
+                                             const vnl_vector_fixed<RealType, 2> & evec1_primary,
+                                             vnl_vector_fixed<RealType, 2> &       evec1_2ndary)
+{
+  evec_tert = evec1_2ndary;
+  evec1_2ndary = evec1_primary;
+}
+
+static void
+l_rotate_around_tertiatry_and_secondary_axis(vnl_vector_fixed<RealType, 4> &,
+                                             const vnl_vector_fixed<RealType, 4> &,
+                                             vnl_vector_fixed<RealType, 4> &)
+{
+  return; // Do nothing in the case of 4D
+}
 
 template <unsigned int ImageDimension>
 int antsAffineInitializerImp(int argc, char *argv[])
 {
-  using RealType = double;
+
   using PixelType = float;
 
   /** Define All Parameters Here */
@@ -281,26 +309,25 @@ int antsAffineInitializerImp(int argc, char *argv[])
     {
     eigind1 = 2;
     }
-  vnl_vector<RealType> evec1_primary { cpa1.GetVnlMatrix().get_row( eigind1 ).as_vector()  };
-  vnl_vector<RealType> evec2_primary { cpa2.GetVnlMatrix().get_row( eigind1 ).as_vector()  };
-  vnl_vector<RealType> evec1_2ndary  { cpa1.GetVnlMatrix().get_row( eigind2 ).as_vector()  };
-  vnl_vector<RealType> evec2_2ndary  { cpa2.GetVnlMatrix().get_row( eigind2 ).as_vector()  };
+  vnl_vector_fixed<RealType, ImageDimension> evec1_primary { cpa1.GetVnlMatrix().get_row( eigind1 ).as_vector()  };
+  vnl_vector_fixed<RealType, ImageDimension> evec2_primary { cpa2.GetVnlMatrix().get_row( eigind1 ).as_vector()  };
+  vnl_vector_fixed<RealType, ImageDimension> evec1_2ndary  { cpa1.GetVnlMatrix().get_row( eigind2 ).as_vector()  };
+  vnl_vector_fixed<RealType, ImageDimension> evec2_2ndary  { cpa2.GetVnlMatrix().get_row( eigind2 ).as_vector()  };
   /** Solve Wahba's problem --- http://en.wikipedia.org/wiki/Wahba%27s_problem */
-  vnl_matrix<RealType> B = outer_product( evec2_primary, evec1_primary );
+  vnl_matrix_fixed<RealType, ImageDimension, ImageDimension> B = outer_product( evec2_primary, evec1_primary );
   if( ImageDimension == 3 )
     {
     B = outer_product( evec2_2ndary, evec1_2ndary )
       + outer_product( evec2_primary, evec1_primary );
     }
-  vnl_svd<RealType>    wahba( B );
-  vnl_matrix<RealType> A_solution = wahba.V() * wahba.U().transpose();
-  A_solution = vnl_inverse( A_solution );
-  RealType det = vnl_determinant( A_solution  );
+  vnl_svd_fixed<RealType, ImageDimension, ImageDimension>    wahba( B );
+  vnl_matrix_fixed<RealType, ImageDimension, ImageDimension> A_solution = vnl_inverse( wahba.V() * wahba.U().transpose() );
+  const RealType det = vnl_determinant( A_solution  );
   if( det < 0 )
     {
     std::cerr << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
              <<   vnl_determinant( wahba.U() )  << std::endl;
-    vnl_matrix<RealType> id( A_solution );
+    vnl_matrix_fixed<RealType, ImageDimension, ImageDimension> id( A_solution );
     id.set_identity();
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
@@ -313,6 +340,9 @@ int antsAffineInitializerImp(int argc, char *argv[])
     std::cerr << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
              <<   vnl_determinant( wahba.U() )  << " new " << vnl_determinant( A_solution  ) << std::endl;
     }
+
+  typename AffineType::MatrixType AA_solution = typename AffineType::MatrixType( A_solution );
+
   typename AffineType::Pointer affine1 = AffineType::New(); // translation to center
   typename AffineType::OffsetType trans = affine1->GetOffset();
   itk::Point<double, ImageDimension> trans2;
@@ -325,7 +355,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   affine1->SetOffset( trans );
   if( useprincaxis )
     {
-    affine1->SetMatrix( A_solution );
+    affine1->SetMatrix( AA_solution );
     }
   affine1->SetCenter( trans2 );
     {
@@ -341,16 +371,8 @@ int antsAffineInitializerImp(int argc, char *argv[])
     {
     return EXIT_SUCCESS;
     }
-  vnl_vector<RealType> evec_tert;
-  if( ImageDimension == 3 )
-    { // try to rotate around tertiary and secondary axis
-    evec_tert = vnl_cross_3d( evec1_primary, evec1_2ndary );
-    }
-  if( ImageDimension == 2 )
-    { // try to rotate around tertiary and secondary axis
-    evec_tert = evec1_2ndary;
-    evec1_2ndary = evec1_primary;
-    }
+  vnl_vector_fixed<RealType, ImageDimension> evec_tert;
+  l_rotate_around_tertiatry_and_secondary_axis(evec_tert, evec1_primary, evec1_2ndary);
   itk::Vector<RealType, ImageDimension> axis2;
   itk::Vector<RealType, ImageDimension> axis1;
   for( unsigned int d = 0; d < ImageDimension; d++ )
@@ -464,7 +486,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
       {
       if( useprincaxis )
       {
-        affinesearch->SetMatrix( A_solution );
+        affinesearch->SetMatrix( AA_solution );
       }
       if( ImageDimension == 3 )
       {
@@ -477,7 +499,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
         affinesearch->SetOffset( trans );
         if( useprincaxis )
           {
-          affinesearch->SetMatrix( A_solution );
+          affinesearch->SetMatrix( AA_solution );
           }
         affinesearch->Rotate3D(axis1, ang1, 1);
         affinesearch->Rotate3D(axis2, ang2, 1);
@@ -492,7 +514,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
         affinesearch->SetOffset( trans );
         if( useprincaxis )
         {
-        affinesearch->SetMatrix( A_solution );
+        affinesearch->SetMatrix( AA_solution );
         }
         affinesearch->Rotate2D( ang1, 1);
         affinesearch->Scale( bestscale );

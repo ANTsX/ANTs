@@ -392,7 +392,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     {
     typename dgf::Pointer filter = dgf::New();
     filter->SetVariance(sig);
-    filter->SetUseImageSpacingOff();
+    filter->SetUseImageSpacing(false);
     filter->SetMaximumError(.01f);
     filter->SetInput(m_FloatImage);
     filter->Update();
@@ -402,7 +402,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     {
     typename dgf::Pointer filter = dgf::New();
     filter->SetVariance(sig);
-    filter->SetUseImageSpacingOff();
+    filter->SetUseImageSpacing(false);
     filter->SetMaximumError(.01f);
     filter->SetInput(temp);
     filter->Update();

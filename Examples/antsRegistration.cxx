@@ -58,7 +58,12 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     + std::string( "Optionally, one can choose to warp the moving image to the fixed space and, if the " )
     + std::string( "inverse transform exists, one can also output the warped fixed image.  Note that " )
     + std::string( "only the images specified in the first metric call are warped.  Use antsApplyTransforms " )
-    + std::string( "to warp other images using the resultant transform(s)." );
+    + std::string( "to warp other images using the resultant transform(s). When a composite transform is not specified, " )
+    + std::string( "linear transforms are specified with a \'.mat\' suffix and displacement fields with a " )
+    + std::string( "\'Warp.nii.gz\' suffix (and \'InverseWarp.nii.gz\', when applicable.  In addition, for " )
+    + std::string( "velocity-based transforms, the full velocity field is written to file (\'VelocityField.nii.gz\') as long as the " )
+    + std::string( "collapse transforms flag is turned off (\'-z 0\')." );
+    ;
 
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "output" );
@@ -83,7 +88,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
   OptionType::Pointer option = OptionType::New();
   option->SetLongName( "save-state" );
   option->SetShortName( 'j' );
-  option->SetUsageOption( 0, "saveSateAsTransform" );
+  option->SetUsageOption( 0, "saveStateAsTransform" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
@@ -118,7 +123,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
 
 // This is currently not functioning properly for all linear transforms.  If I
 // restrict the linear transforms to rigid transforms, then it seems to work.
-// I think there's something in working with images that doesn't work properly
+// I think there's something in working with images that don't work properly
 // with a generic affine transform in the header.  You can certainly store it
 // and read it from the header but perhaps this interferes with something fundamental
 // like transforming indices to physical coordinates.  I'll have to investigate
@@ -486,7 +491,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
   }
 
   {
-  std::string description = std::string( "Use a fixed seed for random number generation. " ) 
+  std::string description = std::string( "Use a fixed seed for random number generation. " )
     + std::string( "By default, the system clock is used to initialize the seeding. " )
     + std::string( "The fixed seed can be any nonzero int value." );
 

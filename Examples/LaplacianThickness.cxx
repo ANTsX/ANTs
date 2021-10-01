@@ -59,7 +59,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
   using dgf = itk::DiscreteGaussianImageFilter<TImage, TImage>;
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(sig);
-  filter->SetUseImageSpacingOn();
+  filter->SetUseImageSpacing(true);
   filter->SetMaximumError(.01f);
   filter->SetInput(image);
   filter->Update();
@@ -292,7 +292,7 @@ FMMGrad(typename TImage::Pointer wm, typename TImage::Pointer gm )
   marcher->SetStoppingValue( stoppingValue );
   marcher->GenerateGradientImageOn();
   marcher->Update();
-  WriteImage<ImageType>(marcher->GetOutput(), "marcher.nii.gz");
+  ANTs::WriteImage<ImageType>(marcher->GetOutput(), "marcher.nii.gz");
 
   thIt.GoToBegin();
   while(  !thIt.IsAtEnd()  )
@@ -376,7 +376,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
     meanvalue /= (float)ct;
     }
 
-  // /  WriteImage<ImageType>(laplacian, "laplacian.hdr");
+  // /  ANTs::WriteImage<ImageType>(laplacian, "laplacian.hdr");
 
   GradientImageFilterPointer filter = GradientImageFilterType::New();
   filter->SetInput(  laplacian );
@@ -698,7 +698,7 @@ int LaplacianThickness(int argc, char *argv[])
     rescaler->SetInput( image2 );
     rescaler->Update();
     sulci =  rescaler->GetOutput();
-    WriteImage<ImageType>(sulci, "sulci.nii");
+    ANTs::WriteImage<ImageType>(sulci, "sulci.nii");
 
     Iterator.GoToBegin();
     while(  !Iterator.IsAtEnd()  )
@@ -719,7 +719,7 @@ int LaplacianThickness(int argc, char *argv[])
       }
 
     std::cout << " modified gm prior by sulcus prior " << std::endl;
-    WriteImage<ImageType>(sulci, "sulcigm.nii");
+    ANTs::WriteImage<ImageType>(sulci, "sulcigm.nii");
 
     using GradientImageFilterType = itk::GradientRecursiveGaussianImageFilter<ImageType, DisplacementFieldType>;
     using GradientImageFilterPointer = typename GradientImageFilterType::Pointer;
@@ -922,9 +922,9 @@ int LaplacianThickness(int argc, char *argv[])
       }
 
     std::cout << " writing " << outname << std::endl;
-    WriteImage<ImageType>(thickimage2, outname.c_str() );
+    ANTs::WriteImage<ImageType>(thickimage2, outname.c_str() );
     }
-//  WriteImage<ImageType>(thickimage,"turd.hdr");
+//  ANTs::WriteImage<ImageType>(thickimage,"turd.hdr");
 
   return EXIT_SUCCESS;
 }
@@ -997,7 +997,7 @@ private:
   //  std::cout << " image " << ifn << std::endl;
   // Get the image dimension
   itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(ifn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+    itk::ImageIOFactory::CreateImageIO(ifn.c_str(), itk::IOFileModeEnum::ReadMode);
   imageIO->SetFileName(ifn.c_str() );
   imageIO->ReadImageInformation();
   unsigned int dim =  imageIO->GetNumberOfDimensions();

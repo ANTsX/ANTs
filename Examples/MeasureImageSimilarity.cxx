@@ -326,7 +326,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
 
       using SamplePointType = typename MetricSamplePointSetType::PointType;
 
-      using RandomizerType = typename itk::Statistics::MersenneTwisterRandomVariateGenerator;
+      using RandomizerType = itk::Statistics::MersenneTwisterRandomVariateGenerator;
       typename RandomizerType::Pointer randomizer = RandomizerType::New();
       randomizer->SetSeed( 1234 );
 
@@ -451,7 +451,7 @@ int MeasureImageSimilarity( itk::ants::CommandLineParser *parser )
         ItG.Set( displacement );
         }
 
-      WriteImage<DisplacementFieldType>( gradientField, ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<DisplacementFieldType>( gradientField, ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
 
     return EXIT_SUCCESS;

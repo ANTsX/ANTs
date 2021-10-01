@@ -351,7 +351,7 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
-      WriteImage<ImageType>( noiseImage,  ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
+      ANTs::WriteImage<ImageType>( noiseImage,  ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
       }
 
     typename SubtracterType::Pointer subtracter2 = SubtracterType::New();
@@ -361,11 +361,11 @@ int Denoise( itk::ants::CommandLineParser *parser )
 
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      WriteImage<ImageType>( subtracter2->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      ANTs::WriteImage<ImageType>( subtracter2->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      WriteImage<ImageType>( subtracter2->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
+      ANTs::WriteImage<ImageType>( subtracter2->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
       }
     }
 
@@ -649,7 +649,7 @@ private:
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode );
+        filename.c_str(), itk::IOFileModeEnum::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
     }
 

@@ -361,8 +361,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   using vMatrix = vnl_matrix<RealType>;
   using vVector = vnl_vector<RealType>;
   vMatrix param_values;
-  using ParserType = typename itk::ants::CommandLineParser;
-  using OptionType = typename ParserType::OptionType;
+  using OptionType = typename itk::ants::CommandLineParser::OptionType;
 
   typename OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfFunctions() )
@@ -650,7 +649,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         samplingStrategy = metricOption->GetFunction( currentStage )->GetParameter(  4 );
         }
       ConvertToLowerCase( samplingStrategy );
-      typename TranslationRegistrationType::MetricSamplingStrategyType metricSamplingStrategy =
+      typename TranslationRegistrationType::MetricSamplingStrategyEnum metricSamplingStrategy =
         TranslationRegistrationType::NONE;
       if( std::strcmp( samplingStrategy.c_str(), "random" ) == 0 )
         {
@@ -846,7 +845,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
   {
   /** FIXME - this should be vectorized: DRY */
   typename TXType::ParametersType pOld = transformList[i]->GetParameters();
-  typename TXType::ParametersType p = transformList[i]->GetParameters();
+  typename TXType::ParametersType p = transformUList[i]->GetParameters();
   if ( polydegree[ 0 ] > 0 ) p[ 0 ] = solnx[ i ];
   if ( polydegree[ 1 ] > 0 ) p[ 1 ] = solny[ i ];
   param_values( i, 0 ) = p[ 0 ];
@@ -1041,7 +1040,7 @@ for ( unsigned int i = 0; i < transformList.size(); i++)
         {
         outputPrefix = outputOption->GetFunction( 0 )->GetName();
         }
-      WriteImage<MovingIOImageType>( outputImage, fileName.c_str()  );
+      ANTs::WriteImage<MovingIOImageType>( outputImage, fileName.c_str()  );
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2
         && outputImage && currentStage == 0 )

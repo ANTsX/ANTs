@@ -147,7 +147,7 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
       v_lps_to_ras[1] = -1.0;
       }
     vnl_diag_matrix<ScalarType> m_lps_to_ras(v_lps_to_ras);
-    vnl_matrix<ScalarType>      mold = matrix.GetVnlMatrix();
+    vnl_matrix<ScalarType>      mold = matrix.GetVnlMatrix().as_matrix();
     matrix.GetVnlMatrix().update(m_lps_to_ras * mold * m_lps_to_ras);
     }
 

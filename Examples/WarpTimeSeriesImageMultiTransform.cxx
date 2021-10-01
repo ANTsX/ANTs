@@ -451,7 +451,7 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
       }
     }
   std::cout << " 100 % complete " << std::endl;
-  WriteImage<VectorImageType>( transformedvecimage, output_image_filename);
+  ANTs::WriteImage<VectorImageType>( transformedvecimage, output_image_filename);
 }
 
 template <int ImageDimension>
@@ -469,7 +469,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
   typename VectorImageType::Pointer img_mov;
   typename itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(moving_image_filename, itk::ImageIOFactory::FileModeEnum::ReadMode);
+    itk::ImageIOFactory::CreateImageIO(moving_image_filename, itk::IOFileModeEnum::ReadMode);
   imageIO->SetFileName(moving_image_filename);
   imageIO->ReadImageInformation();
   //    std::cout << " Dimension " << imageIO->GetNumberOfDimensions()  << " Components "
@@ -619,7 +619,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       vfIter2.Set(tens);
       }
     }
-  WriteImage<VectorImageType>(img_output, output_image_filename);
+  ANTs::WriteImage<VectorImageType>(img_output, output_image_filename);
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to

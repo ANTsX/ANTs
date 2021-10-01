@@ -75,7 +75,7 @@ MaurerDistanceMap(
   filter->SetInput(BinaryThreshold<TImage>(pixlo, pixhi, pixhi, input) );
   filter->Update();
 
-  //  WriteImage<ImageType>(filter->GetOutput(),"temp1.nii");
+  //  ANTs::WriteImage<ImageType>(filter->GetOutput(),"temp1.nii");
   return filter->GetOutput();
 }
 
@@ -97,7 +97,7 @@ SmoothImage(typename TImage::Pointer image, double sig)
   using dgf = itk::DiscreteGaussianImageFilter<TImage, TImage>;
   typename dgf::Pointer filter = dgf::New();
   filter->SetVariance(sig);
-  filter->SetUseImageSpacingOn();
+  filter->SetUseImageSpacing(true);
   filter->SetMaximumError(.01f);
   filter->SetInput(image);
   filter->Update();
@@ -601,7 +601,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   typename ImageType::Pointer wmgrow = Morphological<ImageType>(wmb, 0, 1, 1);
   typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh); // or wmb ?
   typename ImageType::Pointer speedprior = nullptr;
-  WriteImage<ImageType>(bsurf, "surf.nii.gz");
+  ANTs::WriteImage<ImageType>(bsurf, "surf.nii.gz");
   //    typename RealTypeImageType::Pointer distfromboundary =
   //  typename ImageType::Pointer surf=MaurerDistanceMap<ImageType>(0.5,1.e9,bsurf);
   // surf= SmoothImage<ImageType>(surf,3);
@@ -610,8 +610,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   gmb = BinaryThreshold<ImageType>(2, 3, 1, segmentationimage);  // fixme
   typename ImageType::Pointer gmgrow = Morphological<ImageType>(gmb, 1, 1, 1);
   typename ImageType::Pointer gmsurf = LabelSurface<ImageType>(1, 1, gmgrow, distthresh); // or wmb ?
-  //  WriteImage<ImageType>(gmsurf,"surfdefgm.nii.gz");
-  //  WriteImage<ImageType>(bsurf,"surfdefwm.nii.gz");
+  //  ANTs::WriteImage<ImageType>(gmsurf,"surfdefgm.nii.gz");
+  //  ANTs::WriteImage<ImageType>(bsurf,"surfdefwm.nii.gz");
 
   using TimeVaryingVelocityFieldType = DisplacementFieldType;
   using DefaultInterpolatorType = itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, RealType>;
@@ -815,19 +815,19 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         {
         if( ImageDimension == 2 )
           {
-          WriteImage<ImageType>(surfdef, "surfdef.nii.gz");
+          ANTs::WriteImage<ImageType>(surfdef, "surfdef.nii.gz");
           }
         if( ImageDimension == 2 )
           {
-          WriteImage<ImageType>(thindef, "thindef.nii.gz");
+          ANTs::WriteImage<ImageType>(thindef, "thindef.nii.gz");
           }
         if( ImageDimension == 2 )
           {
-          WriteImage<ImageType>(gmdef, "gmdef.nii.gz");
+          ANTs::WriteImage<ImageType>(gmdef, "gmdef.nii.gz");
           }
         if( ImageDimension == 2 )
           {
-          WriteImage<ImageType>(thkdef, "thick2.nii.gz");
+          ANTs::WriteImage<ImageType>(thkdef, "thick2.nii.gz");
           }
         }
       /* Now that we have the gradient image, we need to visit each voxel and compute objective function */
@@ -964,8 +964,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       std::cout << " now smooth " << std::endl;
       }
     m_MFR->SmoothDisplacementFieldGauss(velofield, smoothingsigma);
-    WriteImage<DisplacementFieldType>(corrfield, "corrfield.nii.gz");
-    WriteImage<DisplacementFieldType>(invfield, "invfield.nii.gz");
+    ANTs::WriteImage<DisplacementFieldType>(corrfield, "corrfield.nii.gz");
+    ANTs::WriteImage<DisplacementFieldType>(invfield, "invfield.nii.gz");
 
     //    std::string velofieldname = outname + "velofield";
     // WriteDisplacementField<DisplacementFieldType>(velofield,velofieldname.c_str());
@@ -973,9 +973,9 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     // WriteDisplacementField<DisplacementFieldType>(incrfield,incrfieldname.c_str());
 
     // std::string tname = outname + "dork1.nii.gz";
-    // WriteImage<ImageType>(hitimage,tname.c_str());
+    // ANTs::WriteImage<ImageType>(hitimage,tname.c_str());
     // tname = outname + "dork2.nii.gz";
-    // WriteImage<ImageType>(totalimage,tname.c_str());
+    // ANTs::WriteImage<ImageType>(totalimage,tname.c_str());
     if( thickerrct == 0 )
       {
       thickerrct = 1;
@@ -994,7 +994,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     }
 
   finalthickimage->SetDirection(omat);
-  WriteImage<ImageType>(finalthickimage, outname.c_str() );
+  ANTs::WriteImage<ImageType>(finalthickimage, outname.c_str() );
   finalthickimage->SetDirection(fmat);
 
   return 0;
@@ -1016,7 +1016,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
   std::string thickname = outname;
   thickimage->SetDirection(omat);
-  WriteImage<ImageType>(thickimage, thickname.c_str() );
+  ANTs::WriteImage<ImageType>(thickimage, thickname.c_str() );
 
   return 0;
 }

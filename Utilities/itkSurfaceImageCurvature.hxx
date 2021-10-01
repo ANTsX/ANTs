@@ -497,14 +497,14 @@ void  SurfaceImageCurvature<TSurface>
       typedef itk::DiscreteGaussianImageFilter<TSurface, TSurface> dgf;
       typename dgf::Pointer filter = dgf::New();
       filter->SetVariance(0.5);
-      filter->SetUseImageSpacingOn();
+      filter->SetUseImageSpacing(true);
       filter->SetMaximumError(.01f);
       filter->SetInput(laplacian);
       filter->Update();
       laplacian = filter->GetOutput();
       Iterator.GoToBegin();
       }
-//    WriteImage<TSurface>(laplacian,"lap.hdr");
+//    ANTs::WriteImage<TSurface>(laplacian,"lap.hdr");
     GradientImageFilterPointer filter = GradientImageFilterType::New();
     filter->SetInput( laplacian );
     RealType sigma = this->m_Sigma;

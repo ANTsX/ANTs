@@ -39,14 +39,14 @@ public:
   typedef SmartPointer<const Self>                         ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self )
+  itkNewMacro( Self );
 
   /** Extract dimension from the input image. */
   itkStaticConstMacro( Dimension, unsigned int,
                        TInputImage::ImageDimension );
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ImageIntensityAndGradientToPointSetFilter, MeshSource )
+  itkTypeMacro( ImageIntensityAndGradientToPointSetFilter, MeshSource );
 
   /** Hold on to the type information specified by the template parameters. */
   typedef TInputImage                         InputImageType;
@@ -107,20 +107,20 @@ public:
   /**
    * Set/Get sigma for the gradient recursive gaussian image filter
    */
-  itkSetMacro( Sigma, double )
-  itkGetConstMacro( Sigma, double )
+  itkSetMacro( Sigma, double );
+  itkGetConstMacro( Sigma, double );
 
   /**
    * Set/Get boolean for gradient calculation.
    */
-  itkSetMacro( UseCentralDifferenceFunction, bool )
-  itkGetConstMacro( UseCentralDifferenceFunction, bool )
+  itkSetMacro( UseCentralDifferenceFunction, bool );
+  itkGetConstMacro( UseCentralDifferenceFunction, bool );
 
   /**
    * Set/Get neighborhood radius
    */
-  itkSetMacro( NeighborhoodRadius, NeighborhoodRadiusType )
-  itkGetConstMacro( NeighborhoodRadius, NeighborhoodRadiusType )
+  itkSetMacro( NeighborhoodRadius, NeighborhoodRadiusType );
+  itkGetConstMacro( NeighborhoodRadius, NeighborhoodRadiusType );
 
 protected:
   ImageIntensityAndGradientToPointSetFilter();

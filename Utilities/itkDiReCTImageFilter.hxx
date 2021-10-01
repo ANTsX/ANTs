@@ -57,10 +57,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_SparseImageNeighborhoodRadius( 2 ),
   m_GrayMatterLabel( 2 ),
   m_WhiteMatterLabel( 3 ),
-  m_MaximumNumberOfIterations( 50 ),
+  m_MaximumNumberOfIterations( 45 ),
   m_MaximumNumberOfInvertDisplacementFieldIterations( 20 ),
   m_CurrentEnergy( NumericTraits<RealType>::max() ),
-  m_ConvergenceThreshold( 0.001 ),
+  m_ConvergenceThreshold( 0.0 ),
   m_ConvergenceWindowSize( 10 ),
   m_UseBSplineSmoothing( false ),
   m_UseMaskedSmoothing( false ),
@@ -931,7 +931,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   using SmootherType = DiscreteGaussianImageFilter<RealImageType, RealImageType>;
   typename SmootherType::Pointer smoother = SmootherType::New();
   smoother->SetVariance( variance );
-  smoother->SetUseImageSpacingOff();
+  smoother->SetUseImageSpacing(false);
   smoother->SetMaximumError( 0.01 );
   smoother->SetInput( inputImage );
 
@@ -972,6 +972,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     os << indent << "Smoothing velocity field variance = "
                      << this->m_SmoothingVelocityFieldVariance << std::endl;
     }
+  os << indent << "Use masked smoothing = "
+                   << static_cast<int>( this->m_UseMaskedSmoothing ) << std::endl;
   os << indent << "Number of integration points = "
                    << this->m_NumberOfIntegrationPoints << std::endl;
   os << indent << "Maximum number of invert displacement field iterations = "

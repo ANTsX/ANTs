@@ -63,7 +63,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     // Get the image dimension
     const std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::IOFileModeEnum::ReadMode);
     imageIO->SetFileName(fn.c_str() );
     imageIO->ReadImageInformation();
 
@@ -84,7 +84,7 @@ int AverageImages1(unsigned int argc, char *argv[])
   reader->SetFileName(argv[bigimage]);
   reader->Update();
   typename ImageType::Pointer averageimage = reader->GetOutput();
-  std::cout << " Setting physcal space of output average image based on largest image " << std::endl;
+  std::cout << " Setting physical space of output average image based on largest image " << std::endl;
   unsigned int vectorlength = reader->GetImageIO()->GetNumberOfComponents();
   std::cout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
            << vectorlength << std::endl;
@@ -186,7 +186,7 @@ int AverageImages(unsigned int argc, char *argv[])
     std::string fn = std::string(argv[j]);
     std::cout << " fn " << fn << " " << ImageDimension << " " << NVectorComponents << std::endl;
     typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::IOFileModeEnum::ReadMode);
     imageIO->SetFileName( fn.c_str() );
     imageIO->ReadImageInformation();
 
@@ -319,7 +319,7 @@ private:
 
   const int                 dim = std::stoi( argv[1] );
   itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(argv[4], itk::ImageIOFactory::FileModeEnum::ReadMode);
+    itk::ImageIOFactory::CreateImageIO(argv[4], itk::IOFileModeEnum::ReadMode);
   imageIO->SetFileName(argv[4]);
   imageIO->ReadImageInformation();
   unsigned int ncomponents = imageIO->GetNumberOfComponents();

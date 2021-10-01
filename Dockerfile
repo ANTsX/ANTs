@@ -17,7 +17,7 @@ RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/nul
     | apt-key add - \
   && apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main' \
   && apt-get update \
-  && apt-get -y install cmake
+  && apt-get -y install cmake=3.18.3-0kitware1 cmake-data=3.18.3-0kitware1 
 
 ADD . /tmp/ants/source
 RUN mkdir -p /tmp/ants/build \
@@ -36,6 +36,10 @@ RUN mkdir -p /tmp/ants/build \
 
 FROM ubuntu:bionic-20200112
 COPY --from=builder /opt/ants /opt/ants
+
+LABEL maintainer="ANTsX team" \
+      description="ANTs is part of the ANTsX ecosystem (https://github.com/ANTsX). \
+ANTs Citation: https://pubmed.ncbi.nlm.nih.gov/24879923"
 
 ENV ANTSPATH="/opt/ants/bin" \
     PATH="/opt/ants/bin:$PATH" \

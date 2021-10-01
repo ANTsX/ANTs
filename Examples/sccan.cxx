@@ -30,6 +30,12 @@
 #include "itkExtractImageFilter.h"
 #include "ReadWriteData.h"
 
+// For random number generation.
+#if __cplusplus >= 201402L
+#include <random>
+#endif
+
+
 namespace ants
 {
 // namespace antssccan {
@@ -77,7 +83,7 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   typename TImage::Pointer weights =  sccanobj->ConvertVariateToSpatialImage(  w_p,  mask );
   std::string fn1 = filepre + post + extension;
-  WriteImage<TImage>( weights, fn1.c_str() );
+  ANTs::WriteImage<TImage>( weights, fn1.c_str() );
 }
 
 template <typename T>
@@ -398,7 +404,13 @@ PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
     {
     permvec.push_back(i);
     }
+// std::random_shuffle is deprecated since C++14,
+// see: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4190.htm 
+#if __cplusplus >= 201402L
+  std::shuffle(permvec.begin(), permvec.end(), std::random_device());
+#else
   std::random_shuffle(permvec.begin(), permvec.end(), sccanRandom);
+#endif  
   //    for (unsigned long i=0; i < q.rows(); i++)
   //  // std::cout << " permv " << i << " is " << permvec[i] << std::endl;
   // for (unsigned long i=0; i < q.rows(); i++)
@@ -689,7 +701,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     using dgf = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
     typename dgf::Pointer filter = dgf::New();
     filter->SetVariance(space_smoother);
-    filter->SetUseImageSpacingOn();
+    filter->SetUseImageSpacing(true);
     filter->SetMaximumError(.01f);
     filter->SetInput(image1);
     filter->Update();
@@ -710,7 +722,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     using dgf = itk::DiscreteGaussianImageFilter<ImageType, ImageType>;
     typename dgf::Pointer filter = dgf::New();
     filter->SetVariance(time_smoother);
-    filter->SetUseImageSpacingOn();
+    filter->SetUseImageSpacing(true);
     filter->SetMaximumError(.01f);
     filter->SetInput(image1);
     filter->Update();

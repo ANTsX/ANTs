@@ -576,7 +576,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
 
     }
 
-  WriteImage<NetworkType>( network, outname.c_str() );
+  ANTs::WriteImage<NetworkType>( network, outname.c_str() );
 
   return 0;
 }

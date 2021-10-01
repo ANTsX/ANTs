@@ -170,7 +170,7 @@ private:
   std::string               fn = std::string(argv[1]);
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(
-      fn.c_str(), itk::ImageIOFactory::FileModeEnum::ReadMode);
+      fn.c_str(), itk::IOFileModeEnum::ReadMode);
   imageIO->SetFileName(fn.c_str() );
   imageIO->ReadImageInformation();
 
