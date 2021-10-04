@@ -14,7 +14,7 @@ fi
 function Usage {
     cat <<USAGE
 
-`basename $0` performs restration between a scalar image and a T1 image:
+`basename $0` performs registration between a scalar image and a T1 image:
 
 Usage:
 
@@ -53,7 +53,7 @@ echoParameters() {
       image dimension         = ${DIMENSION}
       anatomical image        = ${BRAIN}
       t1 subject brain        = ${ANATOMICAL_BRAIN}
-      t1 subject brain mask   = ${TEMPLATE_BRAIN}
+      t1 subject brain mask   = ${TEMPLATE_MASK}
       output prefix           = ${OUTPUT_PREFIX}
       template labels         = ${TEMPLATE_LABELS}
       auxiliary images        = ${AUX_IMAGES[@]}
