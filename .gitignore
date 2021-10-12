@@ -14,7 +14,7 @@ CMakeFiles/*
 .RData
 .Rhistory
 .RDataTmp
-.ExternalData_MD5*
+.ExternalData_SHA512*
 *.pyc
 crash*
 .*.swp
