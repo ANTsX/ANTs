@@ -11,13 +11,14 @@ RUN apt-get update && \
                     wget \
                     ninja-build \
                     git \
-                    zlib1g-dev
+                    zlib1g-dev \
+                    bc
 
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
     | apt-key add - \
   && apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main' \
   && apt-get update \
-  && apt-get -y install cmake=3.18.3-0kitware1 cmake-data=3.18.3-0kitware1 
+  && apt-get -y install cmake=3.18.3-0kitware1 cmake-data=3.18.3-0kitware1
 
 ADD . /tmp/ants/source
 RUN mkdir -p /tmp/ants/build \
