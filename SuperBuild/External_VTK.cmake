@@ -153,7 +153,8 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
       #-DVTK_USE_RPATH:BOOL=ON # Unused
       ${VTK_TCL_ARGS}
       -DVTK_WRAP_PYTHON:BOOL=${VTK_WRAP_PYTHON}
-      -DVTK_INSTALL_LIB_DIR:PATH=${${PROJECT_NAME}_INSTALL_LIB_DIR}
+      # setting VTK_INSTALL_LIB_DIR can cause confusion in superbuild staging
+      # -DVTK_INSTALL_LIB_DIR:PATH=${${PROJECT_NAME}_INSTALL_LIB_DIR}
       ${VTK_PYTHON_ARGS}
       ${VTK_QT_ARGS}
       ${VTK_MAC_ARGS}
