@@ -106,8 +106,6 @@ if(PLATFORM_CHECK)
   endif()
 endif()
 
-
-
 #-------------------------------------------------------------------------
 # Augment compiler flags
 #-------------------------------------------------------------------------
@@ -127,3 +125,8 @@ if(NOT CMAKE_POSITION_INDEPENDENT_CODE)
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 endif()
+
+#-------------------------------------------------------------------------
+# Define install dirs for different platforms
+#-------------------------------------------------------------------------
+include(GNUInstallDirs)
