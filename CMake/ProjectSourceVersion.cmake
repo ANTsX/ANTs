@@ -38,7 +38,9 @@ if(_GIT_VERSION_HASH STREQUAL "GITDIR-NOTFOUND")
 endif()
 
 if(_GIT_VERSION_HASH MATCHES "[a-fA-F0-9]+")
-  string(SUBSTRING "${_GIT_VERSION_HASH}" 0 5 _GIT_VERSION_HASH)
+  # Get first seven chars of hash (git default for short hash)
+  # https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection
+  string(SUBSTRING "${_GIT_VERSION_HASH}" 0 7 _GIT_VERSION_HASH)
 endif()
 
 # find the closest anotated tag with the v prefix for version
@@ -90,26 +92,3 @@ elseif(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_PATCH)
   endif()
 endif()
 
-set(_${CMAKE_PROJECT_NAME}_VERSION "${${CMAKE_PROJECT_NAME}_VERSION_MAJOR}.${${CMAKE_PROJECT_NAME}_VERSION_MINOR}")
-if(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_PATCH)
-  set(_${CMAKE_PROJECT_NAME}_VERSION "${_${CMAKE_PROJECT_NAME}_VERSION}.${${CMAKE_PROJECT_NAME}_VERSION_PATCH}")
-  if(DEFINED ${CMAKE_PROJECT_NAME}_VERSION_TWEAK)
-    set(_${CMAKE_PROJECT_NAME}_VERSION "${_${CMAKE_PROJECT_NAME}_VERSION}.${${CMAKE_PROJECT_NAME}_VERSION_TWEAK}")
-  endif()
-endif()
-
-
-if(_GIT_VERSION VERSION_EQUAL _${CMAKE_PROJECT_NAME}_VERSION)
-  if(_GIT_TAG_COUNT) #ignore if 0
-    set(_GIT_VERSION_POST "${_GIT_TAG_COUNT}")
-  endif()
-else()
-  # The first commit after a tag should increase the project version
-  # number in Version.cmake and be "dev1"
-  math(EXPR _GIT_VERSION_COUNT "${_GIT_VERSION_COUNT}+1")
-  set(_GIT_VERSION_DEV "${_GIT_VERSION_COUNT}")
-endif()
-
-# save variable in a configuration file in case we have no git directory
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ProjectSourceVersionVars.cmake.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/ProjectSourceVersionVars.cmake"  @ONLY)
