@@ -54,13 +54,13 @@ Required arguments:
 
 Optional arguments:
 
-     -c:  Tissue classification                 A k-means segmentation is run to find gray or white matter around 
+     -c:  Tissue classification                 A k-means segmentation is run to find gray or white matter around
                                                 the edge of the initial brain mask warped from the template.
                                                 This produces a segmentation image with K classes, ordered by mean
                                                 intensity in increasing order. With this option, you can control
-                                                K and tell the script which classes represent CSF, gray and white matter. 
+                                                K and tell the script which classes represent CSF, gray and white matter.
                                                 Format (\"KxcsfLabelxgmLabelxwmLabel\")
-                                                Examples:   
+                                                Examples:
                                                          -c 3x1x2x3 for T1 with K=3, CSF=1, GM=2, WM=3 (default)
                                                          -c 3x3x2x1 for T2 with K=3, CSF=3, GM=2, WM=1
                                                          -c 3x1x3x2 for FLAIR with K=3, CSF=1 GM=3, WM=2
@@ -68,10 +68,13 @@ Optional arguments:
 
      -f:  Brain extraction registration mask    Mask used for registration to limit the metric computation to
                                                 a specific region.
-     -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
-     -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
-     -q:  use floating point precision          Use antsRegistration with floating point precision.
+     -r:  Initial moving transform              An ITK affine transform (eg, from antsAI or ITK-SNAP) for the moving image.
+                                                Without this option, this script calls antsAI to search for a good initial moving
+                                                transform.
+     -s:  Image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
+     -u:  Use random seeding                    Use random number generated from system clock in Atropos (default = 1)
+     -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
+     -q:  Use floating point precision          Use antsRegistration with floating point precision.
 
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for debugging, results will not be good.
 
@@ -201,11 +204,14 @@ N4_BSPLINE_PARAMS="[ 200 ]"
 
 USE_FLOAT_PRECISION=0
 
+# Intial affine supplied on command line
+USER_INITIAL_AFFINE=""
+
 if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:c:d:e:f:h:k:m:o:q:s:u:z:" OPT
+  while getopts "a:c:d:e:f:h:k:m:o:q:r:s:u:z:" OPT
     do
       case $OPT in
           d) #dimensions
@@ -225,11 +231,11 @@ else
        ;;
           c) #k-means segmentation params
        # Check conventional ANTs vector designation (i.e.,  'x')
-       kmeansParamsArr=(${OPTARG//x/ })  
+       kmeansParamsArr=(${OPTARG//x/ })
        if [[ ${#kmeansParamsArr[@]} -ne 4 ]];
          then
            # Check alternative form
-           kmeansParamsArr=(${OPTARG//,/ })  
+           kmeansParamsArr=(${OPTARG//,/ })
            if [[ ${#kmeansParamsArr[@]} -ne 4 ]];
              then
                echo "ERROR:  unrecognized kmeans option (-c)."
@@ -239,7 +245,7 @@ else
        ATROPOS_NUM_CLASSES=${kmeansParamsArr[0]}
        ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[ ${ATROPOS_NUM_CLASSES} ]"
        ATROPOS_CSF_CLASS_LABEL=${kmeansParamsArr[1]}
-       ATROPOS_GM_CLASS_LABEL=${kmeansParamsArr[2]} 
+       ATROPOS_GM_CLASS_LABEL=${kmeansParamsArr[2]}
        ATROPOS_WM_CLASS_LABEL=${kmeansParamsArr[3]}
        ;;
           k) #keep tmp images
@@ -259,6 +265,9 @@ else
        ;;
           q)
        USE_FLOAT_PRECISION=$OPTARG
+       ;;
+          r)
+       USER_INITIAL_AFFINE=$OPTARG
        ;;
           s) #output suffix
        OUTPUT_SUFFIX=$OPTARG
@@ -292,7 +301,7 @@ if [[ -z "$ATROPOS_SEGMENTATION_MRF" ]];
       fi
   fi
 
-echo " 
+echo "
 Will run Atropos segmentation with K=${ATROPOS_NUM_CLASSES}. Classes labeled in order of mean intensity. Assuming CSF=${ATROPOS_CSF_CLASS_LABEL}, GM=${ATROPOS_GM_CLASS_LABEL}, WM=${ATROPOS_WM_CLASS_LABEL}
 "
 
@@ -423,7 +432,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
     ## check if output was produced
     if [[ ! -f ${N4_CORRECTED_IMAGES[0]} ]];
       then
-        echo "Expected output was not produce.  The N4 corrected image doesn't exist:"
+        echo "Expected output was not produced.  The N4 corrected image doesn't exist:"
         echo "   ${N4_CORRECTED_IMAGES[0]}"
         exit 1
       fi
@@ -454,29 +463,33 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
         echo
 
         ## Step 1 ##
-          logCmd ${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_TEMPLATE} ${EXTRACTION_INITIAL_AFFINE_FIXED} 4 4 4 1
-          logCmd ${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_INITIAL_AFFINE_MOVING} 4 4 4 1
-
           logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_LAPLACIAN} Laplacian ${N4_CORRECTED_IMAGES[0]} 1.5 1
           logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_TEMPLATE_LAPLACIAN} Laplacian ${EXTRACTION_TEMPLATE} 1.5 1
 
-#             exe_initial_align="${ANTSPATH}/antsAffineInitializer ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} ${EXTRACTION_INITIAL_AFFINE_MOVING} ${EXTRACTION_INITIAL_AFFINE} 15 0.1 0 10"
-          exe_initial_align="${ANTSPATH}/antsAI -d ${DIMENSION} -v 1"
-          exe_initial_align="${exe_initial_align} -m Mattes[ ${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2 ]"
-          exe_initial_align="${exe_initial_align} -t Affine[ 0.1 ]"
-          exe_initial_align="${exe_initial_align} -s [ 20,0.12 ]"
-          exe_initial_align="${exe_initial_align} -g [ 40,0x40x40 ]"
-          exe_initial_align="${exe_initial_align} -p 0"
-          exe_initial_align="${exe_initial_align} -c 10"
-          exe_initial_align="${exe_initial_align} -o ${EXTRACTION_INITIAL_AFFINE}"
-
-          if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
+          if [[ ! -f "${USER_INITIAL_AFFINE}" ]]
             then
-#                 exe_initial_align="${exe_initial_align} ${EXTRACTION_REGISTRATION_MASK}"
-              exe_initial_align="${exe_initial_align} -x ${EXTRACTION_REGISTRATION_MASK}"
-            fi
 
-          logCmd $exe_initial_align
+              logCmd ${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_TEMPLATE} ${EXTRACTION_INITIAL_AFFINE_FIXED} 4 4 4 1
+              logCmd ${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_INITIAL_AFFINE_MOVING} 4 4 4 1
+
+              exe_initial_align="${ANTSPATH}/antsAI -d ${DIMENSION} -v 1"
+              exe_initial_align="${exe_initial_align} -m Mattes[ ${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2 ]"
+              exe_initial_align="${exe_initial_align} -t Affine[ 0.1 ]"
+              exe_initial_align="${exe_initial_align} -s [ 20,0.12 ]"
+              exe_initial_align="${exe_initial_align} -g [ 40,0x40x40 ]"
+              exe_initial_align="${exe_initial_align} -p 0"
+              exe_initial_align="${exe_initial_align} -c 10"
+              exe_initial_align="${exe_initial_align} -o ${EXTRACTION_INITIAL_AFFINE}"
+
+              if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
+                then
+                  exe_initial_align="${exe_initial_align} -x ${EXTRACTION_REGISTRATION_MASK}"
+              fi
+
+              logCmd $exe_initial_align
+            else
+              ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -t ${USER_INITIAL_AFFINE} -o Linear[ ${EXTRACTION_INITIAL_AFFINE}, 0 ]
+            fi
 
           basecall="${ANTS} -d ${DIMENSION} -u 1 -w [ 0.025,0.975 ] -o ${EXTRACTION_WARP_OUTPUT_PREFIX} -r ${EXTRACTION_INITIAL_AFFINE} -z 1 --float ${USE_FLOAT_PRECISION} --verbose 1"
           if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
@@ -507,8 +520,8 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
           fi
 
       fi
-      
-      if [[ ! -f ${EXTRACTION_SEGMENTATION} ]]; 
+
+      if [[ ! -f ${EXTRACTION_SEGMENTATION} ]];
         then
 
         ## Step 2 ##
@@ -530,8 +543,8 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
         exe_brain_extraction_3="${ATROPOS} -d ${DIMENSION} -o ${EXTRACTION_SEGMENTATION} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -x ${EXTRACTION_MASK} -i ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION} -c ${ATROPOS_BRAIN_EXTRACTION_CONVERGENCE} -m ${ATROPOS_BRAIN_EXTRACTION_MRF} -k ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD} -r ${USE_RANDOM_SEEDING} --verbose 1"
         logCmd $exe_brain_extraction_3
-       fi 
- 
+       fi
+
        # Pad image here to avoid errors from dilating into the edge of the image
         padVoxels=10
 
@@ -541,7 +554,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
         logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_WM} ${ATROPOS_WM_CLASS_LABEL} ${ATROPOS_WM_CLASS_LABEL} 1 0
         logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_GM} ${ATROPOS_GM_CLASS_LABEL} ${ATROPOS_GM_CLASS_LABEL} 1 0
         logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_CSF} ${ATROPOS_CSF_CLASS_LABEL} ${ATROPOS_CSF_CLASS_LABEL} 1 0
-     
+
         logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_WM} GetLargestComponent ${EXTRACTION_WM}
         logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_GM} GetLargestComponent ${EXTRACTION_GM}
 
@@ -573,13 +586,13 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
             logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${img} PadImage ${img} -$padVoxels
           done
 
-   
+
         logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_BRAIN}
 
         # Copy header information from original image into output
         logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_BRAIN} ${EXTRACTION_BRAIN} 1 1 1 0
         logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_MASK} 1 1 1 0
-        
+
 
     if [[ ! -f ${EXTRACTION_MASK} ]];
       then
