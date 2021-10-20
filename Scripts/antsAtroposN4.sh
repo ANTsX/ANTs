@@ -105,7 +105,8 @@ echoParameters() {
        prior weight           = ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}
        posterior formulation  = ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}
        mrf                    = ${ATROPOS_SEGMENTATION_MRF}
-       Max N4->Atropos iters. = ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS}
+       Max N4->Atropos iters. = ${N4_ATROPOS_NUMBER_OF_ITERATIONS}
+       Max Atropos iters.     = ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS}
        use clock random seed  = ${USE_RANDOM_SEEDING}
 
 PARAMETERS
