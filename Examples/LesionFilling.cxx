@@ -15,6 +15,7 @@
 #include "itkBinaryBallStructuringElement.h"
 #include "itkMaskImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
+#include "itkRelabelComponentImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkImageRegionIterator.h"
 //LesionFilling dimension t1.nii.gz lesionmask output.nii.gz
@@ -73,18 +74,25 @@ namespace ants
     using BinaryThresholdImageFilterType = itk::BinaryThresholdImageFilter<T1ImageType, T1ImageType>;
     using StructuringElementType = itk::BinaryBallStructuringElement<double, ImageDimension>;
     using DilateFilterType = itk::BinaryDilateImageFilter<T1ImageType, T1ImageType, StructuringElementType>;
+    using RelabelComponentFilterType = itk::RelabelComponentImageFilter<LesionImageType, LesionImageType>;
     using ConnectedComponentFilterType = itk::ConnectedComponentImageFilter<LesionImageType, LesionImageType>;
+
     typename ConnectedComponentFilterType::Pointer connected =
                 ConnectedComponentFilterType::New();
+    typename RelabelComponentFilterType::Pointer relabeled =
+                RelabelComponentFilterType::New();
     connected->SetInput( LesionReader->GetOutput() );
     connected->Update();
-    const int LesionNumber = connected->GetObjectCount() ;
+    relabeled->SetInput( connected->GetOutput() );
+    relabeled->Update();
+
+    const int LesionNumber = relabeled->GetNumberOfObjects();
     std::cout << "Number of lesions: " << LesionNumber << std::endl;
     for ( int i = 1;  i < LesionNumber + 1 ; i++)
     {
        using FilterType = itk::CastImageFilter<LesionImageType, T1ImageType>;
        typename FilterType::Pointer filter = FilterType::New();
-       filter->SetInput( connected->GetOutput() );
+       filter->SetInput( relabeled->GetOutput() );
        filter->Update() ;
        typename BinaryThresholdImageFilterType::Pointer thresholdFilter
                   = BinaryThresholdImageFilterType::New();
@@ -100,8 +108,18 @@ namespace ants
        //by subtracting dilated lesion map from lesion map itself
        typename DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
 
+       int elementRadius = 1;
+
+       // dilate more around very small lesions to improve the chance of finding
+       // suitable replacement voxels
+       // index is offset because background is not counted
+       if (relabeled->GetSizeOfObjectsInPixels()[i-1] < 5)
+       {
+           elementRadius = 2;
+       }
+
        StructuringElementType structuringElement;
-       structuringElement.SetRadius( 1 );  // 3x3 structuring element
+       structuringElement.SetRadius( elementRadius );  // 3x3 structuring element
        structuringElement.CreateStructuringElement();
        binaryDilate->SetKernel( structuringElement );
        binaryDilate->SetInput( thresholdFilter->GetOutput() );
@@ -143,13 +161,21 @@ namespace ants
          {
            if( ! itk::Math::FloatAlmostEqual( it.Value(), 0.0 ) )
            {
-             //coutning number of voxels inside lesion
+             //counting number of voxels inside lesion
              counter++;
              meanInsideLesion += it.Get();
            }
            ++it;
          }
-       meanInsideLesion /= (double) counter;
+       if (counter > 0)
+       {
+         meanInsideLesion /= (double) counter;
+       }
+       else
+       {
+           std::cerr << "Intensity in lesion " << i << " of " << LesionNumber << " is zero, will not fill" << std::endl;
+           continue;
+       }
 
        //check that all outer voxels are more than the mean
        //intensity of the lesion, i.e. not including CSF voxels
@@ -173,6 +199,13 @@ namespace ants
       IteratorType itL( thresholdFilter->GetOutput(),
                         thresholdFilter->GetOutput()->GetLargestPossibleRegion() );
       int max = outerWMVoxels.size();
+
+      if (max == 0)
+      {
+        std::cerr << "Intensity surrounding lesion " << i << " of " << LesionNumber << " is less than mean lesion intensity, will not fill" << std::endl;
+        continue;
+      }
+
       int min = 0;
       it4.GoToBegin();
       itL.GoToBegin();
