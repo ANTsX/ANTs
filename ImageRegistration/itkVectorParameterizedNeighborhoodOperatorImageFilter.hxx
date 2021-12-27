@@ -13,7 +13,6 @@
 =========================================================================*/
 #ifndef _itkVectorParameterizedNeighborhoodOperatorImageFilter_hxx
 #define _itkVectorParameterizedNeighborhoodOperatorImageFilter_hxx
-#include "itkVectorParameterizedNeighborhoodOperatorImageFilter.h"
 
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkVectorNeighborhoodInnerProduct.h"

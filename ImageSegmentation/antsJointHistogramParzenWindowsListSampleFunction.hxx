@@ -15,7 +15,6 @@
 #ifndef __antsJointHistogramParzenWindowsListSampleFunction_hxx
 #define __antsJointHistogramParzenWindowsListSampleFunction_hxx
 
-#include "antsJointHistogramParzenWindowsListSampleFunction.h"
 
 #include "itkArray.h"
 #include "itkBSplineInterpolateImageFunction.h"

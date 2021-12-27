@@ -15,7 +15,6 @@
 #ifndef _itkListSampleToListSampleFilter_hxx
 #define _itkListSampleToListSampleFilter_hxx
 
-#include "antsListSampleToListSampleFilter.h"
 
 namespace itk
 {

@@ -14,7 +14,6 @@
 #ifndef __itkN3MRIBiasFieldCorrectionImageFilter_hxx
 #define __itkN3MRIBiasFieldCorrectionImageFilter_hxx
 
-#include "itkN3MRIBiasFieldCorrectionImageFilter.h"
 
 #include "itkDivideImageFilter.h"
 #include "itkExpImageFilter.h"

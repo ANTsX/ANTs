@@ -13,7 +13,6 @@
 =========================================================================*/
 #ifndef __itkWarpImageWAffineFilter_hxx
 #define __itkWarpImageWAffineFilter_hxx
-#include "itkWarpImageWAffineFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"

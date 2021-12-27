@@ -18,7 +18,6 @@
 #ifndef itkWeightedVotingFusionImageFilter_hxx
 #define itkWeightedVotingFusionImageFilter_hxx
 
-#include "itkWeightedVotingFusionImageFilter.h"
 
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkProgressReporter.h"

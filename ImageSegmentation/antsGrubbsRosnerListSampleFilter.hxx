@@ -15,7 +15,6 @@
 #ifndef __antsGrubbsRosnerListSampleFilter_hxx
 #define __antsGrubbsRosnerListSampleFilter_hxx
 
-#include "antsGrubbsRosnerListSampleFilter.h"
 
 #include "itkTDistribution.h"
 

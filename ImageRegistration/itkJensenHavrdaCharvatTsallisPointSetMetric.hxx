@@ -13,7 +13,6 @@
 #ifndef __itkJensenHavrdaCharvatTsallisPointSetMetric_hxx
 #define __itkJensenHavrdaCharvatTsallisPointSetMetric_hxx
 
-#include "itkJensenHavrdaCharvatTsallisPointSetMetric.h"
 
 namespace itk
 {

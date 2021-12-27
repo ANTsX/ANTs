@@ -14,7 +14,6 @@
 #ifndef itkLabeledPointSetFileWriter_hxx
 #define itkLabeledPointSetFileWriter_hxx
 
-#include "itkLabeledPointSetFileWriter.h"
 
 #include "itkBoundingBox.h"
 #include "itkImageFileWriter.h"

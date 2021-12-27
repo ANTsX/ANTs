@@ -18,7 +18,6 @@
 #ifndef itkSimulatedExponentialDisplacementFieldSource_hxx
 #define itkSimulatedExponentialDisplacementFieldSource_hxx
 
-#include "itkSimulatedExponentialDisplacementFieldSource.h"
 
 #include "itkAddImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"

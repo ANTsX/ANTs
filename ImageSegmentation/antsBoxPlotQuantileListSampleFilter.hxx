@@ -15,7 +15,6 @@
 #ifndef __antsBoxPlotQuantileListSampleFilter_hxx
 #define __antsBoxPlotQuantileListSampleFilter_hxx
 
-#include "antsBoxPlotQuantileListSampleFilter.h"
 
 #include "itkDenseFrequencyContainer2.h"
 #include "itkHistogram.h"

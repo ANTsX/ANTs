@@ -14,7 +14,6 @@
 #ifndef __antsFMarchingImageFilter_hxx
 #define __antsFMarchingImageFilter_hxx
 #include "antsAllocImage.h"
-#include "antsFastMarchingImageFilter.h"
 
 #include "itkConnectedComponentImageFilter.h"
 #include "itkImageRegionIterator.h"

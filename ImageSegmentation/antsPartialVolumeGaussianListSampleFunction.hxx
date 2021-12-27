@@ -15,7 +15,6 @@
 #ifndef __antsPartialVolumeGaussianListSampleFunction_hxx
 #define __antsPartialVolumeGaussianListSampleFunction_hxx
 
-#include "antsPartialVolumeGaussianListSampleFunction.h"
 
 #include "itkMeanSampleFilter.h"
 #include "itkWeightedMeanSampleFilter.h"

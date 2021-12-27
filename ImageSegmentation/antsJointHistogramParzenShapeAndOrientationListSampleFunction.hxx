@@ -15,7 +15,6 @@
 #ifndef __antsJointHistogramParzenShapeAndOrientationListSampleFunction_hxx
 #define __antsJointHistogramParzenShapeAndOrientationListSampleFunction_hxx
 
-#include "antsJointHistogramParzenShapeAndOrientationListSampleFunction.h"
 
 #include "itkArray.h"
 #include "itkContinuousIndex.h"

@@ -15,7 +15,6 @@
 #ifndef __antsGaussianListSampleFunction_hxx
 #define __antsGaussianListSampleFunction_hxx
 
-#include "antsGaussianListSampleFunction.h"
 
 #include "itkCovarianceSampleFilter.h"
 #include "itkMeanSampleFilter.h"

@@ -14,7 +14,6 @@
 #ifndef __itkFEMElement3DMembrane1DOF_hxx
 #define __itkFEMElement3DMembrane1DOF_hxx
 
-#include "itkFEMElement3DMembrane1DOF.h"
 
 namespace itk
 {

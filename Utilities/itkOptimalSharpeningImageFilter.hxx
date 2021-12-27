@@ -13,7 +13,6 @@
 =========================================================================*/
 #ifndef __itkOptimalSharpeningImageFilter_hxx
 #define __itkOptimalSharpeningImageFilter_hxx
-#include "itkOptimalSharpeningImageFilter.h"
 
 #include "itkNeighborhoodOperatorImageFilter.h"
 #include "itkLaplacianOperator.h"

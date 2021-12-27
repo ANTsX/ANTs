@@ -15,7 +15,6 @@
 #ifndef __antsLogEuclideanGaussianListSampleFunction_hxx
 #define __antsLogEuclideanGaussianListSampleFunction_hxx
 
-#include "antsLogEuclideanGaussianListSampleFunction.h"
 
 #include "itkDecomposeTensorFunction.h"
 

@@ -18,7 +18,6 @@
 #ifndef itkSimulatedDisplacementFieldSource_hxx
 #define itkSimulatedDisplacementFieldSource_hxx
 
-#include "itkSimulatedDisplacementFieldSource.h"
 
 namespace itk
 {

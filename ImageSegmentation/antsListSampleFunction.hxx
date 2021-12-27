@@ -15,7 +15,6 @@
 #ifndef __antsListSampleFunction_hxx
 #define __antsListSampleFunction_hxx
 
-#include "antsListSampleFunction.h"
 
 namespace itk
 {

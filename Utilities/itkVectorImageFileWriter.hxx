@@ -14,7 +14,6 @@
 #ifndef _itkVectorImageFileWriter_hxx
 #define _itkVectorImageFileWriter_hxx
 
-#include "itkVectorImageFileWriter.h"
 #include "itkImageFileWriter.h"
 #include "itkDataObject.h"
 #include "itkObjectFactoryBase.h"

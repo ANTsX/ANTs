@@ -23,7 +23,6 @@
 #include "itkObjectFactory.h"
 #include "vnl/vnl_matrix.h"
 #include "vnl/algo/vnl_symmetric_eigensystem.h"
-#include "itkLogTensorImageFilter.h"
 #include "TensorFunctions.h"
 
 namespace itk

@@ -14,7 +14,6 @@
 #ifndef __itkDecomposeTensorFunction_hxx
 #define __itkDecomposeTensorFunction_hxx
 
-#include "itkDecomposeTensorFunction.h"
 
 #include "vnl/algo/vnl_cholesky.h"
 #include "vnl/algo/vnl_qr.h"

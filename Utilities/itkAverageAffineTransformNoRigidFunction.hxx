@@ -13,7 +13,6 @@
  =========================================================================*/
 #ifndef __itkAverageAffineTransformNoRigidFunction_hxx
 #define __itkAverageAffineTransformNoRigidFunction_hxx
-#include "itkAverageAffineTransformNoRigidFunction.h"
 
 #include "itkNumericTraits.h"
 #include <limits>

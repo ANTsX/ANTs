@@ -11,7 +11,6 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#include "iMathFunctions.h"
 #include "ReadWriteData.h"
 #include "antsUtilities.h"
 

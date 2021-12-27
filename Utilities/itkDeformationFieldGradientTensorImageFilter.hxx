@@ -13,7 +13,6 @@
 #ifndef _itkDeformationFieldGradientTensorImageFilter_hxx
 #define _itkDeformationFieldGradientTensorImageFilter_hxx
 
-#include "itkDeformationFieldGradientTensorImageFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkNeighborhoodAlgorithm.h"

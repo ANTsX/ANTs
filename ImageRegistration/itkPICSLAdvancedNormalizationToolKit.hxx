@@ -19,7 +19,6 @@
 #pragma warning(disable: 4786)
 #endif
 
-#include "itkPICSLAdvancedNormalizationToolKit.h"
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkSpatialMutualInformationRegistrationFunction.h"
 #include "itkIdentityTransform.h"

@@ -14,7 +14,6 @@
 #ifndef _itkExpectationBasedPointSetRegistrationFunction_hxx_
 #define _itkExpectationBasedPointSetRegistrationFunction_hxx_
 
-#include "itkExpectationBasedPointSetRegistrationFunction.h"
 #include "itkMacro.h"
 #include "itkMath.h"
 

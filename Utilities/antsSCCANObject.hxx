@@ -23,7 +23,6 @@
 #include <vnl/algo/vnl_qr.h>
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/algo/vnl_generalized_eigensystem.h>
-#include "antsSCCANObject.h"
 #include <ctime>
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkCSVArray2DDataObject.h"

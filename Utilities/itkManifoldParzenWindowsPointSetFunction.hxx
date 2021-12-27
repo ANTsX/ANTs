@@ -14,7 +14,6 @@
 #ifndef __itkManifoldParzenWindowsPointSetFunction_hxx
 #define __itkManifoldParzenWindowsPointSetFunction_hxx
 
-#include "itkManifoldParzenWindowsPointSetFunction.h"
 
 #include "vnl/vnl_vector.h"
 #include "itkMath.h"

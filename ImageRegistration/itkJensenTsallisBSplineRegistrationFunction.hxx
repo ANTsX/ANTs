@@ -14,7 +14,6 @@
 #ifndef _itkJensenTsallisBSplineRegistrationFunction_hxx_
 #define _itkJensenTsallisBSplineRegistrationFunction_hxx_
 
-#include "itkJensenTsallisBSplineRegistrationFunction.h"
 
 #include "itkContinuousIndex.h"
 #include "itkImageLinearConstIteratorWithIndex.h"

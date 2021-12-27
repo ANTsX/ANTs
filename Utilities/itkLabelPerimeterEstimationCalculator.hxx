@@ -16,7 +16,6 @@
 #ifndef __itkLabelPerimeterEstimationCalculator_hxx
 #define __itkLabelPerimeterEstimationCalculator_hxx
 
-#include "itkLabelPerimeterEstimationCalculator.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"

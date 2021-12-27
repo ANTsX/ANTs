@@ -18,7 +18,6 @@
 #ifndef __itkPseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter_hxx
 #define __itkPseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter_hxx
 
-#include "itkPseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
 

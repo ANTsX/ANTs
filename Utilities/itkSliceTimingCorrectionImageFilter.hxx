@@ -18,7 +18,6 @@
 #ifndef __itkSliceTimingCorrectionImageFilter_hxx
 #define __itkSliceTimingCorrectionImageFilter_hxx
 
-#include "itkSliceTimingCorrectionImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"

@@ -13,7 +13,6 @@
 =========================================================================*/
 #ifndef _itkVectorImageFileReader_hxx
 #define _itkVectorImageFileReader_hxx
-#include "itkVectorImageFileReader.h"
 
 #include "itkObjectFactory.h"
 #include "itkImageIOFactory.h"
