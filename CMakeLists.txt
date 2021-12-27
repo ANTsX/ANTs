@@ -1,14 +1,15 @@
-cmake_minimum_required(VERSION 3.10.2...3.14.2)
-cmake_policy(VERSION 3.10.2...3.14.2)
-
-if(CMAKE_CXX_STANDARD EQUAL "98" )
-   message(FATAL_ERROR "CMAKE_CXX_STANDARD:STRING=98 is not supported in ITK version 5 and greater.")
-endif()
+set(ANTs_OLDEST_VALIDATED_POLICIES_VERSION "3.16.3")
+set(ANTs_NEWEST_VALIDATED_POLICIES_VERSION "3.19.7")
+cmake_minimum_required(VERSION ${ANTs_OLDEST_VALIDATED_POLICIES_VERSION}..${ANTs_NEWEST_VALIDATED_POLICIES_VERSION} FATAL_ERROR)
 
 #####
 ##  Set the default target properties for ITK
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11) # Supported values are ``11``, ``14``, and ``17``.
+  set(CMAKE_CXX_STANDARD 14) # Supported values are ``14``, ``17``, and ``20``.
+endif()
+# ==== Define language standard configurations requiring at least c++14 standard
+if(CMAKE_CXX_STANDARD EQUAL "98" OR CMAKE_CXX_STANDARD LESS "14")
+   message(FATAL_ERROR "C++98 to C++11 are no longer supported in ITK version 5.3 and greater.")
 endif()
 if(NOT CMAKE_CXX_STANDARD_REQUIRED)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,9 +21,6 @@ endif()
 foreach(p
     ## Only policies introduced after the cmake_minimum_required
     ## version need to explicitly be set to NEW.
-    CMP0070 #3.10.0 Define ``file(GENERATE)`` behavior for relative paths.
-    CMP0071 #3.10.0 Let ``AUTOMOC`` and ``AUTOUIC`` process ``GENERATED`` files.
-    CMP0074 #3.12.0 `find_package()`` uses ``<PackageName>_ROOT`` variables.
     )
   if(POLICY ${p})
     cmake_policy(SET ${p} NEW)
@@ -63,13 +61,16 @@ SET(CMAKE_INSTALL_PREFIX /opt/ANTs CACHE PATH "Default ANTs install path")
 SET(SUPERBUILD_STAGING_PREFIX ${CMAKE_BINARY_DIR}/external)
 
 if(${LOCAL_PROJECT_NAME}_SUPERBUILD)
-  project(SuperBuild_${LOCAL_PROJECT_NAME})
+  project(SuperBuild_${LOCAL_PROJECT_NAME}
+    DESCRIPTION "Optional superbuild step to build external support libraries for ANTs"
+  )
   include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
   include(CPack)   # This must always be last!
   return()
 else()
   project(${LOCAL_PROJECT_NAME}
-    DESCRIPTION "Advanced Normalization Tools (ANTs)"
+    DESCRIPTION "Advanced Normalization Tools (ANTs) computes high-dimensional mappings to capture the statistics of brain structure and function."
+    HOMEPAGE_URL "https://github.com/ANTsX/ANTs"
     LANGUAGES CXX C)
   include("${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_PROJECT_NAME}.cmake")
   include(CPack)   # This must always be last!
