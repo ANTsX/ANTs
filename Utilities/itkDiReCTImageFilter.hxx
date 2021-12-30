@@ -14,7 +14,6 @@
 #ifndef __itkDiReCTImageFilter_hxx
 #define __itkDiReCTImageFilter_hxx
 
-#include "itkDiReCTImageFilter.h"
 
 #include "itkAddImageFilter.h"
 #include "itkBinaryContourImageFilter.h"

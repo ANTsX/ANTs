@@ -14,7 +14,6 @@
 #ifndef itkLabeledPointSetFileReader_hxx
 #define itkLabeledPointSetFileReader_hxx
 
-#include "itkLabeledPointSetFileReader.h"
 
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkImageFileReader.h"

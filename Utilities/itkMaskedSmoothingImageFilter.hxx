@@ -14,7 +14,6 @@
 #ifndef __itkMaskedSmoothingImageFilter_hxx
 #define __itkMaskedSmoothingImageFilter_hxx
 
-#include "itkMaskedSmoothingImageFilter.h"
 
 #include "itkCastImageFilter.h"
 

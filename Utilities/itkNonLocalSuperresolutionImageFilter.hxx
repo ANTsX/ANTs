@@ -18,7 +18,6 @@
 #ifndef itkNonLocalSuperresolutionImageFilter_hxx
 #define itkNonLocalSuperresolutionImageFilter_hxx
 
-#include "itkNonLocalSuperresolutionImageFilter.h"
 
 #include "itkAbsoluteValueDifferenceImageFilter.h"
 #include "itkArray.h"

@@ -13,7 +13,6 @@
 #ifndef _itkGeometricJacobianDeterminantImageFilter_hxx
 #define _itkGeometricJacobianDeterminantImageFilter_hxx
 
-#include "itkGeometricJacobianDeterminantImageFilter.h"
 
 #include "itkContinuousIndex.h"
 #include "itkImageRegionIteratorWithIndex.h"

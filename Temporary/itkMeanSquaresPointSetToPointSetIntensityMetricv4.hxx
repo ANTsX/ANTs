@@ -18,7 +18,6 @@
 #ifndef itkMeanSquaresPointSetToPointSetIntensityMetricv4_hxx
 #define itkMeanSquaresPointSetToPointSetIntensityMetricv4_hxx
 
-#include "itkMeanSquaresPointSetToPointSetIntensityMetricv4.h"
 
 namespace itk
 {

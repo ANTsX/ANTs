@@ -14,7 +14,6 @@
 #ifndef _itkJensenHavrdaCharvatTsallisLabeledPointSetMetric_hxx
 #define _itkJensenHavrdaCharvatTsallisLabeledPointSetMetric_hxx
 
-#include "itkJensenHavrdaCharvatTsallisLabeledPointSetMetric.h"
 
 #include "itkJensenHavrdaCharvatTsallisPointSetMetric.h"
 namespace itk

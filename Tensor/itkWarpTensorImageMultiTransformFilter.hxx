@@ -13,7 +13,6 @@
 =========================================================================*/
 #ifndef __itkWarpTensorImageMultiTransformFilter_hxx
 #define __itkWarpTensorImageMultiTransformFilter_hxx
-#include "itkWarpTensorImageMultiTransformFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"

@@ -13,7 +13,6 @@
 #ifndef _itkDeterminantTensorImageFilter_hxx
 #define _itkDeterminantTensorImageFilter_hxx
 
-#include "itkDeterminantTensorImageFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"

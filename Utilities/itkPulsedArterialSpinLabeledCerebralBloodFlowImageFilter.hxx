@@ -18,7 +18,6 @@
 #ifndef __itkPulsedArterialSpinLabeledCerebralBloodFlowImageFilter_hxx
 #define __itkPulsedArterialSpinLabeledCerebralBloodFlowImageFilter_hxx
 
-#include "itkPulsedArterialSpinLabeledCerebralBloodFlowImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
 

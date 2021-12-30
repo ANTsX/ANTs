@@ -15,7 +15,6 @@
 #ifndef __antsPassThroughListSampleFilter_hxx
 #define __antsPassThroughListSampleFilter_hxx
 
-#include "antsPassThroughListSampleFilter.h"
 
 namespace itk
 {

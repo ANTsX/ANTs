@@ -18,7 +18,6 @@
 #ifndef __itkSplitAlternatingTimeSeriesImageFilter_hxx
 #define __itkSplitAlternatingTimeSeriesImageFilter_hxx
 
-#include "itkSplitAlternatingTimeSeriesImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"

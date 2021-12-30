@@ -18,7 +18,6 @@
 #ifndef __itkAverageOverDimensionImageFilter_hxx
 #define __itkAverageOverDimensionImageFilter_hxx
 
-#include "itkAverageOverDimensionImageFilter.h"
 #include "itkImageAlgorithm.h"
 #include "itkObjectFactory.h"
 #include "itkProgressReporter.h"

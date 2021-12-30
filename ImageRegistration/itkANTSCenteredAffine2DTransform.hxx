@@ -15,7 +15,6 @@
 #define _itkANTSCenteredAffine2DTransform_hxx
 
 // #include "itkRigid2DTransform.h"
-#include "itkANTSCenteredAffine2DTransform.h"
 #include "vnl/algo/vnl_qr.h"
 
 namespace itk

@@ -18,7 +18,6 @@
 #ifndef __itkComposeDiffeomorphismsImageFilter_hxx
 #define __itkComposeDiffeomorphismsImageFilter_hxx
 
-#include "itkComposeDiffeomorphismsImageFilter.h"
 
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"

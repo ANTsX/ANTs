@@ -18,7 +18,6 @@
 #ifndef __itkAlternatingValueSimpleSubtractionImageFilter_hxx
 #define __itkAlternatingValueSimpleSubtractionImageFilter_hxx
 
-#include "itkAlternatingValueSimpleSubtractionImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
 

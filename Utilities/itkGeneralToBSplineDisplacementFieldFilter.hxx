@@ -1,7 +1,6 @@
 #ifndef __itkGeneralToBSplineDisplacementFieldFilter_hxx
 #define __itkGeneralToBSplineDisplacementFieldFilter_hxx
 
-#include "itkGeneralToBSplineDisplacementFieldFilter.h"
 
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"

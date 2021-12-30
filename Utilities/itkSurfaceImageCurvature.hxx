@@ -16,7 +16,6 @@
 #include "antsAllocImage.h"
 #include <vnl/algo/vnl_real_eigensystem.h>
 
-#include "itkSurfaceImageCurvature.h"
 // #include "itkLevelSetCurvatureFunction.h"
 #include "itkCastImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"

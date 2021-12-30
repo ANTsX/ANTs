@@ -15,7 +15,6 @@
 #ifndef __antsManifoldParzenWindowsListSampleFunction_hxx
 #define __antsManifoldParzenWindowsListSampleFunction_hxx
 
-#include "antsManifoldParzenWindowsListSampleFunction.h"
 
 namespace itk
 {

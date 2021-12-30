@@ -18,7 +18,6 @@
 #ifndef itkSimulatedBSplineDisplacementFieldSource_hxx
 #define itkSimulatedBSplineDisplacementFieldSource_hxx
 
-#include "itkSimulatedBSplineDisplacementFieldSource.h"
 
 #include "itkContinuousIndex.h"
 

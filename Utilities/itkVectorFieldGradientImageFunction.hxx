@@ -13,7 +13,6 @@
 #ifndef _itkVectorFieldGradientImageFunction_hxx
 #define _itkVectorFieldGradientImageFunction_hxx
 
-#include "itkVectorFieldGradientImageFunction.h"
 
 #include "itkDecomposeTensorFunction.h"
 #include "itkVectorLinearInterpolateImageFunction.h"

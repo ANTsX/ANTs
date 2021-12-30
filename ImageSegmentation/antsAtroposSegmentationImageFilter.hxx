@@ -15,7 +15,6 @@
 #ifndef __antsAtroposSegmentationImageFilter_hxx
 #define __antsAtroposSegmentationImageFilter_hxx
 
-#include "antsAtroposSegmentationImageFilter.h"
 #include "antsGaussianListSampleFunction.h"
 #include "antsAllocImage.h"
 #include "itkAddImageFilter.h"

@@ -14,7 +14,6 @@
 #ifndef itkN3BiasFieldCorrectionImageFilter_hxx
 #define itkN3BiasFieldCorrectionImageFilter_hxx
 
-#include "itkN3BiasFieldCorrectionImageFilter.h"
 
 #include "itkAddImageFilter.h"
 #include "itkBSplineControlPointImageFilter.h"

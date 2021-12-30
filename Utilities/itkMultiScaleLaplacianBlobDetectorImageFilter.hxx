@@ -26,7 +26,6 @@
 #ifndef __itkMultiScaleLaplacianBlobDetectorImageFilter_hxx
 #define __itkMultiScaleLaplacianBlobDetectorImageFilter_hxx
 
-#include "itkMultiScaleLaplacianBlobDetectorImageFilter.h"
 #include "itkEllipseSpatialObject.h"
 #include "itkCastImageFilter.h"
 #include "itkLaplacianRecursiveGaussianImageFilter.h"

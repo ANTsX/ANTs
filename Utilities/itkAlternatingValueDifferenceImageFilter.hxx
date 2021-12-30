@@ -18,7 +18,6 @@
 #ifndef __itkAlternatingValueDifferenceImageFilter_hxx
 #define __itkAlternatingValueDifferenceImageFilter_hxx
 
-#include "itkAlternatingValueDifferenceImageFilter.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"

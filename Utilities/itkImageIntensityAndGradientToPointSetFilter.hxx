@@ -14,7 +14,6 @@
 #ifndef itkImageIntensityAndGradientToPointSetFilter_hxx
 #define itkImageIntensityAndGradientToPointSetFilter_hxx
 
-#include "itkImageIntensityAndGradientToPointSetFilter.h"
 
 #include "itkCentralDifferenceImageFunction.h"
 #include "itkImageRegionIterator.h"

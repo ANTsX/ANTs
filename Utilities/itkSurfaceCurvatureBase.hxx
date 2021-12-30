@@ -24,7 +24,6 @@
 #include <vnl/vnl_vector_fixed.h>
 #include <itkMath.h>
 
-#include "itkSurfaceCurvatureBase.h"
 
 namespace itk
 {
