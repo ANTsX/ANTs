@@ -61,18 +61,34 @@ DoRegistration(typename ParserType::Pointer & parser)
   OptionType::Pointer fixRandomSeed = parser->GetOption( "random-seed" );
   if( fixRandomSeed && fixRandomSeed->GetNumberOfFunctions() )
     {
+    if( verbose )
+      {
+      std::cout << "In the fixRandomSeed" << std::endl;
+      }        
     int randomSeed = parser->Convert<int>( fixRandomSeed->GetFunction(0)->GetName() );
     regHelper->SetRegistrationRandomSeed(randomSeed);
-    }
+    if( verbose )
+      {
+      std::cout << "randomSeed is " << randomSeed << std::endl;
+      }      
+    }  
   else
     {
     char* randomSeedEnv = getenv( "ANTS_RANDOM_SEED" );
     if ( randomSeedEnv != nullptr )
       {
+      if( verbose )
+      {
+      std::cout << "ANTS_RANDOM_SEED is set! randomSeed is " << randomSeed << std::endl;
+      }        
       regHelper->SetRegistrationRandomSeed( std::stoi( randomSeedEnv ) );
       }
     else
       {
+      if( verbose )
+      {
+      std::cout << "ANTS_RANDOM_SEED is not set! Running with Default Random Behavior" << std::endl;
+      }         
       regHelper->SetRegistrationRandomSeed(0);
       }
     }
