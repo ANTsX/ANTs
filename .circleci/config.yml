@@ -4,6 +4,7 @@ jobs:
   build_docker:
     docker:
       - image: docker:18.06.1-ce-git
+    resource_class: large
     working_directory: /tmp/src/ANTs
     steps:
       - checkout
