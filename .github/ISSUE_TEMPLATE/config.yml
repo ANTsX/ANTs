@@ -1,8 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: ANTsPy Issues
-    url: https://github.com/ANTsX/ANTsPy/issues
-    about: Please report issues with ANTsPy here.
-  - name: ANTsR Issues
-    url: https://github.com/ANTsX/ANTsR/issues
-    about: Please report issues with ANTsR here.
+  - name: ANTsX Issues (ANTsPy, ANTsR, ANTs*Net) 
+    url: https://github.com/ANTsX
+    about: If you are not working with base ANTs (ie, the command line tools), please go to the main ANTsX page and open an issue in the repository you are using. 
