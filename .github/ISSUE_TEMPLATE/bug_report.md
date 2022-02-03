@@ -1,6 +1,6 @@
 ---
 name: Bugs, unexpected results or other run time problems
-about: Please help us solve your problem by providing the requested info  
+about: Issues with ANTs command line tools
 ---
 
 <!--
