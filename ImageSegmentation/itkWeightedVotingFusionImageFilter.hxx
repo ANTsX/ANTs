@@ -522,24 +522,24 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           }
 
         const RealType patchSimilarity = [&] () -> RealType {
-        // use nonnormalized vector for MSQ
+        // use non-normalized vector for MSQ
         switch(this->m_SimilarityMetric)
           {
-        case NonLocalPatchBasedImageFilterEnums::SimilarityMetric::MEAN_SQUARES):
+        case NonLocalPatchBasedImageFilterEnums::SimilarityMetric::MEAN_SQUARES:
           // use non-normalized vectors for MSE
           return this->ComputeNeighborhoodPatchSimilarity(
             this->m_AtlasImages[i], searchIndex, targetPatch, useOnlyFirstAtlasImage);
           break;
-        case NonLocalPatchBasedImageFilterEnums::SimilarityMetric::PEARSON_CORRELATION):
+        case NonLocalPatchBasedImageFilterEnums::SimilarityMetric::PEARSON_CORRELATION:
           // use normalized vector for PC
           return this->ComputeNeighborhoodPatchSimilarity(
             this->m_AtlasImages[i], searchIndex, normalizedTargetPatch, useOnlyFirstAtlasImage );
           break;
         default:
-          itkGenericException("Invalid SimilarityMetric Chosen.");
+          itkGenericExceptionMacro("Invalid SimilarityMetric Chosen.");
           }
         return 0.0;
-        }
+        }();
 
         if( patchSimilarity < minimumPatchSimilarity )
           {
