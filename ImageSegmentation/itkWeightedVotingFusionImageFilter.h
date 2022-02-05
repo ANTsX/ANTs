@@ -250,7 +250,7 @@ public:
   /**
    * Get the posterior probability image corresponding to a label.
    */
-  const ProbabilityImagePointer GetLabelPosteriorProbabilityImage( LabelType label )
+  ProbabilityImagePointer GetLabelPosteriorProbabilityImage( LabelType label )
     {
     if( this->m_RetainLabelPosteriorProbabilityImages )
       {
@@ -274,7 +274,7 @@ public:
   /**
    * Get the voting weight image corresponding to an atlas.
    */
-  const ProbabilityImagePointer GetAtlasVotingWeightImage( unsigned int n )
+  ProbabilityImagePointer GetAtlasVotingWeightImage( unsigned int n )
     {
     if( this->m_RetainAtlasVotingWeightImages )
       {
@@ -298,7 +298,7 @@ public:
   /**
    * Get the joint intensity fusion output image
    */
-  const ProbabilityImagePointer GetJointIntensityFusionImage( unsigned int n )
+  ProbabilityImagePointer GetJointIntensityFusionImage( unsigned int n )
     {
     if( n < this->m_NumberOfAtlasModalities )
       {
