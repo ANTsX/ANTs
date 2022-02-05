@@ -130,13 +130,13 @@ public:
 
   /**
    * Add an atlas (multi-modal image + segmentation)
+   * imageList is a vector of image pointers
+   * *segmentation is the pointer for the single segmentation corresponding to imageList
    */
   void AddAtlas( InputImageList imageList, LabelImageType *segmentation = nullptr )
     {
-    for( unsigned int i = 0; i < imageList.size(); i++ )
-      {
-      this->m_AtlasImages.push_back( imageList );
-      }
+    this->m_AtlasImages.push_back( imageList );
+
     if( this->m_NumberOfAtlasModalities == 0 )
       {
       itkDebugMacro( "Setting the number of modalities to " << this->m_NumberOfAtlasModalities );
