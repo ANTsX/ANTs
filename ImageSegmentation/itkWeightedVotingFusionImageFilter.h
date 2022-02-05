@@ -332,7 +332,7 @@ private:
 
   void ThreadedGenerateDataForReconstruction( const RegionType &, ThreadIdType );
 
-  VectorType NonNegativeLeastSquares( const MatrixType, const VectorType, const RealType );
+  VectorType NonNegativeLeastSquares( const MatrixType &, const VectorType &, const RealType );
 
   void UpdateInputs();
 

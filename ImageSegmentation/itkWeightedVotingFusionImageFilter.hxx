@@ -878,7 +878,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
 template <typename TInputImage, typename TOutputImage>
 typename WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::VectorType
 WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
-::NonNegativeLeastSquares( const MatrixType A, const VectorType y, const RealType tolerance )
+::NonNegativeLeastSquares( const MatrixType & A, const VectorType & y, const RealType tolerance )
 {
   // Algorithm based on
   // Lawson, Charles L.; Hanson, Richard J. (1995). Solving Least Squares Problems. SIAM.
