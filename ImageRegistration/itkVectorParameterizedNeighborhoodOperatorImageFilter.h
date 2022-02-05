@@ -52,14 +52,13 @@ namespace itk
  */
 
 template <typename TInputImage, typename TOutputImage, typename TParamImage>
-class VectorParameterizedNeighborhoodOperatorImageFilter final :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+class VectorParameterizedNeighborhoodOperatorImageFilter final : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
   typedef VectorParameterizedNeighborhoodOperatorImageFilter Self;
   typedef ImageToImageFilter<TInputImage, TOutputImage>      Superclass;
-  typedef       SmartPointer<Self>                           Pointer;
+  typedef SmartPointer<Self>                                 Pointer;
   typedef SmartPointer<const Self>                           ConstPointer;
 
   /** Method for creation through the object factory. */
@@ -74,46 +73,46 @@ public:
   typedef typename TOutputImage::Pointer           OutputImagePointer;
   typedef typename TOutputImage::PixelType         OutputPixelType;
   typedef typename TOutputImage::InternalPixelType OutputInternalPixelType;
-  typedef typename  TInputImage::PixelType         InputPixelType;
-  typedef typename  TInputImage::InternalPixelType InputInternalPixelType;
+  typedef typename TInputImage::PixelType          InputPixelType;
+  typedef typename TInputImage::InternalPixelType  InputInternalPixelType;
   typedef typename OutputPixelType::ValueType      ScalarValueType;
   typedef TParamImage                              ParameterImageType;
   typedef typename TParamImage::Pointer            ParameterImagePointer;
   typedef typename TParamImage::PixelType          ParameterImageTypePixelType;
 
   /** Determine image dimension. */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TOutputImage::ImageDimension );
+  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
 
   /** Image typedef support */
   typedef TInputImage  InputImageType;
   typedef TOutputImage OutputImageType;
 
   /** Typedef for generic boundary condition pointer */
-  typedef ImageBoundaryCondition<OutputImageType> *
-    ImageBoundaryConditionPointerType;
+  typedef ImageBoundaryCondition<OutputImageType> * ImageBoundaryConditionPointerType;
 
   /** Superclass typedefs. */
   typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
   typedef itk::GaussianOperator<ScalarValueType, itkGetStaticConstMacro(ImageDimension)> OperatorType;
-//  Neighborhood<ScalarValueType, itkGetStaticConstMacro(ImageDimension)>
+  //  Neighborhood<ScalarValueType, itkGetStaticConstMacro(ImageDimension)>
 
   /** Sets the operator that is used to filter the image. Note
    * that the operator is stored as an internal COPY (it
    * is not part of the pipeline). */
-  void SetOperator(OperatorType & p)
+  void
+  SetOperator(OperatorType & p)
   {
     m_Operator = p;
     this->Modified();
   }
 
   virtual /** Allows a user to override the internal boundary condition. Care should be
-   * be taken to ensure that the overriding boundary condition is a persistent
-   * object during the time it is referenced.  The overriding condition
-   * can be of a different type than the default type as long as it is
-   * a subclass of ImageBoundaryCondition. */
-  void OverrideBoundaryCondition(const ImageBoundaryConditionPointerType i)
+           * be taken to ensure that the overriding boundary condition is a persistent
+           * object during the time it is referenced.  The overriding condition
+           * can be of a different type than the default type as long as it is
+           * a subclass of ImageBoundaryCondition. */
+    void
+    OverrideBoundaryCondition(const ImageBoundaryConditionPointerType i)
   {
     m_BoundsCondition = i;
   }
@@ -125,9 +124,11 @@ public:
    * execution model.
    *
    * \sa ProcessObject::GenerateInputRequestedRegion() */
-  void GenerateInputRequestedRegion() override;
+  void
+  GenerateInputRequestedRegion() override;
 
-  void SetParameterImage( ParameterImagePointer I)
+  void
+  SetParameterImage(ParameterImagePointer I)
   {
     m_ParameterImage = I;
   }
@@ -139,9 +140,7 @@ protected:
     this->DynamicMultiThreadingOff();
   }
 
-  virtual ~VectorParameterizedNeighborhoodOperatorImageFilter() override
-  {
-  }
+  virtual ~VectorParameterizedNeighborhoodOperatorImageFilter() override {}
 
   /** VectorParameterizedNeighborhoodOperatorImageFilter can be implemented as a
    * multithreaded filter.  Therefore, this implementation provides a
@@ -153,16 +152,19 @@ protected:
    * "outputRegionForThread"
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId ) override;
+  void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId) override;
 
-  void PrintSelf(std::ostream& os, Indent indent) const override
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override
   {
     Superclass::PrintSelf(os, indent);
   }
 
 private:
   VectorParameterizedNeighborhoodOperatorImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   /** Pointer to the internal operator used to filter the image. */
   OperatorType m_Operator;
@@ -176,7 +178,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkVectorParameterizedNeighborhoodOperatorImageFilter.hxx"
+#  include "itkVectorParameterizedNeighborhoodOperatorImageFilter.hxx"
 #endif
 
 #endif

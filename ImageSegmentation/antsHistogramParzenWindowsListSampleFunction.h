@@ -32,21 +32,19 @@ namespace Statistics
  */
 
 template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
-class HistogramParzenWindowsListSampleFunction final
-  : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
+class HistogramParzenWindowsListSampleFunction final : public ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:
-  typedef HistogramParzenWindowsListSampleFunction Self;
-  typedef ListSampleFunction
-    <TListSample, TOutput, TCoordRep>                      Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef HistogramParzenWindowsListSampleFunction            Self;
+  typedef ListSampleFunction<TListSample, TOutput, TCoordRep> Superclass;
+  typedef SmartPointer<Self>                                  Pointer;
+  typedef SmartPointer<const Self>                            ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( HistogramParzenWindowsListSampleFunction, ListSampleFunction );
+  itkTypeMacro(HistogramParzenWindowsListSampleFunction, ListSampleFunction);
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;
@@ -59,36 +57,39 @@ public:
   typedef TOutput RealType;
   typedef TOutput OutputType;
 
-  typedef Image<RealType, 1> HistogramImageType;
-  typedef BSplineInterpolateImageFunction<HistogramImageType>
-    InterpolatorType;
-  typedef LinearInterpolateImageFunction<HistogramImageType>
-    LInterpolatorType;
-  typedef typename InterpolatorType::Pointer InterpolatorPointer;
+  typedef Image<RealType, 1>                                  HistogramImageType;
+  typedef BSplineInterpolateImageFunction<HistogramImageType> InterpolatorType;
+  typedef LinearInterpolateImageFunction<HistogramImageType>  LInterpolatorType;
+  typedef typename InterpolatorType::Pointer                  InterpolatorPointer;
 
   /** Helper functions */
 
-  itkSetMacro( Sigma, RealType );
-  itkGetConstMacro( Sigma, RealType );
+  itkSetMacro(Sigma, RealType);
+  itkGetConstMacro(Sigma, RealType);
 
-  itkSetMacro( NumberOfHistogramBins, unsigned int );
-  itkGetConstMacro( NumberOfHistogramBins, unsigned int );
+  itkSetMacro(NumberOfHistogramBins, unsigned int);
+  itkGetConstMacro(NumberOfHistogramBins, unsigned int);
 
-  void SetInputListSample( const InputListSampleType * ptr ) override;
+  void
+  SetInputListSample(const InputListSampleType * ptr) override;
 
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override;
+  TOutput
+  Evaluate(const InputMeasurementVectorType & measurement) const override;
 
 protected:
   HistogramParzenWindowsListSampleFunction();
   ~HistogramParzenWindowsListSampleFunction() override;
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData();
+  void
+  GenerateData();
 
 private:
   // purposely not implemented
-  HistogramParzenWindowsListSampleFunction( const Self & );
-  void operator=( const Self & );
+  HistogramParzenWindowsListSampleFunction(const Self &);
+  void
+  operator=(const Self &);
 
   unsigned int                                      m_NumberOfHistogramBins;
   RealType                                          m_Sigma;
@@ -100,7 +101,7 @@ private:
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsHistogramParzenWindowsListSampleFunction.hxx"
+#  include "antsHistogramParzenWindowsListSampleFunction.hxx"
 #endif
 
 #endif

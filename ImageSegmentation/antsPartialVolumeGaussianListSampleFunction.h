@@ -30,22 +30,19 @@ namespace Statistics
  */
 
 template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
-class PartialVolumeGaussianListSampleFunction final
-  : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
+class PartialVolumeGaussianListSampleFunction final : public ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:
-  typedef PartialVolumeGaussianListSampleFunction Self;
-  typedef ListSampleFunction
-    <TListSample, TOutput, TCoordRep>                      Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef PartialVolumeGaussianListSampleFunction             Self;
+  typedef ListSampleFunction<TListSample, TOutput, TCoordRep> Superclass;
+  typedef SmartPointer<Self>                                  Pointer;
+  typedef SmartPointer<const Self>                            ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( PartialVolumeGaussianListSampleFunction,
-                ListSampleFunction );
+  itkTypeMacro(PartialVolumeGaussianListSampleFunction, ListSampleFunction);
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;
@@ -54,10 +51,9 @@ public:
   typedef typename Superclass::ListSampleWeightArrayType ListSampleWeightArrayType;
 
   /** Gaussian typedefs */
-  typedef typename itk::Statistics::GaussianMembershipFunction
-    <InputMeasurementVectorType>                            GaussianType;
-  typedef typename GaussianType::MeanVectorType       MeanType;
-  typedef typename GaussianType::CovarianceMatrixType CovarianceType;
+  typedef typename itk::Statistics::GaussianMembershipFunction<InputMeasurementVectorType> GaussianType;
+  typedef typename GaussianType::MeanVectorType                                            MeanType;
+  typedef typename GaussianType::CovarianceMatrixType                                      CovarianceType;
 
   /** List sample typedef support. */
   typedef TListSample ListSampleType;
@@ -66,38 +62,44 @@ public:
   typedef TOutput RealType;
   typedef TOutput OutputType;
 
-  void SetIndexedInputListSample(unsigned int d, const InputListSampleType * ptr ) override;
+  void
+  SetIndexedInputListSample(unsigned int d, const InputListSampleType * ptr) override;
 
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override;
+  TOutput
+  Evaluate(const InputMeasurementVectorType & measurement) const override;
 
 protected:
   PartialVolumeGaussianListSampleFunction();
   ~PartialVolumeGaussianListSampleFunction() override;
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData();
+  void
+  GenerateData();
 
 private:
   // purposely not implemented
-  PartialVolumeGaussianListSampleFunction( const Self & );
-  void operator=( const Self & );
+  PartialVolumeGaussianListSampleFunction(const Self &);
+  void
+  operator=(const Self &);
 
-  void CalculateGaussianParametersFromListSample( const InputListSampleType *, const ListSampleWeightArrayType *,
-                                                  MeanType & );
+  void
+  CalculateGaussianParametersFromListSample(const InputListSampleType *, const ListSampleWeightArrayType *, MeanType &);
 
-  void CalculateGaussianParameters();
+  void
+  CalculateGaussianParameters();
 
   MeanType m_Mean[2];
   bool     m_IsCalculated[2];
 
-  typename GaussianType::Pointer                            m_Gaussian;
+  typename GaussianType::Pointer m_Gaussian;
 };
 } // end of namespace Statistics
 } // end of namespace ants
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsPartialVolumeGaussianListSampleFunction.hxx"
+#  include "antsPartialVolumeGaussianListSampleFunction.hxx"
 #endif
 
 #endif

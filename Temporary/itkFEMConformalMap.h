@@ -76,7 +76,6 @@ template <typename TSurface, typename TImage, unsigned int TDimension = 3>
 class FEMConformalMap : public ProcessObject
 {
 public:
-
   /** Standard class typedefs. */
   typedef FEMConformalMap          Self;
   typedef ProcessObject            Superclass;
@@ -101,15 +100,14 @@ public:
   typedef typename SurfaceType::CellsContainer::Iterator InputCellsContainerIterator;
 
   /** Image dimension. */
-//  static constexpr unsigned int ImageDimension = TImage::ImageDimension;
+  //  static constexpr unsigned int ImageDimension = TImage::ImageDimension;
   static constexpr unsigned int ImageDimension = TDimension;
   static constexpr unsigned int SurfaceDimension = TDimension;
 
-  typedef double               RealType;
-  typedef vnl_vector<RealType> VectorType;
-  typedef vnl_vector_fixed<RealType, itkGetStaticConstMacro(ImageDimension)>
-    FixedVectorType;
-  typedef vnl_matrix<double> MatrixType;
+  typedef double                                                             RealType;
+  typedef vnl_vector<RealType>                                               VectorType;
+  typedef vnl_vector_fixed<RealType, itkGetStaticConstMacro(ImageDimension)> FixedVectorType;
+  typedef vnl_matrix<double>                                                 MatrixType;
 
   /** FEM types */
   typedef itk::fem::MaterialLinearElasticity                   MaterialType;
@@ -119,10 +117,10 @@ public:
   typedef itk::fem::Element3DC0LinearTriangularMembrane        ElementType1;
 
   /** Set input parameter file */
-  itkSetStringMacro( ParameterFileName );
+  itkSetStringMacro(ParameterFileName);
 
   /** Set input parameter file */
-  itkGetStringMacro( ParameterFileName );
+  itkGetStringMacro(ParameterFileName);
 
   itkGetMacro(Sigma, RealType);
   itkSetMacro(Sigma, RealType);
@@ -135,66 +133,80 @@ public:
   itkGetMacro(SphereImage, ImageTypePointer);
   itkSetMacro(SphereImage, ImageTypePointer);
   itkSetMacro(SouthPole, int);
-  void SetNorthPole(int p)
+  void
+  SetNorthPole(int p)
   {
-    if( p % 2 == 0 )
-      {
+    if (p % 2 == 0)
+    {
       m_NorthPole = p;
       m_SouthPole = p + 1;
-      }
+    }
     else
-      {
+    {
       m_NorthPole = p - 1;
       m_SouthPole = p - 1;
-      }
+    }
   }
 
-  void SetDebug(bool b)
+  void
+  SetDebug(bool b)
   {
     m_Debug = b;
   }
 
-  void SetReadFromFile(bool b)
+  void
+  SetReadFromFile(bool b)
   {
     m_ReadFromFile = b;
   }
 
-  void FindPoles(int dim);
+  void
+  FindPoles(int dim);
 
-  void FixPoles(int dim);
+  void
+  FixPoles(int dim);
 
-  void ConformalParameterize();
+  void
+  ConformalParameterize();
 
-  void ConformalMap();
+  void
+  ConformalMap();
 
-  void ComputeStereographicCoordinates();
+  void
+  ComputeStereographicCoordinates();
 
-  void MapStereographicCoordinatesToImage(int dim);
+  void
+  MapStereographicCoordinatesToImage(int dim);
 
-  void MapImageToSphere(ImageType* img, float rad );
+  void
+  MapImageToSphere(ImageType * img, float rad);
 
-  void MapCheckerboardToImage(float increment);
+  void
+  MapCheckerboardToImage(float increment);
 
-  void BuildOutputMeshes(typename TImage::Pointer image);
+  void
+  BuildOutputMeshes(typename TImage::Pointer image);
 
-  vtkPolyData* m_ExtractedSurfaceMesh;
-  vtkPolyData* m_VtkSurfaceMesh;
+  vtkPolyData * m_ExtractedSurfaceMesh;
+  vtkPolyData * m_VtkSurfaceMesh;
+
 protected:
+  bool
+  GenerateSystemFromSurfaceMesh();
 
-  bool GenerateSystemFromSurfaceMesh();
+  bool
+  GenerateSystemFromVtkSurfaceMesh();
 
-  bool GenerateSystemFromVtkSurfaceMesh();
+  void
+  ApplyRealForces(int dim);
 
-  void ApplyRealForces(int dim);
-
-  void ApplyImaginaryForces(int dim);
+  void
+  ApplyImaginaryForces(int dim);
 
   FEMConformalMap();
-  virtual ~FEMConformalMap()
-  {
-  };
-private:
+  virtual ~FEMConformalMap(){};
 
+private:
   RealType    m_Sigma;
   RealType    m_Pi;
   std::string m_ParameterFileName;
@@ -220,7 +232,7 @@ private:
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkFEMConformalMap.cxx"
+#  include "itkFEMConformalMap.cxx"
 #endif
 
 #endif

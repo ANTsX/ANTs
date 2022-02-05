@@ -32,8 +32,8 @@ namespace itk
  * Constructor
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::AvantsMutualInformationRegistrationFunction()
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::
+  AvantsMutualInformationRegistrationFunction()
 {
   this->Superclass::m_NormalizeGradient = true;
   this->m_NumberOfSpatialSamples = 5000;
@@ -70,15 +70,12 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   m_MovingImageGradientCalculator = GradientCalculatorType::New();
   this->m_Padding = 2;
 
-  typename DefaultInterpolatorType::Pointer interp =  DefaultInterpolatorType::New();
+  typename DefaultInterpolatorType::Pointer interp = DefaultInterpolatorType::New();
   typename DefaultInterpolatorType::Pointer interp2 = DefaultInterpolatorType::New();
 
-  m_MovingImageInterpolator = static_cast<InterpolatorType *>(
-      interp.GetPointer() );
-  m_FixedImageInterpolator = static_cast<InterpolatorType *>(
-      interp2.GetPointer() );
-  m_Interpolator = static_cast<InterpolatorType *>(
-      interp.GetPointer() );
+  m_MovingImageInterpolator = static_cast<InterpolatorType *>(interp.GetPointer());
+  m_FixedImageInterpolator = static_cast<InterpolatorType *>(interp2.GetPointer());
+  m_Interpolator = static_cast<InterpolatorType *>(interp.GetPointer());
 
   this->m_RobustnessParameter = -1.e19;
 }
@@ -88,8 +85,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::PrintSelf(std::ostream& os, Indent indent) const
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::PrintSelf(
+  std::ostream & os,
+  Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
 
@@ -122,8 +120,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::InitializeIteration()
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::InitializeIteration()
 {
   m_CubicBSplineKernel = CubicBSplineFunctionType::New();
   m_CubicBSplineDerivativeKernel = CubicBSplineDerivativeFunctionType::New();
@@ -134,7 +131,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   pdfinterpolator3 = pdfintType2::New();
   m_DerivativeCalculator = DerivativeFunctionType::New();
 
-//  this->ComputeMetricImage();
+  //  this->ComputeMetricImage();
 
   /*
   bool makenewimage=false;
@@ -154,21 +151,21 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
     for( it.GoToBegin(); !it.IsAtEnd(); ++it ) it.Set(0);
   }
   */
-  m_FixedImageGradientCalculator->SetInputImage( this->m_FixedImage );
-  m_MovingImageGradientCalculator->SetInputImage( this->m_MovingImage );
-  m_FixedImageInterpolator->SetInputImage( this->m_FixedImage );
-  m_Interpolator->SetInputImage( this->m_MovingImage );
+  m_FixedImageGradientCalculator->SetInputImage(this->m_FixedImage);
+  m_MovingImageGradientCalculator->SetInputImage(this->m_MovingImage);
+  m_FixedImageInterpolator->SetInputImage(this->m_FixedImage);
+  m_Interpolator->SetInputImage(this->m_MovingImage);
 
-  m_FixedImageSpacing    = this->m_FixedImage->GetSpacing();
-  m_FixedImageOrigin     = this->m_FixedImage->GetOrigin();
-  m_Normalizer      = 0.0;
+  m_FixedImageSpacing = this->m_FixedImage->GetSpacing();
+  m_FixedImageOrigin = this->m_FixedImage->GetOrigin();
+  m_Normalizer = 0.0;
   m_NumberOfSpatialSamples = 1;
-  for( unsigned int k = 0; k < ImageDimension; k++ )
-    {
-    m_Normalizer += static_cast<float>( itk::Math::sqr( m_FixedImageSpacing[k] ) );
+  for (unsigned int k = 0; k < ImageDimension; k++)
+  {
+    m_Normalizer += static_cast<float>(itk::Math::sqr(m_FixedImageSpacing[k]));
     m_NumberOfSpatialSamples *= this->m_FixedImage->GetLargestPossibleRegion().GetSize()[k];
-    }
-  m_Normalizer /= static_cast<float>( ImageDimension );
+  }
+  m_Normalizer /= static_cast<float>(ImageDimension);
 
   /**
    * Compute binsize for the histograms.
@@ -200,47 +197,46 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   double fixedImageMax = NumericTraits<double>::NonpositiveMin();
 
   typedef ImageRegionConstIterator<MovingImageType> MovingIteratorType;
-  MovingIteratorType movingImageIterator(
-    this->m_MovingImage, this->m_MovingImage->GetBufferedRegion() );
-  for( movingImageIterator.GoToBegin();
-       !movingImageIterator.IsAtEnd(); ++movingImageIterator )
-    {
+  MovingIteratorType movingImageIterator(this->m_MovingImage, this->m_MovingImage->GetBufferedRegion());
+  for (movingImageIterator.GoToBegin(); !movingImageIterator.IsAtEnd(); ++movingImageIterator)
+  {
     bool takesample = true;
 
-    if( this->m_FixedImageMask )
+    if (this->m_FixedImageMask)
+    {
+      if (this->m_FixedImageMask->GetPixel(movingImageIterator.GetIndex()) <
+          static_cast<typename FixedImageType::PixelType>(1.e-6))
       {
-      if( this->m_FixedImageMask->GetPixel( movingImageIterator.GetIndex() ) < static_cast<typename FixedImageType::PixelType>( 1.e-6 ) )
-        {
         takesample = false;
-        }
-      }
-
-    if( takesample )
-      {
-      double sample = static_cast<double>( movingImageIterator.Get() );
-      double fsample = static_cast<double>( this->m_FixedImage->GetPixel( movingImageIterator.GetIndex() ) );
-
-      if( sample < movingImageMin )
-        {
-        movingImageMin = sample;
-        }
-
-      if( sample > movingImageMax )
-        {
-        movingImageMax = sample;
-        }
-
-      if( fsample < fixedImageMin )
-        {
-        fixedImageMin = fsample;
-        }
-
-      if( fsample > fixedImageMax )
-        {
-        fixedImageMax = fsample;
-        }
       }
     }
+
+    if (takesample)
+    {
+      double sample = static_cast<double>(movingImageIterator.Get());
+      double fsample = static_cast<double>(this->m_FixedImage->GetPixel(movingImageIterator.GetIndex()));
+
+      if (sample < movingImageMin)
+      {
+        movingImageMin = sample;
+      }
+
+      if (sample > movingImageMax)
+      {
+        movingImageMax = sample;
+      }
+
+      if (fsample < fixedImageMin)
+      {
+        fixedImageMin = fsample;
+      }
+
+      if (fsample > fixedImageMax)
+      {
+        fixedImageMax = fsample;
+      }
+    }
+  }
   this->m_MovingImageTrueMax = movingImageMax;
   this->m_FixedImageTrueMax = fixedImageMax;
   this->m_MovingImageTrueMin = movingImageMin;
@@ -272,9 +268,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   // Instantiate a region, index, size
   typedef typename MarginalPDFType::RegionType MarginalPDFRegionType;
   typedef typename MarginalPDFType::SizeType   MarginalPDFSizeType;
-  MarginalPDFRegionType marginalPDFRegion;
-  MarginalPDFIndexType  marginalPDFIndex;
-  MarginalPDFSizeType   marginalPDFSize;
+  MarginalPDFRegionType                        marginalPDFRegion;
+  MarginalPDFIndexType                         marginalPDFIndex;
+  MarginalPDFSizeType                          marginalPDFSize;
 
   // the marginalPDF is of size NumberOfBins x NumberOfBins
   marginalPDFSize.Fill(m_NumberOfHistogramBins);
@@ -305,10 +301,10 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   // respectively.
 
   m_NormalizeMetric = 1.0;
-  for( unsigned int i = 0; i < ImageDimension; i++ )
-    {
+  for (unsigned int i = 0; i < ImageDimension; i++)
+  {
     m_NormalizeMetric *= this->m_FixedImage->GetLargestPossibleRegion().GetSize()[i];
-    }
+  }
 
   this->GetProbabilities();
   this->ComputeMutualInformation();
@@ -327,43 +323,42 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::GetProbabilities()
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::GetProbabilities()
 {
   typedef ImageRegionConstIteratorWithIndex<FixedImageType> RandomIterator;
-  RandomIterator randIter( this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion() );
+  RandomIterator randIter(this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion());
   this->m_FixedImageMarginalPDF->FillBuffer(0);
   this->m_MovingImageMarginalPDF->FillBuffer(0);
 
   // Reset the joint pdfs to zero
-  m_JointPDF->FillBuffer( 0.0 );
+  m_JointPDF->FillBuffer(0.0);
 
   unsigned long  nSamples = 0;
-  RandomIterator iter( this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion() );
-  for( iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
+  RandomIterator iter(this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion());
+  for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
+  {
     bool takesample = true;
-    if( this->m_FixedImageMask )
+    if (this->m_FixedImageMask)
+    {
+      if (this->m_FixedImageMask->GetPixel(iter.GetIndex()) < static_cast<typename FixedImageType::PixelType>(1.e-6))
       {
-      if( this->m_FixedImageMask->GetPixel( iter.GetIndex() ) < static_cast<typename FixedImageType::PixelType>( 1.e-6 ) )
-        {
         takesample = false;
-        }
       }
+    }
 
-    if( takesample )
-      {
+    if (takesample)
+    {
       // Get sampled index
       FixedImageIndexType index = iter.GetIndex();
-/*    bool inimage=true;
-    for (unsigned int dd=0; dd<ImageDimension; dd++)
-      {
-        if ( index[dd] < 1 ||    index[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd]-1) )
-          inimage=false;
-      }
-*/
-      double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( index )  );
-      double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( index )  );
+      /*    bool inimage=true;
+          for (unsigned int dd=0; dd<ImageDimension; dd++)
+            {
+              if ( index[dd] < 1 ||    index[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd]-1) )
+                inimage=false;
+            }
+      */
+      double movingImageValue = this->GetMovingParzenTerm(this->m_MovingImage->GetPixel(index));
+      double fixedImageValue = this->GetFixedParzenTerm(this->m_FixedImage->GetPixel(index));
 
       /** add the paired intensity points to the joint histogram */
       JointPDFPointType jointPDFpoint;
@@ -374,94 +369,93 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
       this->m_JointPDF->SetPixel(jointPDFIndex, this->m_JointPDF->GetPixel(jointPDFIndex) + 1);
 
       ++nSamples;
-      }
     }
+  }
 
   /**
    * Normalize the PDFs, compute moving image marginal PDF
    *
    */
   typedef ImageRegionIterator<JointPDFType> JointPDFIteratorType;
-  JointPDFIteratorType jointPDFIterator( m_JointPDF, m_JointPDF->GetBufferedRegion() );
+  JointPDFIteratorType                      jointPDFIterator(m_JointPDF, m_JointPDF->GetBufferedRegion());
 
   // Compute joint PDF normalization factor (to ensure joint PDF sum adds to 1.0)
   double jointPDFSum = 0.0;
   jointPDFIterator.GoToBegin();
-  while( !jointPDFIterator.IsAtEnd() )
-    {
+  while (!jointPDFIterator.IsAtEnd())
+  {
     float temp = jointPDFIterator.Get();
-    jointPDFSum += static_cast<double>( temp );
+    jointPDFSum += static_cast<double>(temp);
     ++jointPDFIterator;
-    }
+  }
 
-// of derivatives
-  if( itk::Math::FloatAlmostEqual( jointPDFSum, itk::NumericTraits<double>::ZeroValue() ) )
-    {
-    itkExceptionMacro( "Joint PDF summed to zero" );
-    }
+  // of derivatives
+  if (itk::Math::FloatAlmostEqual(jointPDFSum, itk::NumericTraits<double>::ZeroValue()))
+  {
+    itkExceptionMacro("Joint PDF summed to zero");
+  }
 
   // Normalize the PDF bins
   jointPDFIterator.GoToEnd();
-  while( !jointPDFIterator.IsAtBegin() )
-    {
+  while (!jointPDFIterator.IsAtBegin())
+  {
     --jointPDFIterator;
-    jointPDFIterator.Value() /= static_cast<PDFValueType>( jointPDFSum );
-    }
+    jointPDFIterator.Value() /= static_cast<PDFValueType>(jointPDFSum);
+  }
 
   constexpr bool smoothjh = true;
-  if( smoothjh )
-    {
+  if (smoothjh)
+  {
     typedef DiscreteGaussianImageFilter<JointPDFType, JointPDFType> dgtype;
-    typename dgtype::Pointer dg = dgtype::New();
+    typename dgtype::Pointer                                        dg = dgtype::New();
     dg->SetInput(this->m_JointPDF);
     dg->SetVariance(1.5);
     dg->SetUseImageSpacing(false);
     dg->SetMaximumError(.01f);
     dg->Update();
     this->m_JointPDF = dg->GetOutput();
-    }
+  }
 
   // Compute moving image marginal PDF by summing over fixed image bins.
   typedef ImageLinearIteratorWithIndex<JointPDFType> JointPDFLinearIterator;
-  JointPDFLinearIterator linearIter(
-    m_JointPDF, m_JointPDF->GetBufferedRegion() );
-  linearIter.SetDirection( 0 );
+  JointPDFLinearIterator                             linearIter(m_JointPDF, m_JointPDF->GetBufferedRegion());
+  linearIter.SetDirection(0);
   linearIter.GoToBegin();
   unsigned int fixedIndex = 0;
-  while( !linearIter.IsAtEnd() )
-    {
+  while (!linearIter.IsAtEnd())
+  {
     double sum = 0.0;
-    while( !linearIter.IsAtEndOfLine() )
-      {
-      sum += static_cast<double>( linearIter.Get() );
+    while (!linearIter.IsAtEndOfLine())
+    {
+      sum += static_cast<double>(linearIter.Get());
       ++linearIter;
-      }
+    }
 
     MarginalPDFIndexType mind;
     mind[0] = fixedIndex;
-    m_FixedImageMarginalPDF->SetPixel(mind, static_cast<PDFValueType>(sum) );
+    m_FixedImageMarginalPDF->SetPixel(mind, static_cast<PDFValueType>(sum));
     linearIter.NextLine();
     ++fixedIndex;
-    }
+  }
 
-  linearIter.SetDirection( 1 );
+  linearIter.SetDirection(1);
   linearIter.GoToBegin();
   unsigned int movingIndex = 0;
-  while( !linearIter.IsAtEnd() )
-    {
+  while (!linearIter.IsAtEnd())
+  {
     double sum = 0.0;
-    while( !linearIter.IsAtEndOfLine() )
-      {
-      sum += static_cast<double>( linearIter.Get() );
+    while (!linearIter.IsAtEndOfLine())
+    {
+      sum += static_cast<double>(linearIter.Get());
       ++linearIter;
-      }
+    }
 
     MarginalPDFIndexType mind;
     mind[0] = movingIndex;
-    m_MovingImageMarginalPDF->SetPixel(mind, static_cast<PDFValueType>(sum) );
+    m_MovingImageMarginalPDF->SetPixel(mind, static_cast<PDFValueType>(sum));
     linearIter.NextLine();
     ++movingIndex;
-    }
+  }
 }
 
 /**
@@ -469,81 +463,83 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 double
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::GetValueAndDerivative(IndexType oindex,
-                        MeasureType & /* valuei */,
-                        DerivativeType & /* derivative1 */, DerivativeType & /* derivative2 */)
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::GetValueAndDerivative(
+  IndexType oindex,
+  MeasureType & /* valuei */,
+  DerivativeType & /* derivative1 */,
+  DerivativeType & /* derivative2 */)
 {
   double         value = 0;
   DerivativeType zero(ImageDimension);
 
   zero.Fill(0);
 
-  double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( oindex )  );
-  double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( oindex )  );
+  double movingImageValue = this->GetMovingParzenTerm(this->m_MovingImage->GetPixel(oindex));
+  double fixedImageValue = this->GetFixedParzenTerm(this->m_FixedImage->GetPixel(oindex));
 
   JointPDFPointType pdfind;
   this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, pdfind);
   const double jointPDFValue = pdfinterpolator->Evaluate(pdfind);
-  const double dJPDF = this->ComputeJointPDFDerivative( pdfind, 0, 0 );
+  const double dJPDF = this->ComputeJointPDFDerivative(pdfind, 0, 0);
 
-  typename   pdfintType2::ContinuousIndexType  mind;
+  typename pdfintType2::ContinuousIndexType mind;
   mind[0] = pdfind[0];
   const double fixedImagePDFValue = pdfinterpolator2->Evaluate(mind);
-  const double dFmPDF = this->ComputeFixedImageMarginalPDFDerivative( mind, 0 );
+  const double dFmPDF = this->ComputeFixedImageMarginalPDFDerivative(mind, 0);
 
   const double eps = 1.e-16;
-  if( jointPDFValue > eps &&  (fixedImagePDFValue) > 0 )
-    {
+  if (jointPDFValue > eps && (fixedImagePDFValue) > 0)
+  {
     const double pRatio = std::log(jointPDFValue) - std::log(fixedImagePDFValue);
     const double term1 = dJPDF * pRatio;
-    const double term2 = std::log( (double)2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
-    value =  (term2 - term1);
-    }  // end if-block to check non-zero bin contribution
+    const double term2 = std::log((double)2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
+    value = (term2 - term1);
+  } // end if-block to check non-zero bin contribution
   else
-    {
+  {
     value = 0;
-    }
+  }
   return value;
 }
 
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 double
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::GetValueAndDerivativeInv(IndexType oindex,
-                           MeasureType & /* valuei */,
-                           DerivativeType & /* derivative1 */, DerivativeType & /* derivative2 */)
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::GetValueAndDerivativeInv(
+  IndexType oindex,
+  MeasureType & /* valuei */,
+  DerivativeType & /* derivative1 */,
+  DerivativeType & /* derivative2 */)
 {
   double         value = 0;
   DerivativeType zero(ImageDimension);
 
   zero.Fill(0);
 
-  double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( oindex )  );
-  double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( oindex )  );
+  double movingImageValue = this->GetMovingParzenTerm(this->m_MovingImage->GetPixel(oindex));
+  double fixedImageValue = this->GetFixedParzenTerm(this->m_FixedImage->GetPixel(oindex));
 
   JointPDFPointType pdfind;
   this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, pdfind);
   const double jointPDFValue = pdfinterpolator->Evaluate(pdfind);
-  const double dJPDF = this->ComputeJointPDFDerivative( pdfind, 0, 1 );
+  const double dJPDF = this->ComputeJointPDFDerivative(pdfind, 0, 1);
 
-  typename   pdfintType2::ContinuousIndexType  mind;
+  typename pdfintType2::ContinuousIndexType mind;
   mind[0] = pdfind[1];
   const double movingImagePDFValue = pdfinterpolator3->EvaluateAtContinuousIndex(mind);
-  const double dMmPDF = this->ComputeMovingImageMarginalPDFDerivative( mind, 0 );
+  const double dMmPDF = this->ComputeMovingImageMarginalPDFDerivative(mind, 0);
 
   const double eps = 1.e-16;
-  if( jointPDFValue > eps &&  (movingImagePDFValue) > 0 )
-    {
+  if (jointPDFValue > eps && (movingImagePDFValue) > 0)
+  {
     const double pRatio = std::log(jointPDFValue) - std::log(movingImagePDFValue);
     const double term1 = dJPDF * pRatio;
-    const double term2 = std::log( (double)2) * dMmPDF * jointPDFValue / movingImagePDFValue;
-    value =  (term2 - term1);
-    } // end if-block to check non-zero bin contribution
+    const double term2 = std::log((double)2) * dMmPDF * jointPDFValue / movingImagePDFValue;
+    value = (term2 - term1);
+  } // end if-block to check non-zero bin contribution
   else
-    {
+  {
     value = 0;
-    }
+  }
 
   return value;
 }

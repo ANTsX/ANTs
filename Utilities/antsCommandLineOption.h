@@ -43,65 +43,67 @@ namespace ants
       -m mutualinformation[parameter1] --optimization gradientdescent"
 */
 
-class OptionFunction final
-  : public       DataObject
+class OptionFunction final : public DataObject
 {
 public:
-  OptionFunction() :
-    m_Name( "" ),
-    m_ArgOrder( 0 ),
-    m_StageID( 0 )
-  {
-  }
-  ~OptionFunction() {};
+  OptionFunction()
+    : m_Name("")
+    , m_ArgOrder(0)
+    , m_StageID(0)
+  {}
+  ~OptionFunction(){};
 
   typedef OptionFunction     Self;
   typedef DataObject         Superclass;
   typedef SmartPointer<Self> Pointer;
 
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
-  itkTypeMacro( Option, DataObject );
+  itkTypeMacro(Option, DataObject);
 
   typedef std::deque<std::string> ParameterStackType;
 
-  itkSetStringMacro( Name );
-  itkGetStringMacro( Name );
-  itkGetMacro( Name, std::string );
+  itkSetStringMacro(Name);
+  itkGetStringMacro(Name);
+  itkGetMacro(Name, std::string);
 
-  itkSetMacro( ArgOrder, unsigned int );
-  itkGetConstMacro( ArgOrder, unsigned int );
+  itkSetMacro(ArgOrder, unsigned int);
+  itkGetConstMacro(ArgOrder, unsigned int);
 
-  itkSetMacro( StageID, unsigned int );
-  itkGetConstMacro( StageID, unsigned int );
+  itkSetMacro(StageID, unsigned int);
+  itkGetConstMacro(StageID, unsigned int);
 
-  ParameterStackType GetParameters()
+  ParameterStackType
+  GetParameters()
   {
     return this->m_Parameters;
   }
 
-  void SetParameters( ParameterStackType parameters )
+  void
+  SetParameters(ParameterStackType parameters)
   {
     this->m_Parameters = parameters;
     this->Modified();
   }
 
-  std::string GetParameter( unsigned int i = 0 )
+  std::string
+  GetParameter(unsigned int i = 0)
   {
-    if( i < this->m_Parameters.size() )
-      {
+    if (i < this->m_Parameters.size())
+    {
       return this->m_Parameters[i];
-      }
+    }
     else
-      {
-      std::string empty( "" );
+    {
+      std::string empty("");
       return empty;
-      }
+    }
   }
 
-  unsigned int GetNumberOfParameters()
+  unsigned int
+  GetNumberOfParameters()
   {
-    return static_cast<unsigned int>( this->m_Parameters.size() );
+    return static_cast<unsigned int>(this->m_Parameters.size());
   }
 
 private:
@@ -111,88 +113,97 @@ private:
   ParameterStackType m_Parameters;
 };
 
-class CommandLineOption final
-  : public       DataObject
+class CommandLineOption final : public DataObject
 {
 public:
   typedef CommandLineOption  Self;
   typedef DataObject         Superclass;
   typedef SmartPointer<Self> Pointer;
 
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
-  itkTypeMacro( Option, DataObject );
+  itkTypeMacro(Option, DataObject);
 
   typedef OptionFunction OptionFunctionType;
 
   typedef std::deque<OptionFunctionType::Pointer> FunctionStackType;
   typedef std::deque<std::string>                 UsageOptionStackType;
 
-  FunctionStackType GetFunctions()
+  FunctionStackType
+  GetFunctions()
   {
     return this->m_OptionFunctions;
   }
 
-  unsigned int GetNumberOfFunctions()
+  unsigned int
+  GetNumberOfFunctions()
   {
-    return static_cast<unsigned int>( this->m_OptionFunctions.size() );
+    return static_cast<unsigned int>(this->m_OptionFunctions.size());
   }
 
-  OptionFunction::Pointer GetFunction( unsigned int i = 0 )
+  OptionFunction::Pointer
+  GetFunction(unsigned int i = 0)
   {
-    if( i < this->m_OptionFunctions.size() )
-      {
+    if (i < this->m_OptionFunctions.size())
+    {
       return this->m_OptionFunctions[i];
-      }
+    }
     else
-      {
+    {
       return nullptr;
-      }
+    }
   }
 
-  UsageOptionStackType GetUsageOptions()
+  UsageOptionStackType
+  GetUsageOptions()
   {
     return this->m_UsageOptions;
   }
 
-  unsigned int GetNumberOfUsageOptions()
+  unsigned int
+  GetNumberOfUsageOptions()
   {
-    return static_cast<unsigned int>( this->m_UsageOptions.size() );
+    return static_cast<unsigned int>(this->m_UsageOptions.size());
   }
 
-  std::string GetUsageOption( unsigned int i = 0 )
+  std::string
+  GetUsageOption(unsigned int i = 0)
   {
-    if( i < this->m_UsageOptions.size() )
-      {
+    if (i < this->m_UsageOptions.size())
+    {
       return this->m_UsageOptions[i];
-      }
+    }
     else
-      {
-      return std::string( "" );
-      }
+    {
+      return std::string("");
+    }
   }
 
-  itkSetMacro( ShortName, char );
-  itkGetConstMacro( ShortName, char );
+  itkSetMacro(ShortName, char);
+  itkGetConstMacro(ShortName, char);
 
-  itkSetStringMacro( LongName );
-  itkGetConstMacro( LongName, std::string );
+  itkSetStringMacro(LongName);
+  itkGetConstMacro(LongName, std::string);
 
-  itkSetStringMacro( Description );
-  itkGetMacro( Description, std::string );
+  itkSetStringMacro(Description);
+  itkGetMacro(Description, std::string);
 
-  void AddFunction( std::string, char, char, unsigned int order = 0 );
+  void
+  AddFunction(std::string, char, char, unsigned int order = 0);
 
-  void AddFunction( std::string s )
+  void
+  AddFunction(std::string s)
   {
-    this->AddFunction( s, '[', ']' );
+    this->AddFunction(s, '[', ']');
   }
 
-  void SetUsageOption( unsigned int, std::string );
+  void
+  SetUsageOption(unsigned int, std::string);
 
 protected:
   CommandLineOption();
-  ~CommandLineOption() {};
+  ~CommandLineOption(){};
+
 private:
   char                 m_ShortName;
   std::string          m_LongName;

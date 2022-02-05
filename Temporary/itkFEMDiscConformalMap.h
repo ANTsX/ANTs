@@ -80,7 +80,6 @@ template <typename TSurface, typename TImage, unsigned int TDimension = 3>
 class FEMDiscConformalMap : public ProcessObject
 {
 public:
-
   /** Standard class typedefs. */
   typedef FEMDiscConformalMap      Self;
   typedef ProcessObject            Superclass;
@@ -101,29 +100,28 @@ public:
   /** Surface (mesh) types. */
   typedef TSurface      SurfaceType;
   typedef SurfaceType * SurfaceTypePointer;
-//  typedef typename SurfaceType::PointType   PointType;
-//  typedef typename SurfaceType::CellsContainerPointer InputCellsContainerPointer;
-//  typedef typename SurfaceType::CellsContainer::Iterator  InputCellsContainerIterator;
+  //  typedef typename SurfaceType::PointType   PointType;
+  //  typedef typename SurfaceType::CellsContainerPointer InputCellsContainerPointer;
+  //  typedef typename SurfaceType::CellsContainer::Iterator  InputCellsContainerIterator;
 
   /** Image dimension. */
-//  static constexpr unsigned int ImageDimension = TImage::ImageDimension;
+  //  static constexpr unsigned int ImageDimension = TImage::ImageDimension;
   static constexpr unsigned int ImageDimension = TDimension;
   static constexpr unsigned int SurfaceDimension = TDimension;
 
-  typedef float                RealType;
-  typedef vnl_vector<RealType> VectorType;
-  typedef vnl_vector_fixed<RealType, itkGetStaticConstMacro(ImageDimension)>
-    FixedVectorType;
-  typedef vnl_matrix<double> MatrixType;
+  typedef float                                                              RealType;
+  typedef vnl_vector<RealType>                                               VectorType;
+  typedef vnl_vector_fixed<RealType, itkGetStaticConstMacro(ImageDimension)> FixedVectorType;
+  typedef vnl_matrix<double>                                                 MatrixType;
 
-  typedef  Image<float, 2>                                   FlatImageType;
-  typedef  typename FlatImageType::Pointer                   FlatImageTypePointer;
-  typedef  GraphSearchNode<float, float, 3>                  GraphSearchNodeType;
-  typedef  typename GraphSearchNodeType::Pointer             GraphSearchNodePointer;
-  typedef  typename GraphSearchNodeType::NodeLocationType    NodeLocationType;
-  typedef  ManifoldIntegrationAlgorithm<GraphSearchNodeType> ManifoldIntegratorType;
-//  typedef  TriangulatedDijkstrasAlgorithm<GraphSearchNodeType>  ManifoldIntegratorType;
-  typedef  typename ManifoldIntegratorType::Pointer ManifoldIntegratorTypePointer;
+  typedef Image<float, 2>                                   FlatImageType;
+  typedef typename FlatImageType::Pointer                   FlatImageTypePointer;
+  typedef GraphSearchNode<float, float, 3>                  GraphSearchNodeType;
+  typedef typename GraphSearchNodeType::Pointer             GraphSearchNodePointer;
+  typedef typename GraphSearchNodeType::NodeLocationType    NodeLocationType;
+  typedef ManifoldIntegrationAlgorithm<GraphSearchNodeType> ManifoldIntegratorType;
+  //  typedef  TriangulatedDijkstrasAlgorithm<GraphSearchNodeType>  ManifoldIntegratorType;
+  typedef typename ManifoldIntegratorType::Pointer ManifoldIntegratorTypePointer;
 
   /** FEM types */
   typedef itk::fem::MaterialLinearElasticity                   MaterialType;
@@ -133,10 +131,10 @@ public:
   typedef itk::fem::Element3DC0LinearTriangularMembrane        ElementType1;
 
   /** Set input parameter file */
-  itkSetStringMacro( ParameterFileName );
+  itkSetStringMacro(ParameterFileName);
 
   /** Set input parameter file */
-  itkGetStringMacro( ParameterFileName );
+  itkGetStringMacro(ParameterFileName);
 
   itkGetMacro(Sigma, RealType);
   itkSetMacro(Sigma, RealType);
@@ -146,113 +144,142 @@ public:
   itkGetMacro(SurfaceFeatureMesh, SurfaceTypePointer);
   itkSetMacro(SurfaceFeatureMesh, SurfaceTypePointer);
 
-  void SetDebug(bool b)
+  void
+  SetDebug(bool b)
   {
     m_Debug = b;
   }
 
-  void SetReadFromFile(bool b)
+  void
+  SetReadFromFile(bool b)
   {
     m_ReadFromFile = b;
   }
 
-  float AssessNodeDistanceCost( unsigned int );
+  float
+  AssessNodeDistanceCost(unsigned int);
 
-  float GetBoundaryParameterForSquare(unsigned int, unsigned int);
+  float
+  GetBoundaryParameterForSquare(unsigned int, unsigned int);
 
-  float GetBoundaryParameterForCircle(unsigned int, unsigned int);
+  float
+  GetBoundaryParameterForCircle(unsigned int, unsigned int);
 
-  unsigned int FindLoopAroundNode( unsigned int j );
+  unsigned int
+  FindLoopAroundNode(unsigned int j);
 
-  unsigned int AddVertexToLoop();
+  unsigned int
+  AddVertexToLoop();
 
-  void LocateAndParameterizeDiscBoundary(unsigned int, bool);
+  void
+  LocateAndParameterizeDiscBoundary(unsigned int, bool);
 
-  void FixBoundaryPoints( unsigned int option );
+  void
+  FixBoundaryPoints(unsigned int option);
 
-  void ConformalMap();
+  void
+  ConformalMap();
 
-  void ConformalMap2();
+  void
+  ConformalMap2();
 
-  void ConjugateHarmonic();
+  void
+  ConjugateHarmonic();
 
   bool InBorder(GraphSearchNodePointer);
   bool InDisc(GraphSearchNodePointer);
 
-  void   ExtractSurfaceDisc( unsigned int label = 0 );
+  void
+  ExtractSurfaceDisc(unsigned int label = 0);
 
-  void   BuildOutputMeshes(float tval = 0.0);
+  void
+  BuildOutputMeshes(float tval = 0.0);
 
   SurfaceTypePointer m_ExtractedSurfaceMesh;
   SurfaceTypePointer m_DiskSurfaceMesh;
 
-  void SetSmooth(float i)
+  void
+  SetSmooth(float i)
   {
     m_Smooth = i;
   }
 
-  void MeasureLengthDistortion();
+  void
+  MeasureLengthDistortion();
 
-  void SetParamWhileSearching( bool b )
+  void
+  SetParamWhileSearching(bool b)
   {
     this->m_ParamWhileSearching = b;
   }
 
   void FindSource(IndexType);
-  void FindMeanSourceInLabel(unsigned int);
+  void
+  FindMeanSourceInLabel(unsigned int);
 
-  void MakeFlatImage();
+  void
+  MakeFlatImage();
 
   FlatImageTypePointer m_FlatImage;
 
-  inline void SetLabelToFlatten( unsigned int b )
+  inline void
+  SetLabelToFlatten(unsigned int b)
   {
     this->m_Label_to_Flatten = b;
   }
 
-  inline void SetMaxCost( float f )
+  inline void
+  SetMaxCost(float f)
   {
     this->m_MaxCost = f;
   }
 
-  inline void SetDistanceCostWeight(float d)
+  inline void
+  SetDistanceCostWeight(float d)
   {
     this->m_DistanceCostWeight = d;
   }
 
-  inline void SetLabelCostWeight(float d)
+  inline void
+  SetLabelCostWeight(float d)
   {
     this->m_LabelCostWeight = d;
   }
 
-  inline void SetMapToSquare()
+  inline void
+  SetMapToSquare()
   {
-    this->m_MapToSquare = true;  this->m_MapToCircle = false;
+    this->m_MapToSquare = true;
+    this->m_MapToCircle = false;
   }
 
-  inline void SetMapToCircle()
+  inline void
+  SetMapToCircle()
   {
-    this->m_MapToSquare = false;  this->m_MapToCircle = true;
+    this->m_MapToSquare = false;
+    this->m_MapToCircle = true;
   }
 
-  inline void SetDiscBoundaryList( std::vector<GraphSearchNodePointer> b  )
+  inline void
+  SetDiscBoundaryList(std::vector<GraphSearchNodePointer> b)
   {
-    this->m_DiscBoundaryList.assign(b.begin(), b.end() );
+    this->m_DiscBoundaryList.assign(b.begin(), b.end());
   };
+
 protected:
+  bool
+  GenerateSystemFromSurfaceMesh();
 
-  bool GenerateSystemFromSurfaceMesh();
+  void
+  ApplyRealForces();
 
-  void ApplyRealForces();
-
-  void ApplyImaginaryForces();
+  void
+  ApplyImaginaryForces();
 
   FEMDiscConformalMap();
-  virtual ~FEMDiscConformalMap()
-  {
-  };
-private:
+  virtual ~FEMDiscConformalMap(){};
 
+private:
   std::vector<GraphSearchNodePointer> m_DiscBoundaryList;      // contains ids of nodes at boundary
   std::vector<long>                   m_HelpFindLoop;          // 0 = not found, 2 = already done , 1 = in loop
   std::vector<int>                    m_DiscBoundarySorter;    // contains ids of nodes at boundary
@@ -294,7 +321,7 @@ private:
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkFEMDiscConformalMap.cxx"
+#  include "itkFEMDiscConformalMap.cxx"
 #endif
 
 #endif

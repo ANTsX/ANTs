@@ -47,8 +47,7 @@ namespace itk
  * \ingroup ITKImageCompose
  */
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
-class PulsedArterialSpinLabeledCerebralBloodFlowImageFilter final :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+class PulsedArterialSpinLabeledCerebralBloodFlowImageFilter final : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
@@ -75,12 +74,9 @@ public:
   typedef typename ReferenceImageType::RegionType ReferenceImageRegionType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
-  itkStaticConstMacro(ReferenceImageDimension, unsigned int,
-                      TReferenceImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+  itkStaticConstMacro(ReferenceImageDimension, unsigned int, TReferenceImage::ImageDimension);
 
   itkGetMacro(TI1, float);
   itkSetMacro(TI1, float);
@@ -100,37 +96,40 @@ public:
   itkGetMacro(SliceDelay, float);
   itkSetMacro(SliceDelay, float);
 
-  void SetDifferenceImage( const InputImageType * image );
+  void
+  SetDifferenceImage(const InputImageType * image);
 
-  void SetReferenceImage( const ReferenceImageType * image );
+  void
+  SetReferenceImage(const ReferenceImageType * image);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro( InputConvertibleToOutputCheck,
-                   ( Concept::Convertible<typename TInputImage::PixelType,
-                                          typename TOutputImage::PixelType> ) );
+  itkConceptMacro(InputConvertibleToOutputCheck,
+                  (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 protected:
   PulsedArterialSpinLabeledCerebralBloodFlowImageFilter();
-  ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter() override
-  {
-  }
+  ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter() override {}
 
-  typename TInputImage::ConstPointer     GetDifferenceImage();
-  typename TReferenceImage::ConstPointer GetReferenceImage();
+  typename TInputImage::ConstPointer
+  GetDifferenceImage();
+  typename TReferenceImage::ConstPointer
+  GetReferenceImage();
 
-  void PrintSelf(std::ostream & os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** PulsedArterialSpinLabeledCerebralBloodFlowImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
-  void ThreadedGenerateData(const OutputImageRegionType &
-                                    outputRegionForThread, ThreadIdType threadId) override;
+  void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId) override;
 
 private:
   PulsedArterialSpinLabeledCerebralBloodFlowImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   /** IndexValueType is used to switch among the inputs and
    * is used as the index value of the new dimension */
@@ -146,7 +145,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkPulsedArterialSpinLabeledCerebralBloodFlowImageFilter.hxx"
+#  include "itkPulsedArterialSpinLabeledCerebralBloodFlowImageFilter.hxx"
 #endif
 
 #endif

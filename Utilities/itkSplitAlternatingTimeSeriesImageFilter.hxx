@@ -24,19 +24,17 @@
 
 namespace itk
 {
-template< typename TInputImage, typename TOutputImage >
-SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
-::SplitAlternatingTimeSeriesImageFilter()
+template <typename TInputImage, typename TOutputImage>
+SplitAlternatingTimeSeriesImageFilter<TInputImage, TOutputImage>::SplitAlternatingTimeSeriesImageFilter()
 {
   this->SetNumberOfRequiredOutputs(2);
-  this->SetNthOutput( 0, this->MakeOutput(0) );
-  this->SetNthOutput( 1, this->MakeOutput(1) );
+  this->SetNthOutput(0, this->MakeOutput(0));
+  this->SetNthOutput(1, this->MakeOutput(1));
 }
 
-template< typename TInputImage, typename TOutputImage >
+template <typename TInputImage, typename TOutputImage>
 void
-SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
-::PrintSelf(std::ostream & os, Indent indent) const
+SplitAlternatingTimeSeriesImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 }
@@ -44,87 +42,83 @@ SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
 /**
  * \sa UnaryFunctorImageFilter::GenerateOutputInformation()
  */
-template< typename TInputImage, typename TOutputImage >
+template <typename TInputImage, typename TOutputImage>
 void
-SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
-::GenerateOutputInformation()
+SplitAlternatingTimeSeriesImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 {
   // do not call the superclass' implementation of this method since
   // this filter allows the input the output to be of different dimensions
 
   // get pointers to the input and output
-  typename Superclass::InputImageConstPointer inputPtr  = this->GetInput();
-  typename Superclass::OutputImagePointer outputPtr0 = this->GetOutput(0);
-  typename Superclass::OutputImagePointer outputPtr1 = this->GetOutput(1);
+  typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
+  typename Superclass::OutputImagePointer     outputPtr0 = this->GetOutput(0);
+  typename Superclass::OutputImagePointer     outputPtr1 = this->GetOutput(1);
 
-  if ( !outputPtr0 || !outputPtr1 || !inputPtr )
-    {
+  if (!outputPtr0 || !outputPtr1 || !inputPtr)
+  {
     return;
-    }
+  }
 
   // Set the output image largest possible region.  Use a RegionCopier
   // so that the input and output images can be different dimensions.
   OutputImageRegionType outputLargestPossibleRegion;
-  this->CallCopyInputRegionToOutputRegion( outputLargestPossibleRegion,
-                                           inputPtr->GetLargestPossibleRegion() );
+  this->CallCopyInputRegionToOutputRegion(outputLargestPossibleRegion, inputPtr->GetLargestPossibleRegion());
 
   // for the last dimension, assumed to be time
-  unsigned int halfTime = inputPtr->GetLargestPossibleRegion().GetSize()[InputImageDimension-1] / 2;
-  outputLargestPossibleRegion.SetSize( InputImageDimension-1, halfTime );
+  unsigned int halfTime = inputPtr->GetLargestPossibleRegion().GetSize()[InputImageDimension - 1] / 2;
+  outputLargestPossibleRegion.SetSize(InputImageDimension - 1, halfTime);
 
   outputPtr0->SetLargestPossibleRegion(outputLargestPossibleRegion);
   outputPtr1->SetLargestPossibleRegion(outputLargestPossibleRegion);
-  outputPtr0->SetSpacing( inputPtr->GetSpacing() );
-  outputPtr1->SetSpacing( inputPtr->GetSpacing() );
+  outputPtr0->SetSpacing(inputPtr->GetSpacing());
+  outputPtr1->SetSpacing(inputPtr->GetSpacing());
 
-  outputPtr0->SetDirection( inputPtr->GetDirection() );
-  outputPtr1->SetDirection( inputPtr->GetDirection() );
+  outputPtr0->SetDirection(inputPtr->GetDirection());
+  outputPtr1->SetDirection(inputPtr->GetDirection());
 
   typename InputImageType::PointType origin = inputPtr->GetOrigin();
-  outputPtr0->SetOrigin( origin );
-  origin[InputImageDimension-1] += inputPtr->GetSpacing()[InputImageDimension-1];
-  outputPtr1->SetOrigin( origin );
+  outputPtr0->SetOrigin(origin);
+  origin[InputImageDimension - 1] += inputPtr->GetSpacing()[InputImageDimension - 1];
+  outputPtr1->SetOrigin(origin);
 
   // Support VectorImages by setting number of components on output.
   const unsigned int numComponents = inputPtr->GetNumberOfComponentsPerPixel();
-  if ( numComponents != outputPtr0->GetNumberOfComponentsPerPixel() )
-    {
-    outputPtr0->SetNumberOfComponentsPerPixel( numComponents );
-    }
-  if ( numComponents != outputPtr1->GetNumberOfComponentsPerPixel() )
-    {
-    outputPtr1->SetNumberOfComponentsPerPixel( numComponents );
-    }
+  if (numComponents != outputPtr0->GetNumberOfComponentsPerPixel())
+  {
+    outputPtr0->SetNumberOfComponentsPerPixel(numComponents);
+  }
+  if (numComponents != outputPtr1->GetNumberOfComponentsPerPixel())
+  {
+    outputPtr1->SetNumberOfComponentsPerPixel(numComponents);
+  }
 }
 
-template< typename TInputImage, typename TOutputImage >
+template <typename TInputImage, typename TOutputImage>
 void
-SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
-::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                       ThreadIdType threadId)
+SplitAlternatingTimeSeriesImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(
+  const OutputImageRegionType & outputRegionForThread,
+  ThreadIdType                  threadId)
 {
   itkDebugMacro(<< "Actually executing");
 
-  ProgressReporter progress( this, threadId, outputRegionForThread.GetNumberOfPixels() );
+  ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
   OutputImageRegionType outputRegion = outputRegionForThread;
 
-  ImageRegionIterator< OutputImageType > outIt0(
-    this->GetOutput(0), outputRegion);
-  ImageRegionIterator< OutputImageType > outIt1(
-    this->GetOutput(1), outputRegion);
+  ImageRegionIterator<OutputImageType> outIt0(this->GetOutput(0), outputRegion);
+  ImageRegionIterator<OutputImageType> outIt1(this->GetOutput(1), outputRegion);
 
-  while ( !outIt0.IsAtEnd() )
-    {
+  while (!outIt0.IsAtEnd())
+  {
     typename InputImageType::IndexType idx = outIt0.GetIndex();
-    idx[InputImageDimension-1] *= 2;
-    outIt0.Set( this->GetInput()->GetPixel( idx ) );
-    idx[InputImageDimension-1] += 1;
-    outIt1.Set( this->GetInput()->GetPixel( idx ) );
+    idx[InputImageDimension - 1] *= 2;
+    outIt0.Set(this->GetInput()->GetPixel(idx));
+    idx[InputImageDimension - 1] += 1;
+    outIt1.Set(this->GetInput()->GetPixel(idx));
 
     ++outIt0;
     ++outIt1;
-    }
+  }
 }
 } // end namespace itk
 

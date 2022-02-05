@@ -23,20 +23,19 @@ namespace itk
  * Default constructor.
  */
 template <typename TTransform>
-AverageAffineTransformNoRigidFunction<TTransform>::AverageAffineTransformNoRigidFunction()
-= default;
+AverageAffineTransformNoRigidFunction<TTransform>::AverageAffineTransformNoRigidFunction() = default;
 
 template <typename TTransform>
-void AverageAffineTransformNoRigidFunction<TTransform>::PrintTransformList()
+void
+AverageAffineTransformNoRigidFunction<TTransform>::PrintTransformList()
 {
   std::cout << "transform list: " << std::endl;
 
-  typename TransformListType::iterator it = (m_TransformList.begin() );
-  for( int ii = 0; it != m_TransformList.end(); it++, ii++ )
-    {
-    std::cout << '[' << ii << ":" << it->weight << "]:" << it->aff
-                     << std::endl;
-    }
+  typename TransformListType::iterator it = (m_TransformList.begin());
+  for (int ii = 0; it != m_TransformList.end(); it++, ii++)
+  {
+    std::cout << '[' << ii << ":" << it->weight << "]:" << it->aff << std::endl;
+  }
 }
 
 // /**
@@ -52,25 +51,27 @@ void AverageAffineTransformNoRigidFunction<TTransform>::PrintTransformList()
 // }
 
 template <typename TTransform>
-void AverageAffineTransformNoRigidFunction<TTransform>::PushBackAffineTransform(
-  const GenericAffineTransformType* t, double weight)
+void
+AverageAffineTransformNoRigidFunction<TTransform>::PushBackAffineTransform(const GenericAffineTransformType * t,
+                                                                           double                             weight)
 {
-  if( t )
-    {
+  if (t)
+  {
     SingleTransformItemType item;
     item.aff = const_cast<GenericAffineTransformType *>(t);
     item.weight = weight;
-    m_TransformList.push_back(SingleTransformItemType(item) );
-    }
+    m_TransformList.push_back(SingleTransformItemType(item));
+  }
 }
 
 template <typename TTransform>
-void AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTransform(
-  const PointType & reference_center,
+void
+AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTransform(
+  const PointType &                   reference_center,
   GenericAffineTransformPointerType & affine_output)
 {
-//    std::cout << "test " ;
-//    TransformTypePointer affine_output = TransformType::New();
+  //    std::cout << "test " ;
+  //    TransformTypePointer affine_output = TransformType::New();
 
   affine_output->SetIdentity();
   affine_output->SetCenter(reference_center);
@@ -79,32 +80,27 @@ void AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTra
 
   number_of_affine--;
 
-//    std::cout << affine_output;
+  //    std::cout << affine_output;
 
   typename TransformListType::iterator it = m_TransformList.begin();
 
-//    typename InternalAffineTransformType::InputPointType center_ref = m_ReferenceCenter;
-  typename InternalAffineTransformType::Pointer average_iaff =
-    InternalAffineTransformType::New();
+  //    typename InternalAffineTransformType::InputPointType center_ref = m_ReferenceCenter;
+  typename InternalAffineTransformType::Pointer average_iaff = InternalAffineTransformType::New();
 
-  typename InternalAffineTransformType::ParametersType average_parameters =
-    average_iaff->GetParameters();
-  for( ; it != m_TransformList.end(); it++ )
-    {
+  typename InternalAffineTransformType::ParametersType average_parameters = average_iaff->GetParameters();
+  for (; it != m_TransformList.end(); it++)
+  {
     SingleInternalTransformItemType internal_item;
     internal_item.aff = InternalAffineTransformType::New();
-    ConvertGenericAffineToInternalAffineByFixingCenter(it->aff,
-                                                       internal_item.aff, reference_center);
+    ConvertGenericAffineToInternalAffineByFixingCenter(it->aff, internal_item.aff, reference_center);
     internal_item.weight = it->weight;
     m_InternalTransformList.push_back(internal_item);
 
     std::cout << "internal_transform: " << internal_item.aff << std::endl;
-    }
+  }
 
-  HelperType::ComputeAverageScaleParameters(m_InternalTransformList,
-                                            average_parameters);
-  HelperType::ComputeAverageShearingParameters(m_InternalTransformList,
-                                               average_parameters);
+  HelperType::ComputeAverageScaleParameters(m_InternalTransformList, average_parameters);
+  HelperType::ComputeAverageShearingParameters(m_InternalTransformList, average_parameters);
   // HelperType::ComputeAverageRotationParameters(m_InternalTransformList,
   //                                             average_parameters);
   // HelperType::ComputeAverageTranslationParameters(m_InternalTransformList,
@@ -122,25 +118,28 @@ void AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTra
 }
 
 template <typename TTransform>
-void AverageAffineTransformNoRigidFunction<TTransform>::ConvertGenericAffineToInternalAffineByFixingCenter(
-  GenericAffineTransformPointerType & aff,
-  InternalAffineTransformPointerType & iaff, const PointType & center)
+void
+AverageAffineTransformNoRigidFunction<TTransform>::ConvertGenericAffineToInternalAffineByFixingCenter(
+  GenericAffineTransformPointerType &  aff,
+  InternalAffineTransformPointerType & iaff,
+  const PointType &                    center)
 {
   iaff->SetCenter(center);
-  iaff->SetMatrix(aff->GetMatrix() );
-  iaff->SetTranslation(aff->GetTranslation() );
+  iaff->SetMatrix(aff->GetMatrix());
+  iaff->SetTranslation(aff->GetTranslation());
 
   return;
 }
 
 template <typename TTransform>
-void AverageAffineTransformNoRigidFunction<TTransform>::ConvertInternalAffineToGenericAffine(
+void
+AverageAffineTransformNoRigidFunction<TTransform>::ConvertInternalAffineToGenericAffine(
   InternalAffineTransformPointerType & iaff,
-  GenericAffineTransformPointerType & aff)
+  GenericAffineTransformPointerType &  aff)
 {
-  aff->SetCenter(iaff->GetCenter() );
-  aff->SetTranslation(iaff->GetTranslation() );
-  aff->SetMatrix(iaff->GetMatrix() );
+  aff->SetCenter(iaff->GetCenter());
+  aff->SetTranslation(iaff->GetTranslation());
+  aff->SetMatrix(iaff->GetMatrix());
 
   return;
 }
@@ -148,66 +147,68 @@ void AverageAffineTransformNoRigidFunction<TTransform>::ConvertInternalAffineToG
 namespace AverageAffineTransformNoRigidFunctionHelperNameSpace
 {
 template <typename TAffine>
-void HelperCommonType<TAffine>::ComputeAveragePartialParameters(
-  InternalTransformListType & transform_list,
-  ParametersType & average_parameters, unsigned int istart,
-  unsigned int iend)
+void
+HelperCommonType<TAffine>::ComputeAveragePartialParameters(InternalTransformListType & transform_list,
+                                                           ParametersType &            average_parameters,
+                                                           unsigned int                istart,
+                                                           unsigned int                iend)
 {
   double w = 0.0;
 
   // initialize partial parameters to zero
-  for( unsigned int k = istart; k <= iend; k++ )
-    {
+  for (unsigned int k = istart; k <= iend; k++)
+  {
     average_parameters[k] = 0.0;
-    }
+  }
 
   typename InternalTransformListType::iterator it = transform_list.begin();
-  unsigned int cnt = 0;
-  for( ; it != transform_list.end(); it++ )
-    {
+  unsigned int                                 cnt = 0;
+  for (; it != transform_list.end(); it++)
+  {
     ParametersType current_parameters = it->aff->GetParameters();
     w += it->weight;
 
     std::cout << "[" << cnt++ << "]:" << it->weight << "\t";
-    for( unsigned int k = istart; k <= iend; k++ )
-      {
+    for (unsigned int k = istart; k <= iend; k++)
+    {
       average_parameters[k] += it->weight * current_parameters[k];
 
       std::cout << current_parameters[k] << " ";
-      }
+    }
 
     std::cout << std::endl;
-    }
+  }
 
-  if( w <= 0.0 )
-    {
+  if (w <= 0.0)
+  {
     std::cout << "Total weight smaller than 0!!!" << std::endl;
     std::exception();
-    }
+  }
 
   // normalize by weight
-  std::cout << "sum:w=" << w <<  "\t";
-  for( unsigned int k = istart; k <= iend; k++ )
-    {
+  std::cout << "sum:w=" << w << "\t";
+  for (unsigned int k = istart; k <= iend; k++)
+  {
     std::cout << average_parameters[k] << " ";
-    }
+  }
   std::cout << std::endl;
 
   // normalize by weight
-  std::cout << "average" << "\t";
-  for( unsigned int k = istart; k <= iend; k++ )
-    {
+  std::cout << "average"
+            << "\t";
+  for (unsigned int k = istart; k <= iend; k++)
+  {
     average_parameters[k] /= w;
     std::cout << average_parameters[k] << " ";
-    }
+  }
 
   std::cout << std::endl;
   return;
 }
 
-void HelperType<Dispatcher<2> >::ComputeAverageScaleParameters(
-  InternalTransformListType & transform_list,
-  ParametersType & average_parameters)
+void
+HelperType<Dispatcher<2>>::ComputeAverageScaleParameters(InternalTransformListType & transform_list,
+                                                         ParametersType &            average_parameters)
 {
   unsigned int istart = 1;
   unsigned int iend = 2;
@@ -218,9 +219,9 @@ void HelperType<Dispatcher<2> >::ComputeAverageScaleParameters(
     transform_list, average_parameters, istart, iend);
 }
 
-void HelperType<Dispatcher<2> >::ComputeAverageShearingParameters(
-  InternalTransformListType & transform_list,
-  ParametersType & average_parameters)
+void
+HelperType<Dispatcher<2>>::ComputeAverageShearingParameters(InternalTransformListType & transform_list,
+                                                            ParametersType &            average_parameters)
 {
   unsigned int istart = 3;
   unsigned int iend = 3;
@@ -231,9 +232,9 @@ void HelperType<Dispatcher<2> >::ComputeAverageShearingParameters(
     transform_list, average_parameters, istart, iend);
 }
 
-void HelperType<Dispatcher<2> >::ComputeAverageRotationParameters(
-  InternalTransformListType & transform_list,
-  ParametersType & average_parameters)
+void
+HelperType<Dispatcher<2>>::ComputeAverageRotationParameters(InternalTransformListType & transform_list,
+                                                            ParametersType &            average_parameters)
 {
   unsigned int istart = 0;
   unsigned int iend = 0;
@@ -244,9 +245,9 @@ void HelperType<Dispatcher<2> >::ComputeAverageRotationParameters(
     transform_list, average_parameters, istart, iend);
 }
 
-void HelperType<Dispatcher<2> >::ComputeAverageTranslationParameters(
-  InternalTransformListType & transform_list,
-  ParametersType & average_parameters)
+void
+HelperType<Dispatcher<2>>::ComputeAverageTranslationParameters(InternalTransformListType & transform_list,
+                                                               ParametersType &            average_parameters)
 {
   unsigned int istart = 6;
   unsigned int iend = 7;
@@ -257,9 +258,9 @@ void HelperType<Dispatcher<2> >::ComputeAverageTranslationParameters(
     transform_list, average_parameters, istart, iend);
 }
 
-void HelperType<Dispatcher<3> >::ComputeAverageScaleParameters(
-  InternalTransformListType & transform_list,
-  ParametersType & average_parameters)
+void
+HelperType<Dispatcher<3>>::ComputeAverageScaleParameters(InternalTransformListType & transform_list,
+                                                         ParametersType &            average_parameters)
 {
   unsigned int istart = 4;
   unsigned int iend = 6;
@@ -270,9 +271,9 @@ void HelperType<Dispatcher<3> >::ComputeAverageScaleParameters(
     transform_list, average_parameters, istart, iend);
 }
 
-void HelperType<Dispatcher<3> >::ComputeAverageShearingParameters(
-  InternalTransformListType & transform_list,
-  ParametersType & average_parameters)
+void
+HelperType<Dispatcher<3>>::ComputeAverageShearingParameters(InternalTransformListType & transform_list,
+                                                            ParametersType &            average_parameters)
 {
   unsigned int istart = 7;
   unsigned int iend = 9;
@@ -283,9 +284,9 @@ void HelperType<Dispatcher<3> >::ComputeAverageShearingParameters(
     transform_list, average_parameters, istart, iend);
 }
 
-void HelperType<Dispatcher<3> >::ComputeAverageRotationParameters(
-  InternalTransformListType & transform_list,
-  ParametersType & average_parameters)
+void
+HelperType<Dispatcher<3>>::ComputeAverageRotationParameters(InternalTransformListType & transform_list,
+                                                            ParametersType &            average_parameters)
 {
   unsigned int istart = 0;
   unsigned int iend = 3;
@@ -298,20 +299,20 @@ void HelperType<Dispatcher<3> >::ComputeAverageRotationParameters(
   // extra normalization for quaternion
 
   double quat_mag = 0.0;
-  for( unsigned int j = istart; j <= iend; j++ )
-    {
+  for (unsigned int j = istart; j <= iend; j++)
+  {
     quat_mag += average_parameters[j] * average_parameters[j];
-    }
+  }
   quat_mag = sqrt(quat_mag);
-  for( unsigned int j = 0; j < 4; j++ )
-    {
+  for (unsigned int j = 0; j < 4; j++)
+  {
     average_parameters[j] /= quat_mag;
-    }
+  }
 }
 
-void HelperType<Dispatcher<3> >::ComputeAverageTranslationParameters(
-  InternalTransformListType & transform_list,
-  ParametersType & average_parameters)
+void
+HelperType<Dispatcher<3>>::ComputeAverageTranslationParameters(InternalTransformListType & transform_list,
+                                                               ParametersType &            average_parameters)
 {
   unsigned int istart = 10;
   unsigned int iend = 12;
@@ -324,4 +325,4 @@ void HelperType<Dispatcher<3> >::ComputeAverageTranslationParameters(
 } // end namespace AverageAffineTransformNoRigidFunctionHelperNameSpace
 } // end namespace itk
 
-#endif  // __itkAverageAffineTransformNoRigidFunction_hxx
+#endif // __itkAverageAffineTransformNoRigidFunction_hxx

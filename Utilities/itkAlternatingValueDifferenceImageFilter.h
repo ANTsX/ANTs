@@ -41,8 +41,7 @@ namespace itk
  *
  */
 template <typename TInputImage, typename TOutputImage>
-class AlternatingValueDifferenceImageFilter final :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+class AlternatingValueDifferenceImageFilter final : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
@@ -68,20 +67,18 @@ public:
   typedef LinearInterpolateImageFunction<InputImageType> DefaultInterpolatorType;
   typedef typename DefaultInterpolatorType::Pointer      DefaultInterpolatorPointerType;
 
-  typedef InterpolateImageFunction< InputImageType, double >  InterpolatorType;
-  typedef typename InterpolatorType::Pointer                  InterpolatorPointerType;
+  typedef InterpolateImageFunction<InputImageType, double> InterpolatorType;
+  typedef typename InterpolatorType::Pointer               InterpolatorPointerType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
-  itkGetMacro( SubtractionDimension, unsigned int );
-  itkSetMacro( SubtractionDimension, unsigned int );
+  itkGetMacro(SubtractionDimension, unsigned int);
+  itkSetMacro(SubtractionDimension, unsigned int);
 
-  itkGetMacro( IndexPadding, unsigned int );
-  itkSetMacro( IndexPadding, unsigned int );
+  itkGetMacro(IndexPadding, unsigned int);
+  itkSetMacro(IndexPadding, unsigned int);
 
   /** Set the interpolator function.  The default is
    * LinearInterpolateImageFunction<InputImageType,
@@ -105,12 +102,9 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro( InputConvertibleToOutputCheck,
-                   ( Concept::Convertible<typename TInputImage::PixelType,
-                                          typename TOutputImage::PixelType> ) );
-  itkConceptMacro( DimensionCheck,
-                   ( Concept::SameDimension<InputImageDimension,
-                                            OutputImageDimension> ) );
+  itkConceptMacro(InputConvertibleToOutputCheck,
+                  (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
+  itkConceptMacro(DimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
 
   /** End concept checking */
 #endif
@@ -118,39 +112,44 @@ protected:
   AlternatingValueDifferenceImageFilter();
   ~AlternatingValueDifferenceImageFilter() override = default;
 
-  void PrintSelf(std::ostream & os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Override VeriyInputInformation() to add the additional check
    * that all inputs have the same number of components.
    *
    * \sa ProcessObject::VerifyInputInformation
    */
-  void VerifyInputInformation() const override;
+  void
+  VerifyInputInformation() const override;
 
   /** Overrides GenerateOutputInformation() in order to produce
    * an image which has a different information than the first input.
    * \sa ProcessObject::GenerateOutputInformaton() */
-  void GenerateOutputInformation() override;
+  void
+  GenerateOutputInformation() override;
 
   /** Overrides GenerateInputRequestedRegion() in order to inform
    * the pipeline execution model of different input requested regions
    * than the output requested region.
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-  //virtual void GenerateInputRequestedRegion();
+  // virtual void GenerateInputRequestedRegion();
 
   /** This method is used to set the state of the filter before
    * multi-threading. */
-  void BeforeThreadedGenerateData() override;
+  void
+  BeforeThreadedGenerateData() override;
 
   /** AlternatingValueDifferenceImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
-  void ThreadedGenerateData(const OutputImageRegionType &
-                                    outputRegionForThread, ThreadIdType threadId) override;
+  void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId) override;
 
 private:
   AlternatingValueDifferenceImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   /** IndexValueType is used to switch among the inputs and
    * is used as the index value of the new dimension */
@@ -168,17 +167,17 @@ private:
 
   InputImagePointer m_LabelOutputImage;
 
-  InterpolatorPointerType m_ControlInterpolator;    // Image function for
-                                                    // interpolation
-  InterpolatorPointerType m_LabelInterpolator;      // Image function for
-                                                    // interpolation
+  InterpolatorPointerType m_ControlInterpolator; // Image function for
+                                                 // interpolation
+  InterpolatorPointerType m_LabelInterpolator;   // Image function for
+                                                 // interpolation
   // ExtrapolatorPointerType m_Extrapolator;      // Image function for
   // extrapolation
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkAlternatingValueDifferenceImageFilter.hxx"
+#  include "itkAlternatingValueDifferenceImageFilter.hxx"
 #endif
 
 #endif

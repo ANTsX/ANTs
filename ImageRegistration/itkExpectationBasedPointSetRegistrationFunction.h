@@ -34,33 +34,31 @@
 namespace itk
 {
 /**
-* \class ExpectationBasedPointSetRegistrationFunction
-*
-* This class encapsulate the PDE which drives the demons registration
-* algorithm. It is used by ExpectationBasedPointSetRegistrationFilter to compute the
-* output deformation field which will map a moving image onto a
-* a fixed image.
-*
-* Non-integer moving image values are obtained by using
-* interpolation. The default interpolator is of type
-* LinearInterpolateImageFunction. The user may set other
-* interpolators via method SetMovingImageInterpolator. Note that the input
-* interpolator must derive from baseclass InterpolateImageFunction.
-*
-* This class is templated over the fixed image type, moving image type,
-* and the deformation field type.
-*
-* \warning This filter assumes that the fixed image type, moving image type
-* and deformation field type all have the same number of dimensions.
-*
-* \sa ExpectationBasedPointSetRegistrationFilter
-* \ingroup FiniteDifferenceFunctions
-*/
+ * \class ExpectationBasedPointSetRegistrationFunction
+ *
+ * This class encapsulate the PDE which drives the demons registration
+ * algorithm. It is used by ExpectationBasedPointSetRegistrationFilter to compute the
+ * output deformation field which will map a moving image onto a
+ * a fixed image.
+ *
+ * Non-integer moving image values are obtained by using
+ * interpolation. The default interpolator is of type
+ * LinearInterpolateImageFunction. The user may set other
+ * interpolators via method SetMovingImageInterpolator. Note that the input
+ * interpolator must derive from baseclass InterpolateImageFunction.
+ *
+ * This class is templated over the fixed image type, moving image type,
+ * and the deformation field type.
+ *
+ * \warning This filter assumes that the fixed image type, moving image type
+ * and deformation field type all have the same number of dimensions.
+ *
+ * \sa ExpectationBasedPointSetRegistrationFilter
+ * \ingroup FiniteDifferenceFunctions
+ */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField, typename TPointSet>
-class ExpectationBasedPointSetRegistrationFunction final :
-  public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
-                                                         TMovingImage,
-                                                         TDisplacementField>
+class ExpectationBasedPointSetRegistrationFunction final
+  : public AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
 public:
   /** Standard class typedefs. */
@@ -73,8 +71,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ExpectationBasedPointSetRegistrationFunction,
-                PDEDeformableRegistrationFunction );
+  itkTypeMacro(ExpectationBasedPointSetRegistrationFunction, PDEDeformableRegistrationFunction);
 
   /** MovingImage image type. */
   using MovingImageType = typename Superclass::MovingImageType;
@@ -94,8 +91,8 @@ public:
   using VectorType = typename DisplacementFieldType::PixelType;
 
   /** Inherit some enums from the superclass. */
-  static constexpr unsigned  int ImageDimension = Superclass::ImageDimension;
-  static constexpr unsigned  int MeasurementDimension = Superclass::ImageDimension;
+  static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
+  static constexpr unsigned int MeasurementDimension = Superclass::ImageDimension;
 
   /** Inherit some enums from the superclass. */
   using PixelType = typename Superclass::PixelType;
@@ -113,7 +110,7 @@ public:
   using PointType = typename PointSetType::PointType;
   using PointDataType = typename PointSetType::PixelType;
   using LabelSetType = std::vector<PointDataType>;
-//  typedef long PointDataType;
+  //  typedef long PointDataType;
   using MeasurementVectorType = Vector<typename PointSetType::CoordRepType, MeasurementDimension>;
   using SampleType = typename Statistics::ListSample<MeasurementVectorType>;
   using TreeGeneratorType = typename Statistics::WeightedCentroidKdTreeGenerator<SampleType>;
@@ -142,51 +139,63 @@ public:
   using MovingImageGradientCalculatorPointer = typename MovingImageGradientCalculatorType::Pointer;
 
   /** This class uses a constant timestep of 1. */
-  TimeStepType ComputeGlobalTimeStep(void * itkNotUsed(GlobalData) ) const override
+  TimeStepType
+  ComputeGlobalTimeStep(void * itkNotUsed(GlobalData)) const override
   {
     return m_TimeStep;
   }
 
   /** Return a pointer to a global data structure that is passed to
    * this object from the solver at each calculation.  */
-  void * GetGlobalDataPointer() const override
+  void *
+  GetGlobalDataPointer() const override
   {
-    auto *global = new GlobalDataStruct();
+    auto * global = new GlobalDataStruct();
 
-    global->m_SumOfSquaredDifference  = 0.0;
+    global->m_SumOfSquaredDifference = 0.0;
     global->m_NumberOfPixelsProcessed = 0L;
-    global->m_SumOfSquaredChange      = 0;
+    global->m_SumOfSquaredChange = 0;
     return global;
   }
 
   /** Release memory for global data structure. */
-  void ReleaseGlobalDataPointer( void *gd ) const override;
+  void
+  ReleaseGlobalDataPointer(void * gd) const override;
 
-  void ExpectationLandmarkField(float weight, bool whichdirection);
+  void
+  ExpectationLandmarkField(float weight, bool whichdirection);
 
-  void FastExpectationLandmarkField(float weight, bool whichdirection, long whichlabel, bool dobspline);
+  void
+  FastExpectationLandmarkField(float weight, bool whichdirection, long whichlabel, bool dobspline);
 
   /** Set the object's state before each iteration. */
-  void InitializeIteration() override;
+  void
+  InitializeIteration() override;
 
   /** This method is called by a finite difference solver image filter at
    * each pixel that does not lie on a data set boundary */
-  PixelType  ComputeUpdate(const NeighborhoodType & it, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
-                                       0.0) ) override;
+  PixelType
+  ComputeUpdate(const NeighborhoodType & it,
+                void *                   globalData,
+                const FloatOffsetType &  offset = FloatOffsetType(0.0)) override;
 
-  PixelType  ComputeUpdateInv(const NeighborhoodType & it, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
-                                          0.0) ) override;
+  PixelType
+  ComputeUpdateInv(const NeighborhoodType & it,
+                   void *                   globalData,
+                   const FloatOffsetType &  offset = FloatOffsetType(0.0)) override;
 
   /** Get the metric value. The metric value is the mean square difference
    * in intensity between the fixed image and transforming moving image
    * computed over the the overlapping region between the two images. */
-  virtual double GetMetric() const
+  virtual double
+  GetMetric() const
   {
     return m_Metric;
   }
 
   /** Get the rms change in deformation field. */
-  virtual double GetRMSChange() const
+  virtual double
+  GetRMSChange() const
   {
     return m_RMSChange;
   }
@@ -195,51 +204,60 @@ public:
    * intensity yields a match. When the intensities match between a
    * moving and fixed image pixel, the update vector (for that
    * iteration) will be the zero vector. Default is 0.001. */
-  virtual void SetEuclideanDistanceThreshold(double);
+  virtual void
+  SetEuclideanDistanceThreshold(double);
 
-  virtual double GetEuclideanDistanceThreshold() const;
+  virtual double
+  GetEuclideanDistanceThreshold() const;
 
-  void SetFixedPointSetSigma( float f )
+  void
+  SetFixedPointSetSigma(float f)
   {
     this->m_FixedPointSetSigma = f;
   }
 
-  float GetFixedPointSetSigma()
+  float
+  GetFixedPointSetSigma()
   {
     return this->m_FixedPointSetSigma;
   }
 
-  void SetMovingPointSetSigma( float f )
+  void
+  SetMovingPointSetSigma(float f)
   {
     this->m_MovingPointSetSigma = f;
   }
 
-  float GetMovingPointSetSigma()
+  float
+  GetMovingPointSetSigma()
   {
     return this->m_MovingPointSetSigma;
   }
 
-  void SetKNeighborhood( unsigned int n )
+  void
+  SetKNeighborhood(unsigned int n)
   {
     this->m_KNeighborhood = n;
   }
 
-  unsigned int GetKNeighborhood()
+  unsigned int
+  GetKNeighborhood()
   {
     return this->m_KNeighborhood;
   }
 
-  void SetUseSymmetricMatching(unsigned int b)
+  void
+  SetUseSymmetricMatching(unsigned int b)
   {
     this->m_UseSymmetricMatching = b;
   }
 
 protected:
   ExpectationBasedPointSetRegistrationFunction();
-  ~ExpectationBasedPointSetRegistrationFunction() override
-  = default;
+  ~ExpectationBasedPointSetRegistrationFunction() override = default;
 
-  void PrintSelf(std::ostream& os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** FixedImage image neighborhood iterator type. */
   using FixedImageNeighborhoodIteratorType = ConstNeighborhoodIterator<FixedImageType>;
@@ -247,17 +265,19 @@ protected:
   /** A global data type for this class of equation. Used to store
    * information for computing the metric. */
   struct GlobalDataStruct
-    {
-    double m_SumOfSquaredDifference;
+  {
+    double        m_SumOfSquaredDifference;
     unsigned long m_NumberOfPixelsProcessed;
-    double m_SumOfSquaredChange;
-    };
+    double        m_SumOfSquaredChange;
+  };
 
-  void SetUpKDTrees(long whichlabel);
+  void
+  SetUpKDTrees(long whichlabel);
 
 private:
   ExpectationBasedPointSetRegistrationFunction(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   /** Cache fixed image information. */
   SpacingType    m_FixedImageSpacing;
@@ -304,23 +324,23 @@ private:
   unsigned int m_BucketSize;
   RealType     m_Sigma;
 
-  typename TreeGeneratorType::Pointer                        m_FixedKdTreeGenerator;
-  typename SampleType::Pointer                               m_FixedSamplePoints;
-  typename TreeGeneratorType::Pointer                        m_MovingKdTreeGenerator;
-  typename SampleType::Pointer                               m_MovingSamplePoints;
-  typename RandomizerType::Pointer                           m_Randomizer;
-  bool         m_Normalize;
-  LabelSetType m_LabelSet;
-  unsigned int m_UseSymmetricMatching;
+  typename TreeGeneratorType::Pointer m_FixedKdTreeGenerator;
+  typename SampleType::Pointer        m_FixedSamplePoints;
+  typename TreeGeneratorType::Pointer m_MovingKdTreeGenerator;
+  typename SampleType::Pointer        m_MovingSamplePoints;
+  typename RandomizerType::Pointer    m_Randomizer;
+  bool                                m_Normalize;
+  LabelSetType                        m_LabelSet;
+  unsigned int                        m_UseSymmetricMatching;
 
   typename BSplinePointSetType::Pointer m_bpoints;
-  typename BSplineWeightsType::Pointer m_bweights;
-  unsigned int m_bcount;
+  typename BSplineWeightsType::Pointer  m_bweights;
+  unsigned int                          m_bcount;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkExpectationBasedPointSetRegistrationFunction.hxx"
+#  include "itkExpectationBasedPointSetRegistrationFunction.hxx"
 #endif
 
 #endif

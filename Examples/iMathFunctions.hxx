@@ -78,30 +78,31 @@ BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
   // sensitive parameters are set here - end
 }
 */
-unsigned int morph_shape_flag( const char * shape )
+unsigned int
+morph_shape_flag(const char * shape)
 {
-  std::string shapeStr( shape );
+  std::string shapeStr(shape);
   std::transform(shapeStr.begin(), shapeStr.end(), shapeStr.begin(), ::tolower);
 
   unsigned int flag = 1;
 
-  if ( !shapeStr.compare("ball") )
+  if (!shapeStr.compare("ball"))
   {
     flag = 1;
   }
-  else if ( !shapeStr.compare("box") )
+  else if (!shapeStr.compare("box"))
   {
     flag = 2;
   }
-  if ( !shapeStr.compare("cross") )
+  if (!shapeStr.compare("cross"))
   {
     flag = 3;
   }
-  if ( !shapeStr.compare("annulus") )
+  if (!shapeStr.compare("annulus"))
   {
     flag = 4;
   }
-  if ( !shapeStr.compare("polygon") )
+  if (!shapeStr.compare("polygon"))
   {
     flag = 5;
   }
@@ -111,58 +112,57 @@ unsigned int morph_shape_flag( const char * shape )
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs )           /*?????*/
+iMathBlobDetector(typename ImageType::Pointer image, unsigned int nBlobs) /*?????*/
 {
   typedef float RealType;
 
   unsigned int stepsperoctave = 10; // number of steps between doubling of scale
-  RealType     minscale = std::pow( 1.0, 1.0 );
-  RealType     maxscale = std::pow( 2.0, 10.0 );
+  RealType     minscale = std::pow(1.0, 1.0);
+  RealType     maxscale = std::pow(2.0, 10.0);
 
   typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
-  typename BlobFilterType::Pointer blobFilter = BlobFilterType::New();
-  blobFilter->SetStartT( minscale );
-  blobFilter->SetEndT( maxscale );
-  blobFilter->SetStepsPerOctave( stepsperoctave );
-  blobFilter->SetNumberOfBlobs( nBlobs );
-  blobFilter->SetInput( image );
+  typename BlobFilterType::Pointer                                   blobFilter = BlobFilterType::New();
+  blobFilter->SetStartT(minscale);
+  blobFilter->SetEndT(maxscale);
+  blobFilter->SetStepsPerOctave(stepsperoctave);
+  blobFilter->SetNumberOfBlobs(nBlobs);
+  blobFilter->SetInput(image);
   blobFilter->Update();
 
   typedef typename BlobFilterType::BlobRadiusImageType BlobRadiusImageType;
-  typename BlobRadiusImageType::Pointer labimg = blobFilter->GetBlobRadiusImage();
+  typename BlobRadiusImageType::Pointer                labimg = blobFilter->GetBlobRadiusImage();
 
-  return( labimg );
+  return (labimg);
 }
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathCanny( typename ImageType::Pointer image,                                    /*0*/
-            double sigma,
-            double lowerThreshold,
-            double upperThreshold )
+iMathCanny(typename ImageType::Pointer image, /*0*/
+           double                      sigma,
+           double                      lowerThreshold,
+           double                      upperThreshold)
 {
 
-  typedef typename ImageType::PixelType            PixelType;
-  typedef itk::CannyEdgeDetectionImageFilter< ImageType, ImageType >  FilterType;
+  typedef typename ImageType::PixelType                            PixelType;
+  typedef itk::CannyEdgeDetectionImageFilter<ImageType, ImageType> FilterType;
 
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( image );
-  filter->SetVariance( sigma );
-  filter->SetUpperThreshold( (PixelType) upperThreshold );
-  filter->SetLowerThreshold( (PixelType) lowerThreshold );
+  filter->SetInput(image);
+  filter->SetVariance(sigma);
+  filter->SetUpperThreshold((PixelType)upperThreshold);
+  filter->SetLowerThreshold((PixelType)lowerThreshold);
   filter->Update();
 
   return filter->GetOutput();
-
 }
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathDistanceMap( typename ImageType::Pointer image, bool useSpacing )           /*0*/
+iMathDistanceMap(typename ImageType::Pointer image, bool useSpacing) /*0*/
 {
   typedef itk::DanielssonDistanceMapImageFilter<ImageType, ImageType> FilterType;
 
-  typename  FilterType::Pointer filter = FilterType::New();
+  typename FilterType::Pointer filter = FilterType::New();
   filter->InputIsBinaryOff();
   filter->SetUseImageSpacing(useSpacing);
   filter->SetInput(image);
@@ -181,13 +181,13 @@ iMathDistanceMap( typename ImageType::Pointer image, bool useSpacing )          
 // 6. make sure it's not the background
 template <typename ImageType>
 typename ImageType::Pointer
-iMathFillHoles( typename ImageType::Pointer image, double holeParam )                /*0*/
+iMathFillHoles(typename ImageType::Pointer image, double holeParam) /*0*/
 {
 
-  if ( (holeParam < 0) || (holeParam > 2) )
-    {
-    //itk::itkExceptionMacro("FillHoles: holeParam value must lie in [0,2]");
-    }
+  if ((holeParam < 0) || (holeParam > 2))
+  {
+    // itk::itkExceptionMacro("FillHoles: holeParam value must lie in [0,2]");
+  }
 
   typedef typename ImageType::Pointer                ImagePointerType;
   typedef itk::Image<int, ImageType::ImageDimension> MaskType;
@@ -196,87 +196,87 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )           
 
   const PixelType imageMax = itk::NumericTraits<PixelType>::max();
   const LabelType labelMax = itk::NumericTraits<LabelType>::max();
-  PixelType objectMin = 0.5;
-  PixelType distanceMin = 0.001;
+  PixelType       objectMin = 0.5;
+  PixelType       distanceMin = 0.001;
 
-  typedef itk::CastImageFilter<MaskType,ImageType>            MaskToImage;
-  typedef itk::BinaryThresholdImageFilter<ImageType,MaskType> ThresholdFilterType;
-  typedef itk::BinaryThresholdImageFilter<MaskType,MaskType>  ThresholdMaskFilterType;
+  typedef itk::CastImageFilter<MaskType, ImageType>            MaskToImage;
+  typedef itk::BinaryThresholdImageFilter<ImageType, MaskType> ThresholdFilterType;
+  typedef itk::BinaryThresholdImageFilter<MaskType, MaskType>  ThresholdMaskFilterType;
 
   typename ThresholdFilterType::Pointer threshold = ThresholdFilterType::New();
-  threshold->SetInput( image );
+  threshold->SetInput(image);
   threshold->SetInsideValue(1);
   threshold->SetOutsideValue(0);
   threshold->SetLowerThreshold(objectMin);
   threshold->SetUpperThreshold(imageMax);
 
   typedef itk::DanielssonDistanceMapImageFilter<MaskType, ImageType> FilterType;
-  typename  FilterType::Pointer distance = FilterType::New();
+  typename FilterType::Pointer                                       distance = FilterType::New();
   distance->InputIsBinaryOff();
   distance->SetUseImageSpacing(false);
   distance->SetInput(threshold->GetOutput());
 
   typename ThresholdFilterType::Pointer dThreshold = ThresholdFilterType::New();
-  dThreshold->SetInput( distance->GetOutput() );
+  dThreshold->SetInput(distance->GetOutput());
   dThreshold->SetInsideValue(1);
   dThreshold->SetOutsideValue(0);
   dThreshold->SetLowerThreshold(distanceMin);
   dThreshold->SetUpperThreshold(imageMax);
   dThreshold->Update();
 
-  typedef itk::ConnectedComponentImageFilter<MaskType,MaskType> ConnectedFilterType;
-  typename ConnectedFilterType::Pointer connected = ConnectedFilterType::New();
-  connected->SetInput( dThreshold->GetOutput() );
-  connected->SetFullyConnected( false );
+  typedef itk::ConnectedComponentImageFilter<MaskType, MaskType> ConnectedFilterType;
+  typename ConnectedFilterType::Pointer                          connected = ConnectedFilterType::New();
+  connected->SetInput(dThreshold->GetOutput());
+  connected->SetFullyConnected(false);
 
-  typedef itk::RelabelComponentImageFilter<MaskType, MaskType>  RelabelFilterType;
-  typename RelabelFilterType::Pointer relabel = RelabelFilterType::New();
-  relabel->SetInput( connected->GetOutput() );
-  relabel->SetMinimumObjectSize( 0 );
+  typedef itk::RelabelComponentImageFilter<MaskType, MaskType> RelabelFilterType;
+  typename RelabelFilterType::Pointer                          relabel = RelabelFilterType::New();
+  relabel->SetInput(connected->GetOutput());
+  relabel->SetMinimumObjectSize(0);
   relabel->Update();
 
-  if( itk::Math::FloatAlmostEqual( holeParam, static_cast<double>( 2.0 ) ) )
-    {
+  if (itk::Math::FloatAlmostEqual(holeParam, static_cast<double>(2.0)))
+  {
     typename ThresholdMaskFilterType::Pointer oThreshold = ThresholdMaskFilterType::New();
-    oThreshold->SetInput( relabel->GetOutput() );
+    oThreshold->SetInput(relabel->GetOutput());
     oThreshold->SetInsideValue(1);
     oThreshold->SetOutsideValue(0);
     oThreshold->SetLowerThreshold(2);
     oThreshold->SetUpperThreshold(labelMax);
 
-    typedef itk::AddImageFilter<MaskType,MaskType> AddFilterType;
-    typename AddFilterType::Pointer add = AddFilterType::New();
-    add->SetInput1( threshold->GetOutput() );
-    add->SetInput2( oThreshold->GetOutput() );
+    typedef itk::AddImageFilter<MaskType, MaskType> AddFilterType;
+    typename AddFilterType::Pointer                 add = AddFilterType::New();
+    add->SetInput1(threshold->GetOutput());
+    add->SetInput2(oThreshold->GetOutput());
 
     typename MaskToImage::Pointer maskToImage = MaskToImage::New();
-    maskToImage->SetInput( add->GetOutput() );
+    maskToImage->SetInput(add->GetOutput());
     maskToImage->Update();
 
     return maskToImage->GetOutput();
-    }
+  }
 
   // FIXME - add filter for below -- avoid iterators in these functions
   typename MaskToImage::Pointer caster = MaskToImage::New();
-  caster->SetInput( threshold->GetOutput() );
+  caster->SetInput(threshold->GetOutput());
   caster->Update();
   ImagePointerType imageout = caster->GetOutput();
 
   typedef itk::NeighborhoodIterator<MaskType> iteratorType;
-  typename iteratorType::RadiusType rad;
-  for( unsigned int j = 0; j < ImageType::ImageDimension; j++ )
-    {
+  typename iteratorType::RadiusType           rad;
+  for (unsigned int j = 0; j < ImageType::ImageDimension; j++)
+  {
     rad[j] = 1;
-    }
-  iteratorType GHood(rad, relabel->GetOutput(), relabel->GetOutput()->GetLargestPossibleRegion() );
+  }
+  iteratorType GHood(rad, relabel->GetOutput(), relabel->GetOutput()->GetLargestPossibleRegion());
 
   float maximum = relabel->GetNumberOfObjects();
   // now we have the exact number of objects labeled independently
-  for( int lab = 2; lab <= maximum; lab++ )
-    {
+  for (int lab = 2; lab <= maximum; lab++)
+  {
     float erat = 2;
-    if( holeParam <= 1 )
-      {
+    if (holeParam <= 1)
+    {
       GHood.GoToBegin();
 
       unsigned long objectedge = 0;
@@ -284,50 +284,50 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )           
       unsigned long totaledge = 0;
       unsigned long volume = 0;
 
-      while( !GHood.IsAtEnd() )
-        {
+      while (!GHood.IsAtEnd())
+      {
         typename ImageType::PixelType p = GHood.GetCenterPixel();
         typename ImageType::IndexType ind2;
-        if( itk::Math::FloatAlmostEqual( p, static_cast<typename ImageType::PixelType>( lab ) ) )
-          {
+        if (itk::Math::FloatAlmostEqual(p, static_cast<typename ImageType::PixelType>(lab)))
+        {
           volume++;
-          for( unsigned int i = 0; i < GHood.Size(); i++ )
-            {
+          for (unsigned int i = 0; i < GHood.Size(); i++)
+          {
             ind2 = GHood.GetIndex(i);
             float val2 = threshold->GetOutput()->GetPixel(ind2);
-            if( itk::Math::FloatAlmostEqual( val2, itk::NumericTraits<float>::OneValue() ) && GHood.GetPixel(i) != lab )
-              {
+            if (itk::Math::FloatAlmostEqual(val2, itk::NumericTraits<float>::OneValue()) && GHood.GetPixel(i) != lab)
+            {
               objectedge++;
               totaledge++;
-              }
-            else if( itk::Math::FloatAlmostEqual( val2, itk::NumericTraits<float>::OneValue() ) && GHood.GetPixel(i) != lab )
-              {
+            }
+            else if (itk::Math::FloatAlmostEqual(val2, itk::NumericTraits<float>::OneValue()) &&
+                     GHood.GetPixel(i) != lab)
+            {
               backgroundedge++;
               totaledge++;
-              }
             }
           }
-        ++GHood;
         }
-
-      erat = (float)objectedge / (float)totaledge;
+        ++GHood;
       }
 
-    if( erat > static_cast<float>( holeParam ) ) // fill the hole
-      {
+      erat = (float)objectedge / (float)totaledge;
+    }
+
+    if (erat > static_cast<float>(holeParam)) // fill the hole
+    {
       // std::cout << " Filling " << lab << " of " << maximum <<  std::endl;
       typedef itk::ImageRegionIteratorWithIndex<MaskType> RelabelIterator;
-      RelabelIterator vfIter( relabel->GetOutput(),
-                              relabel->GetOutput()->GetLargestPossibleRegion() );
-      for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+      RelabelIterator vfIter(relabel->GetOutput(), relabel->GetOutput()->GetLargestPossibleRegion());
+      for (vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter)
+      {
+        if (vfIter.Get() == lab)
         {
-        if( vfIter.Get() == lab )
-          {
           imageout->SetPixel(vfIter.GetIndex(), 1);
-          }
         }
       }
     }
+  }
 
   return imageout;
 }
@@ -335,28 +335,26 @@ iMathFillHoles( typename ImageType::Pointer image, double holeParam )           
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathGC(typename ImageType::Pointer image, unsigned long radius)                    /*0*/
+iMathGC(typename ImageType::Pointer image, unsigned long radius) /*0*/
 {
 
-  const unsigned int ImageDimension = ImageType::ImageDimension;
-  typedef typename ImageType::PixelType            PixelType;
+  const unsigned int                    ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType PixelType;
 
-  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
-    StructuringElementType;
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension> StructuringElementType;
 
-  typedef itk::GrayscaleMorphologicalClosingImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+  typedef itk::GrayscaleMorphologicalClosingImageFilter<ImageType, ImageType, StructuringElementType> FilterType;
 
   StructuringElementType structuringElement;
   structuringElement.SetRadius(radius);
   structuringElement.CreateStructuringElement();
 
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( image );
-  filter->SetKernel( structuringElement );
+  filter->SetInput(image);
+  filter->SetKernel(structuringElement);
   filter->Update();
 
   return filter->GetOutput();
-
 }
 
 

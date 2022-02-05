@@ -47,15 +47,15 @@ namespace itk
  * \ingroup ITKImageCompose
  */
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
-class PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+class PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter
+  : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
   typedef PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter Self;
-  typedef ImageToImageFilter<TInputImage, TOutputImage>         Superclass;
-  typedef SmartPointer<Self>                                    Pointer;
-  typedef SmartPointer<const Self>                              ConstPointer;
+  typedef ImageToImageFilter<TInputImage, TOutputImage>                   Superclass;
+  typedef SmartPointer<Self>                                              Pointer;
+  typedef SmartPointer<const Self>                                        ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -75,12 +75,9 @@ public:
   typedef typename ReferenceImageType::RegionType ReferenceImageRegionType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
-  itkStaticConstMacro(ReferenceImageDimension, unsigned int,
-                      TReferenceImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+  itkStaticConstMacro(ReferenceImageDimension, unsigned int, TReferenceImage::ImageDimension);
 
   itkGetMacro(TI1, float);
   itkSetMacro(TI1, float);
@@ -100,37 +97,40 @@ public:
   itkGetMacro(SliceDelay, float);
   itkSetMacro(SliceDelay, float);
 
-  void SetDifferenceImage( const InputImageType * image );
+  void
+  SetDifferenceImage(const InputImageType * image);
 
-  void SetReferenceImage( const ReferenceImageType * image );
+  void
+  SetReferenceImage(const ReferenceImageType * image);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro( InputConvertibleToOutputCheck,
-                   ( Concept::Convertible<typename TInputImage::PixelType,
-                                          typename TOutputImage::PixelType> ) );
+  itkConceptMacro(InputConvertibleToOutputCheck,
+                  (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 protected:
   PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter();
-  ~PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter()
-  {
-  }
+  ~PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter() {}
 
-  typename TInputImage::ConstPointer     GetDifferenceImage();
-  typename TReferenceImage::ConstPointer GetReferenceImage();
+  typename TInputImage::ConstPointer
+  GetDifferenceImage();
+  typename TReferenceImage::ConstPointer
+  GetReferenceImage();
 
-  void PrintSelf(std::ostream & os, Indent indent) const;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const;
 
   /** PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
-  virtual void ThreadedGenerateData(const OutputImageRegionType &
-                                    outputRegionForThread, ThreadIdType threadId);
+  virtual void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId);
 
 private:
   PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   /** IndexValueType is used to switch among the inputs and
    * is used as the index value of the new dimension */
@@ -146,7 +146,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkPseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter.hxx"
+#  include "itkPseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter.hxx"
 #endif
 
 #endif

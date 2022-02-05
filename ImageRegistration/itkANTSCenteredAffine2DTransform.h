@@ -10,8 +10,8 @@ namespace itk
 template <typename TScalarType = double>
 // Data type for scalars (float or double)
 // class Rigid2DTransform :
-class ANTSCenteredAffine2DTransform final :
-  public         MatrixOffsetTransformBase<TScalarType, 2, 2> // Dimensions of input and output spaces
+class ANTSCenteredAffine2DTransform final
+  : public MatrixOffsetTransformBase<TScalarType, 2, 2> // Dimensions of input and output spaces
 {
 public:
   /** Standard class typedefs. */
@@ -23,10 +23,10 @@ public:
 
   /** Run-time type information (and related methods). */
   // itkTypeMacro( Rigid2DTransform, MatrixOffsetTransformBase );
-  itkTypeMacro( ANTSCenteredAffine2DTransform, MatrixOffsetTransformBase );
+  itkTypeMacro(ANTSCenteredAffine2DTransform, MatrixOffsetTransformBase);
 
   /** New macro for creation of through a Smart Pointer */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Dimension of the space. */
   static constexpr unsigned int InputSpaceDimension = 2;
@@ -84,10 +84,10 @@ public:
    * retained for backward compatibility. Instead, use SetMatrix()
    * GetMatrix().
    **/
-// virtual void SetRotationMatrix(const MatrixType &matrix)
-//    { this->SetMatrix( matrix ); }
-//   const MatrixType & GetRotationMatrix() const
-//    { return this->GetMatrix(); }
+  // virtual void SetRotationMatrix(const MatrixType &matrix)
+  //    { this->SetMatrix( matrix ); }
+  //   const MatrixType & GetRotationMatrix() const
+  //    { return this->GetMatrix(); }
 
   /**
    * Compose the transformation with a translation
@@ -106,30 +106,39 @@ public:
    * an inverse transform and  then perform the transform using that
    * inverted transform.
    **/
-  inline InputPointType      BackTransform(const OutputPointType  & point ) const;
+  inline InputPointType
+  BackTransform(const OutputPointType & point) const;
 
-  inline InputVectorType     BackTransform(const OutputVectorType & vector) const;
+  inline InputVectorType
+  BackTransform(const OutputVectorType & vector) const;
 
-  inline InputVnlVectorType  BackTransform(const OutputVnlVectorType & vector) const;
+  inline InputVnlVectorType
+  BackTransform(const OutputVnlVectorType & vector) const;
 
-  inline InputCovariantVectorType BackTransform(const OutputCovariantVectorType & vector) const;
+  inline InputCovariantVectorType
+  BackTransform(const OutputCovariantVectorType & vector) const;
 
   /** Set/Get the angle of rotation in radians */
-  void SetAngle(TScalarType angle);
+  void
+  SetAngle(TScalarType angle);
 
-  void SetS1(TScalarType S1);
+  void
+  SetS1(TScalarType S1);
 
-  void SetS2(TScalarType S2);
+  void
+  SetS2(TScalarType S2);
 
-  void SetK(TScalarType K);
+  void
+  SetK(TScalarType K);
 
-  itkGetConstReferenceMacro( Angle, TScalarType );
-  itkGetConstReferenceMacro( S1, TScalarType );
-  itkGetConstReferenceMacro( S2, TScalarType );
-  itkGetConstReferenceMacro( K, TScalarType );
+  itkGetConstReferenceMacro(Angle, TScalarType);
+  itkGetConstReferenceMacro(S1, TScalarType);
+  itkGetConstReferenceMacro(S2, TScalarType);
+  itkGetConstReferenceMacro(K, TScalarType);
 
   /** Set the angle of rotation in degrees. */
-  void SetAngleInDegrees(TScalarType angle);
+  void
+  SetAngleInDegrees(TScalarType angle);
 
   /** Set/Get the angle of rotation in radians. These methods
    * are old and are retained for backward compatibility.
@@ -147,7 +156,8 @@ public:
    *
    * \sa Transform::SetParameters()
    * \sa Transform::SetFixedParameters() */
-  void SetParameters( const ParametersType & parameters ) override;
+  void
+  SetParameters(const ParametersType & parameters) override;
 
   /** Get the parameters that uniquely define the transform
    * This is typically used by optimizers.
@@ -157,7 +167,8 @@ public:
    *
    * \sa Transform::GetParameters()
    * \sa Transform::GetFixedParameters() */
-  const ParametersType & GetParameters() const override;
+  const ParametersType &
+  GetParameters() const override;
 
   /** This method computes the Jacobian matrix of the transformation
    * at a given input point.
@@ -174,7 +185,8 @@ public:
    * Get local Jacobian for the given point
    * \c j will sized properly as needed.
    */
-  void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const override;
+  void
+  ComputeJacobianWithRespectToParameters(const InputPointType & p, JacobianType & j) const override;
 
   /**
    * This method creates and returns a new ANTSCenteredAffine2DTransform object
@@ -186,10 +198,12 @@ public:
    * This method creates and returns a new ANTSCenteredAffine2DTransform object
    * which has the same parameters.
    **/
-  void CloneTo( Pointer & clone ) const;
+  void
+  CloneTo(Pointer & clone) const;
 
   /** Reset the parameters to create and identity transform. */
-  void SetIdentity() override;
+  void
+  SetIdentity() override;
 
 protected:
   // Rigid2DTransform();
@@ -197,61 +211,69 @@ protected:
 
   //  Rigid2DTransform( unsigned int outputSpaceDimension,
   //                    unsigned int parametersDimension);
-  ANTSCenteredAffine2DTransform( unsigned int outputSpaceDimension, unsigned int parametersDimension);
+  ANTSCenteredAffine2DTransform(unsigned int outputSpaceDimension, unsigned int parametersDimension);
 
   //  ~Rigid2DTransform();
   ~ANTSCenteredAffine2DTransform() override;
 
   /**
-    * Print contents of an ANTSCenteredAffine2DTransform
-    **/
-  void PrintSelf(std::ostream & os, Indent indent) const override;
+   * Print contents of an ANTSCenteredAffine2DTransform
+   **/
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Compute the matrix from angle. This is used in Set methods
    * to update the underlying matrix whenever a transform parameter
    * is changed. */
-  void ComputeMatrix() final;
+  void
+  ComputeMatrix() final;
 
   /** Compute the angle from the matrix. This is used to compute
    * transform parameters from a given matrix. This is used in
    * MatrixOffsetTransformBase::Compose() and
    * MatrixOffsetTransformBase::GetInverse(). */
-  void ComputeMatrixParameters() override;
+  void
+  ComputeMatrixParameters() override;
 
   /** Update angle without recomputation of other internal variables. */
-  void SetVarAngle( TScalarType angle )
+  void
+  SetVarAngle(TScalarType angle)
   {
     m_Angle = angle;
   }
 
-  void SetVarS1( TScalarType S1)
+  void
+  SetVarS1(TScalarType S1)
   {
     m_S1 = S1;
   }
 
-  void SetVarS2( TScalarType S2)
+  void
+  SetVarS2(TScalarType S2)
   {
     m_S2 = S2;
   }
 
-  void SetVarK( TScalarType K)
+  void
+  SetVarK(TScalarType K)
   {
     m_K = K;
   }
 
 private:
   ANTSCenteredAffine2DTransform(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   TScalarType m_Angle;
   TScalarType m_S1;
   TScalarType m_S2;
   TScalarType m_K;
 }; // class ANTSCenteredAffine2DTransform
-}  // namespace itk
+} // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkANTSCenteredAffine2DTransform.hxx"
+#  include "itkANTSCenteredAffine2DTransform.hxx"
 #endif
 
 #endif /* __itkANTSCenteredAffine2DTransform_h */

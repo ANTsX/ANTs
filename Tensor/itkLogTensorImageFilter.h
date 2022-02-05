@@ -37,15 +37,12 @@ namespace itk
  * \ingroup IntensityImageFilters
  */
 template <typename TInputImage, typename TOutputImage>
-class LogTensorImageFilter :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+class LogTensorImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Extract dimension from input and output image. */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
   /** Convenient typedefs for simplifying declarations. */
   typedef TInputImage  InputImageType;
@@ -93,7 +90,8 @@ protected:
   LogTensorImageFilter();
   ~LogTensorImageFilter() override = default;
 
-  void PrintSelf(std::ostream& os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** LogTensorImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -105,16 +103,18 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
 private:
   LogTensorImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkLogTensorImageFilter.hxx"
+#  include "itkLogTensorImageFilter.hxx"
 #endif
 
 #endif

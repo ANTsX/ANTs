@@ -32,84 +32,89 @@ namespace Statistics
  */
 
 template <typename TScalarListSample>
-class GrubbsRosnerListSampleFilter final
-  : public       ListSampleToListSampleFilter<TScalarListSample, TScalarListSample>
+class GrubbsRosnerListSampleFilter final : public ListSampleToListSampleFilter<TScalarListSample, TScalarListSample>
 {
 public:
   /**
    * Standard class typedefs.
    */
-  typedef GrubbsRosnerListSampleFilter Self;
-  typedef ListSampleToListSampleFilter
-    <TScalarListSample, TScalarListSample>                    Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef GrubbsRosnerListSampleFilter                                       Self;
+  typedef ListSampleToListSampleFilter<TScalarListSample, TScalarListSample> Superclass;
+  typedef SmartPointer<Self>                                                 Pointer;
+  typedef SmartPointer<const Self>                                           ConstPointer;
 
   /**
    * Standard macros
    */
-  itkTypeMacro( GrubbsRosnerListSampleFilter,
-                ListSampleToScalarListSampleFilter );
+  itkTypeMacro(GrubbsRosnerListSampleFilter, ListSampleToScalarListSampleFilter);
 
   /**
    * Method for creation through the object factory.
    */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /**
    * Conveneient typedefs
    */
-  typedef double            RealType;
-  typedef TScalarListSample ScalarListSampleType;
-  typedef typename ScalarListSampleType
-    ::MeasurementVectorType                           MeasurementVectorType;
-  typedef typename ScalarListSampleType
-    ::InstanceIdentifier                              InstanceIdentifierType;
-  typedef std::vector<InstanceIdentifierType> InstanceIdentifierContainerType;
+  typedef double                                                RealType;
+  typedef TScalarListSample                                     ScalarListSampleType;
+  typedef typename ScalarListSampleType ::MeasurementVectorType MeasurementVectorType;
+  typedef typename ScalarListSampleType ::InstanceIdentifier    InstanceIdentifierType;
+  typedef std::vector<InstanceIdentifierType>                   InstanceIdentifierContainerType;
 
-  enum OutlierHandlingType { None, Trim, Winsorize };
+  enum OutlierHandlingType
+  {
+    None,
+    Trim,
+    Winsorize
+  };
 
-  itkSetMacro( OutlierHandling, OutlierHandlingType );
-  itkGetConstMacro( OutlierHandling, OutlierHandlingType );
+  itkSetMacro(OutlierHandling, OutlierHandlingType);
+  itkGetConstMacro(OutlierHandling, OutlierHandlingType);
 
-  itkSetMacro( WinsorizingLevel, RealType );
-  itkGetConstMacro( WinsorizingLevel, RealType );
+  itkSetMacro(WinsorizingLevel, RealType);
+  itkGetConstMacro(WinsorizingLevel, RealType);
 
-  itkSetMacro( SignificanceLevel, RealType );
-  itkGetConstMacro( SignificanceLevel, RealType );
+  itkSetMacro(SignificanceLevel, RealType);
+  itkGetConstMacro(SignificanceLevel, RealType);
 
-  InstanceIdentifierContainerType GetOutlierInstanceIdentifiers()
+  InstanceIdentifierContainerType
+  GetOutlierInstanceIdentifiers()
   {
     return this->m_OutlierInstanceIdentifiers;
   }
 
-//   itkGetConstMacro( Outliers, InstanceIdentifierContainerType );
+  //   itkGetConstMacro( Outliers, InstanceIdentifierContainerType );
 protected:
   GrubbsRosnerListSampleFilter();
   ~GrubbsRosnerListSampleFilter() override;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
 private:
-  GrubbsRosnerListSampleFilter( const Self & ) = delete;
-  void operator=( const Self & ) = delete;
+  GrubbsRosnerListSampleFilter(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
-  InstanceIdentifierType FindMaximumNonOutlierDeviationValue( RealType, RealType );
-  bool                   IsMeasurementAnOutlier( RealType, RealType, RealType, unsigned long );
+  InstanceIdentifierType FindMaximumNonOutlierDeviationValue(RealType, RealType);
+  bool
+  IsMeasurementAnOutlier(RealType, RealType, RealType, unsigned long);
 
   OutlierHandlingType             m_OutlierHandling;
   RealType                        m_WinsorizingLevel;
   InstanceIdentifierContainerType m_OutlierInstanceIdentifiers;
   RealType                        m_SignificanceLevel;
-};    // end of class
+}; // end of class
 } // end of namespace Statistics
 } // end of namespace ants
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsGrubbsRosnerListSampleFilter.hxx"
+#  include "antsGrubbsRosnerListSampleFilter.hxx"
 #endif
 
 #endif

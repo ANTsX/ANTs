@@ -24,8 +24,8 @@
 namespace itk
 {
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
-PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::PulsedArterialSpinLabeledCerebralBloodFlowImageFilter()
+PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::
+  PulsedArterialSpinLabeledCerebralBloodFlowImageFilter()
 {
   this->m_TI1 = 700;
   this->m_TI2 = 1700;
@@ -34,95 +34,88 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
   this->m_Alpha = 0.95;
   this->m_SliceDelay = 45;
 
-  this->SetNumberOfRequiredInputs( 2 );
-
+  this->SetNumberOfRequiredInputs(2);
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
-PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::PrintSelf(std::ostream & os, Indent indent) const
+PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::PrintSelf(
+  std::ostream & os,
+  Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
-PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::SetDifferenceImage(const TInputImage* img)
+PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::SetDifferenceImage(
+  const TInputImage * img)
 {
-  this->SetNthInput(0, const_cast<TInputImage*>(img));
+  this->SetNthInput(0, const_cast<TInputImage *>(img));
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 typename TInputImage::ConstPointer
-PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::GetDifferenceImage()
+PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::GetDifferenceImage()
 {
-  return static_cast< const TInputImage * >
-         ( this->ProcessObject::GetInput(0) );
+  return static_cast<const TInputImage *>(this->ProcessObject::GetInput(0));
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
-PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::SetReferenceImage(const TReferenceImage* ref)
+PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::SetReferenceImage(
+  const TReferenceImage * ref)
 {
-  this->SetNthInput(1, const_cast<TReferenceImage*>(ref));
+  this->SetNthInput(1, const_cast<TReferenceImage *>(ref));
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 typename TReferenceImage::ConstPointer
-PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::GetReferenceImage()
+PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::GetReferenceImage()
 {
-  return static_cast< const TReferenceImage * >
-         ( this->ProcessObject::GetInput(1) );
+  return static_cast<const TReferenceImage *>(this->ProcessObject::GetInput(1));
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
-PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                       ThreadIdType threadId)
+PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::ThreadedGenerateData(
+  const OutputImageRegionType & outputRegionForThread,
+  ThreadIdType                  threadId)
 {
   itkDebugMacro(<< "Actually executing");
 
-  ProgressReporter progress( this, threadId, outputRegionForThread.GetNumberOfPixels() );
+  ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
   OutputImageRegionType outputRegion = outputRegionForThread;
 
   InputImageRegionType inputRegion;
   this->CallCopyOutputRegionToInputRegion(inputRegion, outputRegionForThread);
 
-  ImageRegionIterator<OutputImageType> outIt(
-    this->GetOutput(), outputRegion);
+  ImageRegionIterator<OutputImageType> outIt(this->GetOutput(), outputRegion);
 
-  ImageRegionConstIterator<InputImageType> inIt(
-    this->GetInput(), inputRegion );
+  ImageRegionConstIterator<InputImageType> inIt(this->GetInput(), inputRegion);
 
-  while( !outIt.IsAtEnd() )
-    {
+  while (!outIt.IsAtEnd())
+  {
     // account for delay between acquisition of slices
-    float TI = ( this->m_TI2 - this->m_TI1)
-      + this->m_SliceDelay * (outIt.GetIndex()[2] - 1);
+    float TI = (this->m_TI2 - this->m_TI1) + this->m_SliceDelay * (outIt.GetIndex()[2] - 1);
 
     typename ReferenceImageType::IndexType idx;
-    for ( unsigned int i=0; i<ReferenceImageDimension; i++)
-      {
+    for (unsigned int i = 0; i < ReferenceImageDimension; i++)
+    {
       idx[i] = inIt.GetIndex()[i];
-      }
+    }
 
-    float ratio = inIt.Value() / this->GetReferenceImage()->GetPixel( idx );
+    float ratio = inIt.Value() / this->GetReferenceImage()->GetPixel(idx);
 
     // 540,000 is a unit conversion to give ml/100g/min
-    float cbf = ratio * 5400000.0f * this->m_Lambda
-      / ( 2.0f * this->m_Alpha * this->m_TI1 * static_cast<float>( exp( -TI / this->m_T1blood ) ) );
+    float cbf = ratio * 5400000.0f * this->m_Lambda /
+                (2.0f * this->m_Alpha * this->m_TI1 * static_cast<float>(exp(-TI / this->m_T1blood)));
 
-    outIt.Set( cbf );
+    outIt.Set(cbf);
     ++outIt;
     ++inIt;
-    }
+  }
 }
 } // end namespace itk
 

@@ -76,20 +76,18 @@ namespace itk
  *
  * \ingroup GeometricTransforms MultiThreaded
  */
-template <
-  typename TInputImage,
-  typename TOutputImage,
-  typename TDisplacementField,
-  typename TTransform
-  >
-class WarpImageMultiTransformFilter :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+template <typename TInputImage, typename TOutputImage, typename TDisplacementField, typename TTransform>
+class WarpImageMultiTransformFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** transform order type **/
   // typedef enum _TransformOrderType {AffineFirst=0, AffineLast} TransformOrderType;
   /** transform type **/
-  typedef enum _SingleTransformType { EnumAffineType = 0, EnumDisplacementFieldType } SingleTransformType;
+  typedef enum _SingleTransformType
+  {
+    EnumAffineType = 0,
+    EnumDisplacementFieldType
+  } SingleTransformType;
 
   /** Standard class typedefs. */
   typedef WarpImageMultiTransformFilter                 Self;
@@ -101,7 +99,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro( WarpImageMultiTransformFilter, ImageToImageFilter );
+  itkTypeMacro(WarpImageMultiTransformFilter, ImageToImageFilter);
 
   /** Typedef to describe the output image region type. */
   typedef typename TOutputImage::RegionType OutputImageRegionType;
@@ -119,12 +117,9 @@ public:
   typedef typename OutputImageType::DirectionType     DirectionType;
 
   /** Determine the image dimension. */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TOutputImage::ImageDimension );
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension );
-  itkStaticConstMacro(DisplacementFieldDimension, unsigned int,
-                      TDisplacementField::ImageDimension );
+  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(DisplacementFieldDimension, unsigned int, TDisplacementField::ImageDimension);
 
   /** base type for images of the current ImageDimension */
   typedef ImageBase<itkGetStaticConstMacro(ImageDimension)> ImageBaseType;
@@ -152,33 +147,34 @@ public:
   typedef Point<CoordRepType, itkGetStaticConstMacro(ImageDimension)> PointType;
 
   typedef struct _DeformationTypeEx
-    {
-    DisplacementFieldPointer field;
+  {
+    DisplacementFieldPointer  field;
     VectorInterpolatorPointer vinterp;
-    } DeformationTypeEx;
+  } DeformationTypeEx;
 
   typedef struct _AffineTypeEx
-    {
+  {
     TransformTypePointer aff;
-    } AffineTypeEx;
+  } AffineTypeEx;
 
   typedef struct _VarTransformType
-    {
-    AffineTypeEx aex;
+  {
+    AffineTypeEx      aex;
     DeformationTypeEx dex;
-    } VarTransformType;
+  } VarTransformType;
 
   typedef std::pair<SingleTransformType, VarTransformType> SingleTransformItemType;
   typedef std::list<SingleTransformItemType>               TransformListType;
 
   /** Set the interpolator function. */
-  itkSetObjectMacro( Interpolator, InterpolatorType );
+  itkSetObjectMacro(Interpolator, InterpolatorType);
 
   /** Get a pointer to the interpolator function. */
-  itkGetModifiableObjectMacro( Interpolator, InterpolatorType );
+  itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
 
   /** Convenience funciton to set all the necessary items */
-  virtual void SetOutputParametersFromImage(const ImageBaseType *image);
+  virtual void
+  SetOutputParametersFromImage(const ImageBaseType * image);
 
   /** Set the output image spacing. */
   itkSetMacro(OutputSpacing, SpacingType);
@@ -205,31 +201,34 @@ public:
   itkGetConstReferenceMacro(OutputSize, SizeType);
 
   /** Set the start index of the output largest possible region.
-  * The default is an index of all zeros. */
+   * The default is an index of all zeros. */
   itkSetMacro(OutputStartIndex, IndexType);
 
   /** Get the start index of the output largest possible region. */
   itkGetConstReferenceMacro(OutputStartIndex, IndexType);
 
   /** Set the edge padding value */
-  itkSetMacro( EdgePaddingValue, PixelType );
+  itkSetMacro(EdgePaddingValue, PixelType);
 
   /** Get the edge padding value */
-  itkGetMacro( EdgePaddingValue, PixelType );
+  itkGetMacro(EdgePaddingValue, PixelType);
 
-  TransformListType & GetTransformList()
+  TransformListType &
+  GetTransformList()
   {
     return m_TransformList;
   }
 
-  void PrintTransformList();
+  void
+  PrintTransformList();
 
   /** WarpImageMultiTransformFilter produces an image which is a different
    * size than its input image. As such, it needs to provide an
    * implemenation for GenerateOutputInformation() which set
    * the output information according the OutputSpacing, OutputOrigin
    * and the deformation field's LargestPossibleRegion. */
-  void GenerateOutputInformation() override;
+  void
+  GenerateOutputInformation() override;
 
   /** It is difficult to compute in advance the input image region
    * required to compute the requested output region. Thus the safest
@@ -237,77 +236,90 @@ public:
    *
    * For the deformation field, the input requested region
    * set to be the same as that of the output requested region. */
-  void GenerateInputRequestedRegion() override;
+  void
+  GenerateInputRequestedRegion() override;
 
   /** This method is used to set the state of the filter before
    * multi-threading. */
-  void BeforeThreadedGenerateData() override;
+  void
+  BeforeThreadedGenerateData() override;
 
   /** This method is used to set the state of the filter after
    * multi-threading. */
-  void AfterThreadedGenerateData() override;
+  void
+  AfterThreadedGenerateData() override;
 
   /** precompute the smoothed image if necessary **/
-  void SetSmoothScale(double scale);
+  void
+  SetSmoothScale(double scale);
 
-  double GetSmoothScale()
+  double
+  GetSmoothScale()
   {
     return m_SmoothScale;
   };
 
   // void UpdateSizeByScale();
 
-  void PushBackAffineTransform(const TransformType* t);
+  void
+  PushBackAffineTransform(const TransformType * t);
 
-  void PushBackDisplacementFieldTransform(const DisplacementFieldType* t);
+  void
+  PushBackDisplacementFieldTransform(const DisplacementFieldType * t);
 
-  void ComposeAffineOnlySequence(const PointType & center_output, TransformTypePointer & affine_output);
+  void
+  ComposeAffineOnlySequence(const PointType & center_output, TransformTypePointer & affine_output);
 
-  bool MultiInverseAffineOnlySinglePoint(const PointType & point1, PointType & point2);
+  bool
+  MultiInverseAffineOnlySinglePoint(const PointType & point1, PointType & point2);
 
-  bool MultiTransformSinglePoint(const PointType & point1, PointType & point2);
+  bool
+  MultiTransformSinglePoint(const PointType & point1, PointType & point2);
 
-  bool MultiTransformPoint(const PointType & point1, PointType & point2, bool bFisrtDeformNoInterp,
-                           const IndexType & index);
+  bool
+  MultiTransformPoint(const PointType & point1, PointType & point2, bool bFisrtDeformNoInterp, const IndexType & index);
 
-  void DetermineFirstDeformNoInterp();
+  void
+  DetermineFirstDeformNoInterp();
 
-  inline bool IsOutOfNumericBoundary(const PointType & p);
+  inline bool
+  IsOutOfNumericBoundary(const PointType & p);
 
   // set interpolator from outside
   // virtual void SetInterpolator(InterpolatorPointer interp);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(SameDimensionCheck1,
-                  (Concept::SameDimension<ImageDimension, InputImageDimension> ) );
-  itkConceptMacro(SameDimensionCheck2,
-                  (Concept::SameDimension<ImageDimension, DisplacementFieldDimension> ) );
+  itkConceptMacro(SameDimensionCheck1, (Concept::SameDimension<ImageDimension, InputImageDimension>));
+  itkConceptMacro(SameDimensionCheck2, (Concept::SameDimension<ImageDimension, DisplacementFieldDimension>));
 
-// removed to be compatible with vector form input image
-//    itkConceptMacro(InputHasNumericTraitsCheck,
-//            (Concept::HasNumericTraits<typename TInputImage::PixelType>));
+  // removed to be compatible with vector form input image
+  //    itkConceptMacro(InputHasNumericTraitsCheck,
+  //            (Concept::HasNumericTraits<typename TInputImage::PixelType>));
   itkConceptMacro(DisplacementFieldHasNumericTraitsCheck,
-                  (Concept::HasNumericTraits<typename TDisplacementField::PixelType::ValueType> ) );
+                  (Concept::HasNumericTraits<typename TDisplacementField::PixelType::ValueType>));
   /** End concept checking */
 #endif
 
   bool m_bFirstDeformNoInterp;
+
 protected:
   WarpImageMultiTransformFilter();
   ~WarpImageMultiTransformFilter() override = default;
-  void PrintSelf(std::ostream& os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** WarpImageMultiTransformFilter is implemented as a multi-threaded filter.
    * As such, it needs to provide and implementation for
    * ThreadedGenerateData(). */
-  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId ) override;
+  void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId) override;
 
   PointType     m_OutputOrigin;
   SpacingType   m_OutputSpacing;
   DirectionType m_OutputDirection;
   SizeType      m_OutputSize;
-  IndexType     m_OutputStartIndex;              // output image start index
+  IndexType     m_OutputStartIndex; // output image start index
 
   InterpolatorPointer m_Interpolator;
 
@@ -317,14 +329,16 @@ protected:
   double m_SmoothScale;
 
   InputImagePointer m_CachedSmoothImage;
+
 private:
   WarpImageMultiTransformFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkWarpImageMultiTransformFilter.hxx"
+#  include "itkWarpImageMultiTransformFilter.hxx"
 #endif
 
 #endif /*ITKWARPIMAGEMULTITRANSFORMFILTER_H_*/

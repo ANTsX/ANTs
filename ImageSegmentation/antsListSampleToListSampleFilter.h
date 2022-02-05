@@ -46,22 +46,26 @@ public:
   typedef SmartPointer<const Self>     ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ListSampleToListSampleFilter, ProcessObject );
+  itkTypeMacro(ListSampleToListSampleFilter, ProcessObject);
 
   /** Some convenient typedefs. */
   typedef TInputListSample  InputListSampleType;
   typedef TOutputListSample OutputListSampleType;
 
   /** Set the list sample input of this object.  */
-  virtual void SetInputListSample( const InputListSampleType *input );
+  virtual void
+  SetInputListSample(const InputListSampleType * input);
 
   /** Get the list sample input of this object.  */
-  InputListSampleType * GetInput();
+  InputListSampleType *
+  GetInput();
 
   /** Get the list sample output of this object.  */
-  OutputListSampleType * GetOutput();
+  OutputListSampleType *
+  GetOutput();
 
-  void Update() override
+  void
+  Update() override
   {
     this->GenerateData();
   }
@@ -70,23 +74,26 @@ protected:
   ListSampleToListSampleFilter();
   ~ListSampleToListSampleFilter() override = default;
 
-  void GenerateData() override = 0;
+  void
+  GenerateData() override = 0;
 
-  void AllocateOutput();
+  void
+  AllocateOutput();
 
 private:
-  ListSampleToListSampleFilter( const Self & ) = delete;
-  void operator=( const Self & ) = delete;
+  ListSampleToListSampleFilter(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
-//   typename InputListSampleType::ConstPointer              m_InputListSample;
-//   typename OutputListSampleType::Pointer                  m_OutputListSample;
+  //   typename InputListSampleType::ConstPointer              m_InputListSample;
+  //   typename OutputListSampleType::Pointer                  m_OutputListSample;
 };
 } // end namespace Statistics
 } // end namespace ants
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsListSampleToListSampleFilter.hxx"
+#  include "antsListSampleToListSampleFilter.hxx"
 #endif
 
 #endif

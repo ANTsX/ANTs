@@ -24,8 +24,7 @@
 namespace itk
 {
 template <unsigned int TDimension = 3>
-class ANTSLabeledPointSet
-  : public       Object
+class ANTSLabeledPointSet : public Object
 {
 public:
   /** Standard class typedefs. */
@@ -35,17 +34,17 @@ public:
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ANTSLabeledPointSet, Object );
+  itkTypeMacro(ANTSLabeledPointSet, Object);
   static constexpr unsigned int Dimension = TDimension;
 
-  typedef float                                                  RealType;
-  typedef Image<RealType,  itkGetStaticConstMacro( Dimension )>  ImageType;
-  typedef typename ImageType::Pointer                            ImagePointer;
-  typedef Vector<RealType, itkGetStaticConstMacro( Dimension )>  VectorType;
-  typedef Image<VectorType, itkGetStaticConstMacro( Dimension )> DisplacementFieldType;
+  typedef float                                                RealType;
+  typedef Image<RealType, itkGetStaticConstMacro(Dimension)>   ImageType;
+  typedef typename ImageType::Pointer                          ImagePointer;
+  typedef Vector<RealType, itkGetStaticConstMacro(Dimension)>  VectorType;
+  typedef Image<VectorType, itkGetStaticConstMacro(Dimension)> DisplacementFieldType;
 
   /** Point Types  for landmarks and labeled point-sets */
   typedef long                                          PointDataVectorType;
@@ -55,10 +54,11 @@ public:
   typedef typename PointSetType::PixelType              PointDataType;
   typedef typename ImageType::PointType                 ImagePointType;
 
-  itkSetMacro( PointSet, PointSetPointer );
-  itkGetConstMacro( PointSet, PointSetPointer );
+  itkSetMacro(PointSet, PointSetPointer);
+  itkGetConstMacro(PointSet, PointSetPointer);
 
-  PointType  GetPoint( unsigned long ii)
+  PointType
+  GetPoint(unsigned long ii)
   {
     PointType point;
 
@@ -66,7 +66,8 @@ public:
     return point;
   }
 
-  PointDataType  GetPointData( unsigned long ii)
+  PointDataType
+  GetPointData(unsigned long ii)
   {
     PointDataType data;
 
@@ -74,24 +75,26 @@ public:
     return data;
   }
 
-  void  SetPoint( unsigned long ii,  PointType point )
+  void
+  SetPoint(unsigned long ii, PointType point)
   {
     this->m_PointSet->SetPoint(ii, point);
   }
 
-  void  SetPointData( unsigned long ii,  PointDataType label )
+  void
+  SetPointData(unsigned long ii, PointDataType label)
   {
     this->m_PointSet->SetPointData(ii, label);
   }
 
-  void  SetPointAndData( unsigned long ii,  PointType point, PointDataType label )
+  void
+  SetPointAndData(unsigned long ii, PointType point, PointDataType label)
   {
     this->m_PointSet->SetPoint(ii, point);
     this->m_PointSet->SetPointData(ii, label);
   }
 
 private:
-
   PointSetPointer m_PointSet;
 };
 } // end namespace itk

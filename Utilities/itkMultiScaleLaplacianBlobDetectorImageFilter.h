@@ -39,8 +39,7 @@ namespace itk
  * \ingroup ITKImageScaleSpace
  **/
 template <unsigned int TDimension = 3>
-class ScaleSpaceBlobSpatialObject final
-  : public GaussianSpatialObject<TDimension>
+class ScaleSpaceBlobSpatialObject final : public GaussianSpatialObject<TDimension>
 {
 public:
   typedef ScaleSpaceBlobSpatialObject       Self;
@@ -54,31 +53,33 @@ public:
   typedef Image<RealPixelType, TDimension>  RealImageType;
   typedef typename RealImageType::IndexType CenterType;
 
-  itkStaticConstMacro(NumberOfDimensions, unsigned int,
-                      TDimension);
+  itkStaticConstMacro(NumberOfDimensions, unsigned int, TDimension);
 
   itkNewMacro(Self);
   itkTypeMacro(ScaleSpaceBlobSpatialObject, GaussianSpatialObject);
 
   /** Set/Get the normalized laplacian value of the extrema */
-  itkGetMacro( ScaleSpaceValue, double );
-  itkSetMacro( ScaleSpaceValue, double );
+  itkGetMacro(ScaleSpaceValue, double);
+  itkSetMacro(ScaleSpaceValue, double);
 
   /** The radius of the object if it is a solid hyper-sphere */
-  double GetObjectRadius( void ) const
+  double
+  GetObjectRadius(void) const
   {
-    return this->GetSigmaInObjectSpace() *  itk::Math::sqrt2;
+    return this->GetSigmaInObjectSpace() * itk::Math::sqrt2;
   }
 
   /** The sigma of the laplacian where the extrema occoured */
-  double GetScaleSpaceSigma( void ) const
+  double
+  GetScaleSpaceSigma(void) const
   {
-    return this->GetSigmaInObjectSpace() / ( std::sqrt( TDimension / 2.0 ) );
+    return this->GetSigmaInObjectSpace() / (std::sqrt(TDimension / 2.0));
   }
 
   /** The location where the extrema occoured */
-  itkGetMacro( Center, CenterType );
-  itkSetMacro( Center, CenterType );
+  itkGetMacro(Center, CenterType);
+  itkSetMacro(Center, CenterType);
+
 private:
   double     m_ScaleSpaceValue;
   double     m_ObjectRadius;
@@ -101,10 +102,9 @@ private:
  * \ingroup ITKImageScaleSpace
  *
  * \author Bradley Lowekamp
-*/
+ */
 template <typename TInputImage>
-class MultiScaleLaplacianBlobDetectorImageFilter final
-  : public       ImageToImageFilter<TInputImage, TInputImage>
+class MultiScaleLaplacianBlobDetectorImageFilter final : public ImageToImageFilter<TInputImage, TInputImage>
 {
 public:
   // todo figure out a better base class
@@ -142,33 +142,34 @@ public:
    *
    * T is equivalent to varinace or sigma squared.
    **/
-  itkSetMacro( StartT, double );
-  itkGetMacro( StartT, double );
+  itkSetMacro(StartT, double);
+  itkGetMacro(StartT, double);
 
   /** Set/Get the ending value to search scale-space.
    */
-  itkSetMacro( EndT, double );
-  itkGetMacro( EndT, double );
+  itkSetMacro(EndT, double);
+  itkGetMacro(EndT, double);
 
   /** Set/Get the number of steps per doubling of sigma sampled.
    */
-  itkSetMacro( StepsPerOctave, double );
-  itkGetMacro( StepsPerOctave, double );
+  itkSetMacro(StepsPerOctave, double);
+  itkGetMacro(StepsPerOctave, double);
 
   /** Set/Get the number of blobs to find
    */
-  itkSetMacro( NumberOfBlobs, size_t );
-  itkGetMacro( NumberOfBlobs, size_t );
+  itkSetMacro(NumberOfBlobs, size_t);
+  itkGetMacro(NumberOfBlobs, size_t);
 
   /** Set/Get the label image
    */
-  itkSetMacro( BlobRadiusImage, BlobRadiusImagePointer );
-  itkGetMacro( BlobRadiusImage, BlobRadiusImagePointer );
+  itkSetMacro(BlobRadiusImage, BlobRadiusImagePointer);
+  itkGetMacro(BlobRadiusImage, BlobRadiusImagePointer);
 
   /** Pseudo-output
    * Get the list of circles. This recomputes the circles
-  */
-  BlobsListType & GetBlobs( void )
+   */
+  BlobsListType &
+  GetBlobs(void)
   {
     return this->m_BlobList;
   }
@@ -190,34 +191,36 @@ protected:
   // not defined or implemented as default works
   // virtual ~MultiScaleLaplacianBlobDetectorImageFilter( void ) {}
 
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
-  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId ) override;
+  void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId) override;
 
 private:
-  MultiScaleLaplacianBlobDetectorImageFilter( const Self &) = delete;
-  void operator=( const Self &) = delete;
+  MultiScaleLaplacianBlobDetectorImageFilter(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   class Blob
   {
-public:
-    Blob( void ) = default;
+  public:
+    Blob(void) = default;
 
-    Blob( typename RealImageType::IndexType center, double sigma, RealPixelType value )
-      : m_Center( center ),
-      m_Sigma( sigma ),
-      m_Value( value )
-    {
-    }
+    Blob(typename RealImageType::IndexType center, double sigma, RealPixelType value)
+      : m_Center(center)
+      , m_Sigma(sigma)
+      , m_Value(value)
+    {}
 
-    Blob( const Blob & b )
-      : m_Center( b.m_Center ),
-      m_Sigma( b.m_Sigma ),
-      m_Value( b.m_Value )
-    {
-    }
+    Blob(const Blob & b)
+      : m_Center(b.m_Center)
+      , m_Sigma(b.m_Sigma)
+      , m_Value(b.m_Value)
+    {}
 
-    Blob & operator=( const Blob & b )
+    Blob &
+    operator=(const Blob & b)
     {
       this->m_Center = b.m_Center;
       this->m_Sigma = b.m_Sigma;
@@ -226,16 +229,18 @@ public:
     }
 
     typename RealImageType::IndexType m_Center;
-    double        m_Sigma;
-    RealPixelType m_Value;
+    double                            m_Sigma;
+    RealPixelType                     m_Value;
   };
 
-  static bool BlobValueGreaterCompare(Blob & a, Blob & b)
+  static bool
+  BlobValueGreaterCompare(Blob & a, Blob & b)
   {
     return a.m_Value > b.m_Value;
   }
 
-  static bool BlobValueLesserCompare(Blob & a, Blob & b)
+  static bool
+  BlobValueLesserCompare(Blob & a, Blob & b)
   {
     return a.m_Value < b.m_Value;
   }
@@ -261,10 +266,10 @@ public:
 
   BlobRadiusImagePointer m_BlobRadiusImage;
 };
-}
+} // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMultiScaleLaplacianBlobDetectorImageFilter.hxx"
+#  include "itkMultiScaleLaplacianBlobDetectorImageFilter.hxx"
 #endif
 
 #endif // __itkMultiScaleLaplacianBlobDetectorImageFilter_h

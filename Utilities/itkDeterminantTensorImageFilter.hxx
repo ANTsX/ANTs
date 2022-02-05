@@ -24,40 +24,38 @@ namespace itk
 {
 
 template <typename TInputImage, typename TRealType, typename TOutputImage>
-DeterminantTensorImageFilter<TInputImage, TRealType, TOutputImage>
-::DeterminantTensorImageFilter()
+DeterminantTensorImageFilter<TInputImage, TRealType, TOutputImage>::DeterminantTensorImageFilter()
 {
   this->DynamicMultiThreadingOff();
 }
 
-template< typename TInputImage, typename TRealType, typename TOutputImage >
+template <typename TInputImage, typename TRealType, typename TOutputImage>
 void
-DeterminantTensorImageFilter< TInputImage, TRealType, TOutputImage >
-::ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
-                        ThreadIdType threadId )
+DeterminantTensorImageFilter<TInputImage, TRealType, TOutputImage>::ThreadedGenerateData(
+  const OutputImageRegionType & outputRegionForThread,
+  ThreadIdType                  threadId)
 {
-  ProgressReporter progress( this, threadId, outputRegionForThread.GetNumberOfPixels() );
+  ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
-  ImageRegionIterator<OutputImageType> ItD ( this->GetOutput(), outputRegionForThread );
-  ImageRegionConstIterator<InputImageType> ItM ( this->GetInput(), outputRegionForThread );
+  ImageRegionIterator<OutputImageType>     ItD(this->GetOutput(), outputRegionForThread);
+  ImageRegionConstIterator<InputImageType> ItM(this->GetInput(), outputRegionForThread);
 
   ItD.GoToBegin();
   ItM.GoToBegin();
-  while ( !ItD.IsAtEnd() && !ItM.IsAtEnd() )
-    {
-    ItD.Set( static_cast<OutputPixelType>( vnl_det( ( ItM.Get() ).GetVnlMatrix() ) ) );
+  while (!ItD.IsAtEnd() && !ItM.IsAtEnd())
+  {
+    ItD.Set(static_cast<OutputPixelType>(vnl_det((ItM.Get()).GetVnlMatrix())));
     progress.CompletedPixel();
     ++ItD;
     ++ItM;
-    }
+  }
 }
 
 template <typename TInputImage, typename TRealType, typename TOutputImage>
 void
-DeterminantTensorImageFilter<TInputImage, TRealType, TOutputImage>
-::PrintSelf( std::ostream& os, Indent indent ) const
+DeterminantTensorImageFilter<TInputImage, TRealType, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  Superclass::PrintSelf(os,indent);
+  Superclass::PrintSelf(os, indent);
 }
 
 } // end namespace itk

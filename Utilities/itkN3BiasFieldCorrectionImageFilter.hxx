@@ -33,9 +33,9 @@ CLANG_SUPPRESS_Wfloat_equal
 #include "vnl/algo/vnl_fft_1d.h"
 #include "vnl/vnl_complex_traits.h"
 #include "complex"
-CLANG_PRAGMA_POP
+  CLANG_PRAGMA_POP
 
-namespace itk
+  namespace itk
 {
 
   template <typename TInputImage, typename TMaskImage, typename TOutputImage>
@@ -160,7 +160,7 @@ namespace itk
     this->m_ElapsedIterations = 0;
     this->m_CurrentConvergenceMeasurement = NumericTraits<RealType>::max();
     while (this->m_ElapsedIterations++ < this->m_MaximumNumberOfIterations &&
-            this->m_CurrentConvergenceMeasurement > this->m_ConvergenceThreshold)
+           this->m_CurrentConvergenceMeasurement > this->m_ConvergenceThreshold)
     {
       using SubtracterType = SubtractImageFilter<RealImageType, RealImageType, RealImageType>;
       typename SubtracterType::Pointer subtracter1 = SubtracterType::New();
@@ -177,7 +177,8 @@ namespace itk
       subtracter2->Update();
 
       // Smooth the residual bias field estimate
-      RealImagePointer newLogBiasField = this->UpdateBiasFieldEstimate(subtracter2->GetOutput(), numberOfIncludedPixels);
+      RealImagePointer newLogBiasField =
+        this->UpdateBiasFieldEstimate(subtracter2->GetOutput(), numberOfIncludedPixels);
 
       this->m_CurrentConvergenceMeasurement = this->CalculateConvergenceMeasurement(logBiasField, newLogBiasField);
       logBiasField = newLogBiasField;
@@ -588,12 +589,12 @@ namespace itk
     }
     sigma = std::sqrt(sigma / (N - 1.0));
 
-  /**
-   * Although Sled's paper proposes convergence determination via
-   * the coefficient of variation, the actual mnc implementation
-   * utilizes the standard deviation as the convergence measurement.
-   */
-  return sigma;
+    /**
+     * Although Sled's paper proposes convergence determination via
+     * the coefficient of variation, the actual mnc implementation
+     * utilizes the standard deviation as the convergence measurement.
+     */
+    return sigma;
   }
 
   template <typename TInputImage, typename TMaskImage, typename TOutputImage>
@@ -617,7 +618,6 @@ namespace itk
     os << indent << "CurrentLevel: " << this->m_CurrentLevel << std::endl;
     os << indent << "ElapsedIterations: " << this->m_ElapsedIterations << std::endl;
     itkPrintSelfObjectMacro(LogBiasFieldControlPointLattice);
-
   }
 
 } // end namespace itk

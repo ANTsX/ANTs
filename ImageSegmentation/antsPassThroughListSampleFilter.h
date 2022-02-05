@@ -29,8 +29,7 @@ namespace Statistics
  */
 
 template <typename TListSample>
-class PassThroughListSampleFilter
-  : public       ListSampleToListSampleFilter<TListSample, TListSample>
+class PassThroughListSampleFilter : public ListSampleToListSampleFilter<TListSample, TListSample>
 {
 public:
   /**
@@ -44,13 +43,12 @@ public:
   /**
    * Standard macros
    */
-  itkTypeMacro( PassThroughListSampleFilter,
-                ListSampleToScalarListSampleFilter );
+  itkTypeMacro(PassThroughListSampleFilter, ListSampleToScalarListSampleFilter);
 
   /**
    * Method for creation through the object factory.
    */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /**
    * Conveneient typedefs
@@ -59,24 +57,28 @@ public:
   typedef ListSampleType                                 InputType;
   typedef typename ListSampleType::MeasurementVectorType MeasurementVectorType;
   typedef typename ListSampleType::MeasurementType       MeasurementType;
+
 protected:
   PassThroughListSampleFilter();
   virtual ~PassThroughListSampleFilter();
 
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const;
 
-  virtual void GenerateData();
+  virtual void
+  GenerateData();
 
 private:
-  PassThroughListSampleFilter( const Self & ) = delete;
-  void operator=( const Self & ) = delete;
-};                                             // end of class
+  PassThroughListSampleFilter(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
+}; // end of class
 } // end of namespace Statistics
 } // end of namespace ants
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsPassThroughListSampleFilter.hxx"
+#  include "antsPassThroughListSampleFilter.hxx"
 #endif
 
 #endif

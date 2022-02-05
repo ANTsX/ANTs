@@ -30,9 +30,8 @@ namespace fem
  */
 class Element3DC0LinearTriangularMembrane : public Element3DMembrane<Element3DC0LinearTriangular>
 {
-  FEM_CLASS(Element3DC0LinearTriangularMembrane, Element3DMembrane<Element3DC0LinearTriangular> )
+  FEM_CLASS(Element3DC0LinearTriangularMembrane, Element3DMembrane<Element3DC0LinearTriangular>)
 public:
-
   HANDLE_ELEMENT_LOADS();
 
   /**
@@ -44,18 +43,18 @@ public:
    * Construct an element by specifying pointers to
    * 3 points and a material.
    */
-  Element3DC0LinearTriangularMembrane(NodeIDType n1_, NodeIDType n2_, NodeIDType n3_, Material::ConstPointer p_ );
+  Element3DC0LinearTriangularMembrane(NodeIDType n1_, NodeIDType n2_, NodeIDType n3_, Material::ConstPointer p_);
 
-//  virtual unsigned int GetNumberOfDegreesOfFreedomPerNode( void ) const
-//  { return 1; }
+  //  virtual unsigned int GetNumberOfDegreesOfFreedomPerNode( void ) const
+  //  { return 1; }
 
-//  virtual void GetStiffnessMatrix( MatrixType& Ke ) const;
+  //  virtual void GetStiffnessMatrix( MatrixType& Ke ) const;
 
   //  void Read( std::istream&, void* info );
-};  // class Element3DC0LinearTriangularMembrane
+}; // class Element3DC0LinearTriangularMembrane
 
 FEM_CLASS_INIT(Element3DC0LinearTriangularMembrane)
-}
-}  // end namespace itk::fem
+} // namespace fem
+} // namespace itk
 
-#endif  // #ifndef __itkFEMElement3DC0LinearTriangularMembrane_h
+#endif // #ifndef __itkFEMElement3DC0LinearTriangularMembrane_h

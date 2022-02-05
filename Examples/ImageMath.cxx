@@ -140,60 +140,65 @@
 namespace ants
 {
 
-//External functions in separate files for more module compilation
-//These functions are defined in independant compilation units in
-//ImageMathHelper2D.cpp, ImageMathHelper3D.cpp, and ImageMathHelper4D.cpp
-extern int ImageMathHelper2D(int argc, char **argv);
-extern int ImageMathHelper3D(int argc, char **argv);
-extern int ImageMathHelper4D(int argc, char **argv);
+// External functions in separate files for more module compilation
+// These functions are defined in independant compilation units in
+// ImageMathHelper2D.cpp, ImageMathHelper3D.cpp, and ImageMathHelper4D.cpp
+extern int
+ImageMathHelper2D(int argc, char ** argv);
+extern int
+ImageMathHelper3D(int argc, char ** argv);
+extern int
+ImageMathHelper4D(int argc, char ** argv);
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ImageMath( std::vector<std::string> args, std::ostream * itkNotUsed( out_stream ) )
+int
+ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin(), "ImageMath" );
+  args.insert(args.begin(), "ImageMath");
 
   int     argc = args.size();
-  char* * argv = new char *[args.size() + 1];
-  for( unsigned int i = 0; i < args.size(); ++i )
-    {
+  char ** argv = new char *[args.size() + 1];
+  for (unsigned int i = 0; i < args.size(); ++i)
+  {
     // allocate space for the string plus a null character
     argv[i] = new char[args[i].length() + 1];
-    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    std::strncpy(argv[i], args[i].c_str(), args[i].length());
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
-    }
+  }
   argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-public:
-    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
-    {
-    }
+  public:
+    Cleanup_argv(char ** argv_, int argc_plus_one_)
+      : argv(argv_)
+      , argc_plus_one(argc_plus_one_)
+    {}
 
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0; i < argc_plus_one; ++i )
-        {
+      for (unsigned int i = 0; i < argc_plus_one; ++i)
+      {
         delete[] argv[i];
-        }
+      }
       delete[] argv;
     }
 
-private:
-    char* *      argv;
+  private:
+    char **      argv;
     unsigned int argc_plus_one;
   };
-  Cleanup_argv cleanup_argv( argv, argc + 1 );
+  Cleanup_argv cleanup_argv(argv, argc + 1);
   // antscout->set_stream( out_stream );
 
-  if( argc < 5 )
-    {
+  if (argc < 5)
+  {
     std::cout << "\nUsage: " << argv[0]
               << " ImageDimension <OutputImage.ext> [operations and inputs] <Image1.ext> <Image2.ext>" << std::endl;
 
@@ -217,21 +222,20 @@ private:
     std::cout << "  overadd        : replace image-a pixel with image-b pixel if image-b pixel is non-zero"
               << std::endl;
     std::cout << "  abs            : absolute value " << std::endl;
-    std::cout
-      << "  total            : Sums up values in an image or in image1*image2 (img2 is the probability mask)"
-      << std::endl;
-    std::cout
-      << "  mean            :  Average of values in an image or in image1*image2 (img2 is the probability mask)"
-      << std::endl;
-    std::cout
-      <<
-      "  vtotal            : Sums up volumetrically weighted values in an image or in image1*image2 (img2 is the probability mask)"
-      << std::endl;
+    std::cout << "  total            : Sums up values in an image or in image1*image2 (img2 is the probability mask)"
+              << std::endl;
+    std::cout << "  mean            :  Average of values in an image or in image1*image2 (img2 is the probability mask)"
+              << std::endl;
+    std::cout << "  vtotal            : Sums up volumetrically weighted values in an image or in image1*image2 (img2 "
+                 "is the probability mask)"
+              << std::endl;
     std::cout << "  Decision        : Computes result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))" << std::endl;
     std::cout << "  Neg            : Produce image negative" << std::endl;
 
-    std::cout << "\nSpatial Filtering:" <<  std::endl;
-    std::cout << "  Project Image1.ext axis-a which-projection   : Project an image along axis a, which-projection=0(sum, 1=max, 2=min)" << std::endl;
+    std::cout << "\nSpatial Filtering:" << std::endl;
+    std::cout << "  Project Image1.ext axis-a which-projection   : Project an image along axis a, "
+                 "which-projection=0(sum, 1=max, 2=min)"
+              << std::endl;
     std::cout << "  G Image1.ext s    : Smooth with Gaussian of sigma = s" << std::endl;
     std::cout << "  MD Image1.ext s    : Morphological Dilation with radius s" << std::endl;
     std::cout << "  ME Image1.ext s    : Morphological Erosion with radius s" << std::endl;
@@ -244,8 +248,8 @@ private:
     std::cout << "  Extract contours: extract contours from a label image" << std::endl;
     std::cout << "    Usage: ExtractContours inputImage [doFullyConnected=1]" << std::endl;
     std::cout
-      <<
-      "  BlobDetector Image1.ext NumberOfBlobsToExtract  Optional-Input-Image2 Blob-2-out.nii.gz N-Blobs-To-Match  :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) "
+      << "  BlobDetector Image1.ext NumberOfBlobsToExtract  Optional-Input-Image2 Blob-2-out.nii.gz N-Blobs-To-Match  "
+         ":  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) "
       << std::endl;
     std::cout << "    Example matching 6 best blobs from 2 images: " << std::endl;
     std::cout << "    ImageMath 2 blob.nii.gz BlobDetector image1.nii.gz 1000  image2.nii.gz blob2.nii.gz 6 "
@@ -257,88 +261,67 @@ private:
     std::cout << "Translate InImage.ext x [ y z ] " << std::endl;
 
     std::cout << "\nTime Series Operations:" << std::endl;
-    std::cout
-      <<
-      " CompCorrAuto : Outputs a csv file containing global signal vector and N comp-corr eigenvectors determined from PCA of the high-variance voxels.  Also outputs a comp-corr + global signal corrected 4D image as well as a 3D image measuring the time series variance.  Requires a label image with label 1 identifying voxels in the brain."
-      << std::endl;
-    std::cout
-      <<
-      "   ImageMath 4 ${out}compcorr.nii.gz ThreeTissueConfounds ${out}.nii.gz  ${out}seg.nii.gz 1 3  "
-      << " : Outputs average global, CSF and WM signals.  Requires a label image with 3 labels , csf, gm , wm ."
-      << std::endl;
+    std::cout << " CompCorrAuto : Outputs a csv file containing global signal vector and N comp-corr eigenvectors "
+                 "determined from PCA of the high-variance voxels.  Also outputs a comp-corr + global signal corrected "
+                 "4D image as well as a 3D image measuring the time series variance.  Requires a label image with "
+                 "label 1 identifying voxels in the brain."
+              << std::endl;
+    std::cout << "   ImageMath 4 ${out}compcorr.nii.gz ThreeTissueConfounds ${out}.nii.gz  ${out}seg.nii.gz 1 3  "
+              << " : Outputs average global, CSF and WM signals.  Requires a label image with 3 labels , csf, gm , wm ."
+              << std::endl;
     std::cout << "    Usage        : ThreeTissueConfounds 4D_TimeSeries.nii.gz LabeLimage.nii.gz  csf-label wm-label "
               << std::endl;
     std::cout
       << " TimeSeriesSubset : Outputs n 3D image sub-volumes extracted uniformly from the input time-series 4D image."
       << std::endl;
     std::cout << "    Usage        : TimeSeriesSubset 4D_TimeSeries.nii.gz n " << std::endl;
-    std::cout
-      << " TimeSeriesDisassemble : Outputs n 3D image volumes for each time-point in time-series 4D image."
-      << std::endl;
-    std::cout << "    Usage        : TimeSeriesDisassemble 4D_TimeSeries.nii.gz " << std::endl
+    std::cout << " TimeSeriesDisassemble : Outputs n 3D image volumes for each time-point in time-series 4D image."
               << std::endl;
-    std::cout
-      << " TimeSeriesAssemble : Outputs a 4D time-series image from a list of 3D volumes."
-      << std::endl;
+    std::cout << "    Usage        : TimeSeriesDisassemble 4D_TimeSeries.nii.gz " << std::endl << std::endl;
+    std::cout << " TimeSeriesAssemble : Outputs a 4D time-series image from a list of 3D volumes." << std::endl;
     std::cout << "    Usage        : TimeSeriesAssemble time_spacing time_origin *images.nii.gz " << std::endl;
-    std::cout
-      <<
-      " TimeSeriesToMatrix : Converts a 4D image + mask to matrix (stored as csv file) where rows are time and columns are space ."
-      << std::endl;
+    std::cout << " TimeSeriesToMatrix : Converts a 4D image + mask to matrix (stored as csv file) where rows are time "
+                 "and columns are space ."
+              << std::endl;
     std::cout << "    Usage        : TimeSeriesToMatrix 4D_TimeSeries.nii.gz mask " << std::endl;
-    std::cout
-      << " TimeSeriesSimpleSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes."
-      << std::endl;
+    std::cout << " TimeSeriesSimpleSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes."
+              << std::endl;
     std::cout << "    Usage        : TimeSeriesSimpleSubtraction image.nii.gz " << std::endl;
-    std::cout
-      << " TimeSeriesSurroundSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes."
-      << std::endl;
+    std::cout << " TimeSeriesSurroundSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes."
+              << std::endl;
     std::cout << "    Usage        : TimeSeriesSurroundSubtraction image.nii.gz " << std::endl;
-    std::cout
-      << " TimeSeriesSincSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes."
-      << std::endl;
+    std::cout << " TimeSeriesSincSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes." << std::endl;
     std::cout << "    Usage        : TimeSeriesSincSubtraction image.nii.gz " << std::endl;
-    std::cout
-      << " SplitAlternatingTimeSeries : Outputs 2 3D time series"
-      << std::endl;
+    std::cout << " SplitAlternatingTimeSeries : Outputs 2 3D time series" << std::endl;
     std::cout << "    Usage        : SplitAlternatingTimeSeries image.nii.gz " << std::endl;
 
     std::cout
-      <<
-      " ComputeTimeSeriesLeverage : Outputs a csv file that identifies the raw leverage and normalized leverage for each time point in the 4D image.  leverage, here, is the difference of the time-point image from the average of the n images.  the normalized leverage is =  average( sum_k abs(Leverage(t)-Leverage(k)) )/Leverage(t). "
+      << " ComputeTimeSeriesLeverage : Outputs a csv file that identifies the raw leverage and normalized leverage for "
+         "each time point in the 4D image.  leverage, here, is the difference of the time-point image from the average "
+         "of the n images.  the normalized leverage is =  average( sum_k abs(Leverage(t)-Leverage(k)) )/Leverage(t). "
       << std::endl;
     std::cout << "    Usage        : ComputeTimeSeriesLeverage 4D_TimeSeries.nii.gz k_neighbors " << std::endl;
 
-    std::cout
-      << " SliceTimingCorrection : Outputs a slice-timing corrected 4D time series"
-      << std::endl;
-    std::cout
-      <<
-      "    Usage        : SliceTimingCorrection image.nii.gz sliceTiming [sinc / bspline] [sincRadius=4 / bsplineOrder=3]"
-      << std::endl;
+    std::cout << " SliceTimingCorrection : Outputs a slice-timing corrected 4D time series" << std::endl;
+    std::cout << "    Usage        : SliceTimingCorrection image.nii.gz sliceTiming [sinc / bspline] [sincRadius=4 / "
+                 "bsplineOrder=3]"
+              << std::endl;
 
-    std::cout
-      <<
-      " PASL : computes the PASL model of CBF  "     << std::endl <<  "f =  \frac{      lambda DeltaM        } "
-      << std::endl
-      << " {     2 alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  } " << std::endl;
-    std::cout
-      << "    Usage        : PASL 3D/4D_TimeSeries.nii.gz BoolFirstImageIsControl M0Image parameter_list.txt "
-      << std::endl;
+    std::cout << " PASL : computes the PASL model of CBF  " << std::endl
+              << "f =  \frac{      lambda DeltaM        } " << std::endl
+              << " {     2 alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  } " << std::endl;
+    std::cout << "    Usage        : PASL 3D/4D_TimeSeries.nii.gz BoolFirstImageIsControl M0Image parameter_list.txt "
+              << std::endl;
 
-    std::cout
-      <<
-      " pCASL : computes the pCASL model of CBF  "     << std::endl
-      << " f =  \frac{      lambda DeltaM R_{1a}        }  " << std::endl
-      << "  {     2 alpha M_0 [ exp( - w R_{1a} ) - exp( -w ( \tau + w ) R_{1a}) ]     } " << std::endl;
+    std::cout << " pCASL : computes the pCASL model of CBF  " << std::endl
+              << " f =  \frac{      lambda DeltaM R_{1a}        }  " << std::endl
+              << "  {     2 alpha M_0 [ exp( - w R_{1a} ) - exp( -w ( \tau + w ) R_{1a}) ]     } " << std::endl;
     std::cout << "    Usage        : pCASL 3D/4D_TimeSeries.nii.gz parameter_list.txt " << std::endl;
-    std::cout
-      << " PASLQuantifyCBF : Outputs a 3D CBF image in ml/100g/min from a magnetization ratio image"
-      << std::endl;
-    std::cout
-      <<
-      "    Usage        : PASLQuantifyCBF mag_ratio.nii.gz [TI1=700] [TI2=1900] [T1blood=1664] [Lambda=0.9] [Alpha=0.95] [SliceDelay-45] "
-      << std::endl;
+    std::cout << " PASLQuantifyCBF : Outputs a 3D CBF image in ml/100g/min from a magnetization ratio image"
+              << std::endl;
+    std::cout << "    Usage        : PASLQuantifyCBF mag_ratio.nii.gz [TI1=700] [TI2=1900] [T1blood=1664] [Lambda=0.9] "
+                 "[Alpha=0.95] [SliceDelay-45] "
+              << std::endl;
 
     std::cout << "\nTensor Operations:" << std::endl;
     std::cout << "  4DTensorTo3DTensor    : Outputs a 3D_DT_Image with the same information. " << std::endl;
@@ -372,17 +355,17 @@ private:
     std::cout << "  TensorEigenvalue         : Gets a single eigenvalue 0-2, where 0 = smallest, 2 = largest"
               << std::endl;
     std::cout << "    Usage        : TensorEigenvalue DTImage.ext WhichInd" << std::endl;
-    std::cout
-      <<
-      "  TensorToVector    : Produces vector field identifying one of the principal directions, 2 = largest eigenvalue"
-      << std::endl;
+    std::cout << "  TensorToVector    : Produces vector field identifying one of the principal directions, 2 = largest "
+                 "eigenvalue"
+              << std::endl;
     std::cout << "    Usage        : TensorToVector DTImage.ext WhichVec" << std::endl;
-    std::cout
-      <<
-      "  TensorToVectorComponent: 0 => 2 produces component of the principal vector field (largest eigenvalue). 3 = 8 => gets values from the tensor "
-      << std::endl;
+    std::cout << "  TensorToVectorComponent: 0 => 2 produces component of the principal vector field (largest "
+                 "eigenvalue). 3 = 8 => gets values from the tensor "
+              << std::endl;
     std::cout << "    Usage        : TensorToVectorComponent DTImage.ext WhichVec" << std::endl;
-    std::cout << "  TensorMask     : Mask a tensor image, sets background tensors to zero or to isotropic tensors with specified mean diffusivity " << std::endl;
+    std::cout << "  TensorMask     : Mask a tensor image, sets background tensors to zero or to isotropic tensors with "
+                 "specified mean diffusivity "
+              << std::endl;
     std::cout << "    Usage        : TensorMask DTImage.ext mask.ext [ backgroundMD = 0 ] " << std::endl;
     std::cout << "  FuseNImagesIntoNDVectorField     : Create ND field from N input scalar images" << std::endl;
     std::cout << "    Usage        : FuseNImagesIntoNDVectorField imagex imagey imagez" << std::endl;
@@ -402,7 +385,7 @@ private:
     std::cout << "    Usage: AverageLabels LabelImages*" << std::endl;
     std::cout << "    Note:  Gives probabilistic output (float)" << std::endl;
 
-    std::cout << "\nImage Metrics & Info:" <<  std::endl;
+    std::cout << "\nImage Metrics & Info:" << std::endl;
     std::cout << "  PearsonCorrelation: r-value from intesities of two images" << std::endl;
     std::cout << "    Usage: PearsonCorrelation image1.ext image2.ext {Optional-mask.ext}" << std::endl;
     std::cout << "  NeighborhoodCorrelation: local correlations" << std::endl;
@@ -420,7 +403,7 @@ private:
     std::cout << "  ReflectionMatrix : Create a reflection matrix about an axis" << std::endl;
     std::cout << " out.mat ReflectionMatrix image_in axis " << std::endl << std::endl;
 
-  std::cout << "  MakeAffineTransform : Create an itk affine transform matrix " << std::endl;
+    std::cout << "  MakeAffineTransform : Create an itk affine transform matrix " << std::endl;
 
     std::cout << "  ClosestSimplifiedHeaderMatrix : does what it says ... image-in, image-out" << std::endl;
 
@@ -432,10 +415,9 @@ private:
     std::cout << "                Never use this if you trust your header information. " << std::endl;
     std::cout << "      Usage        : CompareHeadersAndImages Image1 Image2" << std::endl;
 
-    std::cout
-      <<
-      "\n  ConvertImageSetToMatrix: Each row/column contains image content extracted from mask applied to images in *img.nii "
-      << std::endl;
+    std::cout << "\n  ConvertImageSetToMatrix: Each row/column contains image content extracted from mask applied to "
+                 "images in *img.nii "
+              << std::endl;
     std::cout << "      Usage        : ConvertImageSetToMatrix rowcoloption Mask.nii *images.nii" << std::endl;
     std::cout << " ConvertImageSetToMatrix output can be an image type or csv file type." << std::endl;
 
@@ -444,15 +426,13 @@ private:
     std::cout << "      Usage        : RandomlySampleImageSetToCSV N_samples *images.nii" << std::endl;
     std::cout << " RandomlySampleImageSetToCSV outputs a csv file type." << std::endl;
 
-    std::cout
-      <<
-      "\n  FrobeniusNormOfMatrixDifference: take the difference between two itk-transform matrices and then compute the frobenius norm"
-      << std::endl;
+    std::cout << "\n  FrobeniusNormOfMatrixDifference: take the difference between two itk-transform matrices and then "
+                 "compute the frobenius norm"
+              << std::endl;
     std::cout << "      Usage        : FrobeniusNormOfMatrixDifference mat1 mat2 " << std::endl;
-    std::cout
-      <<
-      "\n  ConvertImageSetToEigenvectors: Each row/column contains image content extracted from mask applied to images in *img.nii "
-      << std::endl;
+    std::cout << "\n  ConvertImageSetToEigenvectors: Each row/column contains image content extracted from mask "
+                 "applied to images in *img.nii "
+              << std::endl;
     std::cout << "      Usage        : ConvertImageSetToEigenvectors N_Evecs Mask.nii *images.nii" << std::endl;
     std::cout << " ConvertImageSetToEigenvectors output will be a csv file for each label value > 0 in the mask."
               << std::endl;
@@ -469,10 +449,9 @@ private:
     std::cout << "\n  ConvertToGaussian    : " << std::endl;
     std::cout << "      Usage        : ConvertToGaussian  TValueImage  sigma-float" << std::endl;
 
-    std::cout
-      <<
-      "\n  ConvertVectorToImage    : The vector contains image content extracted from a mask. Here the vector is returned to its spatial origins as image content "
-      << std::endl;
+    std::cout << "\n  ConvertVectorToImage    : The vector contains image content extracted from a mask. Here the "
+                 "vector is returned to its spatial origins as image content "
+              << std::endl;
     std::cout << "      Usage        : ConvertVectorToImage Mask.nii vector.nii" << std::endl;
 
     std::cout << "\n  CorrelationUpdate    : In voxels, compute update that makes Image2 more like Image1."
@@ -488,49 +467,43 @@ private:
     std::cout << "\n  D             : Danielson Distance Transform" << std::endl;
 
     std::cout << "\n  MaurerDistance : Maurer distance transform (much faster than Danielson)" << std::endl;
-    std::cout << "      Usage        : MaurerDistance inputImage {foreground=1}"
-              << std::endl;
+    std::cout << "      Usage        : MaurerDistance inputImage {foreground=1}" << std::endl;
 
-    std::cout
-      <<
-      "\n  DiceAndMinDistSum    : Outputs DiceAndMinDistSum and Dice Overlap to text log file + optional distance image"
-      << std::endl;
+    std::cout << "\n  DiceAndMinDistSum    : Outputs DiceAndMinDistSum and Dice Overlap to text log file + optional "
+                 "distance image"
+              << std::endl;
     std::cout << "      Usage        : DiceAndMinDistSum LabelImage1.ext LabelImage2.ext OptionalDistImage"
               << std::endl;
 
     std::cout << "\n  EnumerateLabelInterfaces: " << std::endl;
-    std::cout
-      << "      Usage        : EnumerateLabelInterfaces ImageIn ColoredImageOutname NeighborFractionToIgnore"
-      << std::endl;
+    std::cout << "      Usage        : EnumerateLabelInterfaces ImageIn ColoredImageOutname NeighborFractionToIgnore"
+              << std::endl;
 
-    std::cout
-      << "\n  ClusterThresholdVariate        :  for sparse estimation "
-      << std::endl;
+    std::cout << "\n  ClusterThresholdVariate        :  for sparse estimation " << std::endl;
     std::cout << "      Usage        : ClusterThresholdVariate image mask  MinClusterSize" << std::endl;
 
-    std::cout
-      << "\n  ExtractSlice        : Extracts slice number from last dimension of volume (2,3,4) dimensions "
-      << std::endl;
+    std::cout << "\n  ExtractSlice        : Extracts slice number from last dimension of volume (2,3,4) dimensions "
+              << std::endl;
     std::cout << "      Usage        : ExtractSlice volume.nii.gz slicetoextract" << std::endl;
 
-    std::cout
-      <<
-      "\n  FastMarchingSegmentation: final output is the propagated label image. Optional stopping value: higher values allow more distant propagation "
-      << std::endl;
-    std::cout
-      <<
-      "      Usage        : FastMarchingSegmentation speed/binaryimagemask.ext initiallabelimage.ext Optional-Stopping-Value"
-      << std::endl;
+    std::cout << "\n  FastMarchingSegmentation: final output is the propagated label image. Optional stopping value: "
+                 "higher values allow more distant propagation "
+              << std::endl;
+    std::cout << "      Usage        : FastMarchingSegmentation speed/binaryimagemask.ext initiallabelimage.ext "
+                 "Optional-Stopping-Value"
+              << std::endl;
 
     std::cout << "\n  FillHoles        : Parameter = ratio of edge at object to edge at background;  --  " << std::endl;
     std::cout << "                Parameter = 1 is a definite hole bounded by object only, 0.99 is close" << std::endl;
     std::cout << "                Default of parameter > 1 will fill all holes" << std::endl;
     std::cout << "      Usage        : FillHoles Image.ext parameter" << std::endl;
 
-    std::cout << "\n  InPaint        : very simple inpainting --- assumes zero values should be inpainted  " << std::endl;
+    std::cout << "\n  InPaint        : very simple inpainting --- assumes zero values should be inpainted  "
+              << std::endl;
     std::cout << "      Usage        : InPaint #iterations" << std::endl;
 
-    std::cout << "\n  PeronaMalik       : anisotropic diffusion w/varying conductance param (0.25 in example below)" << std::endl;
+    std::cout << "\n  PeronaMalik       : anisotropic diffusion w/varying conductance param (0.25 in example below)"
+              << std::endl;
     std::cout << "      Usage        : PeronaMalik image #iterations conductance " << std::endl;
 
     std::cout << "\n  Convolve       : convolve input image with kernel image" << std::endl;
@@ -554,64 +527,47 @@ private:
     std::cout << "      Usage        : Grad Image.ext s normalize?" << std::endl;
 
     std::cout << "\n  HistogramMatch    : " << std::endl;
-    std::cout
-      <<
-      "      Usage        : HistogramMatch SourceImage ReferenceImage {NumberBins-Default=255} {NumberPoints-Default=64} {useThresholdAtMeanIntensity=false}"
-      << std::endl;
+    std::cout << "      Usage        : HistogramMatch SourceImage ReferenceImage {NumberBins-Default=255} "
+                 "{NumberPoints-Default=64} {useThresholdAtMeanIntensity=false}"
+              << std::endl;
 
     std::cout << "\n  RescaleImage    : " << std::endl;
-    std::cout
-      <<
-      "      Usage        : RescaleImage InputImage min max"
-      << std::endl;
+    std::cout << "      Usage        : RescaleImage InputImage min max" << std::endl;
     std::cout << "\n  WindowImage    : " << std::endl;
-    std::cout
-      <<
-      "      Usage        : WindowImage InputImage windowMinimum windowMaximum outputMinimum outputMaximum"
-      << std::endl;
+    std::cout << "      Usage        : WindowImage InputImage windowMinimum windowMaximum outputMinimum outputMaximum"
+              << std::endl;
     std::cout << "\n  NeighborhoodStats    : " << std::endl;
     std::cout
-      <<
-      "      Usage        : NeighborhoodStats inputImage whichStat radius"
-      "             whichStat:  1 = min, 2 = max, 3 = variance, 4 = sigma, 5 = skewness, 6 = kurtosis, 7 = entropy"
+      << "      Usage        : NeighborhoodStats inputImage whichStat radius"
+         "             whichStat:  1 = min, 2 = max, 3 = variance, 4 = sigma, 5 = skewness, 6 = kurtosis, 7 = entropy"
       << std::endl;
 
-    std::cout
-      <<
-      "\n  InvId            : computes the inverse-consistency of two deformations and write the inverse consistency error image "
-      << std::endl;
+    std::cout << "\n  InvId            : computes the inverse-consistency of two deformations and write the inverse "
+                 "consistency error image "
+              << std::endl;
     std::cout << "      Usage        : InvId VectorFieldName VectorFieldName" << std::endl;
 
-  std::cout
-    <<
-    "\n  ReplicateDisplacement            : replicate a ND displacement to a ND+1 image"
-    << std::endl;
-  std::cout << "      Usage        : ReplicateDisplacement VectorFieldName TimeDims TimeSpacing TimeOrigin" << std::endl;
+    std::cout << "\n  ReplicateDisplacement            : replicate a ND displacement to a ND+1 image" << std::endl;
+    std::cout << "      Usage        : ReplicateDisplacement VectorFieldName TimeDims TimeSpacing TimeOrigin"
+              << std::endl;
 
-  std::cout
-    <<
-    "\n  ReplicateImage            : replicate a ND image to a ND+1 image"
-    << std::endl;
-  std::cout << "      Usage        : ReplicateImage ImageName TimeDims TimeSpacing TimeOrigin" << std::endl;
+    std::cout << "\n  ReplicateImage            : replicate a ND image to a ND+1 image" << std::endl;
+    std::cout << "      Usage        : ReplicateImage ImageName TimeDims TimeSpacing TimeOrigin" << std::endl;
 
-  std::cout
-    <<
-    "\n  ShiftImageSlicesInTime            : shift image slices by one "
-    << std::endl;
-  std::cout << "      Usage        : ShiftImageSlicesInTime ImageName shift-amount-default-1 shift-dim-default-last-dim" << std::endl;
+    std::cout << "\n  ShiftImageSlicesInTime            : shift image slices by one " << std::endl;
+    std::cout
+      << "      Usage        : ShiftImageSlicesInTime ImageName shift-amount-default-1 shift-dim-default-last-dim"
+      << std::endl;
 
     std::cout << "\n  LabelStats        : Compute volumes / masses of objects in a label image. Writes to text file"
               << std::endl;
     std::cout << "      Usage        : LabelStats labelimage.ext valueimage.nii" << std::endl;
 
-    std::cout
-      << "\n  Laplacian        : Laplacian computed with sigma s (if normalize, then output in range [0, 1])"
-      << std::endl;
+    std::cout << "\n  Laplacian        : Laplacian computed with sigma s (if normalize, then output in range [0, 1])"
+              << std::endl;
     std::cout << "      Usage        : Laplacian Image.ext s normalize?" << std::endl;
 
-    std::cout
-    << "\n  Canny        : Canny edge detector"
-    << std::endl;
+    std::cout << "\n  Canny        : Canny edge detector" << std::endl;
     std::cout << "      Usage        : Canny Image.ext sigma lowerThresh upperThresh" << std::endl;
 
     std::cout << "\n  Lipschitz        : Computes the Lipschitz norm of a vector field " << std::endl;
@@ -625,7 +581,9 @@ private:
       << std::endl;
     std::cout << "      Usage        : MTR M0Image M1Image [MaskImage];" << std::endl;
 
-    std::cout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value.  If opt is a mask image, then we normalize by mean intensity in the mask ROI." << std::endl;
+    std::cout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value.  If opt is a "
+                 "mask image, then we normalize by mean intensity in the mask ROI."
+              << std::endl;
     std::cout << "      Usage        : Normalize Image.ext opt" << std::endl;
 
     std::cout << "\n  PadImage       : If Pad-Number is negative, de-Padding occurs" << std::endl;
@@ -638,7 +596,9 @@ private:
     std::cout << "      Usage        : Sharpen ImageIn" << std::endl;
 
     std::cout << "\n  UnsharpMask     Apply an Unsharp Mask filter" << std::endl;
-    std::cout << "      Usage        : UnsharpMask ImageIn [amount=0.5] [radius=1] [threshold=0] [radius in spacing unit (0)/1]" << std::endl;
+    std::cout
+      << "      Usage        : UnsharpMask ImageIn [amount=0.5] [radius=1] [threshold=0] [radius in spacing unit (0)/1]"
+      << std::endl;
 
     std::cout << "\n  CoordinateComponentImages   : " << std::endl;
     std::cout << "      Usage        : CoordinateComponentImages domainImage" << std::endl;
@@ -648,26 +608,20 @@ private:
 
     std::cout << "\n  PH            : Print Header" << std::endl;
 
-    std::cout
-      << "\n  PoissonDiffusion        : Solves Poisson's equation in a designated region using non-zero sources"
-      << std::endl;
-    std::cout
-      <<
-      "      Usage        : PoissonDiffusion inputImage labelImage [sigma=1.0] [regionLabel=1] [numberOfIterations=500] [convergenceThreshold=1e-10]"
-      << std::endl;
+    std::cout << "\n  PoissonDiffusion        : Solves Poisson's equation in a designated region using non-zero sources"
+              << std::endl;
+    std::cout << "      Usage        : PoissonDiffusion inputImage labelImage [sigma=1.0] [regionLabel=1] "
+                 "[numberOfIterations=500] [convergenceThreshold=1e-10]"
+              << std::endl;
 
-    std::cout
-      <<
-      "\n  PropagateLabelsThroughMask: Final output is the propagated label image. Optional stopping value: higher values allow more distant propagation"
-      << std::endl;
-    std::cout
-      <<
-      "      Usage        : PropagateLabelsThroughMask speed/binaryimagemask.nii.gz initiallabelimage.nii.gz Optional-Stopping-Value  0/1/2"
-      << std::endl;
-    std::cout
-      <<
-      "      0/1/2  =>  0, no topology constraint, 1 - strict topology constraint, 2 - no handles "
-      << std::endl;
+    std::cout << "\n  PropagateLabelsThroughMask: Final output is the propagated label image. Optional stopping value: "
+                 "higher values allow more distant propagation"
+              << std::endl;
+    std::cout << "      Usage        : PropagateLabelsThroughMask speed/binaryimagemask.nii.gz "
+                 "initiallabelimage.nii.gz Optional-Stopping-Value  0/1/2"
+              << std::endl;
+    std::cout << "      0/1/2  =>  0, no topology constraint, 1 - strict topology constraint, 2 - no handles "
+              << std::endl;
 
     std::cout << "\n  PValueImage        : " << std::endl;
     std::cout << "      Usage        : PValueImage TValueImage dof" << std::endl;
@@ -677,21 +631,19 @@ private:
 
     std::cout << "\n  ReplaceVoxelValue: replace voxels in the range [a,b] in the input image with c" << std::endl;
     std::cout << "      Usage        : ReplaceVoxelValue inputImage a b c" << std::endl;
-    std::cout
-      <<
-      "\n  ROIStatistics        : computes anatomical locations, cluster size and mass of a stat image which should be in the same physical space (but not nec same resolution) as the label image."
-      << std::endl;
+    std::cout << "\n  ROIStatistics        : computes anatomical locations, cluster size and mass of a stat image "
+                 "which should be in the same physical space (but not nec same resolution) as the label image."
+              << std::endl;
     std::cout << "      Usage        : ROIStatistics LabelNames.txt labelimage.ext valueimage.nii" << std::endl;
 
-    std::cout << "\n  SetOrGetPixel    : "  << std::endl;
+    std::cout << "\n  SetOrGetPixel    : " << std::endl;
     std::cout << "      Usage        : SetOrGetPixel ImageIn Get/Set-Value IndexX IndexY {IndexZ}" << std::endl;
     std::cout
       << "      Example 1        : ImageMath 2 outimage.nii SetOrGetPixel Image Get 24 34; Gets the value at 24, 34"
       << std::endl;
-    std::cout
-      <<
-      "      Example 2        : ImageMath 2 outimage.nii SetOrGetPixel Image 1.e9 24 34; This sets 1.e9 as the value at 23 34"
-      << std::endl;
+    std::cout << "      Example 2        : ImageMath 2 outimage.nii SetOrGetPixel Image 1.e9 24 34; This sets 1.e9 as "
+                 "the value at 23 34"
+              << std::endl;
     std::cout << "                You can also pass a boolean at the end to force the physical space to be used"
               << std::endl;
 
@@ -711,39 +663,33 @@ private:
     std::cout << "      Usage        : TileImages NumColumns ImageList*" << std::endl;
 
     std::cout << "\n  TriPlanarView    : " << std::endl;
-    std::cout
-      <<
-      "      Usage        : TriPlanarView  ImageIn.nii.gz PercentageToClampLowIntensity PercentageToClampHiIntensity x-slice y-slice z-slice"
-      << std::endl;
+    std::cout << "      Usage        : TriPlanarView  ImageIn.nii.gz PercentageToClampLowIntensity "
+                 "PercentageToClampHiIntensity x-slice y-slice z-slice"
+              << std::endl;
 
     std::cout << "\n  TruncateImageIntensity: " << std::endl;
-    std::cout
-      <<
-      "      Usage        : TruncateImageIntensity InputImage.ext {lowerQuantile=0.05} {upperQuantile=0.95} {numberOfBins=65} {binary-maskImage}"
-      << std::endl;
+    std::cout << "      Usage        : TruncateImageIntensity InputImage.ext {lowerQuantile=0.05} {upperQuantile=0.95} "
+                 "{numberOfBins=65} {binary-maskImage}"
+              << std::endl;
 
     std::cout << "\n  Where            : The where function from IDL" << std::endl;
     std::cout << "      Usage        : Where Image ValueToLookFor maskImage-option tolerance" << std::endl;
     std::cout << "\n  KinematicTensor    : Evaluation kinematic tensor from a displacement field" << std::endl;
-    std::cout
-      <<
-      "      Usage        : KinematicTensor displacementField whichTensor ["
-      << "'d'=DeformationFieldGradient, "
-      << "'l'=Lagrangian, "
-      << "'e'=Eulerian, "
-      << "'rc'=RightCauchyGreen, "
-      << "'lc'=LeftCauchyGreen, "
-      << "'rs'=RightStretch, "
-      << "'ls'=LeftStretch]"
-      << std::endl;
+    std::cout << "      Usage        : KinematicTensor displacementField whichTensor ["
+              << "'d'=DeformationFieldGradient, "
+              << "'l'=Lagrangian, "
+              << "'e'=Eulerian, "
+              << "'rc'=RightCauchyGreen, "
+              << "'lc'=LeftCauchyGreen, "
+              << "'rs'=RightStretch, "
+              << "'ls'=LeftStretch]" << std::endl;
 
-    if( argc >= 2 &&
-        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
-      {
+    if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
+    {
       return EXIT_SUCCESS;
-      }
-    return EXIT_FAILURE;
     }
+    return EXIT_FAILURE;
+  }
 
   int returnvalue = EXIT_SUCCESS;
 
@@ -751,26 +697,27 @@ private:
 
   unsigned int imageDimension = std::stoi(argv[1]);
 
-  switch( imageDimension )
-    {
+  switch (imageDimension)
+  {
     case 2:
-      returnvalue = ImageMathHelper2D(argc,argv);
+      returnvalue = ImageMathHelper2D(argc, argv);
       break;
     case 3:
-      returnvalue = ImageMathHelper3D(argc,argv);
+      returnvalue = ImageMathHelper3D(argc, argv);
       break;
     case 4:
-      returnvalue = ImageMathHelper4D(argc,argv);
+      returnvalue = ImageMathHelper4D(argc, argv);
       break;
     default:
       std::cout << " Dimension " << imageDimension << " is not supported " << std::endl;
       return EXIT_FAILURE;
-    }
+  }
 
-    if ( returnvalue == EXIT_FAILURE )
-      {
-      std::cout << " Operation " << operation << " not found or not supported for dimension " << imageDimension << std::endl;
-      }
+  if (returnvalue == EXIT_FAILURE)
+  {
+    std::cout << " Operation " << operation << " not found or not supported for dimension " << imageDimension
+              << std::endl;
+  }
 
   return returnvalue;
 }

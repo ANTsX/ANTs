@@ -24,16 +24,15 @@ namespace itk
  * Default constructor
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::SyNDemonsRegistrationFunction()
+SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::SyNDemonsRegistrationFunction()
 {
   RadiusType   r;
   unsigned int j;
 
-  for( j = 0; j < ImageDimension; j++ )
-    {
+  for (j = 0; j < ImageDimension; j++)
+  {
     r[j] = 0;
-    }
+  }
   this->SetRadius(r);
 
   m_TimeStep = 1.0;
@@ -41,16 +40,14 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   m_IntensityDifferenceThreshold = 0.001;
   this->SetMovingImage(nullptr);
   this->SetFixedImage(nullptr);
-  m_FixedImageSpacing.Fill( 1.0 );
-  m_FixedImageOrigin.Fill( 0.0 );
+  m_FixedImageSpacing.Fill(1.0);
+  m_FixedImageOrigin.Fill(0.0);
   m_Normalizer = 1.0;
   m_FixedImageGradientCalculator = GradientCalculatorType::New();
 
-  typename DefaultInterpolatorType::Pointer interp =
-    DefaultInterpolatorType::New();
+  typename DefaultInterpolatorType::Pointer interp = DefaultInterpolatorType::New();
 
-  m_MovingImageInterpolator = static_cast<InterpolatorType *>(
-      interp.GetPointer() );
+  m_MovingImageInterpolator = static_cast<InterpolatorType *>(interp.GetPointer());
 
   m_Metric = NumericTraits<double>::max();
   m_SumOfSquaredDifference = 0.0;
@@ -68,8 +65,8 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
-SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::PrintSelf(std::ostream& os, Indent indent) const
+SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::PrintSelf(std::ostream & os,
+                                                                                        Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
 
@@ -102,8 +99,8 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
-SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::SetIntensityDifferenceThreshold(double threshold)
+SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::SetIntensityDifferenceThreshold(
+  double threshold)
 {
   m_IntensityDifferenceThreshold = threshold;
 }
@@ -113,8 +110,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 double
-SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::GetIntensityDifferenceThreshold() const
+SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::GetIntensityDifferenceThreshold() const
 {
   return m_IntensityDifferenceThreshold;
 }
@@ -124,50 +120,49 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
-SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::InitializeIteration()
+SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::InitializeIteration()
 {
   //  std::cout << " INIT ITER " << std::endl;
-  if( !this->GetMovingImage() || !this->GetFixedImage() || !m_MovingImageInterpolator )
-    {
-    itkExceptionMacro( << "MovingImage, FixedImage and/or Interpolator not set" );
-    }
+  if (!this->GetMovingImage() || !this->GetFixedImage() || !m_MovingImageInterpolator)
+  {
+    itkExceptionMacro(<< "MovingImage, FixedImage and/or Interpolator not set");
+  }
   // cache fixed image information
-  m_FixedImageSpacing    = this->GetFixedImage()->GetSpacing();
-  m_FixedImageOrigin     = this->GetFixedImage()->GetOrigin();
+  m_FixedImageSpacing = this->GetFixedImage()->GetSpacing();
+  m_FixedImageOrigin = this->GetFixedImage()->GetOrigin();
 
   // compute the normalizer
-  m_Normalizer      = 0.0;
-  for( unsigned int k = 0; k < ImageDimension; k++ )
-    {
+  m_Normalizer = 0.0;
+  for (unsigned int k = 0; k < ImageDimension; k++)
+  {
     m_Normalizer += m_FixedImageSpacing[k] * m_FixedImageSpacing[k];
-    }
-  m_Normalizer /= static_cast<double>( ImageDimension );
+  }
+  m_Normalizer /= static_cast<double>(ImageDimension);
 
   this->m_Energy = 0;
 
   // setup gradient calculator
-  m_FixedImageGradientCalculator->SetInputImage( this->GetFixedImage() );
-  m_MovingImageGradientCalculator->SetInputImage( this->GetMovingImage() );
+  m_FixedImageGradientCalculator->SetInputImage(this->GetFixedImage());
+  m_MovingImageGradientCalculator->SetInputImage(this->GetMovingImage());
 
   // setup moving image interpolator
-  m_MovingImageInterpolator->SetInputImage( this->GetMovingImage() );
+  m_MovingImageInterpolator->SetInputImage(this->GetMovingImage());
 
   // initialize metric computation variables
-  m_SumOfSquaredDifference  = 0.0;
+  m_SumOfSquaredDifference = 0.0;
   m_NumberOfPixelsProcessed = 0L;
-  m_SumOfSquaredChange      = 0.0;
+  m_SumOfSquaredChange = 0.0;
 }
 
 /*
  * Compute update at a specify neighbourhood
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-typename SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::PixelType
-SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::ComputeUpdate(const NeighborhoodType & it, void * gd,
-                const FloatOffsetType & itkNotUsed(offset) )
+typename SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::PixelType
+SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::ComputeUpdate(
+  const NeighborhoodType & it,
+  void *                   gd,
+  const FloatOffsetType &  itkNotUsed(offset))
 {
   PixelType    update;
   unsigned int j;
@@ -182,22 +177,22 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 
   // Note: no need to check the index is within
   // fixed image buffer. This is done by the external filter.
-  fixedValue = (double) this->GetFixedImage()->GetPixel( index );
-  double movingValue = (double)this->GetMovingImage()->GetPixel( index );
+  fixedValue = (double)this->GetFixedImage()->GetPixel(index);
+  double movingValue = (double)this->GetMovingImage()->GetPixel(index);
 
   //  if (fixedValue > 0)std::cout << " fxv  " << fixedValue << " movingValue " << movingValue << std::endl;
 
-  gradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
+  gradient = m_FixedImageGradientCalculator->EvaluateAtIndex(index);
 
-  mgradient = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
-  for( j = 0; j < ImageDimension; j++ )
+  mgradient = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
+  for (j = 0; j < ImageDimension; j++)
+  {
+    if (this->m_UseMovingImageGradient)
     {
-    if( this->m_UseMovingImageGradient )
-      {
       gradient[j] = gradient[j] + mgradient[j];
-      }
-    gradientSquaredMagnitude += itk::Math::sqr ( gradient[j] );
     }
+    gradientSquaredMagnitude += itk::Math::sqr(gradient[j]);
+  }
 
   /**
    * Compute Update.
@@ -211,43 +206,41 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
    * where K = mean square spacing to compensate for the mismatch in units.
    */
   double speedValue = fixedValue - movingValue;
-  if( fabs(speedValue) < static_cast<double>( this->m_RobustnessParameter ) )
-    {
+  if (fabs(speedValue) < static_cast<double>(this->m_RobustnessParameter))
+  {
     speedValue = 0;
-    }
+  }
 
   // update the metric
-  GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
-  if( globalData )
-    {
-    globalData->m_SumOfSquaredDifference += itk::Math::sqr ( speedValue );
+  GlobalDataStruct * globalData = reinterpret_cast<GlobalDataStruct *>(gd);
+  if (globalData)
+  {
+    globalData->m_SumOfSquaredDifference += itk::Math::sqr(speedValue);
     globalData->m_NumberOfPixelsProcessed += 1;
-    }
+  }
 
-  double denominator = itk::Math::sqr ( speedValue ) / m_Normalizer
-    + gradientSquaredMagnitude;
+  double denominator = itk::Math::sqr(speedValue) / m_Normalizer + gradientSquaredMagnitude;
   this->m_Energy += speedValue * speedValue;
-  if( m_UseSSD )
-    {
+  if (m_UseSSD)
+  {
     denominator = 1;
-    }
-  if( itk::Math::abs (speedValue) < m_IntensityDifferenceThreshold ||
-      denominator < m_DenominatorThreshold )
+  }
+  if (itk::Math::abs(speedValue) < m_IntensityDifferenceThreshold || denominator < m_DenominatorThreshold)
+  {
+    for (j = 0; j < ImageDimension; j++)
     {
-    for( j = 0; j < ImageDimension; j++ )
-      {
       update[j] = 0.0;
-      }
+    }
     return update;
-    }
-  for( j = 0; j < ImageDimension; j++ )
-    {
+  }
+  for (j = 0; j < ImageDimension; j++)
+  {
     update[j] = speedValue * gradient[j] / denominator;
-    if( globalData )
-      {
-      globalData->m_SumOfSquaredChange += static_cast<double>( itk::Math::sqr( update[j] ) );
-      }
+    if (globalData)
+    {
+      globalData->m_SumOfSquaredChange += static_cast<double>(itk::Math::sqr(update[j]));
     }
+  }
 
   return update;
 }
@@ -256,11 +249,11 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
  * Compute update at a specify neighbourhood
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-typename SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::PixelType
-SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::ComputeUpdateInv(const NeighborhoodType & it, void * gd,
-                   const FloatOffsetType & itkNotUsed(offset) )
+typename SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::PixelType
+SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::ComputeUpdateInv(
+  const NeighborhoodType & it,
+  void *                   gd,
+  const FloatOffsetType &  itkNotUsed(offset))
 {
   PixelType    update;
   unsigned int j;
@@ -274,18 +267,18 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 
   // Note: no need to check the index is within
   // fixed image buffer. This is done by the external filter.
-  fixedValue = (double) this->GetFixedImage()->GetPixel( index );
-  double movingValue = (double)this->GetMovingImage()->GetPixel( index );
+  fixedValue = (double)this->GetFixedImage()->GetPixel(index);
+  double movingValue = (double)this->GetMovingImage()->GetPixel(index);
 
   //  if (fixedValue > 0)std::cout << " fxv  " << fixedValue << " movingValue " << movingValue << std::endl;
 
   //    gradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
 
-  gradient = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
-  for( j = 0; j < ImageDimension; j++ )
-    {
-    gradientSquaredMagnitude += itk::Math::sqr ( gradient[j] );
-    }
+  gradient = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
+  for (j = 0; j < ImageDimension; j++)
+  {
+    gradientSquaredMagnitude += itk::Math::sqr(gradient[j]);
+  }
 
   /**
    * Compute Update.
@@ -299,39 +292,37 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
    * where K = mean square spacing to compensate for the mismatch in units.
    */
   double speedValue = movingValue - fixedValue;
-  if( std::fabs( speedValue ) < static_cast<double>( this->m_RobustnessParameter ) )
-    {
+  if (std::fabs(speedValue) < static_cast<double>(this->m_RobustnessParameter))
+  {
     speedValue = 0;
-    }
+  }
 
   // update the metric
-  GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
-  if( globalData )
-    {
-    globalData->m_SumOfSquaredDifference += itk::Math::sqr ( speedValue );
+  GlobalDataStruct * globalData = reinterpret_cast<GlobalDataStruct *>(gd);
+  if (globalData)
+  {
+    globalData->m_SumOfSquaredDifference += itk::Math::sqr(speedValue);
     globalData->m_NumberOfPixelsProcessed += 1;
-    }
+  }
 
-  double denominator = itk::Math::sqr ( speedValue ) / m_Normalizer
-    + gradientSquaredMagnitude;
+  double denominator = itk::Math::sqr(speedValue) / m_Normalizer + gradientSquaredMagnitude;
 
-  if( itk::Math::abs (speedValue) < m_IntensityDifferenceThreshold ||
-      denominator < m_DenominatorThreshold )
+  if (itk::Math::abs(speedValue) < m_IntensityDifferenceThreshold || denominator < m_DenominatorThreshold)
+  {
+    for (j = 0; j < ImageDimension; j++)
     {
-    for( j = 0; j < ImageDimension; j++ )
-      {
       update[j] = 0.0;
-      }
+    }
     return update;
-    }
-  for( j = 0; j < ImageDimension; j++ )
-    {
+  }
+  for (j = 0; j < ImageDimension; j++)
+  {
     update[j] = speedValue * gradient[j] / denominator;
-    if( globalData )
-      {
-      globalData->m_SumOfSquaredChange += static_cast<double>( itk::Math::sqr( update[j] ) );
-      }
+    if (globalData)
+    {
+      globalData->m_SumOfSquaredChange += static_cast<double>(itk::Math::sqr(update[j]));
     }
+  }
 
   return update;
 }
@@ -341,21 +332,18 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
 void
-SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
-::ReleaseGlobalDataPointer( void *gd ) const
+SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::ReleaseGlobalDataPointer(void * gd) const
 {
-  GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
+  GlobalDataStruct * globalData = reinterpret_cast<GlobalDataStruct *>(gd);
 
-  m_SumOfSquaredDifference  += globalData->m_SumOfSquaredDifference;
+  m_SumOfSquaredDifference += globalData->m_SumOfSquaredDifference;
   m_NumberOfPixelsProcessed += globalData->m_NumberOfPixelsProcessed;
   m_SumOfSquaredChange += globalData->m_SumOfSquaredChange;
-  if( m_NumberOfPixelsProcessed )
-    {
-    m_Metric = m_SumOfSquaredDifference
-      / static_cast<double>( m_NumberOfPixelsProcessed );
-    m_RMSChange = std::sqrt( m_SumOfSquaredChange
-                            / static_cast<double>( m_NumberOfPixelsProcessed ) );
-    }
+  if (m_NumberOfPixelsProcessed)
+  {
+    m_Metric = m_SumOfSquaredDifference / static_cast<double>(m_NumberOfPixelsProcessed);
+    m_RMSChange = std::sqrt(m_SumOfSquaredChange / static_cast<double>(m_NumberOfPixelsProcessed));
+  }
 
   delete globalData;
 }

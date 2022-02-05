@@ -30,21 +30,19 @@ namespace Statistics
  */
 
 template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
-class LogEuclideanGaussianListSampleFunction final
-  : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
+class LogEuclideanGaussianListSampleFunction final : public ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:
-  typedef LogEuclideanGaussianListSampleFunction Self;
-  typedef ListSampleFunction
-    <TListSample, TOutput, TCoordRep>                      Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef LogEuclideanGaussianListSampleFunction              Self;
+  typedef ListSampleFunction<TListSample, TOutput, TCoordRep> Superclass;
+  typedef SmartPointer<Self>                                  Pointer;
+  typedef SmartPointer<const Self>                            ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( LogEuclideanGaussianListSampleFunction, ListSampleFunction );
+  itkTypeMacro(LogEuclideanGaussianListSampleFunction, ListSampleFunction);
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;
@@ -57,36 +55,45 @@ public:
 
   /** Helper functions */
 
-  void SetInputListSample( const InputListSampleType * ptr ) override;
+  void
+  SetInputListSample(const InputListSampleType * ptr) override;
 
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override;
+  TOutput
+  Evaluate(const InputMeasurementVectorType & measurement) const override;
 
 protected:
   LogEuclideanGaussianListSampleFunction();
   ~LogEuclideanGaussianListSampleFunction() override;
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData();
+  void
+  GenerateData();
 
-  TensorType LogTensorTransform( const TensorType & ) const;
+  TensorType
+  LogTensorTransform(const TensorType &) const;
 
-  TensorType ExpTensorTransform( const TensorType & ) const;
+  TensorType
+  ExpTensorTransform(const TensorType &) const;
 
-  RealType CalculateTensorDistance( const TensorType &, const TensorType & ) const;
+  RealType
+  CalculateTensorDistance(const TensorType &, const TensorType &) const;
 
   TensorType m_MeanTensor;
   RealType   m_Dispersion;
+
 private:
   // purposely not implemented
-  LogEuclideanGaussianListSampleFunction( const Self & );
-  void operator=( const Self & );
+  LogEuclideanGaussianListSampleFunction(const Self &);
+  void
+  operator=(const Self &);
 };
 } // end of namespace Statistics
 } // end of namespace ants
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsLogEuclideanGaussianListSampleFunction.hxx"
+#  include "antsLogEuclideanGaussianListSampleFunction.hxx"
 #endif
 
 #endif

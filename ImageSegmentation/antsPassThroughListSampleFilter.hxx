@@ -23,41 +23,35 @@ namespace ants
 namespace Statistics
 {
 template <typename TListSample>
-PassThroughListSampleFilter<TListSample>
-::PassThroughListSampleFilter()
+PassThroughListSampleFilter<TListSample>::PassThroughListSampleFilter()
 {
   this->AllocateOutput();
-  this->GetOutput()->SetMeasurementVectorSize(
-    this->GetInput()->GetMeasurementVectorSize() );
+  this->GetOutput()->SetMeasurementVectorSize(this->GetInput()->GetMeasurementVectorSize());
 }
 
 template <typename TListSample>
-PassThroughListSampleFilter<TListSample>
-::~PassThroughListSampleFilter()
-= default;
+PassThroughListSampleFilter<TListSample>::~PassThroughListSampleFilter() = default;
 
 template <typename TListSample>
 void
-PassThroughListSampleFilter<TListSample>
-::GenerateData()
+PassThroughListSampleFilter<TListSample>::GenerateData()
 {
   /**
    * Simply pass the input to the output.
    */
   typename ListSampleType::ConstIterator It = this->GetInput()->Begin();
-  while( It != this->GetInput()->End() )
-    {
-    this->GetOutput()->PushBack( It.GetMeasurementVector() );
+  while (It != this->GetInput()->End())
+  {
+    this->GetOutput()->PushBack(It.GetMeasurementVector());
     ++It;
-    }
+  }
 }
 
 template <typename TListSample>
 void
-PassThroughListSampleFilter<TListSample>
-::PrintSelf( std::ostream& os, Indent indent ) const
+PassThroughListSampleFilter<TListSample>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  this->Superclass::PrintSelf( os, indent );
+  this->Superclass::PrintSelf(os, indent);
 }
 } // end of namespace Statistics
 } // end of namespace ants

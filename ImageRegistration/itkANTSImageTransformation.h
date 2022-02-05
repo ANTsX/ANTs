@@ -27,13 +27,12 @@
 #include "itkANTSAffine3DTransform.h"
 // #include "itkCenteredRigid2DTransform.h"
 #include "itkCenteredTransformInitializer.h"
-#include  "itkTransformFileReader.h"
+#include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 namespace itk
 {
 template <unsigned int TDimension = 3, typename TReal = float>
-class ANTSImageTransformation final
-  : public       Object
+class ANTSImageTransformation final : public Object
 {
 public:
   /** Standard class typedefs. */
@@ -43,17 +42,16 @@ public:
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   typedef double TComp;
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ANTSImageTransformation, Object );
+  itkTypeMacro(ANTSImageTransformation, Object);
   static constexpr unsigned int Dimension = TDimension;
   static constexpr unsigned int ImageDimension = TDimension;
 
-  typedef TReal RealType;
-  typedef Image<RealType,
-                itkGetStaticConstMacro( Dimension )>                   ImageType;
+  typedef TReal                                              RealType;
+  typedef Image<RealType, itkGetStaticConstMacro(Dimension)> ImageType;
   /** declare transformation types */
 
   typedef itk::MatrixOffsetTransformBase<TComp, TDimension, TDimension> AffineTransformType;
@@ -70,124 +68,141 @@ public:
   typedef typename ParserType::OptionType  OptionType;
 
   /** Set functions */
-  void SetDeformationRegionOfInterest( DeformationRegionOfInterestCenterType DRC,
-                                       DeformationRegionOfInterestSizeType DRS,
-                                       typename DisplacementFieldType::SpacingType DRSp)
+  void
+  SetDeformationRegionOfInterest(DeformationRegionOfInterestCenterType       DRC,
+                                 DeformationRegionOfInterestSizeType         DRS,
+                                 typename DisplacementFieldType::SpacingType DRSp)
   {
     m_DeformationRegionOfInterestCenter = DRC;
     m_DeformationRegionOfInterestSize = DRS;
     m_DeformationRegionSpacing = DRSp;
   }
 
-  void SetAffineTransform(AffineTransformPointer A)
+  void
+  SetAffineTransform(AffineTransformPointer A)
   {
     this->m_AffineTransform = A;
   }
 
-  void SetDisplacementField(DisplacementFieldPointer A)
+  void
+  SetDisplacementField(DisplacementFieldPointer A)
   {
     this->m_DisplacementField = A;
   }
 
-  void SetInverseDisplacementField(DisplacementFieldPointer A)
+  void
+  SetInverseDisplacementField(DisplacementFieldPointer A)
   {
     this->m_InverseDisplacementField = A;
   }
 
-  void SetNamingConvention(std::string name)
+  void
+  SetNamingConvention(std::string name)
   {
     this->m_NamingConvention = name;
   }
 
   /** Get functions */
-  AffineTransformPointer GetAffineTransform()
+  AffineTransformPointer
+  GetAffineTransform()
   {
     return this->m_AffineTransform;
   }
 
-  DisplacementFieldPointer GetDisplacementField()
+  DisplacementFieldPointer
+  GetDisplacementField()
   {
     return this->m_DisplacementField;
   }
 
-  DisplacementFieldPointer GetInverseDisplacementField()
+  DisplacementFieldPointer
+  GetInverseDisplacementField()
   {
     return this->m_InverseDisplacementField;
   }
 
-  void SetFixedImageAffineTransform(AffineTransformPointer A)
+  void
+  SetFixedImageAffineTransform(AffineTransformPointer A)
   {
     this->m_FixedImageAffineTransform = A;
   }
 
-  AffineTransformPointer GetFixedImageAffineTransform()
+  AffineTransformPointer
+  GetFixedImageAffineTransform()
   {
     return this->m_FixedImageAffineTransform;
   }
 
   /** Initialize the mapping */
-  void InitializeTransform()
+  void
+  InitializeTransform()
   {
-    if( !this->m_AffineTransform )
-      {
+    if (!this->m_AffineTransform)
+    {
       this->m_AffineTransform = AffineTransformType::New();
       this->m_AffineTransform->SetIdentity();
-      }
+    }
     // deformation fields too
-    if( !this->m_DisplacementField )
-      {
+    if (!this->m_DisplacementField)
+    {
       VectorType zero;
       zero.Fill(0);
       this->m_DisplacementField = DisplacementFieldType::New();
-/*      m_DeformationRegionOfInterest.SetSize( m_DeformationRegionOfInterestSize );
-      this->m_DisplacementField->SetSpacing( m_DeformationRegionSpacing );
-      this->m_DisplacementField->SetOrigin( m_DeformationRegionOfInterestCenter );
-      this->m_DisplacementField->SetLargestPossibleRegion( m_DeformationRegionOfInterest );
-      this->m_DisplacementField->SetRequestedRegion( m_DeformationRegionOfInterest );
-      this->m_DisplacementField->SetBufferedRegion( m_DeformationRegionOfInterest );
-      this->m_DisplacementField->Allocate();
-      this->m_DisplacementField->FillBuffer(zero);
-*/
-      }
+      /*      m_DeformationRegionOfInterest.SetSize( m_DeformationRegionOfInterestSize );
+            this->m_DisplacementField->SetSpacing( m_DeformationRegionSpacing );
+            this->m_DisplacementField->SetOrigin( m_DeformationRegionOfInterestCenter );
+            this->m_DisplacementField->SetLargestPossibleRegion( m_DeformationRegionOfInterest );
+            this->m_DisplacementField->SetRequestedRegion( m_DeformationRegionOfInterest );
+            this->m_DisplacementField->SetBufferedRegion( m_DeformationRegionOfInterest );
+            this->m_DisplacementField->Allocate();
+            this->m_DisplacementField->FillBuffer(zero);
+      */
+    }
   }
 
   /** Write the transformations out */
-  void Write();
+  void
+  Write();
 
   /** Concatenate all transformations  */
-  void Compose();
+  void
+  Compose();
 
   /** Concatenate all transformations in inverse direction */
-  void ComposeInverse();
+  void
+  ComposeInverse();
 
-  itkSetMacro( WriteComponentImages, bool );
-  itkGetMacro( WriteComponentImages, bool );
-  itkBooleanMacro( WriteComponentImages );
+  itkSetMacro(WriteComponentImages, bool);
+  itkGetMacro(WriteComponentImages, bool);
+  itkBooleanMacro(WriteComponentImages);
+
 protected:
   ANTSImageTransformation();
   ~ANTSImageTransformation() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  ANTSImageTransformation( const Self & ) = delete;
-  void operator=( const Self & ) = delete;
+  ANTSImageTransformation(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
-  AffineTransformPointer                m_AffineTransform;
-  AffineTransformPointer                m_FixedImageAffineTransform;
-  DisplacementFieldPointer              m_DisplacementField;
-  DeformationRegionOfInterestType       m_DeformationRegionOfInterest;
-  DeformationRegionOfInterestCenterType m_DeformationRegionOfInterestCenter;
-  DeformationRegionOfInterestSizeType   m_DeformationRegionOfInterestSize;
+  AffineTransformPointer                      m_AffineTransform;
+  AffineTransformPointer                      m_FixedImageAffineTransform;
+  DisplacementFieldPointer                    m_DisplacementField;
+  DeformationRegionOfInterestType             m_DeformationRegionOfInterest;
+  DeformationRegionOfInterestCenterType       m_DeformationRegionOfInterestCenter;
+  DeformationRegionOfInterestSizeType         m_DeformationRegionOfInterestSize;
   typename DisplacementFieldType::SpacingType m_DeformationRegionSpacing;
-  DisplacementFieldPointer m_InverseDisplacementField;
-  std::string              m_NamingConvention;
-  bool                     m_WriteComponentImages;
+  DisplacementFieldPointer                    m_InverseDisplacementField;
+  std::string                                 m_NamingConvention;
+  bool                                        m_WriteComponentImages;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkANTSImageTransformation.cxx"
+#  include "itkANTSImageTransformation.cxx"
 #endif
 
 #endif

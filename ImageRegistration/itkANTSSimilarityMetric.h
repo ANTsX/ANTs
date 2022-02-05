@@ -25,8 +25,7 @@
 namespace itk
 {
 template <unsigned int TDimension = 3, typename TReal = float>
-class ANTSSimilarityMetric final
-  : public       Object
+class ANTSSimilarityMetric final : public Object
 {
 public:
   /** Standard class typedefs. */
@@ -36,20 +35,17 @@ public:
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ANTSSimilarityMetric, Object );
+  itkTypeMacro(ANTSSimilarityMetric, Object);
   static constexpr unsigned int Dimension = TDimension;
 
-  typedef TReal RealType;
-  typedef Image<RealType,
-                itkGetStaticConstMacro( Dimension )>                   ImageType;
-  typedef typename ImageType::Pointer ImagePointer;
-  typedef Vector<RealType,
-                 itkGetStaticConstMacro( Dimension )>                   VectorType;
-  typedef Image<VectorType,
-                itkGetStaticConstMacro( Dimension )>                   DisplacementFieldType;
+  typedef TReal                                                RealType;
+  typedef Image<RealType, itkGetStaticConstMacro(Dimension)>   ImageType;
+  typedef typename ImageType::Pointer                          ImagePointer;
+  typedef Vector<RealType, itkGetStaticConstMacro(Dimension)>  VectorType;
+  typedef Image<VectorType, itkGetStaticConstMacro(Dimension)> DisplacementFieldType;
 
   /** Point Types  for landmarks and labeled point-sets */
   typedef itk::ANTSLabeledPointSet<Dimension>        LabeledPointSetType;
@@ -61,32 +57,31 @@ public:
   typedef typename ImageType::PointType              ImagePointType;
 
   /** Typedefs for similarity metrics */
-  typedef AvantsPDEDeformableRegistrationFunction
-    <ImageType, ImageType, DisplacementFieldType>           MetricType;
-  typedef typename MetricType::Pointer    MetricPointer;
-  typedef typename MetricType::RadiusType RadiusType;
+  typedef AvantsPDEDeformableRegistrationFunction<ImageType, ImageType, DisplacementFieldType> MetricType;
+  typedef typename MetricType::Pointer                                                         MetricPointer;
+  typedef typename MetricType::RadiusType                                                      RadiusType;
 
-  itkSetMacro( FixedImage, ImagePointer );
-  itkGetConstMacro( FixedImage, ImagePointer );
-  itkSetMacro( MovingImage, ImagePointer );
-  itkGetConstMacro( MovingImage, ImagePointer );
-  itkSetMacro( FixedPointSet, PointSetPointer );
-  itkGetConstMacro( FixedPointSet, PointSetPointer );
-  itkSetMacro( MovingPointSet, PointSetPointer );
-  itkGetConstMacro( MovingPointSet, PointSetPointer );
-  itkSetMacro( WeightImage, ImagePointer );
-  itkGetConstMacro( WeightImage, ImagePointer );
-  itkSetClampMacro( WeightScalar, RealType, 0.0, NumericTraits<RealType>::max() );
-  itkGetConstMacro( WeightScalar, RealType );
+  itkSetMacro(FixedImage, ImagePointer);
+  itkGetConstMacro(FixedImage, ImagePointer);
+  itkSetMacro(MovingImage, ImagePointer);
+  itkGetConstMacro(MovingImage, ImagePointer);
+  itkSetMacro(FixedPointSet, PointSetPointer);
+  itkGetConstMacro(FixedPointSet, PointSetPointer);
+  itkSetMacro(MovingPointSet, PointSetPointer);
+  itkGetConstMacro(MovingPointSet, PointSetPointer);
+  itkSetMacro(WeightImage, ImagePointer);
+  itkGetConstMacro(WeightImage, ImagePointer);
+  itkSetClampMacro(WeightScalar, RealType, 0.0, NumericTraits<RealType>::max());
+  itkGetConstMacro(WeightScalar, RealType);
 
-  itkSetObjectMacro( Metric, MetricType );
-  itkGetModifiableObjectMacro( Metric, MetricType );
+  itkSetObjectMacro(Metric, MetricType);
+  itkGetModifiableObjectMacro(Metric, MetricType);
 
-  itkSetMacro( MaximizeMetric, bool );
-  itkGetConstMacro( MaximizeMetric, bool );
-  itkBooleanMacro( MaximizeMetric );
+  itkSetMacro(MaximizeMetric, bool);
+  itkGetConstMacro(MaximizeMetric, bool);
+  itkBooleanMacro(MaximizeMetric);
+
 private:
-
   MetricPointer m_Metric;
   bool          m_MaximizeMetric;
 

@@ -82,23 +82,22 @@ BlobCorrespondence( typename ImageType::Pointer image, unsigned int nBlobs,
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathGE( typename ImageType::Pointer image, unsigned long radius)                /*3*/
+iMathGE(typename ImageType::Pointer image, unsigned long radius) /*3*/
 {
-  const unsigned int ImageDimension = ImageType::ImageDimension;
-  typedef typename ImageType::PixelType                         PixelType;
+  const unsigned int                    ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType PixelType;
 
-  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
-    StructuringElementType;
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension> StructuringElementType;
 
-  typedef itk::GrayscaleErodeImageFilter< ImageType, ImageType, StructuringElementType >   FilterType;
+  typedef itk::GrayscaleErodeImageFilter<ImageType, ImageType, StructuringElementType> FilterType;
 
   StructuringElementType structuringElement;
   structuringElement.SetRadius(radius);
   structuringElement.CreateStructuringElement();
 
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( image );
-  filter->SetKernel( structuringElement );
+  filter->SetInput(image);
+  filter->SetKernel(structuringElement);
   filter->Update();
 
   return filter->GetOutput();
@@ -106,23 +105,22 @@ iMathGE( typename ImageType::Pointer image, unsigned long radius)               
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathGO( typename ImageType::Pointer image, unsigned long radius)               /*3*/
+iMathGO(typename ImageType::Pointer image, unsigned long radius) /*3*/
 {
-  const unsigned int ImageDimension = ImageType::ImageDimension;
-  typedef typename ImageType::PixelType                         PixelType;
+  const unsigned int                    ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType PixelType;
 
-  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
-    StructuringElementType;
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension> StructuringElementType;
 
-  typedef itk::GrayscaleMorphologicalOpeningImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+  typedef itk::GrayscaleMorphologicalOpeningImageFilter<ImageType, ImageType, StructuringElementType> FilterType;
 
   StructuringElementType structuringElement;
   structuringElement.SetRadius(radius);
   structuringElement.CreateStructuringElement();
 
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( image );
-  filter->SetKernel( structuringElement );
+  filter->SetInput(image);
+  filter->SetKernel(structuringElement);
   filter->Update();
 
   return filter->GetOutput();
@@ -130,25 +128,25 @@ iMathGO( typename ImageType::Pointer image, unsigned long radius)               
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathGetLargestComponent( typename ImageType::Pointer image,                         /*3*/
-                     unsigned long smallest )
+iMathGetLargestComponent(typename ImageType::Pointer image, /*3*/
+                         unsigned long               smallest)
 {
   const unsigned int ImageDimension = ImageType::ImageDimension;
 
-  if ( image->GetNumberOfComponentsPerPixel() != 1 )
-    {
+  if (image->GetNumberOfComponentsPerPixel() != 1)
+  {
     // NOPE
-    }
+  }
 
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>  Iterator;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
   // compute the voxel volume
   typename ImageType::SpacingType spacing = image->GetSpacing();
-  float volumeelement = 1.0;
-  for( unsigned int i = 0;  i < spacing.Size(); i++ )
-    {
-    volumeelement *= static_cast<float>( spacing[i] );
-    }
+  float                           volumeelement = 1.0;
+  for (unsigned int i = 0; i < spacing.Size(); i++)
+  {
+    volumeelement *= static_cast<float>(spacing[i]);
+  }
 
   typedef itk::Image<unsigned long, ImageDimension>                          LabelImageType;
   typedef itk::BinaryThresholdImageFilter<ImageType, LabelImageType>         ThresholdFilterType;
@@ -156,145 +154,146 @@ iMathGetLargestComponent( typename ImageType::Pointer image,                    
   typedef itk::RelabelComponentImageFilter<LabelImageType, ImageType>        RelabelType;
 
   typename ThresholdFilterType::Pointer threshold = ThresholdFilterType::New();
-  typename FilterType::Pointer filter = FilterType::New();
-  typename RelabelType::Pointer relabel = RelabelType::New();
+  typename FilterType::Pointer          filter = FilterType::New();
+  typename RelabelType::Pointer         relabel = RelabelType::New();
 
   threshold->SetInput(image);
   threshold->SetInsideValue(1);
   threshold->SetOutsideValue(0);
-  threshold->SetLowerThreshold(0.25);  //FIXME - why these values?
+  threshold->SetLowerThreshold(0.25); // FIXME - why these values?
   threshold->SetUpperThreshold(1.e9);
   threshold->Update();
 
-  filter->SetInput(threshold->GetOutput() );
-  filter->SetFullyConnected( 0 );
+  filter->SetInput(threshold->GetOutput());
+  filter->SetFullyConnected(0);
   filter->Update();
-  relabel->SetInput( filter->GetOutput() );
-  relabel->SetMinimumObjectSize( smallest );
+  relabel->SetInput(filter->GetOutput());
+  relabel->SetMinimumObjectSize(smallest);
   //    relabel->SetUseHistograms(true);
 
   try
-    {
+  {
     relabel->Update();
-    }
-  catch( itk::ExceptionObject & itkNotUsed(excep) )
-    {
+  }
+  catch (itk::ExceptionObject & itkNotUsed(excep))
+  {
     // std::cout << "Relabel: exception caught !" << std::endl;
     // std::cout << excep << std::endl;
-    }
+  }
 
   //  ANTs::WriteImage<ImageType>(relabel->GetOutput(),outname.c_str());
   //  return 0;
   typename ImageType::Pointer Clusters = MakeNewImage<ImageType>(relabel->GetOutput(), 0);
   // typename ImageType::Pointer Clusters=relabel->GetOutput();
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  Iterator vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
+  Iterator vfIter(relabel->GetOutput(), relabel->GetOutput()->GetLargestPossibleRegion());
 
-  float maximum = relabel->GetNumberOfObjects();
+  float                     maximum = relabel->GetNumberOfObjects();
   float                     maxtstat = 0;
-  std::vector<unsigned int> histogram( (int)maximum + 1);
-  std::vector<float>        clustersum( (int)maximum + 1);
-  for( int i = 0; i <= maximum; i++ )
-    {
+  std::vector<unsigned int> histogram((int)maximum + 1);
+  std::vector<float>        clustersum((int)maximum + 1);
+  for (int i = 0; i <= maximum; i++)
+  {
     histogram[i] = 0;
     clustersum[i] = 0;
-    }
-  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+  }
+  for (vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter)
+  {
+    if (vfIter.Get() > 0)
     {
-    if( vfIter.Get() > 0 )
-      {
-      float vox = image->GetPixel(vfIter.GetIndex() );
+      float vox = image->GetPixel(vfIter.GetIndex());
       histogram[(unsigned int)vfIter.Get()] = histogram[(unsigned int)vfIter.Get()] + 1;
       clustersum[(unsigned int)vfIter.Get()] += vox;
-      if( vox > maxtstat )
-        {
+      if (vox > maxtstat)
+      {
         maxtstat = vox;
-        }
       }
     }
-  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+  }
+  for (vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter)
+  {
+    if (vfIter.Get() > 0)
     {
-    if( vfIter.Get() > 0 )
-      {
-      Clusters->SetPixel( vfIter.GetIndex(), histogram[(unsigned int)vfIter.Get()]  );
+      Clusters->SetPixel(vfIter.GetIndex(), histogram[(unsigned int)vfIter.Get()]);
       //  if ( Clusters->GetPixel( vfIter.GetIndex() ) > maximgval )
       //    maximgval=Clusters->GetPixel( vfIter.GetIndex());
-      }
-    else
-      {
-      Clusters->SetPixel(vfIter.GetIndex(), 0);
-      }
     }
+    else
+    {
+      Clusters->SetPixel(vfIter.GetIndex(), 0);
+    }
+  }
 
   float maximgval = 0;
-  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+  for (vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter)
+  {
+    if (Clusters->GetPixel(vfIter.GetIndex()) > maximgval)
     {
-    if( Clusters->GetPixel( vfIter.GetIndex() ) > maximgval )
-      {
-      maximgval = Clusters->GetPixel( vfIter.GetIndex() );
-      }
+      maximgval = Clusters->GetPixel(vfIter.GetIndex());
     }
+  }
 
-  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+  for (vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter)
+  {
+    if (Clusters->GetPixel(vfIter.GetIndex()) >= maximgval)
     {
-    if( Clusters->GetPixel( vfIter.GetIndex() ) >= maximgval )
-      {
-      image->SetPixel( vfIter.GetIndex(), 1);
-      }
-    else
-      {
-      image->SetPixel( vfIter.GetIndex(), 0);
-      }
+      image->SetPixel(vfIter.GetIndex(), 1);
     }
+    else
+    {
+      image->SetPixel(vfIter.GetIndex(), 0);
+    }
+  }
 
   return image;
 }
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize )      /*3*/
+iMathGrad(typename ImageType::Pointer image, double sigma, bool normalize) /*3*/
 {
 
-  typedef itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType,ImageType> FilterType;
-  typename FilterType::Pointer grad = FilterType::New();
-  grad->SetInput( image );
-  grad->SetSigma( sigma );
+  typedef itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType, ImageType> FilterType;
+  typename FilterType::Pointer                                                     grad = FilterType::New();
+  grad->SetInput(image);
+  grad->SetSigma(sigma);
   grad->Update();
 
   typename ImageType::Pointer output = grad->GetOutput();
-  if ( normalize )
-    {
+  if (normalize)
+  {
     typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
-    typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
-    rescaler->SetOutputMinimum( 0 );
-    rescaler->SetOutputMaximum( 1 );
-    rescaler->SetInput( grad->GetOutput() );
+    typename RescaleFilterType::Pointer                            rescaler = RescaleFilterType::New();
+    rescaler->SetOutputMinimum(0);
+    rescaler->SetOutputMaximum(1);
+    rescaler->SetInput(grad->GetOutput());
     rescaler->Update();
     output = rescaler->GetOutput();
-    }
+  }
 
   return output;
 }
 
 template <typename ImageType>
 typename ImageType::Pointer
-iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, double beta, unsigned int r )    /*3*/
+iMathHistogramEqualization(typename ImageType::Pointer image, double alpha, double beta, unsigned int r) /*3*/
 {
 
-  if ( image->GetNumberOfComponentsPerPixel() != 1 )
-    {
+  if (image->GetNumberOfComponentsPerPixel() != 1)
+  {
     // NOPE
-    }
+  }
 
-  typedef itk::AdaptiveHistogramEqualizationImageFilter< ImageType > AdaptiveHistogramEqualizationImageFilterType;
-  typename AdaptiveHistogramEqualizationImageFilterType::Pointer adaptiveHistogramEqualizationImageFilter = AdaptiveHistogramEqualizationImageFilterType::New();
-  adaptiveHistogramEqualizationImageFilter->SetInput( image );
+  typedef itk::AdaptiveHistogramEqualizationImageFilter<ImageType> AdaptiveHistogramEqualizationImageFilterType;
+  typename AdaptiveHistogramEqualizationImageFilterType::Pointer   adaptiveHistogramEqualizationImageFilter =
+    AdaptiveHistogramEqualizationImageFilterType::New();
+  adaptiveHistogramEqualizationImageFilter->SetInput(image);
   typename AdaptiveHistogramEqualizationImageFilterType::RadiusType radius;
-  radius.Fill( r );
+  radius.Fill(r);
   adaptiveHistogramEqualizationImageFilter->SetRadius(radius);
   adaptiveHistogramEqualizationImageFilter->SetAlpha(alpha);
   adaptiveHistogramEqualizationImageFilter->SetBeta(beta);
-  adaptiveHistogramEqualizationImageFilter->Update( );
+  adaptiveHistogramEqualizationImageFilter->Update();
 
   return adaptiveHistogramEqualizationImageFilter->GetOutput();
 }
@@ -304,28 +303,26 @@ iMathHistogramEqualization( typename ImageType::Pointer image, double alpha, dou
 // shape (1=ball, 2=box, 3=cross, 4=annulus, 5=polygon)
 template <typename ImageType>
 typename ImageType::Pointer
-iMathGD(typename ImageType::Pointer image, unsigned long radius)                   /*0*/      /*3*/
+iMathGD(typename ImageType::Pointer image, unsigned long radius) /*0*/ /*3*/
 {
 
-  const unsigned int ImageDimension = ImageType::ImageDimension;
-  typedef typename ImageType::PixelType                         PixelType;
+  const unsigned int                    ImageDimension = ImageType::ImageDimension;
+  typedef typename ImageType::PixelType PixelType;
 
-  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension>
-    StructuringElementType;
+  typedef itk::BinaryBallStructuringElement<PixelType, ImageDimension> StructuringElementType;
 
-  typedef itk::GrayscaleDilateImageFilter< ImageType, ImageType, StructuringElementType >  FilterType;
+  typedef itk::GrayscaleDilateImageFilter<ImageType, ImageType, StructuringElementType> FilterType;
 
   StructuringElementType structuringElement;
   structuringElement.SetRadius(radius);
   structuringElement.CreateStructuringElement();
 
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( image );
-  filter->SetKernel( structuringElement );
+  filter->SetInput(image);
+  filter->SetKernel(structuringElement);
   filter->Update();
 
   return filter->GetOutput();
-
 }
 
 } // namespace ants

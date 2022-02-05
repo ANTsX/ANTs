@@ -24,122 +24,117 @@
 namespace itk
 {
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
-PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter()
+PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::
+  PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter()
 {
   this->m_TI1 = 700;
   this->m_TI2 = 1700;
   this->m_T1blood = 1664;
   this->m_Lambda = 0.9;
-  this->m_Alpha = 0.85; //0.95;
+  this->m_Alpha = 0.85; // 0.95;
   this->m_SliceDelay = 45;
 
-  this->SetNumberOfRequiredInputs( 2 );
-
+  this->SetNumberOfRequiredInputs(2);
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
-PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::PrintSelf(std::ostream & os, Indent indent) const
+PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::PrintSelf(
+  std::ostream & os,
+  Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
-PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::SetDifferenceImage(const TInputImage* img)
+PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::
+  SetDifferenceImage(const TInputImage * img)
 {
-  SetNthInput(0, const_cast<TInputImage*>(img));
+  SetNthInput(0, const_cast<TInputImage *>(img));
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 typename TInputImage::ConstPointer
-PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::GetDifferenceImage()
+PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::
+  GetDifferenceImage()
 {
-  return static_cast< const TInputImage * >
-         ( this->ProcessObject::GetInput(0) );
+  return static_cast<const TInputImage *>(this->ProcessObject::GetInput(0));
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
-PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::SetReferenceImage(const TReferenceImage* ref)
+PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::
+  SetReferenceImage(const TReferenceImage * ref)
 {
-  SetNthInput(1, const_cast<TReferenceImage*>(ref));
+  SetNthInput(1, const_cast<TReferenceImage *>(ref));
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 typename TReferenceImage::ConstPointer
-PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::GetReferenceImage()
+PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::
+  GetReferenceImage()
 {
-  return static_cast< const TReferenceImage * >
-         ( this->ProcessObject::GetInput(1) );
+  return static_cast<const TReferenceImage *>(this->ProcessObject::GetInput(1));
 }
 
 template <typename TInputImage, typename TReferenceImage, typename TOutputImage>
 void
-PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                       ThreadIdType threadId)
+PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>::
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId)
 {
   itkDebugMacro(<< "Actually executing");
 
-  ProgressReporter progress( this, threadId, outputRegionForThread.GetNumberOfPixels() );
+  ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
   OutputImageRegionType outputRegion = outputRegionForThread;
 
   InputImageRegionType inputRegion;
   this->CallCopyOutputRegionToInputRegion(inputRegion, outputRegionForThread);
 
-  ImageRegionIterator<OutputImageType> outIt(
-    this->GetOutput(), outputRegion);
+  ImageRegionIterator<OutputImageType> outIt(this->GetOutput(), outputRegion);
 
-  ImageRegionConstIterator<InputImageType> inIt(
-    this->GetInput(), inputRegion );
+  ImageRegionConstIterator<InputImageType> inIt(this->GetInput(), inputRegion);
 
-  while( !outIt.IsAtEnd() )
-    {
+  while (!outIt.IsAtEnd())
+  {
     // account for delay between acquisition of slices
     // const float TI = ( this->m_TI2 - this->m_TI1) + this->m_SliceDelay * (outIt.GetIndex()[2] - 1);
 
     typename ReferenceImageType::IndexType idx;
-    for ( unsigned int i=0; i<ReferenceImageDimension; i++)
-      {
+    for (unsigned int i = 0; i < ReferenceImageDimension; i++)
+    {
       idx[i] = inIt.GetIndex()[i];
-      }
+    }
 
-    //float ratio = inIt.Value() / this->GetReferenceImage()->GetPixel( idx );
-
-
-    //1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+    // float ratio = inIt.Value() / this->GetReferenceImage()->GetPixel( idx );
 
 
-    //RealType deltaM = itIt.Value();                  //  control - tagged if  control is odd
+    // 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
 
-    //RealType T_1a = 1650; // 3T  from ASL_whyNhow.pdf
-    //RealType T_1t = 1300; // 3T
+
+    // RealType deltaM = itIt.Value();                  //  control - tagged if  control is odd
+
+    // RealType T_1a = 1650; // 3T  from ASL_whyNhow.pdf
+    // RealType T_1t = 1300; // 3T
 
     // from "Impact of equilibrium magnetization of blood on ASL quantification"
-    //RealType tau  = 2100; // FIXME milliseconds from PMC3049525
-    //RealType w    = 700;  // FIXME milliseconds from PMC3049525
+    // RealType tau  = 2100; // FIXME milliseconds from PMC3049525
+    // RealType w    = 700;  // FIXME milliseconds from PMC3049525
 
     // Label width: Not in dicom, but sequence-specific -- magic parameter. Reference values: pCASL 1.5, CASL 1.6,
     // PASL 0.7.
     // from PMC3049525
-    //const RealType scaling = 4 * this->Alpha * M_0 * T_1t
+    // const RealType scaling = 4 * this->Alpha * M_0 * T_1t
     //  * ( exp( -1.0 * ( tau + w ) / T_1a ) - exp( -1.0 * w / T_1t )  );
 
-    //float cbf = this->Lambda * inIt.Value() * ( -1.0 )  / scaling;
+    // float cbf = this->Lambda * inIt.Value() * ( -1.0 )  / scaling;
     float cbf = 0;
 
-    outIt.Set( cbf );
+    outIt.Set(cbf);
     ++outIt;
     ++inIt;
-    }
+  }
 }
 } // end namespace itk
 

@@ -28,8 +28,7 @@
 namespace itk
 {
 template <unsigned int TDimension = 3, typename TReal = float>
-class PICSLAdvancedNormalizationToolKit final
-  : public       Object
+class PICSLAdvancedNormalizationToolKit final : public Object
 {
 public:
   /** Standard class typedefs. */
@@ -39,17 +38,16 @@ public:
   typedef SmartPointer<const Self>          ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( PICSLAdvancedNormalizationToolKit, Object );
-  static constexpr unsigned int Dimension = TDimension;
-  typedef double TComp;
-  typedef TReal  RealType;
-  typedef Image<RealType,
-                itkGetStaticConstMacro( Dimension )>                   ImageType;
-  typedef typename ImageType::Pointer   ImagePointer;
-  typedef typename ImageType::PixelType PixelType;
+  itkTypeMacro(PICSLAdvancedNormalizationToolKit, Object);
+  static constexpr unsigned int                              Dimension = TDimension;
+  typedef double                                             TComp;
+  typedef TReal                                              RealType;
+  typedef Image<RealType, itkGetStaticConstMacro(Dimension)> ImageType;
+  typedef typename ImageType::Pointer                        ImagePointer;
+  typedef typename ImageType::PixelType                      PixelType;
 
   typedef itk::ANTSImageTransformation<Dimension, TReal>          TransformationModelType;
   typedef typename TransformationModelType::Pointer               TransformationModelPointer;
@@ -65,59 +63,70 @@ public:
   typedef typename LabeledPointSetType::PointSetType PointSetType;
 
   /** Typedefs for similarity metrics */
-  typedef ANTSSimilarityMetric<itkGetStaticConstMacro( Dimension ), TReal> SimilarityMetricType;
-  typedef typename SimilarityMetricType::Pointer                           SimilarityMetricPointer;
-  typedef std::vector<SimilarityMetricPointer>                             SimilarityMetricListType;
-  typedef typename SimilarityMetricType::MetricType                        MetricBaseType;
+  typedef ANTSSimilarityMetric<itkGetStaticConstMacro(Dimension), TReal> SimilarityMetricType;
+  typedef typename SimilarityMetricType::Pointer                         SimilarityMetricPointer;
+  typedef std::vector<SimilarityMetricPointer>                           SimilarityMetricListType;
+  typedef typename SimilarityMetricType::MetricType                      MetricBaseType;
 
   typedef ants::CommandLineParser         ParserType;
   typedef typename ParserType::OptionType OptionType;
 
-  void ParseCommandLine( int argc, char * *argv );
+  void
+  ParseCommandLine(int argc, char ** argv);
 
-  TransformationModelPointer GetTransformationModel()
+  TransformationModelPointer
+  GetTransformationModel()
   {
     return this->m_TransformationModel;
   }
 
-  RegistrationOptimizerPointer  SetRegistrationOptimizer()
+  RegistrationOptimizerPointer
+  SetRegistrationOptimizer()
   {
     return this->m_RegistrationOptimizer;
   }
 
-  void SetTransformationModel( TransformationModelPointer T )
+  void
+  SetTransformationModel(TransformationModelPointer T)
   {
     this->m_TransformationModel = T;
   }
 
-  void SetRegistrationOptimizer( RegistrationOptimizerPointer T )
+  void
+  SetRegistrationOptimizer(RegistrationOptimizerPointer T)
   {
     this->m_RegistrationOptimizer = T;
   }
 
-  void InitializeTransformAndOptimizer();
+  void
+  InitializeTransformAndOptimizer();
 
-  void RunRegistration();
+  void
+  RunRegistration();
 
 protected:
   PICSLAdvancedNormalizationToolKit();
   ~PICSLAdvancedNormalizationToolKit() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  PICSLAdvancedNormalizationToolKit( const Self & ) = delete;
-  void operator=( const Self & ) = delete;
+  PICSLAdvancedNormalizationToolKit(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
-  ImagePointer SubsampleImage( ImagePointer, RealType );
-  ImagePointer PreprocessImage( ImagePointer );
-  ImagePointer ReplaceProblematicPixelValues( ImagePointer, PixelType );
+  ImagePointer SubsampleImage(ImagePointer, RealType);
+  ImagePointer PreprocessImage(ImagePointer);
+  ImagePointer ReplaceProblematicPixelValues(ImagePointer, PixelType);
 
-  void InitializeCommandLineOptions();
+  void
+  InitializeCommandLineOptions();
 
-  void ReadImagesAndMetrics();
+  void
+  ReadImagesAndMetrics();
 
-  typename ParserType::Pointer                             m_Parser;
+  typename ParserType::Pointer m_Parser;
 
   TransformationModelPointer   m_TransformationModel;
   RegistrationOptimizerPointer m_RegistrationOptimizer;
@@ -127,7 +136,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkPICSLAdvancedNormalizationToolKit.hxx"
+#  include "itkPICSLAdvancedNormalizationToolKit.hxx"
 #endif
 
 #endif

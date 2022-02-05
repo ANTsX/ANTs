@@ -73,18 +73,16 @@ namespace itk
  *
  * \ingroup GeometricTransforms MultiThreaded
  */
-template <
-  typename TInputImage,
-  typename TOutputImage,
-  typename TDisplacementField,
-  typename TTransform
-  >
-class WarpImageWAffineFilter :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+template <typename TInputImage, typename TOutputImage, typename TDisplacementField, typename TTransform>
+class WarpImageWAffineFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** transform order type **/
-  typedef enum _TransformOrderType { AffineFirst = 0, AffineLast } TransformOrderType;
+  typedef enum _TransformOrderType
+  {
+    AffineFirst = 0,
+    AffineLast
+  } TransformOrderType;
 
   /** Standard class typedefs. */
   typedef WarpImageWAffineFilter                        Self;
@@ -96,7 +94,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro( WarpImageWAffineFilter, ImageToImageFilter );
+  itkTypeMacro(WarpImageWAffineFilter, ImageToImageFilter);
 
   /** Typedef to describe the output image region type. */
   typedef typename TOutputImage::RegionType OutputImageRegionType;
@@ -113,12 +111,9 @@ public:
   typedef typename OutputImageType::SpacingType       SpacingType;
 
   /** Determine the image dimension. */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TOutputImage::ImageDimension );
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension );
-  itkStaticConstMacro(DisplacementFieldDimension, unsigned int,
-                      TDisplacementField::ImageDimension );
+  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(DisplacementFieldDimension, unsigned int, TDisplacementField::ImageDimension);
 
   /** Deformation field typedef support. */
   typedef TDisplacementField                        DisplacementFieldType;
@@ -130,20 +125,21 @@ public:
   typedef typename TransformType::Pointer TransformTypePointer;
 
   /** Interpolator typedef support. */
-  typedef double                                                 CoordRepType;
-  typedef InterpolateImageFunction<InputImageType, CoordRepType> InterpolatorType;
-  typedef typename InterpolatorType::Pointer                     InterpolatorPointer;
-  typedef LinearInterpolateImageFunction<InputImageType, CoordRepType>
-    DefaultInterpolatorType;
+  typedef double                                                       CoordRepType;
+  typedef InterpolateImageFunction<InputImageType, CoordRepType>       InterpolatorType;
+  typedef typename InterpolatorType::Pointer                           InterpolatorPointer;
+  typedef LinearInterpolateImageFunction<InputImageType, CoordRepType> DefaultInterpolatorType;
 
   /** Point type */
   typedef Point<CoordRepType, itkGetStaticConstMacro(ImageDimension)> PointType;
 
   /** Set the deformation field. */
-  void SetDisplacementField( const DisplacementFieldType * field );
+  void
+  SetDisplacementField(const DisplacementFieldType * field);
 
   /** Get a pointer the deformation field. */
-  DisplacementFieldType * GetDisplacementField();
+  DisplacementFieldType *
+  GetDisplacementField();
 
   /** songgang: Set / Get  the affine transform. */
   // void SetAffineTransform( const TransformType * aff );
@@ -157,21 +153,23 @@ public:
   itkGetEnumMacro(TransformOrder, TransformOrderType);
 
   /** Set the interpolator function. */
-  itkSetObjectMacro( Interpolator, InterpolatorType );
+  itkSetObjectMacro(Interpolator, InterpolatorType);
 
   /** Get a pointer to the interpolator function. */
-  itkGetModifiableObjectMacro( Interpolator, InterpolatorType );
+  itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
 
   /** Set the output image spacing. */
   itkSetMacro(OutputSpacing, SpacingType);
-  virtual void SetOutputSpacing( const double* values);
+  virtual void
+  SetOutputSpacing(const double * values);
 
   /** Get the output image spacing. */
   itkGetConstReferenceMacro(OutputSpacing, SpacingType);
 
   /** Set the output image origin. */
   itkSetMacro(OutputOrigin, PointType);
-  virtual void SetOutputOrigin( const double* values);
+  virtual void
+  SetOutputOrigin(const double * values);
 
   /** Set the output image size. */
   itkSetMacro(OutputSize, SizeType);
@@ -182,17 +180,18 @@ public:
   itkGetConstReferenceMacro(OutputOrigin, PointType);
 
   /** Set the edge padding value */
-  itkSetMacro( EdgePaddingValue, PixelType );
+  itkSetMacro(EdgePaddingValue, PixelType);
 
   /** Get the edge padding value */
-  itkGetMacro( EdgePaddingValue, PixelType );
+  itkGetMacro(EdgePaddingValue, PixelType);
 
   /** WarpImageWAffineFilter produces an image which is a different
    * size than its input image. As such, it needs to provide an
    * implemenation for GenerateOutputInformation() which set
    * the output information according the OutputSpacing, OutputOrigin
    * and the deformation field's LargestPossibleRegion. */
-  virtual void GenerateOutputInformation();
+  virtual void
+  GenerateOutputInformation();
 
   /** It is difficult to compute in advance the input image region
    * required to compute the requested output region. Thus the safest
@@ -200,51 +199,57 @@ public:
    *
    * For the deformation field, the input requested region
    * set to be the same as that of the output requested region. */
-  virtual void GenerateInputRequestedRegion();
+  virtual void
+  GenerateInputRequestedRegion();
 
   /** This method is used to set the state of the filter before
    * multi-threading. */
-  virtual void BeforeThreadedGenerateData();
+  virtual void
+  BeforeThreadedGenerateData();
 
   /** This method is used to set the state of the filter after
    * multi-threading. */
-  virtual void AfterThreadedGenerateData();
+  virtual void
+  AfterThreadedGenerateData();
 
   /** precompute the smoothed image if necessary **/
-  void SetSmoothScale(double scale);
+  void
+  SetSmoothScale(double scale);
 
-  double GetSmoothScale()
+  double
+  GetSmoothScale()
   {
     return m_SmoothScale;
   };
 
-  void UpdateSizeByScale();
+  void
+  UpdateSizeByScale();
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(SameDimensionCheck1,
-                  (Concept::SameDimension<ImageDimension, InputImageDimension> ) );
-  itkConceptMacro(SameDimensionCheck2,
-                  (Concept::SameDimension<ImageDimension, DisplacementFieldDimension> ) );
-  itkConceptMacro(InputHasNumericTraitsCheck,
-                  (Concept::HasNumericTraits<typename TInputImage::PixelType> ) );
+  itkConceptMacro(SameDimensionCheck1, (Concept::SameDimension<ImageDimension, InputImageDimension>));
+  itkConceptMacro(SameDimensionCheck2, (Concept::SameDimension<ImageDimension, DisplacementFieldDimension>));
+  itkConceptMacro(InputHasNumericTraitsCheck, (Concept::HasNumericTraits<typename TInputImage::PixelType>));
   itkConceptMacro(DisplacementFieldHasNumericTraitsCheck,
-                  (Concept::HasNumericTraits<typename TDisplacementField::PixelType::ValueType> ) );
+                  (Concept::HasNumericTraits<typename TDisplacementField::PixelType::ValueType>));
   /** End concept checking */
 #endif
 protected:
   WarpImageWAffineFilter();
   ~WarpImageWAffineFilter() = default;
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const;
 
   /** WarpImageWAffineFilter is implemented as a multi-threaded filter.
    * As such, it needs to provide and implementation for
    * ThreadedGenerateData(). */
-  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId );
+  void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId);
 
 private:
   WarpImageWAffineFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   PixelType          m_EdgePaddingValue;
   SpacingType        m_OutputSpacing;
@@ -264,7 +269,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkWarpImageWAffineFilter.hxx"
+#  include "itkWarpImageWAffineFilter.hxx"
 #endif
 
 #endif

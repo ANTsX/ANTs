@@ -28,31 +28,29 @@ namespace itk
  *
  */
 template <typename TInputImage, typename TMaskImage, typename TOutputMesh>
-class ImageIntensityAndGradientToPointSetFilter final
-  : public MeshSource<TOutputMesh>
+class ImageIntensityAndGradientToPointSetFilter final : public MeshSource<TOutputMesh>
 {
 public:
   /** Standard "Self" typedef. */
-  typedef ImageIntensityAndGradientToPointSetFilter        Self;
-  typedef MeshSource<TOutputMesh>                          Superclass;
-  typedef SmartPointer<Self>                               Pointer;
-  typedef SmartPointer<const Self>                         ConstPointer;
+  typedef ImageIntensityAndGradientToPointSetFilter Self;
+  typedef MeshSource<TOutputMesh>                   Superclass;
+  typedef SmartPointer<Self>                        Pointer;
+  typedef SmartPointer<const Self>                  ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Extract dimension from the input image. */
-  itkStaticConstMacro( Dimension, unsigned int,
-                       TInputImage::ImageDimension );
+  itkStaticConstMacro(Dimension, unsigned int, TInputImage::ImageDimension);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ImageIntensityAndGradientToPointSetFilter, MeshSource );
+  itkTypeMacro(ImageIntensityAndGradientToPointSetFilter, MeshSource);
 
   /** Hold on to the type information specified by the template parameters. */
-  typedef TInputImage                         InputImageType;
-  typedef typename InputImageType::PixelType  InputImagePixelType;
+  typedef TInputImage                        InputImageType;
+  typedef typename InputImageType::PixelType InputImagePixelType;
 
-  typedef TMaskImage                          MaskImageType;
+  typedef TMaskImage MaskImageType;
 
   typedef TOutputMesh                         OutputMeshType;
   typedef typename OutputMeshType::MeshTraits MeshTraits;
@@ -63,89 +61,106 @@ public:
   typedef CovariantVector<InputImagePixelType, Dimension> GradientPixelType;
   typedef Image<GradientPixelType, Dimension>             GradientImageType;
 
-  typedef ConstNeighborhoodIterator<GradientImageType>        ConstNeighborhoodIteratorType;
-  typedef typename ConstNeighborhoodIteratorType::RadiusType  NeighborhoodRadiusType;
+  typedef ConstNeighborhoodIterator<GradientImageType>       ConstNeighborhoodIteratorType;
+  typedef typename ConstNeighborhoodIteratorType::RadiusType NeighborhoodRadiusType;
 
   typedef GradientRecursiveGaussianImageFilter<InputImageType, GradientImageType> GradientFilterType;
 
   /**
    * Set/Get the input image.
    */
-  void SetInputImage( const InputImageType *image )
-    {
-    this->SetNthInput( 0, const_cast<InputImageType *>( image ) );
-    }
-  void SetInput1( const InputImageType *image ) { this->SetInputImage( image ); }
+  void
+  SetInputImage(const InputImageType * image)
+  {
+    this->SetNthInput(0, const_cast<InputImageType *>(image));
+  }
+  void
+  SetInput1(const InputImageType * image)
+  {
+    this->SetInputImage(image);
+  }
 
   /**
    * Get mask image function.
    */
-  const InputImageType* GetInputImage() const
-    {
-    return static_cast<const InputImageType*>( this->ProcessObject::GetInput( 0 ) );
-    }
+  const InputImageType *
+  GetInputImage() const
+  {
+    return static_cast<const InputImageType *>(this->ProcessObject::GetInput(0));
+  }
 
   /**
    * Set mask image function.
    */
-  void SetMaskImage( const MaskImageType *mask )
-    {
-    this->SetNthInput( 1, const_cast<MaskImageType *>( mask ) );
-    }
-  void SetInput2( const MaskImageType *mask ) { this->SetMaskImage( mask ); }
+  void
+  SetMaskImage(const MaskImageType * mask)
+  {
+    this->SetNthInput(1, const_cast<MaskImageType *>(mask));
+  }
+  void
+  SetInput2(const MaskImageType * mask)
+  {
+    this->SetMaskImage(mask);
+  }
 
   /**
    * Get mask image function.
    */
-  const MaskImageType* GetMaskImage() const
-    {
-    return static_cast<const MaskImageType*>( this->ProcessObject::GetInput( 1 ) );
-    }
+  const MaskImageType *
+  GetMaskImage() const
+  {
+    return static_cast<const MaskImageType *>(this->ProcessObject::GetInput(1));
+  }
 
-  void Update() final;
+  void
+  Update() final;
 
   /**
    * Set/Get sigma for the gradient recursive gaussian image filter
    */
-  itkSetMacro( Sigma, double );
-  itkGetConstMacro( Sigma, double );
+  itkSetMacro(Sigma, double);
+  itkGetConstMacro(Sigma, double);
 
   /**
    * Set/Get boolean for gradient calculation.
    */
-  itkSetMacro( UseCentralDifferenceFunction, bool );
-  itkGetConstMacro( UseCentralDifferenceFunction, bool );
+  itkSetMacro(UseCentralDifferenceFunction, bool);
+  itkGetConstMacro(UseCentralDifferenceFunction, bool);
 
   /**
    * Set/Get neighborhood radius
    */
-  itkSetMacro( NeighborhoodRadius, NeighborhoodRadiusType );
-  itkGetConstMacro( NeighborhoodRadius, NeighborhoodRadiusType );
+  itkSetMacro(NeighborhoodRadius, NeighborhoodRadiusType);
+  itkGetConstMacro(NeighborhoodRadius, NeighborhoodRadiusType);
 
 protected:
   ImageIntensityAndGradientToPointSetFilter();
   ~ImageIntensityAndGradientToPointSetFilter() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData() final;
+  void
+  GenerateData() final;
 
-  double                    m_Sigma;
+  double m_Sigma;
 
-  NeighborhoodRadiusType    m_NeighborhoodRadius;
+  NeighborhoodRadiusType m_NeighborhoodRadius;
 
-  bool                      m_UseCentralDifferenceFunction;
+  bool m_UseCentralDifferenceFunction;
 
 private:
-  ImageIntensityAndGradientToPointSetFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );            // purposely not implemented
+  ImageIntensityAndGradientToPointSetFilter(const Self &); // purposely not implemented
+  void
+  operator=(const Self &); // purposely not implemented
 
-  void ReadPoints();
+  void
+  ReadPoints();
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkImageIntensityAndGradientToPointSetFilter.hxx"
+#  include "itkImageIntensityAndGradientToPointSetFilter.hxx"
 #endif
 
 #endif // _itkImageIntensityAndGradientToPointSetFilter_h

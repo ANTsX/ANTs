@@ -1,11 +1,13 @@
 #include "antsRegistrationTemplateHeader.h"
 
-namespace ants {
-
-//Instantiate the 2DFloat version
-int antsRegistration2DFloat(ParserType::Pointer & parser)
+namespace ants
 {
-    return  DoRegistration<float, 2>( parser );
+
+// Instantiate the 2DFloat version
+int
+antsRegistration2DFloat(ParserType::Pointer & parser)
+{
+  return DoRegistration<float, 2>(parser);
 }
 
-} //end namespace ants
+} // end namespace ants

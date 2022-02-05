@@ -34,8 +34,7 @@ namespace itk
  */
 
 template <typename TInputImage, typename TOutputImage = TInputImage>
-class ComposeDiffeomorphismsImageFilter
-  : public ImageToImageFilter<TInputImage, TOutputImage>
+class ComposeDiffeomorphismsImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   typedef ComposeDiffeomorphismsImageFilter             Self;
@@ -44,11 +43,10 @@ public:
   typedef SmartPointer<const Self>                      ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Extract dimension from input image. */
-  itkStaticConstMacro( ImageDimension, unsigned int,
-                       TInputImage::ImageDimension );
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   typedef TInputImage  InputFieldType;
   typedef TOutputImage OutputFieldType;
@@ -66,59 +64,62 @@ public:
   typedef typename OutputFieldType::DirectionType DirectionType;
 
   /** Other typedef */
-  typedef typename VectorType::ComponentType RealType;
-  typedef VectorInterpolateImageFunction
-    <InputFieldType, RealType>                    InterpolatorType;
+  typedef typename VectorType::ComponentType                       RealType;
+  typedef VectorInterpolateImageFunction<InputFieldType, RealType> InterpolatorType;
 
   /** Get the interpolator. */
-  itkGetModifiableObjectMacro( Interpolator, InterpolatorType );
+  itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
 
   /** Set the deformation field */
-  void SetDisplacementField( const InputFieldType *field )
+  void
+  SetDisplacementField(const InputFieldType * field)
   {
-    itkDebugMacro( "setting deformation field to " << field );
-    if( field != this->GetInput( 0 ) )
-      {
-      this->SetInput( 0, field );
+    itkDebugMacro("setting deformation field to " << field);
+    if (field != this->GetInput(0))
+    {
+      this->SetInput(0, field);
       this->Modified();
-      if( !this->m_Interpolator.IsNull() )
-        {
-        this->m_Interpolator->SetInputImage( field );
-        }
+      if (!this->m_Interpolator.IsNull())
+      {
+        this->m_Interpolator->SetInputImage(field);
       }
+    }
   }
 
   /**
    * Get the deformation field.
    */
-  const InputFieldType * GetDisplacementField() const
+  const InputFieldType *
+  GetDisplacementField() const
   {
-    return this->GetInput( 0 );
+    return this->GetInput(0);
   }
 
   /** Set the warping field */
-  void SetWarpingField( const InputFieldType *field )
+  void
+  SetWarpingField(const InputFieldType * field)
   {
-    itkDebugMacro( "setting warping field to " << field );
-    if( field != this->GetInput( 1 ) )
-      {
-      this->SetInput( 1, field );
-      }
+    itkDebugMacro("setting warping field to " << field);
+    if (field != this->GetInput(1))
+    {
+      this->SetInput(1, field);
+    }
   }
 
   /**
    * Get the warping field.
    */
-  const InputFieldType * GetWarpingField() const
+  const InputFieldType *
+  GetWarpingField() const
   {
-    return this->GetInput( 1 );
+    return this->GetInput(1);
   }
 
   /* Set the interpolator. */
-  virtual void SetInterpolator( InterpolatorType* interpolator );
+  virtual void
+  SetInterpolator(InterpolatorType * interpolator);
 
 protected:
-
   /** Constructor */
   ComposeDiffeomorphismsImageFilter();
 
@@ -126,24 +127,29 @@ protected:
   virtual ~ComposeDiffeomorphismsImageFilter();
 
   /** Standard print self function **/
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const;
 
   /** preprocessing function */
-  void BeforeThreadedGenerateData();
+  void
+  BeforeThreadedGenerateData();
 
   /** Multithreaded function which generates the output field. */
-  void ThreadedGenerateData( const RegionType &, ThreadIdType );
+  void
+  ThreadedGenerateData(const RegionType &, ThreadIdType);
+
 private:
-  ComposeDiffeomorphismsImageFilter( const Self & ); // purposely not implemented
-  void operator=( const Self & );                    // purposely not implemented
+  ComposeDiffeomorphismsImageFilter(const Self &); // purposely not implemented
+  void
+  operator=(const Self &); // purposely not implemented
 
   /** The interpolator. */
-  typename InterpolatorType::Pointer             m_Interpolator;
+  typename InterpolatorType::Pointer m_Interpolator;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkComposeDiffeomorphismsImageFilter.hxx"
+#  include "itkComposeDiffeomorphismsImageFilter.hxx"
 #endif
 
 #endif

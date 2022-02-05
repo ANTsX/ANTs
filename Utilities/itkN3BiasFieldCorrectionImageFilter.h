@@ -397,11 +397,11 @@ private:
 
   // Convergence parameters
 
-  unsigned int          m_MaximumNumberOfIterations{ 50 };
-  unsigned int          m_ElapsedIterations{ 0 };
-  RealType              m_ConvergenceThreshold{ static_cast<RealType>(0.001) };
-  RealType              m_CurrentConvergenceMeasurement;
-  unsigned int          m_CurrentLevel{ 0 };
+  unsigned int m_MaximumNumberOfIterations{ 50 };
+  unsigned int m_ElapsedIterations{ 0 };
+  RealType     m_ConvergenceThreshold{ static_cast<RealType>(0.001) };
+  RealType     m_CurrentConvergenceMeasurement;
+  unsigned int m_CurrentLevel{ 0 };
 
   // B-spline fitting parameters
 
@@ -410,7 +410,6 @@ private:
   unsigned int m_SplineOrder{ 3 };
   ArrayType    m_NumberOfControlPoints;
   unsigned int m_NumberOfFittingLevels{ 4 };
-
 };
 
 } // end namespace itk
