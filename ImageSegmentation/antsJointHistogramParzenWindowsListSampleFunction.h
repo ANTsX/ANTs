@@ -30,22 +30,19 @@ namespace Statistics
  */
 
 template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
-class JointHistogramParzenWindowsListSampleFunction
-  : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
+class JointHistogramParzenWindowsListSampleFunction : public ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:
-  typedef JointHistogramParzenWindowsListSampleFunction Self;
-  typedef ListSampleFunction
-    <TListSample, TOutput, TCoordRep>                      Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef JointHistogramParzenWindowsListSampleFunction       Self;
+  typedef ListSampleFunction<TListSample, TOutput, TCoordRep> Superclass;
+  typedef SmartPointer<Self>                                  Pointer;
+  typedef SmartPointer<const Self>                            ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( JointHistogramParzenWindowsListSampleFunction,
-                ListSampleFunction );
+  itkTypeMacro(JointHistogramParzenWindowsListSampleFunction, ListSampleFunction);
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;
@@ -62,29 +59,35 @@ public:
 
   /** Helper functions */
 
-  itkSetMacro( Sigma, RealType );
-  itkGetConstMacro( Sigma, RealType );
+  itkSetMacro(Sigma, RealType);
+  itkGetConstMacro(Sigma, RealType);
 
-  itkSetMacro( NumberOfJointHistogramBins, unsigned int );
-  itkGetConstMacro( NumberOfJointHistogramBins, unsigned int );
+  itkSetMacro(NumberOfJointHistogramBins, unsigned int);
+  itkGetConstMacro(NumberOfJointHistogramBins, unsigned int);
 
-  virtual void SetInputListSample( const InputListSampleType * ptr );
+  virtual void
+  SetInputListSample(const InputListSampleType * ptr);
 
-  virtual TOutput Evaluate( const InputMeasurementVectorType& measurement ) const;
+  virtual TOutput
+  Evaluate(const InputMeasurementVectorType & measurement) const;
 
 protected:
   JointHistogramParzenWindowsListSampleFunction();
   virtual ~JointHistogramParzenWindowsListSampleFunction();
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const;
 
-  void GenerateData();
+  void
+  GenerateData();
 
-  void IncrementJointHistogram(RealType e1, RealType e2, unsigned int which);
+  void
+  IncrementJointHistogram(RealType e1, RealType e2, unsigned int which);
 
 private:
   // purposely not implemented
-  JointHistogramParzenWindowsListSampleFunction( const Self & );
-  void operator=( const Self & );
+  JointHistogramParzenWindowsListSampleFunction(const Self &);
+  void
+  operator=(const Self &);
 
   unsigned int                                           m_NumberOfJointHistogramBins;
   RealType                                               m_Sigma;
@@ -96,7 +99,7 @@ private:
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsJointHistogramParzenWindowsListSampleFunction.hxx"
+#  include "antsJointHistogramParzenWindowsListSampleFunction.hxx"
 #endif
 
 #endif

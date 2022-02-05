@@ -32,11 +32,12 @@ namespace itk
 {
 namespace ants
 {
-  /**
-   * A untilty function to convert internal typeid(???).name() to
-   * the human readable equivalent format.
-   */
-  extern std::string ConvertToHumanReadable(const std::string & input);
+/**
+ * A untilty function to convert internal typeid(???).name() to
+ * the human readable equivalent format.
+ */
+extern std::string
+ConvertToHumanReadable(const std::string & input);
 
 /** \class CommandLineParser
     \brief Simple command line parser.
@@ -48,8 +49,7 @@ namespace ants
     {10, 20, 30} as "10x20x30".
 */
 
-class CommandLineParser final
-  : public       DataObject
+class CommandLineParser final : public DataObject
 {
 public:
   /** Standard class typedefs. */
@@ -59,10 +59,10 @@ public:
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( CommandLineParser, DataObject );
+  itkTypeMacro(CommandLineParser, DataObject);
 
   typedef CommandLineOption              OptionType;
   typedef std::list<OptionType::Pointer> OptionListType;
@@ -72,30 +72,37 @@ public:
    * Interface routines
    */
 
-  OptionType::Pointer GetOption( char );
+  OptionType::Pointer
+  GetOption(char);
 
-  OptionType::Pointer GetOption( std::string );
+  OptionType::Pointer GetOption(std::string);
 
-  bool starts_with( const std::string &, const std::string & );
-  int Parse( unsigned int, char * * );
-  bool ValidateFlag(const std::string & currentFlag);
+  bool
+  starts_with(const std::string &, const std::string &);
+  int
+  Parse(unsigned int, char **);
+  bool
+  ValidateFlag(const std::string & currentFlag);
 
-  void AddOption( OptionType::Pointer );
+  void AddOption(OptionType::Pointer);
 
-  void PrintMenu( std::ostream& os, Indent indent, bool printShortVersion = false ) const;
+  void
+  PrintMenu(std::ostream & os, Indent indent, bool printShortVersion = false) const;
 
-  itkSetStringMacro( Command );
-  itkGetStringMacro( Command );
+  itkSetStringMacro(Command);
+  itkGetStringMacro(Command);
 
-  itkSetStringMacro( CommandDescription );
-  itkGetStringMacro( CommandDescription );
+  itkSetStringMacro(CommandDescription);
+  itkGetStringMacro(CommandDescription);
 
-  OptionListType GetOptions() const
+  OptionListType
+  GetOptions() const
   {
     return this->m_Options;
   }
 
-  OptionListType GetUnknownOptions() const
+  OptionListType
+  GetUnknownOptions() const
   {
     return this->m_UnknownOptions;
   }
@@ -106,49 +113,53 @@ public:
    * antsRegistration).  Multiple option value are considered to be of
    * the same stage if they are situated adjacently on the command line.
    */
-  void AssignStages();
+  void
+  AssignStages();
 
 
   template <typename TValue>
-  TValue Convert( std::string optionString ) const
-    {
-    //Strip whitespace at end
-    optionString.erase(optionString.find_last_not_of(" \n\r\t")+1);
-    TValue             value;
-    std::istringstream iss( optionString );
-    if (!(iss >> value)  //Conversion did not fail
-      || !( iss.peek() == EOF ) // All content parsed
-    )
-      {
-      std::string internalTypeName( typeid(value).name() );
-      itkExceptionMacro( "ERROR: Parse error occured during command line argument processing\n"
-        << "ERROR: Unable to convert '" << optionString
-        << "' to type '" << internalTypeName << "' as " << ConvertToHumanReadable(internalTypeName) << std::endl);
-      }
-    return value;
-    }
-
-  template <typename TValue>
-  std::vector<TValue> ConvertVector( std::string optionString ) const
+  TValue
+  Convert(std::string optionString) const
   {
-    //Strip whitespace at end
-    optionString.erase(optionString.find_last_not_of(" \n\r\t")+1);
+    // Strip whitespace at end
+    optionString.erase(optionString.find_last_not_of(" \n\r\t") + 1);
+    TValue             value;
+    std::istringstream iss(optionString);
+    if (!(iss >> value)         // Conversion did not fail
+        || !(iss.peek() == EOF) // All content parsed
+    )
+    {
+      std::string internalTypeName(typeid(value).name());
+      itkExceptionMacro("ERROR: Parse error occured during command line argument processing\n"
+                        << "ERROR: Unable to convert '" << optionString << "' to type '" << internalTypeName << "' as "
+                        << ConvertToHumanReadable(internalTypeName) << std::endl);
+    }
+    return value;
+  }
+
+  template <typename TValue>
+  std::vector<TValue>
+  ConvertVector(std::string optionString) const
+  {
+    // Strip whitespace at end
+    optionString.erase(optionString.find_last_not_of(" \n\r\t") + 1);
 
     std::vector<std::string> optionElementString;
-    std::istringstream f(optionString);
-    std::string s;
-    while( std::getline(f, s, 'x'))
-      {
+    std::istringstream       f(optionString);
+    std::string              s;
+    while (std::getline(f, s, 'x'))
+    {
       optionElementString.push_back(s);
-      }
+    }
 
-    std::vector< TValue > values;
-    for ( std::vector< std::string >::const_iterator oESit = optionElementString.begin();
-      oESit != optionElementString.end(); ++oESit)
-      {
-      const TValue & value = this->Convert<TValue>( *oESit );
-      values.push_back ( value );
-      }
+    std::vector<TValue> values;
+    for (std::vector<std::string>::const_iterator oESit = optionElementString.begin();
+         oESit != optionElementString.end();
+         ++oESit)
+    {
+      const TValue & value = this->Convert<TValue>(*oESit);
+      values.push_back(value);
+    }
     return values;
   }
 
@@ -156,17 +167,22 @@ protected:
   CommandLineParser();
   ~CommandLineParser() override = default;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  CommandLineParser( const Self & ) = delete;
-  void operator=( const Self & ) = delete;
+  CommandLineParser(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
-  std::vector<std::string> RegroupCommandLineArguments( unsigned int, char * * );
+  std::vector<std::string>
+  RegroupCommandLineArguments(unsigned int, char **);
 
-  std::string BreakUpStringIntoNewLines( std::string, const std::string, unsigned int ) const;
+  std::string
+  BreakUpStringIntoNewLines(std::string, const std::string, unsigned int) const;
 
-  void TokenizeString( std::string, std::vector<std::string> &, std::string ) const;
+  void
+  TokenizeString(std::string, std::vector<std::string> &, std::string) const;
 
   OptionListType m_Options;
   std::string    m_Command;

@@ -41,8 +41,8 @@ namespace itk
  * \ingroup IntensityImageFilters
  */
 template <typename TTensorImage, typename TVectorImage>
-class PreservationOfPrincipalDirectionTensorReorientationImageFilter final :
-  public         ImageToImageFilter<TTensorImage, TTensorImage>
+class PreservationOfPrincipalDirectionTensorReorientationImageFilter final
+  : public ImageToImageFilter<TTensorImage, TTensorImage>
 {
 public:
   typedef TTensorImage InputImageType;
@@ -61,8 +61,7 @@ public:
   // typedef Vector<RealType, 3> VectorType;
   typedef VariableSizeMatrix<RealType> VariableMatrixType;
 
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TTensorImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TTensorImage::ImageDimension);
 
   typedef itk::Image<RealType, ImageDimension> RealTypeImageType;
 
@@ -101,16 +100,17 @@ public:
   itkSetMacro(DisplacementField, DisplacementFieldPointer);
   itkGetMacro(DisplacementField, DisplacementFieldPointer);
 
-  void SetAffineTransform( AffineTransformPointer aff )
+  void
+  SetAffineTransform(AffineTransformPointer aff)
   {
     this->m_AffineTransform = aff;
     this->m_UseAffine = true;
   }
 
-  itkGetMacro( AffineTransform, AffineTransformPointer );
+  itkGetMacro(AffineTransform, AffineTransformPointer);
 
-  itkSetMacro( UseImageDirection, bool );
-  itkGetMacro( UseImageDirection, bool );
+  itkSetMacro(UseImageDirection, bool);
+  itkGetMacro(UseImageDirection, bool);
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(PreservationOfPrincipalDirectionTensorReorientationImageFilter, ImageToImageFilter);
@@ -129,11 +129,13 @@ public:
   typedef typename OutputImageType::SizeType  OutputSizeType;
   typedef typename InputImageType::IndexType  InputIndexType;
   typedef typename OutputImageType::IndexType OutputIndexType;
+
 protected:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter();
   ~PreservationOfPrincipalDirectionTensorReorientationImageFilter() override = default;
 
-  void PrintSelf(std::ostream& os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** PreservationOfPrincipalDirectionTensorReorientationImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -145,36 +147,39 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
-  typename DisplacementFieldType::PixelType TransformVectorByDirection( typename DisplacementFieldType::PixelType cpix )
+  typename DisplacementFieldType::PixelType
+  TransformVectorByDirection(typename DisplacementFieldType::PixelType cpix)
   {
     typedef itk::Vector<double, ImageDimension> locVectorType;
-    if( this->m_UseImageDirection )
-      {
+    if (this->m_UseImageDirection)
+    {
       locVectorType outpix;
-      for( unsigned int d = 0; d < ImageDimension; d++ )
-        {
+      for (unsigned int d = 0; d < ImageDimension; d++)
+      {
         outpix[d] = cpix[d];
-        }
-      outpix = m_DirectionTransform->TransformVector( outpix );
-      for( unsigned int d = 0; d < ImageDimension; d++ )
-        {
-        cpix[d] = outpix[d];
-        }
       }
+      outpix = m_DirectionTransform->TransformVector(outpix);
+      for (unsigned int d = 0; d < ImageDimension; d++)
+      {
+        cpix[d] = outpix[d];
+      }
+    }
     return cpix;
   }
 
 private:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
-  AffineTransformPointer GetLocalDeformation(DisplacementFieldPointer, typename DisplacementFieldType::IndexType );
+  AffineTransformPointer GetLocalDeformation(DisplacementFieldPointer, typename DisplacementFieldType::IndexType);
 
-  TensorType ApplyReorientation(InverseTransformPointer, TensorType );
+  TensorType ApplyReorientation(InverseTransformPointer, TensorType);
 
-  void DirectionCorrectTransform( AffineTransformPointer, AffineTransformPointer );
+  void DirectionCorrectTransform(AffineTransformPointer, AffineTransformPointer);
 
   DisplacementFieldPointer m_DisplacementField;
 
@@ -193,7 +198,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.cxx"
+#  include "itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.cxx"
 #endif
 
 #endif

@@ -13,7 +13,7 @@
 
 // disable debug warnings in MS compiler
 #ifdef _MSC_VER
-#pragma warning(disable: 4786)
+#  pragma warning(disable : 4786)
 #endif
 
 #include <cmath>
@@ -23,38 +23,39 @@ namespace itk
 {
 namespace fem
 {
-Element3DC0LinearTriangularLaplaceBeltrami
-::Element3DC0LinearTriangularLaplaceBeltrami() : Superclass()
-{
-}
+Element3DC0LinearTriangularLaplaceBeltrami ::Element3DC0LinearTriangularLaplaceBeltrami()
+  : Superclass()
+{}
 
-Element3DC0LinearTriangularLaplaceBeltrami
-::Element3DC0LinearTriangularLaplaceBeltrami(NodeIDType n1_, NodeIDType n2_, NodeIDType n3_,
-                                             Material::ConstPointer m_) : Superclass()
+Element3DC0LinearTriangularLaplaceBeltrami ::Element3DC0LinearTriangularLaplaceBeltrami(NodeIDType             n1_,
+                                                                                        NodeIDType             n2_,
+                                                                                        NodeIDType             n3_,
+                                                                                        Material::ConstPointer m_)
+  : Superclass()
 {
   // Set the geometrical points
-  this->SetNode( 0, n1_ );
-  this->SetNode( 1, n2_ );
-  this->SetNode( 2, n3_ );
+  this->SetNode(0, n1_);
+  this->SetNode(1, n2_);
+  this->SetNode(2, n3_);
 
   /*
    * Initialize the pointer to material object and check that
    * we were given the pointer to the right class.
    * If the material class was incorrect an exception is thrown.
    */
-  if( (m_mat = dynamic_cast<const MaterialLinearElasticity *>(&*m_) ) == 0 )
-    {
+  if ((m_mat = dynamic_cast<const MaterialLinearElasticity *>(&*m_)) == 0)
+  {
     throw FEMExceptionWrongClass(
-            __FILE__, __LINE__,
-            "Element3DC0LinearTriangularLaplaceBeltrami::Element3DC0LinearTriangularLaplaceBeltrami()");
-    }
+      __FILE__, __LINE__, "Element3DC0LinearTriangularLaplaceBeltrami::Element3DC0LinearTriangularLaplaceBeltrami()");
+  }
 }
 
-void Element3DC0LinearTriangularLaplaceBeltrami::GetStiffnessMatrix(MatrixType& Ke) const
+void
+Element3DC0LinearTriangularLaplaceBeltrami::GetStiffnessMatrix(MatrixType & Ke) const
 {
   MatrixType cot, D, BB;
 
-  this->GetMaterialMatrix( D );
+  this->GetMaterialMatrix(D);
   //
   // ::std::cout<< " Nip " << Nip << " w " << w << std::endl;
   this->GetMaterialMatrix(D);
@@ -77,7 +78,7 @@ void Element3DC0LinearTriangularLaplaceBeltrami::GetStiffnessMatrix(MatrixType& 
   float      L3 = BA.magnitude();
 
   float s = (L1 + L2 + L3) * .5;
-  Float Area = sqrt(  s * (s - L1) * (s - L2) * (s - L3)  );
+  Float Area = sqrt(s * (s - L1) * (s - L2) * (s - L3));
 
   cot[0][0] = (2.0 * L1 * L1) * D[0][0];
   cot[1][1] = (2.0 * L2 * L2) * D[0][0];
@@ -93,63 +94,64 @@ void Element3DC0LinearTriangularLaplaceBeltrami::GetStiffnessMatrix(MatrixType& 
 
   cot = cot * 1.0 / (8.0 * Area);
 
-/*  if ( this->GetNode(0)->GetDegreeOfFreedom(0)==53 ||
-       this->GetNode(1)->GetDegreeOfFreedom(0)==53 ||
-       this->GetNode(2)->GetDegreeOfFreedom(0)==53 )
-  {
-  ::std::cout << " cot " << this->GetNode(0)->GetDegreeOfFreedom(0) << "  " <<this->GetNode(1)->GetDegreeOfFreedom(0) << "  " <<this->GetNode(2)->GetDegreeOfFreedom(0) <<std::endl;
-  ::std::cout <<  cot <<std::endl;
-  }
-
- */
-  if( GetNumberOfDegreesOfFreedomPerNode() == 3 )
+  /*  if ( this->GetNode(0)->GetDegreeOfFreedom(0)==53 ||
+         this->GetNode(1)->GetDegreeOfFreedom(0)==53 ||
+         this->GetNode(2)->GetDegreeOfFreedom(0)==53 )
     {
+    ::std::cout << " cot " << this->GetNode(0)->GetDegreeOfFreedom(0) << "  " <<this->GetNode(1)->GetDegreeOfFreedom(0)
+    << "  " <<this->GetNode(2)->GetDegreeOfFreedom(0) <<std::endl;
+    ::std::cout <<  cot <<std::endl;
+    }
+
+   */
+  if (GetNumberOfDegreesOfFreedomPerNode() == 3)
+  {
     Ke.set_size(9, 9);
     Ke.fill(0.0);
-    for( int dd = 0; dd < 3; dd++ )
-      {
-      Ke[0][dd * 3] = cot[0][dd];
-      }
-    for( int dd = 0; dd < 3; dd++ )
-      {
-      Ke[1][dd * 3 + 1] = cot[0][dd];
-      }
-    for( int dd = 0; dd < 3; dd++ )
-      {
-      Ke[2][dd * 3 + 2] = cot[0][dd];
-      }
-    for( int dd = 0; dd < 3; dd++ )
-      {
-      Ke[3][dd * 3] = cot[1][dd];
-      }
-    for( int dd = 0; dd < 3; dd++ )
-      {
-      Ke[4][dd * 3 + 1] = cot[1][dd];
-      }
-    for( int dd = 0; dd < 3; dd++ )
-      {
-      Ke[5][dd * 3 + 2] = cot[1][dd];
-      }
-    for( int dd = 0; dd < 3; dd++ )
-      {
-      Ke[6][dd * 3] = cot[2][dd];
-      }
-    for( int dd = 0; dd < 3; dd++ )
-      {
-      Ke[7][dd * 3 + 1] = cot[2][dd];
-      }
-    for( int dd = 0; dd < 3; dd++ )
-      {
-      Ke[8][dd * 3 + 2] = cot[2][dd];
-      }
-    }
-  else
+    for (int dd = 0; dd < 3; dd++)
     {
-    Ke = cot;
+      Ke[0][dd * 3] = cot[0][dd];
     }
+    for (int dd = 0; dd < 3; dd++)
+    {
+      Ke[1][dd * 3 + 1] = cot[0][dd];
+    }
+    for (int dd = 0; dd < 3; dd++)
+    {
+      Ke[2][dd * 3 + 2] = cot[0][dd];
+    }
+    for (int dd = 0; dd < 3; dd++)
+    {
+      Ke[3][dd * 3] = cot[1][dd];
+    }
+    for (int dd = 0; dd < 3; dd++)
+    {
+      Ke[4][dd * 3 + 1] = cot[1][dd];
+    }
+    for (int dd = 0; dd < 3; dd++)
+    {
+      Ke[5][dd * 3 + 2] = cot[1][dd];
+    }
+    for (int dd = 0; dd < 3; dd++)
+    {
+      Ke[6][dd * 3] = cot[2][dd];
+    }
+    for (int dd = 0; dd < 3; dd++)
+    {
+      Ke[7][dd * 3 + 1] = cot[2][dd];
+    }
+    for (int dd = 0; dd < 3; dd++)
+    {
+      Ke[8][dd * 3 + 2] = cot[2][dd];
+    }
+  }
+  else
+  {
+    Ke = cot;
+  }
 
-//  ::std::cout << " Ke in elt " <<std::endl;
-//  ::std::cout <<  Ke <<std::endl;
+  //  ::std::cout << " Ke in elt " <<std::endl;
+  //  ::std::cout <<  Ke <<std::endl;
 }
 
 /*
@@ -273,5 +275,5 @@ for(int dd=0; dd<3; dd++) Ke[8][dd*3+2]=cot[2][dd];
 */
 
 FEM_CLASS_REGISTER(Element3DC0LinearTriangularLaplaceBeltrami)
-}
-}  // end namespace itk::fem
+} // namespace fem
+} // namespace itk

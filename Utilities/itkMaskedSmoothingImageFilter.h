@@ -30,10 +30,9 @@ namespace itk
  */
 
 template <typename TInputImage,
-  typename TMaskImage = Image<unsigned char, TInputImage::ImageDimension>,
-  class TOutputImage = TInputImage>
-class MaskedSmoothingImageFilter final :
-  public ImageToImageFilter<TInputImage, TOutputImage>
+          typename TMaskImage = Image<unsigned char, TInputImage::ImageDimension>,
+          class TOutputImage = TInputImage>
+class MaskedSmoothingImageFilter final : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
@@ -43,7 +42,7 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Extract dimension from input and output image. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -71,71 +70,78 @@ public:
    * Set mask image function.  If a binary mask image is specified, only
    * those input image voxels inside the mask image values are used.
    */
-  void SetMaskImage( const MaskImageType *mask )
-    {
-    this->SetNthInput( 1, const_cast<MaskImageType *>( mask ) );
-    }
-  void SetInput2( const MaskImageType *mask ) { this->SetMaskImage( mask ); }
+  void
+  SetMaskImage(const MaskImageType * mask)
+  {
+    this->SetNthInput(1, const_cast<MaskImageType *>(mask));
+  }
+  void
+  SetInput2(const MaskImageType * mask)
+  {
+    this->SetMaskImage(mask);
+  }
 
   /**
    * Get mask image function.
    */
-  const MaskImageType* GetMaskImage() const
-    {
-    return static_cast<const MaskImageType*>( this->ProcessObject::GetInput( 1 ) );
-    }
+  const MaskImageType *
+  GetMaskImage() const
+  {
+    return static_cast<const MaskImageType *>(this->ProcessObject::GetInput(1));
+  }
 
   /**
    * Set/Get the sparse image neighborhood radius.  Default = 2.
    */
-  itkSetMacro( SparseImageNeighborhoodRadius, unsigned int  );
-  itkGetConstMacro( SparseImageNeighborhoodRadius, unsigned int );
+  itkSetMacro(SparseImageNeighborhoodRadius, unsigned int);
+  itkGetConstMacro(SparseImageNeighborhoodRadius, unsigned int);
 
   /**
    * Set/Get the variance for spatial regularization.
    */
-  itkSetMacro( SmoothingVariance, RealType );
-  itkGetConstMacro( SmoothingVariance, RealType );
+  itkSetMacro(SmoothingVariance, RealType);
+  itkGetConstMacro(SmoothingVariance, RealType);
 
   /**
    * Set/Get the variance for time regularization.
    */
-  itkSetMacro( TimeSmoothingVariance, RealType );
-  itkGetConstMacro( TimeSmoothingVariance, RealType );
+  itkSetMacro(TimeSmoothingVariance, RealType);
+  itkGetConstMacro(TimeSmoothingVariance, RealType);
 
   /**
    * Set/Get the time point values.  Default = no special value.
    */
-  void SetTimePoints( std::vector<RealType> timePoints )
-    {
+  void
+  SetTimePoints(std::vector<RealType> timePoints)
+  {
     this->m_TimePoints = timePoints;
     this->Modified();
-    }
-  itkGetConstMacro( TimePoints, std::vector<RealType>  );
+  }
+  itkGetConstMacro(TimePoints, std::vector<RealType>);
 
 protected:
-
   MaskedSmoothingImageFilter();
   ~MaskedSmoothingImageFilter() override;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
 private:
+  unsigned int     m_SparseImageNeighborhoodRadius;
+  SparseMatrixType m_SparseMatrix;
+  RealImagePointer m_SparseMatrixIndexImage;
+  RealType         m_SmoothingVariance;
 
-  unsigned int           m_SparseImageNeighborhoodRadius;
-  SparseMatrixType       m_SparseMatrix;
-  RealImagePointer       m_SparseMatrixIndexImage;
-  RealType               m_SmoothingVariance;
-
-  std::vector<RealType>  m_TimePoints;
-  RealType               m_TimeSmoothingVariance;
+  std::vector<RealType> m_TimePoints;
+  RealType              m_TimeSmoothingVariance;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMaskedSmoothingImageFilter.hxx"
+#  include "itkMaskedSmoothingImageFilter.hxx"
 #endif
 
 #endif

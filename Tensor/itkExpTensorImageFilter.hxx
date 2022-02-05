@@ -28,31 +28,27 @@
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
-ExpTensorImageFilter<TInputImage, TOutputImage>
-::ExpTensorImageFilter()
-= default;
+ExpTensorImageFilter<TInputImage, TOutputImage>::ExpTensorImageFilter() = default;
 
 template <typename TInputImage, typename TOutputImage>
 void
-ExpTensorImageFilter<TInputImage, TOutputImage>
-::GenerateData()
+ExpTensorImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
   InputImagePointer  input = this->GetInput();
   OutputImagePointer output = this->GetOutput();
 
-  ImageRegionConstIterator<InputImageType> inputIt( input, input->GetLargestPossibleRegion() );
+  ImageRegionConstIterator<InputImageType> inputIt(input, input->GetLargestPossibleRegion());
 
-  output->SetRegions( input->GetLargestPossibleRegion() );
+  output->SetRegions(input->GetLargestPossibleRegion());
   output->Allocate();
 
-  ImageRegionIterator<OutputImageType> outputIt( output, output->GetLargestPossibleRegion() );
-  for( inputIt.GoToBegin(), outputIt.GoToBegin();
-       !inputIt.IsAtEnd() && !outputIt.IsAtEnd(); ++inputIt, ++outputIt )
-    {
+  ImageRegionIterator<OutputImageType> outputIt(output, output->GetLargestPossibleRegion());
+  for (inputIt.GoToBegin(), outputIt.GoToBegin(); !inputIt.IsAtEnd() && !outputIt.IsAtEnd(); ++inputIt, ++outputIt)
+  {
     bool           success; // TODO -- actually check the result?
     InputPixelType result = TensorLogAndExp<InputPixelType>(inputIt.Value(), false, success);
-    outputIt.Set( result );
-    }
+    outputIt.Set(result);
+  }
 }
 
 /**
@@ -60,12 +56,9 @@ ExpTensorImageFilter<TInputImage, TOutputImage>
  */
 template <typename TInputImage, typename TOutput>
 void
-ExpTensorImageFilter<TInputImage, TOutput>
-::PrintSelf(
-  std::ostream& os,
-  Indent indent) const
+ExpTensorImageFilter<TInputImage, TOutput>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  Superclass::PrintSelf( os, indent );
+  Superclass::PrintSelf(os, indent);
 }
 } // end namespace itk
 

@@ -15,7 +15,7 @@
 #define __itkDecomposeTensorFunction_h
 
 #if defined(_MSC_VER)
-#pragma warning ( disable : 4786 )
+#  pragma warning(disable : 4786)
 #endif
 #include "itkProcessObject.h"
 
@@ -26,10 +26,7 @@ namespace itk
 /** \class DecomposeTensorFunction
  *
  */
-template <typename TInput,
-          typename TRealType = float,
-          typename TOutput = itk::VariableSizeMatrix<TRealType>
-          >
+template <typename TInput, typename TRealType = float, typename TOutput = itk::VariableSizeMatrix<TRealType>>
 class DecomposeTensorFunction : public ProcessObject
 {
 public:
@@ -43,7 +40,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( DecomposeTensorFunction, ProcessObject );
+  itkTypeMacro(DecomposeTensorFunction, ProcessObject);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -54,40 +51,49 @@ public:
   typedef TRealType RealType;
 
   // Wrappers for vnl routines
-  void EvaluateEigenDecomposition( InputMatrixType &, OutputMatrixType &, OutputMatrixType & );
+  void
+  EvaluateEigenDecomposition(InputMatrixType &, OutputMatrixType &, OutputMatrixType &);
 
-  void EvaluateSymmetricEigenDecomposition( InputMatrixType &, OutputMatrixType &, OutputMatrixType & );
+  void
+  EvaluateSymmetricEigenDecomposition(InputMatrixType &, OutputMatrixType &, OutputMatrixType &);
 
-  void EvaluateQRDecomposition( InputMatrixType &, OutputMatrixType &, OutputMatrixType & );
+  void
+  EvaluateQRDecomposition(InputMatrixType &, OutputMatrixType &, OutputMatrixType &);
 
-  void EvaluateSVDDecomposition( InputMatrixType &, OutputMatrixType &, OutputMatrixType &, OutputMatrixType & );
+  void
+  EvaluateSVDDecomposition(InputMatrixType &, OutputMatrixType &, OutputMatrixType &, OutputMatrixType &);
 
-  void EvaluateSVDEconomyDecomposition( InputMatrixType &, OutputMatrixType &, OutputMatrixType & );
+  void
+  EvaluateSVDEconomyDecomposition(InputMatrixType &, OutputMatrixType &, OutputMatrixType &);
 
-  void EvaluateLeftPolarDecomposition( InputMatrixType &, OutputMatrixType &, OutputMatrixType & );
+  void
+  EvaluateLeftPolarDecomposition(InputMatrixType &, OutputMatrixType &, OutputMatrixType &);
 
-  void EvaluateRightPolarDecomposition( InputMatrixType &, OutputMatrixType &, OutputMatrixType & );
+  void
+  EvaluateRightPolarDecomposition(InputMatrixType &, OutputMatrixType &, OutputMatrixType &);
 
-  void EvaluateCholeskyDecomposition( InputMatrixType &, OutputMatrixType & );
+  void
+  EvaluateCholeskyDecomposition(InputMatrixType &, OutputMatrixType &);
 
-  RealType EvaluateDeterminant( InputMatrixType & );
+  RealType
+  EvaluateDeterminant(InputMatrixType &);
 
   DecomposeTensorFunction();
   ~DecomposeTensorFunction() override = default;
 
 protected:
-
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-
   DecomposeTensorFunction(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkDecomposeTensorFunction.hxx"
+#  include "itkDecomposeTensorFunction.hxx"
 #endif
 
 #endif

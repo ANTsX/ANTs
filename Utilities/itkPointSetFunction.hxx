@@ -21,8 +21,7 @@ namespace itk
  * Constructor
  */
 template <typename TInputPointSet, typename TOutput, typename TCoordRep>
-PointSetFunction<TInputPointSet, TOutput, TCoordRep>
-::PointSetFunction()
+PointSetFunction<TInputPointSet, TOutput, TCoordRep>::PointSetFunction()
 {
   m_PointSet = nullptr;
 }
@@ -32,12 +31,9 @@ PointSetFunction<TInputPointSet, TOutput, TCoordRep>
  */
 template <typename TInputPointSet, typename TOutput, typename TCoordRep>
 void
-PointSetFunction<TInputPointSet, TOutput, TCoordRep>
-::PrintSelf(
-  std::ostream& os,
-  Indent indent) const
+PointSetFunction<TInputPointSet, TOutput, TCoordRep>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  Superclass::PrintSelf( os, indent );
+  Superclass::PrintSelf(os, indent);
 
   os << indent << "InputPointSet: " << m_PointSet.GetPointer() << std::endl;
 }
@@ -47,9 +43,7 @@ PointSetFunction<TInputPointSet, TOutput, TCoordRep>
  */
 template <typename TInputPointSet, typename TOutput, typename TCoordRep>
 void
-PointSetFunction<TInputPointSet, TOutput, TCoordRep>
-::SetInputPointSet(
-  const InputPointSetType * ptr )
+PointSetFunction<TInputPointSet, TOutput, TCoordRep>::SetInputPointSet(const InputPointSetType * ptr)
 {
   // set the input image
   m_PointSet = ptr;

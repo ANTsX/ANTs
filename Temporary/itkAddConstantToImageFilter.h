@@ -41,57 +41,60 @@ template <typename TInput, typename TConstant, typename TOutput>
 class AddConstantTo
 {
 public:
-  AddConstantTo() : m_Constant(NumericTraits<TConstant>::OneValue())
-  {
-  };
+  AddConstantTo()
+    : m_Constant(NumericTraits<TConstant>::OneValue()){};
   ~AddConstantTo() = default;
-  bool operator!=( const AddConstantTo & other ) const
+  bool
+  operator!=(const AddConstantTo & other) const
   {
     return !(*this == other);
   }
 
-  bool operator==( const AddConstantTo & other ) const
+  bool
+  operator==(const AddConstantTo & other) const
   {
     return other.m_Constant == m_Constant;
   }
 
-  inline TOutput operator()( const TInput & A ) const
+  inline TOutput
+  operator()(const TInput & A) const
   {
     // Because the user has to specify the constant we don't
     // check if the cte is not 0;
-    return static_cast<TOutput>( A + m_Constant );
+    return static_cast<TOutput>(A + m_Constant);
   }
 
-  void SetConstant(TConstant ct)
+  void
+  SetConstant(TConstant ct)
   {
     this->m_Constant = ct;
   }
 
-  const TConstant & GetConstant() const
+  const TConstant &
+  GetConstant() const
   {
     return m_Constant;
   }
 
   TConstant m_Constant;
 };
-}
+} // namespace Functor
 
 template <typename TInputImage, typename TConstant, typename TOutputImage>
-class AddConstantToImageFilter :
-  public
-  UnaryFunctorImageFilter<TInputImage, TOutputImage,
-                          Functor::AddConstantTo<
-                            typename TInputImage::PixelType, TConstant,
-                            typename TOutputImage::PixelType> >
+class AddConstantToImageFilter
+  : public UnaryFunctorImageFilter<
+      TInputImage,
+      TOutputImage,
+      Functor::AddConstantTo<typename TInputImage::PixelType, TConstant, typename TOutputImage::PixelType>>
 {
 public:
   /** Standard class typedefs. */
   typedef AddConstantToImageFilter Self;
   typedef UnaryFunctorImageFilter<
-      TInputImage, TOutputImage,
-      Functor::AddConstantTo<
-        typename TInputImage::PixelType, TConstant,
-        typename TOutputImage::PixelType>   >             Superclass;
+    TInputImage,
+    TOutputImage,
+    Functor::AddConstantTo<typename TInputImage::PixelType, TConstant, typename TOutputImage::PixelType>>
+    Superclass;
 
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
@@ -103,17 +106,19 @@ public:
   itkTypeMacro(AddConstantToImageFilter, UnaryFunctorImageFilter);
 
   /** Set the constant that will be used to multiply all the image
-    * pixels */
-  void SetConstant(TConstant ct)
+   * pixels */
+  void
+  SetConstant(TConstant ct)
   {
-    if( ct != this->GetFunctor().GetConstant() )
-      {
+    if (ct != this->GetFunctor().GetConstant())
+    {
       this->GetFunctor().SetConstant(ct);
       this->Modified();
-      }
+    }
   }
 
-  const TConstant & GetConstant() const
+  const TConstant &
+  GetConstant() const
   {
     return this->GetFunctor().GetConstant();
   }
@@ -121,30 +126,29 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
-                  (Concept::Convertible<typename TInputImage::PixelType,
-                                        typename TOutputImage::PixelType> ) );
-  itkConceptMacro(Input1Input2OutputAddOperatorCheck,
-                  (Concept::AdditiveOperators<typename TInputImage::PixelType,
-                                              TConstant,
-                                              typename TOutputImage::PixelType> ) );
+                  (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
+  itkConceptMacro(
+    Input1Input2OutputAddOperatorCheck,
+    (Concept::AdditiveOperators<typename TInputImage::PixelType, TConstant, typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 protected:
   AddConstantToImageFilter() = default;
   virtual ~AddConstantToImageFilter() = default;
 
-  void PrintSelf(std::ostream & os, Indent indent) const
+  void
+  PrintSelf(std::ostream & os, Indent indent) const
   {
     Superclass::PrintSelf(os, indent);
 
-    os << indent << "Constant: "
-       << static_cast<typename NumericTraits<TConstant>::PrintType>(this->GetConstant() )
+    os << indent << "Constant: " << static_cast<typename NumericTraits<TConstant>::PrintType>(this->GetConstant())
        << std::endl;
   }
 
 private:
   AddConstantToImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 };
 } // end namespace itk
 

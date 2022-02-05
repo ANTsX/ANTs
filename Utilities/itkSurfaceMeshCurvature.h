@@ -26,11 +26,9 @@ namespace itk
  *
  */
 template <typename TSurface, typename TSurfacePatch>
-class SurfaceMeshCurvature :
-  public SurfaceCurvatureBase<TSurface,  3>
+class SurfaceMeshCurvature : public SurfaceCurvatureBase<TSurface, 3>
 {
 public:
-
   /** Standard class typedefs. */
   typedef SurfaceMeshCurvature           Self;
   typedef SurfaceCurvatureBase<TSurface> Superclass;
@@ -56,42 +54,45 @@ public:
   typedef TSurface *                               SurfacePointer; // probably vtkmesh
 
   /** Find all points within some distance of the origin.
-    * The argument gives the number of times to apply the
-    * mean shift algorithm to find the best neighborhood.
-    */
-  virtual void FindNeighborhood(unsigned int numMeanShifts = 0)
+   * The argument gives the number of times to apply the
+   * mean shift algorithm to find the best neighborhood.
+   */
+  virtual void
+  FindNeighborhood(unsigned int numMeanShifts = 0)
   {
     this->m_PointList.clear();
     this->m_FunctionValueList.clear();
     VertexType origin = m_SurfacePatch->GetLocation();
     PointType  pt;
-    for( int j = 0; j < 3; j++ )
-      {
+    for (int j = 0; j < 3; j++)
+    {
       pt(j) = origin[j];
-      }
+    }
     this->m_Origin = pt;
     this->m_PointList.insert(this->m_PointList.begin(), pt);
-    this->m_FunctionValueList.insert(this->m_FunctionValueList.begin(), m_SurfacePatch->GetValue() );
-    for( unsigned int i = 0; i < m_SurfacePatch->m_Neighbors.size(); i++ )
-      {
+    this->m_FunctionValueList.insert(this->m_FunctionValueList.begin(), m_SurfacePatch->GetValue());
+    for (unsigned int i = 0; i < m_SurfacePatch->m_Neighbors.size(); i++)
+    {
       VertexType neigh = m_SurfacePatch->m_Neighbors[i]->GetLocation();
       PointType  pti;
-      for( int j = 0; j < 3; j++ )
-        {
+      for (int j = 0; j < 3; j++)
+      {
         pti(j) = neigh[j];
-        }
-      this->m_PointList.insert(this->m_PointList.begin(), pti);
-      this->m_FunctionValueList.insert(
-        this->m_FunctionValueList.begin(), this->m_SurfacePatch->m_Neighbors[i]->GetValue(0) );
       }
+      this->m_PointList.insert(this->m_PointList.begin(), pti);
+      this->m_FunctionValueList.insert(this->m_FunctionValueList.begin(),
+                                       this->m_SurfacePatch->m_Neighbors[i]->GetValue(0));
+    }
   }
 
-  void SetSurface(SurfacePointer s)
+  void
+  SetSurface(SurfacePointer s)
   {
     m_Surface = s;
   }
 
-  void SetSurfacePatch( SurfacePatchPointer s)
+  void
+  SetSurfacePatch(SurfacePatchPointer s)
   {
     m_SurfacePatch = s;
   }
@@ -124,12 +125,10 @@ public:
     this->m_TotalArea = 0.0;
   }
 
-  ~SurfaceMeshCurvature()
-  {
-  };
+  ~SurfaceMeshCurvature(){};
+
 protected:
 private:
-
   SurfacePointer      m_Surface;
   SurfacePatchPointer m_SurfacePatch;
 };

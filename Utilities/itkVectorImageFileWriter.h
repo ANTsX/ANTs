@@ -29,21 +29,23 @@ class VectorImageFileWriterException : public ExceptionObject
 {
 public:
   /** Run-time information. */
-  itkTypeMacro( VectorImageFileWriterException, ExceptionObject );
+  itkTypeMacro(VectorImageFileWriterException, ExceptionObject);
 
   /** Constructor. */
-  VectorImageFileWriterException(const char *file, unsigned int line, const char* message = "Error in IO",
-                                 const char* loc = "Unknown" ) :
-    ExceptionObject(file, line, message, loc)
-  {
-  }
+  VectorImageFileWriterException(const char * file,
+                                 unsigned int line,
+                                 const char * message = "Error in IO",
+                                 const char * loc = "Unknown")
+    : ExceptionObject(file, line, message, loc)
+  {}
 
   /** Constructor. */
-  VectorImageFileWriterException(const std::string & file, unsigned int line, const char* message = "Error in IO",
-                                 const char* loc = "Unknown" ) :
-    ExceptionObject(file, line, message, loc)
-  {
-  }
+  VectorImageFileWriterException(const std::string & file,
+                                 unsigned int        line,
+                                 const char *        message = "Error in IO",
+                                 const char *        loc = "Unknown")
+    : ExceptionObject(file, line, message, loc)
+  {}
 };
 
 /** \class VectorImageFileWriter
@@ -56,8 +58,7 @@ public:
  * \ingroup IOFilters
  */
 template <typename TVectorImage, typename TImage>
-class VectorImageFileWriter :
-  public         ProcessObject
+class VectorImageFileWriter : public ProcessObject
 {
 public:
   /** Standard class typedefs. */
@@ -83,11 +84,14 @@ public:
   typedef typename ImageType::PixelType        ImagePixelType;
 
   /** Set/Get the image input of this writer.  */
-  void SetInput(const VectorImageType *input);
+  void
+  SetInput(const VectorImageType * input);
 
-  const VectorImageType * GetInput();
+  const VectorImageType *
+  GetInput();
 
-  const VectorImageType * GetInput(unsigned int idx);
+  const VectorImageType *
+  GetInput(unsigned int idx);
 
   /** Specify the name of the output file to write. */
   itkSetStringMacro(FileName);
@@ -103,13 +107,14 @@ public:
    * correct choice and will allow a file to be created regardless of
    * the file extension. If the factory has set the ImageIO, the
    * extension must be supported by the specified ImageIO. */
-  void SetImageIO(ImageIOBase* io)
+  void
+  SetImageIO(ImageIOBase * io)
   {
-    if( this->m_ImageIO != io )
-      {
+    if (this->m_ImageIO != io)
+    {
       this->Modified();
       this->m_ImageIO = io;
-      }
+    }
     m_FactorySpecifiedImageIO = false;
   }
 
@@ -122,17 +127,20 @@ public:
    * IORegion. If not set, then then the whole image is written.  Note
    * that the region will be cropped to fit the input image's
    * LargestPossibleRegion. */
-  virtual void Write();
+  virtual void
+  Write();
 
   /** Specify the region to write. If left NULL, then the whole image
    * is written. */
-  void SetIORegion(const ImageIORegion & region);
+  void
+  SetIORegion(const ImageIORegion & region);
 
-  itkGetConstReferenceMacro( IORegion, ImageIORegion );
+  itkGetConstReferenceMacro(IORegion, ImageIORegion);
 
   /** Aliased to the Write() method to be consistent with the rest of the
    * pipeline. */
-  virtual void Update()
+  virtual void
+  Update()
   {
     this->Write();
   }
@@ -161,17 +169,21 @@ public:
   itkSetMacro(UseInputMetaDataDictionary, bool);
   itkGetConstReferenceMacro(UseInputMetaDataDictionary, bool);
   itkBooleanMacro(UseInputMetaDataDictionary);
+
 protected:
   VectorImageFileWriter();
   ~VectorImageFileWriter();
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const;
 
   /** Does the real work. */
-  void GenerateData();
+  void
+  GenerateData();
 
 private:
   VectorImageFileWriter(const Self &); // purposely not implemented
-  void operator=(const Self &);        // purposely not implemented
+  void
+  operator=(const Self &); // purposely not implemented
 
   std::string m_FileName;
   std::string m_ComponentImageFileName;
@@ -193,7 +205,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkVectorImageFileWriter.hxx"
+#  include "itkVectorImageFileWriter.hxx"
 #endif
 
 #endif // __itkVectorImageFileWriter_h

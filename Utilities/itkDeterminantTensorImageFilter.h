@@ -24,24 +24,21 @@ namespace itk
  */
 template <typename TInputImage,
           typename TRealType = float,
-          typename TOutputImage = Image<TRealType,
-          TInputImage::ImageDimension>
->
-class ITK_EXPORT DeterminantTensorImageFilter :
-    public ImageToImageFilter<TInputImage, TOutputImage>
+          typename TOutputImage = Image<TRealType, TInputImage::ImageDimension>>
+class ITK_EXPORT DeterminantTensorImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef DeterminantTensorImageFilter Self;
-  typedef ImageToImageFilter< TInputImage, TOutputImage > Superclass;
-  typedef SmartPointer<Self> Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
+  typedef DeterminantTensorImageFilter                  Self;
+  typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
+  typedef SmartPointer<Self>                            Pointer;
+  typedef SmartPointer<const Self>                      ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro( DeterminantTensorImageFilter, ImageToImageFilter );
+  itkTypeMacro(DeterminantTensorImageFilter, ImageToImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -49,18 +46,17 @@ public:
   typedef typename TInputImage::PixelType  InputPixelType;
 
   /** Image typedef support */
-  typedef TInputImage  InputImageType;
-  typedef TOutputImage OutputImageType;
-  typedef typename InputImageType::Pointer  InputImagePointer;
-  typedef typename OutputImageType::Pointer OutputImagePointer;
+  typedef TInputImage                          InputImageType;
+  typedef TOutputImage                         OutputImageType;
+  typedef typename InputImageType::Pointer     InputImagePointer;
+  typedef typename OutputImageType::Pointer    OutputImagePointer;
   typedef typename OutputImageType::RegionType OutputImageRegionType;
 
   /** The dimensionality of the input and output images. */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
 
   /** Define the data type and the vector of data type used in calculations. */
-  typedef TRealType                                            RealType;
+  typedef TRealType RealType;
 
 protected:
   DeterminantTensorImageFilter();
@@ -78,20 +74,22 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void ThreadedGenerateData( const OutputImageRegionType& outputRegionForThread,
-                             ThreadIdType threadId ) override;
+  void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId) override;
 
-  void PrintSelf ( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  DeterminantTensorImageFilter(const Self&) = delete;
-  void operator=(const Self&) = delete;
+  DeterminantTensorImageFilter(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 };
 
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkDeterminantTensorImageFilter.hxx"
+#  include "itkDeterminantTensorImageFilter.hxx"
 #endif
 
 #endif

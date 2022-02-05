@@ -37,15 +37,12 @@ namespace itk
  * \ingroup IntensityImageFilters
  */
 template <typename TInputImage, typename TOutputImage>
-class ExpTensorImageFilter :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+class ExpTensorImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Extract dimension from input and output image. */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
   /** Convenient typedefs for simplifying declarations. */
   typedef TInputImage  InputImageType;
@@ -93,7 +90,8 @@ protected:
   ExpTensorImageFilter();
   ~ExpTensorImageFilter() override = default;
 
-  void PrintSelf(std::ostream& os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** ExpTensorImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -105,16 +103,18 @@ protected:
    *
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
 private:
   ExpTensorImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkExpTensorImageFilter.hxx"
+#  include "itkExpTensorImageFilter.hxx"
 #endif
 
 #endif

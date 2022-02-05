@@ -30,66 +30,70 @@ class CommandProgressUpdate : public itk::Command
 public:
   using Self = CommandProgressUpdate<TFilter>;
   using Superclass = itk::Command;
-  using Pointer = itk::SmartPointer<CommandProgressUpdate<TFilter> >;
-  itkNewMacro( CommandProgressUpdate );
-protected:
+  using Pointer = itk::SmartPointer<CommandProgressUpdate<TFilter>>;
+  itkNewMacro(CommandProgressUpdate);
 
-  CommandProgressUpdate()  = default;;
+protected:
+  CommandProgressUpdate() = default;
+  ;
 
   using FilterType = TFilter;
 
   unsigned int m_CurrentProgress{ 0 };
 
 public:
-
-  void Execute(itk::Object *caller, const itk::EventObject & event) override
+  void
+  Execute(itk::Object * caller, const itk::EventObject & event) override
+  {
+    auto * po = dynamic_cast<itk::ProcessObject *>(caller);
+    if (!po)
+      return;
+    //    std::cout << po->GetProgress() << std::endl;
+    if (typeid(event) == typeid(itk::ProgressEvent))
     {
-    auto *po = dynamic_cast<itk::ProcessObject *>( caller );
-    if (! po) return;
-//    std::cout << po->GetProgress() << std::endl;
-    if( typeid( event ) == typeid ( itk::ProgressEvent )  )
+      if (this->m_CurrentProgress < 99)
       {
-      if( this->m_CurrentProgress < 99 )
-        {
         this->m_CurrentProgress++;
-        if( this->m_CurrentProgress % 10 == 0 )
-          {
+        if (this->m_CurrentProgress % 10 == 0)
+        {
           std::cout << this->m_CurrentProgress << std::flush;
-          }
+        }
         else
-          {
+        {
           std::cout << "*" << std::flush;
-          }
         }
       }
     }
+  }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event) override
+  void
+  Execute(const itk::Object * object, const itk::EventObject & event) override
+  {
+    auto * po = dynamic_cast<itk::ProcessObject *>(const_cast<itk::Object *>(object));
+    if (!po)
+      return;
+
+    if (typeid(event) == typeid(itk::ProgressEvent))
     {
-    auto *po = dynamic_cast<itk::ProcessObject *>(
-      const_cast<itk::Object *>( object ) );
-    if (! po) return;
-
-    if( typeid( event ) == typeid ( itk::ProgressEvent )  )
+      if (this->m_CurrentProgress < 99)
       {
-      if( this->m_CurrentProgress < 99 )
-        {
         this->m_CurrentProgress++;
-        if( this->m_CurrentProgress % 10 == 0 )
-          {
+        if (this->m_CurrentProgress % 10 == 0)
+        {
           std::cout << this->m_CurrentProgress << std::flush;
-          }
+        }
         else
-          {
+        {
           std::cout << "*" << std::flush;
-          }
         }
       }
     }
+  }
 };
 
 template <unsigned int ImageDimension>
-int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
+int
+antsJointTensorFusion(itk::ants::CommandLineParser * parser)
 {
   using RealType = float;
   using TensorType = itk::DiffusionTensor3D<RealType>;
@@ -105,18 +109,19 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
 
   // Determine verbosity of output
 
-  bool verbose = false;
-  typename OptionType::Pointer verboseOption = parser->GetOption( "verbose" );
-  if( verboseOption && verboseOption->GetNumberOfFunctions() )
-    {
-    verbose = parser->Convert<bool>( verboseOption->GetFunction( 0 )->GetName() );
-    }
+  bool                         verbose = false;
+  typename OptionType::Pointer verboseOption = parser->GetOption("verbose");
+  if (verboseOption && verboseOption->GetNumberOfFunctions())
+  {
+    verbose = parser->Convert<bool>(verboseOption->GetFunction(0)->GetName());
+  }
 
-  if( verbose )
-    {
-    std::cout << std::endl << "Running antsJointTensorFusion for "
-             << ImageDimension << "-dimensional images." << std::endl << std::endl;
-    }
+  if (verbose)
+  {
+    std::cout << std::endl
+              << "Running antsJointTensorFusion for " << ImageDimension << "-dimensional images." << std::endl
+              << std::endl;
+  }
 
   // Instantiate the joint fusion filter
 
@@ -127,83 +132,83 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
 
   // Get the alpha and beta parameters
 
-  RealType alpha = 0.1;
-  typename OptionType::Pointer alphaOption = parser->GetOption( "alpha" );
-  if( alphaOption && alphaOption->GetNumberOfFunctions() )
-    {
-    alpha = parser->Convert<RealType>( alphaOption->GetFunction( 0 )->GetName() );
-    }
+  RealType                     alpha = 0.1;
+  typename OptionType::Pointer alphaOption = parser->GetOption("alpha");
+  if (alphaOption && alphaOption->GetNumberOfFunctions())
+  {
+    alpha = parser->Convert<RealType>(alphaOption->GetFunction(0)->GetName());
+  }
 
-  RealType beta = 2.0;
-  typename OptionType::Pointer betaOption = parser->GetOption( "beta" );
-  if( betaOption && betaOption->GetNumberOfFunctions() )
-    {
-    beta = parser->Convert<RealType>( betaOption->GetFunction( 0 )->GetName() );
-    }
+  RealType                     beta = 2.0;
+  typename OptionType::Pointer betaOption = parser->GetOption("beta");
+  if (betaOption && betaOption->GetNumberOfFunctions())
+  {
+    beta = parser->Convert<RealType>(betaOption->GetFunction(0)->GetName());
+  }
 
-  fusionFilter->SetAlpha( alpha );
-  fusionFilter->SetBeta( beta );
+  fusionFilter->SetAlpha(alpha);
+  fusionFilter->SetBeta(beta);
 
   // Get the search and patch radii
 
   std::vector<unsigned int> searchRadius;
-  searchRadius.push_back( 3 );
-  typename OptionType::Pointer searchRadiusOption = parser->GetOption( "search-radius" );
-  if( searchRadiusOption && searchRadiusOption->GetNumberOfFunctions() )
+  searchRadius.push_back(3);
+  typename OptionType::Pointer searchRadiusOption = parser->GetOption("search-radius");
+  if (searchRadiusOption && searchRadiusOption->GetNumberOfFunctions())
+  {
+    searchRadius = parser->ConvertVector<unsigned int>(searchRadiusOption->GetFunction(0)->GetName());
+  }
+  if (searchRadius.size() == 1)
+  {
+    for (unsigned int d = 1; d < ImageDimension; d++)
     {
-    searchRadius = parser->ConvertVector<unsigned int>( searchRadiusOption->GetFunction( 0 )->GetName() );
+      searchRadius.push_back(searchRadius[0]);
     }
-  if( searchRadius.size() == 1 )
+  }
+  if (searchRadius.size() != ImageDimension)
+  {
+    if (verbose)
     {
-    for( unsigned int d = 1; d < ImageDimension; d++ )
-      {
-      searchRadius.push_back( searchRadius[0] );
-      }
-    }
-  if( searchRadius.size() != ImageDimension )
-    {
-    if( verbose )
-      {
       std::cerr << "Search radius specified incorrectly.  Please see usage options." << std::endl;
-      }
+    }
     return EXIT_FAILURE;
-    }
+  }
   typename FusionFilterType::NeighborhoodRadiusType searchNeighborhoodRadius;
-  for( unsigned int d = 0; d < ImageDimension; d++ )
-    {
+  for (unsigned int d = 0; d < ImageDimension; d++)
+  {
     searchNeighborhoodRadius[d] = searchRadius[d];
-    }
+  }
 
   std::vector<unsigned int> patchRadius;
-  patchRadius.push_back( 2 );
-  typename OptionType::Pointer patchRadiusOption = parser->GetOption( "patch-radius" );
-  if( patchRadiusOption && patchRadiusOption->GetNumberOfFunctions() )
+  patchRadius.push_back(2);
+  typename OptionType::Pointer patchRadiusOption = parser->GetOption("patch-radius");
+  if (patchRadiusOption && patchRadiusOption->GetNumberOfFunctions())
+  {
+    patchRadius = parser->ConvertVector<unsigned int>(patchRadiusOption->GetFunction(0)->GetName());
+  }
+  if (patchRadius.size() == 1)
+  {
+    for (unsigned int d = 1; d < ImageDimension; d++)
     {
-    patchRadius = parser->ConvertVector<unsigned int>( patchRadiusOption->GetFunction( 0 )->GetName() );
+      patchRadius.push_back(patchRadius[0]);
     }
-  if( patchRadius.size() == 1 )
+  }
+  if (patchRadius.size() != ImageDimension)
+  {
+    if (verbose)
     {
-    for( unsigned int d = 1; d < ImageDimension; d++ )
-      {
-      patchRadius.push_back( patchRadius[0] );
-      }
-    }
-  if( patchRadius.size() != ImageDimension )
-    {
-    if( verbose )
-      {
       std::cerr << "Patch radius specified incorrectly.  Please see usage options." << std::endl;
-      }
+    }
     return EXIT_FAILURE;
-    }
+  }
   typename FusionFilterType::NeighborhoodRadiusType patchNeighborhoodRadius;
-  for( unsigned int d = 0; d < ImageDimension; d++ )
-    {
+  for (unsigned int d = 0; d < ImageDimension; d++)
+  {
     patchNeighborhoodRadius[d] = patchRadius[d];
-    }
+  }
 
-  fusionFilter->SetNeighborhoodSearchRadius( searchNeighborhoodRadius );
-  fusionFilter->SetNeighborhoodPatchRadius( patchNeighborhoodRadius );
+  fusionFilter->SetNeighborhoodSearchRadius(searchNeighborhoodRadius);
+  fusionFilter->SetNeighborhoodPatchRadius(patchNeighborhoodRadius);
 
   // Retain atlas voting and label posterior images
 
@@ -213,52 +218,52 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
   bool logEuclidean = false;
 
   typename OptionType::Pointer logEuclideanOption = parser->GetOption("log-euclidean");
-  if ( logEuclideanOption && logEuclideanOption->GetNumberOfFunctions() > 0 )
-    {
-    logEuclidean = parser->Convert<bool>( logEuclideanOption->GetFunction()->GetName() );
-    }
+  if (logEuclideanOption && logEuclideanOption->GetNumberOfFunctions() > 0)
+  {
+    logEuclidean = parser->Convert<bool>(logEuclideanOption->GetFunction()->GetName());
+  }
 
-  typename OptionType::Pointer retainLabelPosteriorOption = parser->GetOption( "retain-label-posterior-images" );
-  if( retainLabelPosteriorOption && retainLabelPosteriorOption->GetNumberOfFunctions() > 0 )
-    {
-    retainLabelPosteriorImages = parser->Convert<bool>( retainLabelPosteriorOption->GetFunction()->GetName() );
-    }
+  typename OptionType::Pointer retainLabelPosteriorOption = parser->GetOption("retain-label-posterior-images");
+  if (retainLabelPosteriorOption && retainLabelPosteriorOption->GetNumberOfFunctions() > 0)
+  {
+    retainLabelPosteriorImages = parser->Convert<bool>(retainLabelPosteriorOption->GetFunction()->GetName());
+  }
 
-  typename OptionType::Pointer retainAtlasVotingOption = parser->GetOption( "retain-atlas-voting-images" );
-  if( retainAtlasVotingOption && retainAtlasVotingOption->GetNumberOfFunctions() > 0 )
-    {
-    retainAtlasVotingImages = parser->Convert<bool>( retainAtlasVotingOption->GetFunction()->GetName() );
-    }
+  typename OptionType::Pointer retainAtlasVotingOption = parser->GetOption("retain-atlas-voting-images");
+  if (retainAtlasVotingOption && retainAtlasVotingOption->GetNumberOfFunctions() > 0)
+  {
+    retainAtlasVotingImages = parser->Convert<bool>(retainAtlasVotingOption->GetFunction()->GetName());
+  }
 
-  typename OptionType::Pointer constrainWeightsOption = parser->GetOption( "constrain-nonnegative" );
-  if( constrainWeightsOption && constrainWeightsOption->GetNumberOfFunctions() > 0 )
-    {
-    constrainSolutionToNonnegativeWeights = parser->Convert<bool>( constrainWeightsOption->GetFunction()->GetName() );
-    }
+  typename OptionType::Pointer constrainWeightsOption = parser->GetOption("constrain-nonnegative");
+  if (constrainWeightsOption && constrainWeightsOption->GetNumberOfFunctions() > 0)
+  {
+    constrainSolutionToNonnegativeWeights = parser->Convert<bool>(constrainWeightsOption->GetFunction()->GetName());
+  }
 
-  typename OptionType::Pointer metricOption = parser->GetOption( "patch-metric" );
-  if( metricOption && metricOption->GetNumberOfFunctions() > 0 )
-    {
+  typename OptionType::Pointer metricOption = parser->GetOption("patch-metric");
+  if (metricOption && metricOption->GetNumberOfFunctions() > 0)
+  {
     std::string metricString = metricOption->GetFunction()->GetName();
-    ConvertToLowerCase( metricString );
-    if( metricString.compare( "pc" ) == 0 )
-      {
-      fusionFilter->SetSimilarityMetric( FusionFilterType::PEARSON_CORRELATION );
-      }
-    else if( metricString.compare( "msq" ) == 0 )
-      {
-      fusionFilter->SetSimilarityMetric( FusionFilterType::MEAN_SQUARES );
-      }
+    ConvertToLowerCase(metricString);
+    if (metricString.compare("pc") == 0)
+    {
+      fusionFilter->SetSimilarityMetric(FusionFilterType::PEARSON_CORRELATION);
+    }
+    else if (metricString.compare("msq") == 0)
+    {
+      fusionFilter->SetSimilarityMetric(FusionFilterType::MEAN_SQUARES);
+    }
     else
-      {
+    {
       std::cerr << "Unrecognized metric option. See help menu." << std::endl;
       return EXIT_FAILURE;
-      }
     }
+  }
 
-  fusionFilter->SetRetainAtlasVotingWeightImages( retainAtlasVotingImages );
-  fusionFilter->SetRetainLabelPosteriorProbabilityImages( retainLabelPosteriorImages );
-  fusionFilter->SetConstrainSolutionToNonnegativeWeights( constrainSolutionToNonnegativeWeights );
+  fusionFilter->SetRetainAtlasVotingWeightImages(retainAtlasVotingImages);
+  fusionFilter->SetRetainLabelPosteriorProbabilityImages(retainLabelPosteriorImages);
+  fusionFilter->SetConstrainSolutionToNonnegativeWeights(constrainSolutionToNonnegativeWeights);
 
   // Get the target image
 
@@ -266,739 +271,732 @@ int antsJointTensorFusion( itk::ants::CommandLineParser *parser )
 
   typename FusionFilterType::InputImageList targetImageList;
 
-  typename OptionType::Pointer targetImageOption = parser->GetOption( "target-image" );
-  if( targetImageOption && targetImageOption->GetNumberOfFunctions() )
+  typename OptionType::Pointer targetImageOption = parser->GetOption("target-image");
+  if (targetImageOption && targetImageOption->GetNumberOfFunctions())
+  {
+    if (targetImageOption->GetFunction(0)->GetNumberOfParameters() == 0)
     {
-    if( targetImageOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
-      {
       typename TensorImageType::Pointer targetImage = nullptr;
 
-      std::string targetFile = targetImageOption->GetFunction( 0 )->GetName();
-      ReadTensorImage<TensorImageType>( targetImage, targetFile.c_str(), logEuclidean );
+      std::string targetFile = targetImageOption->GetFunction(0)->GetName();
+      ReadTensorImage<TensorImageType>(targetImage, targetFile.c_str(), logEuclidean);
 
       numberOfTargetModalities = 6;
-      for( unsigned int n = 0; n < numberOfTargetModalities; n++ )
-        {
+      for (unsigned int n = 0; n < numberOfTargetModalities; n++)
+      {
         typename TensorAdaptorType::Pointer targetAdaptorImage = TensorAdaptorType::New();
-        targetAdaptorImage->SetImage( targetImage );
-        targetAdaptorImage->SelectNthElement( n );
+        targetAdaptorImage->SetImage(targetImage);
+        targetAdaptorImage->SelectNthElement(n);
 
         // Can't use image adaptor directly, get error due to missing "ImageType::NeighborhoodAccessorFunctorType" in
-        // itk::ConstNeighborhoodIterator<itk::NthElementImageAdaptor<itk::Image<itk::DiffusionTensor3D<float>, 2>, float>
+        // itk::ConstNeighborhoodIterator<itk::NthElementImageAdaptor<itk::Image<itk::DiffusionTensor3D<float>, 2>,
+        // float>
         typename CastFilterType::Pointer castTensor = CastFilterType::New();
-        castTensor->SetInput( targetAdaptorImage );
+        castTensor->SetInput(targetAdaptorImage);
         castTensor->Update();
 
-        targetImageList.push_back( castTensor->GetOutput() );
-        }
-
+        targetImageList.push_back(castTensor->GetOutput());
       }
+    }
     else
-      {
+    {
       std::cout << "Only 1 modality (DiffusionTensor) allowed for target image" << std::endl;
       return EXIT_FAILURE;
-      }
     }
+  }
   else
+  {
+    if (verbose)
     {
-    if( verbose )
-      {
       std::cerr << "Target image(s) not specified." << std::endl;
-      }
-    return EXIT_FAILURE;
     }
-  fusionFilter->SetTargetImage( targetImageList );
+    return EXIT_FAILURE;
+  }
+  fusionFilter->SetTargetImage(targetImageList);
 
   // Get the atlas images and segmentations
 
-  typename OptionType::Pointer atlasImageOption = parser->GetOption( "atlas-image" );
-  typename OptionType::Pointer atlasSegmentationOption = parser->GetOption( "atlas-segmentation" );
+  typename OptionType::Pointer atlasImageOption = parser->GetOption("atlas-image");
+  typename OptionType::Pointer atlasSegmentationOption = parser->GetOption("atlas-segmentation");
 
   unsigned int numberOfAtlases = 0;
   unsigned int numberOfAtlasSegmentations = 0;
   unsigned int numberOfAtlasModalities = 6;
 
-  if( atlasImageOption && atlasImageOption->GetNumberOfFunctions() )
-    {
+  if (atlasImageOption && atlasImageOption->GetNumberOfFunctions())
+  {
     numberOfAtlases = atlasImageOption->GetNumberOfFunctions();
-    }
-  if( atlasSegmentationOption && atlasSegmentationOption->GetNumberOfFunctions() )
-    {
+  }
+  if (atlasSegmentationOption && atlasSegmentationOption->GetNumberOfFunctions())
+  {
     numberOfAtlasSegmentations = atlasSegmentationOption->GetNumberOfFunctions();
-    }
+  }
 
-  if( numberOfAtlases < 2 )
+  if (numberOfAtlases < 2)
+  {
+    if (verbose)
     {
-    if( verbose )
-      {
       std::cerr << "At least 2 atlases are required." << std::endl;
-      }
+    }
     return EXIT_FAILURE;
-    }
-  if( numberOfAtlasSegmentations != 0 && numberOfAtlasSegmentations != numberOfAtlases )
+  }
+  if (numberOfAtlasSegmentations != 0 && numberOfAtlasSegmentations != numberOfAtlases)
+  {
+    if (verbose)
     {
-    if( verbose )
-      {
       std::cout << "Warning:  the number of atlases does not match the number of "
-        << "segmentations.  Only performing joint intensity fusion."  << std::endl;
-      }
-    numberOfAtlasSegmentations = 0;
+                << "segmentations.  Only performing joint intensity fusion." << std::endl;
     }
+    numberOfAtlasSegmentations = 0;
+  }
 
-  for( unsigned int m = 0; m < numberOfAtlases; m++ )
-    {
+  for (unsigned int m = 0; m < numberOfAtlases; m++)
+  {
     typename FusionFilterType::InputImageList atlasImageList;
-    typename LabelImageType::Pointer atlasSegmentation = nullptr;
+    typename LabelImageType::Pointer          atlasSegmentation = nullptr;
 
-    if( atlasImageOption->GetFunction( m )->GetNumberOfParameters() == 0 )
-      {
+    if (atlasImageOption->GetFunction(m)->GetNumberOfParameters() == 0)
+    {
       numberOfAtlasModalities = 6;
 
-      if( numberOfTargetModalities != numberOfAtlasModalities )
+      if (numberOfTargetModalities != numberOfAtlasModalities)
+      {
+        if (verbose)
         {
-        if( verbose )
-          {
           std::cerr << "The number of atlas modalities does not match the number of target modalities." << std::endl;
-          }
-        return EXIT_FAILURE;
         }
+        return EXIT_FAILURE;
+      }
       typename TensorImageType::Pointer atlasImage = nullptr;
 
-      std::string atlasFile = atlasImageOption->GetFunction( m )->GetName();
-      ReadTensorImage<TensorImageType>( atlasImage, atlasFile.c_str(), logEuclidean );
-      for( unsigned int n = 0; n < numberOfAtlasModalities; n++ )
-        {
+      std::string atlasFile = atlasImageOption->GetFunction(m)->GetName();
+      ReadTensorImage<TensorImageType>(atlasImage, atlasFile.c_str(), logEuclidean);
+      for (unsigned int n = 0; n < numberOfAtlasModalities; n++)
+      {
         typename TensorAdaptorType::Pointer atlasAdaptorImage = TensorAdaptorType::New();
-        atlasAdaptorImage->SetImage( atlasImage );
-        atlasAdaptorImage->SelectNthElement( n );
+        atlasAdaptorImage->SetImage(atlasImage);
+        atlasAdaptorImage->SelectNthElement(n);
 
         typename CastFilterType::Pointer castTensor = CastFilterType::New();
-        castTensor->SetInput( atlasAdaptorImage );
+        castTensor->SetInput(atlasAdaptorImage);
         castTensor->Update();
 
-        atlasImageList.push_back( castTensor->GetOutput() );
-        }
+        atlasImageList.push_back(castTensor->GetOutput());
       }
+    }
     else
-      {
+    {
       std::cerr << "Only 1 modality (DiffusionTensor) allowed for atlas images" << std::endl;
       return EXIT_FAILURE;
-      }
-    if( numberOfAtlasSegmentations > 0 )
-      {
-      std::string atlasSegmentationFile = atlasSegmentationOption->GetFunction( m )->GetName();
-      ReadImage<LabelImageType>( atlasSegmentation, atlasSegmentationFile.c_str() );
-      }
-    fusionFilter->AddAtlas( atlasImageList, atlasSegmentation );
     }
+    if (numberOfAtlasSegmentations > 0)
+    {
+      std::string atlasSegmentationFile = atlasSegmentationOption->GetFunction(m)->GetName();
+      ReadImage<LabelImageType>(atlasSegmentation, atlasSegmentationFile.c_str());
+    }
+    fusionFilter->AddAtlas(atlasImageList, atlasSegmentation);
+  }
 
   // Get the exclusion images
 
-  typename OptionType::Pointer exclusionImageOption = parser->GetOption( "exclusion-image" );
-  if( exclusionImageOption && exclusionImageOption->GetNumberOfFunctions() )
+  typename OptionType::Pointer exclusionImageOption = parser->GetOption("exclusion-image");
+  if (exclusionImageOption && exclusionImageOption->GetNumberOfFunctions())
+  {
+    for (unsigned int n = 0; n < exclusionImageOption->GetNumberOfFunctions(); n++)
     {
-    for( unsigned int n = 0; n < exclusionImageOption->GetNumberOfFunctions(); n++ )
-      {
-      auto label = parser->Convert<LabelType>( exclusionImageOption->GetFunction( n )->GetName() );
+      auto label = parser->Convert<LabelType>(exclusionImageOption->GetFunction(n)->GetName());
 
       typename LabelImageType::Pointer exclusionImage = nullptr;
-      std::string exclusionFile = exclusionImageOption->GetFunction( n )->GetParameter( 0 );
-      ReadImage<LabelImageType>( exclusionImage, exclusionFile.c_str() );
-      fusionFilter->AddLabelExclusionImage( label, exclusionImage );
-      }
+      std::string                      exclusionFile = exclusionImageOption->GetFunction(n)->GetParameter(0);
+      ReadImage<LabelImageType>(exclusionImage, exclusionFile.c_str());
+      fusionFilter->AddLabelExclusionImage(label, exclusionImage);
     }
+  }
 
   // Get the mask
 
-  typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
-    parser->GetOption( "mask-image" );
-  if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
-    {
+  typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption = parser->GetOption("mask-image");
+  if (maskImageOption && maskImageOption->GetNumberOfFunctions())
+  {
     typename MaskImageType::Pointer maskImage = nullptr;
 
-    std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
-    ReadImage<MaskImageType>( maskImage, inputFile.c_str() );
+    std::string inputFile = maskImageOption->GetFunction(0)->GetName();
+    ReadImage<MaskImageType>(maskImage, inputFile.c_str());
 
-    fusionFilter->SetMaskImage( maskImage );
-    }
+    fusionFilter->SetMaskImage(maskImage);
+  }
 
   // Run the fusion program
   itk::TimeProbe timer;
   timer.Start();
 
-  if( verbose )
-    {
+  if (verbose)
+  {
     using CommandType = CommandProgressUpdate<FusionFilterType>;
     typename CommandType::Pointer observer = CommandType::New();
-    fusionFilter->AddObserver( itk::ProgressEvent(), observer );
-    }
+    fusionFilter->AddObserver(itk::ProgressEvent(), observer);
+  }
 
   try
-    {
+  {
     fusionFilter->Update();
-    }
-  catch( itk::ExceptionObject & e )
+  }
+  catch (itk::ExceptionObject & e)
+  {
+    if (verbose)
     {
-    if( verbose )
-      {
       std::cerr << "Exception caught: " << e << std::endl;
-      }
-    return EXIT_FAILURE;
     }
+    return EXIT_FAILURE;
+  }
 
   timer.Stop();
 
-  if( verbose )
-    {
+  if (verbose)
+  {
     std::cout << std::endl << std::endl;
-    fusionFilter->Print( std::cout, 3 );
-    }
+    fusionFilter->Print(std::cout, 3);
+  }
 
   // write the output
 
-  if( verbose )
-    {
+  if (verbose)
+  {
     std::cout << std::endl << "Writing output:" << std::endl;
-    }
-  typename OptionType::Pointer outputOption = parser->GetOption( "output" );
-  if( outputOption && outputOption->GetNumberOfFunctions() )
-    {
+  }
+  typename OptionType::Pointer outputOption = parser->GetOption("output");
+  if (outputOption && outputOption->GetNumberOfFunctions())
+  {
     std::string labelFusionName;
     std::string intensityFusionName;
     std::string labelPosteriorName;
     std::string atlasVotingName;
 
-    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+    if (outputOption->GetFunction(0)->GetNumberOfParameters() == 0)
+    {
+      if (numberOfAtlasSegmentations != 0)
       {
-      if( numberOfAtlasSegmentations != 0 )
-        {
-        labelFusionName = outputOption->GetFunction( 0 )->GetName();
-        }
+        labelFusionName = outputOption->GetFunction(0)->GetName();
+      }
       else
-        {
-        intensityFusionName = outputOption->GetFunction( 0 )->GetName();
-        }
-      }
-    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      if( numberOfAtlasSegmentations != 0 )
-        {
-        labelFusionName = outputOption->GetFunction( 0 )->GetParameter( 0 );
-        }
+        intensityFusionName = outputOption->GetFunction(0)->GetName();
       }
-    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+    }
+    if (outputOption->GetFunction(0)->GetNumberOfParameters() > 0)
+    {
+      if (numberOfAtlasSegmentations != 0)
       {
-      intensityFusionName = outputOption->GetFunction( 0 )->GetParameter( 1 );
+        labelFusionName = outputOption->GetFunction(0)->GetParameter(0);
       }
-    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
+    }
+    if (outputOption->GetFunction(0)->GetNumberOfParameters() > 1)
+    {
+      intensityFusionName = outputOption->GetFunction(0)->GetParameter(1);
+    }
+    if (outputOption->GetFunction(0)->GetNumberOfParameters() > 2)
+    {
+      if (numberOfAtlasSegmentations != 0)
       {
-      if( numberOfAtlasSegmentations != 0 )
-        {
-        labelPosteriorName = outputOption->GetFunction( 0 )->GetParameter( 2 );
-        }
+        labelPosteriorName = outputOption->GetFunction(0)->GetParameter(2);
       }
-    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 3 )
-      {
-      atlasVotingName = outputOption->GetFunction( 0 )->GetParameter( 3 );
-      }
+    }
+    if (outputOption->GetFunction(0)->GetNumberOfParameters() > 3)
+    {
+      atlasVotingName = outputOption->GetFunction(0)->GetParameter(3);
+    }
 
-    if( !labelFusionName.empty() )
-      {
-      ANTs::WriteImage<LabelImageType>( fusionFilter->GetOutput(), labelFusionName.c_str() );
-      }
-    if( !intensityFusionName.empty() )
-      {
+    if (!labelFusionName.empty())
+    {
+      ANTs::WriteImage<LabelImageType>(fusionFilter->GetOutput(), labelFusionName.c_str());
+    }
+    if (!intensityFusionName.empty())
+    {
       typename TensorImageType::Pointer jointTensorImage = TensorImageType::New();
-      jointTensorImage->SetRegions(fusionFilter->GetJointIntensityFusionImage( 0 )->GetRequestedRegion().GetSize() );
-      jointTensorImage->SetSpacing( fusionFilter->GetJointIntensityFusionImage( 0 )->GetSpacing() );
-      jointTensorImage->SetOrigin( fusionFilter->GetJointIntensityFusionImage( 0 )->GetOrigin() );
-      jointTensorImage->SetDirection( fusionFilter->GetJointIntensityFusionImage( 0 )->GetDirection() );
+      jointTensorImage->SetRegions(fusionFilter->GetJointIntensityFusionImage(0)->GetRequestedRegion().GetSize());
+      jointTensorImage->SetSpacing(fusionFilter->GetJointIntensityFusionImage(0)->GetSpacing());
+      jointTensorImage->SetOrigin(fusionFilter->GetJointIntensityFusionImage(0)->GetOrigin());
+      jointTensorImage->SetDirection(fusionFilter->GetJointIntensityFusionImage(0)->GetDirection());
       jointTensorImage->Allocate();
       TensorType nullDT;
       nullDT.Fill(0.0);
       jointTensorImage->FillBuffer(nullDT);
 
-      for( unsigned int i = 0; i < 6; i++ )
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        if (verbose)
         {
-        if( verbose )
-          {
           std::cout << "  Merging tensor fusion image channels " << std::endl;
-          }
-        typename ImageType::Pointer jointIntensityFusionImage
-          = fusionFilter->GetJointIntensityFusionImage( i );
+        }
+        typename ImageType::Pointer jointIntensityFusionImage = fusionFilter->GetJointIntensityFusionImage(i);
 
         typename itk::ImageRegionIteratorWithIndex<ImageType> valueIt(
-          jointIntensityFusionImage, jointIntensityFusionImage->GetLargestPossibleRegion() );
+          jointIntensityFusionImage, jointIntensityFusionImage->GetLargestPossibleRegion());
 
-        while ( !valueIt.IsAtEnd() )
-          {
+        while (!valueIt.IsAtEnd())
+        {
           TensorType dt = jointTensorImage->GetPixel(valueIt.GetIndex());
           dt[i] = valueIt.Value();
           jointTensorImage->SetPixel(valueIt.GetIndex(), dt);
           ++valueIt;
-          }
         }
-        if( verbose )
-          {
-          std::cout << "  Writing tensor fusion image" << std::endl;
-          }
-        WriteTensorImage<TensorImageType>( jointTensorImage, intensityFusionName.c_str() );
       }
-    if( !labelPosteriorName.empty() && fusionFilter->GetRetainLabelPosteriorProbabilityImages() )
+      if (verbose)
       {
+        std::cout << "  Writing tensor fusion image" << std::endl;
+      }
+      WriteTensorImage<TensorImageType>(jointTensorImage, intensityFusionName.c_str());
+    }
+    if (!labelPosteriorName.empty() && fusionFilter->GetRetainLabelPosteriorProbabilityImages())
+    {
       typename FusionFilterType::LabelSetType labelSet = fusionFilter->GetLabelSet();
 
       typename FusionFilterType::LabelSetType::const_iterator labelIt;
-      for( labelIt = labelSet.begin(); labelIt != labelSet.end(); ++labelIt )
+      for (labelIt = labelSet.begin(); labelIt != labelSet.end(); ++labelIt)
+      {
+        if (*labelIt == 0)
         {
-        if( *labelIt == 0 )
-          {
           continue;
-          }
-        if( verbose )
-          {
+        }
+        if (verbose)
+        {
           std::cout << "  Writing label probability image (label " << *labelIt << ")" << std::endl;
-          }
+        }
 
         char buffer[256];
-        std::snprintf( buffer, sizeof( buffer ), labelPosteriorName.c_str(), *labelIt );
-        ANTs::WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetLabelPosteriorProbabilityImage( *labelIt ), buffer );
-        }
+        std::snprintf(buffer, sizeof(buffer), labelPosteriorName.c_str(), *labelIt);
+        ANTs::WriteImage<typename FusionFilterType::ProbabilityImageType>(
+          fusionFilter->GetLabelPosteriorProbabilityImage(*labelIt), buffer);
       }
-    if( !atlasVotingName.empty() && fusionFilter->GetRetainAtlasVotingWeightImages() )
-      {
+    }
+    if (!atlasVotingName.empty() && fusionFilter->GetRetainAtlasVotingWeightImages())
+    {
       itk::NumericSeriesFileNames::Pointer fileNamesCreator = itk::NumericSeriesFileNames::New();
-      fileNamesCreator->SetStartIndex( 1 );
-      fileNamesCreator->SetEndIndex( numberOfAtlases );
-      fileNamesCreator->SetSeriesFormat( atlasVotingName.c_str() );
+      fileNamesCreator->SetStartIndex(1);
+      fileNamesCreator->SetEndIndex(numberOfAtlases);
+      fileNamesCreator->SetSeriesFormat(atlasVotingName.c_str());
 
       const std::vector<std::string> & imageNames = fileNamesCreator->GetFileNames();
-      for( unsigned int i = 0; i < imageNames.size(); i++ )
+      for (unsigned int i = 0; i < imageNames.size(); i++)
+      {
+        if (verbose)
         {
-        if( verbose )
-          {
-          std::cout << "  Writing atlas voting image (atlas " << i+1 << ")" << std::endl;
-          }
-        ANTs::WriteImage<typename FusionFilterType::ProbabilityImageType>( fusionFilter->GetAtlasVotingWeightImage( i ), imageNames[i].c_str() );
+          std::cout << "  Writing atlas voting image (atlas " << i + 1 << ")" << std::endl;
         }
+        ANTs::WriteImage<typename FusionFilterType::ProbabilityImageType>(fusionFilter->GetAtlasVotingWeightImage(i),
+                                                                          imageNames[i].c_str());
       }
     }
+  }
 
-  if( verbose )
-    {
+  if (verbose)
+  {
     std::cout << "Elapsed time: " << timer.GetMean() << std::endl;
-    }
+  }
 
   return EXIT_SUCCESS;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+void
+InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
 {
   using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
-  std::string description =
-      std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, the program tries to " )
-      + std::string( "infer the dimensionality from the input image." );
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "image-dimensionality" );
-  option->SetShortName( 'd' );
-  option->SetUsageOption( 0, "2/3/4" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    std::string description = std::string("This option forces the image to be treated as a specified-") +
+                              std::string("dimensional image.  If not specified, the program tries to ") +
+                              std::string("infer the dimensionality from the input image.");
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("image-dimensionality");
+    option->SetShortName('d');
+    option->SetUsageOption(0, "2/3/4");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "The target image (or multimodal target images) assumed to be " )
-    + std::string( "aligned to a common image domain." );
+    std::string description = std::string("The target image (or multimodal target images) assumed to be ") +
+                              std::string("aligned to a common image domain.");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "target-image" );
-  option->SetShortName( 't' );
-  option->SetUsageOption( 0, "targetImage" );
-  option->SetUsageOption( 1, "[targetImageModality0,targetImageModality1,...,targetImageModalityN]" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("target-image");
+    option->SetShortName('t');
+    option->SetUsageOption(0, "targetImage");
+    option->SetUsageOption(1, "[targetImageModality0,targetImageModality1,...,targetImageModalityN]");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "The atlas image (or multimodal atlas images) assumed to be " )
-    + std::string( "aligned to a common image domain." );
+    std::string description = std::string("The atlas image (or multimodal atlas images) assumed to be ") +
+                              std::string("aligned to a common image domain.");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "atlas-image" );
-  option->SetShortName( 'g' );
-  option->SetUsageOption( 0, "atlasImage" );
-  option->SetUsageOption( 1, "[atlasImageModality0,atlasImageModality1,...,atlasImageModalityN]" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("atlas-image");
+    option->SetShortName('g');
+    option->SetUsageOption(0, "atlasImage");
+    option->SetUsageOption(1, "[atlasImageModality0,atlasImageModality1,...,atlasImageModalityN]");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "The atlas segmentation images.  For performing label fusion the number of " )
-    + std::string( "specified segmentations should be identical to the number of atlas image sets." );
+    std::string description =
+      std::string("The atlas segmentation images.  For performing label fusion the number of ") +
+      std::string("specified segmentations should be identical to the number of atlas image sets.");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "atlas-segmentation" );
-  option->SetShortName( 'l' );
-  option->SetUsageOption( 0, "atlasSegmentation" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("atlas-segmentation");
+    option->SetShortName('l');
+    option->SetUsageOption(0, "atlasSegmentation");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "Regularization term added to matrix Mx for calculating the inverse.  Default = 0.1" );
+    std::string description =
+      std::string("Regularization term added to matrix Mx for calculating the inverse.  Default = 0.1");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "alpha" );
-  option->SetShortName( 'a' );
-  option->SetUsageOption( 0, "0.1" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("alpha");
+    option->SetShortName('a');
+    option->SetUsageOption(0, "0.1");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "Exponent for mapping intensity difference to the joint error.  Default = 2.0" );
+    std::string description =
+      std::string("Exponent for mapping intensity difference to the joint error.  Default = 2.0");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "beta" );
-  option->SetShortName( 'b' );
-  option->SetUsageOption( 0, "2.0" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("beta");
+    option->SetShortName('b');
+    option->SetUsageOption(0, "2.0");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "Retain label posterior probability images.  Requires atlas segmentations " )
-    + std::string( "to be specified.  Default = false" );
+    std::string description = std::string("Retain label posterior probability images.  Requires atlas segmentations ") +
+                              std::string("to be specified.  Default = false");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "retain-label-posterior-images" );
-  option->SetShortName( 'r' );
-  option->SetUsageOption( 0, "(0)/1" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("retain-label-posterior-images");
+    option->SetShortName('r');
+    option->SetUsageOption(0, "(0)/1");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "Retain atlas voting images.  Default = false" );
+    std::string description = std::string("Retain atlas voting images.  Default = false");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "retain-atlas-voting-images" );
-  option->SetShortName( 'f' );
-  option->SetUsageOption( 0, "(0)/1" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("retain-atlas-voting-images");
+    option->SetShortName('f');
+    option->SetUsageOption(0, "(0)/1");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description = std::string( "Constrain solution to non-negative weights." );
+    std::string description = std::string("Constrain solution to non-negative weights.");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetShortName( 'c' );
-  option->SetLongName( "constrain-nonnegative" );
-  option->SetUsageOption( 0, "(0)/1" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetShortName('c');
+    option->SetLongName("constrain-nonnegative");
+    option->SetUsageOption(0, "(0)/1");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description = std::string( "Use log Euclidean space for tensor math" );
+    std::string description = std::string("Use log Euclidean space for tensor math");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetShortName( 'u' );
-  option->SetLongName( "log-euclidean" );
-  option->SetUsageOption( 0, "(0)/1" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetShortName('u');
+    option->SetLongName("log-euclidean");
+    option->SetUsageOption(0, "(0)/1");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "Patch radius for similarity measures.  Default = 2x2x2" );
+    std::string description = std::string("Patch radius for similarity measures.  Default = 2x2x2");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "patch-radius" );
-  option->SetShortName( 'p' );
-  option->SetUsageOption( 0, "2" );
-  option->SetUsageOption( 1, "2x2x2" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("patch-radius");
+    option->SetShortName('p');
+    option->SetUsageOption(0, "2");
+    option->SetUsageOption(1, "2x2x2");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "Metric to be used in determining the most similar neighborhood patch.  " )
-    + std::string( "Options include Pearson's correlation (PC) and mean squares (MSQ). " )
-    + std::string( "Default = PC (Pearson correlation)." );
+    std::string description = std::string("Metric to be used in determining the most similar neighborhood patch.  ") +
+                              std::string("Options include Pearson's correlation (PC) and mean squares (MSQ). ") +
+                              std::string("Default = PC (Pearson correlation).");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "patch-metric" );
-  option->SetShortName( 'm' );
-  option->SetUsageOption( 0, "(PC)/MSQ" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("patch-metric");
+    option->SetShortName('m');
+    option->SetUsageOption(0, "(PC)/MSQ");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "Search radius for similarity measures.  Default = 3x3x3" );
+    std::string description = std::string("Search radius for similarity measures.  Default = 3x3x3");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "search-radius" );
-  option->SetShortName( 's' );
-  option->SetUsageOption( 0, "3" );
-  option->SetUsageOption( 1, "3x3x3" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("search-radius");
+    option->SetShortName('s');
+    option->SetUsageOption(0, "3");
+    option->SetUsageOption(1, "3x3x3");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "Specify an exclusion region for the given label." );
+    std::string description = std::string("Specify an exclusion region for the given label.");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "exclusion-image" );
-  option->SetShortName( 'e' );
-  option->SetUsageOption( 0, "label[exclusionImage]" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("exclusion-image");
+    option->SetShortName('e');
+    option->SetUsageOption(0, "label[exclusionImage]");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "If a mask image is specified, fusion is only performed in the mask region." );
+    std::string description = std::string("If a mask image is specified, fusion is only performed in the mask region.");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "mask-image" );
-  option->SetShortName( 'x' );
-  option->SetUsageOption( 0, "maskImageFilename" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("mask-image");
+    option->SetShortName('x');
+    option->SetUsageOption(0, "maskImageFilename");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description =
-    std::string( "The output is the intensity and/or label fusion image.  Additional " )
-    + std::string( "optional outputs include the label posterior probability images " )
-    + std::string( "and the atlas voting weight images." );
+    std::string description = std::string("The output is the intensity and/or label fusion image.  Additional ") +
+                              std::string("optional outputs include the label posterior probability images ") +
+                              std::string("and the atlas voting weight images.");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "output" );
-  option->SetShortName( 'o' );
-  option->SetUsageOption( 0, "labelFusionImage" );
-  option->SetUsageOption( 1, "intensityFusionImageFileNameFormat" );
-  option->SetUsageOption( 2, "[labelFusionImage,intensityFusionImageFileNameFormat,<labelPosteriorProbabilityImageFileNameFormat>,<atlasVotingWeightImageFileNameFormat>]" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("output");
+    option->SetShortName('o');
+    option->SetUsageOption(0, "labelFusionImage");
+    option->SetUsageOption(1, "intensityFusionImageFileNameFormat");
+    option->SetUsageOption(2,
+                           "[labelFusionImage,intensityFusionImageFileNameFormat,<"
+                           "labelPosteriorProbabilityImageFileNameFormat>,<atlasVotingWeightImageFileNameFormat>]");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
 
   {
-  std::string description = std::string( "Get version information." );
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "version" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    std::string         description = std::string("Get version information.");
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("version");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description = std::string( "Verbose output." );
+    std::string description = std::string("Verbose output.");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetShortName( 'v' );
-  option->SetLongName( "verbose" );
-  option->SetUsageOption( 0, "(0)/1" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetShortName('v');
+    option->SetLongName("verbose");
+    option->SetUsageOption(0, "(0)/1");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description = std::string( "Print the help menu (short version)." );
+    std::string description = std::string("Print the help menu (short version).");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetShortName( 'h' );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetShortName('h');
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 
   {
-  std::string description = std::string( "Print the help menu." );
+    std::string description = std::string("Print the help menu.");
 
-  OptionType::Pointer option = OptionType::New();
-  option->SetLongName( "help" );
-  option->SetDescription( description );
-  parser->AddOption( option );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("help");
+    option->SetDescription(description);
+    parser->AddOption(option);
   }
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsJointTensorFusion( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */ )
+int
+antsJointTensorFusion(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin(), "antsJointTensorFusion" );
+  args.insert(args.begin(), "antsJointTensorFusion");
 
   int     argc = args.size();
-  char* * argv = new char *[args.size() + 1];
-  for( unsigned int i = 0; i < args.size(); ++i )
-    {
+  char ** argv = new char *[args.size() + 1];
+  for (unsigned int i = 0; i < args.size(); ++i)
+  {
     // allocate space for the string plus a null character
     argv[i] = new char[args[i].length() + 1];
-    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    std::strncpy(argv[i], args[i].c_str(), args[i].length());
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
-    }
+  }
   argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-public:
-    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
-    {
-    }
+  public:
+    Cleanup_argv(char ** argv_, int argc_plus_one_)
+      : argv(argv_)
+      , argc_plus_one(argc_plus_one_)
+    {}
 
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0; i < argc_plus_one; ++i )
-        {
+      for (unsigned int i = 0; i < argc_plus_one; ++i)
+      {
         delete[] argv[i];
-        }
+      }
       delete[] argv;
     }
 
-private:
-    char* *      argv;
+  private:
+    char **      argv;
     unsigned int argc_plus_one;
   };
-  Cleanup_argv cleanup_argv( argv, argc + 1 );
+  Cleanup_argv cleanup_argv(argv, argc + 1);
 
   // antscout->set_stream( out_stream );
 
-  itk::ants::CommandLineParser::Pointer parser =
-    itk::ants::CommandLineParser::New();
+  itk::ants::CommandLineParser::Pointer parser = itk::ants::CommandLineParser::New();
 
-  parser->SetCommand( argv[0] );
+  parser->SetCommand(argv[0]);
 
   std::string commandDescription =
-    std::string( "antsJointTensorFusion is an image fusion algorithm developed by Hongzhi Wang and " )
-    + std::string( "Paul Yushkevich which won segmentation challenges at MICCAI 2012 and MICCAI 2013. " )
-    + std::string( "The original label fusion framework was extended to accommodate intensities by " )
-    + std::string( "Brian Avants.  This implementation is based on Paul's original ITK-style " )
-    + std::string( "implementation and Brian's ANTsR implementation.  References include  1) H. Wang, " )
-    + std::string( "J. W. Suh, S. Das, J. Pluta, C. Craige, P. Yushkevich, Multi-atlas " )
-    + std::string( "segmentation with joint label fusion IEEE Trans. on Pattern " )
-    + std::string( "Analysis and Machine Intelligence, 35(3), 611-623, 2013. and 2) " )
-    + std::string( "H. Wang and P. A. Yushkevich, Multi-atlas segmentation with joint " )
-    + std::string( "label fusion and corrective learning--an open source implementation, " )
-    + std::string( "Front. Neuroinform., 2013. " );
+    std::string("antsJointTensorFusion is an image fusion algorithm developed by Hongzhi Wang and ") +
+    std::string("Paul Yushkevich which won segmentation challenges at MICCAI 2012 and MICCAI 2013. ") +
+    std::string("The original label fusion framework was extended to accommodate intensities by ") +
+    std::string("Brian Avants.  This implementation is based on Paul's original ITK-style ") +
+    std::string("implementation and Brian's ANTsR implementation.  References include  1) H. Wang, ") +
+    std::string("J. W. Suh, S. Das, J. Pluta, C. Craige, P. Yushkevich, Multi-atlas ") +
+    std::string("segmentation with joint label fusion IEEE Trans. on Pattern ") +
+    std::string("Analysis and Machine Intelligence, 35(3), 611-623, 2013. and 2) ") +
+    std::string("H. Wang and P. A. Yushkevich, Multi-atlas segmentation with joint ") +
+    std::string("label fusion and corrective learning--an open source implementation, ") +
+    std::string("Front. Neuroinform., 2013. ");
 
-  parser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( parser );
+  parser->SetCommandDescription(commandDescription);
+  InitializeCommandLineOptions(parser);
 
-  if( parser->Parse( argc, argv ) == EXIT_FAILURE )
-    {
+  if (parser->Parse(argc, argv) == EXIT_FAILURE)
+  {
     return EXIT_FAILURE;
-    }
+  }
 
-  if( argc == 1 )
-    {
-    parser->PrintMenu( std::cerr, 5, false );
+  if (argc == 1)
+  {
+    parser->PrintMenu(std::cerr, 5, false);
     return EXIT_FAILURE;
-    }
-  else if( parser->GetOption( "help" )->GetFunction() && parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
-    {
-    parser->PrintMenu( std::cout, 5, false );
+  }
+  else if (parser->GetOption("help")->GetFunction() &&
+           parser->Convert<bool>(parser->GetOption("help")->GetFunction()->GetName()))
+  {
+    parser->PrintMenu(std::cout, 5, false);
     return EXIT_SUCCESS;
-    }
-  else if( parser->GetOption( 'h' )->GetFunction() && parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
-    {
-    parser->PrintMenu( std::cout, 5, true );
+  }
+  else if (parser->GetOption('h')->GetFunction() &&
+           parser->Convert<bool>(parser->GetOption('h')->GetFunction()->GetName()))
+  {
+    parser->PrintMenu(std::cout, 5, true);
     return EXIT_SUCCESS;
-    }
+  }
   // Show automatic version
-  itk::ants::CommandLineParser::OptionType::Pointer versionOption = parser->GetOption( "version" );
-  if( versionOption && versionOption->GetNumberOfFunctions() )
+  itk::ants::CommandLineParser::OptionType::Pointer versionOption = parser->GetOption("version");
+  if (versionOption && versionOption->GetNumberOfFunctions())
+  {
+    std::string versionFunction = versionOption->GetFunction(0)->GetName();
+    ConvertToLowerCase(versionFunction);
+    if (versionFunction.compare("1") == 0 || versionFunction.compare("true") == 0)
     {
-    std::string versionFunction = versionOption->GetFunction( 0 )->GetName();
-    ConvertToLowerCase( versionFunction );
-    if( versionFunction.compare( "1" ) == 0 || versionFunction.compare( "true" ) == 0 )
-      {
-      //Print Version Information
+      // Print Version Information
       std::cout << ANTs::Version::ExtendedVersionString() << std::endl;
       return EXIT_SUCCESS;
-      }
     }
+  }
   // Get dimensionality
   unsigned int dimension = 3;
 
-  itk::ants::CommandLineParser::OptionType::Pointer dimOption =
-    parser->GetOption( "image-dimensionality" );
-  if( dimOption && dimOption->GetNumberOfFunctions() )
-    {
-    dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
-    }
+  itk::ants::CommandLineParser::OptionType::Pointer dimOption = parser->GetOption("image-dimensionality");
+  if (dimOption && dimOption->GetNumberOfFunctions())
+  {
+    dimension = parser->Convert<unsigned int>(dimOption->GetFunction(0)->GetName());
+  }
   else
-    {
+  {
     // Read in the first intensity image to get the image dimension.
     std::string filename;
 
-    itk::ants::CommandLineParser::OptionType::Pointer imageOption =
-      parser->GetOption( "target-image" );
-    if( imageOption && imageOption->GetNumberOfFunctions() > 0 )
-      {
-      if( imageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
-        {
-        filename = imageOption->GetFunction( 0 )->GetParameter( 0 );
-        }
-      else
-        {
-        filename = imageOption->GetFunction( 0 )->GetName();
-        }
-      }
-    else
-      {
-      std::cerr << "No input images were specified.  Specify an input image"
-               << " with the -t option" << std::endl;
-      return EXIT_FAILURE;
-      }
-    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::IOFileModeEnum::ReadMode );
-    dimension = imageIO->GetNumberOfDimensions();
-    }
-
-  switch( dimension )
+    itk::ants::CommandLineParser::OptionType::Pointer imageOption = parser->GetOption("target-image");
+    if (imageOption && imageOption->GetNumberOfFunctions() > 0)
     {
+      if (imageOption->GetFunction(0)->GetNumberOfParameters() > 0)
+      {
+        filename = imageOption->GetFunction(0)->GetParameter(0);
+      }
+      else
+      {
+        filename = imageOption->GetFunction(0)->GetName();
+      }
+    }
+    else
+    {
+      std::cerr << "No input images were specified.  Specify an input image"
+                << " with the -t option" << std::endl;
+      return EXIT_FAILURE;
+    }
+    itk::ImageIOBase::Pointer imageIO =
+      itk::ImageIOFactory::CreateImageIO(filename.c_str(), itk::IOFileModeEnum::ReadMode);
+    dimension = imageIO->GetNumberOfDimensions();
+  }
+
+  switch (dimension)
+  {
     case 2:
-      {
-      return antsJointTensorFusion<2>( parser );
-      }
-      break;
+    {
+      return antsJointTensorFusion<2>(parser);
+    }
+    break;
     case 3:
-      {
-      return antsJointTensorFusion<3>( parser );
-      }
-      break;
+    {
+      return antsJointTensorFusion<3>(parser);
+    }
+    break;
     case 4:
-      {
-      return antsJointTensorFusion<4>( parser );
-      }
-      break;
+    {
+      return antsJointTensorFusion<4>(parser);
+    }
+    break;
     default:
       std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
-    }
+  }
   return EXIT_SUCCESS;
 }
 } // namespace ants

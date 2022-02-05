@@ -7,10 +7,10 @@ namespace itk
 {
 // Constructor with default arguments
 template <typename TScalarType>
-ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform() :
-  Superclass(ParametersDimension)
+ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform()
+  : Superclass(ParametersDimension)
 {
-  m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * std::sin(t/2), std::cos(t/2)
+  m_Rotation = VnlQuaternionType(0, 0, 0, 1); // axis * std::sin(t/2), std::cos(t/2)
   m_S1 = NumericTraits<TScalarType>::OneValue();
   m_S2 = NumericTraits<TScalarType>::OneValue();
   m_S3 = NumericTraits<TScalarType>::OneValue();
@@ -22,10 +22,10 @@ ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform() :
 // Constructor with default arguments
 template <typename TScalarType>
 ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform(unsigned int outputSpaceDimension,
-                                                          unsigned int parametersDimension) :
-  Superclass(outputSpaceDimension, parametersDimension)
+                                                          unsigned int parametersDimension)
+  : Superclass(outputSpaceDimension, parametersDimension)
 {
-  m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * std::sin(t/2), std::cos(t/2)
+  m_Rotation = VnlQuaternionType(0, 0, 0, 1); // axis * std::sin(t/2), std::cos(t/2)
   m_S1 = NumericTraits<TScalarType>::OneValue();
   m_S2 = NumericTraits<TScalarType>::OneValue();
   m_S3 = NumericTraits<TScalarType>::OneValue();
@@ -46,22 +46,20 @@ ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform(unsigned int outputSpa
 
 // Print self
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::PrintSelf(std::ostream & os,
-                                                   Indent indent) const
+void
+ANTSAffine3DTransform<TScalarType>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
   os << indent << "Rotation:    " << m_Rotation << std::endl;
-  os << indent << "S1, S2, S3: " << m_S1 << ", " << m_S2 << ", " << m_S3
-     << std::endl;
-  os << indent << "K1, K2, K3: " << m_K1 << ", " << m_K2 << ", " << m_K3
-     << std::endl;
+  os << indent << "S1, S2, S3: " << m_S1 << ", " << m_S2 << ", " << m_S3 << std::endl;
+  os << indent << "K1, K2, K3: " << m_K1 << ", " << m_K2 << ", " << m_K3 << std::endl;
 }
 
 // Set rotation
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::SetRotation(
-  const VnlQuaternionType & rotation)
+void
+ANTSAffine3DTransform<TScalarType>::SetRotation(const VnlQuaternionType & rotation)
 {
   m_Rotation = rotation;
 
@@ -73,7 +71,8 @@ void ANTSAffine3DTransform<TScalarType>::SetRotation(
 }
 
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::SetS1(const TScalarType S1)
+void
+ANTSAffine3DTransform<TScalarType>::SetS1(const TScalarType S1)
 {
   m_S1 = S1;
 
@@ -85,7 +84,8 @@ void ANTSAffine3DTransform<TScalarType>::SetS1(const TScalarType S1)
 }
 
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::SetS2(const TScalarType S2)
+void
+ANTSAffine3DTransform<TScalarType>::SetS2(const TScalarType S2)
 {
   m_S2 = S2;
 
@@ -97,7 +97,8 @@ void ANTSAffine3DTransform<TScalarType>::SetS2(const TScalarType S2)
 }
 
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::SetS3(const TScalarType S3)
+void
+ANTSAffine3DTransform<TScalarType>::SetS3(const TScalarType S3)
 {
   m_S3 = S3;
 
@@ -109,7 +110,8 @@ void ANTSAffine3DTransform<TScalarType>::SetS3(const TScalarType S3)
 }
 
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::SetK1(const TScalarType K1)
+void
+ANTSAffine3DTransform<TScalarType>::SetK1(const TScalarType K1)
 {
   m_K1 = K1;
 
@@ -121,7 +123,8 @@ void ANTSAffine3DTransform<TScalarType>::SetK1(const TScalarType K1)
 }
 
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::SetK2(const TScalarType K2)
+void
+ANTSAffine3DTransform<TScalarType>::SetK2(const TScalarType K2)
 {
   m_K2 = K2;
 
@@ -133,7 +136,8 @@ void ANTSAffine3DTransform<TScalarType>::SetK2(const TScalarType K2)
 }
 
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::SetK3(const TScalarType K3)
+void
+ANTSAffine3DTransform<TScalarType>::SetK3(const TScalarType K3)
 {
   m_K3 = K3;
 
@@ -146,7 +150,8 @@ void ANTSAffine3DTransform<TScalarType>::SetK3(const TScalarType K3)
 
 // Set the parameters in order to fit an Identity transform
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::SetIdentity(void)
+void
+ANTSAffine3DTransform<TScalarType>::SetIdentity(void)
 {
   m_Rotation = VnlQuaternionType(0, 0, 0, 1);
   m_S1 = NumericTraits<TScalarType>::OneValue();
@@ -160,19 +165,19 @@ void ANTSAffine3DTransform<TScalarType>::SetIdentity(void)
 
 // Set Parameters
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::SetParameters(
-  const ParametersType & parameters)
+void
+ANTSAffine3DTransform<TScalarType>::SetParameters(const ParametersType & parameters)
 {
   OutputVectorType translation;
 
   // Transfer the quaternion part
   unsigned int par = 0;
 
-  for( unsigned int j = 0; j < 4; j++ )
-    {
+  for (unsigned int j = 0; j < 4; j++)
+  {
     m_Rotation[j] = parameters[par];
     ++par;
-    }
+  }
 
   m_S1 = parameters[par++];
   m_S2 = parameters[par++];
@@ -183,11 +188,11 @@ void ANTSAffine3DTransform<TScalarType>::SetParameters(
 
   this->ComputeMatrix();
   // Transfer the constant part
-  for( unsigned int i = 0; i < SpaceDimension; i++ )
-    {
+  for (unsigned int i = 0; i < SpaceDimension; i++)
+  {
     translation[i] = parameters[par];
     ++par;
-    }
+  }
   this->SetVarTranslation(translation);
 
   this->ComputeOffset();
@@ -199,18 +204,19 @@ void ANTSAffine3DTransform<TScalarType>::SetParameters(
 
 // Set Parameters
 template <typename TScalarType>
-const typename ANTSAffine3DTransform<TScalarType>::ParametersType
-& ANTSAffine3DTransform<TScalarType>::GetParameters() const {
+const typename ANTSAffine3DTransform<TScalarType>::ParametersType &
+ANTSAffine3DTransform<TScalarType>::GetParameters() const
+{
   VnlQuaternionType quaternion = this->GetRotation();
   OutputVectorType  translation = this->GetTranslation();
 
   // Transfer the quaternion part
   unsigned int par = 0;
-  for( unsigned int j = 0; j < 4; j++ )
-    {
+  for (unsigned int j = 0; j < 4; j++)
+  {
     this->m_Parameters[par] = quaternion[j];
     ++par;
-    }
+  }
 
   this->m_Parameters[par++] = m_S1;
   this->m_Parameters[par++] = m_S2;
@@ -219,14 +225,14 @@ const typename ANTSAffine3DTransform<TScalarType>::ParametersType
   this->m_Parameters[par++] = m_K2;
   this->m_Parameters[par++] = m_K3;
   // Transfer the constant part
-  for( unsigned int i = 0; i < SpaceDimension; i++ )
-    {
+  for (unsigned int i = 0; i < SpaceDimension; i++)
+  {
     this->m_Parameters[par] = translation[i];
     ++par;
-    }
+  }
 
   return this->m_Parameters;
-  }
+}
 
 // // Get parameters
 // template<typename TScalarType>
@@ -381,12 +387,11 @@ const typename ANTSAffine3DTransform<TScalarType>::ParametersType
 // }
 
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>
-::ComputeJacobianWithRespectToParameters(
-  const InputPointType  & p,
-  JacobianType & j) const
+void
+ANTSAffine3DTransform<TScalarType>::ComputeJacobianWithRespectToParameters(const InputPointType & p,
+                                                                           JacobianType &         j) const
 {
-  j.SetSize( this->GetOutputSpaceDimension(), this->GetNumberOfLocalParameters() );
+  j.SetSize(this->GetOutputSpaceDimension(), this->GetNumberOfLocalParameters());
   j.Fill(0.0);
 
   TScalarType c1 = this->GetCenter()[0];
@@ -412,20 +417,10 @@ void ANTSAffine3DTransform<TScalarType>
   TScalarType z3 = s3 * w3;
 
   // compute Jacobian with respect to quaternion parameters
-  j[0][0] = static_cast<TScalarType>( 2.0 )
-    * (m_Rotation.x() * z1 + m_Rotation.y() * z2 + m_Rotation.z() * z3);
-  j[0][1] =
-   static_cast<TScalarType>( 2.0 )
-    * (-m_Rotation.y() * z1 + m_Rotation.x() * z2
-       + m_Rotation.r() * z3);
-  j[0][2] =
-    static_cast<TScalarType>( 2.0 )
-    * (-m_Rotation.z() * z1 - m_Rotation.r() * z2
-       + m_Rotation.x() * z3);
-  j[0][3] =
-    static_cast<TScalarType>( -2.0 )
-    * (-m_Rotation.r() * z1 + m_Rotation.z() * z2
-       - m_Rotation.y() * z3);
+  j[0][0] = static_cast<TScalarType>(2.0) * (m_Rotation.x() * z1 + m_Rotation.y() * z2 + m_Rotation.z() * z3);
+  j[0][1] = static_cast<TScalarType>(2.0) * (-m_Rotation.y() * z1 + m_Rotation.x() * z2 + m_Rotation.r() * z3);
+  j[0][2] = static_cast<TScalarType>(2.0) * (-m_Rotation.z() * z1 - m_Rotation.r() * z2 + m_Rotation.x() * z3);
+  j[0][3] = static_cast<TScalarType>(-2.0) * (-m_Rotation.r() * z1 + m_Rotation.z() * z2 - m_Rotation.y() * z3);
 
   j[1][0] = -j[0][1];
   j[1][1] = j[0][0];
@@ -489,10 +484,10 @@ void ANTSAffine3DTransform<TScalarType>
 
   // compute derivatives for the translation part
   unsigned int blockOffset = 10;
-  for( unsigned int dim = 0; dim < SpaceDimension; dim++ )
-    {
+  for (unsigned int dim = 0; dim < SpaceDimension; dim++)
+  {
     j[dim][blockOffset + dim] = 1.0;
-    }
+  }
 
   //   // compute derivatives with respect to rotation
   //   j.Fill(0.0);
@@ -549,8 +544,8 @@ void ANTSAffine3DTransform<TScalarType>
 // }
 
 template <typename TScalarType>
-typename ANTSAffine3DTransform<TScalarType>::MatrixType ANTSAffine3DTransform<
-  TScalarType>::ComputeMyRotationMatrix()
+typename ANTSAffine3DTransform<TScalarType>::MatrixType
+ANTSAffine3DTransform<TScalarType>::ComputeMyRotationMatrix()
 {
   VnlQuaternionType conjugateRotation = m_Rotation.conjugate();
   // this is done to compensate for the transposed representation
@@ -562,7 +557,8 @@ typename ANTSAffine3DTransform<TScalarType>::MatrixType ANTSAffine3DTransform<
 }
 
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::ComputeMatrix()
+void
+ANTSAffine3DTransform<TScalarType>::ComputeMatrix()
 {
   VnlQuaternionType conjugateRotation = m_Rotation.conjugate();
   // this is done to compensate for the transposed representation
@@ -594,22 +590,23 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrix()
 }
 
 template <typename TScalarType>
-void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
+void
+ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 {
-//   VnlQuaternionType quat(this->GetMatrix().GetVnlMatrix());
-//   m_Rotation = quat;
+  //   VnlQuaternionType quat(this->GetMatrix().GetVnlMatrix());
+  //   m_Rotation = quat;
 
-//     std::cout << "compute para: to be done!" << std::endl;
+  //     std::cout << "compute para: to be done!" << std::endl;
 
-//     InternalMatrixType A, Q, R;
+  //     InternalMatrixType A, Q, R;
 
   typedef vnl_matrix_fixed<TScalarType, 3U, 3U> TMatrix;
 
-  const TMatrix A{this->GetMatrix().GetVnlMatrix()};
+  const TMatrix      A{ this->GetMatrix().GetVnlMatrix() };
   vnl_qr<ScalarType> myqr(A.as_matrix());
 
-  TMatrix Q = myqr.Q();   // Q() is the rotation
-  TMatrix R = myqr.R();   // R() is the upper triangluar
+  TMatrix Q = myqr.Q(); // Q() is the rotation
+  TMatrix R = myqr.R(); // R() is the upper triangluar
 
   // songgang: anyone added this???
   //      this is not necessary, for the mirror case
@@ -617,13 +614,13 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
   //      normalize R
   // need to run this, otherwise, identity matrix have negative scale!!!
 
-//     // force diagnoal of rotation matrix to be positive
-//     TMatrix dq(3,3,0);
-//     for(unsigned i=0;i<3;i++){
-//         dq(i,i) = (R(i,i)>=0)? 1 : -1;
-//     }
-//     Q = Q * dq;
-//     R = dq * R;
+  //     // force diagnoal of rotation matrix to be positive
+  //     TMatrix dq(3,3,0);
+  //     for(unsigned i=0;i<3;i++){
+  //         dq(i,i) = (R(i,i)>=0)? 1 : -1;
+  //     }
+  //     Q = Q * dq;
+  //     R = dq * R;
 
   // force trace of rotation matrix be maximum possible by multiplying
   // a diagonal (+/-1 +/-1 +/-1) whose determinant is always positive +1.
@@ -633,94 +630,92 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
   double trC = -Q(0, 0) + Q(1, 1) - Q(2, 2); // -1, 1, -1
   double trD = -Q(0, 0) - Q(1, 1) + Q(2, 2); // -1, -1, 1
   double maxTr = trA;                        // find the maximum of all terms;
-  if( trB > maxTr )
-    {
-    maxTr = trB;     // dividing by the maximum makes
-    }
-  if( trC > maxTr )
-    {
-    maxTr = trC;     // the computations more stable
-    }
-  if( trD > maxTr )
-    {
-    maxTr = trD;     // and avoid division by zero
-    }
-  if( itk::Math::FloatAlmostEqual( maxTr, trB ) )
-    {
+  if (trB > maxTr)
+  {
+    maxTr = trB; // dividing by the maximum makes
+  }
+  if (trC > maxTr)
+  {
+    maxTr = trC; // the computations more stable
+  }
+  if (trD > maxTr)
+  {
+    maxTr = trD; // and avoid division by zero
+  }
+  if (itk::Math::FloatAlmostEqual(maxTr, trB))
+  {
     TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
     dq(0, 0) = 1;
     dq(1, 1) = -1;
     dq(2, 2) = -1;
     Q = Q * dq;
     R = dq * R;
-    }
+  }
 
-  if( itk::Math::FloatAlmostEqual( maxTr, trC ) )
-    {
+  if (itk::Math::FloatAlmostEqual(maxTr, trC))
+  {
     TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
     dq(0, 0) = -1;
     dq(1, 1) = 1;
     dq(2, 2) = -1;
     Q = Q * dq;
     R = dq * R;
-    }
+  }
 
-  if( itk::Math::FloatAlmostEqual( maxTr, trD ) )
-    {
+  if (itk::Math::FloatAlmostEqual(maxTr, trD))
+  {
     TMatrix dq(itk::NumericTraits<TScalarType>::ZeroValue());
     dq(0, 0) = -1;
     dq(1, 1) = -1;
     dq(2, 2) = 1;
     Q = Q * dq;
     R = dq * R;
-    }
+  }
 
   double tr = 1 + Q(0, 0) + Q(1, 1) + Q(2, 2);
   double s, r, u, v, w;
 
-  if( tr > 0 )
-    {
+  if (tr > 0)
+  {
     s = 0.5 / sqrt(tr);
     r = 0.25 / s;
-    u = static_cast<double>(Q(2, 1) - Q(1, 2) ) * s;
-    v = static_cast<double>(Q(0, 2) - Q(2, 0) ) * s;
-    w = static_cast<double>(Q(1, 0) - Q(0, 1) ) * s;
-    }
-  else if( Q(0, 0) > Q(1, 1) && Q(0, 0) > Q(2, 2) )
-    {
-    s = 2 * sqrt(1 + Q(0, 0) - Q(1, 1) - Q(2, 2) );
+    u = static_cast<double>(Q(2, 1) - Q(1, 2)) * s;
+    v = static_cast<double>(Q(0, 2) - Q(2, 0)) * s;
+    w = static_cast<double>(Q(1, 0) - Q(0, 1)) * s;
+  }
+  else if (Q(0, 0) > Q(1, 1) && Q(0, 0) > Q(2, 2))
+  {
+    s = 2 * sqrt(1 + Q(0, 0) - Q(1, 1) - Q(2, 2));
     u = 0.25 * s;
-    v = static_cast<double>(Q(0, 1) + Q(1, 0) ) / s;
-    w = static_cast<double>(Q(0, 2) + Q(2, 0) ) / s;
-    r = static_cast<double>(Q(1, 2) - Q(2, 1) ) / s;
-    }
-  else if( Q(0, 0) > Q(1, 1) )
-    {
-    s = 2 * sqrt(1 + Q(1, 1) - Q(0, 0) - Q(2, 2) );
-    u = static_cast<double>( Q(0, 1) + Q(1, 0) ) / s;
+    v = static_cast<double>(Q(0, 1) + Q(1, 0)) / s;
+    w = static_cast<double>(Q(0, 2) + Q(2, 0)) / s;
+    r = static_cast<double>(Q(1, 2) - Q(2, 1)) / s;
+  }
+  else if (Q(0, 0) > Q(1, 1))
+  {
+    s = 2 * sqrt(1 + Q(1, 1) - Q(0, 0) - Q(2, 2));
+    u = static_cast<double>(Q(0, 1) + Q(1, 0)) / s;
     v = 0.25 * s;
-    w = static_cast<double>(Q(1, 2) + Q(2, 1) ) / s;
-    r = static_cast<double>(Q(0, 2) - Q(2, 0) ) / s;
-    }
+    w = static_cast<double>(Q(1, 2) + Q(2, 1)) / s;
+    r = static_cast<double>(Q(0, 2) - Q(2, 0)) / s;
+  }
   else
-    {
-    s = 2 * sqrt(1 + Q(2, 2) - Q(0, 0) - Q(1, 1) );
-    u = static_cast<double>(Q(0, 2) + Q(2, 0) ) / s;
-    v = static_cast<double>(Q(1, 2) + Q(2, 1) ) / s;
+  {
+    s = 2 * sqrt(1 + Q(2, 2) - Q(0, 0) - Q(1, 1));
+    u = static_cast<double>(Q(0, 2) + Q(2, 0)) / s;
+    v = static_cast<double>(Q(1, 2) + Q(2, 1)) / s;
     w = 0.25 * s;
-    r = static_cast<double>(Q(0, 1) - Q(1, 0) ) / s;
-    }
+    r = static_cast<double>(Q(0, 1) - Q(1, 0)) / s;
+  }
 
   std::cout << "A=" << A << std::endl;
   std::cout << "rotation R" << Q << std::endl;
   std::cout << "upper R" << R << std::endl;
-  std::cout << "s=" << s << " u=" << u << " v=" << v << " w" << w << " r="
-                   << r << std::endl;
+  std::cout << "s=" << s << " u=" << u << " v=" << v << " w" << w << " r=" << r << std::endl;
 
   m_Rotation = VnlQuaternionType(u, v, w, r);
 
-  std::cout << "m_Rotation from vnl" << VnlQuaternionType(u, v, w, r)
-                   << std::endl;
+  std::cout << "m_Rotation from vnl" << VnlQuaternionType(u, v, w, r) << std::endl;
 
   m_S1 = R(0, 0);
   m_S2 = R(1, 1);
@@ -736,11 +731,11 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 
   // std::cout << "after: this->GetMatrix(): " << this->GetMatrix();
 
-//     std::cout << "A=" << A << std::endl;
-//     std::cout << "R=" << R << std::endl;
-//     std::cout << "R=" << R << std::endl;
-//     std::cout << "dq=" << dq << std::endl;
+  //     std::cout << "A=" << A << std::endl;
+  //     std::cout << "R=" << R << std::endl;
+  //     std::cout << "R=" << R << std::endl;
+  //     std::cout << "dq=" << dq << std::endl;
 }
-} // namespace
+} // namespace itk
 
 #endif

@@ -35,12 +35,11 @@ namespace itk
  * \ingroup ImageSource
  * \ingroup ITKDisplacementField
  */
-template<typename TOutputImage>
-class SimulatedDisplacementFieldSource:
-  public ImageSource<TOutputImage>
+template <typename TOutputImage>
+class SimulatedDisplacementFieldSource : public ImageSource<TOutputImage>
 {
 public:
-  ITK_DISALLOW_COPY_AND_MOVE( SimulatedDisplacementFieldSource );
+  ITK_DISALLOW_COPY_AND_MOVE(SimulatedDisplacementFieldSource);
 
   /** Standard class type aliases. */
   using Self = SimulatedDisplacementFieldSource;
@@ -52,10 +51,10 @@ public:
   using OutputImagePointer = typename OutputImageType::Pointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( SimulatedDisplacementFieldSource, ImageSource );
+  itkTypeMacro(SimulatedDisplacementFieldSource, ImageSource);
 
   /** Number of dimensions. */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
@@ -86,64 +85,74 @@ public:
   using RandomizerSeedType = typename RandomizerType::IntegerType;
 
   /** Define the output displacement field domain from an image */
-  void SetDisplacementFieldDomainFromImage( RealImageType * );
+  void
+  SetDisplacementFieldDomainFromImage(RealImageType *);
 
   /** Define the output displacement field domain from a const image */
-  void SetDisplacementFieldDomainFromImage( const RealImageType *image )
-    { this->SetDisplacementFieldDomainFromImage( const_cast<RealImageType *>( image ) ); }
+  void
+  SetDisplacementFieldDomainFromImage(const RealImageType * image)
+  {
+    this->SetDisplacementFieldDomainFromImage(const_cast<RealImageType *>(image));
+  }
 
   /** Define the output displacement field domain from a displacement field */
-  void SetDisplacementFieldDomainFromField( OutputImageType * );
+  void
+  SetDisplacementFieldDomainFromField(OutputImageType *);
 
   /** Define the output displacement field domain from a const displacement field */
-  void SetDisplacementFieldDomainFromField( const OutputImageType *field )
-    { this->SetDisplacementFieldDomainFromField( const_cast<OutputImageType *>( field ) ); }
+  void
+  SetDisplacementFieldDomainFromField(const OutputImageType * field)
+  {
+    this->SetDisplacementFieldDomainFromField(const_cast<OutputImageType *>(field));
+  }
 
   /** Define the displacement field domain explicitly. */
-  void SetDisplacementFieldDomain( OriginType, SpacingType, SizeType, DirectionType );
+  void SetDisplacementFieldDomain(OriginType, SpacingType, SizeType, DirectionType);
 
   /** Set/Get the size of the output image. */
-  itkSetMacro( OutputSize, SizeType );
-  itkGetConstReferenceMacro( OutputSize, SizeType );
+  itkSetMacro(OutputSize, SizeType);
+  itkGetConstReferenceMacro(OutputSize, SizeType);
 
   /** Set/Get the output image spacing. */
-  itkSetMacro( OutputSpacing, SpacingType );
-  itkGetConstReferenceMacro( OutputSpacing, SpacingType );
+  itkSetMacro(OutputSpacing, SpacingType);
+  itkGetConstReferenceMacro(OutputSpacing, SpacingType);
 
   /** Set/Get the output image origin. */
-  itkSetMacro( OutputOrigin, OriginType );
-  itkGetConstReferenceMacro( OutputOrigin, OriginType );
+  itkSetMacro(OutputOrigin, OriginType);
+  itkGetConstReferenceMacro(OutputOrigin, OriginType);
 
   /** Set the output direction cosine matrix. */
-  itkSetMacro( OutputDirection, DirectionType );
-  itkGetConstReferenceMacro( OutputDirection, DirectionType );
+  itkSetMacro(OutputDirection, DirectionType);
+  itkGetConstReferenceMacro(OutputDirection, DirectionType);
 
   /** Set the number of random points.  Default = 100. */
-  itkSetMacro( NumberOfRandomPoints, SizeValueType );
-  itkGetConstMacro( NumberOfRandomPoints, SizeValueType );
+  itkSetMacro(NumberOfRandomPoints, SizeValueType);
+  itkGetConstMacro(NumberOfRandomPoints, SizeValueType);
 
   /**
    * Enforce stationary boundary conditions.  Default = true.
    */
-  itkBooleanMacro( EnforceStationaryBoundary );
-  itkSetMacro( EnforceStationaryBoundary, bool );
-  itkGetConstMacro( EnforceStationaryBoundary, bool );
+  itkBooleanMacro(EnforceStationaryBoundary);
+  itkSetMacro(EnforceStationaryBoundary, bool);
+  itkGetConstMacro(EnforceStationaryBoundary, bool);
 
   /**
    * Set/Get initialization random see for random number
    * generator.  Default is to initialize randomly using the system
    * clock.
    */
-  void SetRandomizerInitializationSeed( const RandomizerSeedType );
-  itkGetConstMacro( RandomizerInitializationSeed, RandomizerSeedType );
+  void
+  SetRandomizerInitializationSeed(const RandomizerSeedType);
+  itkGetConstMacro(RandomizerInitializationSeed, RandomizerSeedType);
 
   /**
    * Get randomizer.
    */
-  RandomizerType * GetRandomizer() const
-    {
-    return static_cast<RandomizerType *>( this->m_Randomizer );
-    }
+  RandomizerType *
+  GetRandomizer() const
+  {
+    return static_cast<RandomizerType *>(this->m_Randomizer);
+  }
 
   /**
    * SimulatedDisplacementFieldSource produces an image which is a different size
@@ -151,37 +160,39 @@ public:
    * for GenerateOutputInformation() in order to inform the pipeline
    * execution model.  The original documentation of this method is
    * below. \sa ProcessObject::GenerateOutputInformaton() */
-  void GenerateOutputInformation() override;
+  void
+  GenerateOutputInformation() override;
 
 protected:
   SimulatedDisplacementFieldSource();
   ~SimulatedDisplacementFieldSource() override = default;
-  void PrintSelf(std::ostream & os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /**
    * GenerateData() computes the simulated displacement field.  Is overwritten
    * in derived classes.
    */
-  void GenerateData() override {};
+  void
+  GenerateData() override{};
 
 private:
+  SizeType      m_OutputSize;
+  SpacingType   m_OutputSpacing;
+  OriginType    m_OutputOrigin;
+  DirectionType m_OutputDirection;
 
-  SizeType                       m_OutputSize;
-  SpacingType                    m_OutputSpacing;
-  OriginType                     m_OutputOrigin;
-  DirectionType                  m_OutputDirection;
+  RandomizerPointer  m_Randomizer;
+  RandomizerSeedType m_RandomizerInitializationSeed;
 
-  RandomizerPointer              m_Randomizer;
-  RandomizerSeedType             m_RandomizerInitializationSeed;
+  bool m_EnforceStationaryBoundary;
 
-  bool                           m_EnforceStationaryBoundary;
-
-  SizeValueType                  m_NumberOfRandomPoints;
+  SizeValueType m_NumberOfRandomPoints;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkSimulatedDisplacementFieldSource.hxx"
+#  include "itkSimulatedDisplacementFieldSource.hxx"
 #endif
 
 #endif

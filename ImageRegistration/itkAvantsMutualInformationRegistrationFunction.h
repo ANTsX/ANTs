@@ -118,23 +118,21 @@ namespace itk
  * \ingroup ThreadUnSafe
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-class AvantsMutualInformationRegistrationFunction final :
-  public         AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
+class AvantsMutualInformationRegistrationFunction final
+  : public AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
 public:
   /** Standard class typedefs. */
-  typedef AvantsMutualInformationRegistrationFunction Self;
-  typedef AvantsPDEDeformableRegistrationFunction<TFixedImage,
-                                                  TMovingImage, TDisplacementField>    Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef AvantsMutualInformationRegistrationFunction                                            Self;
+  typedef AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField> Superclass;
+  typedef SmartPointer<Self>                                                                     Pointer;
+  typedef SmartPointer<const Self>                                                               ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( AvantsMutualInformationRegistrationFunction,
-                AvantsPDEDeformableRegistrationFunction );
+  itkTypeMacro(AvantsMutualInformationRegistrationFunction, AvantsPDEDeformableRegistrationFunction);
 
   /** MovingImage image type. */
   typedef typename Superclass::MovingImageType    MovingImageType;
@@ -148,10 +146,9 @@ public:
   typedef typename FixedImageType::SpacingType   SpacingType;
 
   /** Deformation field type. */
-  typedef typename Superclass::VectorType            VectorType;
-  typedef typename Superclass::DisplacementFieldType DisplacementFieldType;
-  typedef typename Superclass::DisplacementFieldTypePointer
-    DisplacementFieldTypePointer;
+  typedef typename Superclass::VectorType                   VectorType;
+  typedef typename Superclass::DisplacementFieldType        DisplacementFieldType;
+  typedef typename Superclass::DisplacementFieldTypePointer DisplacementFieldTypePointer;
 
   /** Inherit some enums from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -165,9 +162,9 @@ public:
 
   /** Interpolator type. */
   typedef double CoordRepType;
-  typedef    //       //    LinearInterpolateImageFunction<MovingImageType,CoordRepType>
+  typedef //       //    LinearInterpolateImageFunction<MovingImageType,CoordRepType>
     BSplineInterpolateImageFunction<MovingImageType, CoordRepType>
-    InterpolatorType;
+                                               InterpolatorType;
   typedef typename InterpolatorType::Pointer   InterpolatorPointer;
   typedef typename InterpolatorType::PointType PointType;
   typedef InterpolatorType                     DefaultInterpolatorType;
@@ -182,28 +179,32 @@ public:
   typedef typename GradientCalculatorType::Pointer       GradientCalculatorPointer;
 
   /** Set the moving image interpolator. */
-  void SetMovingImageInterpolator( InterpolatorType * ptr )
+  void
+  SetMovingImageInterpolator(InterpolatorType * ptr)
   {
     m_MovingImageInterpolator = ptr;
   }
 
   /** Get the moving image interpolator. */
-  InterpolatorType * GetMovingImageInterpolator(void)
+  InterpolatorType *
+  GetMovingImageInterpolator(void)
   {
     return m_MovingImageInterpolator;
   }
 
   /** This class uses a constant timestep of 1. */
-  TimeStepType ComputeGlobalTimeStep(void *itkNotUsed(GlobalData) ) const override
+  TimeStepType
+  ComputeGlobalTimeStep(void * itkNotUsed(GlobalData)) const override
   {
     return 1;
   }
 
   /** Return a pointer to a global data structure that is passed to
    * this object from the solver at each calculation.  */
-  void * GetGlobalDataPointer() const override
+  void *
+  GetGlobalDataPointer() const override
   {
-    GlobalDataStruct *global = new GlobalDataStruct();
+    GlobalDataStruct * global = new GlobalDataStruct();
 
     //    global->m_SumOfSquaredDifference  = 0.0;
     // / global->m_NumberOfPixelsProcessed = 0L;
@@ -212,20 +213,23 @@ public:
   }
 
   /** Release memory for global data structure. */
-  void ReleaseGlobalDataPointer( void *GlobalData ) const override
+  void
+  ReleaseGlobalDataPointer(void * GlobalData) const override
   {
-    delete (GlobalDataStruct *) GlobalData;
+    delete (GlobalDataStruct *)GlobalData;
   }
 
   /** Set the object's state before each iteration. */
-  void InitializeIteration() override;
+  void
+  InitializeIteration() override;
 
   typedef double CoordinateRepresentationType;
 
   /** Types inherited from Superclass. */
   typedef TranslationTransform<CoordinateRepresentationType,
                                //                    itkGetStaticConstMacro(ImageDimension),
-                               itkGetStaticConstMacro(ImageDimension)> TransformType;
+                               itkGetStaticConstMacro(ImageDimension)>
+    TransformType;
 
   typedef ImageToImageMetric<TFixedImage, TMovingImage> Metricclass;
 
@@ -267,12 +271,18 @@ public:
   typedef typename JointPDFType::SpacingType  JointPDFSpacingType;
 
   /**  Get the value and derivatives for single valued optimizers. */
-  double GetValueAndDerivative( IndexType index, MeasureType& Value, DerivativeType& Derivative1,
-                                DerivativeType& Derivative2 );
+  double
+  GetValueAndDerivative(IndexType        index,
+                        MeasureType &    Value,
+                        DerivativeType & Derivative1,
+                        DerivativeType & Derivative2);
 
   /**  Get the value and derivatives for single valued optimizers. */
-  double GetValueAndDerivativeInv( IndexType index, MeasureType& Value, DerivativeType& Derivative1,
-                                   DerivativeType& Derivative2 );
+  double
+  GetValueAndDerivativeInv(IndexType        index,
+                           MeasureType &    Value,
+                           DerivativeType & Derivative1,
+                           DerivativeType & Derivative2);
 
   /** Number of spatial samples to used to compute metric */
   //  itkSetClampMacro( NumberOfSpatialSamples, unsigned long,
@@ -283,39 +293,47 @@ public:
   //  itkSetClampMacro( NumberOfHistogramBins, unsigned long,
   //                1, NumericTraits<unsigned long>::max() );
   // itkGetConstReferenceMacro( NumberOfHistogramBins, unsigned long);
-  void SetNumberOfHistogramBins(unsigned long nhb)
+  void
+  SetNumberOfHistogramBins(unsigned long nhb)
   {
     m_NumberOfHistogramBins = nhb + 2 * this->m_Padding;
   }
 
-  unsigned long GetNumberOfHistogramBins()
+  unsigned long
+  GetNumberOfHistogramBins()
   {
     return m_NumberOfHistogramBins;
   }
 
-  void SetTransform(TransformPointer t)
+  void
+  SetTransform(TransformPointer t)
   {
     m_Transform = t;
   }
 
-  TransformPointer GetTransform()
+  TransformPointer
+  GetTransform()
   {
     return m_Transform;
   }
 
-  void SetInterpolator(InterpolatorPointer t)
+  void
+  SetInterpolator(InterpolatorPointer t)
   {
     m_Interpolator = t;
   }
 
-  InterpolatorPointer GetInterpolator()
+  InterpolatorPointer
+  GetInterpolator()
   {
     return m_Interpolator;
   }
 
-  void GetProbabilities();
+  void
+  GetProbabilities();
 
-  void ComputeJointPDFPoint( double fixedImageValue, double movingImageValue, JointPDFPointType& jointPDFpoint )
+  void
+  ComputeJointPDFPoint(double fixedImageValue, double movingImageValue, JointPDFPointType & jointPDFpoint)
   {
     double a = (fixedImageValue - this->m_FixedImageTrueMin) / (this->m_FixedImageTrueMax - this->m_FixedImageTrueMin);
     double b =
@@ -325,40 +343,40 @@ public:
     jointPDFpoint[1] = b;
   }
 
-  inline double ComputeFixedImageMarginalPDFDerivative( MarginalPDFPointType margPDFpoint, unsigned int /* threadID */)
+  inline double
+  ComputeFixedImageMarginalPDFDerivative(MarginalPDFPointType margPDFpoint, unsigned int /* threadID */)
   {
-    double offset = 0.25 * this->m_JointPDFSpacing[0], eps = this->m_JointPDFSpacing[0];               // offset in
-                                                                                                       // voxels
+    double offset = 0.25 * this->m_JointPDFSpacing[0], eps = this->m_JointPDFSpacing[0]; // offset in
+                                                                                         // voxels
     MarginalPDFPointType leftpoint = margPDFpoint;
 
     leftpoint[0] -= offset;
     MarginalPDFPointType rightpoint = margPDFpoint;
     rightpoint[0] += offset;
-    if( leftpoint[0] < eps )
-      {
+    if (leftpoint[0] < eps)
+    {
       leftpoint[0] = eps;
-      }
-    if( rightpoint[0] < eps )
-      {
+    }
+    if (rightpoint[0] < eps)
+    {
       rightpoint[0] = eps;
-      }
+    }
     //    if (leftpoint[0] > 1-eps ) leftpoint[0]=1-eps;
     //    if (rightpoint[0] > 1-eps ) rightpoint[0]=1-eps;
     double delta = rightpoint[0] - leftpoint[0];
-    if( delta > 0 )
-      {
-      double deriv = pdfinterpolator2->Evaluate(rightpoint)
-        - pdfinterpolator2->Evaluate(leftpoint);
+    if (delta > 0)
+    {
+      double deriv = pdfinterpolator2->Evaluate(rightpoint) - pdfinterpolator2->Evaluate(leftpoint);
       return deriv;
-      }
+    }
     else
-      {
+    {
       return 0;
-      }
+    }
   }
 
-  inline double ComputeMovingImageMarginalPDFDerivative( MarginalPDFPointType margPDFpoint,
-                                                         unsigned int /* threadID */ )
+  inline double
+  ComputeMovingImageMarginalPDFDerivative(MarginalPDFPointType margPDFpoint, unsigned int /* threadID */)
   {
     double               offset = 0.5 * this->m_JointPDFSpacing[0];
     double               eps = this->m_JointPDFSpacing[0]; // offset in voxels
@@ -367,37 +385,36 @@ public:
     leftpoint[0] -= offset;
     MarginalPDFPointType rightpoint = margPDFpoint;
     rightpoint[0] += offset;
-    if( leftpoint[0] < eps )
-      {
+    if (leftpoint[0] < eps)
+    {
       leftpoint[0] = eps;
-      }
-    if( rightpoint[0] < eps )
-      {
+    }
+    if (rightpoint[0] < eps)
+    {
       rightpoint[0] = eps;
-      }
-    if( leftpoint[0] > 1 )
-      {
+    }
+    if (leftpoint[0] > 1)
+    {
       leftpoint[0] = 1;
-      }
-    if( rightpoint[0] > 1  )
-      {
+    }
+    if (rightpoint[0] > 1)
+    {
       rightpoint[0] = 1;
-      }
+    }
     double delta = rightpoint[0] - leftpoint[0];
-    if( delta > 0 )
-      {
-      double deriv = pdfinterpolator3->Evaluate(rightpoint)
-        - pdfinterpolator3->Evaluate(leftpoint);
+    if (delta > 0)
+    {
+      double deriv = pdfinterpolator3->Evaluate(rightpoint) - pdfinterpolator3->Evaluate(leftpoint);
       return deriv / delta;
-      }
+    }
     else
-      {
+    {
       return 0;
-      }
+    }
   }
 
-  inline double ComputeJointPDFDerivative( JointPDFPointType jointPDFpoint, unsigned int /* threadID */,
-                                           unsigned int ind  )
+  inline double
+  ComputeJointPDFDerivative(JointPDFPointType jointPDFpoint, unsigned int /* threadID */, unsigned int ind)
   {
     double            offset = 0.5 * this->m_JointPDFSpacing[ind];
     double            eps = this->m_JointPDFSpacing[ind]; // offset in voxels
@@ -406,57 +423,57 @@ public:
     leftpoint[ind] -= offset;
     JointPDFPointType rightpoint = jointPDFpoint;
     rightpoint[ind] += offset;
-    if( leftpoint[ind] < eps )
-      {
+    if (leftpoint[ind] < eps)
+    {
       leftpoint[ind] = eps;
-      }
-    if( rightpoint[ind] < eps )
-      {
+    }
+    if (rightpoint[ind] < eps)
+    {
       rightpoint[ind] = eps;
-      }
-    if( leftpoint[ind] > 1 )
-      {
+    }
+    if (leftpoint[ind] > 1)
+    {
       leftpoint[ind] = 1;
-      }
-    if( rightpoint[ind] > 1 )
-      {
+    }
+    if (rightpoint[ind] > 1)
+    {
       rightpoint[ind] = 1;
-      }
+    }
     double delta = rightpoint[ind] - leftpoint[ind];
     double deriv = 0;
-    if( delta > 0 )
-      {
+    if (delta > 0)
+    {
       deriv = pdfinterpolator->Evaluate(rightpoint) - pdfinterpolator->Evaluate(leftpoint);
       return deriv / delta;
-      }
+    }
     else
-      {
+    {
       return deriv;
-      }
+    }
   }
 
-  double ComputeMutualInformation()
+  double
+  ComputeMutualInformation()
   {
     /** Ray Razlighi changes : May 3, 2010: improves convergence.
 1- The padding is lowered to 2.
-2- The MI energy is changed to actual MI, please note the value of this MI is in the range of [0  min(H(x),H(y))]. in case you need it to be normalized.
-3- The Natural logarithm is changed to log2.
-4- In the ComputeMutualInformation() the iterator range has been changed to cover the entire PDF.
-5- In the FitIndexInBins() the truncation by floor has been modified to round.
-6- The normalization is done based on NomberOfHistogramBins-1 instead of NomberOfHistogramBins. */
+2- The MI energy is changed to actual MI, please note the value of this MI is in the range of [0  min(H(x),H(y))]. in
+case you need it to be normalized. 3- The Natural logarithm is changed to log2. 4- In the ComputeMutualInformation() the
+iterator range has been changed to cover the entire PDF. 5- In the FitIndexInBins() the truncation by floor has been
+modified to round. 6- The normalization is done based on NomberOfHistogramBins-1 instead of NomberOfHistogramBins. */
     float         px, py, pxy;
     double        mival = 0;
     double        mi;
     unsigned long ct = 0;
 
     typename JointPDFType::IndexType index;
-    for( unsigned int ii = 0; ii < m_NumberOfHistogramBins; ii++ )
-      {
+    for (unsigned int ii = 0; ii < m_NumberOfHistogramBins; ii++)
+    {
       MarginalPDFIndexType mind;
       mind[0] = ii;
       px = m_FixedImageMarginalPDF->GetPixel(mind);
-      for( unsigned int jj = 0; jj < m_NumberOfHistogramBins; jj++ )
-        {
+      for (unsigned int jj = 0; jj < m_NumberOfHistogramBins; jj++)
+      {
         mind[0] = jj;
         py = m_MovingImageMarginalPDF->GetPixel(mind);
         float denom = px * py;
@@ -464,80 +481,80 @@ public:
         index[1] = jj;
         // pxy=m_JointPDF->GetPixel(index);
 
-        JointPDFValueType *pdfPtr = m_JointPDF->GetBufferPointer()
-          + ( ii * m_NumberOfHistogramBins );
+        JointPDFValueType * pdfPtr = m_JointPDF->GetBufferPointer() + (ii * m_NumberOfHistogramBins);
         // Move the pointer to the first affected bin
-        int pdfMovingIndex = static_cast<int>( jj );
+        int pdfMovingIndex = static_cast<int>(jj);
         pdfPtr += pdfMovingIndex;
         pxy = *(pdfPtr);
 
         mi = 0;
-        if( fabs(denom) > 0 )
+        if (fabs(denom) > 0)
+        {
+          if (pxy / denom > 0)
           {
-          if( pxy / denom > 0 )
-            {
             // true mi
             mi = pxy * std::log(pxy / denom);
             // test mi
             // mi = 1.0 + log(pxy/denom);
             ct++;
-            }
           }
+        }
 
         mival += mi;
-        }
-      //      std::cout << " II " << ii << " JJ " << ii << " pxy " << pxy << " px " << px << std::endl;
       }
+      //      std::cout << " II " << ii << " JJ " << ii << " pxy " << pxy << " px " << px << std::endl;
+    }
     // GS: temp edit to make sure if this is decreasing (should be )
     // this->m_Energy = -1.0*mival/std::log((double)2.0);
-    this->m_Energy = -1.0 * mival / std::log( (double)2.0);
+    this->m_Energy = -1.0 * mival / std::log((double)2.0);
     return this->m_Energy;
   }
 
-  VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
-                                      void * /* globalData */,
-                                      const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) override
+  VectorType
+  ComputeUpdateInv(const NeighborhoodType & neighborhood,
+                   void * /* globalData */,
+                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0)) override
   {
     VectorType update;
 
     update.Fill(0.0);
     IndexType oindex = neighborhood.GetIndex();
 
-    FixedImageType* img = const_cast<FixedImageType *>(this->Superclass::m_FixedImage.GetPointer() );
-    if( !img )
-      {
+    FixedImageType * img = const_cast<FixedImageType *>(this->Superclass::m_FixedImage.GetPointer());
+    if (!img)
+    {
       return update;
-      }
+    }
     typename FixedImageType::SpacingType spacing = img->GetSpacing();
-    typename FixedImageType::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
-    for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+    typename FixedImageType::SizeType    imagesize = img->GetLargestPossibleRegion().GetSize();
+    for (unsigned int dd = 0; dd < ImageDimension; dd++)
+    {
+      if (oindex[dd] < 1 || oindex[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd] - 1))
       {
-      if( oindex[dd] < 1 ||
-          oindex[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd] - 1) )
-        {
         return update;
-        }
       }
+    }
 
     CovariantVectorType fixedGradient;
     ParametersType      fdvec1(ImageDimension);
     ParametersType      fdvec2(ImageDimension);
     fdvec1.Fill(0);
     fdvec2.Fill(0);
-    fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( oindex );
-    double nccm1 = 0;
+    fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex(oindex);
+    double       nccm1 = 0;
     const double loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
     //    if ( loce > 1.5 ) std::cout << " loce " << loce << " ind " << oindex << std::endl;
-    for( unsigned int imd = 0; imd < ImageDimension; imd++ )
-      {
+    for (unsigned int imd = 0; imd < ImageDimension; imd++)
+    {
       update[imd] = loce * fixedGradient[imd] * spacing[imd] * (1);
-      }
+    }
     // if (this->m_MetricImage) this->m_MetricImage->SetPixel(oindex,loce);
     return update;
   }
 
   /*   Normalizing the image to the range of [0 1] */
-  double GetMovingParzenTerm( double intensity )
+  double
+  GetMovingParzenTerm(double intensity)
   {
     return intensity;
     /*
@@ -547,7 +564,8 @@ public:
     */
   }
 
-  double GetFixedParzenTerm( double intensity )
+  double
+  GetFixedParzenTerm(double intensity)
   {
     return intensity;
     /*
@@ -558,97 +576,104 @@ public:
   }
 
   /* find the image index in the number of histogram bins */
-  unsigned int FitIndexInBins( double windowTerm )
+  unsigned int
+  FitIndexInBins(double windowTerm)
   {
-    unsigned int movingImageParzenWindowIndex  =
-      static_cast<unsigned int>( this->m_Padding
-                                 + static_cast<unsigned int>( static_cast<float>( windowTerm )
-                                     * static_cast<float>(this->m_NumberOfHistogramBins - 1
-                                       - this->m_Padding) + 0.5f ) );
+    unsigned int movingImageParzenWindowIndex = static_cast<unsigned int>(
+      this->m_Padding +
+      static_cast<unsigned int>(static_cast<float>(windowTerm) *
+                                  static_cast<float>(this->m_NumberOfHistogramBins - 1 - this->m_Padding) +
+                                0.5f));
 
     // Make sure the extreme values are in valid bins
-    if( movingImageParzenWindowIndex < this->m_Padding )
-      {
+    if (movingImageParzenWindowIndex < this->m_Padding)
+    {
       movingImageParzenWindowIndex = this->m_Padding - 1;
-      }
-    else if( movingImageParzenWindowIndex > (m_NumberOfHistogramBins - this->m_Padding ) )
-      {
-      movingImageParzenWindowIndex = m_NumberOfHistogramBins - this->m_Padding  - 1;
-      }
+    }
+    else if (movingImageParzenWindowIndex > (m_NumberOfHistogramBins - this->m_Padding))
+    {
+      movingImageParzenWindowIndex = m_NumberOfHistogramBins - this->m_Padding - 1;
+    }
 
     return movingImageParzenWindowIndex;
   }
 
-  double FitContIndexInBins( double windowTerm )
+  double
+  FitContIndexInBins(double windowTerm)
   {
-    return static_cast<double>( this->m_Padding ) + windowTerm * static_cast<double>(this->m_NumberOfHistogramBins - this->m_Padding);
+    return static_cast<double>(this->m_Padding) +
+           windowTerm * static_cast<double>(this->m_NumberOfHistogramBins - this->m_Padding);
   }
 
-  VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
-                                   void * /* globalData */,
-                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) override
+  VectorType
+  ComputeUpdate(const NeighborhoodType & neighborhood,
+                void * /* globalData */,
+                const FloatOffsetType & /* offset */ = FloatOffsetType(0.0)) override
   {
     VectorType update;
 
     update.Fill(0.0);
     IndexType oindex = neighborhood.GetIndex();
 
-    FixedImageType* img = const_cast<FixedImageType *>(this->Superclass::m_MovingImage.GetPointer() );
-    if( !img )
-      {
+    FixedImageType * img = const_cast<FixedImageType *>(this->Superclass::m_MovingImage.GetPointer());
+    if (!img)
+    {
       return update;
-      }
+    }
     typename FixedImageType::SpacingType spacing = img->GetSpacing();
-    typename FixedImageType::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
-    for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+    typename FixedImageType::SizeType    imagesize = img->GetLargestPossibleRegion().GetSize();
+    for (unsigned int dd = 0; dd < ImageDimension; dd++)
+    {
+      if (oindex[dd] < 1 || oindex[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd] - 1))
       {
-      if( oindex[dd] < 1 ||
-          oindex[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd] - 1) )
-        {
         return update;
-        }
       }
+    }
 
     CovariantVectorType movingGradient;
     ParametersType      fdvec1(ImageDimension);
     ParametersType      fdvec2(ImageDimension);
     fdvec1.Fill(0);
     fdvec2.Fill(0);
-    movingGradient = m_MovingImageGradientCalculator->EvaluateAtIndex( oindex );
+    movingGradient = m_MovingImageGradientCalculator->EvaluateAtIndex(oindex);
 
-    double nccm1 = 0;
+    double       nccm1 = 0;
     const double loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
-    for( unsigned int imd = 0; imd < ImageDimension; imd++ )
-      {
+    for (unsigned int imd = 0; imd < ImageDimension; imd++)
+    {
       update[imd] = loce * movingGradient[imd] * spacing[imd] * (1);
-      }
+    }
     //    if( oindex[1] == 250 && oindex[0] == 250  ) WriteImages();
     return update;
   }
 
-  void WriteImages()
+  void
+  WriteImages()
   {
-    if( this->m_MetricImage )
-      {
+    if (this->m_MetricImage)
+    {
       typedef ImageFileWriter<FixedImageType> writertype;
-      typename writertype::Pointer w = writertype::New();
-      w->SetInput(  this->m_MetricImage);
+      typename writertype::Pointer            w = writertype::New();
+      w->SetInput(this->m_MetricImage);
       w->SetFileName("ZZmetric.nii.gz");
       w->Write();
-      }
+    }
   }
 
-  void SetOpticalFlow(bool b)
+  void
+  SetOpticalFlow(bool b)
   {
     m_OpticalFlow = b;
   }
 
-  typename JointPDFType::Pointer GetJointPDF()
+  typename JointPDFType::Pointer
+  GetJointPDF()
   {
     return m_JointPDF;
   }
 
-  void SetFixedImageMask( FixedImageType* img)
+  void
+  SetFixedImageMask(FixedImageType * img)
   {
     m_FixedImageMask = img;
   }
@@ -659,9 +684,9 @@ public:
   /** A global data type for this class of equation. Used to store
    * iterators for the fixed image. */
   struct GlobalDataStruct
-    {
+  {
     FixedImageNeighborhoodIteratorType m_FixedImageIterator;
-    };
+  };
 
   /** The fixed image marginal PDF. */
   mutable MarginalPDFType::Pointer m_FixedImageMarginalPDF;
@@ -685,28 +710,27 @@ public:
   double        m_FixedImageTrueMax;
   double        m_FixedImageBinSize;
   double        m_MovingImageBinSize;
-protected:
 
+protected:
   AvantsMutualInformationRegistrationFunction();
   ~AvantsMutualInformationRegistrationFunction() override = default;
-  void PrintSelf(std::ostream& os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-
   AvantsMutualInformationRegistrationFunction(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   typename JointPDFDerivativesType::Pointer m_JointPDFDerivatives;
 
   /** Typedefs for BSpline kernel and derivative functions. */
-  typedef BSplineKernelFunction<3> CubicBSplineFunctionType;
-  typedef BSplineDerivativeKernelFunction<3>
-    CubicBSplineDerivativeFunctionType;
+  typedef BSplineKernelFunction<3>           CubicBSplineFunctionType;
+  typedef BSplineDerivativeKernelFunction<3> CubicBSplineDerivativeFunctionType;
 
   /** Cubic BSpline kernel for computing Parzen histograms. */
-  typename CubicBSplineFunctionType::Pointer m_CubicBSplineKernel;
-  typename CubicBSplineDerivativeFunctionType::Pointer
-  m_CubicBSplineDerivativeKernel;
+  typename CubicBSplineFunctionType::Pointer           m_CubicBSplineKernel;
+  typename CubicBSplineDerivativeFunctionType::Pointer m_CubicBSplineDerivativeKernel;
 
   /**
    * Types and variables related to image derivative calculations.
@@ -714,8 +738,7 @@ private:
    * image derivatives from the BSpline interpolator. Otherwise,
    * image derivatives are computed using central differencing.
    */
-  typedef CovariantVector<double,
-                          itkGetStaticConstMacro(ImageDimension)> ImageDerivativesType;
+  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> ImageDerivativesType;
 
   /** Boolean to indicate if the interpolator BSpline. */
   bool m_InterpolatorIsBSpline;
@@ -724,16 +747,13 @@ private:
   bool m_OpticalFlow;
 
   /** Typedefs for using BSpline interpolator. */
-  typedef
-    BSplineInterpolateImageFunction<MovingImageType,
-                                    CoordinateRepresentationType> BSplineInterpolatorType;
+  typedef BSplineInterpolateImageFunction<MovingImageType, CoordinateRepresentationType> BSplineInterpolatorType;
 
   /** Pointer to BSplineInterpolator. */
   typename BSplineInterpolatorType::Pointer m_BSplineInterpolator;
 
   /** Typedefs for using central difference calculator. */
-  typedef CentralDifferenceImageFunction<MovingImageType,
-                                         CoordinateRepresentationType> DerivativeFunctionType;
+  typedef CentralDifferenceImageFunction<MovingImageType, CoordinateRepresentationType> DerivativeFunctionType;
 
   /** Pointer to central difference calculator. */
   typename DerivativeFunctionType::Pointer m_DerivativeCalculator;
@@ -751,14 +771,16 @@ private:
   /**
    * Enum of the deformabtion field spline order.
    */
-  enum { DeformationSplineOrder = 3 };
+  enum
+  {
+    DeformationSplineOrder = 3
+  };
 
-  typename TFixedImage::SpacingType                  m_FixedImageSpacing;
-  typename TFixedImage::PointType                  m_FixedImageOrigin;
+  typename TFixedImage::SpacingType m_FixedImageSpacing;
+  typename TFixedImage::PointType   m_FixedImageOrigin;
 
-  typedef FixedArray<unsigned long,
-                     FixedImageType::ImageDimension> ParametersOffsetType;
-  ParametersOffsetType m_ParametersOffset;
+  typedef FixedArray<unsigned long, FixedImageType::ImageDimension> ParametersOffsetType;
+  ParametersOffsetType                                              m_ParametersOffset;
 
   mutable TransformPointer m_Transform;
   InterpolatorPointer      m_Interpolator;
@@ -775,14 +797,14 @@ private:
   float  m_Normalizer;
 
   typedef LinearInterpolateImageFunction<JointPDFType, double> pdfintType;
-  typename pdfintType::Pointer pdfinterpolator;
+  typename pdfintType::Pointer                                 pdfinterpolator;
 
   typedef LinearInterpolateImageFunction<JointPDFDerivativesType, double> dpdfintType;
-  typename dpdfintType::Pointer dpdfinterpolator;
+  typename dpdfintType::Pointer                                           dpdfinterpolator;
 
   typedef BSplineInterpolateImageFunction<MarginalPDFType, double> pdfintType2;
-  typename pdfintType2::Pointer pdfinterpolator2;
-  typename pdfintType2::Pointer pdfinterpolator3;
+  typename pdfintType2::Pointer                                    pdfinterpolator2;
+  typename pdfintType2::Pointer                                    pdfinterpolator3;
 
   unsigned int        m_Padding;
   JointPDFSpacingType m_JointPDFSpacing;
@@ -790,7 +812,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkAvantsMutualInformationRegistrationFunction.cxx"
+#  include "itkAvantsMutualInformationRegistrationFunction.cxx"
 #endif
 
 #endif

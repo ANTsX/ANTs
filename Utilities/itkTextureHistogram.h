@@ -29,119 +29,117 @@ namespace Function
  *
  *
  */
-template< typename TInputPixel, typename TOutputPixel >
+template <typename TInputPixel, typename TOutputPixel>
 class TextureHistogram
 {
 public:
-
-  TextureHistogram()
-    {
-      m_Count = 0;
-    }
+  TextureHistogram() { m_Count = 0; }
 
   // ~TextureHistogram()  {} default is ok
 
-  void AddPixel( const TInputPixel & p )
-    {
+  void
+  AddPixel(const TInputPixel & p)
+  {
     m_Map[p]++;
     ++m_Count;
-    }
+  }
 
-  void RemovePixel(const TInputPixel & p)
+  void
+  RemovePixel(const TInputPixel & p)
   {
 
     // insert new item if one doesn't exist
-    typename MapType::iterator it = m_Map.find( p );
+    typename MapType::iterator it = m_Map.find(p);
 
-    assert( it != m_Map.end() );
+    assert(it != m_Map.end());
 
-    if ( --(it->second) == 0 )
-      {
-      m_Map.erase( it );
-      }
+    if (--(it->second) == 0)
+    {
+      m_Map.erase(it);
+    }
     --m_Count;
-
   }
 
-  TOutputPixel GetValue(const TInputPixel &)
+  TOutputPixel
+  GetValue(const TInputPixel &)
+  {
+    TOutputPixel out;
+    NumericTraits<TOutputPixel>::SetLength(out, 8);
+
+    double       sum = 0.0;
+    double       sum2 = 0.0;
+    double       sum3 = 0.0;
+    double       sum4 = 0.0;
+    const size_t count = m_Count;
+    // double median = 0.0;
+
+    double entropy = 0.0;
+    size_t curCount = 0;
+    for (typename MapType::iterator i = m_Map.begin(); i != m_Map.end(); ++i)
     {
-      TOutputPixel out;
-      NumericTraits<TOutputPixel>::SetLength( out, 8 );
+      double t = double(i->first) * double(i->second);
+      sum += t;
+      sum2 += (t *= double(i->first));
+      sum3 += (t *= double(i->first));
+      sum4 += (t *= double(i->first));
 
-      double sum = 0.0;
-      double sum2 = 0.0;
-      double sum3 = 0.0;
-      double sum4 = 0.0;
-      const size_t count = m_Count;
-      //double median = 0.0;
+      curCount += i->second;
 
-      double entropy = 0.0;
-      size_t curCount = 0;
-      for ( typename MapType::iterator i = m_Map.begin(); i != m_Map.end(); ++i )
-        {
-        double t = double(i->first)*double(i->second);
-        sum += t;
-        sum2 += ( t *= double(i->first) );
-        sum3 += ( t *= double(i->first) );
-        sum4 += ( t *= double(i->first) );
+      const double p_x = double(i->second) / count;
+      entropy += -p_x * std::log(p_x);
 
-        curCount += i->second;
+      //       // this is wrong!
+      //       if ( curCount == count / 2 )
+      //         {
+      //         median += i->first;
+      //         medianIt = il
+      //         // we have an even number so take the average
+      //           if ( !(count % 2) )
+      //             {
+      //               median *= 0.5;
+      //             }
+      //         }
+    }
 
-        const double p_x = double( i->second ) / count;
-        entropy += -p_x*std::log( p_x );
+    //     curCount = 0;
+    //     typename MapType::iterator fmedianIt = medianIt;
+    //     typename MapType::iterator rmedianIt = medianIt;
+    //     double mad = 0.0;
 
-//       // this is wrong!
-//       if ( curCount == count / 2 )
-//         {
-//         median += i->first;
-//         medianIt = il
-//         // we have an even number so take the average
-//           if ( !(count % 2) )
-//             {
-//               median *= 0.5;
-//             }
-//         }
-
-      }
-
-//     curCount = 0;
-//     typename MapType::iterator fmedianIt = medianIt;
-//     typename MapType::iterator rmedianIt = medianIt;
-//     double mad = 0.0;
-
-//     while (curCount < count/2 )
-//     {
-//     if ( std::fabs( fmedianIt->first - median ) < std::fabs( rmedianIt->first - median ) )
-//       {
-//       curCount += fmedianIt->second;
-//       ++fmedianIt;
-//       }
-//     else
-//       {
-//       curCount += rmedianIt->second;
-//       --rmedianIt;
-//       }
-//     }
+    //     while (curCount < count/2 )
+    //     {
+    //     if ( std::fabs( fmedianIt->first - median ) < std::fabs( rmedianIt->first - median ) )
+    //       {
+    //       curCount += fmedianIt->second;
+    //       ++fmedianIt;
+    //       }
+    //     else
+    //       {
+    //       curCount += rmedianIt->second;
+    //       --rmedianIt;
+    //       }
+    //     }
 
 
-      const double icount = 1.0 / count;
-      const double mean = sum * icount;
+    const double icount = 1.0 / count;
+    const double mean = sum * icount;
 
-        // unbiased estimate
-      const double variance = ( sum2 - ( sum * sum * icount ) ) / ( count - 1 );
-      const double sigma = std::sqrt(variance);
-      double skewness = 0.0;
-      double kurtosis = 0.0;
-    if(std::abs(variance * sigma) > itk::NumericTraits<double>::min())
-      {
+    // unbiased estimate
+    const double variance = (sum2 - (sum * sum * icount)) / (count - 1);
+    const double sigma = std::sqrt(variance);
+    double       skewness = 0.0;
+    double       kurtosis = 0.0;
+    if (std::abs(variance * sigma) > itk::NumericTraits<double>::min())
+    {
 
-      skewness = ( ( sum3 - 3.0 * mean * sum2 ) * icount + 2.0 * mean * mean*mean ) / ( variance * sigma );
-      }
-    if(std::abs(variance) > itk::NumericTraits<double>::min())
-      {
-        kurtosis = ( sum4 * icount  + mean *( -4.0 * sum3 * icount  +  mean * ( 6.0 *sum2 * icount  - 3.0 * mean * mean ))) /
-        ( variance * variance ) - 3.0;
-      }
+      skewness = ((sum3 - 3.0 * mean * sum2) * icount + 2.0 * mean * mean * mean) / (variance * sigma);
+    }
+    if (std::abs(variance) > itk::NumericTraits<double>::min())
+    {
+      kurtosis = (sum4 * icount + mean * (-4.0 * sum3 * icount + mean * (6.0 * sum2 * icount - 3.0 * mean * mean))) /
+                   (variance * variance) -
+                 3.0;
+    }
 
     unsigned int i = 0;
     out[i++] = mean;
@@ -155,15 +153,19 @@ public:
     return out;
   }
 
-  void AddBoundary(){}
+  void
+  AddBoundary()
+  {}
 
-  void RemoveBoundary(){}
+  void
+  RemoveBoundary()
+  {}
 
 private:
-  typedef typename std::map< TInputPixel, size_t > MapType;
+  typedef typename std::map<TInputPixel, size_t> MapType;
 
-  MapType       m_Map;
-  size_t        m_Count;
+  MapType m_Map;
+  size_t  m_Count;
 };
 
 } // end namespace Function

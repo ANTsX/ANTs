@@ -22,13 +22,8 @@ namespace itk
 /** \class VectorFieldGradientImageFunction
  *
  */
-template <typename TInputImage,
-          typename TRealType = float,
-          typename TOutput =
-            itk::VariableSizeMatrix<TRealType>
-          >
-class VectorFieldGradientImageFunction final :
-  public         ImageFunction<TInputImage, TOutput>
+template <typename TInputImage, typename TRealType = float, typename TOutput = itk::VariableSizeMatrix<TRealType>>
+class VectorFieldGradientImageFunction final : public ImageFunction<TInputImage, TOutput>
 {
 public:
   /** Standard class typedefs. */
@@ -38,10 +33,10 @@ public:
   typedef SmartPointer<const Self>            ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro( VectorFieldGradientImageFunction, ImageFunction );
+  itkTypeMacro(VectorFieldGradientImageFunction, ImageFunction);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -55,12 +50,10 @@ public:
   typedef typename Superclass::ContinuousIndexType ContinuousIndexType;
 
   /** The dimensionality of the input and output images. */
-  itkStaticConstMacro( ImageDimension, unsigned int,
-                       TInputImage::ImageDimension );
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   /** Length of the vector pixel type of the input image. */
-  itkStaticConstMacro( VectorDimension, unsigned int,
-                       VectorType::Dimension );
+  itkStaticConstMacro(VectorDimension, unsigned int, VectorType::Dimension);
 
   /** Define the data type and the vector of data type used in calculations. */
   typedef TRealType RealType;
@@ -68,202 +61,235 @@ public:
   /**
    * Evaluate deformation gradient tensor
    */
-  MatrixType EvaluateDeformationGradientTensor( const PointType & ) const;
+  MatrixType
+  EvaluateDeformationGradientTensor(const PointType &) const;
 
-  MatrixType EvaluateDeformationGradientTensorAtIndex( const IndexType & idx ) const;
+  MatrixType
+  EvaluateDeformationGradientTensorAtIndex(const IndexType & idx) const;
 
-  MatrixType EvaluateDeformationGradientTensorAtContinuousIndex
-    ( const ContinuousIndexType & idx ) const
+  MatrixType
+  EvaluateDeformationGradientTensorAtContinuousIndex(const ContinuousIndexType & idx) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateDeformationGradientTensor( point );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateDeformationGradientTensor(point);
   }
 
   /**
    * Evaluate Jacobian
    */
-  MatrixType Evaluate( const PointType & point ) const override
+  MatrixType
+  Evaluate(const PointType & point) const override
   {
-    return this->EvaluateJacobian( point );
+    return this->EvaluateJacobian(point);
   }
 
-  MatrixType EvaluateAtIndex( const IndexType & idx ) const override
+  MatrixType
+  EvaluateAtIndex(const IndexType & idx) const override
   {
-    return this->EvaluateJacobianAtIndex( idx );
+    return this->EvaluateJacobianAtIndex(idx);
   }
 
-  MatrixType EvaluateAtContinuousIndex( const ContinuousIndexType & idx ) const override
+  MatrixType
+  EvaluateAtContinuousIndex(const ContinuousIndexType & idx) const override
   {
-    return this->EvaluateJacobianAtContinuousIndex( idx );
+    return this->EvaluateJacobianAtContinuousIndex(idx);
   }
 
-  MatrixType EvaluateJacobian( const PointType & ) const;
+  MatrixType
+  EvaluateJacobian(const PointType &) const;
 
-  MatrixType EvaluateJacobianAtIndex( const IndexType & idx ) const;
+  MatrixType
+  EvaluateJacobianAtIndex(const IndexType & idx) const;
 
-  MatrixType EvaluateJacobianAtContinuousIndex( const ContinuousIndexType & idx ) const
+  MatrixType
+  EvaluateJacobianAtContinuousIndex(const ContinuousIndexType & idx) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateJacobian( point );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateJacobian(point);
   }
 
   /**
    * Evaluate Jacobian determinant
    */
-  RealType EvaluateJacobianDeterminant( const PointType & ) const;
+  RealType
+  EvaluateJacobianDeterminant(const PointType &) const;
 
-  RealType EvaluateJacobianDeterminantAtIndex( const IndexType & idx ) const;
+  RealType
+  EvaluateJacobianDeterminantAtIndex(const IndexType & idx) const;
 
-  RealType EvaluateJacobianDeterminantAtContinuousIndex( const ContinuousIndexType & idx ) const
+  RealType
+  EvaluateJacobianDeterminantAtContinuousIndex(const ContinuousIndexType & idx) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateJacobianDeterminant( point );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateJacobianDeterminant(point);
   }
 
   /**
    * Evaluate Lagrangian strain tensor
    */
-  MatrixType EvaluateLagrangianStrainTensor( const PointType & ) const;
+  MatrixType
+  EvaluateLagrangianStrainTensor(const PointType &) const;
 
-  MatrixType EvaluateLagrangianStrainTensorAtIndex( const IndexType & idx ) const;
+  MatrixType
+  EvaluateLagrangianStrainTensorAtIndex(const IndexType & idx) const;
 
-  MatrixType EvaluateLagrangianStrainTensorAtContinuousIndex( const ContinuousIndexType & idx ) const
+  MatrixType
+  EvaluateLagrangianStrainTensorAtContinuousIndex(const ContinuousIndexType & idx) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateLagrangianStrainTensor( point );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateLagrangianStrainTensor(point);
   }
 
   /**
    * Evaluate Lagrangian directional strain
    */
-  RealType EvaluateLagrangianDirectionalStrain( const PointType &, const VectorType & ) const;
+  RealType
+  EvaluateLagrangianDirectionalStrain(const PointType &, const VectorType &) const;
 
-  RealType EvaluateLagrangianDirectionalStrainAtIndex( const IndexType & idx, const VectorType & V ) const;
+  RealType
+  EvaluateLagrangianDirectionalStrainAtIndex(const IndexType & idx, const VectorType & V) const;
 
-  RealType EvaluateLagrangianDirectionalStrainAtContinuousIndex( const ContinuousIndexType & idx,
-                                                                 const VectorType & V ) const
+  RealType
+  EvaluateLagrangianDirectionalStrainAtContinuousIndex(const ContinuousIndexType & idx, const VectorType & V) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateLagrangianDirectionalStrain( point, V );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateLagrangianDirectionalStrain(point, V);
   }
 
   /**
    * Evaluate Eulerian strain tensor
    */
-  MatrixType EvaluateEulerianStrainTensor( const PointType & ) const;
+  MatrixType
+  EvaluateEulerianStrainTensor(const PointType &) const;
 
-  MatrixType EvaluateEulerianStrainTensorAtIndex( const IndexType & idx ) const;
+  MatrixType
+  EvaluateEulerianStrainTensorAtIndex(const IndexType & idx) const;
 
-  MatrixType EvaluateEulerianStrainTensorAtContinuousIndex( const ContinuousIndexType & idx ) const
+  MatrixType
+  EvaluateEulerianStrainTensorAtContinuousIndex(const ContinuousIndexType & idx) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateEulerianStrainTensor( point );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateEulerianStrainTensor(point);
   }
 
   /**
    * Evaluate Eulerian directional strain
    */
-  RealType EvaluateEulerianDirectionalStrain( const PointType &, const VectorType & ) const;
+  RealType
+  EvaluateEulerianDirectionalStrain(const PointType &, const VectorType &) const;
 
-  RealType EvaluateEulerianDirectionalStrainAtIndex( const IndexType & idx, const VectorType & V ) const;
+  RealType
+  EvaluateEulerianDirectionalStrainAtIndex(const IndexType & idx, const VectorType & V) const;
 
-  RealType EvaluateEulerianDirectionalStrainAtContinuousIndex( const ContinuousIndexType & idx,
-                                                               const VectorType & V ) const
+  RealType
+  EvaluateEulerianDirectionalStrainAtContinuousIndex(const ContinuousIndexType & idx, const VectorType & V) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateEulerianDirectionalStrain( point, V );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateEulerianDirectionalStrain(point, V);
   }
 
   /**
    * Evaluate Right Cauchy-Green strain tensor
    */
-  MatrixType EvaluateRightCauchyGreenDeformationTensor( const PointType & ) const;
+  MatrixType
+  EvaluateRightCauchyGreenDeformationTensor(const PointType &) const;
 
-  MatrixType EvaluateRightCauchyGreenDeformationTensorAtIndex( const IndexType & idx ) const;
+  MatrixType
+  EvaluateRightCauchyGreenDeformationTensorAtIndex(const IndexType & idx) const;
 
-  MatrixType EvaluateRightCauchyGreenDeformationTensorAtContinuousIndex( const ContinuousIndexType & idx ) const
+  MatrixType
+  EvaluateRightCauchyGreenDeformationTensorAtContinuousIndex(const ContinuousIndexType & idx) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateRightCauchyGreenDeformationTensor( point );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateRightCauchyGreenDeformationTensor(point);
   }
 
   /**
    * Evaluate Left Cauchy-Green strain tensor
    */
-  MatrixType EvaluateLeftCauchyGreenDeformationTensor( const PointType & ) const;
+  MatrixType
+  EvaluateLeftCauchyGreenDeformationTensor(const PointType &) const;
 
-  MatrixType EvaluateLeftCauchyGreenDeformationTensorAtIndex( const IndexType & idx ) const;
+  MatrixType
+  EvaluateLeftCauchyGreenDeformationTensorAtIndex(const IndexType & idx) const;
 
-  MatrixType EvaluateLeftCauchyGreenDeformationTensorAtContinuousIndex( const ContinuousIndexType & idx ) const
+  MatrixType
+  EvaluateLeftCauchyGreenDeformationTensorAtContinuousIndex(const ContinuousIndexType & idx) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateLeftCauchyGreenDeformationTensor( point );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateLeftCauchyGreenDeformationTensor(point);
   }
 
   /**
    * Evaluate left stretch tensor
    */
-  MatrixType EvaluateLeftStretchTensor( const PointType & ) const;
+  MatrixType
+  EvaluateLeftStretchTensor(const PointType &) const;
 
-  MatrixType EvaluateLeftStretchTensorAtIndex( const IndexType & idx ) const;
+  MatrixType
+  EvaluateLeftStretchTensorAtIndex(const IndexType & idx) const;
 
-  MatrixType EvaluateLeftStretchTensorAtContinuousIndex( const ContinuousIndexType & idx ) const
+  MatrixType
+  EvaluateLeftStretchTensorAtContinuousIndex(const ContinuousIndexType & idx) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateLeftStretchTensor( point );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateLeftStretchTensor(point);
   }
 
   /**
    * Evaluate right stretch tensor
    */
-  MatrixType EvaluateRightStretchTensor( const PointType & ) const;
+  MatrixType
+  EvaluateRightStretchTensor(const PointType &) const;
 
-  MatrixType EvaluateRightStretchTensorAtIndex( const IndexType & idx ) const;
+  MatrixType
+  EvaluateRightStretchTensorAtIndex(const IndexType & idx) const;
 
-  MatrixType EvaluateRightStretchTensorAtContinuousIndex( const ContinuousIndexType & idx ) const
+  MatrixType
+  EvaluateRightStretchTensorAtContinuousIndex(const ContinuousIndexType & idx) const
   {
     PointType point;
 
-    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint( idx, point );
-    return this->EvaluateRightStretchTensor( point );
+    this->GetInputImage()->TransformContinuousIndexToPhysicalPoint(idx, point);
+    return this->EvaluateRightStretchTensor(point);
   }
 
 protected:
   VectorFieldGradientImageFunction();
-  virtual ~VectorFieldGradientImageFunction() override
-  {
-  }
+  virtual ~VectorFieldGradientImageFunction() override {}
 
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
   VectorFieldGradientImageFunction(const Self &) = delete;
-  MatrixType operator=(const Self &) = delete;
+  MatrixType
+  operator=(const Self &) = delete;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkVectorFieldGradientImageFunction.hxx"
+#  include "itkVectorFieldGradientImageFunction.hxx"
 #endif
 
 #endif

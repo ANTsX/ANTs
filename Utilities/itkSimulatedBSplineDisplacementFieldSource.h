@@ -35,12 +35,11 @@ namespace itk
  * \ingroup ImageSource
  * \ingroup ITKDisplacementField
  */
-template<typename TOutputImage>
-class SimulatedBSplineDisplacementFieldSource final :
-  public SimulatedDisplacementFieldSource<TOutputImage>
+template <typename TOutputImage>
+class SimulatedBSplineDisplacementFieldSource final : public SimulatedDisplacementFieldSource<TOutputImage>
 {
 public:
-  ITK_DISALLOW_COPY_AND_MOVE( SimulatedBSplineDisplacementFieldSource );
+  ITK_DISALLOW_COPY_AND_MOVE(SimulatedBSplineDisplacementFieldSource);
 
   /** Standard class type aliases. */
   using Self = SimulatedBSplineDisplacementFieldSource;
@@ -52,10 +51,10 @@ public:
   using OutputImagePointer = typename OutputImageType::Pointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( SimulatedBSplineDisplacementFieldSource, SimulatedDisplacementFieldSource );
+  itkTypeMacro(SimulatedBSplineDisplacementFieldSource, SimulatedDisplacementFieldSource);
 
   /** Number of dimensions */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
@@ -85,8 +84,8 @@ public:
   /**
    * Set/Get the spline order defining the bias field estimate.  Default = 3.
    */
-  itkSetMacro( SplineOrder, unsigned int );
-  itkGetConstMacro( SplineOrder, unsigned int );
+  itkSetMacro(SplineOrder, unsigned int);
+  itkGetConstMacro(SplineOrder, unsigned int);
 
   /**
    * Set/Get the control point grid size definining the B-spline estimate of the
@@ -95,63 +94,65 @@ public:
    * Default = 4 control points in each dimension for a mesh size of 1 in each
    * dimension.
    */
-  itkSetMacro( NumberOfControlPoints, ArrayType );
-  itkGetConstMacro( NumberOfControlPoints, ArrayType );
+  itkSetMacro(NumberOfControlPoints, ArrayType);
+  itkGetConstMacro(NumberOfControlPoints, ArrayType);
 
   /**
    * Set/Get the number of fitting levels.  Default = 1 level.
    */
-  itkSetMacro( NumberOfFittingLevels, ArrayType );
-  itkGetConstMacro( NumberOfFittingLevels, ArrayType );
+  itkSetMacro(NumberOfFittingLevels, ArrayType);
+  itkGetConstMacro(NumberOfFittingLevels, ArrayType);
 
   /**
    * Set the number of fitting levels.  Default = 1 level.
    */
-  void SetNumberOfFittingLevels( unsigned int n )
-    {
+  void
+  SetNumberOfFittingLevels(unsigned int n)
+  {
     ArrayType nlevels;
 
-    nlevels.Fill( n );
-    this->SetNumberOfFittingLevels( nlevels );
-    }
+    nlevels.Fill(n);
+    this->SetNumberOfFittingLevels(nlevels);
+  }
 
   /**
    * Set/Get the standard deviation of the noise for the displacements at the
    * random points.  Default = c( 1, 1, ... ) mm.
    */
-  itkSetMacro( DisplacementNoiseStandardDeviation, StandardDeviationArrayType );
-  itkGetConstMacro( DisplacementNoiseStandardDeviation, StandardDeviationArrayType );
+  itkSetMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
+  itkGetConstMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
 
   /**
    * Set the standard deviation of the displacement noise.  Default = 1 (mm).
    */
-  void SetDisplacementNoiseStandardDeviation( RealType sd )
-    {
+  void
+  SetDisplacementNoiseStandardDeviation(RealType sd)
+  {
     StandardDeviationArrayType standardDeviation;
 
-    standardDeviation.Fill( sd );
-    this->SetDisplacementNoiseStandardDeviation( standardDeviation );
-    }
+    standardDeviation.Fill(sd);
+    this->SetDisplacementNoiseStandardDeviation(standardDeviation);
+  }
 
 protected:
   SimulatedBSplineDisplacementFieldSource();
   ~SimulatedBSplineDisplacementFieldSource() override = default;
-  void PrintSelf(std::ostream & os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
 private:
-
-  unsigned int                                 m_SplineOrder;
-  ArrayType                                    m_NumberOfControlPoints;
-  ArrayType                                    m_NumberOfFittingLevels;
-  StandardDeviationArrayType                   m_DisplacementNoiseStandardDeviation;
-
+  unsigned int               m_SplineOrder;
+  ArrayType                  m_NumberOfControlPoints;
+  ArrayType                  m_NumberOfFittingLevels;
+  StandardDeviationArrayType m_DisplacementNoiseStandardDeviation;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkSimulatedBSplineDisplacementFieldSource.hxx"
+#  include "itkSimulatedBSplineDisplacementFieldSource.hxx"
 #endif
 
 #endif

@@ -34,16 +34,15 @@ namespace itk
  *
  * \sa
  */
-template< typename TInputImage >
-class LabelPerimeterEstimationCalculator final :
-  public Object
+template <typename TInputImage>
+class LabelPerimeterEstimationCalculator final : public Object
 {
 public:
   /** Standard class typedefs. */
   typedef LabelPerimeterEstimationCalculator Self;
   typedef Object                             Superclass;
-  typedef SmartPointer< Self >               Pointer;
-  typedef SmartPointer< const Self >         ConstPointer;
+  typedef SmartPointer<Self>                 Pointer;
+  typedef SmartPointer<const Self>           ConstPointer;
 
   /** Some convenient typedefs. */
   typedef TInputImage                           InputImageType;
@@ -56,7 +55,7 @@ public:
   typedef typename InputImageType::SizeType   SizeType;
   typedef typename InputImageType::IndexType  IndexType;
 
-  typedef typename std::map< InputImagePixelType, double > PerimetersType;
+  typedef typename std::map<InputImagePixelType, double> PerimetersType;
 
   /** ImageDimension constants */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
@@ -77,61 +76,69 @@ public:
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
 
-  void SetImage(const InputImageType *img)
+  void
+  SetImage(const InputImageType * img)
   {
     m_Image = img;
   }
 
-  const InputImageType * GetImage() const
+  const InputImageType *
+  GetImage() const
   {
     return m_Image;
   }
 
-  void Compute();
+  void
+  Compute();
 
-  const PerimetersType & GetPerimeters() const
+  const PerimetersType &
+  GetPerimeters() const
   {
     return m_Perimeters;
   }
 
-  const double & GetPerimeter(const InputImagePixelType & label) const
+  const double &
+  GetPerimeter(const InputImagePixelType & label) const
   {
-    if ( m_Perimeters.find(label) != m_Perimeters.end() )
-      {
+    if (m_Perimeters.find(label) != m_Perimeters.end())
+    {
       return m_Perimeters.find(label)->second;
-      }
-    itkExceptionMacro( << "Unknown label: "
-                       << static_cast< typename NumericTraits< InputImagePixelType >::PrintType >( label ) );
+    }
+    itkExceptionMacro(<< "Unknown label: "
+                      << static_cast<typename NumericTraits<InputImagePixelType>::PrintType>(label));
   }
 
-  bool HasLabel(const InputImagePixelType & label) const
+  bool
+  HasLabel(const InputImagePixelType & label) const
   {
-    if ( m_Perimeters.find(label) != m_Perimeters.end() )
-      {
+    if (m_Perimeters.find(label) != m_Perimeters.end())
+    {
       return true;
-      }
+    }
     return false;
   }
 
 protected:
   LabelPerimeterEstimationCalculator();
   ~LabelPerimeterEstimationCalculator() override = default;
-  void PrintSelf(std::ostream & os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
   LabelPerimeterEstimationCalculator(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   bool m_FullyConnected;
 
-  const InputImageType *m_Image;
+  const InputImageType * m_Image;
 
   PerimetersType m_Perimeters;
 }; // end of class
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkLabelPerimeterEstimationCalculator.hxx"
+#  include "itkLabelPerimeterEstimationCalculator.hxx"
 #endif
 
 #endif

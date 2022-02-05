@@ -28,8 +28,7 @@ namespace itk
  *
  */
 template <typename TPointSet>
-class JensenHavrdaCharvatTsallisLabeledPointSetMetric :
-  public         PointSetToPointSetMetric<TPointSet, TPointSet>
+class JensenHavrdaCharvatTsallisLabeledPointSetMetric : public PointSetToPointSetMetric<TPointSet, TPointSet>
 {
 public:
   /** Standard class typedefs. */
@@ -39,14 +38,12 @@ public:
   typedef SmartPointer<const Self>                        ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro( JensenHavrdaCharvatTsallisLabeledPointSetMetric,
-                PointSetToLabelPointSetMetric );
+  itkTypeMacro(JensenHavrdaCharvatTsallisLabeledPointSetMetric, PointSetToLabelPointSetMetric);
 
-  itkStaticConstMacro( PointDimension, unsigned int,
-                       TPointSet::PointDimension );
+  itkStaticConstMacro(PointDimension, unsigned int, TPointSet::PointDimension);
 
   /** Types transferred from the base class */
   typedef typename Superclass::TransformType           TransformType;
@@ -73,140 +70,151 @@ public:
    * Public function definitions
    */
 
-  itkSetConstObjectMacro( FixedPointSet, PointSetType );
-  itkGetConstObjectMacro( FixedPointSet, PointSetType );
+  itkSetConstObjectMacro(FixedPointSet, PointSetType);
+  itkGetConstObjectMacro(FixedPointSet, PointSetType);
 
-  itkSetConstObjectMacro( MovingPointSet, PointSetType );
-  itkGetConstObjectMacro( MovingPointSet, PointSetType );
+  itkSetConstObjectMacro(MovingPointSet, PointSetType);
+  itkGetConstObjectMacro(MovingPointSet, PointSetType);
 
-  itkSetObjectMacro( Transform, TransformType );
-  itkGetModifiableObjectMacro( Transform, TransformType );
+  itkSetObjectMacro(Transform, TransformType);
+  itkGetModifiableObjectMacro(Transform, TransformType);
 
   /**
    * The only transform type used is Identity
    */
-  unsigned int GetNumberOfParameters( void ) const
+  unsigned int
+  GetNumberOfParameters(void) const
   {
     return m_Transform->GetNumberOfParameters();
   }
 
   /** Initialize the Metric by making sure that all the components
    *  are present and plugged together correctly     */
-  virtual void Initialize( void );
+  virtual void
+  Initialize(void);
 
   /** Get the number of values */
-  unsigned int GetNumberOfValues() const;
+  unsigned int
+  GetNumberOfValues() const;
 
   /** Get the derivatives of the match measure. */
-  void GetDerivative( const TransformParametersType & parameters, DerivativeType & Derivative ) const;
+  void
+  GetDerivative(const TransformParametersType & parameters, DerivativeType & Derivative) const;
 
   /**  Get the value for single valued optimizers. */
-  MeasureType GetValue( const TransformParametersType & parameters ) const;
+  MeasureType
+  GetValue(const TransformParametersType & parameters) const;
 
   /**  Get value and derivatives for multiple valued optimizers. */
-  void GetValueAndDerivative( const TransformParametersType & parameters, MeasureType& Value,
-                              DerivativeType& Derivative ) const;
+  void
+  GetValueAndDerivative(const TransformParametersType & parameters,
+                        MeasureType &                   Value,
+                        DerivativeType &                Derivative) const;
 
-  itkSetClampMacro( Alpha, RealType, 1.0, 2.0 );
-  itkGetConstMacro( Alpha, RealType );
+  itkSetClampMacro(Alpha, RealType, 1.0, 2.0);
+  itkGetConstMacro(Alpha, RealType);
 
-  itkSetMacro( UseRegularizationTerm, bool );
-  itkGetConstMacro( UseRegularizationTerm, bool );
-  itkBooleanMacro( UseRegularizationTerm );
+  itkSetMacro(UseRegularizationTerm, bool);
+  itkGetConstMacro(UseRegularizationTerm, bool);
+  itkBooleanMacro(UseRegularizationTerm);
 
-  itkSetMacro( UseWithRespectToTheMovingPointSet, bool );
-  itkGetConstMacro( UseWithRespectToTheMovingPointSet, bool );
-  itkBooleanMacro( UseWithRespectToTheMovingPointSet );
+  itkSetMacro(UseWithRespectToTheMovingPointSet, bool);
+  itkGetConstMacro(UseWithRespectToTheMovingPointSet, bool);
+  itkBooleanMacro(UseWithRespectToTheMovingPointSet);
 
-  itkSetMacro( MovingPointSetSigma, RealType );
-  itkGetConstMacro( MovingPointSetSigma, RealType );
+  itkSetMacro(MovingPointSetSigma, RealType);
+  itkGetConstMacro(MovingPointSetSigma, RealType);
 
-  itkSetMacro( MovingEvaluationKNeighborhood, unsigned int );
-  itkGetConstMacro( MovingEvaluationKNeighborhood, unsigned int );
+  itkSetMacro(MovingEvaluationKNeighborhood, unsigned int);
+  itkGetConstMacro(MovingEvaluationKNeighborhood, unsigned int);
 
-  itkSetMacro( FixedPointSetSigma, RealType );
-  itkGetConstMacro( FixedPointSetSigma, RealType );
+  itkSetMacro(FixedPointSetSigma, RealType);
+  itkGetConstMacro(FixedPointSetSigma, RealType);
 
-  itkSetMacro( FixedEvaluationKNeighborhood, unsigned int );
-  itkGetConstMacro( FixedEvaluationKNeighborhood, unsigned int );
+  itkSetMacro(FixedEvaluationKNeighborhood, unsigned int);
+  itkGetConstMacro(FixedEvaluationKNeighborhood, unsigned int);
 
-  itkSetMacro( UseInputAsSamples, bool );
-  itkGetConstMacro( UseInputAsSamples, bool );
-  itkBooleanMacro( UseInputAsSamples );
+  itkSetMacro(UseInputAsSamples, bool);
+  itkGetConstMacro(UseInputAsSamples, bool);
+  itkBooleanMacro(UseInputAsSamples);
 
   /**
    * If this->m_UseInputAsSamples = true, the following
    * two variables are not used.
    */
 
-  itkSetMacro( NumberOfMovingSamples, unsigned long );
-  itkGetConstMacro( NumberOfMovingSamples, unsigned long );
+  itkSetMacro(NumberOfMovingSamples, unsigned long);
+  itkGetConstMacro(NumberOfMovingSamples, unsigned long);
 
-  itkSetMacro( NumberOfFixedSamples, unsigned long );
-  itkGetConstMacro( NumberOfFixedSamples, unsigned long );
+  itkSetMacro(NumberOfFixedSamples, unsigned long);
+  itkGetConstMacro(NumberOfFixedSamples, unsigned long);
 
-  itkSetMacro( UseAnisotropicCovariances, bool );
-  itkGetConstMacro( UseAnisotropicCovariances, bool );
-  itkBooleanMacro( UseAnisotropicCovariances );
+  itkSetMacro(UseAnisotropicCovariances, bool);
+  itkGetConstMacro(UseAnisotropicCovariances, bool);
+  itkBooleanMacro(UseAnisotropicCovariances);
 
   /**
    * If this->m_UseAnisotropicCovariances = false, the
    * following four variables are not used.
    */
 
-  itkSetMacro( FixedCovarianceKNeighborhood, unsigned int );
-  itkGetConstMacro( FixedCovarianceKNeighborhood, unsigned int );
+  itkSetMacro(FixedCovarianceKNeighborhood, unsigned int);
+  itkGetConstMacro(FixedCovarianceKNeighborhood, unsigned int);
 
-  itkSetMacro( FixedKernelSigma, RealType );
-  itkGetConstMacro( FixedKernelSigma, RealType );
+  itkSetMacro(FixedKernelSigma, RealType);
+  itkGetConstMacro(FixedKernelSigma, RealType);
 
-  itkSetMacro( MovingCovarianceKNeighborhood, unsigned int );
-  itkGetConstMacro( MovingCovarianceKNeighborhood, unsigned int );
+  itkSetMacro(MovingCovarianceKNeighborhood, unsigned int);
+  itkGetConstMacro(MovingCovarianceKNeighborhood, unsigned int);
 
-  itkSetMacro( MovingKernelSigma, RealType );
-  itkGetConstMacro( MovingKernelSigma, RealType );
+  itkSetMacro(MovingKernelSigma, RealType);
+  itkGetConstMacro(MovingKernelSigma, RealType);
 
-  void SetFixedLabelSet( LabelSetType labels )
+  void
+  SetFixedLabelSet(LabelSetType labels)
   {
     typename LabelSetType::const_iterator iter;
-    for( iter = labels.begin(); iter != labels.end(); ++iter )
-      {
-      this->m_FixedLabelSet.push_back( *iter );
-      }
+    for (iter = labels.begin(); iter != labels.end(); ++iter)
+    {
+      this->m_FixedLabelSet.push_back(*iter);
+    }
     this->Modified();
   }
 
-  LabelSetType * GetFixedLabelSet()
+  LabelSetType *
+  GetFixedLabelSet()
   {
     return &this->m_FixedLabelSet;
   }
 
-  void SetMovingLabelSet( LabelSetType labels )
+  void
+  SetMovingLabelSet(LabelSetType labels)
   {
     typename LabelSetType::const_iterator iter;
-    for( iter = labels.begin(); iter != labels.end(); ++iter )
-      {
-      this->m_MovingLabelSet.push_back( *iter );
-      }
+    for (iter = labels.begin(); iter != labels.end(); ++iter)
+    {
+      this->m_MovingLabelSet.push_back(*iter);
+    }
     this->Modified();
   }
 
-  LabelSetType * GetMovingLabelSet()
+  LabelSetType *
+  GetMovingLabelSet()
   {
     return &this->m_MovingLabelSet;
   }
 
 protected:
   JensenHavrdaCharvatTsallisLabeledPointSetMetric();
-  ~JensenHavrdaCharvatTsallisLabeledPointSetMetric()
-  {
-  }
+  ~JensenHavrdaCharvatTsallisLabeledPointSetMetric() {}
 
-  void PrintSelf( std::ostream& os, Indent indent ) const;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const;
 
 private:
   JensenHavrdaCharvatTsallisLabeledPointSetMetric(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   bool m_UseRegularizationTerm;
   bool m_UseInputAsSamples;
@@ -235,7 +243,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkJensenHavrdaCharvatTsallisLabeledPointSetMetric.hxx"
+#  include "itkJensenHavrdaCharvatTsallisLabeledPointSetMetric.hxx"
 #endif
 
 #endif

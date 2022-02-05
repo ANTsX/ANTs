@@ -24,21 +24,20 @@ namespace itk
 {
 template <typename TInputImage, typename TOutputImage, typename TParamImage>
 void
-VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TParamImage>
-::GenerateInputRequestedRegion()
+VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TParamImage>::
+  GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method. this should
   // copy the output requested region to the input requested region
   Superclass::GenerateInputRequestedRegion();
 
   // get pointers to the input and output
-  InputImagePointer inputPtr =
-    const_cast<InputImageType *>( this->GetInput() );
+  InputImagePointer inputPtr = const_cast<InputImageType *>(this->GetInput());
 
-  if( !inputPtr )
-    {
+  if (!inputPtr)
+  {
     return;
-    }
+  }
 
   // get a copy of the input requested region (should equal the output
   // requested region)
@@ -46,108 +45,103 @@ VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TP
   inputRequestedRegion = inputPtr->GetRequestedRegion();
 
   // pad the input requested region by the operator radius
-  inputRequestedRegion.PadByRadius( m_Operator.GetRadius() );
+  inputRequestedRegion.PadByRadius(m_Operator.GetRadius());
 
   // crop the input requested region at the input's largest possible region
-  if( inputRequestedRegion.Crop(inputPtr->GetLargestPossibleRegion() ) )
-    {
-    inputPtr->SetRequestedRegion( inputRequestedRegion );
+  if (inputRequestedRegion.Crop(inputPtr->GetLargestPossibleRegion()))
+  {
+    inputPtr->SetRequestedRegion(inputRequestedRegion);
     return;
-    }
+  }
   else
-    {
+  {
     // Couldn't crop the region (requested region is outside the largest
     // possible region).  Throw an exception.
 
     // store what we tried to request (prior to trying to crop)
-    inputPtr->SetRequestedRegion( inputRequestedRegion );
+    inputPtr->SetRequestedRegion(inputRequestedRegion);
 
     // build an exception
     InvalidRequestedRegionError e(__FILE__, __LINE__);
     std::ostringstream          msg;
-    msg << static_cast<const char *>(this->GetNameOfClass() )
-        << "::GenerateInputRequestedRegion()";
-    e.SetLocation(msg.str().c_str() );
+    msg << static_cast<const char *>(this->GetNameOfClass()) << "::GenerateInputRequestedRegion()";
+    e.SetLocation(msg.str().c_str());
     e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
     e.SetDataObject(inputPtr);
     throw e;
-    }
+  }
 }
 
 template <typename TInputImage, typename TOutputImage, typename TParamImage>
 void
-VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TParamImage>
-::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                       ThreadIdType threadId)
+VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TParamImage>::ThreadedGenerateData(
+  const OutputImageRegionType & outputRegionForThread,
+  ThreadIdType                  threadId)
 {
-  typedef NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>
-    BFC;
-  typedef typename BFC::FaceListType FaceListType;
+  typedef NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType> BFC;
+  typedef typename BFC::FaceListType                                          FaceListType;
 
   VectorNeighborhoodInnerProduct<InputImageType> smartInnerProduct;
   BFC                                            faceCalculator;
   FaceListType                                   faceList;
 
   // Allocate output
-  OutputImageType *     output  = this->GetOutput();
-  const InputImageType *input   = this->GetInput();
+  OutputImageType *      output = this->GetOutput();
+  const InputImageType * input = this->GetInput();
 
   // Break the input into a series of regions.  The first region is free
   // of boundary conditions, the rest with boundary conditions. Note,
   // we pass in the input image and the OUTPUT requested region. We are
   // only concerned with centering the neighborhood operator at the
   // pixels that correspond to output pixels.
-  faceList = faceCalculator(input, outputRegionForThread,
-                            m_Operator.GetRadius() );
+  faceList = faceCalculator(input, outputRegionForThread, m_Operator.GetRadius());
   typename FaceListType::iterator fit;
 
   // support progress methods/callbacks
-  ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels() );
+  ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
   ImageRegionIteratorWithIndex<OutputImageType> it;
 
   // Process non-boundary region and then each of the boundary faces.
   // These are N-d regions which border the edge of the buffer.
   ConstNeighborhoodIterator<InputImageType> bit;
-  for( fit = faceList.begin(); fit != faceList.end(); ++fit )
-    {
-    bit =
-      ConstNeighborhoodIterator<InputImageType>(m_Operator.GetRadius(),
-                                                input, *fit);
+  for (fit = faceList.begin(); fit != faceList.end(); ++fit)
+  {
+    bit = ConstNeighborhoodIterator<InputImageType>(m_Operator.GetRadius(), input, *fit);
     it = ImageRegionIteratorWithIndex<OutputImageType>(output, *fit);
     bit.GoToBegin();
-    while( !bit.IsAtEnd() )
+    while (!bit.IsAtEnd())
+    {
+      if (m_ParameterImage)
       {
-      if( m_ParameterImage )
-        {
-//      float max=1.45;
-        float param = m_ParameterImage->GetPixel(it.GetIndex() );
-//      if (param > 0.5 || param < 2.0 ) param = 0.0;
-//      if (param < 1./max && param > 0 ) param = 1./max;
-//      if (param > max  && param > 0 ) param = max;
-//      if (param < 1.0  && param > 0) param=1.0/param;
-//      std::cout << " param " << param ;
+        //      float max=1.45;
+        float param = m_ParameterImage->GetPixel(it.GetIndex());
+        //      if (param > 0.5 || param < 2.0 ) param = 0.0;
+        //      if (param < 1./max && param > 0 ) param = 1./max;
+        //      if (param > max  && param > 0 ) param = max;
+        //      if (param < 1.0  && param > 0) param=1.0/param;
+        //      std::cout << " param " << param ;
 
-        if( param <= 0 )
-          {
-          it.Value() = input->GetPixel(it.GetIndex() );
-          }
+        if (param <= 0)
+        {
+          it.Value() = input->GetPixel(it.GetIndex());
+        }
         else
-          {
-          m_Operator.SetVariance( param );
+        {
+          m_Operator.SetVariance(param);
           m_Operator.CreateDirectional();
           it.Value() = smartInnerProduct(bit, m_Operator);
-          }
         }
+      }
       else
-        {
+      {
         it.Value() = smartInnerProduct(bit, m_Operator);
-        }
+      }
       ++bit;
       ++it;
       progress.CompletedPixel();
-      }
     }
+  }
 }
 } // end namespace itk
 

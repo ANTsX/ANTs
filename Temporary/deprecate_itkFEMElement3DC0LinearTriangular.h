@@ -27,41 +27,51 @@ namespace fem
 class Element3DC0LinearTriangular : public ElementStd<3, 3>
 {
   typedef ElementStd<3, 3> TemplatedParentClass;
-  FEM_ABSTRACT_CLASS( Element3DC0LinearTriangular, TemplatedParentClass )
+  FEM_ABSTRACT_CLASS(Element3DC0LinearTriangular, TemplatedParentClass)
 public:
+  // ////////////////////////////////////////////////////////////////////////
+  /*
+   * Methods related to numeric integration
+   */
 
-// ////////////////////////////////////////////////////////////////////////
-/*
- * Methods related to numeric integration
- */
+  enum
+  {
+    DefaultIntegrationOrder = 1
+  };
 
-  enum { DefaultIntegrationOrder = 1 };
+  virtual void
+  GetIntegrationPointAndWeight(unsigned int i, VectorType & pt, Float & w, unsigned int order) const;
 
-  virtual void GetIntegrationPointAndWeight(unsigned int i, VectorType& pt, Float& w, unsigned int order) const;
+  virtual unsigned int
+  GetNumberOfIntegrationPoints(unsigned int order) const;
 
-  virtual unsigned int GetNumberOfIntegrationPoints(unsigned int order) const;
+  // ////////////////////////////////////////////////////////////////////////
+  /*
+   * Methods related to the geometry of an element
+   */
 
-// ////////////////////////////////////////////////////////////////////////
-/*
- * Methods related to the geometry of an element
- */
+  virtual VectorType
+  ShapeFunctions(const VectorType & pt) const;
 
-  virtual VectorType ShapeFunctions( const VectorType& pt ) const;
-
-  virtual void ShapeFunctionDerivatives( const VectorType& pt, MatrixType& shapeD ) const;
+  virtual void
+  ShapeFunctionDerivatives(const VectorType & pt, MatrixType & shapeD) const;
 
   // FIXME: Write a proper implementation
-  virtual bool GetLocalFromGlobalCoordinates( const VectorType& globalPt, VectorType& localPt) const;
+  virtual bool
+  GetLocalFromGlobalCoordinates(const VectorType & globalPt, VectorType & localPt) const;
 
-  virtual Float JacobianDeterminant( const VectorType& pt, const MatrixType* pJ = 0 ) const;
+  virtual Float
+  JacobianDeterminant(const VectorType & pt, const MatrixType * pJ = 0) const;
 
-  virtual void JacobianInverse( const VectorType& pt, MatrixType& invJ, const MatrixType* pJ = 0 ) const;
+  virtual void
+  JacobianInverse(const VectorType & pt, MatrixType & invJ, const MatrixType * pJ = 0) const;
 
   /**
    * Draw the element on the specified device context
    */
 #ifdef FEM_BUILD_VISUALIZATION
-  void Draw(CDC* pDC, Solution::ConstPointer sol) const;
+  void
+  Draw(CDC * pDC, Solution::ConstPointer sol) const;
 
 #endif
 
@@ -76,7 +86,7 @@ public:
    */
   static const unsigned int Nip[6];
 };
-}
-}  // end namespace itk::fem
+} // namespace fem
+} // namespace itk
 
-#endif  // #ifndef __itkFEMElement3DC0LinearTriangular_h
+#endif // #ifndef __itkFEMElement3DC0LinearTriangular_h

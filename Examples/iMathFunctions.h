@@ -22,30 +22,31 @@ namespace ants
 // iMath.cxx and iMath.cpp (in ANTSR)
 // after each function, suggested default parameters are defined
 
-unsigned int morph_shape_flag( const char * shape );
+unsigned int
+morph_shape_flag(const char * shape);
 
-template<typename ImageType>
+template <typename ImageType>
 typename ImageType::Pointer
-iMathBlobDetector( typename ImageType::Pointer image, unsigned int nBlobs);                    /*???*/
+iMathBlobDetector(typename ImageType::Pointer image, unsigned int nBlobs); /*???*/
 
 // Canny Edge Filter
 template <typename ImageType>
 typename ImageType::Pointer
-iMathCanny(typename ImageType::Pointer image,                                                    /*0*/
-           double sigma,
-           double lowerThreshold,
-           double upperThreshold );
+iMathCanny(typename ImageType::Pointer image, /*0*/
+           double                      sigma,
+           double                      lowerThreshold,
+           double                      upperThreshold);
 
 // Distance Map
 template <typename ImageType>
 typename ImageType::Pointer
-iMathDistanceMap(typename ImageType::Pointer image, bool useSpacing );                               /*0*/
+iMathDistanceMap(typename ImageType::Pointer image, bool useSpacing); /*0*/
 #define iMathDistanceMapUseSpacing true;
 
 // Fill Holes in objects
 template <typename ImageType>
 typename ImageType::Pointer
-iMathFillHoles(typename ImageType::Pointer image, double holeParam );                                  /*0*/
+iMathFillHoles(typename ImageType::Pointer image, double holeParam); /*0*/
 #define iMathFillHolesHoleParam 2;
 
 
@@ -54,13 +55,12 @@ iMathFillHoles(typename ImageType::Pointer image, double holeParam );           
 // Grayscale morphological closing
 template <typename ImageType>
 typename ImageType::Pointer
-iMathGC(typename ImageType::Pointer image, unsigned long radius);                               /*0*/
+iMathGC(typename ImageType::Pointer image, unsigned long radius); /*0*/
 #define iMathGCRadius 1;
 #define iMathGCValue 1;
 
 
-
-}
+} // namespace ants
 #include "iMathFunctions.hxx"
 
 #endif

@@ -28,31 +28,26 @@
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
-LogTensorImageFilter<TInputImage, TOutputImage>
-::LogTensorImageFilter()
-= default;
+LogTensorImageFilter<TInputImage, TOutputImage>::LogTensorImageFilter() = default;
 
 template <typename TInputImage, typename TOutputImage>
 void
-LogTensorImageFilter<TInputImage, TOutputImage>
-::GenerateData()
+LogTensorImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
   InputImagePointer  input = this->GetInput();
   OutputImagePointer output = this->GetOutput();
 
-  ImageRegionConstIterator<InputImageType> inputIt( input, input->GetLargestPossibleRegion() );
+  ImageRegionConstIterator<InputImageType> inputIt(input, input->GetLargestPossibleRegion());
 
-  output->SetRegions( input->GetLargestPossibleRegion() );
+  output->SetRegions(input->GetLargestPossibleRegion());
   output->Allocate();
 
-  ImageRegionIteratorWithIndex<OutputImageType> outputIt( output, output->GetLargestPossibleRegion() );
-  for( inputIt.GoToBegin(), outputIt.GoToBegin();
-       !inputIt.IsAtEnd() && !outputIt.IsAtEnd();
-       ++inputIt, ++outputIt )
-    {
-    InputPixelType result = TensorLog<InputPixelType>(inputIt.Value() );
-    outputIt.Set( result );
-    }
+  ImageRegionIteratorWithIndex<OutputImageType> outputIt(output, output->GetLargestPossibleRegion());
+  for (inputIt.GoToBegin(), outputIt.GoToBegin(); !inputIt.IsAtEnd() && !outputIt.IsAtEnd(); ++inputIt, ++outputIt)
+  {
+    InputPixelType result = TensorLog<InputPixelType>(inputIt.Value());
+    outputIt.Set(result);
+  }
 }
 
 /**
@@ -60,12 +55,9 @@ LogTensorImageFilter<TInputImage, TOutputImage>
  */
 template <typename TInputImage, typename TOutput>
 void
-LogTensorImageFilter<TInputImage, TOutput>
-::PrintSelf(
-  std::ostream& os,
-  Indent indent) const
+LogTensorImageFilter<TInputImage, TOutput>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  Superclass::PrintSelf( os, indent );
+  Superclass::PrintSelf(os, indent);
 }
 } // end namespace itk
 

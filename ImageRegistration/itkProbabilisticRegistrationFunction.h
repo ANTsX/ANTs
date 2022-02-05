@@ -51,24 +51,21 @@ namespace itk
  * \ingroup FiniteDifferenceFunctions
  */
 template <typename TFixedImage, typename TMovingImage, typename TDisplacementField>
-class ProbabilisticRegistrationFunction final :
-  public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
-                                                         TMovingImage, TDisplacementField>
+class ProbabilisticRegistrationFunction final
+  : public AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
 public:
   /** Standard class typedefs. */
-  typedef ProbabilisticRegistrationFunction Self;
-  typedef AvantsPDEDeformableRegistrationFunction<TFixedImage,
-                                                  TMovingImage, TDisplacementField>    Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef ProbabilisticRegistrationFunction                                                      Self;
+  typedef AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField> Superclass;
+  typedef SmartPointer<Self>                                                                     Pointer;
+  typedef SmartPointer<const Self>                                                               ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ProbabilisticRegistrationFunction,
-                AvantsPDEDeformableRegistrationFunction );
+  itkTypeMacro(ProbabilisticRegistrationFunction, AvantsPDEDeformableRegistrationFunction);
 
   /** MovingImage image type. */
   typedef typename Superclass::MovingImageType    MovingImageType;
@@ -83,21 +80,17 @@ public:
   typedef typename FixedImageType::SizeType             SizeType;
 
   /** Deformation field type. */
-  typedef typename Superclass::DisplacementFieldType DisplacementFieldType;
-  typedef typename Superclass::DisplacementFieldTypePointer
-    DisplacementFieldTypePointer;
-  typedef typename TDisplacementField::PixelType VectorType;
+  typedef typename Superclass::DisplacementFieldType        DisplacementFieldType;
+  typedef typename Superclass::DisplacementFieldTypePointer DisplacementFieldTypePointer;
+  typedef typename TDisplacementField::PixelType            VectorType;
 
-  typedef CovariantVector<float,
-                          itkGetStaticConstMacro(ImageDimension)> GradientPixelType;
-  typedef Image<GradientPixelType,
-                itkGetStaticConstMacro(ImageDimension)> GradientImageType;
-  typedef SmartPointer<GradientImageType> GradientImagePointer;
-  typedef GradientRecursiveGaussianImageFilter<MetricImageType, GradientImageType>
-    GradientImageFilterType;
-  typedef typename GradientImageFilterType::Pointer            GradientImageFilterPointer;
-  typedef Image<float, itkGetStaticConstMacro(ImageDimension)> BinaryImageType;
-  typedef typename BinaryImageType::Pointer                    BinaryImagePointer;
+  typedef CovariantVector<float, itkGetStaticConstMacro(ImageDimension)>           GradientPixelType;
+  typedef Image<GradientPixelType, itkGetStaticConstMacro(ImageDimension)>         GradientImageType;
+  typedef SmartPointer<GradientImageType>                                          GradientImagePointer;
+  typedef GradientRecursiveGaussianImageFilter<MetricImageType, GradientImageType> GradientImageFilterType;
+  typedef typename GradientImageFilterType::Pointer                                GradientImageFilterPointer;
+  typedef Image<float, itkGetStaticConstMacro(ImageDimension)>                     BinaryImageType;
+  typedef typename BinaryImageType::Pointer                                        BinaryImagePointer;
 
   /** Inherit some enums from the superclass. */
   static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
@@ -106,17 +99,16 @@ public:
   typedef typename Superclass::PixelType        PixelType;
   typedef typename Superclass::RadiusType       RadiusType;
   typedef typename Superclass::NeighborhoodType NeighborhoodType;
-//  typedef typename Superclass::NeighborhoodType    BoundaryNeighborhoodType;
+  //  typedef typename Superclass::NeighborhoodType    BoundaryNeighborhoodType;
   typedef typename Superclass::FloatOffsetType FloatOffsetType;
   typedef typename Superclass::TimeStepType    TimeStepType;
 
   /** Interpolator type. */
-  typedef double                                                  CoordRepType;
-  typedef InterpolateImageFunction<MovingImageType, CoordRepType> InterpolatorType;
-  typedef typename InterpolatorType::Pointer                      InterpolatorPointer;
-  typedef typename InterpolatorType::PointType                    PointType;
-  typedef LinearInterpolateImageFunction<MovingImageType, CoordRepType>
-    DefaultInterpolatorType;
+  typedef double                                                        CoordRepType;
+  typedef InterpolateImageFunction<MovingImageType, CoordRepType>       InterpolatorType;
+  typedef typename InterpolatorType::Pointer                            InterpolatorPointer;
+  typedef typename InterpolatorType::PointType                          PointType;
+  typedef LinearInterpolateImageFunction<MovingImageType, CoordRepType> DefaultInterpolatorType;
 
   /** Covariant vector type. */
   typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> CovariantVectorType;
@@ -126,201 +118,215 @@ public:
   typedef typename GradientCalculatorType::Pointer       GradientCalculatorPointer;
 
   /** Set the moving image interpolator. */
-  void SetMovingImageInterpolator( InterpolatorType * ptr )
+  void
+  SetMovingImageInterpolator(InterpolatorType * ptr)
   {
     m_MovingImageInterpolator = ptr;
   }
 
   /** Get the moving image interpolator. */
-  InterpolatorType * GetMovingImageInterpolator(void)
+  InterpolatorType *
+  GetMovingImageInterpolator(void)
   {
     return m_MovingImageInterpolator;
   }
 
-  typename TDisplacementField::PixelType ComputeMetricAtPairB(IndexType fixedindex,
-                                                              typename TDisplacementField::PixelType vec );
-  typename TDisplacementField::PixelType ComputeMetricAtPairC(IndexType fixedindex,
-                                                              typename TDisplacementField::PixelType vec );
+  typename TDisplacementField::PixelType
+  ComputeMetricAtPairB(IndexType fixedindex, typename TDisplacementField::PixelType vec);
+  typename TDisplacementField::PixelType
+  ComputeMetricAtPairC(IndexType fixedindex, typename TDisplacementField::PixelType vec);
 
   /** This class uses a constant timestep of 1. */
-  TimeStepType ComputeGlobalTimeStep(void * /* GlobalData */) const override
+  TimeStepType
+  ComputeGlobalTimeStep(void * /* GlobalData */) const override
   {
     return m_TimeStep;
   }
 
   /** Return a pointer to a global data structure that is passed to
    * this object from the solver at each calculation.  */
-  void * GetGlobalDataPointer() const override
+  void *
+  GetGlobalDataPointer() const override
   {
-    GlobalDataStruct *global = new GlobalDataStruct();
+    GlobalDataStruct * global = new GlobalDataStruct();
 
     return global;
   }
 
   /** Release memory for global data structure. */
-  void ReleaseGlobalDataPointer( void *GlobalData ) const override
+  void
+  ReleaseGlobalDataPointer(void * GlobalData) const override
   {
-  //HACK: The signature of this function should be reconsidered
-  //      a delete of a re-interpret cast is a dangerous
-  //      proposition.
-    delete reinterpret_cast<GlobalDataStruct *>( GlobalData );
+    // HACK: The signature of this function should be reconsidered
+    //      a delete of a re-interpret cast is a dangerous
+    //      proposition.
+    delete reinterpret_cast<GlobalDataStruct *>(GlobalData);
   }
 
   /** Set the object's state before each iteration. */
-  void InitializeIteration() override;
+  void
+  InitializeIteration() override;
 
   /** Set the object's state before each iteration. */
-  void InitializeIterationOld();
+  void
+  InitializeIterationOld();
 
-  double ComputeCrossCorrelation()
+  double
+  ComputeCrossCorrelation()
   {
-    if( finitediffimages[0] )
-      {
-      double        totalcc = 0;
-      unsigned long ct = 0;
+    if (finitediffimages[0])
+    {
+      double                                                totalcc = 0;
+      unsigned long                                         ct = 0;
       typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
-      ittype it(this->finitediffimages[0], this->finitediffimages[0]->GetLargestPossibleRegion().GetSize() );
-      for( it.GoToBegin(); !it.IsAtEnd(); ++it )
-        {
+      ittype it(this->finitediffimages[0], this->finitediffimages[0]->GetLargestPossibleRegion().GetSize());
+      for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+      {
         IndexType oindex = it.GetIndex();
         double    sfm = finitediffimages[2]->GetPixel(oindex);
         double    sff = finitediffimages[3]->GetPixel(oindex);
         double    smm = finitediffimages[4]->GetPixel(oindex);
         double    cc = 0;
-        if( fabs(sff * smm) > 0 )
-          {
-          cc += sfm * sfm / (sff * smm); ct++;
-          }
-        totalcc += cc;
+        if (fabs(sff * smm) > 0)
+        {
+          cc += sfm * sfm / (sff * smm);
+          ct++;
         }
-      this->m_Energy = totalcc / static_cast<double>( ct ) * (-1.0);
+        totalcc += cc;
+      }
+      this->m_Energy = totalcc / static_cast<double>(ct) * (-1.0);
       return this->m_Energy;
-      }
+    }
     else
-      {
+    {
       return 0;
-      }
+    }
   }
 
-  virtual VectorType  OpticalFlowUpdate(const NeighborhoodType & neighborhood)
+  virtual VectorType
+  OpticalFlowUpdate(const NeighborhoodType & neighborhood)
   {
     // Get fixed image related information
     IndexType index = neighborhood.GetIndex();
 
     typename TDisplacementField::PixelType vec = Superclass::m_DisplacementField->GetPixel(index);
-    VectorType update;
+    VectorType                             update;
     update.Fill(0.0);
     double              fixedValue;
     CovariantVectorType fixedGradient;
     double              fixedGradientSquaredMagnitude = 0;
-    fixedValue = (double) Superclass::Superclass::m_FixedImage->GetPixel( index );
-    fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
+    fixedValue = (double)Superclass::Superclass::m_FixedImage->GetPixel(index);
+    fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex(index);
     unsigned int j = 0;
-    for( j = 0; j < ImageDimension; j++ )
-      {
-      fixedGradientSquaredMagnitude += itk::Math::sqr ( fixedGradient[j] );
-      }
+    for (j = 0; j < ImageDimension; j++)
+    {
+      fixedGradientSquaredMagnitude += itk::Math::sqr(fixedGradient[j]);
+    }
     double movingValue;
 
     PointType mappedPoint;
-    for( j = 0; j < ImageDimension; j++ )
-      {
-      mappedPoint[j] = double( index[j] ) * m_FixedImageSpacing[j]
-        + m_FixedImageOrigin[j];
-      mappedPoint[j] += static_cast<double>( vec[j] );
-      }
-    if( m_MovingImageInterpolator->IsInsideBuffer( mappedPoint ) )
-      {
-      movingValue = m_MovingImageInterpolator->Evaluate( mappedPoint );
-      }
+    for (j = 0; j < ImageDimension; j++)
+    {
+      mappedPoint[j] = double(index[j]) * m_FixedImageSpacing[j] + m_FixedImageOrigin[j];
+      mappedPoint[j] += static_cast<double>(vec[j]);
+    }
+    if (m_MovingImageInterpolator->IsInsideBuffer(mappedPoint))
+    {
+      movingValue = m_MovingImageInterpolator->Evaluate(mappedPoint);
+    }
     else
+    {
+      for (j = 0; j < ImageDimension; j++)
       {
-      for( j = 0; j < ImageDimension; j++ )
-        {
         update[j] = 0.0;
-        }
+      }
       return update;
-      }
+    }
     double speedValue = fixedValue - movingValue;
-    if( std::fabs(speedValue) < static_cast<double>( this->m_RobustnessParameter ) )
-      {
+    if (std::fabs(speedValue) < static_cast<double>(this->m_RobustnessParameter))
+    {
       speedValue = 0;
-      }
-    double denominator = itk::Math::sqr ( speedValue ) / static_cast<double>( m_Normalizer )
-      + fixedGradientSquaredMagnitude;
+    }
+    double denominator = itk::Math::sqr(speedValue) / static_cast<double>(m_Normalizer) + fixedGradientSquaredMagnitude;
     double DenominatorThreshold = 1e-9;
     double IntensityDifferenceThreshold = 0.001;
-    if( itk::Math::abs (speedValue) < IntensityDifferenceThreshold ||
-        denominator < DenominatorThreshold )
+    if (itk::Math::abs(speedValue) < IntensityDifferenceThreshold || denominator < DenominatorThreshold)
+    {
+      for (j = 0; j < ImageDimension; j++)
       {
-      for( j = 0; j < ImageDimension; j++ )
-        {
         update[j] = 0.0;
-        }
+      }
       return update;
-      }
-    for( j = 0; j < ImageDimension; j++ )
-      {
+    }
+    for (j = 0; j < ImageDimension; j++)
+    {
       update[j] = speedValue * fixedGradient[j] / denominator;
-      }
+    }
     return update;
   }
 
-  void SetFixedImageMask( MetricImageType* img)
+  void
+  SetFixedImageMask(MetricImageType * img)
   {
     m_FixedImageMask = img;
   }
 
-  VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
-                                   void * /* globalData */,
-                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) override
+  VectorType
+  ComputeUpdate(const NeighborhoodType & neighborhood,
+                void * /* globalData */,
+                const FloatOffsetType & /* offset */ = FloatOffsetType(0.0)) override
   {
     VectorType update;
 
     update.Fill(0.0);
-    IndexType       oindex = neighborhood.GetIndex();
-    FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
-    if( !img )
-      {
+    IndexType        oindex = neighborhood.GetIndex();
+    FixedImageType * img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer());
+    if (!img)
+    {
       return update;
-      }
+    }
     update = this->ComputeMetricAtPairB(oindex, update);
 
     return update;
   }
 
-  VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
-                                      void * /* globalData */,
-                                      const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) ) override
+  VectorType
+  ComputeUpdateInv(const NeighborhoodType & neighborhood,
+                   void * /* globalData */,
+                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0)) override
   {
     VectorType update;
 
     update.Fill(0.0);
-    IndexType       oindex = neighborhood.GetIndex();
-    FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
-    if( !img )
-      {
+    IndexType        oindex = neighborhood.GetIndex();
+    FixedImageType * img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer());
+    if (!img)
+    {
       return update;
-      }
+    }
     update = this->ComputeMetricAtPairC(oindex, update);
 
     return update;
   }
 
-  void SetFullyRobust(bool b)
+  void
+  SetFullyRobust(bool b)
   {
     m_FullyRobust = b;
   }
 
-  void GetProbabilities();
+  void
+  GetProbabilities();
 
   double localProbabilistic;
   float  m_TEMP;
+
 protected:
   ProbabilisticRegistrationFunction();
   ~ProbabilisticRegistrationFunction() override = default;
 
-  void PrintSelf(std::ostream& os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** FixedImage image neighborhood iterator type. */
   typedef ConstNeighborhoodIterator<FixedImageType> FixedImageNeighborhoodIteratorType;
@@ -328,36 +334,38 @@ protected:
   /** A global data type for this class of equation. Used to store
    * iterators for the fixed image. */
   struct GlobalDataStruct
-    {
-    FixedImageNeighborhoodIteratorType m_FixedImageIterator;
-    };
-
-  MetricImagePointer MakeImage()
   {
-    FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
+    FixedImageNeighborhoodIteratorType m_FixedImageIterator;
+  };
+
+  MetricImagePointer
+  MakeImage()
+  {
+    FixedImageType * img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer());
 
     this->m_MetricImage = AllocImage<MetricImageType>(img->GetLargestPossibleRegion(), 0);
-    this->m_MetricImage->SetSpacing(img->GetSpacing() );
-    this->m_MetricImage->SetOrigin(img->GetOrigin() );
+    this->m_MetricImage->SetSpacing(img->GetSpacing());
+    this->m_MetricImage->SetOrigin(img->GetOrigin());
 
     bool makebinimg = false;
-    if( makebinimg )
-      {
+    if (makebinimg)
+    {
       m_Iteration = 0;
       binaryimage = AllocImage<BinaryImageType>(img->GetLargestPossibleRegion(), 1);
-      binaryimage->SetSpacing(img->GetSpacing() );
-      binaryimage->SetOrigin(img->GetOrigin() );
-      }
+      binaryimage->SetSpacing(img->GetSpacing());
+      binaryimage->SetOrigin(img->GetOrigin());
+    }
     return this->m_MetricImage;
   }
 
 private:
   ProbabilisticRegistrationFunction(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   /** Cache fixed image information. */
-  typename TFixedImage::SpacingType                  m_FixedImageSpacing;
-  typename TFixedImage::PointType                  m_FixedImageOrigin;
+  typename TFixedImage::SpacingType m_FixedImageSpacing;
+  typename TFixedImage::PointType   m_FixedImageOrigin;
 
   /** Function to compute derivatives of the fixed image. */
   GradientCalculatorPointer m_FixedImageGradientCalculator;
@@ -390,18 +398,18 @@ private:
   MetricImagePointer m_FixedImageMask;
   MetricImagePointer m_MovingImageMask;
 
-  typedef itk::AvantsMutualInformationRegistrationFunction<FixedImageType, MovingImageType,
-                                                           DisplacementFieldType> MetricType2;
+  typedef itk::AvantsMutualInformationRegistrationFunction<FixedImageType, MovingImageType, DisplacementFieldType>
+                                MetricType2;
   typename MetricType2::Pointer m_MIFunct;
-  unsigned int m_NumberOfHistogramBins;
-  bool         m_FullyRobust;
-  unsigned int m_Iteration;
-  float        m_Normalizer;
+  unsigned int                  m_NumberOfHistogramBins;
+  bool                          m_FullyRobust;
+  unsigned int                  m_Iteration;
+  float                         m_Normalizer;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkProbabilisticRegistrationFunction.cxx"
+#  include "itkProbabilisticRegistrationFunction.cxx"
 #endif
 
 #endif

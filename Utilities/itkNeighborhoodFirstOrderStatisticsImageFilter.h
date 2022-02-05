@@ -30,27 +30,31 @@ namespace itk
  * \ingroup ITK-TextureAnalysis
  */
 
-template< typename TInputImage, typename TOutputImage, typename TKernel >
-class ITK_EXPORT NeighborhoodFirstOrderStatisticsImageFilter:
-  public MovingHistogramImageFilter< TInputImage,
-                                     TOutputImage,
-                                     TKernel,
-                                     typename Function::TextureHistogram< typename TInputImage::PixelType,
-                                                                          typename TOutputImage::PixelType > >
+template <typename TInputImage, typename TOutputImage, typename TKernel>
+class ITK_EXPORT NeighborhoodFirstOrderStatisticsImageFilter
+  : public MovingHistogramImageFilter<
+      TInputImage,
+      TOutputImage,
+      TKernel,
+      typename Function::TextureHistogram<typename TInputImage::PixelType, typename TOutputImage::PixelType>>
 {
 public:
   /** Standard class typedefs. */
   typedef NeighborhoodFirstOrderStatisticsImageFilter Self;
-  typedef MovingHistogramImageFilter< TInputImage, TOutputImage, TKernel,
-    typename Function::TextureHistogram< typename TInputImage::PixelType,  typename TOutputImage::PixelType> >  Superclass;
-  typedef SmartPointer< Self >       Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
+  typedef MovingHistogramImageFilter<
+    TInputImage,
+    TOutputImage,
+    TKernel,
+    typename Function::TextureHistogram<typename TInputImage::PixelType, typename TOutputImage::PixelType>>
+                                   Superclass;
+  typedef SmartPointer<Self>       Pointer;
+  typedef SmartPointer<const Self> ConstPointer;
 
   /** Standard New method. */
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro( NeighborhoodFirstOrderStatisticsImageFilter, MovingHistogramImageFilter );
+  itkTypeMacro(NeighborhoodFirstOrderStatisticsImageFilter, MovingHistogramImageFilter);
 
   /** Image related typedefs. */
   typedef TInputImage                                InputImageType;
@@ -65,39 +69,46 @@ public:
 
   /** Image related typedefs. */
   static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
-protected:
 
-  unsigned int GetNumberOfOutputComponents() { return 8; }
+protected:
+  unsigned int
+  GetNumberOfOutputComponents()
+  {
+    return 8;
+  }
 
   NeighborhoodFirstOrderStatisticsImageFilter()
   {
-  //this->m_Boundary = NumericTraits< PixelType >::max();
+    // this->m_Boundary = NumericTraits< PixelType >::max();
   }
 
-  void GenerateOutputInformation() override
+  void
+  GenerateOutputInformation() override
   {
     // this methods is overloaded so that if the output image is a
     // VectorImage then the correct number of components are set.
 
     Superclass::GenerateOutputInformation();
-    OutputImageType* output = this->GetOutput();
+    OutputImageType * output = this->GetOutput();
 
-    if ( !output )
-      {
+    if (!output)
+    {
       return;
-      }
-    if ( output->GetNumberOfComponentsPerPixel() != this->GetNumberOfOutputComponents() )
-      {
-      output->SetNumberOfComponentsPerPixel( this->GetNumberOfOutputComponents() );
-      }
+    }
+    if (output->GetNumberOfComponentsPerPixel() != this->GetNumberOfOutputComponents())
+    {
+      output->SetNumberOfComponentsPerPixel(this->GetNumberOfOutputComponents());
+    }
   }
 
 
   ~NeighborhoodFirstOrderStatisticsImageFilter() override = default;
+
 private:
   NeighborhoodFirstOrderStatisticsImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
-};// end of class
+  void
+  operator=(const Self &) = delete;
+}; // end of class
 } // end namespace itk
 
 #endif

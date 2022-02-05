@@ -42,8 +42,7 @@ namespace itk
  *
  * \ingroup ImageFeatureExtraction */
 template <typename TInputImage, typename TOutputImage>
-class OptimalSharpeningImageFilter :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+class OptimalSharpeningImageFilter : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard "Self" & Superclass typedef.   */
@@ -57,8 +56,7 @@ public:
   typedef typename NumericTraits<OutputPixelType>::RealType RealType;
   typedef typename TInputImage::PixelType                   InputPixelType;
   typedef typename TInputImage::InternalPixelType           InputInternalPixelType;
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
 
   /** Image typedef support. */
   typedef TInputImage                      InputImageType;
@@ -83,23 +81,27 @@ public:
    * execution model.
    *
    * \sa ImageToImageFilter::GenerateInputRequestedRegion()  */
-  virtual void GenerateInputRequestedRegion();
+  virtual void
+  GenerateInputRequestedRegion();
 
-  void SetSValue(float s)
+  void
+  SetSValue(float s)
   {
     this->m_SValue = s;
   }
 
   /** Use the image spacing information in calculations. Use this option if you
    *  want derivatives in physical space. Default is UseImageSpacingOn. */
-  void UseImageSpacingOn()
+  void
+  UseImageSpacingOn()
   {
     this->SetUseImageSpacing(true);
   }
 
   /** Ignore the image spacing. Use this option if you want derivatives in
       isotropic pixel space.  Default is UseImageSpacingOn. */
-  void UseImageSpacingOff()
+  void
+  UseImageSpacingOff()
   {
     this->SetUseImageSpacing(false);
   }
@@ -108,6 +110,7 @@ public:
       image in its calculations */
   itkSetMacro(UseImageSpacing, bool);
   itkGetMacro(UseImageSpacing, bool);
+
 protected:
   OptimalSharpeningImageFilter()
   {
@@ -122,12 +125,16 @@ protected:
    * calculations to an NeighborhoodOperatorImageFilter.  Since the
    * NeighborhoodOperatorImageFilter is multithreaded, this filter is
    * multithreaded by default.   */
-  void GenerateData();
+  void
+  GenerateData();
 
-  void PrintSelf(std::ostream &, Indent) const;
+  void
+  PrintSelf(std::ostream &, Indent) const;
+
 private:
   OptimalSharpeningImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   bool  m_UseImageSpacing;
   float m_SValue;
@@ -135,7 +142,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkOptimalSharpeningImageFilter.hxx"
+#  include "itkOptimalSharpeningImageFilter.hxx"
 #endif
 
 #endif

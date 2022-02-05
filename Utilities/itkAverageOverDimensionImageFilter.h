@@ -86,16 +86,15 @@ namespace itk
  * \endwiki
  */
 
-template< typename TInputImage, typename TOutputImage >
-class AverageOverDimensionImageFilter final:
-  public InPlaceImageFilter< TInputImage, TOutputImage >
+template <typename TInputImage, typename TOutputImage>
+class AverageOverDimensionImageFilter final : public InPlaceImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef AverageOverDimensionImageFilter                              Self;
-  typedef InPlaceImageFilter< TInputImage, TOutputImage > Superclass;
-  typedef SmartPointer< Self >                            Pointer;
-  typedef SmartPointer< const Self >                      ConstPointer;
+  typedef AverageOverDimensionImageFilter               Self;
+  typedef InPlaceImageFilter<TInputImage, TOutputImage> Superclass;
+  typedef SmartPointer<Self>                            Pointer;
+  typedef SmartPointer<const Self>                      ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -121,11 +120,12 @@ public:
   typedef typename TOutputImage::SizeType  OutputImageSizeType;
   typedef typename TInputImage::SizeType   InputImageSizeType;
 
-  typedef enum DirectionCollapseStrategyEnum {
-    DIRECTIONCOLLAPSETOUNKOWN=0,
-    DIRECTIONCOLLAPSETOIDENTITY=1,
-    DIRECTIONCOLLAPSETOSUBMATRIX=2,
-    DIRECTIONCOLLAPSETOGUESS=3
+  typedef enum DirectionCollapseStrategyEnum
+  {
+    DIRECTIONCOLLAPSETOUNKOWN = 0,
+    DIRECTIONCOLLAPSETOIDENTITY = 1,
+    DIRECTIONCOLLAPSETOSUBMATRIX = 2,
+    DIRECTIONCOLLAPSETOGUESS = 3
   } DIRECTIONCOLLAPSESTRATEGY;
 
 
@@ -153,22 +153,23 @@ public:
    * example when the application programmer knows that a 4D image
    * is 3D+time, and that the 3D sub-space is properly defined.
    */
-  void SetDirectionCollapseToStrategy(const DIRECTIONCOLLAPSESTRATEGY choosenStrategy)
+  void
+  SetDirectionCollapseToStrategy(const DIRECTIONCOLLAPSESTRATEGY choosenStrategy)
+  {
+    switch (choosenStrategy)
     {
-    switch(choosenStrategy)
-      {
-    case DIRECTIONCOLLAPSETOGUESS:
-    case DIRECTIONCOLLAPSETOIDENTITY:
-    case DIRECTIONCOLLAPSETOSUBMATRIX:
-      break;
-    case DIRECTIONCOLLAPSETOUNKOWN:
-    default:
-      itkExceptionMacro( << "Invalid Strategy Chosen for itk::AverageOverDimensionImageFilter" );
-      }
-
-    this->m_DirectionCollapseStrategy=choosenStrategy;
-    this->Modified();
+      case DIRECTIONCOLLAPSETOGUESS:
+      case DIRECTIONCOLLAPSETOIDENTITY:
+      case DIRECTIONCOLLAPSETOSUBMATRIX:
+        break;
+      case DIRECTIONCOLLAPSETOUNKOWN:
+      default:
+        itkExceptionMacro(<< "Invalid Strategy Chosen for itk::AverageOverDimensionImageFilter");
     }
+
+    this->m_DirectionCollapseStrategy = choosenStrategy;
+    this->Modified();
+  }
 
   /** NOTE:  The SetDirectionCollapseToUknown is explicitly not defined.
    * It is a state that a filter can be in only when it is first instantiate
@@ -178,59 +179,62 @@ public:
   /**
    * Get the currently set strategy for collapsing directions of physical space.
    */
-  DIRECTIONCOLLAPSESTRATEGY GetDirectionCollapseToStrategy() const
-    {
+  DIRECTIONCOLLAPSESTRATEGY
+  GetDirectionCollapseToStrategy() const
+  {
     return this->m_DirectionCollapseStrategy;
-    }
+  }
 
   /** \sa SetDirectionCollapseToStrategy */
-  void SetDirectionCollapseToGuess()
-    {
+  void
+  SetDirectionCollapseToGuess()
+  {
     this->SetDirectionCollapseToStrategy(DIRECTIONCOLLAPSETOGUESS);
-    }
+  }
 
   /** \sa SetDirectionCollapseToStrategy */
-  void SetDirectionCollapseToIdentity()
-    {
+  void
+  SetDirectionCollapseToIdentity()
+  {
     this->SetDirectionCollapseToStrategy(DIRECTIONCOLLAPSETOIDENTITY);
-    }
+  }
 
   /** \sa SetDirectionCollapseToStrategy */
-  void SetDirectionCollapseToSubmatrix()
-    {
+  void
+  SetDirectionCollapseToSubmatrix()
+  {
     this->SetDirectionCollapseToStrategy(DIRECTIONCOLLAPSETOSUBMATRIX);
-    }
+  }
 
 
   /** ImageDimension enumeration */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
-  typedef ImageToImageFilterDetail::ExtractImageFilterRegionCopier<
-    itkGetStaticConstMacro(InputImageDimension),
-    itkGetStaticConstMacro(OutputImageDimension) > ExtractImageFilterRegionCopierType;
+  typedef ImageToImageFilterDetail::ExtractImageFilterRegionCopier<itkGetStaticConstMacro(InputImageDimension),
+                                                                   itkGetStaticConstMacro(OutputImageDimension)>
+    ExtractImageFilterRegionCopierType;
 
   /** Set/Get the output image region.
    *  If any of the ExtractionRegion.Size = 0 for any particular dimension dim,
    *  we have to collapse dimension dim.  This means the output image will have
    *  'c' dimensions less than the input image, where c = number of
    *  ExtractionRegion.Size = 0. */
-  void SetAveragingDimension(unsigned int averagingDimension);
+  void
+  SetAveragingDimension(unsigned int averagingDimension);
   itkGetMacro(AveragingDimension, unsigned int);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro( InputCovertibleToOutputCheck,
-                   ( Concept::Convertible< InputImagePixelType, OutputImagePixelType > ) );
+  itkConceptMacro(InputCovertibleToOutputCheck, (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
   /** End concept checking */
 #endif
 
 protected:
   AverageOverDimensionImageFilter();
   ~AverageOverDimensionImageFilter() override = default;
-  void PrintSelf(std::ostream & os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** AverageOverDimensionImageFilter can produce an image which is a different
    * resolution than its input image.  As such, AverageOverDimensionImageFilter
@@ -240,7 +244,8 @@ protected:
    * below.
    *
    * \sa ProcessObject::GenerateOutputInformaton()  */
-  void GenerateOutputInformation() override;
+  void
+  GenerateOutputInformation() override;
 
   /** This function calls the actual region copier to do the mapping from
    * output image space to input image space.  It uses a
@@ -252,8 +257,9 @@ protected:
    * support output images of a lower dimension that the input.
    *
    * \sa ImageToImageFilter::CallCopyRegion() */
-  void CallCopyOutputRegionToInputRegion(InputImageRegionType & destRegion,
-                                                 const OutputImageRegionType & srcRegion) override;
+  void
+  CallCopyOutputRegionToInputRegion(InputImageRegionType &        destRegion,
+                                    const OutputImageRegionType & srcRegion) override;
 
   /** AverageOverDimensionImageFilter can be implemented as a multithreaded filter.
    * Therefore, this implementation provides a ThreadedGenerateData()
@@ -264,13 +270,14 @@ protected:
    * parameter "outputRegionForThread"
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData()  */
-  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                            ThreadIdType threadId) override;
+  void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId) override;
 
   /** Overridden to check if there is no work to be done, before
    * calling superclass' implementation.
    */
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
   unsigned int m_AveragingDimension;
 
@@ -278,14 +285,15 @@ protected:
 
 private:
   AverageOverDimensionImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   DIRECTIONCOLLAPSESTRATEGY m_DirectionCollapseStrategy;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkAverageOverDimensionImageFilter.hxx"
+#  include "itkAverageOverDimensionImageFilter.hxx"
 #endif
 
 #endif

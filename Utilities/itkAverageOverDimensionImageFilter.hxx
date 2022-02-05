@@ -28,9 +28,9 @@ namespace itk
 /**
  *
  */
-template< typename TInputImage, typename TOutputImage >
-AverageOverDimensionImageFilter< TInputImage, TOutputImage >
-::AverageOverDimensionImageFilter():
+template <typename TInputImage, typename TOutputImage>
+AverageOverDimensionImageFilter<TInputImage, TOutputImage>::AverageOverDimensionImageFilter()
+  :
 #ifdef ITKV3_COMPATIBILITY
   m_DirectionCollapseStrategy(DIRECTIONCOLLAPSETOGUESS)
 #else
@@ -44,10 +44,9 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 /**
  *
  */
-template< typename TInputImage, typename TOutputImage >
+template <typename TInputImage, typename TOutputImage>
 void
-AverageOverDimensionImageFilter< TInputImage, TOutputImage >
-::PrintSelf(std::ostream & os, Indent indent) const
+AverageOverDimensionImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 
@@ -55,47 +54,47 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
   os << indent << "DirectionCollapseStrategy: " << m_DirectionCollapseStrategy << std::endl;
 }
 
-template< typename TInputImage, typename TOutputImage >
+template <typename TInputImage, typename TOutputImage>
 void
-AverageOverDimensionImageFilter< TInputImage, TOutputImage >
-::CallCopyOutputRegionToInputRegion(InputImageRegionType & destRegion,
-                                    const OutputImageRegionType & srcRegion)
+AverageOverDimensionImageFilter<TInputImage, TOutputImage>::CallCopyOutputRegionToInputRegion(
+  InputImageRegionType &        destRegion,
+  const OutputImageRegionType & srcRegion)
 {
-  typename InputImageRegionType::SizeType inputSize;
+  typename InputImageRegionType::SizeType  inputSize;
   typename InputImageRegionType::IndexType inputIndex;
 
   unsigned int countDim = 0;
-  for (unsigned int i=0; i<InputImageDimension; i++)
+  for (unsigned int i = 0; i < InputImageDimension; i++)
+  {
+    if (i != this->m_AveragingDimension)
     {
-    if ( i != this->m_AveragingDimension )
-      {
       inputSize[i] = srcRegion.GetSize()[countDim];
       inputIndex[i] = srcRegion.GetIndex()[countDim];
       countDim++;
-      }
     }
+  }
 
   inputSize[this->m_AveragingDimension] = this->GetInput()->GetRequestedRegion().GetSize()[this->m_AveragingDimension];
-  inputIndex[this->m_AveragingDimension] = this->GetInput()->GetRequestedRegion().GetIndex()[this->m_AveragingDimension];
+  inputIndex[this->m_AveragingDimension] =
+    this->GetInput()->GetRequestedRegion().GetIndex()[this->m_AveragingDimension];
 
-  destRegion.SetSize( inputSize );
-  destRegion.SetIndex( inputIndex );
+  destRegion.SetSize(inputSize);
+  destRegion.SetIndex(inputIndex);
 }
 
-template< typename TInputImage, typename TOutputImage >
+template <typename TInputImage, typename TOutputImage>
 void
-AverageOverDimensionImageFilter< TInputImage, TOutputImage >
-::SetAveragingDimension(unsigned int averagingDimension)
+AverageOverDimensionImageFilter<TInputImage, TOutputImage>::SetAveragingDimension(unsigned int averagingDimension)
 {
   this->m_AveragingDimension = averagingDimension;
 
-  if ( this->m_AveragingDimension > InputImageDimension )
-    {
+  if (this->m_AveragingDimension > InputImageDimension)
+  {
     itkExceptionMacro("Averaging dimension is larger than input image dimension");
-    }
+  }
 
-  InputImageSizeType   inputSize = this->GetInput()->GetRequestedRegion().GetSize();
-  OutputImageSizeType  outputSize;
+  InputImageSizeType  inputSize = this->GetInput()->GetRequestedRegion().GetSize();
+  OutputImageSizeType outputSize;
   outputSize.Fill(0);
   OutputImageIndexType outputIndex;
   outputIndex.Fill(0);
@@ -105,15 +104,15 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
    * matches the number of dimensions in the output image.
    */
   unsigned int dimCount = 0;
-  for ( unsigned int i = 0; i < InputImageDimension; ++i )
+  for (unsigned int i = 0; i < InputImageDimension; ++i)
+  {
+    if (i != this->m_AveragingDimension)
     {
-    if ( i != this->m_AveragingDimension )
-      {
       outputSize[dimCount] = inputSize[i];
       outputIndex[dimCount] = this->GetInput()->GetRequestedRegion().GetIndex()[i];
       dimCount++;
-      }
     }
+  }
 
   m_OutputImageRegion.SetSize(outputSize);
   m_OutputImageRegion.SetIndex(outputIndex);
@@ -129,127 +128,120 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
  *
  * \sa ProcessObject::GenerateOutputInformaton()
  */
-template< typename TInputImage, typename TOutputImage >
+template <typename TInputImage, typename TOutputImage>
 void
-AverageOverDimensionImageFilter< TInputImage, TOutputImage >
-::GenerateOutputInformation()
+AverageOverDimensionImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 {
   // do not call the superclass' implementation of this method since
   // this filter allows the input and the output to be of different dimensions
 
   // get pointers to the input and output
-  typename Superclass::OutputImagePointer outputPtr = this->GetOutput();
-  typename Superclass::InputImageConstPointer inputPtr  = this->GetInput();
+  typename Superclass::OutputImagePointer     outputPtr = this->GetOutput();
+  typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
 
-  if ( !outputPtr || !inputPtr )
-    {
+  if (!outputPtr || !inputPtr)
+  {
     return;
-    }
+  }
 
   // Set the output image size to the same value as the extraction region.
   outputPtr->SetLargestPossibleRegion(m_OutputImageRegion);
 
   // Set the output spacing and origin
-  const ImageBase< InputImageDimension > *phyData;
+  const ImageBase<InputImageDimension> * phyData;
 
-  phyData =
-    dynamic_cast< const ImageBase< InputImageDimension > * >( this->GetInput() );
+  phyData = dynamic_cast<const ImageBase<InputImageDimension> *>(this->GetInput());
 
-  if ( phyData )
-    {
+  if (phyData)
+  {
     // Copy what we can from the image from spacing and origin of the input
     // This logic needs to be augmented with logic that select which
     // dimensions to copy
 
-    const typename InputImageType::SpacingType &
-    inputSpacing = inputPtr->GetSpacing();
-    const typename InputImageType::DirectionType &
-    inputDirection = inputPtr->GetDirection();
-    const typename InputImageType::PointType &
-    inputOrigin = inputPtr->GetOrigin();
+    const typename InputImageType::SpacingType &   inputSpacing = inputPtr->GetSpacing();
+    const typename InputImageType::DirectionType & inputDirection = inputPtr->GetDirection();
+    const typename InputImageType::PointType &     inputOrigin = inputPtr->GetOrigin();
 
-    typename OutputImageType::SpacingType outputSpacing;
+    typename OutputImageType::SpacingType   outputSpacing;
     typename OutputImageType::DirectionType outputDirection;
-    typename OutputImageType::PointType outputOrigin;
+    typename OutputImageType::PointType     outputOrigin;
     outputOrigin.Fill(0.0);
     outputDirection.SetIdentity();
 
     unsigned int countDim = 0;
-    for ( unsigned int i = 0; i < InputImageDimension; ++i )
+    for (unsigned int i = 0; i < InputImageDimension; ++i)
+    {
+      if (i != this->m_AveragingDimension)
       {
-      if ( i != this->m_AveragingDimension )
-        {
         outputSpacing[countDim] = inputSpacing[i];
         outputOrigin[countDim] = inputOrigin[i];
         unsigned int countDim2 = 0;
-        for ( unsigned int dim = 0; dim < InputImageDimension; ++dim )
-         {
-         if ( dim != this->m_AveragingDimension )
-           {
-           outputDirection[countDim][countDim2] =
-             inputDirection[i][dim];
-           ++countDim2;
-           }
-         }
-        countDim++;
+        for (unsigned int dim = 0; dim < InputImageDimension; ++dim)
+        {
+          if (dim != this->m_AveragingDimension)
+          {
+            outputDirection[countDim][countDim2] = inputDirection[i][dim];
+            ++countDim2;
+          }
         }
+        countDim++;
       }
+    }
 
     // if the filter changes from a higher to a lower dimension, or
     // if, after rebuilding the direction cosines, there's a zero
     // length cosine vector, reset the directions to identity.
-    switch(m_DirectionCollapseStrategy)
-      {
+    switch (m_DirectionCollapseStrategy)
+    {
       case DIRECTIONCOLLAPSETOIDENTITY:
       {
-      outputDirection.SetIdentity();
+        outputDirection.SetIdentity();
       }
       break;
       case DIRECTIONCOLLAPSETOSUBMATRIX:
       {
-      if ( itk::Math::FloatAlmostEqual( vnl_determinant( outputDirection.GetVnlMatrix() ), 0.0 ) )
+        if (itk::Math::FloatAlmostEqual(vnl_determinant(outputDirection.GetVnlMatrix()), 0.0))
         {
-        itkExceptionMacro( << "Invalid submatrix extracted for collapsed direction." );
+          itkExceptionMacro(<< "Invalid submatrix extracted for collapsed direction.");
         }
       }
       break;
       case DIRECTIONCOLLAPSETOGUESS:
       {
-      if ( itk::Math::FloatAlmostEqual( vnl_determinant( outputDirection.GetVnlMatrix() ), 0.0 ) )
+        if (itk::Math::FloatAlmostEqual(vnl_determinant(outputDirection.GetVnlMatrix()), 0.0))
         {
-        outputDirection.SetIdentity();
+          outputDirection.SetIdentity();
         }
       }
       break;
       case DIRECTIONCOLLAPSETOUNKOWN:
       default:
       {
-      itkExceptionMacro( << "It is required that the strategy for collapsing the direction matrix be explicitly specified. "
-                         << "Set with either myfilter->SetDirectionCollapseToIdentity() or myfilter->SetDirectionCollapseToSubmatrix() "
-                           << typeid( ImageBase< InputImageDimension > * ).name() );
+        itkExceptionMacro(
+          << "It is required that the strategy for collapsing the direction matrix be explicitly specified. "
+          << "Set with either myfilter->SetDirectionCollapseToIdentity() or "
+             "myfilter->SetDirectionCollapseToSubmatrix() "
+          << typeid(ImageBase<InputImageDimension> *).name());
       }
-      }
+    }
 
     // set the spacing and origin
     outputPtr->SetSpacing(outputSpacing);
     outputPtr->SetDirection(outputDirection);
     outputPtr->SetOrigin(outputOrigin);
-    outputPtr->SetNumberOfComponentsPerPixel( inputPtr->GetNumberOfComponentsPerPixel() );
-
-    }
+    outputPtr->SetNumberOfComponentsPerPixel(inputPtr->GetNumberOfComponentsPerPixel());
+  }
   else
-    {
+  {
     // pointer could not be cast back down
-    itkExceptionMacro( << "itk::AverageOverDimensionImageFilter::GenerateOutputInformation "
-                       << "cannot cast input to "
-                       << typeid( ImageBase< InputImageDimension > * ).name() );
-    }
+    itkExceptionMacro(<< "itk::AverageOverDimensionImageFilter::GenerateOutputInformation "
+                      << "cannot cast input to " << typeid(ImageBase<InputImageDimension> *).name());
+  }
 }
 
-template< typename TInputImage, typename TOutputImage >
+template <typename TInputImage, typename TOutputImage>
 void
-AverageOverDimensionImageFilter< TInputImage, TOutputImage >
-::GenerateData()
+AverageOverDimensionImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
 
   // InPlace::AllocateOutputs set the running in place ivar.
@@ -258,17 +250,17 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
   this->AllocateOutputs();
 
   // The input matched the output, nothing to do.
-  if ( this->GetRunningInPlace() )
-    {
-    OutputImageType *outputPtr = this->GetOutput();
+  if (this->GetRunningInPlace())
+  {
+    OutputImageType * outputPtr = this->GetOutput();
 
     // the in-place grafting copies the meta data, this needs to be
     // set back.
     outputPtr->SetLargestPossibleRegion(m_OutputImageRegion);
 
-    this->UpdateProgress( 1.0 );
+    this->UpdateProgress(1.0);
     return;
-    }
+  }
 
   this->Superclass::GenerateData();
 }
@@ -285,20 +277,20 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
  * \sa ImageToImageFilter::ThreadedGenerateData(),
  *     ImageToImageFilter::GenerateData()
  */
-template< typename TInputImage, typename TOutputImage >
+template <typename TInputImage, typename TOutputImage>
 void
-AverageOverDimensionImageFilter< TInputImage, TOutputImage >
-::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                       ThreadIdType threadId)
+AverageOverDimensionImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(
+  const OutputImageRegionType & outputRegionForThread,
+  ThreadIdType                  threadId)
 {
   itkDebugMacro(<< "Actually executing");
 
   // Get the input and output pointers
-  const InputImageType *inputPtr = this->GetInput();
-  OutputImageType      *outputPtr = this->GetOutput();
+  const InputImageType * inputPtr = this->GetInput();
+  OutputImageType *      outputPtr = this->GetOutput();
 
   // support progress methods/callbacks
-  ProgressReporter progress( this, threadId, 1 );
+  ProgressReporter progress(this, threadId, 1);
 
   // Define the portion of the input to walk for this thread
   InputImageRegionType inputRegionForThread;
@@ -307,39 +299,38 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
   unsigned int nValues = inputRegionForThread.GetSize()[this->m_AveragingDimension];
   unsigned int offset = inputRegionForThread.GetIndex()[this->m_AveragingDimension];
 
-  ImageRegionIteratorWithIndex<OutputImageType> it( outputPtr, outputRegionForThread );
+  ImageRegionIteratorWithIndex<OutputImageType> it(outputPtr, outputRegionForThread);
 
-  while ( !it.IsAtEnd() )
-    {
+  while (!it.IsAtEnd())
+  {
     typename InputImageType::IndexType idx;
-    unsigned int dimCount = 0;
-    for ( unsigned int i=0; i<InputImageDimension; i++)
+    unsigned int                       dimCount = 0;
+    for (unsigned int i = 0; i < InputImageDimension; i++)
+    {
+      if (i != this->m_AveragingDimension)
       {
-      if ( i != this->m_AveragingDimension )
-        {
         idx[i] = it.GetIndex()[dimCount];
         ++dimCount;
-        }
       }
+    }
 
     typename OutputImageType::PixelType value = 0.0;
     typename OutputImageType::PixelType nTimes = (nValues - offset + 1);
-    for ( unsigned int i=offset; i<nValues; i++)
-      {
+    for (unsigned int i = offset; i < nValues; i++)
+    {
       idx[this->m_AveragingDimension] = i;
-      value += inputPtr->GetPixel( idx );
-      }
-    if ( nTimes > 0 )
-      {
+      value += inputPtr->GetPixel(idx);
+    }
+    if (nTimes > 0)
+    {
       value /= nTimes;
-      }
-    it.Set( value );
+    }
+    it.Set(value);
 
     ++it;
-    }
+  }
 
   progress.CompletedPixel();
-
 }
 } // end namespace itk
 

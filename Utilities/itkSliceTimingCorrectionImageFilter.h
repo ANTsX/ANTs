@@ -41,12 +41,11 @@ namespace itk
  *
  */
 template <typename TInputImage, typename TOutputImage>
-class SliceTimingCorrectionImageFilter final :
-  public         ImageToImageFilter<TInputImage, TOutputImage>
+class SliceTimingCorrectionImageFilter final : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef SliceTimingCorrectionImageFilter         Self;
+  typedef SliceTimingCorrectionImageFilter              Self;
   typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
   typedef SmartPointer<Self>                            Pointer;
   typedef SmartPointer<const Self>                      ConstPointer;
@@ -68,32 +67,30 @@ public:
   typedef LinearInterpolateImageFunction<InputImageType> DefaultInterpolatorType;
   typedef typename DefaultInterpolatorType::Pointer      DefaultInterpolatorPointerType;
 
-  typedef InterpolateImageFunction< InputImageType, double >  InterpolatorType;
-  typedef typename InterpolatorType::Pointer                  InterpolatorPointerType;
+  typedef InterpolateImageFunction<InputImageType, double> InterpolatorType;
+  typedef typename InterpolatorType::Pointer               InterpolatorPointerType;
 
-  //typedef typename InputImageType::SpacingType::ValueType     TimingType;
+  // typedef typename InputImageType::SpacingType::ValueType     TimingType;
   typedef double TimingType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
-  itkGetMacro( TimeDimension, unsigned int );
-  itkSetMacro( TimeDimension, unsigned int );
+  itkGetMacro(TimeDimension, unsigned int);
+  itkSetMacro(TimeDimension, unsigned int);
 
-  itkSetMacro( SliceDimension, unsigned int );
-  itkGetMacro( SliceDimension, unsigned int );
+  itkSetMacro(SliceDimension, unsigned int);
+  itkGetMacro(SliceDimension, unsigned int);
 
-  itkGetMacro( IndexPadding, unsigned int );
-  itkSetMacro( IndexPadding, unsigned int );
+  itkGetMacro(IndexPadding, unsigned int);
+  itkSetMacro(IndexPadding, unsigned int);
 
-  itkSetMacro( SliceTiming, TimingType );
-  itkGetMacro( SliceTiming, TimingType );
+  itkSetMacro(SliceTiming, TimingType);
+  itkGetMacro(SliceTiming, TimingType);
 
-  itkSetMacro( ExtrapolateEdges, bool );
-  itkGetMacro( ExtrapolateEdges, bool );
+  itkSetMacro(ExtrapolateEdges, bool);
+  itkGetMacro(ExtrapolateEdges, bool);
 
   /** Set the interpolator function.  The default is
    * LinearInterpolateImageFunction<InputImageType,
@@ -110,54 +107,54 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro( InputConvertibleToOutputCheck,
-                   ( Concept::Convertible<typename TInputImage::PixelType,
-                                          typename TOutputImage::PixelType> ) );
-  itkConceptMacro( DimensionCheck,
-                   ( Concept::SameDimension<InputImageDimension,
-                                            OutputImageDimension> ) );
+  itkConceptMacro(InputConvertibleToOutputCheck,
+                  (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
+  itkConceptMacro(DimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
 
   /** End concept checking */
 #endif
 protected:
   SliceTimingCorrectionImageFilter();
-  ~SliceTimingCorrectionImageFilter() override
-  {
-  }
+  ~SliceTimingCorrectionImageFilter() override {}
 
-  void PrintSelf(std::ostream & os, Indent indent) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Override VeriyInputInformation() to add the additional check
    * that all inputs have the same number of components.
    *
    * \sa ProcessObject::VerifyInputInformation
    */
-  void VerifyInputInformation() const override;
+  void
+  VerifyInputInformation() const override;
 
   /** Overrides GenerateOutputInformation() in order to produce
    * an image which has a different information than the first input.
    * \sa ProcessObject::GenerateOutputInformaton() */
-  void GenerateOutputInformation() override;
+  void
+  GenerateOutputInformation() override;
 
   /** Overrides GenerateInputRequestedRegion() in order to inform
    * the pipeline execution model of different input requested regions
    * than the output requested region.
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-  //virtual void GenerateInputRequestedRegion();
+  // virtual void GenerateInputRequestedRegion();
 
   /** This method is used to set the state of the filter before
    * multi-threading. */
-  void BeforeThreadedGenerateData() override;
+  void
+  BeforeThreadedGenerateData() override;
 
   /** SliceTimingCorrectionImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),
    *     ImageSource::GenerateData() */
-  void ThreadedGenerateData(const OutputImageRegionType &
-                                    outputRegionForThread, ThreadIdType threadId) override;
+  void
+  ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread, ThreadIdType threadId) override;
 
 private:
   SliceTimingCorrectionImageFilter(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 
   /** IndexValueType is used to switch among the inputs and
    * is used as the index value of the new dimension */
@@ -171,8 +168,8 @@ private:
 
   TimingType m_SliceTiming;
 
-  InterpolatorPointerType m_Interpolator;           // Image function for
-                                                    // interpolation
+  InterpolatorPointerType m_Interpolator; // Image function for
+                                          // interpolation
 
   bool m_ExtrapolateEdges;
 
@@ -182,7 +179,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkSliceTimingCorrectionImageFilter.hxx"
+#  include "itkSliceTimingCorrectionImageFilter.hxx"
 #endif
 
 #endif

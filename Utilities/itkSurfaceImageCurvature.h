@@ -31,12 +31,9 @@ namespace itk
  *
  */
 template <typename TSurface>
-class SurfaceImageCurvature final :
-  public SurfaceCurvatureBase<TSurface,
-                              3>
+class SurfaceImageCurvature final : public SurfaceCurvatureBase<TSurface, 3>
 {
 public:
-
   /** Standard class typedefs. */
   typedef SurfaceImageCurvature          Self;
   typedef SurfaceCurvatureBase<TSurface> Superclass;
@@ -51,12 +48,14 @@ public:
 
   /** Image related types. */
   typedef typename TSurface::PixelType PixelType;
-  enum { ImageDimension = TSurface::ImageDimension };
-  typedef Image<PixelType, itkGetStaticConstMacro(ImageDimension)>
-    ImageType;
-  typedef typename ImageType::IndexType           IndexType;
-  typedef typename ImageType::SizeType            SizeType;
-  typedef ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
+  enum
+  {
+    ImageDimension = TSurface::ImageDimension
+  };
+  typedef Image<PixelType, itkGetStaticConstMacro(ImageDimension)> ImageType;
+  typedef typename ImageType::IndexType                            IndexType;
+  typedef typename ImageType::SizeType                             SizeType;
+  typedef ImageRegionIteratorWithIndex<ImageType>                  ImageIteratorType;
   /** Image dimension. */
   static constexpr unsigned int SurfaceDimension = TSurface::ImageDimension;
 
@@ -65,67 +64,73 @@ public:
   typedef typename Superclass::PointType  FixedVectorType;
   typedef typename Superclass::PointType  PointType;
   typedef typename Superclass::MatrixType MatrixType;
-  typedef typename ImageType::PointType ImagePointType;
+  typedef typename ImageType::PointType   ImagePointType;
 
-  typedef  Image<PixelType, itkGetStaticConstMacro(ImageDimension)>
-    OutputImageType;
-  typedef ImageRegionIteratorWithIndex<OutputImageType> OutputImageIteratorType;
+  typedef Image<PixelType, itkGetStaticConstMacro(ImageDimension)> OutputImageType;
+  typedef ImageRegionIteratorWithIndex<OutputImageType>            OutputImageIteratorType;
 
   typedef typename OutputImageType::Pointer OutputImagePointer;
 
-  typedef Image<MatrixType, itkGetStaticConstMacro(ImageDimension)>
-    FrameImageType;
+  typedef Image<MatrixType, itkGetStaticConstMacro(ImageDimension)> FrameImageType;
 
   /** Gradient filtering */
-  typedef CovariantVector<RealType,
-                          itkGetStaticConstMacro(ImageDimension)> GradientPixelType;
-  typedef Image<GradientPixelType,
-                itkGetStaticConstMacro(ImageDimension)> GradientImageType;
-  typedef itk::VectorLinearInterpolateImageFunction<GradientImageType, RealType> VectorInterpolatorType;
-  typedef SmartPointer<GradientImageType> GradientImagePointer;
-  typedef GradientRecursiveGaussianImageFilter<OutputImageType, GradientImageType>
-    GradientImageFilterType;
-  typedef GradientImageFilter<OutputImageType>
-    GradientImageFilterType2;
-  typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
+  typedef CovariantVector<RealType, itkGetStaticConstMacro(ImageDimension)>        GradientPixelType;
+  typedef Image<GradientPixelType, itkGetStaticConstMacro(ImageDimension)>         GradientImageType;
+  typedef itk::VectorLinearInterpolateImageFunction<GradientImageType, RealType>   VectorInterpolatorType;
+  typedef SmartPointer<GradientImageType>                                          GradientImagePointer;
+  typedef GradientRecursiveGaussianImageFilter<OutputImageType, GradientImageType> GradientImageFilterType;
+  typedef GradientImageFilter<OutputImageType>                                     GradientImageFilterType2;
+  typedef typename GradientImageFilterType::Pointer                                GradientImageFilterPointer;
 
   typedef NeighborhoodIterator<ImageType> NeighborhoodIteratorType;
 
   /** Find all points within some distance of the origin.
-    * The argument gives the number of times to apply the
-    * mean shift algorithm to find the best neighborhood.
-    */
-  void FindNeighborhood(unsigned int numMeanShifts = 0) override;
+   * The argument gives the number of times to apply the
+   * mean shift algorithm to find the best neighborhood.
+   */
+  void
+  FindNeighborhood(unsigned int numMeanShifts = 0) override;
 
-  void  FindEuclideanNeighborhood(PointType p);
+  void
+  FindEuclideanNeighborhood(PointType p);
 
-  void  FindGeodesicNeighborhood();
+  void
+  FindGeodesicNeighborhood();
 
   /** This applies one of the algorithms for finding the local curvature
       and frame.  The default is joshi. */
-  void ComputeFrameOverDomain(unsigned int which = 0) override;
+  void
+  ComputeFrameOverDomain(unsigned int which = 0) override;
 
-  ImageType * GetInput();
+  ImageType *
+  GetInput();
 
-  virtual void SetInputImage(typename ImageType::Pointer & input);
-  OutputImageType * GetOutput();
+  virtual void
+  SetInputImage(typename ImageType::Pointer & input);
+  OutputImageType *
+  GetOutput();
 
   /** Apply the level set curvature equation over the whole image */
-  void LevelSetMeanCurvature();
+  void
+  LevelSetMeanCurvature();
 
   /** Use the gradient of the image to estimate the normals everywhere.
    *  Also compute area, if boolean is set.
-  */
-  void EstimateNormalsFromGradient();
+   */
+  void
+  EstimateNormalsFromGradient();
 
   /** Use the Weingarten map to estimate the curvature.*/
-  void WeingartenMap();
+  void
+  WeingartenMap();
 
   /** Use the Weingarten map to estimate the curvature.*/
-  void WeingartenMapGradients();
+  void
+  WeingartenMapGradients();
 
   /** Computes a neighborhood surface area function everywhere*/
-  void ComputeSurfaceArea();
+  void
+  ComputeSurfaceArea();
 
   /** Use the gradient estimated normal to get the local frame.
       Requires call to SetNormal to find tangents. */
@@ -135,15 +140,18 @@ public:
   /** Implemented version of virtual function from parent class.
       Here, we just sum the computed function, held in CurvatureImage,
       over a neighborhood */
-  RealType IntegrateFunctionOverNeighborhood(bool norm = false) override;
+  RealType
+  IntegrateFunctionOverNeighborhood(bool norm = false) override;
 
   /** Get the neighborhood integral for every surface point.*/
-  RealType IntegrateFunctionOverSurface(bool norm = false);
+  RealType
+  IntegrateFunctionOverSurface(bool norm = false);
 
   /** Postprocess the curvature function by, e.g., gaussian
       smoothing of the curvature (and perhaps frame)
       in the local neighbhorhood. */
-  void PostProcessGeometry();
+  void
+  PostProcessGeometry();
 
   itkSetMacro(NeighborhoodRadius, RealType);
   itkGetMacro(NeighborhoodRadius, RealType);
@@ -158,16 +166,18 @@ public:
   itkGetMacro(FunctionImage, OutputImagePointer);
   itkSetMacro(FunctionImage, OutputImagePointer);
 
-  void ProcessLabelImage();
+  void
+  ProcessLabelImage();
 
-  float CurvatureAtIndex(IndexType index)
+  float
+  CurvatureAtIndex(IndexType index)
   {
     PointType p;
 
-    for( unsigned int k = 0; k < ImageDimension; k++ )
-      {
-      p[k] = (RealType) index[k];
-      }
+    for (unsigned int k = 0; k < ImageDimension; k++)
+    {
+      p[k] = (RealType)index[k];
+    }
     this->SetOrigin(p);
     this->EstimateFrameFromGradient(index);
     this->FindNeighborhood();
@@ -175,97 +185,98 @@ public:
     float fval = this->m_GaussianKappa;
     float kpix;
     fval = this->m_MeanKappa;
-    if( fabs(fval) > 1 )
-      {
+    if (fabs(fval) > 1)
+    {
       fval /= fval;
-      }
+    }
     kpix = kpix + m_kSign * fval;
 
     return kpix;
   }
 
-  inline RealType innerProduct( PointType v1, PointType v2 )
-    {
-    return ( v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2] );
-    }
-
-  inline bool IsValidIndex( IndexType ind )
+  inline RealType
+  innerProduct(PointType v1, PointType v2)
   {
-    for( unsigned int i = 0; i < ImageDimension; i++ )
-      {
+    return (v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]);
+  }
+
+  inline bool
+  IsValidIndex(IndexType ind)
+  {
+    for (unsigned int i = 0; i < ImageDimension; i++)
+    {
       float shifted = ind[i];
-      if( shifted < 1 || shifted > ( this->m_ImageSize[i] - 1  ) )
-        {
+      if (shifted < 1 || shifted > (this->m_ImageSize[i] - 1))
+      {
         return false;
-        }
       }
+    }
     return true;
   }
 
-  inline bool IsValidSurface(PixelType pix, IndexType ind )
+  inline bool
+  IsValidSurface(PixelType pix, IndexType ind)
   {
-    for( unsigned int i = 0; i < ImageDimension; i++ )
-      {
+    for (unsigned int i = 0; i < ImageDimension; i++)
+    {
       float shifted = ind[i];
-      if( shifted < 1 || shifted > ( this->m_ImageSize[i] - 1  ) )
-        {
+      if (shifted < 1 || shifted > (this->m_ImageSize[i] - 1))
+      {
         return false;
-        }
       }
+    }
 
-    if( this->m_UseLabel )
+    if (this->m_UseLabel)
+    {
+      if (itk::Math::FloatAlmostEqual(pix, this->m_SurfaceLabel))
       {
-      if( itk::Math::FloatAlmostEqual( pix, this->m_SurfaceLabel ) )
-        {
         return true;
-        }
-      else
-        {
-        return false;
-        }
       }
+      else
+      {
+        return false;
+      }
+    }
     else
+    {
+      if (pix > static_cast<PixelType>(this->m_Threshold))
       {
-      if( pix > static_cast<PixelType>( this->m_Threshold ) )
-        {
         return true;
-        }
-      else
-        {
-        return false;
-        }
       }
+      else
+      {
+        return false;
+      }
+    }
   }
 
 protected:
-
   SurfaceImageCurvature();
   ~SurfaceImageCurvature() override = default;
 
-  void CopyImageToFunctionImage( OutputImagePointer, OutputImagePointer);
+  void CopyImageToFunctionImage(OutputImagePointer, OutputImagePointer);
 
   /** This function changes the values of the label image for use with
       the fast marching image filter. */
 private:
-
-  PixelType                m_SurfaceLabel;
-  OutputImagePointer       m_FunctionImage;
-  RealType                 m_NeighborhoodRadius;
-  SizeType                 m_ImageSize;
-  GradientImagePointer     m_GradientImage;
-  NeighborhoodIteratorType m_ti;
-  NeighborhoodIteratorType m_ti2;
-  bool                     m_UseLabel;
-  float                    m_kSign;
-  float                    m_Threshold;
-  float                    m_Area;
-  RealType                 m_MinSpacing;
+  PixelType                                m_SurfaceLabel;
+  OutputImagePointer                       m_FunctionImage;
+  RealType                                 m_NeighborhoodRadius;
+  SizeType                                 m_ImageSize;
+  GradientImagePointer                     m_GradientImage;
+  NeighborhoodIteratorType                 m_ti;
+  NeighborhoodIteratorType                 m_ti2;
+  bool                                     m_UseLabel;
+  float                                    m_kSign;
+  float                                    m_Threshold;
+  float                                    m_Area;
+  RealType                                 m_MinSpacing;
   typename VectorInterpolatorType::Pointer m_Vinterp;
 };
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkSurfaceImageCurvature.hxx"
+#  include "itkSurfaceImageCurvature.hxx"
 #endif
 
 #endif

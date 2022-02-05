@@ -29,93 +29,85 @@ namespace itk
  * ComposeDiffeomorphismsImageFilter class definitions
  */
 template <typename InputImage, typename TOutputImage>
-ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
-::ComposeDiffeomorphismsImageFilter()
+ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>::ComposeDiffeomorphismsImageFilter()
 {
-  this->SetNumberOfRequiredInputs( 2 );
+  this->SetNumberOfRequiredInputs(2);
 
-  typedef VectorLinearInterpolateImageFunction
-    <InputFieldType, RealType> DefaultInterpolatorType;
-  typename DefaultInterpolatorType::Pointer interpolator
-    = DefaultInterpolatorType::New();
+  typedef VectorLinearInterpolateImageFunction<InputFieldType, RealType> DefaultInterpolatorType;
+  typename DefaultInterpolatorType::Pointer                              interpolator = DefaultInterpolatorType::New();
   this->m_Interpolator = interpolator;
 }
 
 template <typename InputImage, typename TOutputImage>
-ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
-::~ComposeDiffeomorphismsImageFilter()
-{
-}
+ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>::~ComposeDiffeomorphismsImageFilter()
+{}
 
 template <typename InputImage, typename TOutputImage>
 void
-ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
-::SetInterpolator( InterpolatorType *interpolator )
+ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>::SetInterpolator(InterpolatorType * interpolator)
 {
-  itkDebugMacro( "setting Interpolator to " << interpolator );
-  if( this->m_Interpolator != interpolator )
-    {
+  itkDebugMacro("setting Interpolator to " << interpolator);
+  if (this->m_Interpolator != interpolator)
+  {
     this->m_Interpolator = interpolator;
     this->Modified();
-    if( !this->GetDisplacementField() )
-      {
-      this->m_Interpolator->SetInputImage( this->GetInput( 0 ) );
-      }
+    if (!this->GetDisplacementField())
+    {
+      this->m_Interpolator->SetInputImage(this->GetInput(0));
     }
+  }
 }
 
 template <typename InputImage, typename TOutputImage>
 void
-ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
-::BeforeThreadedGenerateData()
+ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>::BeforeThreadedGenerateData()
 {
-  VectorType zeroVector( 0.0 );
+  VectorType zeroVector(0.0);
 
   this->AllocateOutputs();
-  this->GetOutput()->FillBuffer( zeroVector );
+  this->GetOutput()->FillBuffer(zeroVector);
 }
 
 template <typename InputImage, typename TOutputImage>
 void
-ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
-::ThreadedGenerateData( const RegionType & region, ThreadIdType itkNotUsed( threadId ) )
+ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>::ThreadedGenerateData(const RegionType & region,
+                                                                                  ThreadIdType itkNotUsed(threadId))
 {
-  VectorType zeroVector( 0.0 );
+  VectorType zeroVector(0.0);
 
   typename OutputFieldType::Pointer output = this->GetOutput();
 
-  ImageRegionConstIterator<InputFieldType>      ItW( this->GetWarpingField(), region );
-  ImageRegionIteratorWithIndex<OutputFieldType> ItF( output, region );
-  for( ItW.GoToBegin(), ItF.GoToBegin(); !ItW.IsAtEnd(); ++ItW, ++ItF )
-    {
+  ImageRegionConstIterator<InputFieldType>      ItW(this->GetWarpingField(), region);
+  ImageRegionIteratorWithIndex<OutputFieldType> ItF(output, region);
+  for (ItW.GoToBegin(), ItF.GoToBegin(); !ItW.IsAtEnd(); ++ItW, ++ItF)
+  {
     PointType point1;
-    output->TransformIndexToPhysicalPoint( ItF.GetIndex(), point1 );
+    output->TransformIndexToPhysicalPoint(ItF.GetIndex(), point1);
 
     typename InputFieldType::PixelType tmpWarp = ItW.Get();
-    PointType point2 = point1;
-    for( unsigned int d = 0; d < point2.PointDimension; d++ )
-      {
+    PointType                          point2 = point1;
+    for (unsigned int d = 0; d < point2.PointDimension; d++)
+    {
       point2[d] += tmpWarp[d];
-      }
+    }
 
     typename InterpolatorType::OutputType displacement;
-    if( this->m_Interpolator->IsInsideBuffer( point2 ) )
-      {
-      displacement = this->m_Interpolator->Evaluate( point2 );
+    if (this->m_Interpolator->IsInsideBuffer(point2))
+    {
+      displacement = this->m_Interpolator->Evaluate(point2);
       typename OutputFieldType::PixelType tmpOut;
-      tmpOut = ( point2 + displacement ) - point1;
-      ItF.Set( tmpOut );
-      }
+      tmpOut = (point2 + displacement) - point1;
+      ItF.Set(tmpOut);
     }
+  }
 }
 
 template <typename InputImage, typename TOutputImage>
 void
-ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
-::PrintSelf( std::ostream& os, Indent indent ) const
+ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  Superclass::PrintSelf( os, indent );
+  Superclass::PrintSelf(os, indent);
 }
-}  // end namespace itk
+} // end namespace itk
 
 #endif

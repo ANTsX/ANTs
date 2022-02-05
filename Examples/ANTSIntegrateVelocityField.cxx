@@ -28,32 +28,36 @@
 namespace ants
 {
 template <unsigned int ImageDimension>
-int IntegrateVelocityField(int argc, char *argv[])
+int
+IntegrateVelocityField(int argc, char * argv[])
 {
   int         argct = 1;
-  std::string imgfn = std::string(argv[argct]); argct++;
+  std::string imgfn = std::string(argv[argct]);
+  argct++;
 
-  std::string vectorfn = std::string(argv[argct]); argct++;
-  std::string outname = std::string(argv[argct]); argct++;
+  std::string vectorfn = std::string(argv[argct]);
+  argct++;
+  std::string outname = std::string(argv[argct]);
+  argct++;
 
   using PixelType = float;
   PixelType timezero = 0;
   PixelType timeone = 1;
   PixelType dT = 0.01;
-  if( argc > argct )
-    {
+  if (argc > argct)
+  {
     timezero = atof(argv[argct]);
-    }
+  }
   argct++;
-  if( argc > argct )
-    {
+  if (argc > argct)
+  {
     timeone = atof(argv[argct]);
-    }
+  }
   argct++;
-  if( argc > argct )
-    {
+  if (argc > argct)
+  {
     dT = atof(argv[argct]);
-    }
+  }
   argct++;
   std::cout << " time-0 " << timezero << " dt " << dT << " time-1 " << timeone << std::endl;
   PixelType starttime = timezero;
@@ -65,136 +69,137 @@ int IntegrateVelocityField(int argc, char *argv[])
   using ImageType = itk::Image<PixelType, ImageDimension>;
 
   typename ImageType::Pointer image;
-  ReadImage<ImageType>(image, imgfn.c_str() );
+  ReadImage<ImageType>(image, imgfn.c_str());
   using tvt = TimeVaryingVelocityFieldType;
   typename tvt::Pointer timeVaryingVelocity;
-  ReadImage<tvt>(timeVaryingVelocity, vectorfn.c_str() );
+  ReadImage<tvt>(timeVaryingVelocity, vectorfn.c_str());
 
   VectorType zero;
   zero.Fill(0);
-  typename DisplacementFieldType::Pointer deformation =
-    AllocImage<DisplacementFieldType>(image, zero);
+  typename DisplacementFieldType::Pointer deformation = AllocImage<DisplacementFieldType>(image, zero);
 
-  if( !timeVaryingVelocity )
-    {
-    std::cerr << " No TV Field " << std::endl;  return EXIT_FAILURE;
-    }
+  if (!timeVaryingVelocity)
+  {
+    std::cerr << " No TV Field " << std::endl;
+    return EXIT_FAILURE;
+  }
 
-  if( starttime < 0 )
-    {
+  if (starttime < 0)
+  {
     starttime = 0;
-    }
-  if( starttime > 1 )
-    {
+  }
+  if (starttime > 1)
+  {
     starttime = 1;
-    }
-  if( finishtime < 0 )
-    {
+  }
+  if (finishtime < 0)
+  {
     finishtime = 0;
-    }
-  if( finishtime > 1 )
-    {
+  }
+  if (finishtime > 1)
+  {
     finishtime = 1;
-    }
+  }
 
-  using IntegratorType = itk::TimeVaryingVelocityFieldIntegrationImageFilter<TimeVaryingVelocityFieldType, DisplacementFieldType>;
+  using IntegratorType =
+    itk::TimeVaryingVelocityFieldIntegrationImageFilter<TimeVaryingVelocityFieldType, DisplacementFieldType>;
   typename IntegratorType::Pointer integrator = IntegratorType::New();
-  integrator->SetInput( timeVaryingVelocity );
-  integrator->SetLowerTimeBound( starttime );
-  integrator->SetUpperTimeBound( finishtime );
-  integrator->SetNumberOfIntegrationSteps( (unsigned int ) 1 / dT );
+  integrator->SetInput(timeVaryingVelocity);
+  integrator->SetLowerTimeBound(starttime);
+  integrator->SetUpperTimeBound(finishtime);
+  integrator->SetNumberOfIntegrationSteps((unsigned int)1 / dT);
   integrator->Update();
 
-  ANTs::WriteImage<DisplacementFieldType>( integrator->GetOutput(), outname.c_str() );
+  ANTs::WriteImage<DisplacementFieldType>(integrator->GetOutput(), outname.c_str());
   return 0;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ANTSIntegrateVelocityField( std::vector<std::string> args, std::ostream* /*out_stream = nullptr */)
+int
+ANTSIntegrateVelocityField(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin(), "ANTSIntegrateVelocityField" );
+  args.insert(args.begin(), "ANTSIntegrateVelocityField");
   int     argc = args.size();
-  char* * argv = new char *[args.size() + 1];
-  for( unsigned int i = 0; i < args.size(); ++i )
-    {
+  char ** argv = new char *[args.size() + 1];
+  for (unsigned int i = 0; i < args.size(); ++i)
+  {
     // allocate space for the string plus a null character
     argv[i] = new char[args[i].length() + 1];
-    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    std::strncpy(argv[i], args[i].c_str(), args[i].length());
     // place the null character in the end
     argv[i][args[i].length()] = '\0';
-    }
+  }
   argv[argc] = nullptr;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-public:
-    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
-    {
-    }
+  public:
+    Cleanup_argv(char ** argv_, int argc_plus_one_)
+      : argv(argv_)
+      , argc_plus_one(argc_plus_one_)
+    {}
 
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0; i < argc_plus_one; ++i )
-        {
+      for (unsigned int i = 0; i < argc_plus_one; ++i)
+      {
         delete[] argv[i];
-        }
+      }
       delete[] argv;
     }
 
-private:
-    char* *      argv;
+  private:
+    char **      argv;
     unsigned int argc_plus_one;
   };
-  Cleanup_argv cleanup_argv( argv, argc + 1 );
+  Cleanup_argv cleanup_argv(argv, argc + 1);
 
   // antscout->set_stream( out_stream );
 
-  if( argc < 4 )
+  if (argc < 4)
+  {
+    std::cerr << "Usage:   " << argv[0] << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  "
+              << std::endl;
+    if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
-    std::cerr << "Usage:   " << argv[0]
-             << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  " << std::endl;
-    if( argc >= 2 &&
-        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
-      {
       return EXIT_SUCCESS;
-      }
-    return EXIT_FAILURE;
     }
+    return EXIT_FAILURE;
+  }
   std::cout << " start " << std::endl;
   std::string               ifn = std::string(argv[1]);
-  itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(ifn.c_str(), itk::IOFileModeEnum::ReadMode);
-  imageIO->SetFileName(ifn.c_str() );
+  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(ifn.c_str(), itk::IOFileModeEnum::ReadMode);
+  imageIO->SetFileName(ifn.c_str());
   imageIO->ReadImageInformation();
-  unsigned int dim =  imageIO->GetNumberOfDimensions();
+  unsigned int dim = imageIO->GetNumberOfDimensions();
   std::cout << " dim " << dim << std::endl;
 
-  switch( dim )
-    {
+  switch (dim)
+  {
     case 2:
-      {
+    {
       IntegrateVelocityField<2>(argc, argv);
-      }
-      break;
+    }
+    break;
     case 3:
-      {
+    {
       IntegrateVelocityField<3>(argc, argv);
-      }
-      break;
+    }
+    break;
     case 4:
-      {
+    {
       IntegrateVelocityField<4>(argc, argv);
-      }
-      break;
+    }
+    break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
-    }
+  }
 
   return EXIT_SUCCESS;
 }

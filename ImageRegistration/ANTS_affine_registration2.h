@@ -23,7 +23,7 @@
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include  "itkResampleImageFilter.h"
+#include "itkResampleImageFilter.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkWarpImageFilter.h"
 #include "itkWarpImageWAffineFilter.h"
@@ -38,8 +38,14 @@
 #include "itkRandomImageSource.h"
 #include "itkAddImageFilter.h"
 
-typedef enum { AffineWithMutualInformation = 1, AffineWithMeanSquareDifference, AffineWithHistogramCorrelation,
-               AffineWithNormalizedCorrelation, AffineWithGradientDifference } AffineMetricType;
+typedef enum
+{
+  AffineWithMutualInformation = 1,
+  AffineWithMeanSquareDifference,
+  AffineWithHistogramCorrelation,
+  AffineWithNormalizedCorrelation,
+  AffineWithGradientDifference
+} AffineMetricType;
 
 template <typename TAffineTransform, typename TMaskImage>
 class OptAffine
@@ -50,13 +56,13 @@ public:
   typedef TAffineTransform                   AffineTransformType;
   typedef TMaskImage                         MaskImageType;
   typedef typename MaskImageType::Pointer    MaskObjectPointerType;
-  OptAffine():
-  metric_type (AffineWithMutualInformation)
+  OptAffine()
+    : metric_type(AffineWithMutualInformation)
   {
     MI_bins = 32;
     MI_samples = 6000;
     number_of_seeds = 0;
-    time_seed = (unsigned int) time(nullptr);
+    time_seed = (unsigned int)time(nullptr);
     number_of_levels = 3;
     number_of_iteration_list.resize(number_of_levels, 10000);
     const int kParaDim = AffineTransformType::ParametersDimension;
@@ -97,51 +103,62 @@ public:
 };
 
 template <typename TAffineTransform, typename TMaskImage>
-std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransform,  TMaskImage>& p)
+std::ostream &
+operator<<(std::ostream & os, const OptAffine<TAffineTransform, TMaskImage> & p)
 {
   os << "OptAffine: ";
   os << "metric_type=";
 
-  switch( p.metric_type )
-    {
+  switch (p.metric_type)
+  {
     case AffineWithMutualInformation:
-      os << "AffineWithMutualInformation" << std::endl; break;
+      os << "AffineWithMutualInformation" << std::endl;
+      break;
     case AffineWithMeanSquareDifference:
-      os << "AffineWithMeanSquareDifference" << std::endl; break;
+      os << "AffineWithMeanSquareDifference" << std::endl;
+      break;
     case AffineWithHistogramCorrelation:
-      os << "AffineWithHistogramCorrelation" << std::endl; break;
+      os << "AffineWithHistogramCorrelation" << std::endl;
+      break;
     case AffineWithNormalizedCorrelation:
-      os << "AffineWithNormalizedCorrelation" << std::endl; break;
+      os << "AffineWithNormalizedCorrelation" << std::endl;
+      break;
     case AffineWithGradientDifference:
-      os << "AffineWithGradientDifference" << std::endl; break;
-    }
-  os << "MI_bins=" << p.MI_bins << " " << "MI_samples=" << p.MI_samples << std::endl;
-  os << "number_of_seeds=" << p.number_of_seeds << " " << "time_seed=" << p.time_seed << std::endl;
+      os << "AffineWithGradientDifference" << std::endl;
+      break;
+  }
+  os << "MI_bins=" << p.MI_bins << " "
+     << "MI_samples=" << p.MI_samples << std::endl;
+  os << "number_of_seeds=" << p.number_of_seeds << " "
+     << "time_seed=" << p.time_seed << std::endl;
   os << "number_of_levels=" << p.number_of_levels << std::endl;
-  os << "number_of_iteration_list=" << "[";
-  for( unsigned int i = 0; i < p.number_of_iteration_list.size() - 1; i++ )
-    {
+  os << "number_of_iteration_list="
+     << "[";
+  for (unsigned int i = 0; i < p.number_of_iteration_list.size() - 1; i++)
+  {
     os << p.number_of_iteration_list[i] << ",";
-    }
-  if( p.number_of_iteration_list.size() > 0 )
-    {
+  }
+  if (p.number_of_iteration_list.size() > 0)
+  {
     os << p.number_of_iteration_list[p.number_of_iteration_list.size() - 1];
-    }
+  }
   os << "]" << std::endl;
-  os << "graident_scales=" << "[";
-  for( unsigned int i = 0; i < p.gradient_scales.size() - 1; i++ )
-    {
+  os << "graident_scales="
+     << "[";
+  for (unsigned int i = 0; i < p.gradient_scales.size() - 1; i++)
+  {
     os << p.gradient_scales[i] << ",";
-    }
-  if( p.gradient_scales.size() > 0 )
-    {
+  }
+  if (p.gradient_scales.size() > 0)
+  {
     os << p.gradient_scales[p.gradient_scales.size() - 1];
-    }
+  }
   os << "]" << std::endl;
   os << "is_rigid = " << p.is_rigid << std::endl;
   os << "mask null: " << p.mask_fixed.IsNull() << std::endl;
 
-  os << "maximum_step_length=" << p.maximum_step_length << std::endl;;
+  os << "maximum_step_length=" << p.maximum_step_length << std::endl;
+  ;
   os << "relaxation_factor=" << p.relaxation_factor << std::endl;
   os << "minimum_step_length=" << p.minimum_step_length << std::endl;
   os << "translation_scales=" << p.translation_scales << std::endl;
@@ -150,8 +167,8 @@ std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransform,  T
 }
 
 template <typename TransformType>
-void WriteAffineTransformFile(typename TransformType::Pointer & transform,
-                              const std::string & filename)
+void
+WriteAffineTransformFile(typename TransformType::Pointer & transform, const std::string & filename)
 {
   itk::TransformFileWriter::Pointer transform_writer;
 
@@ -163,59 +180,60 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
 #endif
 
   try
-    {
+  {
     transform_writer->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
+  }
+  catch (itk::ExceptionObject & err)
+  {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << err << std::endl
-                     << "Exception in writing transform file: " << std::endl
-                     << filename << std::endl;
+              << "Exception in writing transform file: " << std::endl
+              << filename << std::endl;
     return;
-    }
+  }
 
   return;
 }
 
 template <typename CastTransformType>
-void ReadAffineTransformFile(const std::string & filename, typename CastTransformType::Pointer & transform)
+void
+ReadAffineTransformFile(const std::string & filename, typename CastTransformType::Pointer & transform)
 {
   //    const unsigned int InputSpaceDimension = CastTransformType::InputSpaceDimension;
   //    const unsigned int OutputSpaceDimension = CastTransformType::OutputSpaceDimension;
 
   itk::TransformFactory<CastTransformType>::RegisterTransform();
-  itk::TransformFactory<itk::ANTSAffine3DTransform<double> >::RegisterTransform();
+  itk::TransformFactory<itk::ANTSAffine3DTransform<double>>::RegisterTransform();
 
   typedef typename itk::TransformFileReader TranReaderType;
-  TranReaderType::Pointer tran_reader = TranReaderType::New();
+  TranReaderType::Pointer                   tran_reader = TranReaderType::New();
   tran_reader->SetFileName(filename);
 
   try
-    {
+  {
     tran_reader->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
+  }
+  catch (itk::ExceptionObject & err)
+  {
     std::cout << err << std::endl;
-    std::cout << "Exception caught in reading tran para file: "
-                     << filename << std::endl;
+    std::cout << "Exception caught in reading tran para file: " << filename << std::endl;
     return;
-    }
+  }
 
-  transform = dynamic_cast<CastTransformType *>( (tran_reader->GetTransformList() )->front().GetPointer() );
+  transform = dynamic_cast<CastTransformType *>((tran_reader->GetTransformList())->front().GetPointer());
 
   return;
 }
 
 template <typename OptAffine>
-void InitializeAffineOptmizationParameters(OptAffine & opt, double translationScale)
+void
+InitializeAffineOptmizationParameters(OptAffine & opt, double translationScale)
 {
   const int kImageDim = OptAffine::MaskImageType::ImageDimension;
 
-  switch( kImageDim )
-    {
+  switch (kImageDim)
+  {
     case 2:
-      {
+    {
       //        const double translationScale = 1.0 / 1000.0;
       opt.gradient_scales[0] = 1.0;
       opt.gradient_scales[1] = 1.0;
@@ -225,10 +243,10 @@ void InitializeAffineOptmizationParameters(OptAffine & opt, double translationSc
       opt.gradient_scales[5] = translationScale;
       opt.gradient_scales[6] = translationScale;
       opt.gradient_scales[7] = translationScale;
-      }
-      break;
+    }
+    break;
     case 3:
-      {
+    {
       //        const double translationScale = 1.0/1.e4;
       opt.gradient_scales[0] = 1.0; // quaternion
       opt.gradient_scales[1] = 1.0; // quaternion
@@ -243,9 +261,9 @@ void InitializeAffineOptmizationParameters(OptAffine & opt, double translationSc
       opt.gradient_scales[10] = translationScale;
       opt.gradient_scales[11] = translationScale;
       opt.gradient_scales[12] = translationScale;
-      }
-      break;
     }
+    break;
+  }
 
   std::cout << opt;
 }
@@ -276,7 +294,8 @@ public:
 };
 
 template <typename ImageTypePointer, typename AffineTransformPointer>
-void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPointer & aff)
+void
+GetAffineTransformFromImage(const ImageTypePointer & img, AffineTransformPointer & aff)
 {
   typedef typename ImageTypePointer::ObjectType                        ImageType;
   typedef typename ImageType::DirectionType                            DirectionType;
@@ -293,16 +312,23 @@ void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPoi
 }
 
 // //////////////////////////////////////////////////////////////////////
-template <typename ImagePointerType, typename RunningImagePointerType, typename OptAffineType, typename RunningOptAffineType>
-inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePointerType& R_fixedImage,
-                                  ImagePointerType & movingImage, RunningImagePointerType& R_movingImage,
-                                  OptAffineType & opt, RunningOptAffineType & R_opt)
+template <typename ImagePointerType,
+          typename RunningImagePointerType,
+          typename OptAffineType,
+          typename RunningOptAffineType>
+inline void
+PreConversionInAffine(ImagePointerType &        fixedImage,
+                      RunningImagePointerType & R_fixedImage,
+                      ImagePointerType &        movingImage,
+                      RunningImagePointerType & R_movingImage,
+                      OptAffineType &           opt,
+                      RunningOptAffineType &    R_opt)
 {
   typedef typename OptAffineType::AffineTransformType        AffineTransformType;
   typedef typename RunningOptAffineType::AffineTransformType RunningAffineTransformType;
 
-  if( opt.use_rotation_header )
-    {
+  if (opt.use_rotation_header)
+  {
     std::cout << "===================>initialize from rotation header ... " << std::endl;
     // use the rotation header to initialize the affine: inv(Tm) * Tf
     typename AffineTransformType::Pointer aff_Im = AffineTransformType::New();
@@ -310,8 +336,8 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
     typename AffineTransformType::Pointer aff_If = AffineTransformType::New();
     GetAffineTransformFromImage(fixedImage, aff_If);
     typename AffineTransformType::Pointer aff_combined = AffineTransformType::New();
-    aff_combined->SetFixedParameters(aff_If->GetFixedParameters() );
-    aff_combined->SetParameters(aff_If->GetParameters() );
+    aff_combined->SetFixedParameters(aff_If->GetFixedParameters());
+    aff_combined->SetParameters(aff_If->GetParameters());
     typename AffineTransformType::Pointer aff_Im_inv = AffineTransformType::New();
     aff_Im->GetInverse(aff_Im_inv);
     aff_combined->Compose(aff_Im_inv, 0);
@@ -320,10 +346,10 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
     //            std::cout << "aff_If: " << aff_If << std::endl;
     //            std::cout << "aff_Im: " << aff_Im << std::endl;
     //            std::cout << "aff_combined: " << aff_combined << std::endl;
-    }
+  }
 
-  if( !opt.use_rotation_header && opt.ignore_void_orgin )
-    {
+  if (!opt.use_rotation_header && opt.ignore_void_orgin)
+  {
     std::cout
       << "===================> ignore void origins which are too far away to be possible alignments: use 0 instead."
       << std::endl;
@@ -335,51 +361,42 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
     bool b_far_origin_without_rotation = false;
     // bool b_far_origin_without_rotation = HaveFarOriginWithoutRotation(aff_If, aff_Im);
 
-    if( b_far_origin_without_rotation )
-      {
+    if (b_far_origin_without_rotation)
+    {
       typename AffineTransformType::Pointer aff_combined = AffineTransformType::New();
-      aff_combined->SetFixedParameters(aff_If->GetFixedParameters() );
-      aff_combined->SetParameters(aff_If->GetParameters() );
+      aff_combined->SetFixedParameters(aff_If->GetFixedParameters());
+      aff_combined->SetParameters(aff_If->GetParameters());
       typename AffineTransformType::Pointer aff_Im_inv = AffineTransformType::New();
       aff_Im->GetInverse(aff_Im_inv);
       aff_combined->Compose(aff_Im_inv, 0);
       opt.transform_initial = aff_combined;
-      }
     }
+  }
 
-  if( opt.transform_initial.IsNotNull() )
-    {
+  if (opt.transform_initial.IsNotNull())
+  {
     R_opt.transform_initial = RunningAffineTransformType::New();
 
-    R_opt.transform_initial->SetCenter(*(reinterpret_cast<typename RunningAffineTransformType::InputPointType *>
-                                         (const_cast<typename AffineTransformType::InputPointType *>(&(opt.
-                                                                                                       transform_initial
-                                                                                                       ->GetCenter() ) ) ) ) );
-    R_opt.transform_initial->SetMatrix(*(reinterpret_cast<typename RunningAffineTransformType::MatrixType *>
-                                         (const_cast<typename AffineTransformType::MatrixType *>(&(opt.
-                                                                                                   transform_initial->
-                                                                                                   GetMatrix() ) ) ) ) );
-    R_opt.transform_initial->SetTranslation(*(reinterpret_cast<typename RunningAffineTransformType::OutputVectorType *>
-                                              (const_cast<typename AffineTransformType::OutputVectorType *>(&(opt.
-                                                                                                              transform_initial
-                                                                                                              ->
-                                                                                                              GetTranslation() ) ) ) ) );
-    }
+    R_opt.transform_initial->SetCenter(*(reinterpret_cast<typename RunningAffineTransformType::InputPointType *>(
+      const_cast<typename AffineTransformType::InputPointType *>(&(opt.transform_initial->GetCenter())))));
+    R_opt.transform_initial->SetMatrix(*(reinterpret_cast<typename RunningAffineTransformType::MatrixType *>(
+      const_cast<typename AffineTransformType::MatrixType *>(&(opt.transform_initial->GetMatrix())))));
+    R_opt.transform_initial->SetTranslation(*(reinterpret_cast<typename RunningAffineTransformType::OutputVectorType *>(
+      const_cast<typename AffineTransformType::OutputVectorType *>(&(opt.transform_initial->GetTranslation())))));
+  }
 
   // std::cout << "R_opt.transform_initial" << R_opt.transform_initial << std::endl;
 
-  if( opt.mask_fixed.IsNotNull() )
+  if (opt.mask_fixed.IsNotNull())
+  {
+    R_opt.mask_fixed = dynamic_cast<typename RunningOptAffineType::MaskImageType *>(opt.mask_fixed.GetPointer());
+    if (R_opt.mask_fixed.IsNull())
     {
-    R_opt.mask_fixed =
-      dynamic_cast<typename RunningOptAffineType::MaskImageType *>
-      (opt.mask_fixed.GetPointer() );
-    if( R_opt.mask_fixed.IsNull() )
-      {
       itkGenericExceptionMacro(<< "Can't convert optimizer mask to proper mask type.");
-      }
+    }
     // have to set " -fno-strict-aliasing " in gcc to remove the following compilation warning:
     //  warning: dereferencing type-punned pointer will break strict-aliasing rules
-    }
+  }
 
   R_fixedImage = reinterpret_cast<RunningImagePointerType &>(fixedImage);
   R_movingImage = reinterpret_cast<RunningImagePointerType &>(movingImage);
@@ -405,20 +422,18 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
 
 // //////////////////////////////////////////////////////////////////////
 template <typename RunningAffineTransformPointerType, typename AffineTransformPointerType>
-inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
-                                   AffineTransformPointerType & transform)
+inline void
+PostConversionInAffine(RunningAffineTransformPointerType & transform_running, AffineTransformPointerType & transform)
 {
   typedef typename RunningAffineTransformPointerType::ObjectType RunningAffineTransformType;
   typedef typename AffineTransformPointerType::ObjectType        AffineTransformType;
 
-  transform->SetCenter(*(reinterpret_cast<typename AffineTransformType::InputPointType *>
-                         (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
-                                                                                              GetCenter() ) ) ) ) );
-  transform->SetTranslation(*(reinterpret_cast<typename AffineTransformType::OutputVectorType *>
-                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running
-                                                                                                     ->GetTranslation() ) ) ) ) );
-  transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
-                         (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
+  transform->SetCenter(*(reinterpret_cast<typename AffineTransformType::InputPointType *>(
+    const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->GetCenter())))));
+  transform->SetTranslation(*(reinterpret_cast<typename AffineTransformType::OutputVectorType *>(
+    const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running->GetTranslation())))));
+  transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>(
+    const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix())))));
 
   // std::cout << "transform_running" << transform_running << std::endl;
   // std::cout << "transform" << transform << std::endl;
@@ -426,10 +441,11 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
 
 // /////////////////////////////////////////////////////////////////////////////
 template <typename ImageType, typename TransformType, typename OptAffineType>
-void ComputeSingleAffineTransform2D3D(typename ImageType::Pointer & fixed_image,
-                                      typename ImageType::Pointer & moving_image,
-                                      OptAffineType & opt,
-                                      typename TransformType::Pointer & transform)
+void
+ComputeSingleAffineTransform2D3D(typename ImageType::Pointer &     fixed_image,
+                                 typename ImageType::Pointer &     moving_image,
+                                 OptAffineType &                   opt,
+                                 typename TransformType::Pointer & transform)
 {
   const int ImageDimension = ImageType::ImageDimension;
 
@@ -451,125 +467,121 @@ void ComputeSingleAffineTransform2D3D(typename ImageType::Pointer & fixed_image,
   transform = TransformType::New();
   ParaType para_final(TransformType::ParametersDimension);
 
-  switch( opt.metric_type )
-    {
+  switch (opt.metric_type)
+  {
     case AffineWithMeanSquareDifference:
-      {
-      typedef itk::MeanSquaresImageToImageMetric<ImageType,
-                                                 ImageType> MetricType;
-      typedef RunningAffineCache<ImageMaskSpatialObjectType,
-                                 ImagePyramidType, MetricType, InterpolatorType> RunningAffineCacheType;
+    {
+      typedef itk::MeanSquaresImageToImageMetric<ImageType, ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType, InterpolatorType>
+        RunningAffineCacheType;
 
       RunningAffineCacheType running_cache;
       InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
       RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
+    }
+    break;
     case AffineWithHistogramCorrelation:
-      {
-      typedef itk::CorrelationCoefficientHistogramImageToImageMetric<ImageType,
-                                                                     ImageType> MetricType;
-      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType,
-                                 InterpolatorType> RunningAffineCacheType;
+    {
+      typedef itk::CorrelationCoefficientHistogramImageToImageMetric<ImageType, ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType, InterpolatorType>
+        RunningAffineCacheType;
 
       RunningAffineCacheType running_cache;
 
       InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
-      unsigned int nBins = 32;
+      unsigned int                                 nBins = 32;
       typename MetricType::HistogramType::SizeType histSize;
       histSize[0] = nBins;
       histSize[1] = nBins;
       running_cache.metric->SetHistogramSize(histSize);
       RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
+    }
+    break;
     case AffineWithNormalizedCorrelation:
-      {
-      typedef itk::NormalizedCorrelationImageToImageMetric<ImageType,
-                                                           ImageType> MetricType;
-      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType,
-                                 InterpolatorType> RunningAffineCacheType;
+    {
+      typedef itk::NormalizedCorrelationImageToImageMetric<ImageType, ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType, InterpolatorType>
+        RunningAffineCacheType;
 
       RunningAffineCacheType running_cache;
       InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
       RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
+    }
+    break;
     case AffineWithGradientDifference:
-      {
-      typedef itk::GradientDifferenceImageToImageMetric<ImageType,
-                                                        ImageType> MetricType;
-      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType,
-                                 InterpolatorType>          RunningAffineCacheType;
+    {
+      typedef itk::GradientDifferenceImageToImageMetric<ImageType, ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType, InterpolatorType>
+        RunningAffineCacheType;
 
       RunningAffineCacheType running_cache;
       InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
       RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
+    }
+    break;
     case AffineWithMutualInformation:
-      {
-      typedef itk::MattesMutualInformationImageToImageMetric<ImageType,
-                                                             ImageType> MetricType;
-      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType,
-                                 InterpolatorType>               RunningAffineCacheType;
+    {
+      typedef itk::MattesMutualInformationImageToImageMetric<ImageType, ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType, InterpolatorType>
+        RunningAffineCacheType;
 
       RunningAffineCacheType running_cache;
       InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
 
-      running_cache.metric->SetNumberOfHistogramBins( opt.MI_bins );
-      running_cache.metric->SetNumberOfSpatialSamples( opt.MI_samples );
+      running_cache.metric->SetNumberOfHistogramBins(opt.MI_bins);
+      running_cache.metric->SetNumberOfSpatialSamples(opt.MI_samples);
 
       RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
+    }
+    break;
     default:
       break;
-    }
+  }
 
   bool noaffine = true;
-  for( int i = 0; i < opt.number_of_levels; i++ )
+  for (int i = 0; i < opt.number_of_levels; i++)
+  {
+    if (opt.number_of_iteration_list[i] > 0)
     {
-    if( opt.number_of_iteration_list[i] > 0 )
-      {
       noaffine = false;
-      }
     }
-  if( noaffine )
+  }
+  if (noaffine)
+  {
+    for (unsigned int i = TransformType::ParametersDimension - ImageDimension; i < TransformType::ParametersDimension;
+         i++)
     {
-    for( unsigned int i = TransformType::ParametersDimension - ImageDimension;  i < TransformType::ParametersDimension; i++ )
-      {
       para_final[i] = 0;
-      }
     }
+  }
 
   transform->SetParameters(para_final);
-  transform->SetCenter(opt.transform_initial->GetCenter() );
+  transform->SetCenter(opt.transform_initial->GetCenter());
 
-  double rval_init = TestCostValueMMI(fixed_image, moving_image,
-                                      opt.transform_initial->GetParameters(),
-                                      opt.transform_initial->GetCenter(), transform);
+  double rval_init = TestCostValueMMI(
+    fixed_image, moving_image, opt.transform_initial->GetParameters(), opt.transform_initial->GetCenter(), transform);
 
   // std::cout << "ABCDABCD: " << transform << std::endl;
 
-  double rval_final = TestCostValueMMI(fixed_image, moving_image, para_final,
-                                       opt.transform_initial->GetCenter(), transform);
+  double rval_final =
+    TestCostValueMMI(fixed_image, moving_image, para_final, opt.transform_initial->GetCenter(), transform);
 
   std::cout << "outputput affine center: " << transform->GetCenter() << std::endl;
   std::cout << "output affine para: " << transform->GetParameters() << std::endl;
   std::cout << "initial measure value (MMI): rval = " << rval_init << std::endl;
   std::cout << "final measure value (MMI): rval = " << rval_final << std::endl;
-  std::cout << "finish affine registeration..."  <<  std::endl;
+  std::cout << "finish affine registeration..." << std::endl;
 }
 
 // /////////////////////////////////////////////////////////////////////////
 // the initial transform maybe any derivative class type from MatrixOffsetTransformBase,
 // it will be automatically converted to the my 2D/3D affine type
 template <typename ImageType, typename TransformType, typename OptAffineType>
-void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
-                                  typename ImageType::Pointer & movingImage,
-                                  OptAffineType & opt,
-                                  typename TransformType::Pointer & transform)
+void
+ComputeSingleAffineTransform(typename ImageType::Pointer &     fixedImage,
+                             typename ImageType::Pointer &     movingImage,
+                             OptAffineType &                   opt,
+                             typename TransformType::Pointer & transform)
 {
   const int ImageDimension = ImageType::ImageDimension;
 
@@ -577,71 +589,72 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
 
   std::cout << "transform_initial: IsNotNull():" << opt.transform_initial.IsNotNull() << std::endl;
 
-  if( ImageDimension == 2 )
-    {
+  if (ImageDimension == 2)
+  {
     typedef itk::ANTSCenteredAffine2DTransform<double>   RunningAffineTransformType;
     typedef typename RunningAffineTransformType::Pointer RunningAffineTransformPointerType;
-    constexpr unsigned int RunningImageDimension = 2;
+    constexpr unsigned int                               RunningImageDimension = 2;
 
     typedef typename itk::Image<PixelType, RunningImageDimension>   RunningImageType;
     typedef typename RunningImageType::Pointer                      RunningImagePointerType;
     typedef OptAffine<RunningAffineTransformType, RunningImageType> RunningOptAffineType;
 
-    RunningImagePointerType           R_fixedImage, R_movingImage;
-    RunningOptAffineType              R_opt;
+    RunningImagePointerType R_fixedImage, R_movingImage;
+    RunningOptAffineType    R_opt;
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 
     RunningAffineTransformPointerType transform_running = nullptr;
-    ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>
-      (R_fixedImage, R_movingImage, R_opt, transform_running);
+    ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>(
+      R_fixedImage, R_movingImage, R_opt, transform_running);
 
     PostConversionInAffine(transform_running, transform);
-    }
-  else if( ImageDimension == 3 )
-    {
+  }
+  else if (ImageDimension == 3)
+  {
     typedef itk::ANTSAffine3DTransform<double>           RunningAffineTransformType;
     typedef typename RunningAffineTransformType::Pointer RunningAffineTransformPointerType;
-    constexpr unsigned int RunningImageDimension = 3;
+    constexpr unsigned int                               RunningImageDimension = 3;
 
     typedef typename itk::Image<PixelType, RunningImageDimension>   RunningImageType;
     typedef typename RunningImageType::Pointer                      RunningImagePointerType;
     typedef OptAffine<RunningAffineTransformType, RunningImageType> RunningOptAffineType;
 
-    RunningImagePointerType           R_fixedImage, R_movingImage;
-    RunningOptAffineType              R_opt;
+    RunningImagePointerType R_fixedImage, R_movingImage;
+    RunningOptAffineType    R_opt;
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 
     RunningAffineTransformPointerType transform_running = nullptr;
-    ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>
-      (R_fixedImage, R_movingImage, R_opt, transform_running);
+    ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>(
+      R_fixedImage, R_movingImage, R_opt, transform_running);
 
     PostConversionInAffine(transform_running, transform);
-    }
+  }
   else
-    {
+  {
     std::cout << "Unsupported, not 2D/ 3D" << std::endl;
     return;
-    }
+  }
 }
 
 // /////////////////////////////////////////////////////////////////////////////
 template <typename MaskImagePointerType, typename ImageMaskSpatialObjectPointerType>
-void InitialzeImageMask(MaskImagePointerType & mask_fixed, ImageMaskSpatialObjectPointerType & mask_fixed_object)
+void
+InitialzeImageMask(MaskImagePointerType & mask_fixed, ImageMaskSpatialObjectPointerType & mask_fixed_object)
 {
-  if( mask_fixed.IsNull() )
-    {
+  if (mask_fixed.IsNull())
+  {
     return;
-    }
+  }
 
-  const unsigned int ImageDimension = MaskImagePointerType::ObjectType::ImageDimension;
-  typedef typename MaskImagePointerType::ObjectType              MaskImageType;
+  const unsigned int                                ImageDimension = MaskImagePointerType::ObjectType::ImageDimension;
+  typedef typename MaskImagePointerType::ObjectType MaskImageType;
   typedef typename ImageMaskSpatialObjectPointerType::ObjectType ImageMaskSpatialObjectType;
 
   typedef itk::Image<unsigned char, ImageDimension>              CharMaskImageType;
   typedef itk::CastImageFilter<MaskImageType, CharMaskImageType> CastFilterType;
-  typename CastFilterType::Pointer cast_filter = CastFilterType::New();
+  typename CastFilterType::Pointer                               cast_filter = CastFilterType::New();
   cast_filter->SetInput(mask_fixed);
   cast_filter->Update();
   typename CharMaskImageType::Pointer mask_fixed_char = cast_filter->GetOutput();
@@ -657,24 +670,21 @@ AddRandomNoise(ImagePointerType & I)
 {
   typedef typename ImagePointerType::ObjectType ImageType;
 
-  typename itk::RandomImageSource<ImageType>::Pointer randomImageSource =
-    itk::RandomImageSource<ImageType>::New();
+  typename itk::RandomImageSource<ImageType>::Pointer randomImageSource = itk::RandomImageSource<ImageType>::New();
 
-  randomImageSource->SetOrigin(I->GetOrigin() );
-  randomImageSource->SetSpacing(I->GetSpacing() );
-  randomImageSource->SetSize(I->GetBufferedRegion().GetSize() );
+  randomImageSource->SetOrigin(I->GetOrigin());
+  randomImageSource->SetSpacing(I->GetSpacing());
+  randomImageSource->SetSize(I->GetBufferedRegion().GetSize());
   randomImageSource->SetMin(0);
   randomImageSource->SetMax(0.001);
   randomImageSource->Update();
-  randomImageSource->GetOutput()->SetDirection(I->GetDirection() );
+  randomImageSource->GetOutput()->SetDirection(I->GetDirection());
 
-  typedef itk::AddImageFilter<ImageType, ImageType>
-    AddImageFilterType;
+  typedef itk::AddImageFilter<ImageType, ImageType> AddImageFilterType;
 
-  typename AddImageFilterType::Pointer addFilter
-    = AddImageFilterType::New();
+  typename AddImageFilterType::Pointer addFilter = AddImageFilterType::New();
   addFilter->SetInput1(I);
-  addFilter->SetInput2(randomImageSource->GetOutput() );
+  addFilter->SetInput2(randomImageSource->GetOutput());
   addFilter->Update();
 
   return addFilter->GetOutput();
@@ -682,8 +692,11 @@ AddRandomNoise(ImagePointerType & I)
 
 // /////////////////////////////////////////////////////////////////////////////
 template <typename ImagePointerType, typename PointType, typename VectorType>
-void ComputeInitialPosition(ImagePointerType & I_fixed, ImagePointerType & I_moving, PointType & center,
-                            VectorType & translation_vec)
+void
+ComputeInitialPosition(ImagePointerType & I_fixed,
+                       ImagePointerType & I_moving,
+                       PointType &        center,
+                       VectorType &       translation_vec)
 {
   typedef typename ImagePointerType::ObjectType           ImageType;
   typedef typename itk::ImageMomentsCalculator<ImageType> ImageCalculatorType;
@@ -697,44 +710,48 @@ void ComputeInitialPosition(ImagePointerType & I_fixed, ImagePointerType & I_mov
 
   // a dirty fix to handle the constant/blank images after preprocessing
   try
-    {
-    calculator->SetImage(  I_fixed );
+  {
+    calculator->SetImage(I_fixed);
     calculator->Compute();
     fixed_center = calculator->GetCenterOfGravity();
 
-    calculator->SetImage(  I_moving );
+    calculator->SetImage(I_moving);
     calculator->Compute();
     moving_center = calculator->GetCenterOfGravity();
-    }
-  catch( ... )
-    {
+  }
+  catch (...)
+  {
     // try to add a small amount of noise to avoid exception from computing moments
     std::cout << "try to add a small amount of noise to avoid exception"
-      " from computing moments" << std::endl;
+                 " from computing moments"
+              << std::endl;
     ImagePointerType If1 = AddRandomNoise(I_fixed);
     ImagePointerType Im1 = AddRandomNoise(I_moving);
 
     //  calculator->SetImage(  I_fixed );
-    calculator->SetImage(  If1 );
+    calculator->SetImage(If1);
     calculator->Compute();
     fixed_center = calculator->GetCenterOfGravity();
 
     //  calculator->SetImage(  I_moving );
-    calculator->SetImage(  Im1 );
+    calculator->SetImage(Im1);
     calculator->Compute();
     moving_center = calculator->GetCenterOfGravity();
-    }
-  for( unsigned int i = 0; i < ImageDimension; i++ )
-    {
+  }
+  for (unsigned int i = 0; i < ImageDimension; i++)
+  {
     center[i] = fixed_center[i];
     translation_vec[i] = moving_center[i] - fixed_center[i];
-    }
+  }
 }
 
 // fake a all-zero vector
 template <typename ImagePointerType, typename PointType, typename VectorType>
-void ComputeInitialPosition_tmp(ImagePointerType & I_fixed, ImagePointerType & I_moving, PointType & center,
-                                VectorType & translation_vec)
+void
+ComputeInitialPosition_tmp(ImagePointerType & I_fixed,
+                           ImagePointerType & I_moving,
+                           PointType &        center,
+                           VectorType &       translation_vec)
 {
   typedef typename ImagePointerType::ObjectType           ImageType;
   typedef typename itk::ImageMomentsCalculator<ImageType> ImageCalculatorType;
@@ -743,29 +760,30 @@ void ComputeInitialPosition_tmp(ImagePointerType & I_fixed, ImagePointerType & I
 
   typename ImageCalculatorType::Pointer calculator = ImageCalculatorType::New();
 
-  calculator->SetImage(  I_fixed );
+  calculator->SetImage(I_fixed);
   calculator->Compute();
   typename ImageCalculatorType::VectorType fixed_center = calculator->GetCenterOfGravity();
 
-  calculator->SetImage(  I_moving );
+  calculator->SetImage(I_moving);
   calculator->Compute();
   typename ImageCalculatorType::VectorType moving_center = calculator->GetCenterOfGravity();
-  for( unsigned int i = 0; i < ImageDimension; i++ )
-    {
+  for (unsigned int i = 0; i < ImageDimension; i++)
+  {
     center[i] = fixed_center[i];
     translation_vec[i] = fixed_center[i] - fixed_center[i];
-    }
+  }
 }
 
 // /////////////////////////////////////////////////////////////////////////////
 template <typename PointType, typename VectorType, typename TransformPointerType>
-void InjectInitialPara(PointType & center, VectorType & translation_vec, TransformPointerType & transform)
+void
+InjectInitialPara(PointType & center, VectorType & translation_vec, TransformPointerType & transform)
 {
   typedef typename TransformPointerType::ObjectType::ParametersType ParaType;
   ParaType para0(TransformPointerType::ObjectType::ParametersDimension);
 
-  switch( (unsigned int) PointType::PointDimension )
-    {
+  switch ((unsigned int)PointType::PointDimension)
+  {
     case 2:
       para0[0] = 0;                  // para1[0]; // theta
       para0[1] = 1.0;                // s1
@@ -781,23 +799,36 @@ void InjectInitialPara(PointType & center, VectorType & translation_vec, Transfo
 
       break;
     case 3:
-      para0[0] = 0.0; para0[1] = 0.0;      para0[2] = 0.0;        para0[3] = 1.0;
-      para0[4] = 1.0; para0[5] = 1.0;   para0[6] = 1.0;
-      para0[7] = 0.0;  para0[8] = 0.0;     para0[9] = 0.0;
-      para0[10] = translation_vec[0]; para0[11] = translation_vec[1];   para0[12] = translation_vec[2];
+      para0[0] = 0.0;
+      para0[1] = 0.0;
+      para0[2] = 0.0;
+      para0[3] = 1.0;
+      para0[4] = 1.0;
+      para0[5] = 1.0;
+      para0[6] = 1.0;
+      para0[7] = 0.0;
+      para0[8] = 0.0;
+      para0[9] = 0.0;
+      para0[10] = translation_vec[0];
+      para0[11] = translation_vec[1];
+      para0[12] = translation_vec[2];
       // para0[10] = 0.0; para0[11] = 0.0;   para0[12] = 0.0;
 
       transform->SetParameters(para0);
       transform->SetCenter(center);
 
       break;
-    }
+  }
 }
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 template <typename ImagePointerType, typename ParaType, typename PointType, typename TransformTypePointer>
-double TestCostValueMMI(ImagePointerType fixedImage, ImagePointerType movingImage, ParaType para, PointType center,
-                        TransformTypePointer /* null_transform */)
+double
+TestCostValueMMI(ImagePointerType fixedImage,
+                 ImagePointerType movingImage,
+                 ParaType         para,
+                 PointType        center,
+                 TransformTypePointer /* null_transform */)
 {
   typedef typename ImagePointerType::ObjectType     ImageType;
   typedef typename TransformTypePointer::ObjectType TransformType;
@@ -810,84 +841,87 @@ double TestCostValueMMI(ImagePointerType fixedImage, ImagePointerType movingImag
   typename mattesMutualInfoMetricType::Pointer mattesMutualInfo = mattesMutualInfoMetricType::New();
 
   typedef typename itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  typename InterpolatorType::Pointer                                      interpolator = InterpolatorType::New();
 
   interpolator->SetInputImage(movingImage);
 
   mattesMutualInfo->SetFixedImage(fixedImage);
   mattesMutualInfo->SetMovingImage(movingImage);
-  mattesMutualInfo->SetFixedImageRegion(fixedImage->GetBufferedRegion() );
+  mattesMutualInfo->SetFixedImageRegion(fixedImage->GetBufferedRegion());
   mattesMutualInfo->SetTransform(transform);
   mattesMutualInfo->SetInterpolator(interpolator);
-  mattesMutualInfo->SetNumberOfHistogramBins( 32 );
-  mattesMutualInfo->SetNumberOfSpatialSamples( 5000 );
+  mattesMutualInfo->SetNumberOfHistogramBins(32);
+  mattesMutualInfo->SetNumberOfSpatialSamples(5000);
   mattesMutualInfo->SetTransformParameters(para);
   mattesMutualInfo->Initialize();
   double rval = 0;
   try
-    {
+  {
     rval = mattesMutualInfo->GetValue(para);
-    }
-  catch( itk::ExceptionObject & err )
-    {
+  }
+  catch (itk::ExceptionObject & err)
+  {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << err << std::endl
-                     << "Exception caught in computing mattesMutualInfo after registration" << std::endl
-                     << "Maybe: Too many samples map outside moving image buffer" << std::endl
-                     << "Set the cost value = 0 (max for MutualInfo) " << std::endl;
+              << "Exception caught in computing mattesMutualInfo after registration" << std::endl
+              << "Maybe: Too many samples map outside moving image buffer" << std::endl
+              << "Set the cost value = 0 (max for MutualInfo) " << std::endl;
     rval = 0;
-    }
+  }
 
   return rval;
 }
 
 template <typename ImagePointer>
-ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
+ImagePointer
+ShrinkImageToScale(ImagePointer image, float scalingFactor)
 {
   typedef typename ImagePointer::ObjectType ImageType;
   typedef typename ImageType::PixelType     RealType;
 
   typedef typename ImagePointer::ObjectType ImageType;
-  typename ImageType::SpacingType inputSpacing = image->GetSpacing();
-  typename ImageType::RegionType::SizeType inputSize = image->GetRequestedRegion().GetSize();
+  typename ImageType::SpacingType           inputSpacing = image->GetSpacing();
+  typename ImageType::RegionType::SizeType  inputSize = image->GetRequestedRegion().GetSize();
 
-  typename ImageType::SpacingType outputSpacing;
+  typename ImageType::SpacingType          outputSpacing;
   typename ImageType::RegionType::SizeType outputSize;
 
   typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
-  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  typename ResampleFilterType::Pointer                   resampler = ResampleFilterType::New();
 
   RealType minimumSpacing = inputSpacing.GetVnlVector().min_value();
   //    RealType maximumSpacing = inputSpacing.GetVnlVector().max_value();
 
   ImagePointer current_image = image;
-  for( unsigned int d = 0; d < ImageType::ImageDimension; d++ )
-    {
-    RealType scaling = static_cast<RealType>( std::min( scalingFactor *
-      static_cast<float>( minimumSpacing ) / static_cast<float>( inputSpacing[d] ),
-      static_cast<float>( inputSize[d] ) / 32.0f ) );
-    outputSpacing[d] = inputSpacing[d] * static_cast<double>( scaling );
-    outputSize[d] = static_cast<unsigned long>( static_cast<RealType>( inputSpacing[d] )
-                                                * static_cast<RealType>( inputSize[d] ) / static_cast<RealType>( outputSpacing[d] ) + static_cast<RealType>( 0.5 ) );
+  for (unsigned int d = 0; d < ImageType::ImageDimension; d++)
+  {
+    RealType scaling = static_cast<RealType>(
+      std::min(scalingFactor * static_cast<float>(minimumSpacing) / static_cast<float>(inputSpacing[d]),
+               static_cast<float>(inputSize[d]) / 32.0f));
+    outputSpacing[d] = inputSpacing[d] * static_cast<double>(scaling);
+    outputSize[d] =
+      static_cast<unsigned long>(static_cast<RealType>(inputSpacing[d]) * static_cast<RealType>(inputSize[d]) /
+                                   static_cast<RealType>(outputSpacing[d]) +
+                                 static_cast<RealType>(0.5));
 
     typedef itk::RecursiveGaussianImageFilter<ImageType, ImageType> GaussianFilterType;
-    typename GaussianFilterType::Pointer smoother = GaussianFilterType::New();
-    smoother->SetInputImage( current_image  );
-    smoother->SetDirection( d );
-    smoother->SetNormalizeAcrossScale( false );
-    smoother->SetSigma( 0.25 * ( outputSpacing[d] / inputSpacing[d]  ) );
+    typename GaussianFilterType::Pointer                            smoother = GaussianFilterType::New();
+    smoother->SetInputImage(current_image);
+    smoother->SetDirection(d);
+    smoother->SetNormalizeAcrossScale(false);
+    smoother->SetSigma(0.25 * (outputSpacing[d] / inputSpacing[d]));
 
-    if( smoother->GetSigma() > 0.0 )
-      {
+    if (smoother->GetSigma() > 0.0)
+    {
       smoother->Update();
-      current_image  = smoother->GetOutput();
-      }
+      current_image = smoother->GetOutput();
     }
+  }
 
-  resampler->SetInput(current_image );
+  resampler->SetInput(current_image);
   resampler->SetSize(outputSize);
   resampler->SetOutputSpacing(outputSpacing);
-  resampler->SetOutputOrigin(image->GetOrigin() );
-  resampler->SetOutputDirection(image->GetDirection() );
+  resampler->SetOutputOrigin(image->GetOrigin());
+  resampler->SetOutputDirection(image->GetDirection());
 
   resampler->Update();
 
@@ -899,17 +933,18 @@ ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
 }
 
 template <typename ImagePointerType, typename ImagePyramidType>
-void BuildImagePyramid(const ImagePointerType & image, int number_of_levels, ImagePyramidType & image_pyramid)
+void
+BuildImagePyramid(const ImagePointerType & image, int number_of_levels, ImagePyramidType & image_pyramid)
 {
   image_pyramid.resize(number_of_levels);
 
   image_pyramid[number_of_levels - 1] = image;
   double scale_factor = 2;
-  for( int i = 0; i < number_of_levels - 1; i++ )
-    {
+  for (int i = 0; i < number_of_levels - 1; i++)
+  {
     image_pyramid[number_of_levels - 2 - i] = ShrinkImageToScale(image, scale_factor);
     scale_factor *= 2;
-    }
+  }
 
   //    for(int i=0; i < number_of_levels; i++)
   //        std::cout << "level " << i << ": size: " << image_pyramid[i]->GetLargestPossibleRegion().GetSize() <<
@@ -917,8 +952,11 @@ void BuildImagePyramid(const ImagePointerType & image, int number_of_levels, Ima
 }
 
 template <typename ImagePointerType, typename OptAffineType, typename RunningAffineCacheType>
-void InitializeRunningAffineCache(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType & opt,
-                                  RunningAffineCacheType & running_cache)
+void
+InitializeRunningAffineCache(ImagePointerType &       fixed_image,
+                             ImagePointerType &       moving_image,
+                             OptAffineType &          opt,
+                             RunningAffineCacheType & running_cache)
 {
   typedef typename RunningAffineCacheType::InterpolatorType InterpolatorType;
   typedef typename RunningAffineCacheType::MetricType       MetricType;
@@ -933,7 +971,8 @@ void InitializeRunningAffineCache(ImagePointerType & fixed_image, ImagePointerTy
 }
 
 template <typename ImagePointerType, typename OptAffineType>
-void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType& opt)
+void
+InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType & opt)
 {
   typedef typename OptAffineType::AffineTransformType TransformType;
   typedef typename TransformType::InputPointType      PointType;
@@ -943,8 +982,8 @@ void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType
   std::cout << " opt.use_rotation_header: " << opt.use_rotation_header << std::endl;
   std::cout << " opt.ignore_void_orgin: " << opt.ignore_void_orgin << std::endl;
 
-  if( opt.transform_initial.IsNull() )
-    {
+  if (opt.transform_initial.IsNull())
+  {
     PointType  center;
     VectorType translation_vec;
     // std::cout << "GS: debug: fake a all zero translation_vec" << std::endl;
@@ -952,39 +991,42 @@ void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType
     ComputeInitialPosition(fixed_image, moving_image, center, translation_vec);
     opt.transform_initial = TransformType::New();
     InjectInitialPara(center, translation_vec, opt.transform_initial);
-    }
+  }
 }
 
 template <typename ParaType>
-ParaType NormalizeGradientForRigidTransform(ParaType & original_gradient, int kImageDim)
+ParaType
+NormalizeGradientForRigidTransform(ParaType & original_gradient, int kImageDim)
 {
-  ParaType new_gradient(original_gradient.Size() );
+  ParaType new_gradient(original_gradient.Size());
 
   new_gradient = original_gradient;
 
-  switch( kImageDim )
-    {
+  switch (kImageDim)
+  {
     case 2: // theta, s1, s2, k
-      for( int j = 1; j <= 3; j++ )
-        {
+      for (int j = 1; j <= 3; j++)
+      {
         new_gradient[j] = 0.;
-        }
+      }
       break;
     case 3: // q1,q2,q3,q4,s1,s2,s3,k1,k2,k3
-      for( int j = 4; j <= 9; j++ )
-        {
+      for (int j = 4; j <= 9; j++)
+      {
         new_gradient[j] = 0.;
-        }
+      }
       break;
-    }
+  }
   return new_gradient;
 }
 
 // /////////////////////////////////////////////////////////////////////////////
 // template<typename ImagePointerType, typename ImageMaskSpatialObjectPointerType, typename ParaType>
 template <typename RunningAffineCacheType, typename OptAffine, typename ParaType>
-bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache, OptAffine & opt,
-                                                             ParaType & para_final)
+bool
+SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache,
+                                                        OptAffine &              opt,
+                                                        ParaType &               para_final)
 {
   typedef typename RunningAffineCacheType::ImagePyramidType      ImagePyramidType;
   typedef typename RunningAffineCacheType::ImageType             ImageType;
@@ -996,14 +1038,14 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
 
   const unsigned int kImageDim = ImageType::ImageDimension;
 
-  ImagePyramidType&      fixed_image_pyramid = running_cache.fixed_image_pyramid;
-  ImagePyramidType&      moving_image_pyramid = running_cache.moving_image_pyramid;
-  MaskObjectPointerType& mask_fixed_object = running_cache.mask_fixed_object;
+  ImagePyramidType &      fixed_image_pyramid = running_cache.fixed_image_pyramid;
+  ImagePyramidType &      moving_image_pyramid = running_cache.moving_image_pyramid;
+  MaskObjectPointerType & mask_fixed_object = running_cache.mask_fixed_object;
 
-  int                  number_of_levels = opt.number_of_levels;
-  std::vector<int>&    number_of_iteration_list = opt.number_of_iteration_list;
-  std::vector<double>& gradient_scales = opt.gradient_scales;
-  bool                 is_rigid = opt.is_rigid;
+  int                   number_of_levels = opt.number_of_levels;
+  std::vector<int> &    number_of_iteration_list = opt.number_of_iteration_list;
+  std::vector<double> & gradient_scales = opt.gradient_scales;
+  bool                  is_rigid = opt.is_rigid;
 
   // use my own's registration routine of image pyramid and gradient descent , only use ITK's implementation of mutual
   // information
@@ -1012,12 +1054,12 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
   typename TransformType::Pointer transform = TransformType::New();
   typename TransformType::Pointer invtransform = TransformType::New();
 
-  typename InterpolatorType::Pointer& interpolator = running_cache.interpolator;
+  typename InterpolatorType::Pointer & interpolator = running_cache.interpolator;
 
   typename InterpolatorType::Pointer invinterpolator = InterpolatorType::New();
 
-  typename MetricType::Pointer& metric = running_cache.metric;
-  typename MetricType::Pointer& invmetric = running_cache.invmetric;
+  typename MetricType::Pointer & metric = running_cache.metric;
+  typename MetricType::Pointer & invmetric = running_cache.invmetric;
 
   const int kParaDim = TransformType::ParametersDimension;
 
@@ -1028,47 +1070,47 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
   double relaxation_factor = opt.relaxation_factor;
   double minimum_step_length = opt.minimum_step_length;
   double current_step_length;
-  for( int i = 0; i < number_of_levels; i++ )
-    {
+  for (int i = 0; i < number_of_levels; i++)
+  {
     transform->SetParameters(current_para);
-    transform->SetCenter(opt.transform_initial->GetCenter() );
+    transform->SetCenter(opt.transform_initial->GetCenter());
 
     ImagePointerType fixed_image = fixed_image_pyramid[i];
     ImagePointerType moving_image = moving_image_pyramid[i];
     int              number_of_iteration_current_level = number_of_iteration_list[i];
-    interpolator->SetInputImage( moving_image );
-    metric->SetMovingImage( moving_image );
-    metric->SetFixedImage( fixed_image );
-    metric->SetTransform( transform );
-    metric->SetInterpolator( interpolator );
-    metric->SetFixedImageRegion(fixed_image->GetLargestPossibleRegion() );
+    interpolator->SetInputImage(moving_image);
+    metric->SetMovingImage(moving_image);
+    metric->SetFixedImage(fixed_image);
+    metric->SetTransform(transform);
+    metric->SetInterpolator(interpolator);
+    metric->SetFixedImageRegion(fixed_image->GetLargestPossibleRegion());
 
-    if( mask_fixed_object.IsNotNull() )
-      {
+    if (mask_fixed_object.IsNotNull())
+    {
       metric->SetFixedImageMask(mask_fixed_object);
-      }
+    }
     metric->Initialize();
 
     ParaType last_gradient(kParaDim);
     ParaType invlast_gradient(kParaDim);
-    for( int j = 0; j < kParaDim; j++ )
-      {
+    for (int j = 0; j < kParaDim; j++)
+    {
       last_gradient[j] = 0;
       invlast_gradient[j] = 0;
-      }
+    }
     current_step_length = maximum_step_length;
 
     bool is_converged = false;
     int  used_iterations = 0;
-    for( used_iterations = 0; used_iterations < number_of_iteration_current_level; used_iterations++ )
-      {
+    for (used_iterations = 0; used_iterations < number_of_iteration_current_level; used_iterations++)
+    {
       transform->GetInverse(invtransform);
-      invinterpolator->SetInputImage( fixed_image );
-      invmetric->SetMovingImage( fixed_image );
-      invmetric->SetFixedImage( moving_image );
-      invmetric->SetTransform( invtransform );
-      invmetric->SetInterpolator( invinterpolator );
-      invmetric->SetFixedImageRegion(moving_image->GetLargestPossibleRegion() );
+      invinterpolator->SetInputImage(fixed_image);
+      invmetric->SetMovingImage(fixed_image);
+      invmetric->SetFixedImage(moving_image);
+      invmetric->SetTransform(invtransform);
+      invmetric->SetInterpolator(invinterpolator);
+      invmetric->SetFixedImageRegion(moving_image->GetLargestPossibleRegion());
       invmetric->Initialize();
 
       ParaType original_gradient(kParaDim);
@@ -1078,123 +1120,122 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
 
       double value, invvalue;
       try
-        {
+      {
         metric->GetValueAndDerivative(current_para, value, original_gradient);
-        invmetric->GetValueAndDerivative( invtransform->GetParameters(), invvalue, invoriginal_gradient);
-        }
-      catch( itk::ExceptionObject & err )
-        {
+        invmetric->GetValueAndDerivative(invtransform->GetParameters(), invvalue, invoriginal_gradient);
+      }
+      catch (itk::ExceptionObject & err)
+      {
         std::cout << "ExceptionObject caught !" << std::endl;
         std::cout << err << std::endl;
         return false;
-        }
+      }
 
       // use the similar routine as RegularStepGradientDescentBaseOptimizer::AdvanceOneStep
       // to use oscillation as the minimization convergence
       // notice this is always a minimization procedure
-      if( is_rigid )
-        {
+      if (is_rigid)
+      {
         original_gradient = NormalizeGradientForRigidTransform(original_gradient, kImageDim);
         invoriginal_gradient = NormalizeGradientForRigidTransform(invoriginal_gradient, kImageDim);
-        }
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      }
+      for (int j = 0; j < kParaDim; j++)
+      {
         current_gradient[j] = original_gradient[j] / gradient_scales[j];
-        }
+      }
       double gradient_magnitude = 0.0;
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      for (int j = 0; j < kParaDim; j++)
+      {
         gradient_magnitude += current_gradient[j] * current_gradient[j];
-        }
+      }
       gradient_magnitude = sqrt(gradient_magnitude);
       double inner_product_last_current_gradient = 0.0;
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      for (int j = 0; j < kParaDim; j++)
+      {
         inner_product_last_current_gradient += current_gradient[j] * last_gradient[j];
-        }
-      if( inner_product_last_current_gradient < 0 )
-        {
+      }
+      if (inner_product_last_current_gradient < 0)
+      {
         current_step_length *= relaxation_factor;
-        }
+      }
 
-      if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
-        {
+      if (current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual(gradient_magnitude, 0.0))
+      {
         is_converged = true;
         break;
-        }
+      }
       // for inverse
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      for (int j = 0; j < kParaDim; j++)
+      {
         invcurrent_gradient[j] = invoriginal_gradient[j] / gradient_scales[j];
-        }
+      }
       double invgradient_magnitude = 0.0;
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      for (int j = 0; j < kParaDim; j++)
+      {
         invgradient_magnitude += invcurrent_gradient[j] * invcurrent_gradient[j];
-        }
+      }
       invgradient_magnitude = sqrt(invgradient_magnitude);
       inner_product_last_current_gradient = 0.0;
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      for (int j = 0; j < kParaDim; j++)
+      {
         inner_product_last_current_gradient += invcurrent_gradient[j] * invlast_gradient[j];
-        }
-      if( inner_product_last_current_gradient < 0 )
-        {
+      }
+      if (inner_product_last_current_gradient < 0)
+      {
         current_step_length *= relaxation_factor;
-        }
+      }
 
-      if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
-        {
+      if (current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual(gradient_magnitude, 0.0))
+      {
         is_converged = true;
         break;
-        }
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      }
+      for (int j = 0; j < kParaDim; j++)
+      {
         current_para[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
         current_para[j] += (1.0) * invcurrent_gradient[j] * current_step_length / invgradient_magnitude;
-        }
-      if( kImageDim == 3 )  // normalize quaternion
-        {
+      }
+      if (kImageDim == 3) // normalize quaternion
+      {
         double quat_mag = 0.0;
-        for( int j = 0; j < 4; j++ )
-          {
+        for (int j = 0; j < 4; j++)
+        {
           quat_mag += current_para[j] * current_para[j];
-          }
+        }
         quat_mag = sqrt(quat_mag);
-        for( int j = 0; j < 4; j++ )
-          {
+        for (int j = 0; j < 4; j++)
+        {
           current_para[j] /= quat_mag;
-          }
-        if( !is_rigid )
+        }
+        if (!is_rigid)
+        {
+          for (int j = 4; j < 7; j++)
           {
-          for( int j = 4; j < 7; j++ )
-            {
             current_para[j] *= quat_mag;
-            }
           }
         }
+      }
 
       last_gradient = current_gradient;
       invlast_gradient = invcurrent_gradient;
-      }
+    }
 
-    std::cout << "level " << i << ", iter " << used_iterations
-                     << ", size: fix" << fixed_image->GetRequestedRegion().GetSize()
-                     << "-mov" << moving_image->GetRequestedRegion().GetSize();
+    std::cout << "level " << i << ", iter " << used_iterations << ", size: fix"
+              << fixed_image->GetRequestedRegion().GetSize() << "-mov" << moving_image->GetRequestedRegion().GetSize();
 
     std::cout << ", affine para: " << current_para << std::endl;
 
-    if( is_converged )
-      {
+    if (is_converged)
+    {
       std::cout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
-                       << std::endl;
-      }
-    else
-      {
-      std::cout << "    does not reach oscillation, current step: " << current_step_length << ">"
-                       << minimum_step_length << std::endl;
-      }
+                << std::endl;
     }
+    else
+    {
+      std::cout << "    does not reach oscillation, current step: " << current_step_length << ">" << minimum_step_length
+                << std::endl;
+    }
+  }
   para_final = current_para;
   return true;
 }
@@ -1202,8 +1243,10 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
 // /////////////////////////////////////////////////////////////////////////////
 // template<typename ImagePointerType, typename ImageMaskSpatialObjectPointerType, typename ParaType>
 template <typename RunningAffineCacheType, typename OptAffine, typename ParaType>
-bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache, OptAffine & opt,
-                                                         ParaType & para_final)
+bool
+RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache,
+                                                    OptAffine &              opt,
+                                                    ParaType &               para_final)
 {
   typedef typename RunningAffineCacheType::ImagePyramidType      ImagePyramidType;
   typedef typename RunningAffineCacheType::ImagePointerType      ImagePointerType;
@@ -1215,14 +1258,14 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
 
   const unsigned int kImageDim = ImageType::ImageDimension;
 
-  ImagePyramidType&      fixed_image_pyramid = running_cache.fixed_image_pyramid;
-  ImagePyramidType&      moving_image_pyramid = running_cache.moving_image_pyramid;
-  MaskObjectPointerType& mask_fixed_object = running_cache.mask_fixed_object;
+  ImagePyramidType &      fixed_image_pyramid = running_cache.fixed_image_pyramid;
+  ImagePyramidType &      moving_image_pyramid = running_cache.moving_image_pyramid;
+  MaskObjectPointerType & mask_fixed_object = running_cache.mask_fixed_object;
 
-  int                  number_of_levels = opt.number_of_levels;
-  std::vector<int>&    number_of_iteration_list = opt.number_of_iteration_list;
-  std::vector<double>& gradient_scales = opt.gradient_scales;
-  bool                 is_rigid = opt.is_rigid;
+  int                   number_of_levels = opt.number_of_levels;
+  std::vector<int> &    number_of_iteration_list = opt.number_of_iteration_list;
+  std::vector<double> & gradient_scales = opt.gradient_scales;
+  bool                  is_rigid = opt.is_rigid;
 
   // use my own's registration routine of image pyramid and gradient descent , only use ITK's implementation of mutual
   // information
@@ -1230,9 +1273,9 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
 
   typename TransformType::Pointer transform = TransformType::New();
 
-  typename InterpolatorType::Pointer& interpolator = running_cache.interpolator;
-  typename MetricType::Pointer& metric = running_cache.metric;
-  const int kParaDim = TransformType::ParametersDimension;
+  typename InterpolatorType::Pointer & interpolator = running_cache.interpolator;
+  typename MetricType::Pointer &       metric = running_cache.metric;
+  const int                            kParaDim = TransformType::ParametersDimension;
 
   ParaType current_para(kParaDim);
   current_para = opt.transform_initial->GetParameters();
@@ -1242,145 +1285,144 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
   double minimum_step_length = opt.minimum_step_length;
   double current_step_length;
   double value = 0;
-  for( int i = 0; i < number_of_levels; i++ )
-    {
+  for (int i = 0; i < number_of_levels; i++)
+  {
     transform->SetParameters(current_para);
-    transform->SetCenter(opt.transform_initial->GetCenter() );
+    transform->SetCenter(opt.transform_initial->GetCenter());
 
     ImagePointerType fixed_image = fixed_image_pyramid[i];
     ImagePointerType moving_image = moving_image_pyramid[i];
     int              number_of_iteration_current_level = number_of_iteration_list[i];
-    interpolator->SetInputImage( moving_image );
-    metric->SetMovingImage( moving_image );
-    metric->SetFixedImage( fixed_image );
-    metric->SetTransform( transform );
-    metric->SetInterpolator( interpolator );
-    metric->SetFixedImageRegion(fixed_image->GetLargestPossibleRegion() );
+    interpolator->SetInputImage(moving_image);
+    metric->SetMovingImage(moving_image);
+    metric->SetFixedImage(fixed_image);
+    metric->SetTransform(transform);
+    metric->SetInterpolator(interpolator);
+    metric->SetFixedImageRegion(fixed_image->GetLargestPossibleRegion());
 
-    if( mask_fixed_object.IsNotNull() )
-      {
+    if (mask_fixed_object.IsNotNull())
+    {
       metric->SetFixedImageMask(mask_fixed_object);
-      }
+    }
     metric->Initialize();
 
     ParaType last_gradient(kParaDim);
     ParaType invlast_gradient(kParaDim);
-    for( int j = 0; j < kParaDim; j++ )
-      {
+    for (int j = 0; j < kParaDim; j++)
+    {
       last_gradient[j] = 0;
       invlast_gradient[j] = 0;
-      }
+    }
     current_step_length = maximum_step_length;
 
     bool is_converged = false;
     int  used_iterations = 0;
-    for( used_iterations = 0; used_iterations < number_of_iteration_current_level; used_iterations++ )
-      {
+    for (used_iterations = 0; used_iterations < number_of_iteration_current_level; used_iterations++)
+    {
       ParaType original_gradient(kParaDim);
       ParaType current_gradient(kParaDim);
 
       value = 0;
       try
-        {
+      {
         metric->GetValueAndDerivative(current_para, value, original_gradient);
-        }
-      catch( itk::ExceptionObject & err )
-        {
+      }
+      catch (itk::ExceptionObject & err)
+      {
         std::cout << "ExceptionObject caught !" << std::endl;
         std::cout << err << std::endl;
         return false;
-        }
+      }
 
       // use the similar routine as RegularStepGradientDescentBaseOptimizer::AdvanceOneStep
       // to use oscillation as the minimization convergence
       // notice this is always a minimization procedure
-      if( is_rigid )
-        {
+      if (is_rigid)
+      {
         original_gradient = NormalizeGradientForRigidTransform(original_gradient, kImageDim);
-        }
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      }
+      for (int j = 0; j < kParaDim; j++)
+      {
         current_gradient[j] = original_gradient[j] / gradient_scales[j];
-        }
+      }
       double gradient_magnitude = 0.0;
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      for (int j = 0; j < kParaDim; j++)
+      {
         gradient_magnitude += current_gradient[j] * current_gradient[j];
-        }
+      }
       gradient_magnitude = sqrt(gradient_magnitude);
       double inner_product_last_current_gradient = 0.0;
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      for (int j = 0; j < kParaDim; j++)
+      {
         inner_product_last_current_gradient += current_gradient[j] * last_gradient[j];
-        }
-      if( inner_product_last_current_gradient < 0 )
-        {
+      }
+      if (inner_product_last_current_gradient < 0)
+      {
         current_step_length *= relaxation_factor;
-        }
-
-      if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
-        {
-        is_converged = true;
-        break;
-        }
-
-      if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
-        {
-        is_converged = true;
-        break;
-        }
-      for( int j = 0; j < kParaDim; j++ )
-        {
-        current_para[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
-        }
-      if( kImageDim == 3 )  // normalize quaternion
-        {
-        double quat_mag = 0.0;
-        for( int j = 0; j < 4; j++ )
-          {
-          quat_mag += current_para[j] * current_para[j];
-          }
-        quat_mag = sqrt(quat_mag);
-        for( int j = 0; j < 4; j++ )
-          {
-          current_para[j] /= quat_mag;
-          }
-        if( !is_rigid )
-          {
-          for( int j = 4; j < 7; j++ )
-            {
-            current_para[j] *= quat_mag;
-            }
-          }
-        }
-
-      last_gradient = current_gradient;
       }
 
-    std::cout << "level " << i << ", iter " << used_iterations
-                     << ", size: fix" << fixed_image->GetRequestedRegion().GetSize()
-                     << "-mov" << moving_image->GetRequestedRegion().GetSize();
+      if (current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual(gradient_magnitude, 0.0))
+      {
+        is_converged = true;
+        break;
+      }
+
+      if (current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual(gradient_magnitude, 0.0))
+      {
+        is_converged = true;
+        break;
+      }
+      for (int j = 0; j < kParaDim; j++)
+      {
+        current_para[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
+      }
+      if (kImageDim == 3) // normalize quaternion
+      {
+        double quat_mag = 0.0;
+        for (int j = 0; j < 4; j++)
+        {
+          quat_mag += current_para[j] * current_para[j];
+        }
+        quat_mag = sqrt(quat_mag);
+        for (int j = 0; j < 4; j++)
+        {
+          current_para[j] /= quat_mag;
+        }
+        if (!is_rigid)
+        {
+          for (int j = 4; j < 7; j++)
+          {
+            current_para[j] *= quat_mag;
+          }
+        }
+      }
+
+      last_gradient = current_gradient;
+    }
+
+    std::cout << "level " << i << ", iter " << used_iterations << ", size: fix"
+              << fixed_image->GetRequestedRegion().GetSize() << "-mov" << moving_image->GetRequestedRegion().GetSize();
 
     std::cout << ", affine para: " << current_para << std::endl;
 
-    if( is_converged )
-      {
+    if (is_converged)
+    {
       std::cout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
-                       << std::endl;
-      }
-    else
-      {
-      std::cout << "    does not reach oscillation, current step: " << current_step_length << ">"
-                       << minimum_step_length << std::endl;
-      }
+                << std::endl;
     }
+    else
+    {
+      std::cout << "    does not reach oscillation, current step: " << current_step_length << ">" << minimum_step_length
+                << std::endl;
+    }
+  }
 
   double value1 = value;
 
-  if(  !mask_fixed_object.IsNotNull() )
-    {
+  if (!mask_fixed_object.IsNotNull())
+  {
     typename TransformType::Pointer transform2 = TransformType::New();
-    ParaType current_para2(kParaDim);
+    ParaType                        current_para2(kParaDim);
 
     // GS: should use the inverse of initial transform here, removed the next line:
     // current_para2 = opt.transform_initial->GetParameters();
@@ -1392,149 +1434,148 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
     relaxation_factor = opt.relaxation_factor;
     minimum_step_length = opt.minimum_step_length;
     value = 0;
-    for( int i = 0; i < number_of_levels; i++ )
-      {
+    for (int i = 0; i < number_of_levels; i++)
+    {
       transform2->SetParameters(current_para2);
-      transform2->SetCenter(transform2_initial->GetCenter() );
+      transform2->SetCenter(transform2_initial->GetCenter());
 
       /** see below -- we switch fixed and moving!!  */
       ImagePointerType fixed_image = moving_image_pyramid[i];
       ImagePointerType moving_image = fixed_image_pyramid[i];
       int              number_of_iteration_current_level = number_of_iteration_list[i];
-      interpolator->SetInputImage( moving_image );
-      metric->SetMovingImage( moving_image );
-      metric->SetFixedImage( fixed_image );
-      metric->SetTransform( transform2 );
-      metric->SetInterpolator( interpolator );
-      metric->SetFixedImageRegion(fixed_image->GetLargestPossibleRegion() );
+      interpolator->SetInputImage(moving_image);
+      metric->SetMovingImage(moving_image);
+      metric->SetFixedImage(fixed_image);
+      metric->SetTransform(transform2);
+      metric->SetInterpolator(interpolator);
+      metric->SetFixedImageRegion(fixed_image->GetLargestPossibleRegion());
 
       /** FIXME --- need a moving mask ... */
       //        if (mask_fixed_object.IsNotNull()) metric->SetFixedImageMask(mask_fixed_object);
       metric->Initialize();
 
       ParaType last_gradient(kParaDim);
-      for( int j = 0; j < kParaDim; j++ )
-        {
+      for (int j = 0; j < kParaDim; j++)
+      {
         last_gradient[j] = 0;
-        }
+      }
       current_step_length = maximum_step_length;
 
       bool is_converged = false;
       int  used_iterations = 0;
-      for( used_iterations = 0; used_iterations < number_of_iteration_current_level; used_iterations++ )
-        {
+      for (used_iterations = 0; used_iterations < number_of_iteration_current_level; used_iterations++)
+      {
         ParaType original_gradient(kParaDim);
         ParaType current_gradient(kParaDim);
 
         value = 0;
         try
-          {
+        {
           metric->GetValueAndDerivative(current_para2, value, original_gradient);
-          }
-        catch( itk::ExceptionObject & err )
-          {
+        }
+        catch (itk::ExceptionObject & err)
+        {
           std::cout << "ExceptionObject caught !" << std::endl;
           std::cout << err << std::endl;
           // don't have to return here if got anything from the previous forward direction
-//          return false;
+          //          return false;
           break;
-          }
+        }
 
         // use the similar routine as RegularStepGradientDescentBaseOptimizer::AdvanceOneStep
         // to use oscillation as the minimization convergence
         // notice this is always a minimization procedure
-        if( is_rigid )
-          {
+        if (is_rigid)
+        {
           original_gradient = NormalizeGradientForRigidTransform(original_gradient, kImageDim);
-          }
-        for( int j = 0; j < kParaDim; j++ )
-          {
+        }
+        for (int j = 0; j < kParaDim; j++)
+        {
           current_gradient[j] = original_gradient[j] / gradient_scales[j];
-          }
+        }
         double gradient_magnitude = 0.0;
-        for( int j = 0; j < kParaDim; j++ )
-          {
+        for (int j = 0; j < kParaDim; j++)
+        {
           gradient_magnitude += current_gradient[j] * current_gradient[j];
-          }
+        }
         gradient_magnitude = sqrt(gradient_magnitude);
         double inner_product_last_current_gradient = 0.0;
-        for( int j = 0; j < kParaDim; j++ )
-          {
+        for (int j = 0; j < kParaDim; j++)
+        {
           inner_product_last_current_gradient += current_gradient[j] * last_gradient[j];
-          }
-        if( inner_product_last_current_gradient < 0 )
-          {
+        }
+        if (inner_product_last_current_gradient < 0)
+        {
           current_step_length *= relaxation_factor;
-          }
-
-        if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
-          {
-          is_converged = true;
-          break;
-          }
-
-        if( current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual( gradient_magnitude, 0.0 ) )
-          {
-          is_converged = true;
-          break;
-          }
-        for( int j = 0; j < kParaDim; j++ )
-          {
-          current_para2[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
-          }
-        if( kImageDim == 3 )  // normalize quaternion
-          {
-          double quat_mag = 0.0;
-          for( int j = 0; j < 4; j++ )
-            {
-            quat_mag += current_para2[j] * current_para2[j];
-            }
-          quat_mag = sqrt(quat_mag);
-          for( int j = 0; j < 4; j++ )
-            {
-            current_para2[j] /= quat_mag;
-            }
-          if( !is_rigid )
-            {
-            for( int j = 4; j < 7; j++ )
-              {
-              current_para2[j] *= quat_mag;
-              }
-            }
-          }
-
-        last_gradient = current_gradient;
         }
 
-      std::cout << "level " << i << ", iter " << used_iterations
-                       << ", size: fix" << fixed_image->GetRequestedRegion().GetSize()
-                       << "-mov" << moving_image->GetRequestedRegion().GetSize();
+        if (current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual(gradient_magnitude, 0.0))
+        {
+          is_converged = true;
+          break;
+        }
+
+        if (current_step_length < minimum_step_length || itk::Math::FloatAlmostEqual(gradient_magnitude, 0.0))
+        {
+          is_converged = true;
+          break;
+        }
+        for (int j = 0; j < kParaDim; j++)
+        {
+          current_para2[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
+        }
+        if (kImageDim == 3) // normalize quaternion
+        {
+          double quat_mag = 0.0;
+          for (int j = 0; j < 4; j++)
+          {
+            quat_mag += current_para2[j] * current_para2[j];
+          }
+          quat_mag = sqrt(quat_mag);
+          for (int j = 0; j < 4; j++)
+          {
+            current_para2[j] /= quat_mag;
+          }
+          if (!is_rigid)
+          {
+            for (int j = 4; j < 7; j++)
+            {
+              current_para2[j] *= quat_mag;
+            }
+          }
+        }
+
+        last_gradient = current_gradient;
+      }
+
+      std::cout << "level " << i << ", iter " << used_iterations << ", size: fix"
+                << fixed_image->GetRequestedRegion().GetSize() << "-mov"
+                << moving_image->GetRequestedRegion().GetSize();
 
       std::cout << ", affine para: " << current_para2 << std::endl;
 
-      if( is_converged )
-        {
-        std::cout << "    reach oscillation, current step: " << current_step_length << "<"
-                         << minimum_step_length
-                         << std::endl;
-        }
-      else
-        {
-        std::cout << "    does not reach oscillation, current step: " << current_step_length << ">"
-                         << minimum_step_length << std::endl;
-        }
-      }
-    std::cout << " v1 " << value1 << " v2 " << value << std::endl;
-    if( value < value1 )
+      if (is_converged)
       {
+        std::cout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
+                  << std::endl;
+      }
+      else
+      {
+        std::cout << "    does not reach oscillation, current step: " << current_step_length << ">"
+                  << minimum_step_length << std::endl;
+      }
+    }
+    std::cout << " v1 " << value1 << " v2 " << value << std::endl;
+    if (value < value1)
+    {
       std::cout << " last params " << transform->GetParameters() << std::endl;
       std::cout << " my params " << transform2->GetParameters() << std::endl;
       transform2->GetInverse(transform);
       std::cout << " new params " << transform->GetParameters() << std::endl;
       para_final = transform->GetParameters();
       return true;
-      }
     }
+  }
 
   para_final = current_para;
   std::cout << "final " << para_final << std::endl;

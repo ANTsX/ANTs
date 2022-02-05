@@ -21,109 +21,102 @@
 
 namespace itk
 {
-template<typename TOutputImage>
-SimulatedDisplacementFieldSource<TOutputImage>
-::SimulatedDisplacementFieldSource() :
-  m_EnforceStationaryBoundary( true ),
-  m_NumberOfRandomPoints( 100 )
+template <typename TOutputImage>
+SimulatedDisplacementFieldSource<TOutputImage>::SimulatedDisplacementFieldSource()
+  : m_EnforceStationaryBoundary(true)
+  , m_NumberOfRandomPoints(100)
 {
-  this->m_OutputSpacing.Fill( 1.0 );
-  this->m_OutputOrigin.Fill( 0.0 );
-  this->m_OutputSize.Fill( 0 );
+  this->m_OutputSpacing.Fill(1.0);
+  this->m_OutputOrigin.Fill(0.0);
+  this->m_OutputSize.Fill(0);
   this->m_OutputDirection.SetIdentity();
 
-  this->m_RandomizerInitializationSeed = 
-    std::numeric_limits<RandomizerSeedType>::quiet_NaN();
+  this->m_RandomizerInitializationSeed = std::numeric_limits<RandomizerSeedType>::quiet_NaN();
   this->m_Randomizer = RandomizerType::New();
   this->m_Randomizer->Initialize();
 }
 
-template<typename TOutputImage>
+template <typename TOutputImage>
 void
-SimulatedDisplacementFieldSource<TOutputImage>
-::SetDisplacementFieldDomainFromImage( RealImageType *image )
+SimulatedDisplacementFieldSource<TOutputImage>::SetDisplacementFieldDomainFromImage(RealImageType * image)
 {
-  this->SetDisplacementFieldDomain( image->GetOrigin(), image->GetSpacing(),
-    image->GetRequestedRegion().GetSize(), image->GetDirection() );
+  this->SetDisplacementFieldDomain(
+    image->GetOrigin(), image->GetSpacing(), image->GetRequestedRegion().GetSize(), image->GetDirection());
 }
 
-template<typename TOutputImage>
+template <typename TOutputImage>
 void
-SimulatedDisplacementFieldSource<TOutputImage>
-::SetDisplacementFieldDomainFromField( OutputImageType *field )
+SimulatedDisplacementFieldSource<TOutputImage>::SetDisplacementFieldDomainFromField(OutputImageType * field)
 {
-  this->SetDisplacementFieldDomain( field->GetOrigin(), field->GetSpacing(),
-    field->GetRequestedRegion().GetSize(), field->GetDirection() );
+  this->SetDisplacementFieldDomain(
+    field->GetOrigin(), field->GetSpacing(), field->GetRequestedRegion().GetSize(), field->GetDirection());
 }
 
-template<typename TOutputImage>
+template <typename TOutputImage>
 void
-SimulatedDisplacementFieldSource<TOutputImage>
-::SetDisplacementFieldDomain( OriginType origin, SpacingType spacing, SizeType size, DirectionType direction )
+SimulatedDisplacementFieldSource<TOutputImage>::SetDisplacementFieldDomain(OriginType    origin,
+                                                                           SpacingType   spacing,
+                                                                           SizeType      size,
+                                                                           DirectionType direction)
 {
-  if( this->m_OutputOrigin != origin ||
-      this->m_OutputSpacing != spacing ||
-      this->m_OutputSize != size ||
-      this->m_OutputDirection != direction )
-    {
+  if (this->m_OutputOrigin != origin || this->m_OutputSpacing != spacing || this->m_OutputSize != size ||
+      this->m_OutputDirection != direction)
+  {
     this->m_OutputOrigin = origin;
     this->m_OutputSpacing = spacing;
     this->m_OutputSize = size;
     this->m_OutputDirection = direction;
 
     this->Modified();
-    }
+  }
 }
 
-template<typename TOutputImage>
+template <typename TOutputImage>
 void
-SimulatedDisplacementFieldSource<TOutputImage>
-::SetRandomizerInitializationSeed( const RandomizerSeedType seed )
+SimulatedDisplacementFieldSource<TOutputImage>::SetRandomizerInitializationSeed(const RandomizerSeedType seed)
 {
-  if( seed != this->m_RandomizerInitializationSeed )
-    {
+  if (seed != this->m_RandomizerInitializationSeed)
+  {
     this->m_RandomizerInitializationSeed = seed;
-    this->m_Randomizer->Initialize( this->m_RandomizerInitializationSeed );
+    this->m_Randomizer->Initialize(this->m_RandomizerInitializationSeed);
     this->Modified();
-    }
+  }
 }
 
-template<typename TOutputImage>
+template <typename TOutputImage>
 void
-SimulatedDisplacementFieldSource<TOutputImage>
-::GenerateOutputInformation()
+SimulatedDisplacementFieldSource<TOutputImage>::GenerateOutputInformation()
 {
   Superclass::GenerateOutputInformation();
 
   OutputImagePointer output = this->GetOutput();
-  if ( !output )
-    {
+  if (!output)
+  {
     return;
-    }
+  }
 
   // Define displacement field domain
-  output->SetRegions( this->m_OutputSize );
-  output->SetSpacing( this->m_OutputSpacing );
-  output->SetOrigin( this->m_OutputOrigin );
-  output->SetDirection( this->m_OutputDirection );
+  output->SetRegions(this->m_OutputSize);
+  output->SetSpacing(this->m_OutputSpacing);
+  output->SetOrigin(this->m_OutputOrigin);
+  output->SetDirection(this->m_OutputDirection);
 }
 
-template<typename TOutputImage>
+template <typename TOutputImage>
 void
-SimulatedDisplacementFieldSource<TOutputImage>
-::PrintSelf( std::ostream & os, Indent indent ) const
+SimulatedDisplacementFieldSource<TOutputImage>::PrintSelf(std::ostream & os, Indent indent) const
 {
-  Superclass::PrintSelf( os, indent );
+  Superclass::PrintSelf(os, indent);
 
   os << indent << "Enforce stationary boundary: ";
-  if( this->m_EnforceStationaryBoundary )
-    {
+  if (this->m_EnforceStationaryBoundary)
+  {
     os << "true" << std::endl;
-    }
+  }
   else
-    {
+  {
     os << "false" << std::endl;
-    }
+  }
 
   os << indent << "Displacement field domain:" << std::endl;
   os << indent << "  Origin: " << this->m_OutputOrigin << std::endl;
@@ -136,5 +129,3 @@ SimulatedDisplacementFieldSource<TOutputImage>
 } // end namespace itk
 
 #endif
-
-

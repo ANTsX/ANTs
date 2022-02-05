@@ -22,25 +22,21 @@
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage = TInputImage>
-class GeneralToBSplineDisplacementFieldFilter final :
-  public ImageToImageFilter<TInputImage, TOutputImage>
+class GeneralToBSplineDisplacementFieldFilter final : public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef GeneralToBSplineDisplacementFieldFilter Self;
-  typedef ImageToImageFilter<
-      TInputImage,
-      TOutputImage>           Superclass;
+  typedef GeneralToBSplineDisplacementFieldFilter       Self;
+  typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
 
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Extract dimension from input and output image. */
-  itkStaticConstMacro( ImageDimension, unsigned int,
-                       TInputImage::ImageDimension );
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   /** Convenient typedefs for simplifying declarations. */
   typedef TInputImage  InputImageType;
@@ -55,37 +51,37 @@ public:
   typedef InputPixelComponentType         RealType;
   typedef Image<RealType, ImageDimension> RealImageType;
 
-  typedef PointSet<InputPixelType,
-                   itkGetStaticConstMacro( ImageDimension )>   PointSetType;
-  typedef BSplineScatteredDataPointSetToImageFilter
-    <PointSetType, OutputImageType>             BSplineFilterType;
-  typedef typename BSplineFilterType::ArrayType ArrayType;
+  typedef PointSet<InputPixelType, itkGetStaticConstMacro(ImageDimension)>         PointSetType;
+  typedef BSplineScatteredDataPointSetToImageFilter<PointSetType, OutputImageType> BSplineFilterType;
+  typedef typename BSplineFilterType::ArrayType                                    ArrayType;
 
-//  itkSetMacro( ConfidenceImage, RealImageType );
-//  itkGetConstMacro( ConfidenceImage, RealImageType );
+  //  itkSetMacro( ConfidenceImage, RealImageType );
+  //  itkGetConstMacro( ConfidenceImage, RealImageType );
 
-  itkSetMacro( NumberOfControlPoints, ArrayType );
-  itkGetConstMacro( NumberOfControlPoints, ArrayType );
+  itkSetMacro(NumberOfControlPoints, ArrayType);
+  itkGetConstMacro(NumberOfControlPoints, ArrayType);
 
-  itkSetMacro( NumberOfLevels, unsigned int );
-  itkGetConstMacro( NumberOfLevels, unsigned int );
+  itkSetMacro(NumberOfLevels, unsigned int);
+  itkGetConstMacro(NumberOfLevels, unsigned int);
 
-  itkSetMacro( SplineOrder, unsigned int );
-  itkGetConstMacro( SplineOrder, unsigned int );
+  itkSetMacro(SplineOrder, unsigned int);
+  itkGetConstMacro(SplineOrder, unsigned int);
 
-  itkSetMacro( IgnorePixelValue, InputPixelType );
-  itkGetConstMacro( IgnorePixelValue, InputPixelType );
+  itkSetMacro(IgnorePixelValue, InputPixelType);
+  itkGetConstMacro(IgnorePixelValue, InputPixelType);
+
 protected:
-
   GeneralToBSplineDisplacementFieldFilter();
   ~GeneralToBSplineDisplacementFieldFilter() override;
 
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
 private:
-//   typename RealImageType::Pointer              m_ConfidenceImage;
+  //   typename RealImageType::Pointer              m_ConfidenceImage;
 
   InputPixelType m_IgnorePixelValue;
   unsigned int   m_NumberOfLevels;
@@ -95,7 +91,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkGeneralToBSplineDisplacementFieldFilter.hxx"
+#  include "itkGeneralToBSplineDisplacementFieldFilter.hxx"
 #endif
 
 #endif

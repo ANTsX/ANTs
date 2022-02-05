@@ -33,21 +33,19 @@ namespace Statistics
  */
 
 template <typename TListSample, typename TOutput = double, typename TCoordRep = double>
-class ManifoldParzenWindowsListSampleFunction final
-  : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
+class ManifoldParzenWindowsListSampleFunction final : public ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:
-  typedef ManifoldParzenWindowsListSampleFunction Self;
-  typedef ListSampleFunction
-    <TListSample, TOutput, TCoordRep>                      Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef ManifoldParzenWindowsListSampleFunction             Self;
+  typedef ListSampleFunction<TListSample, TOutput, TCoordRep> Superclass;
+  typedef SmartPointer<Self>                                  Pointer;
+  typedef SmartPointer<const Self>                            ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( ManifoldParzenWindowsListSampleFunction, ListSampleFunction );
+  itkTypeMacro(ManifoldParzenWindowsListSampleFunction, ListSampleFunction);
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;
@@ -57,50 +55,52 @@ public:
   typedef TListSample ListSampleType;
 
   /** Kd tree typedefs */
-  typedef typename itk::Statistics::
-    WeightedCentroidKdTreeGenerator<InputListSampleType>    TreeGeneratorType;
-  typedef typename TreeGeneratorType::KdTreeType KdTreeType;
-  typedef typename KdTreeType
-    ::InstanceIdentifierVectorType                          NeighborhoodIdentifierType;
+  typedef typename itk::Statistics::WeightedCentroidKdTreeGenerator<InputListSampleType> TreeGeneratorType;
+  typedef typename TreeGeneratorType::KdTreeType                                         KdTreeType;
+  typedef typename KdTreeType ::InstanceIdentifierVectorType                             NeighborhoodIdentifierType;
 
   /** Other typedef */
   typedef TOutput RealType;
   typedef TOutput OutputType;
 
-  typedef typename itk::Statistics::GaussianMembershipFunction
-    <InputMeasurementVectorType>                         GaussianType;
-  typedef std::vector<typename GaussianType::Pointer> GaussianContainerType;
-  typedef typename GaussianType::CovarianceMatrixType CovarianceMatrixType;
+  typedef typename itk::Statistics::GaussianMembershipFunction<InputMeasurementVectorType> GaussianType;
+  typedef std::vector<typename GaussianType::Pointer>                                      GaussianContainerType;
+  typedef typename GaussianType::CovarianceMatrixType                                      CovarianceMatrixType;
 
   /** Helper functions */
 
-  itkSetMacro( EvaluationKNeighborhood, unsigned int );
-  itkGetConstMacro( EvaluationKNeighborhood, unsigned int );
+  itkSetMacro(EvaluationKNeighborhood, unsigned int);
+  itkGetConstMacro(EvaluationKNeighborhood, unsigned int);
 
-  itkSetMacro( RegularizationSigma, RealType );
-  itkGetConstMacro( RegularizationSigma, RealType );
+  itkSetMacro(RegularizationSigma, RealType);
+  itkGetConstMacro(RegularizationSigma, RealType);
 
-  itkSetMacro( CovarianceKNeighborhood, unsigned int );
-  itkGetConstMacro( CovarianceKNeighborhood, unsigned int );
+  itkSetMacro(CovarianceKNeighborhood, unsigned int);
+  itkGetConstMacro(CovarianceKNeighborhood, unsigned int);
 
-  itkSetMacro( KernelSigma, RealType );
-  itkGetConstMacro( KernelSigma, RealType );
+  itkSetMacro(KernelSigma, RealType);
+  itkGetConstMacro(KernelSigma, RealType);
 
-  void SetInputListSample( const InputListSampleType * ptr ) override;
+  void
+  SetInputListSample(const InputListSampleType * ptr) override;
 
-  TOutput Evaluate( const InputMeasurementVectorType& measurement ) const override;
+  TOutput
+  Evaluate(const InputMeasurementVectorType & measurement) const override;
 
 protected:
   ManifoldParzenWindowsListSampleFunction();
   ~ManifoldParzenWindowsListSampleFunction() override;
-  void PrintSelf( std::ostream& os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData();
+  void
+  GenerateData();
 
 private:
   // purposely not implemented
-  ManifoldParzenWindowsListSampleFunction( const Self & );
-  void operator=( const Self & );
+  ManifoldParzenWindowsListSampleFunction(const Self &);
+  void
+  operator=(const Self &);
 
   unsigned int m_CovarianceKNeighborhood;
   unsigned int m_EvaluationKNeighborhood;
@@ -108,7 +108,7 @@ private:
   RealType     m_KernelSigma;
   RealType     m_NormalizationFactor;
 
-  typename TreeGeneratorType::Pointer           m_KdTreeGenerator;
+  typename TreeGeneratorType::Pointer m_KdTreeGenerator;
 
   GaussianContainerType m_Gaussians;
 };
@@ -117,7 +117,7 @@ private:
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsManifoldParzenWindowsListSampleFunction.hxx"
+#  include "antsManifoldParzenWindowsListSampleFunction.hxx"
 #endif
 
 #endif

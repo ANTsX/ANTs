@@ -24,8 +24,7 @@
 namespace itk
 {
 template <typename TInputImage, typename TOutputImage>
-AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
-::AlternatingValueSimpleSubtractionImageFilter()
+AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>::AlternatingValueSimpleSubtractionImageFilter()
 {
   m_SubtractionDimension = InputImageDimension - 1;
   this->DynamicMultiThreadingOff();
@@ -33,8 +32,8 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 
 template <typename TInputImage, typename TOutputImage>
 void
-AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
-::PrintSelf(std::ostream & os, Indent indent) const
+AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os,
+                                                                                   Indent         indent) const
 {
   Superclass::PrintSelf(os, indent);
 
@@ -43,8 +42,7 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 
 template <typename TInputImage, typename TOutputImage>
 void
-AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
-::VerifyInputInformation() const
+AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>::VerifyInputInformation() const
 {
   Superclass::VerifyInputInformation();
 
@@ -52,30 +50,29 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 
   typename InputImageType::ConstPointer image = this->GetInput();
 
-  if( image.IsNull() )
-    {
-    itkExceptionMacro( << "Input not set as expected!" );
-    }
+  if (image.IsNull())
+  {
+    itkExceptionMacro(<< "Input not set as expected!");
+  }
 
   const unsigned int numComponents = image->GetNumberOfComponentsPerPixel();
-  for( IndexValueType idx = 1; idx < this->GetNumberOfInputs(); ++idx )
-    {
+  for (IndexValueType idx = 1; idx < this->GetNumberOfInputs(); ++idx)
+  {
     image = this->GetInput(idx);
 
     // if the input was not set it could still be null
-    if( image.IsNull() )
-      {
+    if (image.IsNull())
+    {
       // an invalid requested region exception will be generated later.
       continue;
-      }
-
-    if( numComponents != image->GetNumberOfComponentsPerPixel() )
-      {
-      itkExceptionMacro( << "Primary input has " << numComponents << " numberOfComponents "
-                         << "but input " << idx << " has "
-                         << image->GetNumberOfComponentsPerPixel() << "!" );
-      }
     }
+
+    if (numComponents != image->GetNumberOfComponentsPerPixel())
+    {
+      itkExceptionMacro(<< "Primary input has " << numComponents << " numberOfComponents "
+                        << "but input " << idx << " has " << image->GetNumberOfComponentsPerPixel() << "!");
+    }
+  }
 }
 
 /**
@@ -83,59 +80,54 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
  */
 template <typename TInputImage, typename TOutputImage>
 void
-AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
-::GenerateOutputInformation()
+AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
 {
   // do not call the superclass' implementation of this method since
   // this filter allows the input and output to be of different dimensions
 
   // get pointers to the input and output
-  typename Superclass::OutputImagePointer outputPtr = this->GetOutput();
-  typename Superclass::InputImageConstPointer inputPtr  = this->GetInput();
+  typename Superclass::OutputImagePointer     outputPtr = this->GetOutput();
+  typename Superclass::InputImageConstPointer inputPtr = this->GetInput();
 
-  if( !outputPtr || !inputPtr )
-    {
+  if (!outputPtr || !inputPtr)
+  {
     return;
-    }
+  }
 
   // Set the output image largest possible region.  Use a RegionCopier
   // so that the input and output images can be different dimensions.
   OutputImageRegionType outputLargestPossibleRegion;
-  this->CallCopyInputRegionToOutputRegion( outputLargestPossibleRegion,
-                                           inputPtr->GetLargestPossibleRegion() );
+  this->CallCopyInputRegionToOutputRegion(outputLargestPossibleRegion, inputPtr->GetLargestPossibleRegion());
 
   // for the subtraction dimension
   unsigned int nPairs = this->GetInput()->GetLargestPossibleRegion().GetSize()[m_SubtractionDimension] / 2;
-  outputLargestPossibleRegion.SetSize( m_SubtractionDimension, nPairs );
+  outputLargestPossibleRegion.SetSize(m_SubtractionDimension, nPairs);
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
 
   // Set the output spacing and origin
-  const ImageBase<InputImageDimension> *phyData;
+  const ImageBase<InputImageDimension> * phyData;
 
-  phyData =
-    dynamic_cast<const ImageBase<InputImageDimension> *>( this->GetInput() );
+  phyData = dynamic_cast<const ImageBase<InputImageDimension> *>(this->GetInput());
 
-  if( phyData )
-    {
+  if (phyData)
+  {
     // Copy what we can from the image from spacing and origin of the input
     // This logic needs to be augmented with logic that select which
     // dimensions to copy
-    unsigned int ii;
-    const typename InputImageType::SpacingType &
-    inputSpacing = inputPtr->GetSpacing();
-    const typename InputImageType::PointType &
-    inputOrigin = inputPtr->GetOrigin();
+    unsigned int                                 ii;
+    const typename InputImageType::SpacingType & inputSpacing = inputPtr->GetSpacing();
+    const typename InputImageType::PointType &   inputOrigin = inputPtr->GetOrigin();
 
     typename OutputImageType::SpacingType outputSpacing;
-    typename OutputImageType::PointType outputOrigin;
+    typename OutputImageType::PointType   outputOrigin;
     // copy the input to the output and fill the rest of the
     // output with zeros.
-    for( ii = 0; ii < OutputImageDimension; ++ii )
-      {
+    for (ii = 0; ii < OutputImageDimension; ++ii)
+    {
       outputSpacing[ii] = inputSpacing[ii];
       outputOrigin[ii] = inputOrigin[ii];
-      }
+    }
     outputSpacing[m_SubtractionDimension] *= 2;
 
     // set the spacing and origin
@@ -146,32 +138,31 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
     // On join, the output dim is always >= input dim
     typedef typename InputImageType::DirectionType  InputDirectionType;
     typedef typename OutputImageType::DirectionType OutputDirectionType;
-    InputDirectionType  inputDir = inputPtr->GetDirection();
-    unsigned int        outputdim = OutputImageType::GetImageDimension();
-    OutputDirectionType outputDir = outputPtr->GetDirection();
-    for( unsigned int i = 0; i < outputdim; i++ )
-      {
-      for( unsigned int j = 0; j < outputdim; j++ )
-        {
-        outputDir[i][j] = inputDir[i][j];
-        }
-      }
-    outputPtr->SetDirection(outputDir);
-    }
-  else
+    InputDirectionType                              inputDir = inputPtr->GetDirection();
+    unsigned int                                    outputdim = OutputImageType::GetImageDimension();
+    OutputDirectionType                             outputDir = outputPtr->GetDirection();
+    for (unsigned int i = 0; i < outputdim; i++)
     {
-    // pointer could not be cast back down
-    itkExceptionMacro( << "itk::AlternatingValueSimpleSubtractionImageFilter::GenerateOutputInformation "
-                       << "cannot cast input to "
-                       << typeid( ImageBase<InputImageDimension> * ).name() );
+      for (unsigned int j = 0; j < outputdim; j++)
+      {
+        outputDir[i][j] = inputDir[i][j];
+      }
     }
+    outputPtr->SetDirection(outputDir);
+  }
+  else
+  {
+    // pointer could not be cast back down
+    itkExceptionMacro(<< "itk::AlternatingValueSimpleSubtractionImageFilter::GenerateOutputInformation "
+                      << "cannot cast input to " << typeid(ImageBase<InputImageDimension> *).name());
+  }
 
   // Support VectorImages by setting number of components on output.
   const unsigned int numComponents = inputPtr->GetNumberOfComponentsPerPixel();
-  if( numComponents != outputPtr->GetNumberOfComponentsPerPixel() )
-    {
-    outputPtr->SetNumberOfComponentsPerPixel( numComponents );
-    }
+  if (numComponents != outputPtr->GetNumberOfComponentsPerPixel())
+  {
+    outputPtr->SetNumberOfComponentsPerPixel(numComponents);
+  }
 }
 
 /*
@@ -223,33 +214,31 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 
 template <typename TInputImage, typename TOutputImage>
 void
-AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                       ThreadIdType threadId)
+AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>::ThreadedGenerateData(
+  const OutputImageRegionType & outputRegionForThread,
+  ThreadIdType                  threadId)
 {
   itkDebugMacro(<< "Actually executing");
 
-  ProgressReporter progress( this, threadId, outputRegionForThread.GetNumberOfPixels() );
+  ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
   OutputImageRegionType outputRegion = outputRegionForThread;
 
   InputImageRegionType inputRegion;
   this->CallCopyOutputRegionToInputRegion(inputRegion, outputRegionForThread);
 
-  ImageRegionIterator<OutputImageType> outIt(
-    this->GetOutput(), outputRegion);
+  ImageRegionIterator<OutputImageType> outIt(this->GetOutput(), outputRegion);
 
-  while( !outIt.IsAtEnd() )
-    {
+  while (!outIt.IsAtEnd())
+  {
     typename InputImageType::IndexType idx1 = outIt.GetIndex();
     typename InputImageType::IndexType idx2 = outIt.GetIndex();
-    idx1[m_SubtractionDimension] = 2*outIt.GetIndex()[m_SubtractionDimension];
-    idx2[m_SubtractionDimension] = 2*outIt.GetIndex()[m_SubtractionDimension] + 1;
+    idx1[m_SubtractionDimension] = 2 * outIt.GetIndex()[m_SubtractionDimension];
+    idx2[m_SubtractionDimension] = 2 * outIt.GetIndex()[m_SubtractionDimension] + 1;
 
-    outIt.Set( this->GetInput()->GetPixel(idx1)
-               - this->GetInput()->GetPixel(idx2) );
+    outIt.Set(this->GetInput()->GetPixel(idx1) - this->GetInput()->GetPixel(idx2));
     ++outIt;
-    }
+  }
 }
 } // end namespace itk
 

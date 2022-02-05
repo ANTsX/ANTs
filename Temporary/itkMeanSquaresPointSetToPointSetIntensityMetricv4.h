@@ -42,61 +42,60 @@ namespace itk
  *
  * \ingroup ITKMetricsv4
  */
-template<typename TFixedPointSet, typename TMovingPointSet = TFixedPointSet,
-  typename TInternalComputationValueType = double>
-class MeanSquaresPointSetToPointSetIntensityMetricv4 final:
-  public PointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
+template <typename TFixedPointSet,
+          typename TMovingPointSet = TFixedPointSet,
+          typename TInternalComputationValueType = double>
+class MeanSquaresPointSetToPointSetIntensityMetricv4 final
+  : public PointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType>
 {
 public:
-
   /** Standard class typedefs. */
-  typedef MeanSquaresPointSetToPointSetIntensityMetricv4               Self;
-  typedef PointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet,
-    TInternalComputationValueType>                                     Superclass;
-  typedef SmartPointer<Self>                                           Pointer;
-  typedef SmartPointer<const Self>                                     ConstPointer;
+  typedef MeanSquaresPointSetToPointSetIntensityMetricv4                                             Self;
+  typedef PointSetToPointSetMetricv4<TFixedPointSet, TMovingPointSet, TInternalComputationValueType> Superclass;
+  typedef SmartPointer<Self>                                                                         Pointer;
+  typedef SmartPointer<const Self>                                                                   ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( MeanSquaresPointSetToPointSetIntensityMetricv4, PointSetToPointSetMetricv4 );
+  itkTypeMacro(MeanSquaresPointSetToPointSetIntensityMetricv4, PointSetToPointSetMetricv4);
 
   /**  Type of the fixed point set. */
-  typedef TFixedPointSet                               FixedPointSetType;
-  typedef typename TFixedPointSet::PointType           FixedPointType;
-  typedef typename TFixedPointSet::PixelType           FixedPixelType;
-  typedef typename TFixedPointSet::PointsContainer     FixedPointsContainer;
-  typedef typename TFixedPointSet::PointDataContainer  FixedPointDataContainer;
+  typedef TFixedPointSet                              FixedPointSetType;
+  typedef typename TFixedPointSet::PointType          FixedPointType;
+  typedef typename TFixedPointSet::PixelType          FixedPixelType;
+  typedef typename TFixedPointSet::PointsContainer    FixedPointsContainer;
+  typedef typename TFixedPointSet::PointDataContainer FixedPointDataContainer;
 
   /** Dimension type */
-  typedef typename Superclass::DimensionType                  DimensionType;
+  typedef typename Superclass::DimensionType DimensionType;
 
   static constexpr DimensionType FixedPointDimension = Superclass::FixedDimension;
 
   /**  Type of the moving point set. */
-  typedef TMovingPointSet                                  MovingPointSetType;
-  typedef typename TMovingPointSet::PointType              MovingPointType;
-  typedef typename TMovingPointSet::PixelType              MovingPixelType;
-  typedef typename TMovingPointSet::PointsContainer        MovingPointsContainer;
-  typedef typename TMovingPointSet::PointDataContainer     MovingPointDataContainer;
+  typedef TMovingPointSet                              MovingPointSetType;
+  typedef typename TMovingPointSet::PointType          MovingPointType;
+  typedef typename TMovingPointSet::PixelType          MovingPixelType;
+  typedef typename TMovingPointSet::PointsContainer    MovingPointsContainer;
+  typedef typename TMovingPointSet::PointDataContainer MovingPointDataContainer;
 
   static constexpr DimensionType MovingPointDimension = Superclass::MovingDimension;
 
   /** Transform types from Superclass*/
-  typedef typename Superclass::FixedTransformType            FixedTransformType;
-  typedef typename Superclass::MovingTransformType           MovingTransformType;
+  typedef typename Superclass::FixedTransformType  FixedTransformType;
+  typedef typename Superclass::MovingTransformType MovingTransformType;
 
   static constexpr DimensionType PointDimension = Superclass::PointDimension;
 
   /** Types transferred from the base class */
-  typedef typename Superclass::MeasureType             MeasureType;
-  typedef typename Superclass::DerivativeType          DerivativeType;
-  typedef typename Superclass::LocalDerivativeType     LocalDerivativeType;
-  typedef typename Superclass::PointType               PointType;
-  typedef typename Superclass::PixelType               PixelType;
-  typedef typename Superclass::PointIdentifier         PointIdentifier;
-  typedef typename Superclass::PointsConstIterator     PointsConstIterator;
+  typedef typename Superclass::MeasureType         MeasureType;
+  typedef typename Superclass::DerivativeType      DerivativeType;
+  typedef typename Superclass::LocalDerivativeType LocalDerivativeType;
+  typedef typename Superclass::PointType           PointType;
+  typedef typename Superclass::PixelType           PixelType;
+  typedef typename Superclass::PointIdentifier     PointIdentifier;
+  typedef typename Superclass::PointsConstIterator PointsConstIterator;
 
   typedef CovariantVector<TInternalComputationValueType, PointDimension> CovariantVectorType;
 
@@ -104,60 +103,68 @@ public:
    * Set/get estimate intensity distance sigma automatically based on reasonable
    * heuristics.
    */
-  itkSetMacro( EstimateIntensityDistanceSigmaAutomatically, bool );
-  itkGetConstMacro( EstimateIntensityDistanceSigmaAutomatically, bool );
-  itkBooleanMacro( EstimateIntensityDistanceSigmaAutomatically );
+  itkSetMacro(EstimateIntensityDistanceSigmaAutomatically, bool);
+  itkGetConstMacro(EstimateIntensityDistanceSigmaAutomatically, bool);
+  itkBooleanMacro(EstimateIntensityDistanceSigmaAutomatically);
 
   /**
    * Set/get estimate Euclidean distance sigma automatically based on reasonable
    * heuristics.
    */
-  itkSetMacro( EstimateEuclideanDistanceSigmaAutomatically, bool );
-  itkGetConstMacro( EstimateEuclideanDistanceSigmaAutomatically, bool );
-  itkBooleanMacro( EstimateEuclideanDistanceSigmaAutomatically );
+  itkSetMacro(EstimateEuclideanDistanceSigmaAutomatically, bool);
+  itkGetConstMacro(EstimateEuclideanDistanceSigmaAutomatically, bool);
+  itkBooleanMacro(EstimateEuclideanDistanceSigmaAutomatically);
 
   /**
    * Set/get intensity sigma -- modulate the intensity distance contribution in the
    * metric formulation.  Default = sqrt( 5.0 ).
    */
-  itkSetMacro( IntensityDistanceSigma, TInternalComputationValueType );
-  itkGetConstMacro( IntensityDistanceSigma, TInternalComputationValueType );
+  itkSetMacro(IntensityDistanceSigma, TInternalComputationValueType);
+  itkGetConstMacro(IntensityDistanceSigma, TInternalComputationValueType);
 
   /**
    * Set/get distance sigma -- modulate the Euclidean distance contribution in the
    * metric formulation.   Default = sqrt( 5.0 ).
    */
-  itkSetMacro( EuclideanDistanceSigma, TInternalComputationValueType );
-  itkGetConstMacro( EuclideanDistanceSigma, TInternalComputationValueType );
+  itkSetMacro(EuclideanDistanceSigma, TInternalComputationValueType);
+  itkGetConstMacro(EuclideanDistanceSigma, TInternalComputationValueType);
 
-   /**
-    * Initialize the metric by estimating the intensity and distance sigmas
-    */
-  void Initialize( void ) override;
+  /**
+   * Initialize the metric by estimating the intensity and distance sigmas
+   */
+  void
+  Initialize(void) override;
 
   /**
    * Prepare point sets for use.
    */
-  void InitializePointSets() const override;
+  void
+  InitializePointSets() const override;
 
   /**
    * Calculates the local metric value for a single point.
    */
-  MeasureType GetLocalNeighborhoodValue( const PointType &, const PixelType & ) const override;
+  MeasureType
+  GetLocalNeighborhoodValue(const PointType &, const PixelType &) const override;
 
   /** Helper method allows for code reuse while skipping the metric value
    * calculation when appropriate */
-  void CalculateValueAndDerivative( MeasureType & value, DerivativeType & derivative, bool calculateValue ) const;
+  void
+  CalculateValueAndDerivative(MeasureType & value, DerivativeType & derivative, bool calculateValue) const;
 
   /**
    * Calculates the local value and derivative for a single point.
    */
-  void GetLocalNeighborhoodValueAndDerivative( const PointType &,
-    MeasureType &, LocalDerivativeType &, const PixelType & ) const override;
+  void
+  GetLocalNeighborhoodValueAndDerivative(const PointType &,
+                                         MeasureType &,
+                                         LocalDerivativeType &,
+                                         const PixelType &) const override;
 
   /** Clone method will clone the existing instance of this type,
    *  including its internal member variables. */
-  typename LightObject::Pointer InternalClone() const override;
+  typename LightObject::Pointer
+  InternalClone() const override;
 
 protected:
   MeanSquaresPointSetToPointSetIntensityMetricv4();
@@ -166,41 +173,46 @@ protected:
   /**
    * Estimate the intensity distance sigma based on simple heuristic
    */
-  void EstimateIntensityDistanceSigma();
+  void
+  EstimateIntensityDistanceSigma();
 
   /**
    * Estimate the Euclidean distance sigma based on simple heuristic
    */
-  void EstimateEuclideanDistanceSigma();
+  void
+  EstimateEuclideanDistanceSigma();
 
   /**
    * Warp the fixed point set gradients based on the fixed transform.
    */
-  void TransformFixedPointSetGradients() const;
+  void
+  TransformFixedPointSetGradients() const;
 
   /**
    * Warp the moving point set gradients based on the moving transform.
    */
-  void TransformMovingPointSetGradients() const;
+  void
+  TransformMovingPointSetGradients() const;
 
 
   /** PrintSelf function */
-  void PrintSelf( std::ostream & os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
 private:
-  MeanSquaresPointSetToPointSetIntensityMetricv4(const Self &); //purposely not implemented
-  void operator=(const Self &);               //purposely not implemented
+  MeanSquaresPointSetToPointSetIntensityMetricv4(const Self &); // purposely not implemented
+  void
+  operator=(const Self &); // purposely not implemented
 
-  bool                                m_EstimateIntensityDistanceSigmaAutomatically;
-  bool                                m_EstimateEuclideanDistanceSigmaAutomatically;
-  TInternalComputationValueType       m_IntensityDistanceSigma;
-  TInternalComputationValueType       m_EuclideanDistanceSigma;
-
+  bool                          m_EstimateIntensityDistanceSigmaAutomatically;
+  bool                          m_EstimateEuclideanDistanceSigmaAutomatically;
+  TInternalComputationValueType m_IntensityDistanceSigma;
+  TInternalComputationValueType m_EuclideanDistanceSigma;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMeanSquaresPointSetToPointSetIntensityMetricv4.hxx"
+#  include "itkMeanSquaresPointSetToPointSetIntensityMetricv4.hxx"
 #endif
 
 #endif

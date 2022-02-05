@@ -47,28 +47,21 @@ namespace itk
  *
  * \ingroup PointSetFunctions
  */
-template <
-  typename TInputPointSet,
-  typename TOutput,
-  typename TCoordRep = float
-  >
-class PointSetFunction :
-  public         FunctionBase<typename TInputPointSet::PointType, TOutput>
+template <typename TInputPointSet, typename TOutput, typename TCoordRep = float>
+class PointSetFunction : public FunctionBase<typename TInputPointSet::PointType, TOutput>
 {
 public:
   /** Dimension underlying input point set. */
-  itkStaticConstMacro(Dimension, unsigned int,
-                      TInputPointSet::PointDimension);
+  itkStaticConstMacro(Dimension, unsigned int, TInputPointSet::PointDimension);
 
   /** Standard class typedefs. */
-  typedef PointSetFunction Self;
-  typedef FunctionBase
-    <typename TInputPointSet::PointType, TOutput>       Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef PointSetFunction                                          Self;
+  typedef FunctionBase<typename TInputPointSet::PointType, TOutput> Superclass;
+  typedef SmartPointer<Self>                                        Pointer;
+  typedef SmartPointer<const Self>                                  ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( PointSetFunction, FunctionBase );
+  itkTypeMacro(PointSetFunction, FunctionBase);
 
   /** InputPointSetType typedef support. */
   typedef TInputPointSet InputPointSetType;
@@ -90,42 +83,51 @@ public:
    * \warning this method caches BufferedRegion information.
    * If the BufferedRegion has changed, user must call
    * SetInputPointSet again to update cached values. */
-  virtual void SetInputPointSet( const InputPointSetType * ptr );
+  virtual void
+  SetInputPointSet(const InputPointSetType * ptr);
 
   /** Get the input image. */
-  const InputPointSetType * GetInputPointSet() const
+  const InputPointSetType *
+  GetInputPointSet() const
   {
     return m_PointSet.GetPointer();
   }
 
   /** Evaluate the function at specified Point position.
    * Subclasses must provide this method. */
-  virtual TOutput Evaluate( const InputPointType& point ) const = 0;
+  virtual TOutput
+  Evaluate(const InputPointType & point) const = 0;
 
 protected:
   PointSetFunction();
-  ~PointSetFunction()
-  {
-  }
+  ~PointSetFunction() {}
 
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const;
 
   /** Const pointer to the input image. */
   InputPointSetConstPointer m_PointSet;
+
 private:
   PointSetFunction(const Self &) = delete;
-  void operator=(const Self &) = delete;
+  void
+  operator=(const Self &) = delete;
 };
 } // end namespace itk
 
 // Define instantiation macro for this template.
-#define ITK_TEMPLATE_PointSetFunction(_, EXPORT, x, y) namespace itk { \
-  _(3 (class EXPORT PointSetFunction<ITK_TEMPLATE_3 x> ) ) \
-  namespace Templates { typedef PointSetFunction<ITK_TEMPLATE_3 x> PointSetFunction##y; } \
+#define ITK_TEMPLATE_PointSetFunction(_, EXPORT, x, y)            \
+  namespace itk                                                   \
+  {                                                               \
+  _(3(class EXPORT PointSetFunction<ITK_TEMPLATE_3 x>))           \
+  namespace Templates                                             \
+  {                                                               \
+  typedef PointSetFunction<ITK_TEMPLATE_3 x> PointSetFunction##y; \
+  }                                                               \
   }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkPointSetFunction.hxx"
+#  include "itkPointSetFunction.hxx"
 #endif
 
 #endif

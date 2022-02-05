@@ -38,112 +38,114 @@ template <typename TInput, typename TConstantVector, typename TOutput>
 class MultiplyByConstantVector
 {
 public:
-  MultiplyByConstantVector()
+  MultiplyByConstantVector() {}
+
+  ~MultiplyByConstantVector() {}
+
+  bool
+  operator!=(const MultiplyByConstantVector & other) const
   {
+    return !(*this == other);
   }
 
-  ~MultiplyByConstantVector()
-  {
-  }
-
-  bool operator!=(const MultiplyByConstantVector & other) const
-  {
-    return !( *this == other );
-  }
-
-  bool operator==(const MultiplyByConstantVector & other) const
+  bool
+  operator==(const MultiplyByConstantVector & other) const
   {
     return other.m_ConstantVector == m_ConstantVector;
   }
 
-  inline TOutput operator()(const TInput & A) const
+  inline TOutput
+  operator()(const TInput & A) const
   {
     // Because the user has to specify the constant we don't
     // check if the cte is not 0;
 
     TConstantVector value;
 
-    for( unsigned int i = 0; i < m_ConstantVector.GetVectorDimension(); i++ )
-      {
+    for (unsigned int i = 0; i < m_ConstantVector.GetVectorDimension(); i++)
+    {
       value[i] = A[i] * m_ConstantVector[i];
-      }
+    }
     return value;
   }
 
-  void SetConstantVector(TConstantVector ct)
+  void
+  SetConstantVector(TConstantVector ct)
   {
     this->m_ConstantVector = ct;
   }
 
-  const TConstantVector & GetConstantVector() const
+  const TConstantVector &
+  GetConstantVector() const
   {
     return m_ConstantVector;
   }
 
   TConstantVector m_ConstantVector;
 };
-}
+} // namespace Functor
 
 template <typename TInputImage, typename TConstantVector, typename TOutputImage>
-class MultiplyByConstantVectorImageFilter :
-  public
-  UnaryFunctorImageFilter<TInputImage, TOutputImage,
-                          Functor::MultiplyByConstantVector<
-                            typename TInputImage::PixelType, TConstantVector,
-                            typename TOutputImage::PixelType> >
+class MultiplyByConstantVectorImageFilter
+  : public UnaryFunctorImageFilter<TInputImage,
+                                   TOutputImage,
+                                   Functor::MultiplyByConstantVector<typename TInputImage::PixelType,
+                                                                     TConstantVector,
+                                                                     typename TOutputImage::PixelType>>
 {
 public:
   /** Standard class typedefs. */
   typedef MultiplyByConstantVectorImageFilter Self;
-  typedef UnaryFunctorImageFilter<
-      TInputImage, TOutputImage,
-      Functor::MultiplyByConstantVector<
-        typename TInputImage::PixelType, TConstantVector,
-        typename TOutputImage::PixelType> >             Superclass;
+  typedef UnaryFunctorImageFilter<TInputImage,
+                                  TOutputImage,
+                                  Functor::MultiplyByConstantVector<typename TInputImage::PixelType,
+                                                                    TConstantVector,
+                                                                    typename TOutputImage::PixelType>>
+    Superclass;
 
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( MultiplyByConstantVectorImageFilter, UnaryFunctorImageFilter );
+  itkTypeMacro(MultiplyByConstantVectorImageFilter, UnaryFunctorImageFilter);
 
   /** Set the constant that will be used to multiply all the image pixels */
-  void SetConstantVector( TConstantVector ct )
+  void
+  SetConstantVector(TConstantVector ct)
   {
-    if( ct != this->GetFunctor().GetConstantVector() )
-      {
-      this->GetFunctor().SetConstantVector( ct );
+    if (ct != this->GetFunctor().GetConstantVector())
+    {
+      this->GetFunctor().SetConstantVector(ct);
       this->Modified();
-      }
+    }
   }
 
-  const TConstantVector & GetConstantVector() const
+  const TConstantVector &
+  GetConstantVector() const
   {
     return this->GetFunctor().GetConstantVector();
   }
 
 protected:
-  MultiplyByConstantVectorImageFilter()
-  {
-  }
+  MultiplyByConstantVectorImageFilter() {}
 
-  virtual ~MultiplyByConstantVectorImageFilter()
-  {
-  }
+  virtual ~MultiplyByConstantVectorImageFilter() {}
 
-  void PrintSelf(std::ostream & os, Indent indent ) const
+  void
+  PrintSelf(std::ostream & os, Indent indent) const
   {
-    Superclass::PrintSelf( os, indent );
+    Superclass::PrintSelf(os, indent);
 
     os << indent << "Constant: " << this->GetConstantVector() << std::endl;
   }
 
 private:
   MultiplyByConstantVectorImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);                      // purposely not implemented
+  void
+  operator=(const Self &); // purposely not implemented
 };
 } // end namespace itk
 

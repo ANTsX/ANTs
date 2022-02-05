@@ -33,12 +33,11 @@ namespace itk
  * \ingroup ImageSource
  * \ingroup ITKDisplacementField
  */
-template<typename TOutputImage>
-class SimulatedExponentialDisplacementFieldSource final:
-  public SimulatedDisplacementFieldSource<TOutputImage>
+template <typename TOutputImage>
+class SimulatedExponentialDisplacementFieldSource final : public SimulatedDisplacementFieldSource<TOutputImage>
 {
 public:
-  ITK_DISALLOW_COPY_AND_MOVE( SimulatedExponentialDisplacementFieldSource );
+  ITK_DISALLOW_COPY_AND_MOVE(SimulatedExponentialDisplacementFieldSource);
 
   /** Standard class type aliases. */
   using Self = SimulatedExponentialDisplacementFieldSource;
@@ -51,10 +50,10 @@ public:
   using OutputPixelComponentType = typename Superclass::OutputPixelComponentType;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( SimulatedExponentialDisplacementFieldSource, SimulatedDisplacementFieldSource );
+  itkTypeMacro(SimulatedExponentialDisplacementFieldSource, SimulatedDisplacementFieldSource);
 
   /** Number of dimensions */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
@@ -77,59 +76,60 @@ public:
    * Set/Get the number of integration steps.  If 0, this number is computed
    * automatically.  Default = 0.
    */
-  itkSetMacro( NumberOfIntegrationSteps, unsigned int );
-  itkGetConstMacro( NumberOfIntegrationSteps, unsigned int );
+  itkSetMacro(NumberOfIntegrationSteps, unsigned int);
+  itkGetConstMacro(NumberOfIntegrationSteps, unsigned int);
 
   /**
    * Set/Get the dilation radius.  Default = 5.
    */
-  itkSetMacro( DilationRadius, unsigned int );
-  itkGetConstMacro( DilationRadius, unsigned int );
+  itkSetMacro(DilationRadius, unsigned int);
+  itkGetConstMacro(DilationRadius, unsigned int);
 
   /**
    * Set/Get the standard deviation of the noise for the displacements at the
    * random points.  Default = c( 1, 1, ... ) mm.
    */
-  itkSetMacro( DisplacementNoiseStandardDeviation, StandardDeviationArrayType );
-  itkGetConstMacro( DisplacementNoiseStandardDeviation, StandardDeviationArrayType );
+  itkSetMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
+  itkGetConstMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
 
   /**
    * Set the standard deviation of the displacement noise.  Default = 1 mm.
    */
-  void SetDisplacementNoiseStandardDeviation( RealType sd )
-    {
+  void
+  SetDisplacementNoiseStandardDeviation(RealType sd)
+  {
     StandardDeviationArrayType standardDeviation;
 
-    standardDeviation.Fill( sd );
-    this->SetDisplacementNoiseStandardDeviation( standardDeviation );
-    }
+    standardDeviation.Fill(sd);
+    this->SetDisplacementNoiseStandardDeviation(standardDeviation);
+  }
 
   /**
    * Set/Get the standard deviation of the noise for the smoothing.  Default = c( 1, 1, ... )
    */
-  itkSetMacro( SmoothingStandardDeviation, RealType );
-  itkGetConstMacro( SmoothingStandardDeviation, RealType );
+  itkSetMacro(SmoothingStandardDeviation, RealType);
+  itkGetConstMacro(SmoothingStandardDeviation, RealType);
 
 protected:
   SimulatedExponentialDisplacementFieldSource();
   ~SimulatedExponentialDisplacementFieldSource() override = default;
-  void PrintSelf( std::ostream & os, Indent indent ) const override;
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
 
-  void GenerateData() override;
+  void
+  GenerateData() override;
 
 private:
-
-  unsigned int                                 m_NumberOfIntegrationSteps;
-  RealType                                     m_GradientStep;
-  unsigned int                                 m_DilationRadius;
-  StandardDeviationArrayType                   m_DisplacementNoiseStandardDeviation;
-  RealType                                     m_SmoothingStandardDeviation;
-
+  unsigned int               m_NumberOfIntegrationSteps;
+  RealType                   m_GradientStep;
+  unsigned int               m_DilationRadius;
+  StandardDeviationArrayType m_DisplacementNoiseStandardDeviation;
+  RealType                   m_SmoothingStandardDeviation;
 };
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkSimulatedExponentialDisplacementFieldSource.hxx"
+#  include "itkSimulatedExponentialDisplacementFieldSource.hxx"
 #endif
 
 #endif
