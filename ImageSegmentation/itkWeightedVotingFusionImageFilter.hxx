@@ -490,8 +490,17 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
       }
     SizeValueType searchNeighborhoodSize = searchNeighborhoodOffsetList.size();
 
-    InputImagePixelVectorType normalizedTargetPatch =
-      this->VectorizeImageListPatch( this->m_TargetImage, currentCenterIndex, true );
+    // if Metric is MSQ, create both target patch and normalized target patch for use.
+    // target patch is for metric calculation, and normalized patch is for weight calculation.
+    // If metric is PC, only need to use normalizedTargetPatch
+
+    const InputImagePixelVectorType normalizedTargetPatch = this->VectorizeImageListPatch( this->m_TargetImage, currentCenterIndex, true );
+
+    InputImagePixelVectorType targetPatch;
+    if(this->m_SimilarityMetric == NonLocalPatchBasedImageFilterEnums::SimilarityMetric::MEAN_SQUARES)
+    {
+      targetPatch = this->VectorizeImageListPatch( this->m_TargetImage, currentCenterIndex, false );
+    }
 
     absoluteAtlasPatchDifferences.fill( 0.0 );
     originalAtlasPatchIntensities.fill( 0.0 );
@@ -512,8 +521,25 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>
           continue;
           }
 
-        RealType patchSimilarity = this->ComputeNeighborhoodPatchSimilarity(
-          this->m_AtlasImages[i], searchIndex, normalizedTargetPatch, useOnlyFirstAtlasImage );
+        const RealType patchSimilarity = [&] () -> RealType {
+        // use nonnormalized vector for MSQ
+        switch(this->m_SimilarityMetric)
+          {
+        case NonLocalPatchBasedImageFilterEnums::SimilarityMetric::MEAN_SQUARES):
+          // use non-normalized vectors for MSE
+          return this->ComputeNeighborhoodPatchSimilarity(
+            this->m_AtlasImages[i], searchIndex, targetPatch, useOnlyFirstAtlasImage);
+          break;
+        case NonLocalPatchBasedImageFilterEnums::SimilarityMetric::PEARSON_CORRELATION):
+          // use normalized vector for PC
+          return this->ComputeNeighborhoodPatchSimilarity(
+            this->m_AtlasImages[i], searchIndex, normalizedTargetPatch, useOnlyFirstAtlasImage );
+          break;
+        default:
+          itkGenericException("Invalid SimilarityMetric Chosen.");
+          }
+        return 0.0;
+        }
 
         if( patchSimilarity < minimumPatchSimilarity )
           {
