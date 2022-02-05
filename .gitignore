@@ -20,3 +20,5 @@ crash*
 .*.swp
 bin
 build
+*.orig
+*.bak
