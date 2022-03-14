@@ -1,5 +1,5 @@
 ---
-name: ANTs command line tools: bugs, unexpected results or other run time problems
+name: ANTs command line tools - bugs, unexpected results or other run time problems
 about: Issues with *ANTs command line tools*. For ANTsPy, ANTsR, etc, please find the correct repository at the link below.
 ---
 
