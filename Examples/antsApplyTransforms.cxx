@@ -18,6 +18,7 @@
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
+#include "itkTransformFileWriter.h"
 #include "itkTransformToDisplacementFieldFilter.h"
 
 #include "itkBSplineInterpolateImageFunction.h"
@@ -568,11 +569,28 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       converter->SetTransform(compositeTransform);
       converter->Update();
 
-      using DisplacementFieldWriterType = itk::ImageFileWriter<DisplacementFieldType>;
-      typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
-      displacementFieldWriter->SetInput(converter->GetOutput());
-      displacementFieldWriter->SetFileName((outputOption->GetFunction(0)->GetParameter(0)).c_str());
-      displacementFieldWriter->Update();
+      if ((itksys::SystemTools::GetFilenameLastExtension(outputOption->GetFunction(0)->GetParameter(0)) == ".h5") ||
+          (itksys::SystemTools::GetFilenameLastExtension(outputOption->GetFunction(0)->GetParameter(0)) == ".hdf5"))
+      {
+        // HDF5 transforms must be written by a TransformFileWriter to be valid ITK transforms
+        using DisplacementFieldTransformType = itk::DisplacementFieldTransform<RealType, Dimension>;
+        typename DisplacementFieldTransformType::Pointer compositeDisplacementTransform = DisplacementFieldTransformType::New();
+        compositeDisplacementTransform->SetDisplacementField(converter->GetOutput());
+
+        using TransformWriterType = itk::TransformFileWriterTemplate<RealType>;
+        typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+        transformWriter->SetFileName((outputOption->GetFunction(0)->GetParameter(0)).c_str());
+        transformWriter->SetInput(compositeDisplacementTransform);
+        transformWriter->Update();
+      }
+      else
+      {
+        using DisplacementFieldWriterType = itk::ImageFileWriter<DisplacementFieldType>;
+        typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
+        displacementFieldWriter->SetInput(converter->GetOutput());
+        displacementFieldWriter->SetFileName((outputOption->GetFunction(0)->GetParameter(0)).c_str());
+        displacementFieldWriter->Update();
+      }
     }
     else
     {
