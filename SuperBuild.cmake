@@ -15,18 +15,17 @@ include(CTest)
 include(${CMAKE_CURRENT_SOURCE_DIR}/Common.cmake)
 
 #-----------------------------------------------------------------------------
-# Git protocol option
+# Git protocol
 #-----------------------------------------------------------------------------
-option(${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
-set(git_protocol "git")
-if(NOT ${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL)
-  set(git_protocol "https")
-endif()
+# As of March 15 2022, Github requires https
+set(git_protocol "https")
 
 find_package(Git REQUIRED)
 
-# I don't know who removed the Find_Package for QT, but it needs to be here
-# in order to build VTK if ${LOCAL_PROJECT_NAME}_USE_QT is set.
+#-----------------------------------------------------------------------------
+# QT
+#-----------------------------------------------------------------------------
+# Required in order to build VTK if ${LOCAL_PROJECT_NAME}_USE_QT is set.
 if(${LOCAL_PROJECT_NAME}_USE_QT)
 find_package(Qt4 REQUIRED)
 endif()
