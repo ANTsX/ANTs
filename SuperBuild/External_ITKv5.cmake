@@ -80,6 +80,11 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
         -DModule_ITKMINC:BOOL=ON
        )
   endif()
+  if(${extProjName}_BUILD_VKFFT_SUPPORT)
+    set(${proj}_MINC_ARGS
+        -DModule_VkFFTBackend:BOOL=ON
+       )
+  endif()
 
   set(${proj}_WRAP_ARGS)
   #if(foo)
@@ -136,6 +141,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       ${${proj}_FFTWF_ARGS}
       ${${proj}_FFTWD_ARGS}
       ${${proj}_MINC_ARGS}
+      ${${proj}_VKFFT_ARGS}
   )
 
     if( USE_VTK STREQUAL "ON" )
@@ -151,9 +157,10 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
 
   ### --- End Project specific additions
-  set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
+  # set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
+  set(${proj}_REPOSITORY ${git_protocol}://github.com/thewtex/ITK.git)
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
-  set(${proj}_GIT_TAG 4bbccf2e80e3100df89f5ccc14c4c03735e4fbae)  # Official ITK release version 5.3.0 rc 03 # Many modern code updates for performance
+  set(${proj}_GIT_TAG d5abe809e26043e888a887d4dafc39fabb0fb2b3)  # Official ITK release version 5.3.0 rc 03 # Many modern code updates for performance
   set(ITK_VERSION_ID ITK-5.3) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
