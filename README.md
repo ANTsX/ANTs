@@ -5,9 +5,7 @@
 ![ants goat](http://i.imgur.com/SEKf1mo.jpg) -->
 [Advanced Normalization Tools](https://imgur.com/a/kySGi)
 =========================================================
-
-[![Build Status](https://travis-ci.org/ANTsX/ANTs.svg?branch=master)](https://travis-ci.org/ANTsX/ANTs)
-[![ANTsX](https://circleci.com/gh/ANTsX/ANTs.svg?style=shield)](https://app.circleci.com/pipelines/github/ANTsX/ANTs)
+[![ci-docker](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml/badge.svg)](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
 ANTs computes high-dimensional mappings to capture the statistics of brain
