@@ -1,18 +1,17 @@
 FROM ubuntu:bionic-20200112 as builder
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-                    software-properties-common \
-                    build-essential \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
                     apt-transport-https \
+                    bc \
+                    build-essential \
                     ca-certificates \
                     gnupg \
-                    software-properties-common \
-                    wget \
                     ninja-build \
                     git \
-                    zlib1g-dev \
-                    bc
+                    software-properties-common \
+                    wget \
+                    zlib1g-dev
 
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
     | apt-key add - \
@@ -46,8 +45,11 @@ ENV ANTSPATH="/opt/ants/bin" \
     PATH="/opt/ants/bin:$PATH" \
     LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
 RUN apt-get update \
-    && apt install -y --no-install-recommends zlib1g-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && apt install -y --no-install-recommends \
+                   bc \
+                   zlib1g-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /data
 
