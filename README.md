@@ -6,6 +6,8 @@
 [Advanced Normalization Tools](https://imgur.com/a/kySGi)
 =========================================================
 [![ci-docker](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml/badge.svg)](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/antsx/ants.svg)](https://hub.docker.com/repository/docker/antsx/ants)
+![Downloads](https://img.shields.io/github/downloads/antsx/ants/total)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
 ANTs computes high-dimensional mappings to capture the statistics of brain
