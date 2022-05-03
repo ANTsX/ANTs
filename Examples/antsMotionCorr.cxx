@@ -872,8 +872,30 @@ ants_motion(itk::ants::CommandLineParser * parser)
 
     // Get smoothing sigmas
 
-    std::vector<float> sigmas =
-      parser->ConvertVector<float>(smoothingSigmasOption->GetFunction(currentStage)->GetName());
+    std::string smoothingSigmasString = smoothingSigmasOption->GetFunction(currentStage)->GetName();
+
+    bool smoothingSigmasAreInPhysicalUnits = false;
+
+    const size_t mmPosition = smoothingSigmasString.find("mm");
+    const size_t voxPosition = smoothingSigmasString.find("vox");
+
+    if (mmPosition != std::string::npos)
+    {
+      smoothingSigmasString.replace(mmPosition, 2, "");
+      smoothingSigmasAreInPhysicalUnits = true;
+    }
+    else if (voxPosition != std::string::npos)
+    {
+      smoothingSigmasString.replace(voxPosition, 3, "");
+      smoothingSigmasAreInPhysicalUnits = false;
+    }
+    else
+    {
+      smoothingSigmasAreInPhysicalUnits = false;
+    }
+
+    std::vector<float> sigmas = parser->ConvertVector<float>(smoothingSigmasString);
+
     typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
     smoothingSigmasPerLevel.SetSize(sigmas.size());
 
@@ -890,6 +912,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
       }
       if (verbose)
         std::cout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
+        std::cout << "  smoothing sigmas in physical space units: " << smoothingSigmasAreInPhysicalUnits << std::endl;
     }
 
     // the fixed image is a reference image in 3D while the moving is a 4D image
@@ -1218,6 +1241,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         affineRegistration->SetNumberOfLevels(numberOfLevels);
         affineRegistration->SetShrinkFactorsPerLevel(shrinkFactorsPerLevel);
         affineRegistration->SetSmoothingSigmasPerLevel(smoothingSigmasPerLevel);
+        affineRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(smoothingSigmasAreInPhysicalUnits);
         affineRegistration->SetMetricSamplingStrategy(metricSamplingStrategy);
         affineRegistration->SetMetricSamplingPercentage(samplingPercentage);
         affineRegistration->SetMetric(metric);
@@ -1292,6 +1316,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         rigidRegistration->SetNumberOfLevels(numberOfLevels);
         rigidRegistration->SetShrinkFactorsPerLevel(shrinkFactorsPerLevel);
         rigidRegistration->SetSmoothingSigmasPerLevel(smoothingSigmasPerLevel);
+        rigidRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(smoothingSigmasAreInPhysicalUnits);
         rigidRegistration->SetMetric(metric);
         rigidRegistration->SetMetricSamplingStrategy(
           static_cast<typename RigidRegistrationType::MetricSamplingStrategyEnum>(metricSamplingStrategy));
@@ -1397,7 +1422,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         displacementFieldRegistration->SetNumberOfLevels(numberOfLevels);
         displacementFieldRegistration->SetShrinkFactorsPerLevel(shrinkFactorsPerLevel);
         displacementFieldRegistration->SetSmoothingSigmasPerLevel(smoothingSigmasPerLevel);
-        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(false);
+        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(smoothingSigmasAreInPhysicalUnits);
         displacementFieldRegistration->SetMetricSamplingStrategy(
           static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyEnum>(metricSamplingStrategy));
         displacementFieldRegistration->SetMetricSamplingPercentage(samplingPercentage);
@@ -1518,7 +1543,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         displacementFieldRegistration->SetNumberOfLevels(numberOfLevels);
         displacementFieldRegistration->SetShrinkFactorsPerLevel(shrinkFactorsPerLevel);
         displacementFieldRegistration->SetSmoothingSigmasPerLevel(smoothingSigmasPerLevel);
-        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(false);
+        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(smoothingSigmasAreInPhysicalUnits);
         displacementFieldRegistration->SetLearningRate(learningRate);
         displacementFieldRegistration->SetConvergenceThreshold(1.e-8);
         displacementFieldRegistration->SetConvergenceWindowSize(10);
@@ -1884,7 +1909,9 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
   }
 
   {
-    std::string description = std::string("Specify the amount of smoothing at each level.");
+    std::string description =
+      std::string("Specify the sigma for smoothing at each level. Smoothing may be specified ") +
+      std::string("in mm units or voxels with \"AxBxCmm\" or \"AxBxCvox\". No units implies voxels.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("smoothingSigmas");
