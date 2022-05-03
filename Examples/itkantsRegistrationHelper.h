@@ -208,6 +208,7 @@ public:
            SamplingStrategy        samplingStrategy,
            int                     numberOfBins,
            unsigned int            radius,
+           bool                    useGradientFilter,
            bool                    useBoundaryPointsOnly,
            RealType                pointSetSigma,
            unsigned int            evaluationKNeighborhood,
@@ -215,7 +216,8 @@ public:
            bool                    useAnisotropicCovariances,
            RealType                samplingPercentage,
            RealType                intensityDistanceSigma,
-           RealType                euclideanDistanceSigma)
+           RealType                euclideanDistanceSigma
+           )
       : m_MetricType(metricType)
       , m_FixedImage(fixedImage)
       , m_MovingImage(movingImage)
@@ -224,6 +226,7 @@ public:
       , m_SamplingStrategy(samplingStrategy)
       , m_NumberOfBins(numberOfBins)
       , m_Radius(radius)
+      , m_UseGradientFilter(useGradientFilter)
       , m_FixedLabeledPointSet(fixedLabeledPointSet)
       , m_MovingLabeledPointSet(movingLabeledPointSet)
       , m_FixedIntensityPointSet(fixedIntensityPointSet)
@@ -302,6 +305,7 @@ public:
     SamplingStrategy m_SamplingStrategy;
     int              m_NumberOfBins;
     unsigned int     m_Radius; // Only for CC metric
+    bool             m_UseGradientFilter;
 
     // Variables for point-set metrics
 
@@ -481,6 +485,7 @@ public:
             SamplingStrategy        samplingStrategy,
             int                     numberOfBins,
             unsigned int            radius,
+            bool                    useGradientFilter,
             bool                    useBoundaryPointsOnly,
             RealType                pointSetSigma,
             unsigned int            evaluationKNeighborhood,
@@ -500,6 +505,7 @@ public:
             SamplingStrategy  samplingStrategy,
             int               numberOfBins,
             unsigned int      radius,
+            bool              useGradientFilter,
             RealType          samplingPercentage)
   {
     this->AddMetric(metricType,
@@ -514,6 +520,7 @@ public:
                     samplingStrategy,
                     numberOfBins,
                     radius,
+                    useGradientFilter,
                     false,
                     1.0,
                     50,

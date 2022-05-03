@@ -309,7 +309,8 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
       std::string("one sample per voxel), otherwise it defines a point set over which to optimize the metric. ") +
       std::string("The point set can be on a regular lattice or a random lattice of points slightly ") +
       std::string("perturbed to minimize aliasing artifacts. samplingPercentage defines the ") +
-      std::string("fraction of points to select from the domain. ") +
+      std::string("fraction of points to select from the domain. useGradientFilter specifies whether a smoothing") +
+      std::string("filter is applied when estimating the metric gradient.") +
       std::string("In addition, three point set metrics are available:  Euclidean ") +
       std::string("(ICP), Point-set expectation (PSE), and Jensen-Havrda-Charvet-Tsallis (JHCT).");
 
@@ -318,22 +319,22 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
     option->SetShortName('m');
     option->SetUsageOption(0,
                            "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={None,Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
+                           "samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(1,
                            "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}"
-                           ">,<samplingPercentage=[0,1]>]");
+                           ">,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(2,
                            "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,"
-                           "Random}>,<samplingPercentage=[0,1]>]");
+                           "Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(3,
                            "MeanSquares[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,"
-                           "Random}>,<samplingPercentage=[0,1]>]");
+                           "Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(4,
                            "Demons[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,"
-                           "Random}>,<samplingPercentage=[0,1]>]");
+                           "Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(5,
                            "GC[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
+                           "samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(
       6, "ICP[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>]");
     option->SetUsageOption(7,

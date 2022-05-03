@@ -973,6 +973,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
     unsigned int                                      numberOfBins = 32;
     unsigned int                                      radius = 4;
+    bool                                              useGradientFilter = false;
 
     // assign default point-set variables
 
@@ -993,6 +994,12 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
         samplingPercentage = parser->Convert<float>(metricOption->GetFunction(currentMetricNumber)->GetParameter(5));
       }
+
+      if (metricOption->GetFunction(currentMetricNumber)->GetNumberOfParameters() > 6)
+      {
+        useGradientFilter = parser->Convert<bool>(metricOption->GetFunction(currentMetricNumber)->GetParameter(6));
+      }
+
       std::string fixedFileName = metricOption->GetFunction(currentMetricNumber)->GetParameter(0);
       std::string movingFileName = metricOption->GetFunction(currentMetricNumber)->GetParameter(1);
 
@@ -1196,6 +1203,7 @@ DoRegistration(typename ParserType::Pointer & parser)
                          samplingStrategy,
                          numberOfBins,
                          radius,
+                         useGradientFilter,
                          useBoundaryPointsOnly,
                          pointSetSigma,
                          evaluationKNeighborhood,
