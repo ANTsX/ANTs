@@ -1056,6 +1056,12 @@ ants_motion(itk::ants::CommandLineParser * parser)
         metricSamplingStrategy = AffineRegistrationType::MetricSamplingStrategyEnum::REGULAR;
       }
 
+      bool useGradientFilter = false;
+      if (metricOption->GetFunction(0)->GetNumberOfParameters() > 6)
+      {
+        useGradientFilter = parser->Convert<bool>(metricOption->GetFunction(currentStage)->GetParameter(6));
+      }
+
       if (std::strcmp(whichMetric.c_str(), "cc") == 0)
       {
         auto radiusOption = parser->Convert<unsigned int>(metricOption->GetFunction(currentStage)->GetParameter(3));
@@ -1071,8 +1077,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         typename CorrelationMetricType::RadiusType radius;
         radius.Fill(radiusOption);
         correlationMetric->SetRadius(radius);
-        correlationMetric->SetUseMovingImageGradientFilter(false);
-        correlationMetric->SetUseFixedImageGradientFilter(false);
+        correlationMetric->SetUseMovingImageGradientFilter(useGradientFilter);
+        correlationMetric->SetUseFixedImageGradientFilter(useGradientFilter);
 
         metric = correlationMetric;
       }
@@ -1090,8 +1096,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
         // mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins(binOption);
-        mutualInformationMetric->SetUseMovingImageGradientFilter(false);
-        mutualInformationMetric->SetUseFixedImageGradientFilter(false);
+        mutualInformationMetric->SetUseMovingImageGradientFilter(useGradientFilter);
+        mutualInformationMetric->SetUseFixedImageGradientFilter(useGradientFilter);
         metric = mutualInformationMetric;
       }
       else if (std::strcmp(whichMetric.c_str(), "demons") == 0)
@@ -1103,6 +1109,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         }
         using DemonsMetricType = itk::MeanSquaresImageToImageMetricv4<FixedImageType, FixedImageType>;
         typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
+        demonsMetric->SetUseMovingImageGradientFilter(useGradientFilter);
+        demonsMetric->SetUseFixedImageGradientFilter(useGradientFilter);
         // demonsMetric = demonsMetric;
         metric = demonsMetric;
       }
@@ -1115,6 +1123,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         }
         using corrMetricType = itk::CorrelationImageToImageMetricv4<FixedImageType, FixedImageType>;
         typename corrMetricType::Pointer corrMetric = corrMetricType::New();
+        corrMetric->SetUseMovingImageGradientFilter(useGradientFilter);
+        corrMetric->SetUseFixedImageGradientFilter(useGradientFilter);
         metric = corrMetric;
         if (verbose)
           std::cout << "  global corr metric set " << std::endl;
@@ -1835,24 +1845,26 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
       std::string("The fixed image should be a single time point (eg the average of the time series). ") +
       std::string(
         "By default, this image is not used, the fixed image for correction of each volume is the preceding volume ") +
-      std::string("in the time series. See below for the option to use a fixed reference image for all volumes. ");
+      std::string("in the time series. See below for the option to use a fixed reference image for all volumes. ") +
+      std::string("useGradientFilter specifies whether a smoothing") +
+      std::string("filter is applied when estimating the metric gradient.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("metric");
     option->SetShortName('m');
     option->SetUsageOption(
       0,
-      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]");
+      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(1,
                            "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
+                           "samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(2,
 
                            "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
+                           "samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(
       3,
-      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]");
+      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetDescription(description);
     parser->AddOption(option);
   }
