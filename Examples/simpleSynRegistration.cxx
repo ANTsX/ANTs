@@ -75,7 +75,8 @@ simpleSynReg(ImageType::Pointer &                  fixedImage,
   constexpr float                          samplingPercentage = 1.0;
   RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
   constexpr unsigned int                   binOption = 200;
-  regHelper->AddMetric(curMetric, fixedImage, movingImage, 0, 1.0, samplingStrategy, binOption, 1, samplingPercentage);
+  bool                                     useGradientFilter = false;
+  regHelper->AddMetric(curMetric, fixedImage, movingImage, 0, 1.0, samplingStrategy, binOption, 1, useGradientFilter, samplingPercentage);
 
   const float learningRate(0.25F);
   const float varianceForUpdateField(3.0F);

@@ -258,6 +258,7 @@ RegistrationHelper<TComputeType, VImageDimension>::AddMetric(MetricEnumeration  
                                                              SamplingStrategy        samplingStrategy,
                                                              int                     numberOfBins,
                                                              unsigned int            radius,
+                                                             bool                    useGradientFilter,
                                                              bool                    useBoundaryPointsOnly,
                                                              RealType                pointSetSigma,
                                                              unsigned int            evaluationKNeighborhood,
@@ -279,6 +280,7 @@ RegistrationHelper<TComputeType, VImageDimension>::AddMetric(MetricEnumeration  
               samplingStrategy,
               numberOfBins,
               radius,
+              useGradientFilter,
               useBoundaryPointsOnly,
               pointSetSigma,
               evaluationKNeighborhood,
@@ -783,8 +785,6 @@ template <typename TComputeType, unsigned VImageDimension>
 int
 RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
 {
-  /** Can really impact performance */
-  const bool     gradientfilter = false;
   itk::TimeProbe totalTimer;
 
   totalTimer.Start();
@@ -923,7 +923,9 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         {
           const unsigned int radiusOption = stageMetricList[currentMetricNumber].m_Radius;
           this->Logger() << "  using the CC metric (radius = " << radiusOption
-                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
           typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>
                                                   CorrelationMetricType;
           typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
@@ -932,8 +934,6 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             radius.Fill(radiusOption);
             correlationMetric->SetRadius(radius);
           }
-          correlationMetric->SetUseMovingImageGradientFilter(gradientfilter);
-          correlationMetric->SetUseFixedImageGradientFilter(gradientfilter);
 
           imageMetric = correlationMetric;
         }
@@ -942,14 +942,14 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         {
           const unsigned int binOption = stageMetricList[currentMetricNumber].m_NumberOfBins;
           this->Logger() << "  using the Mattes MI metric (number of bins = " << binOption
-                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
           typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>
                                                         MutualInformationMetricType;
           typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
           // mutualInformationMetric = mutualInformationMetric;
           mutualInformationMetric->SetNumberOfHistogramBins(binOption);
-          mutualInformationMetric->SetUseMovingImageGradientFilter(gradientfilter);
-          mutualInformationMetric->SetUseFixedImageGradientFilter(gradientfilter);
           mutualInformationMetric->SetUseSampledPointSet(false);
 
           imageMetric = mutualInformationMetric;
@@ -959,15 +959,15 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         {
           const unsigned int binOption = stageMetricList[currentMetricNumber].m_NumberOfBins;
           this->Logger() << "  using the joint histogram MI metric (number of bins = " << binOption
-                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
           typedef itk::
             JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>
                                                         MutualInformationMetricType;
           typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
           // mutualInformationMetric = mutualInformationMetric;
           mutualInformationMetric->SetNumberOfHistogramBins(binOption);
-          mutualInformationMetric->SetUseMovingImageGradientFilter(gradientfilter);
-          mutualInformationMetric->SetUseFixedImageGradientFilter(gradientfilter);
           mutualInformationMetric->SetUseSampledPointSet(false);
           mutualInformationMetric->SetVarianceForJointPDFSmoothing(1.0);
 
@@ -976,8 +976,10 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         break;
         case MeanSquares:
         {
-          this->Logger() << "  using the MeanSquares metric (weight = "
-                         << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+          this->Logger() << "  using the MeanSquares metric "
+                         << "( weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
 
           typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>
                                                   MeanSquaresMetricType;
@@ -989,7 +991,9 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         break;
         case Demons:
         {
-          this->Logger() << "  using the Demons metric (weight = " << stageMetricList[currentMetricNumber].m_Weighting
+          this->Logger() << "  using the Demons metric "
+                         << "( weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
                          << ")" << std::endl;
 
           typedef itk::DemonsImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> DemonsMetricType;
@@ -1000,8 +1004,10 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         break;
         case GC:
         {
-          this->Logger() << "  using the global correlation metric (weight = "
-                         << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+          this->Logger() << "  using the global correlation metric "
+                         << "( weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
           typedef itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> corrMetricType;
           typename corrMetricType::Pointer corrMetric = corrMetricType::New();
 
@@ -1137,8 +1143,9 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         // Set up the image metric and scales estimator
 
         imageMetric->SetVirtualDomainFromImage(fixedImage);
-        imageMetric->SetUseMovingImageGradientFilter(gradientfilter);
-        imageMetric->SetUseFixedImageGradientFilter(gradientfilter);
+        imageMetric->SetUseMovingImageGradientFilter(stageMetricList[currentMetricNumber].m_UseGradientFilter);
+        imageMetric->SetUseFixedImageGradientFilter(stageMetricList[currentMetricNumber].m_UseGradientFilter);
+
         metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
         if (useFixedImageMaskForThisStage)
         {
