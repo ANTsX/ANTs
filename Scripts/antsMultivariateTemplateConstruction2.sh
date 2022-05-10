@@ -134,18 +134,25 @@ Optional arguments:
      -w:  Modality weights used in the similarity metric (default = 1): specified as
           e.g. 1x0.5x0.75.
 
-     -q:  Max iterations for each pairwise registration (default = 100x100x70x20):
-          specified in the form ...xJxKxL where
-            J = max iterations at coarsest resolution (here, reduced by power of 2^2)
-            K = middle resolution iterations (here, reduced by power of 2)
-            L = fine resolution iteratioxns (here, full resolution).
+     -q:  Max iterations for each pairwise registration (default = 100x100x70x20): specified in
+          the form JxK...xF where
+            J = max iterations at first (coarsest) resolution
+            K = max iterations at next resolution
+            F = max iterations at the final resolution
           Finer resolutions take much more time per iteration than coarser resolutions.
+          The resolution for each level is controlled by the shrink factors "-f", so
+          "-q JxKxL -f 4x2x1" does J iterations at factor 4, K at factor 2, L at factor 1.
 
-     -f:  Shrink factors (default = 6x4x2x1):  Also in the same form as -q max iterations.
-          Needs to have the same number of components.
+     -f:  Shrink factors in pairwise registration (default = 6x4x2x1): in the same form as "-q"
+          max iterations. Must have the same number of components as the iterations "-q" and smoothing
+          "-s". The shrink factors are integer factors for downsampling the the virtual space
+          (usually the template image) during registration.
 
-     -s:  Smoothing factors (default = 3x2x1x0):  Also in the same form as -q max
-          iterations.  Needs to have the same number of components.
+     -s:  Smoothing kernels in pairwise registration (default = 3x2x1x0): also in the same form as
+          "-q" and "-f", with the same number of components. Standard deviation of a Gaussian smoothing
+          kernel applied to the images before downsampling at each level. Needs to have the same number
+          of components as the number of iterations and shrink factors. The kernel may be specified in
+          mm units or voxels with "AxBxCmm" or "AxBxCvox". Missing units implies vox.
 
      -n:  N4BiasFieldCorrection of moving image: 0 == off, 1 == on (default 1).
 
