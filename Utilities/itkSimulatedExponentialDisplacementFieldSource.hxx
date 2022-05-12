@@ -164,7 +164,7 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>::GenerateData()
       {
         smoother->Update();
       }
-      catch (ExceptionObject & exc)
+      catch (const ExceptionObject & exc)
       {
         std::string msg("Caught exception: ");
         msg += exc.what();

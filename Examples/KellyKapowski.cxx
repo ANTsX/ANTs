@@ -372,7 +372,7 @@ DiReCT(itk::ants::CommandLineParser * parser)
   {
     direct->Update(); // causes problems with ANTsR , unknown reason
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     if (verbose)
     {

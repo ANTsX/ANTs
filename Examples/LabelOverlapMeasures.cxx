@@ -120,7 +120,7 @@ LabelOverlapMeasures(int argc, char * argv[])
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & exp)
+    catch (const itk::ExceptionObject & exp)
     {
       std::cerr << "Exception caught!" << std::endl;
       std::cerr << exp << std::endl;

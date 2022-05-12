@@ -177,7 +177,7 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
     {
       reffilter->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       std::cerr << "Exception caught during reference file reading " << std::endl;
       std::cerr << e << " file " << file << std::endl;
@@ -198,7 +198,7 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
     {
       logFilter->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       std::cerr << "Exception caught during log tensor filter " << std::endl;
       std::cerr << e << " file " << file << std::endl;
@@ -259,7 +259,7 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
     {
       reffilter->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       std::cerr << "Exception caught during reference file reading " << std::endl;
       std::cerr << e << " file " << file << std::endl;
@@ -291,7 +291,7 @@ ReadImage(char * fn)
   {
     reffilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cerr << "Exception caught during image reference file reading " << std::endl;
     std::cerr << e << std::endl;
@@ -323,7 +323,7 @@ ReadTensorImage(char * fn, bool takelog = true)
   {
     reffilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cerr << "Exception caught during tensor image reference file reading " << std::endl;
     std::cerr << e << std::endl;
@@ -375,7 +375,7 @@ ReadLabeledPointSet(itk::SmartPointer<TPointSet> & target,
   {
     reffilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cerr << "Exception caught during point set reference file reading " << std::endl;
     std::cerr << e << std::endl;
@@ -471,7 +471,7 @@ ReadLabeledPointSet(char * fn)
   {
     reffilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cerr << "Exception caught during point set reference file reading " << std::endl;
     std::cerr << e << std::endl;

@@ -209,7 +209,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
       transformWriter->Update();
     }
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cerr << "Can't write transform file " << filename << std::endl;
     std::cerr << "Exception Object caught: " << std::endl;
@@ -254,7 +254,7 @@ WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimensio
       transformWriter->Update();
     }
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cerr << "Can't write transform file " << filename << std::endl;
     std::cerr << "Exception Object caught: " << std::endl;

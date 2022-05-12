@@ -157,7 +157,7 @@ WriteSortedVariatesToSpatialImage(std::string              filename,
   {
     writer1->Write();
   }
-  catch (itk::ExceptionObject & exp)
+  catch (const itk::ExceptionObject & exp)
   {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -199,7 +199,7 @@ WriteSortedVariatesToSpatialImage(std::string              filename,
   {
     writerROI->Write();
   }
-  catch (itk::ExceptionObject & exp)
+  catch (const itk::ExceptionObject & exp)
   {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -235,7 +235,7 @@ WriteSortedVariatesToSpatialImage(std::string              filename,
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & exp)
+    catch (const itk::ExceptionObject & exp)
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -286,7 +286,7 @@ WriteVariatesToSpatialImage(std::string              filename,
   {
     writer->Write();
   }
-  catch (itk::ExceptionObject & itkNotUsed(exp))
+  catch (const itk::ExceptionObject & itkNotUsed(exp))
   {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -320,7 +320,7 @@ WriteVariatesToSpatialImage(std::string              filename,
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -346,7 +346,7 @@ WriteVariatesToSpatialImage(std::string              filename,
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -508,7 +508,7 @@ ReadMatrixFromCSVorImageSet(std::string matname, vnl_matrix<PixelType> & p)
     {
       reader->Update();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -628,7 +628,7 @@ ConvertImageListToMatrix(std::string imagelist, std::string maskfn, std::string 
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -863,7 +863,7 @@ ConvertTimeSeriesImageToMatrix(std::string imagefn,
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -909,7 +909,7 @@ ConvertTimeSeriesImageToMatrix(std::string imagefn,
   {
     writer->Write();
   }
-  catch (itk::ExceptionObject & itkNotUsed(exp))
+  catch (const itk::ExceptionObject & itkNotUsed(exp))
   {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;

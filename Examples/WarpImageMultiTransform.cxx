@@ -865,7 +865,7 @@ WarpImageMultiTransform(std::vector<std::string> args, std::ostream * /*out_stre
           return EXIT_FAILURE;
       }
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       std::cout << "Exception caught during WarpImageMultiTransform." << std::endl;
       std::cout << e << std::endl;

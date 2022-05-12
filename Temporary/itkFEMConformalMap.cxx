@@ -1011,7 +1011,7 @@ FEMConformalMap<TSurface, TImage, TDimension>::ConformalMap()
     {
       m_Solver.Read(f);
     }
-    catch (::itk::fem::FEMException & e)
+    catch (const ::itk::fem::FEMException & e)
     {
       ::std::cout << "Error reading FEM problem: " << filename << "!\n";
       e.Print(::std::cout);
