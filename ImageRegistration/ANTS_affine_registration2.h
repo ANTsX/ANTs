@@ -183,7 +183,7 @@ WriteAffineTransformFile(typename TransformType::Pointer & transform, const std:
   {
     transform_writer->Update();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << err << std::endl
               << "Exception in writing transform file: " << std::endl
@@ -212,7 +212,7 @@ ReadAffineTransformFile(const std::string & filename, typename CastTransformType
   {
     tran_reader->Update();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << err << std::endl;
     std::cout << "Exception caught in reading tran para file: " << filename << std::endl;
@@ -859,7 +859,7 @@ TestCostValueMMI(ImagePointerType fixedImage,
   {
     rval = mattesMutualInfo->GetValue(para);
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << err << std::endl
               << "Exception caught in computing mattesMutualInfo after registration" << std::endl
@@ -1124,7 +1124,7 @@ SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType &
         metric->GetValueAndDerivative(current_para, value, original_gradient);
         invmetric->GetValueAndDerivative(invtransform->GetParameters(), invvalue, invoriginal_gradient);
       }
-      catch (itk::ExceptionObject & err)
+      catch (const itk::ExceptionObject & err)
       {
         std::cout << "ExceptionObject caught !" << std::endl;
         std::cout << err << std::endl;
@@ -1327,7 +1327,7 @@ RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & run
       {
         metric->GetValueAndDerivative(current_para, value, original_gradient);
       }
-      catch (itk::ExceptionObject & err)
+      catch (const itk::ExceptionObject & err)
       {
         std::cout << "ExceptionObject caught !" << std::endl;
         std::cout << err << std::endl;
@@ -1473,7 +1473,7 @@ RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & run
         {
           metric->GetValueAndDerivative(current_para2, value, original_gradient);
         }
-        catch (itk::ExceptionObject & err)
+        catch (const itk::ExceptionObject & err)
         {
           std::cout << "ExceptionObject caught !" << std::endl;
           std::cout << err << std::endl;

@@ -411,7 +411,7 @@ N4(itk::ants::CommandLineParser * parser)
     // correcter->DebugOn();
     correcter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     if (verbose)
     {

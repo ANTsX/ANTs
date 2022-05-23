@@ -792,7 +792,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
 
           ANTs::WriteImage<OutputImageType>(caster->GetOutput(), (outputFileName).c_str());
         }
-        catch (itk::ExceptionObject & err)
+        catch (const itk::ExceptionObject & err)
         {
           if (verbose)
           {

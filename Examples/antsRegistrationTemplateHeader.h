@@ -1445,7 +1445,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             velocityFieldWriter->Update();
           }
         }
-        catch (itk::ExceptionObject & err)
+        catch (const itk::ExceptionObject & err)
         {
           if (verbose)
           {

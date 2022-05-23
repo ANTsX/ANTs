@@ -284,7 +284,7 @@ GetClusterStat(typename TImage::Pointer image,
   {
     relabel->Update();
   }
-  catch (itk::ExceptionObject & excep)
+  catch (const itk::ExceptionObject & excep)
   {
     std::cout << "Relabel: exception caught !" << std::endl;
     std::cout << excep << std::endl;

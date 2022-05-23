@@ -994,7 +994,7 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
     //    segmenter->DebugOn();
     segmenter->Update();
   }
-  catch (itk::ExceptionObject & exp)
+  catch (const itk::ExceptionObject & exp)
   {
     if (verbose)
     {

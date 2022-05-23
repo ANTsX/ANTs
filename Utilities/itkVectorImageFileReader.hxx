@@ -104,7 +104,7 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>::GenerateOutputI
     m_ExceptionMessage = "";
     this->TestFileExistanceAndReadability();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     m_ExceptionMessage = err.GetDescription();
   }
@@ -431,7 +431,7 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>::GenerateData()
     m_ExceptionMessage = "";
     this->TestFileExistanceAndReadability();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     m_ExceptionMessage = err.GetDescription();
   }

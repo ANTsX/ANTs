@@ -39,7 +39,7 @@ WriteAffineTransformFile(typename TransformType::Pointer & transform, const std:
   {
     transform_writer->Update();
   }
-  catch (itk::ExceptionObject & itkNotUsed(err))
+  catch (const itk::ExceptionObject & itkNotUsed(err))
   {
     std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
               << "Exception in writing transform file: " << std::endl

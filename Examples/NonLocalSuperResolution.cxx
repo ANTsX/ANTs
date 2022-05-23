@@ -353,7 +353,7 @@ NonLocalSuperResolution(itk::ants::CommandLineParser * parser)
     // superresoluter->DebugOn();
     superresoluter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     if (verbose)
     {

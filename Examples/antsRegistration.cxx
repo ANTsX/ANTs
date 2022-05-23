@@ -769,7 +769,7 @@ antsRegistration(std::vector<std::string> args, std::ostream * /*out_stream = nu
       }
     }
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cerr << "Exception Object caught: " << std::endl;
     std::cerr << err << std::endl;

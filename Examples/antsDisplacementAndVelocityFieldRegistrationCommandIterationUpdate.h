@@ -480,7 +480,7 @@ public:
     {
       writer->Update();
     }
-    catch (itk::ExceptionObject & err)
+    catch (const itk::ExceptionObject & err)
     {
       std::cout << "Can't write warped image " << currentFileName.str().c_str() << std::endl;
       std::cout << "Exception Object caught: " << std::endl;
