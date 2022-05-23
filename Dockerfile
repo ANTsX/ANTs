@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20200112 as builder
+FROM ubuntu:bionic-20220427 as builder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -26,7 +26,9 @@ RUN mkdir -p /tmp/ants/build \
     && git config --global url."https://".insteadOf git:// \
     && cmake \
       -GNinja \
-      -DBUILD_TESTING=OFF \
+      -DBUILD_TESTING=ON \
+      -DRUN_LONG_TESTS=OFF \
+      -DRUN_SHORT_TESTS=ON \
       -DBUILD_SHARED_LIBS=ON \
       -DCMAKE_INSTALL_PREFIX=/opt/ants \
       /tmp/ants/source \
@@ -34,7 +36,13 @@ RUN mkdir -p /tmp/ants/build \
     && cd ANTS-build \
     && cmake --install .
 
-FROM ubuntu:bionic-20200112
+# Need to set library path to run tests
+ENV LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
+
+RUN cd /tmp/ants/build/ANTS-build \
+    && cmake --build . --target test
+
+FROM ubuntu:bionic-20220427
 COPY --from=builder /opt/ants /opt/ants
 
 LABEL maintainer="ANTsX team" \
