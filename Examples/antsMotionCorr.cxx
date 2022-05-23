@@ -911,8 +911,10 @@ ants_motion(itk::ants::CommandLineParser * parser)
         smoothingSigmasPerLevel[n] = sigmas[n];
       }
       if (verbose)
+      {
         std::cout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
         std::cout << "  smoothing sigmas in physical space units: " << smoothingSigmasAreInPhysicalUnits << std::endl;
+      }
     }
 
     // the fixed image is a reference image in 3D while the moving is a 4D image
