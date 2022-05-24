@@ -87,7 +87,7 @@ ANTSex(int argc, char * argv[])
   {
     registration->RunRegistration();
   }
-  catch (const std::exception const & e)
+  catch (const std::exception & e)
   {
     std::cerr << "Exception caught in ANTS: " << std::endl << e.what() << std::endl;
     return EXIT_FAILURE;
