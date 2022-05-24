@@ -175,7 +175,7 @@ iMathGetLargestComponent(typename ImageType::Pointer image, /*3*/
   {
     relabel->Update();
   }
-  catch (itk::ExceptionObject & itkNotUsed(excep))
+  catch (const itk::ExceptionObject & itkNotUsed(excep))
   {
     // std::cout << "Relabel: exception caught !" << std::endl;
     // std::cout << excep << std::endl;

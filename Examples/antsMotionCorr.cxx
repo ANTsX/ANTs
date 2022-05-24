@@ -1271,7 +1271,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
             std::cout << std::endl << "*** Running affine registration ***" << timedim << std::endl << std::endl;
           affineRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -1349,7 +1349,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
             std::cout << std::endl << "*** Running rigid registration ***" << timedim << std::endl << std::endl;
           rigidRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -1448,7 +1448,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         {
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -1569,7 +1569,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         {
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;

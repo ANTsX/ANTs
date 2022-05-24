@@ -152,7 +152,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathBlobDetector<ImageType>(input, nBlobs);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "BlobDetector: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -188,7 +188,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathCanny<ImageType>(input, sigma, lower, upper);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "Canny: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -222,7 +222,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathDistanceMap<ImageType>(input, useSpacing);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "DistanceMap: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -256,7 +256,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathFillHoles<ImageType>(input, holeType);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "FillHoles: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -289,7 +289,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathGC<ImageType>(input, radius);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "GC: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -322,7 +322,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathGD<ImageType>(input, radius);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "GD: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -355,7 +355,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathGE<ImageType>(input, radius);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "GE: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -388,7 +388,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathGO<ImageType>(input, radius);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "GO: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -420,7 +420,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathGetLargestComponent<ImageType>(input, minSize);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "GetLargestComponents: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -458,7 +458,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathGrad<ImageType>(input, sigma, normalize);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "Grad: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -495,7 +495,7 @@ iMathHelperAll(int argc, char ** argv)
       std::cout << " a " << alpha << " b " << beta << std::endl;
       output = iMathHistogramEqualization<ImageType>(input, alpha, beta, 1);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "HistogramEqualization: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -533,7 +533,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathLaplacian<ImageType>(input, sigma, normalize);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "Laplacian: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -601,7 +601,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathMC<ImageType>(input, radius, value, shape, parametric, lines, thickness, includeCenter);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "MC: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -668,7 +668,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathMD<ImageType>(input, radius, value, shape, parametric, lines, thickness, includeCenter);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "MD: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -734,7 +734,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathME<ImageType>(input, radius, value, shape, parametric, lines, thickness, includeCenter);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "ME: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -800,7 +800,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathMO<ImageType>(input, radius, value, shape, parametric, lines, thickness, includeCenter);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "MO: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -833,7 +833,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathMaurerDistance<ImageType>(input, foreground);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "MaurerDistance: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -859,7 +859,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathNormalize<ImageType>(input);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "Normalize: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -888,7 +888,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathPad<ImageType>(input, padding);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "Pad: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -926,7 +926,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathPeronaMalik<ImageType>(input, nIterations, conductance);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "PeronaMalik: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -952,7 +952,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathSharpen<ImageType>(input);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "Sharpen: exception caught !" << std::endl;
       std::cout << excep << std::endl;
@@ -1042,7 +1042,7 @@ iMathHelperAll(int argc, char ** argv)
     {
       output = iMathTruncateIntensity<ImageType>(input, lowerQ, upperQ, nBins, mask);
     }
-    catch (itk::ExceptionObject & excep)
+    catch (const itk::ExceptionObject & excep)
     {
       std::cout << "TruncateIntensity: exception caught !" << std::endl;
       std::cout << excep << std::endl;

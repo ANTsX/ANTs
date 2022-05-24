@@ -67,7 +67,7 @@ antsApplyTransformsToPoints(itk::ants::CommandLineParser::Pointer & parser)
       {
         reader->Update();
       }
-      catch (itk::ExceptionObject & exp)
+      catch (const itk::ExceptionObject & exp)
       {
         std::cerr << "Exception caught!" << std::endl;
         std::cerr << exp << std::endl;
@@ -212,7 +212,7 @@ antsApplyTransformsToPoints(itk::ants::CommandLineParser::Pointer & parser)
         {
           writer->Write();
         }
-        catch (itk::ExceptionObject & exp)
+        catch (const itk::ExceptionObject & exp)
         {
           std::cerr << "Exception caught!" << std::endl;
           std::cerr << exp << std::endl;

@@ -134,7 +134,7 @@ simpleSynRegistration(std::vector<std::string> args, std::ostream * /*out_stream
   {
     fixedImage->Update();
   }
-  catch (itk::ExceptionObject & excp)
+  catch (const itk::ExceptionObject & excp)
   {
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
@@ -148,7 +148,7 @@ simpleSynRegistration(std::vector<std::string> args, std::ostream * /*out_stream
   {
     movingImage->Update();
   }
-  catch (itk::ExceptionObject & excp)
+  catch (const itk::ExceptionObject & excp)
   {
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;

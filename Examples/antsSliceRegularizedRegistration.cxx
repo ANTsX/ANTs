@@ -781,7 +781,7 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
             {
               translationRegistration->Update();
             }
-            catch (itk::ExceptionObject & e)
+            catch (const itk::ExceptionObject & e)
             {
               std::cerr << "Exception caught: " << e << std::endl;
               return EXIT_FAILURE;

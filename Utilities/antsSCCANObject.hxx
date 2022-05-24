@@ -354,7 +354,7 @@ antsSCCANObject<TInputImage, TRealType>::ClusterThresholdVariate(
   {
     relabel->Update();
   }
-  catch (itk::ExceptionObject & excep)
+  catch (const itk::ExceptionObject & excep)
   {
     if (!this->m_Silent)
       std::cout << "Relabel: exception caught !" << std::endl;
@@ -480,7 +480,7 @@ antsSCCANObject<TInputImage, TRealType>::ClusterThresholdVariate4D(
   {
     relabel->Update();
   }
-  catch (itk::ExceptionObject & excep)
+  catch (const itk::ExceptionObject & excep)
   {
     if (!this->m_Silent)
       std::cout << "Relabel: exception caught !" << std::endl;

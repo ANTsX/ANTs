@@ -1077,7 +1077,7 @@ private:
       transformObserver->Execute(registrationMethod, itk::StartEvent());
       registrationMethod->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       this->Logger() << "Exception caught: " << e << std::endl;
       return EXIT_FAILURE;

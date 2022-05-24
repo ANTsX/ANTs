@@ -1817,7 +1817,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver->Execute(registrationMethod, itk::StartEvent());
           registrationMethod->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -1950,7 +1950,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver->Execute(registrationMethod, itk::StartEvent());
           registrationMethod->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -2172,7 +2172,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver2->Execute(displacementFieldRegistration, itk::StartEvent());
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -2332,7 +2332,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             displacementFieldRegistrationObserver->Execute(registrationMethod, itk::StartEvent());
             registrationMethod->Update();
           }
-          catch (itk::ExceptionObject & e)
+          catch (const itk::ExceptionObject & e)
           {
             this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
@@ -2447,7 +2447,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             displacementFieldRegistrationObserver->Execute(registrationMethod, itk::StartEvent());
             registrationMethod->Update();
           }
-          catch (itk::ExceptionObject & e)
+          catch (const itk::ExceptionObject & e)
           {
             this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
@@ -2683,7 +2683,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           velocityFieldRegistrationObserver->Execute(velocityFieldRegistration, itk::StartEvent());
           velocityFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -2903,7 +2903,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             velocityFieldRegistrationObserver->Execute(velocityFieldRegistration, itk::StartEvent());
             velocityFieldRegistration->Update();
           }
-          catch (itk::ExceptionObject & e)
+          catch (const itk::ExceptionObject & e)
           {
             this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
@@ -3062,7 +3062,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             velocityFieldRegistrationObserver->Execute(velocityFieldRegistration, itk::StartEvent());
             velocityFieldRegistration->Update();
           }
-          catch (itk::ExceptionObject & e)
+          catch (const itk::ExceptionObject & e)
           {
             this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
@@ -3226,7 +3226,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver->Execute(displacementFieldRegistration, itk::StartEvent());
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -3408,7 +3408,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver->Execute(displacementFieldRegistration, itk::StartEvent());
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -3513,7 +3513,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           bsplineObserver->Execute(registrationMethod, itk::StartEvent());
           registrationMethod->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;

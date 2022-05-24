@@ -87,7 +87,7 @@ ANTSex(int argc, char * argv[])
   {
     registration->RunRegistration();
   }
-  catch (std::exception const & e)
+  catch (const std::exception & e)
   {
     std::cerr << "Exception caught in ANTS: " << std::endl << e.what() << std::endl;
     return EXIT_FAILURE;
@@ -163,12 +163,12 @@ ANTS(std::vector<std::string> args, std::ostream * /*out_stream = nullptr*/)
     {
       dim = std::stoi(argv[1]);
     }
-    catch (std::invalid_argument & itkNotUsed(e))
+    catch (const std::invalid_argument & itkNotUsed(e))
     {
       // if no conversion could be performed
       // assume --help is requested
     }
-    catch (std::out_of_range & itkNotUsed(e))
+    catch (const std::out_of_range & itkNotUsed(e))
     {
       // if the converted value would fall out of the range of the result type
       // or if the underlying function (std::strtol or std::strtoull) sets errno
