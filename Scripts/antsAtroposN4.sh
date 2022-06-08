@@ -391,7 +391,8 @@ ATROPOS_SEGMENTATION_POSTERIORS=${ATROPOS_SEGMENTATION_OUTPUT}Posteriors%${FORMA
 ################################################################################
 #
 # Preprocess anatomical images
-#    1. Denoise input images (if requested)
+#    1. Truncate input intensity (needed for N4)
+#    1. Denoise image (if requested)
 #
 ################################################################################
 
@@ -405,6 +406,20 @@ if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
         exit
       fi
   fi
+
+# Anatomical images that have been truncated, and optionally denoised
+SEGMENTATION_PREPROCESSED_IMAGES=()
+
+for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
+  do
+    SEGMENTATION_PREPROCESSED_IMAGES=( ${SEGMENTATION_PREPROCESSED_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}PreprocessedAnatomical${j}.${OUTPUT_SUFFIX} )
+    # Truncate on the whole head to get outliers over the whole volume, without losing contrast in the brain
+    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0 0.995 256
+    if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
+      then
+        logCmd ${ANTSPATH}/DenoiseImage -d ${DIMENSION} -i ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} -o ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} --verbose 1
+      fi
+  done
 
 ################################################################################
 #
@@ -443,20 +458,6 @@ if [[ -f ${SEGMENTATION_CONVERGENCE_FILE} ]];
   then
     logCmd rm -f ${SEGMENTATION_CONVERGENCE_FILE}
   fi
-
-# Anatomical images that have been truncated, and optionally denoised
-SEGMENTATION_PREPROCESSED_IMAGES=()
-
-for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
-  do
-    SEGMENTATION_PREPROCESSED_IMAGES=( ${SEGMENTATION_PREPROCESSED_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}PreprocessedAnatomical${j}.${OUTPUT_SUFFIX} )
-    # Truncate on the whole head to get outliers over the whole volume, without losing contrast in the brain
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0 0.995 256
-    if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
-      then
-        logCmd ${ANTSPATH}/DenoiseImage -d ${DIMENSION} -i ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} -o ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} --verbose 1
-      fi
-  done
 
 POSTERIOR_PROBABILITY_CONVERGED=0
 for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
