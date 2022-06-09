@@ -392,11 +392,10 @@ ATROPOS_SEGMENTATION_POSTERIORS=${ATROPOS_SEGMENTATION_OUTPUT}Posteriors%${FORMA
 #
 # Preprocess anatomical images
 #    1. Truncate input intensity (needed for N4)
-#    1. Denoise image (if requested)
+#    2. Denoise image (if requested)
 #
 ################################################################################
 
-PREPROCESSED_ANATOMICAL_IMAGES=()
 if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
   then
     if [[ ! -s ${ANTSPATH}/DenoiseImage ]];
