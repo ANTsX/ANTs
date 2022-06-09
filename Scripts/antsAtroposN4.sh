@@ -346,7 +346,7 @@ for (( i = 1; i <= $ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES; i++ ))
 NUMBER_OF_PRIOR_IMAGES=${#PRIOR_IMAGE_FILENAMES[*]}
 
 INITIALIZE_WITH_KMEANS=0
-if [[ ${NUMBER_OF_PRIOR_IMAGES} -eq 0 ]];
+if [[ -z "${ATROPOS_SEGMENTATION_PRIORS}" ]];
   then
     echo "Initializing with kmeans segmentation."
     INITIALIZE_WITH_KMEANS=1
@@ -391,7 +391,8 @@ ATROPOS_SEGMENTATION_POSTERIORS=${ATROPOS_SEGMENTATION_OUTPUT}Posteriors%${FORMA
 ################################################################################
 #
 # Preprocess anatomical images
-#    1. Denoise input images (if requested)
+#    1. Truncate input intensity (needed for N4)
+#    1. Denoise image (if requested)
 #
 ################################################################################
 
@@ -405,6 +406,20 @@ if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
         exit
       fi
   fi
+
+# Anatomical images that have been truncated, and optionally denoised
+SEGMENTATION_PREPROCESSED_IMAGES=()
+
+for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
+  do
+    SEGMENTATION_PREPROCESSED_IMAGES=( ${SEGMENTATION_PREPROCESSED_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}PreprocessedAnatomical${j}.${OUTPUT_SUFFIX} )
+    # Truncate on the whole head to get outliers over the whole volume, without losing contrast in the brain
+    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0 0.995 256
+    if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
+      then
+        logCmd ${ANTSPATH}/DenoiseImage -d ${DIMENSION} -i ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} -o ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} --verbose 1
+      fi
+  done
 
 ################################################################################
 #
@@ -448,22 +463,10 @@ POSTERIOR_PROBABILITY_CONVERGED=0
 for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
   do
     SEGMENTATION_N4_IMAGES=()
-    for(( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
+    for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
         SEGMENTATION_N4_IMAGES=( ${SEGMENTATION_N4_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}${j}N4.${OUTPUT_SUFFIX} )
-        if [[ $j == 0 ]];
-          then
-            # BA edit - forcing the image to copy physical space due to ITK bug images do not occupy same space
-	    # Truncate on the whole image, not just within the brain - avoids losing brain contrast
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0 0.995 256
-            if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
-              then
-                logCmd ${ANTSPATH}/DenoiseImage -d ${DIMENSION} -i ${SEGMENTATION_N4_IMAGES[$j]} -o ${SEGMENTATION_N4_IMAGES[$j]} --verbose 1
-              fi
-          else
-            cp ${ANATOMICAL_IMAGES[$j]} ${SEGMENTATION_N4_IMAGES[$j]}
-          fi
-        exe_n4_correction="${N4} -d ${DIMENSION} -i ${SEGMENTATION_N4_IMAGES[$j]} -x ${ATROPOS_SEGMENTATION_MASK} -s ${N4_SHRINK_FACTOR} -c ${N4_CONVERGENCE} -b ${N4_BSPLINE_PARAMS} -o ${SEGMENTATION_N4_IMAGES[$j]} --verbose 1"
+        exe_n4_correction="${N4} -d ${DIMENSION} -i ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} -x ${ATROPOS_SEGMENTATION_MASK} -s ${N4_SHRINK_FACTOR} -c ${N4_CONVERGENCE} -b ${N4_BSPLINE_PARAMS} -o ${SEGMENTATION_N4_IMAGES[$j]} --verbose 1"
         if [[ -f ${SEGMENTATION_WEIGHT_MASK} ]];
           then
             exe_n4_correction="${exe_n4_correction} -w ${SEGMENTATION_WEIGHT_MASK}"
@@ -586,7 +589,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
 
   done
 
-TMP_FILES=( $SEGMENTATION_WEIGHT_MASK ${POSTERIOR_IMAGE_FILENAMES_PREVIOUS_ITERATION[@]} ${SEGMENTATION_PREVIOUS_ITERATION} )
+TMP_FILES=( $SEGMENTATION_WEIGHT_MASK ${POSTERIOR_IMAGE_FILENAMES_PREVIOUS_ITERATION[@]} ${SEGMENTATION_PREVIOUS_ITERATION} ${SEGMENTATION_PREPROCESSED_IMAGES[@]} )
 
 if [[ $KEEP_TMP_IMAGES -eq 0 ]];
   then
