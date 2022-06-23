@@ -257,7 +257,7 @@ Learning about ANTs (examples, etc.)
 
 * **Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
 
-* **Brain tumor segmentation** [example](https://github.com/ntustison/BRATS2013/SimpleExample/)
+* **Brain tumor segmentation** [example](https://github.com/ntustison/BRATS2013/tree/master/SimpleExample)
 
 * **Eigenanatomy** for [multivariate neuroimage analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
     [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
