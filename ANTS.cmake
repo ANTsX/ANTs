@@ -38,7 +38,64 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\"")
 
 # Set up ITK
-find_package(ITK ${ITK_VERSION_ID} REQUIRED)
+find_package(ITK ${ITK_VERSION_ID} REQUIRED
+  COMPONENTS
+    VkFFTBackend
+    ITKAnisotropicSmoothing
+    ITKAntiAlias
+    ITKBiasCorrection
+    ITKBinaryMathematicalMorphology
+    ITKClassifiers
+    ITKColormap
+    ITKCommon
+    ITKConnectedComponents
+    ITKConvolution
+    ITKDisplacementField
+    ITKDistanceMap
+    ITKFEM
+    ITKFastMarching
+    ITKFiniteDifference
+    ITKIOCSV
+    ITKIOGDCM
+    ITKIOImageBase
+    ITKIONRRD
+    ITKIOTransformBase
+    ITKImageAdaptors
+    ITKImageCompare
+    ITKImageFeature
+    ITKImageFilterBase
+    ITKImageFunction
+    ITKImageGradient
+    ITKImageGrid
+    ITKImageIntensity
+    ITKImageLabel
+    ITKImageNoise
+    ITKImageSources
+    ITKImageStatistics
+    ITKLabelMap
+    ITKMarkovRandomFieldsClassifiers
+    ITKMathematicalMorphology
+    ITKMesh
+    ITKMetricsv4
+    ITKOptimizers
+    ITKOptimizersv4
+    ITKPDEDeformableRegistration
+    ITKPolynomials
+    ITKRegistrationCommon
+    ITKRegistrationMethodsv4
+    ITKReview
+    ITKSmoothing
+    ITKSpatialObjects
+    ITKStatistics
+    ITKTestKernel
+    ITKThresholding
+    ITKTransform
+    ITKTransformFactory
+    ITKVTK
+    ITKVtkGlue
+    ITKImageIO
+    ITKTransformIO
+    )
 include(${ITK_USE_FILE})
 
 # Set up which ANTs apps to build
