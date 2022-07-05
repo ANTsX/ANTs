@@ -153,7 +153,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
   # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
-  set(${proj}_GIT_TAG v5.3rc03)  # Official ITK release version 5.3.0 rc 03 # Many modern code updates for performance
+  set(${proj}_GIT_TAG 5e7aea957c82b67d4364b2b88999805616e3b01d)  # Updates for small voxel NIFTI loading
   set(ITK_VERSION_ID ITK-5.3) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
 
   ExternalProject_Add(${proj}
