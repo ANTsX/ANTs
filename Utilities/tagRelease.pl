@@ -105,6 +105,6 @@ print $outFH $versionDotCmake;
 close($outFH);
 
 system("git add Version.cmake");
-system("git commit -m \"Updating version for development post $tag\"");
+system("git commit -m \"[skip ci] Updating version for development post $tag\"");
 print("\nPushing changed Version.cmake\n");
 system("git push origin $masterBranchLabel") == 0
