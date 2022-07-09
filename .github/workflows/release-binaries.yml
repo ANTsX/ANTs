@@ -4,7 +4,7 @@ name: CMake Build Matrix
 # Controls when the action will run. Triggers the workflow on push
 on:
   release:
-    types: [created]
+    types: [created, edited]
 
 jobs:
   build:
@@ -18,6 +18,15 @@ jobs:
             name: "Ubuntu_20.04-GCC",
             os: ubuntu-20.04,
             artifact: "ubuntu-20.04-gcc.zip",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            generators: "Ninja"
+          }
+        - {
+            name: "Ubuntu_18.04-GCC",
+            os: ubuntu-18.04,
+            artifact: "ubuntu-18.04-gcc.zip",
             build_type: "Release",
             cc: "gcc",
             cxx: "g++",
@@ -43,7 +52,7 @@ jobs:
           echo github.event.action: ${{ github.event.action }}
           echo github.event_name: ${{ github.event_name }}
       - name: Install dependencies on ubuntu
-        if: startsWith(matrix.config.name, 'Ubuntu_20.04-GCC')
+        if: startsWith(matrix.config.name, 'Ubuntu_')
         run: |
           sudo apt-get update
           sudo apt-get install ninja-build cmake
