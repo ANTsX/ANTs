@@ -1,0 +1,93 @@
+# Workflow adapted from https://gist.github.com/NickNaso/0d478f1481686d5bcc868cac06620a60
+name: CMake Build Matrix
+
+# Controls when the action will run. Triggers the workflow on push
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Ubuntu_20.04-GCC",
+            os: ubuntu-20.04,
+            artifact: "ubuntu-20.04-gcc.zip",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            generators: "Ninja"
+          }
+        - {
+            name: "macos-11-clang",
+            os: macos-11,
+            artifact: "macos-11-clang.zip",
+            build_type: "Release",
+            cc: "clang",
+            cxx: "clang++",
+            generators: "Ninja"
+          }
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+      - name: Print env
+        run: |
+          echo github.event.action: ${{ github.event.action }}
+          echo github.event_name: ${{ github.event_name }}
+      - name: Install dependencies on ubuntu
+        if: startsWith(matrix.config.name, 'Ubuntu_20.04-GCC')
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build cmake
+          ninja --version
+          cmake --version
+          gcc --version
+      - name: Install dependencies on macos
+        if: startsWith(matrix.config.os, 'macos-11')
+        run: |
+          brew install cmake ninja
+          ninja --version
+          cmake --version
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir ../build
+          cd ../build
+          cmake \
+            -S ../ANTs \
+            -B . \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+            -G "${{ matrix.config.generators }}" \
+            -DCMAKE_INSTALL_PREFIX:PATH=../install/ants-${{ github.ref_name }}
+      - name: Build
+        shell: bash
+        run: |
+          cd ../build
+          cmake --build . --config ${{ matrix.config.build_type }} --parallel
+      - name: Install
+        shell: bash
+        run: |
+          cd ../build/ANTS-build
+          cmake --install .
+      - name: Pack
+        shell: bash
+        run: |
+          cd ../build/install
+          zip -r ../../ants-${{ github.ref_name }}-${{ matrix.config.artifact }} .
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ../ants-${{ github.ref_name }}-${{ matrix.config.artifact }}
+          asset_name: ants-${{ github.ref_name }}-${{ matrix.config.artifact }}
+          asset_content_type: application/zip
