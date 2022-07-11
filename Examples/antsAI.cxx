@@ -1,4 +1,5 @@
 #include "antsAllocImage.h"
+#include "antsCommandIterationUpdate.h"
 #include "antsCommandLineParser.h"
 #include "antsUtilities.h"
 #include "ReadWriteData.h"
@@ -1505,14 +1506,23 @@ antsAI(itk::ants::CommandLineParser * parser)
     }
   }
 
+  multiStartOptimizer->SetParametersList(parametersList);
+  multiStartOptimizer->SetLocalOptimizer(localOptimizer);
+
   if (verbose)
   {
     std::cout << "Starting optimizer with " << trialCounter << " starting points" << std::endl;
+
+    using MultiStartObserverType = antsCommandIterationUpdate<MultiStartOptimizerType>;
+
+    auto multiStartObserver = MultiStartObserverType::New();
+
+    multiStartObserver->SetOptimizer(multiStartOptimizer);
+
+    multiStartObserver->Execute(multiStartOptimizer, itk::StartEvent());
   }
 
-  multiStartOptimizer->SetParametersList(parametersList);
-  multiStartOptimizer->SetLocalOptimizer(localOptimizer);
-  multiStartOptimizer->StartOptimization();
+   multiStartOptimizer->StartOptimization();
 
 
   /////////////////////////////////////////////////////////////////
