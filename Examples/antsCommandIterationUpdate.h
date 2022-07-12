@@ -71,9 +71,7 @@ public:
   {
     if (typeid(event) == typeid(itk::StartEvent))
     {
-      // Can't call m_Optimizer->GetNumberOfIterations() because that's not set correctly until
-      // optimization begins
-      this->SetTotalNumberOfIterations(static_cast<unsigned int>(m_Optimizer->GetParametersList().size()));
+      this->SetTotalNumberOfIterations(static_cast<unsigned int>(m_Optimizer->GetNumberOfIterations()));
       std::cout << std::endl << "Iteration,MetricValue";
       if (m_PrintParameters)
         {
@@ -122,6 +120,7 @@ public:
   {
     m_Optimizer = optimizer;
     m_Optimizer->AddObserver(itk::IterationEvent(), this);
+    m_Optimizer->AddObserver(itk::StartEvent(), this);
   }
 
   /**

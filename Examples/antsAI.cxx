@@ -1518,8 +1518,6 @@ antsAI(itk::ants::CommandLineParser * parser)
     auto multiStartObserver = MultiStartObserverType::New();
 
     multiStartObserver->SetOptimizer(multiStartOptimizer);
-
-    multiStartObserver->Execute(multiStartOptimizer, itk::StartEvent());
   }
 
    multiStartOptimizer->StartOptimization();
