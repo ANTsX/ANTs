@@ -24,7 +24,7 @@ Given a tag "vX.Y.Z", the script will
 
 my $tag = $ARGV[0];
 
-if (!($tag =~ m/^v[0-9]\.[0-9]\.[0-9]/) ) {
+if (!($tag =~ m/^v[0-9]+\.[0-9]+\.[0-9]+/) ) {
     print "Tags for release should be in the format vX.Y.Z where X,Y,Z are integers\n";
     exit(1);
 }
@@ -58,7 +58,7 @@ open(my $inFH, "<", "Version.cmake");
 my $versionDotCmake = do { local $/; <$inFH> };
 close($inFH);
 
-my ($tagVersionMajor,$tagVersionMinor,$tagVersionPatch) = ($tag =~ m/^v([0-9])\.([0-9])\.([0-9])/);
+my ($tagVersionMajor,$tagVersionMinor,$tagVersionPatch) = ($tag =~ m/^v([0-9]+)\.([0-9]+)\.([0-9]+)/);
 
 $versionDotCmake =~ s/set\(\$\{PROJECT_NAME\}_VERSION_MAJOR "[0-9]+"\)/set\(\$\{PROJECT_NAME\}_VERSION_MAJOR "${tagVersionMajor}"\)/
     or die("Cannot find version information in Version.cmake");
