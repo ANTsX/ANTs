@@ -53,6 +53,14 @@ if ($existingTag) {
     exit(1);
 }
 
+# Also don't allow a duplicate tag. I think git will stop this, but less messy to check here
+my $allTags = `git tag`;
+
+if ($allTags =~ m/^${tag}$/) {
+    print "The tag $tag already exists. Exiting \n";
+    exit(1);
+}
+
 # Check tag matches Version.cmake
 open(my $inFH, "<", "Version.cmake");
 my $versionDotCmake = do { local $/; <$inFH> };
