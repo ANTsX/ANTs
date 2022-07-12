@@ -72,7 +72,13 @@ public:
     if (typeid(event) == typeid(itk::StartEvent))
     {
       this->SetTotalNumberOfIterations(static_cast<unsigned int>(m_Optimizer->GetNumberOfIterations()));
-      std::cout << std::endl << "Iteration,MetricValue";
+
+      if (m_IterationUpdateInterval == 0)
+      {
+        m_IterationUpdateInterval = m_TotalNumberOfIterations / 10;
+      }
+
+      std::cout << std::endl << "Iteration/Total,MetricValue";
       if (m_PrintParameters)
         {
           std::cout << ",Parameters";
@@ -82,12 +88,27 @@ public:
     else if (typeid(event) == typeid(itk::IterationEvent))
     {
       // Count iterations from 1
-      std::cout << (m_Optimizer->GetCurrentIteration() + 1) << "/" << m_TotalNumberOfIterations << ",";
-      std::cout << m_Optimizer->GetValue();
-      if (m_PrintParameters)
+      const unsigned int printIter = (m_Optimizer->GetCurrentIteration() + 1);
+      if (printIter % m_IterationUpdateInterval == 0)
       {
-        std::cout << "," << m_Optimizer->GetCurrentPosition();
+        std::cout << printIter << "/" << m_TotalNumberOfIterations << ",";
+        std::cout << m_Optimizer->GetValue();
+        if (m_PrintParameters)
+        {
+          std::cout << "," << m_Optimizer->GetCurrentPosition();
+        }
+        std::cout << std::endl;
       }
+    }
+    else if (typeid(event) == typeid(itk::EndEvent))
+    {
+      using MetricValuesListType = typename OptimizerType::MetricValuesListType;
+      using ParameterListSizeType = typename OptimizerType::ParameterListSizeType;
+
+      ParameterListSizeType bestIndex = m_Optimizer->GetBestParametersIndex();
+      MetricValuesListType metricValues = m_Optimizer->GetMetricValuesList();
+
+      std::cout << std::endl << "Optimization complete. Best metric value: " << metricValues[bestIndex];
       std::cout << std::endl;
     }
   }
@@ -121,6 +142,7 @@ public:
     m_Optimizer = optimizer;
     m_Optimizer->AddObserver(itk::IterationEvent(), this);
     m_Optimizer->AddObserver(itk::StartEvent(), this);
+    m_Optimizer->AddObserver(itk::EndEvent(), this);
   }
 
   /**
@@ -130,6 +152,8 @@ public:
   itkGetMacro(PrintParameters, bool);
   itkBooleanMacro(PrintParameters);
 
+  itkSetMacro(IterationUpdateInterval, unsigned int);
+  itkGetMacro(IterationUpdateInterval, unsigned int);
 
 protected:
   /**
@@ -149,6 +173,7 @@ private:
   bool m_PrintParameters{ false };
 
   unsigned int m_TotalNumberOfIterations{0};
+  unsigned int m_IterationUpdateInterval{0};
 };
 
 } // end namespace ants
