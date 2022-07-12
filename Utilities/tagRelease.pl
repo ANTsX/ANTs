@@ -53,12 +53,16 @@ if ($existingTag) {
     exit(1);
 }
 
-# Also don't allow a duplicate tag. I think git will stop this, but less messy to check here
-my $allTags = `git tag`;
+# Also don't allow a duplicate tag. git will stop this later, but less messy to check here
+my @allTags = `git tag`;
 
-if ($allTags =~ m/^${tag}$/) {
-    print "The tag $tag already exists. Exiting \n";
-    exit(1);
+chomp(@allTags);
+
+foreach my $repoTag (@allTags) {
+    if ($repoTag == ${tag}) {
+        print "The tag $tag already exists. Exiting \n";
+        exit(1);
+    }
 }
 
 # Check tag matches Version.cmake
