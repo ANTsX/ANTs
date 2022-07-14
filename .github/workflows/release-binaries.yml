@@ -16,44 +16,64 @@ jobs:
       matrix:
         config:
         - {
-            name: "Ubuntu_20.04-GCC",
+            name: "Ubuntu-22.04-GCC",
+            os: ubuntu-22.04,
+            cc: "gcc",
+            cxx: "g++",
+            build_type: "Release",
+            generators: "Ninja"
+          }
+        - {
+            name: "Ubuntu-20.04-GCC",
             os: ubuntu-20.04,
-            artifact: "ubuntu-20.04-gcc.zip",
-            build_type: "Release",
             cc: "gcc",
             cxx: "g++",
+            build_type: "Release",
             generators: "Ninja"
           }
         - {
-            name: "Ubuntu_18.04-GCC",
+            name: "Ubuntu-18.04-GCC",
             os: ubuntu-18.04,
-            artifact: "ubuntu-18.04-gcc.zip",
-            build_type: "Release",
             cc: "gcc",
             cxx: "g++",
+            build_type: "Release",
             generators: "Ninja"
           }
         - {
-            name: "macos-11-clang",
-            os: macos-11,
-            artifact: "macos-11-clang.zip",
-            build_type: "Release",
+            name: "Macos-12-clang",
+            os: macos-12,
             cc: "clang",
             cxx: "clang++",
+            build_type: "Release",
             generators: "Ninja"
           }
-
+        - {
+            name: "Macos-11-clang",
+            os: macos-11,
+            cc: "clang",
+            cxx: "clang++",
+            build_type: "Release",
+            generators: "Ninja"
+          }
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
         with:
           ref: ${{ github.ref }}
-      - name: Print env
+      - name: Get ANTs version
+        run:
+          echo "ANTS_VERSION=${ANTS_TAG#v}" >> $GITHUB_ENV
+        env:
+          ANTS_TAG: ${{ github.ref_name }}
+      - name: Define env
         run: |
           echo github.event.action: ${{ github.event.action }}
           echo github.event_name: ${{ github.event_name }}
+          echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
+          echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
+          echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
       - name: Install dependencies on ubuntu
-        if: startsWith(matrix.config.name, 'Ubuntu_')
+        if: startsWith(matrix.config.name, 'Ubuntu-')
         run: |
           sudo apt-get update
           sudo apt-get install ninja-build cmake
@@ -61,8 +81,9 @@ jobs:
           cmake --version
           gcc --version
       - name: Install dependencies on macos
-        if: startsWith(matrix.config.os, 'macos-11')
+        if: startsWith(matrix.config.os, 'Macos')
         run: |
+          brew update
           brew install cmake ninja
           ninja --version
           cmake --version
@@ -75,7 +96,7 @@ jobs:
           cmake \
             -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
             -G "${{ matrix.config.generators }}" \
-            -DCMAKE_INSTALL_PREFIX:PATH=${{ runner.temp }}/install/ants-${{ github.ref_name }} \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{ runner.temp }}/install/ants-${{ env.ANTS_VERSION }} \
             ${GITHUB_WORKSPACE}
       - name: Build
         shell: bash
@@ -94,13 +115,13 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           cd install
-          zip -r ${{ runner.temp }}/ants-${{ github.ref_name }}-${{ matrix.config.artifact }} .
+          zip -r ${ARTIFACT} .
       - name: Upload release asset
         # Previously was using actions/upload-release-asset@v1 , but this had some
         # errors with large files
         uses: ncipollo/release-action@v1.10.0
         with:
           allowUpdates: true
-          artifacts: "${{ runner.temp }}/ants-${{ github.ref_name }}-${{ matrix.config.artifact }}"
+          artifacts: "${{ env.ARTIFACT }}"
           artifactContentType: application/zip
           token: ${{ secrets.GITHUB_TOKEN }}
