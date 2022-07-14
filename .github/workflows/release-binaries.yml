@@ -1,10 +1,11 @@
 # Workflow adapted from https://gist.github.com/NickNaso/0d478f1481686d5bcc868cac06620a60
-name: CMake Build Matrix
+# build directly on supported runners: Ubuntu 18, Ubuntu 20, Mac OS 11
+name: Native release binaries
 
 # Controls when the action will run. Triggers the workflow on push
 on:
   release:
-    types: [created, edited]
+    types: [created]
 
 jobs:
   build:
@@ -67,36 +68,39 @@ jobs:
           cmake --version
       - name: Configure
         shell: bash
+        working-directory: ${{ runner.temp }}
         run: |
-          mkdir ../build
-          cd ../build
+          mkdir build
+          cd build
           cmake \
-            -S ../ANTs \
-            -B . \
             -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
             -G "${{ matrix.config.generators }}" \
-            -DCMAKE_INSTALL_PREFIX:PATH=../install/ants-${{ github.ref_name }}
+            -DCMAKE_INSTALL_PREFIX:PATH=${{ runner.temp }}/install/ants-${{ github.ref_name }} \
+            ${GITHUB_WORKSPACE}
       - name: Build
         shell: bash
+        working-directory: ${{ runner.temp }}
         run: |
-          cd ../build
+          cd build
           cmake --build . --config ${{ matrix.config.build_type }} --parallel
       - name: Install
         shell: bash
+        working-directory: ${{ runner.temp }}
         run: |
-          cd ../build/ANTS-build
+          cd build/ANTS-build
           cmake --install .
       - name: Pack
         shell: bash
+        working-directory: ${{ runner.temp }}
         run: |
-          cd ../build/install
-          zip -r ../../ants-${{ github.ref_name }}-${{ matrix.config.artifact }} .
+          cd install
+          zip -r ${{ runner.temp }}/ants-${{ github.ref_name }}-${{ matrix.config.artifact }} .
       - name: Upload release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Previously was using actions/upload-release-asset@v1 , but this had some
+        # errors with large files
+        uses: ncipollo/release-action@v1.10.0
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ../ants-${{ github.ref_name }}-${{ matrix.config.artifact }}
-          asset_name: ants-${{ github.ref_name }}-${{ matrix.config.artifact }}
-          asset_content_type: application/zip
+          allowUpdates: true
+          artifacts: "${{ runner.temp }}/ants-${{ github.ref_name }}-${{ matrix.config.artifact }}"
+          artifactContentType: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}

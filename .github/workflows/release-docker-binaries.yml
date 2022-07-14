@@ -1,0 +1,81 @@
+name: Cross-platform release binaries
+# Use Docker to build on platforms other than Ubuntu
+on:
+  release:
+    types: [created]
+env:
+  CMAKE_VERSION: 3.23.1
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.config.image }}
+      options: ${{ matrix.config.container_options }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Centos7-GCC",
+            # Use image that already has gcc installed
+            image: "centos/devtoolset-7-toolchain-centos7:7",
+            container_options: "--user root",
+            artifact: "centos7-gcc.zip",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            generators: "Unix Makefiles"
+          }
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+      - name: Print env
+        run: |
+          echo github.event.action: ${{ github.event.action }}
+          echo github.event_name: ${{ github.event_name }}
+      - name: Install dependencies on Centos
+        if: startsWith(matrix.config.image, 'centos')
+        run: |
+          yum -y update && yum clean all
+          yum -y install devtoolset-7 git zlib-devel
+          curl -OL https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
+          chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh
+          mkdir -p /opt/cmake/bin
+          ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix="/opt/cmake"
+          echo "/opt/cmake/bin" >> $GITHUB_PATH
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir -p /opt/build
+          cd /opt/build
+          cmake \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+            -G "${{ matrix.config.generators }}" \
+            -DCMAKE_INSTALL_PREFIX:PATH=/opt/install/ants-${{ github.ref_name }} \
+            ${GITHUB_WORKSPACE}
+      - name: Build
+        shell: bash
+        run: |
+          cd /opt/build
+          cmake --build . --config ${{ matrix.config.build_type }} --parallel 1
+      - name: Install
+        shell: bash
+        run: |
+          cd /opt/build/ANTS-build
+          cmake --install .
+      - name: Pack
+        shell: bash
+        run: |
+          cd /opt/install
+          zip -r /opt/ants-${{ github.ref_name }}-${{ matrix.config.artifact }} .
+      - name: Upload release asset
+        # softprops giving ECONNRESET error
+        # uses: softprops/action-gh-release@v0.1.14
+        uses: ncipollo/release-action@v1.10.0
+        with:
+          allowUpdates: true
+          artifacts: "/opt/ants-${{ github.ref_name }}-${{ matrix.config.artifact }}"
+          artifactContentType: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}
