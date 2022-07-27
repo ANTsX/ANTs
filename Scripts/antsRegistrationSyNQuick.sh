@@ -82,10 +82,10 @@ Optional arguments:
 
      -g:  gradient step size for SyN and B-spline SyN (default = 0.1)
 
-     -x:  mask(s) for the fixed image space.  Should specify either a single image to be used for
-          all stages or one should specify a mask image for each "stage" (cf -t option).  If
-          no mask is to be used for a particular stage, the keyword 'NULL' should be used
-          in place of a file name.
+     -x:  mask(s) for the fixed image space, or for the fixed and moving image space in the format
+          "fixedMask,MovingMask". Use -x once to specify mask(s) to be used for all stages or use
+          -x for each "stage" (cf -t option).  If no mask is to be used for a particular stage,
+          the keyword 'NULL' should be used in place of file names.
 
      -p:  precision type (default = 'd')
         f: float
@@ -115,6 +115,15 @@ Optional arguments:
 Example:
 
 `basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -o output
+
+Example with masks:
+
+`basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -x fixedMask.nii.gz -o output
+
+`basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -x fixedMask.nii.gz,movingMask.nii.gz -o output
+
+`basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -t sr -x NULL -x fixedMask.nii.gz  -t -o output
+
 
 --------------------------------------------------------------------------------------
 ANTs was created by:
@@ -173,10 +182,10 @@ Optional arguments:
 
      -g:  gradient step size for SyN and B-spline SyN (default = 0.1)
 
-     -x:  mask(s) for the fixed image space.  Should specify either a single image to be used for
-          all stages or one should specify a mask image for each "stage" (cf -t option).  If
-          no mask is to be used for a particular stage, the keyword 'NULL' should be used
-          in place of a file name.
+     -x:  mask(s) for the fixed image space, or for the fixed and moving image space in the format
+          "fixedMask,MovingMask". Use -x once to specify mask(s) to be used for all stages or use
+          -x for each "stage" (cf -t option).  If no mask is to be used for a particular stage,
+          the keyword 'NULL' should be used in place of file names.
 
      -p:  precision type (default = 'd')
         f: float
@@ -404,16 +413,21 @@ for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
 #
 ##############################
 
-NUMBEROFMASKIMAGES=${#MASKIMAGES[@]}
+NUMBEROFMASKSTAGES=${#MASKIMAGES[@]}
 
 MASKCALL=""
 if [[ ${#MASKIMAGES[@]} -gt 0 ]];
   then
     for (( i = 0; i < ${#MASKIMAGES[@]}; i++ ))
       do
-        MASKCALL="${MASKCALL} -x [ ${MASKIMAGES[$i]}, NULL ]"
+        if [[ ${MASKIMAGES[$i]} =~ "," ]]; then
+            MASKCALL="${MASKCALL} -x [ ${MASKIMAGES[$i]} ]"
+        else
+            MASKCALL="${MASKCALL} -x [ ${MASKIMAGES[$i]}, NULL ]"
+        fi
       done
   fi
+
 
 ###############################
 #
@@ -621,7 +635,7 @@ case "$TRANSFORMTYPE" in
   ;;
 esac
 
-if [[ $NUMBEROFMASKIMAGES -ne 0 && $NUMBEROFMASKIMAGES -ne 1 && $NUMBEROFMASKIMAGES -ne $NUMBEROFREGISTRATIONSTAGES ]];
+if [[ $NUMBEROFMASKSTAGES -ne 0 && $NUMBEROFMASKSTAGES -ne 1 && $NUMBEROFMASKSTAGES -ne $NUMBEROFREGISTRATIONSTAGES ]];
   then
     echo "The specified number of mask images is not correct.  Please see help menu."
     exit
