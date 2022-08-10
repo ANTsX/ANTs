@@ -193,6 +193,7 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
     option->SetShortName('z');
     option->SetUsageOption(0, "(1)/0");
     option->SetDescription(description);
+    option->AddFunction(std::string("1"));
     parser->AddOption(option);
   }
 
