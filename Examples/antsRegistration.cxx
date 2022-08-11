@@ -445,17 +445,16 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
     parser->AddOption(option);
   }
 
-  {
-    std::string description =
-      std::string("turn on the option that lets you estimate the learning rate step size only at the beginning of each "
-                  "level.  * useful as a second stage of fine-scale registration.");
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName("use-estimate-learning-rate-once");
-    option->SetShortName('l');
-    option->SetDescription(description);
-    parser->AddOption(option);
-  }
+  // {
+  //   std::string description =
+  //     std::string("Turn on the option that lets you estimate the learning rate step size only at the beginning of each "
+  //                 "level.  This is useful as a second stage of fine-scale registration.");
+  //   OptionType::Pointer option = OptionType::New();
+  //   option->SetLongName("use-estimate-learning-rate-once");
+  //   option->SetShortName('l');
+  //   option->SetDescription(description);
+  //   parser->AddOption(option);
+  // }
 
   {
     std::string description = std::string("Winsorize data based on specified quantiles.");
@@ -491,7 +490,6 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("float");
     option->SetDescription(description);
-    option->AddFunction(std::string("0"));
     parser->AddOption(option);
   }
 

@@ -439,19 +439,19 @@ DoRegistration(typename ParserType::Pointer & parser)
   }
   regHelper->SetUseHistogramMatching(doHistogramMatch);
 
-  bool doEstimateLearningRateAtEachIteration = true;
+  // bool doEstimateLearningRateAtEachIteration = true;
 
-  OptionType::Pointer rateOption = parser->GetOption("use-estimate-learning-rate-once");
-  if (rateOption && rateOption->GetNumberOfFunctions())
-  {
-    std::string rateFunction = rateOption->GetFunction(0)->GetName();
-    ConvertToLowerCase(rateFunction);
-    if (rateFunction.compare("1") == 0 || rateFunction.compare("true") == 0)
-    {
-      doEstimateLearningRateAtEachIteration = false;
-    }
-  }
-  regHelper->SetDoEstimateLearningRateAtEachIteration(doEstimateLearningRateAtEachIteration);
+  // OptionType::Pointer rateOption = parser->GetOption("use-estimate-learning-rate-once");
+  // if (rateOption && rateOption->GetNumberOfFunctions())
+  // {
+  //   std::string rateFunction = rateOption->GetFunction(0)->GetName();
+  //   ConvertToLowerCase(rateFunction);
+  //   if (rateFunction.compare("1") == 0 || rateFunction.compare("true") == 0)
+  //   {
+  //     doEstimateLearningRateAtEachIteration = false;
+  //   }
+  // }
+  // regHelper->SetDoEstimateLearningRateAtEachIteration(doEstimateLearningRateAtEachIteration);
 
   // We find both the number of transforms and the number of metrics
 

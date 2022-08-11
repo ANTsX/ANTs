@@ -1394,7 +1394,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
     //    optimizer2->SetLowerLimit( 0 );
     //    optimizer2->SetUpperLimit( 2 );
     //    optimizer2->SetEpsilon( 0.2 );
-    //    optimizer->SetMaximumLineSearchIterations( 20 );
+    //    optimizer2->SetMaximumLineSearchIterations( 20 );
     optimizer2->SetLearningRate(learningRate);
     optimizer2->SetMaximumStepSizeInPhysicalUnits(learningRate);
     optimizer2->SetNumberOfIterations(currentStageIterations[0]);
@@ -4191,7 +4191,7 @@ RegistrationHelper<TComputeType, VImageDimension>::InitializeWithPreviousLinearT
     return false;
   }
   /////
-  return true; // This function only returns flase or true (NOT FAILURE or SUCCESS).
+  return true; // This function only returns false or true (NOT FAILURE or SUCCESS).
                // If direct intialization fails, the program should NOT be stopped,
                // because the initial transform will be kept in the composite transform,
                // and the final results will be still correct.
@@ -4203,11 +4203,13 @@ RegistrationHelper<TComputeType, VImageDimension>::PrintState() const
 {
   this->Logger() << "Dimension = " << Self::ImageDimension << std::endl
                  << "Number of stages = " << this->m_NumberOfStages << std::endl
-                 << "Use Histogram Matching " << (this->m_UseHistogramMatching ? "true" : "false") << std::endl
-                 << "Winsorize image intensities " << (this->m_WinsorizeImageIntensities ? "true" : "false")
+                 << "Use histogram matching = " << (this->m_UseHistogramMatching ? "true" : "false") << std::endl
+                 << "Winsorize image intensities = " << (this->m_WinsorizeImageIntensities ? "true" : "false")
                  << std::endl
-                 << "Lower quantile = " << this->m_LowerQuantile << std::endl
-                 << "Upper quantile = " << this->m_UpperQuantile << std::endl;
+                 << "  Lower quantile = " << this->m_LowerQuantile << std::endl
+                 << "  Upper quantile = " << this->m_UpperQuantile << std::endl
+                 << std::endl
+                 << std::endl;
 
   for (unsigned i = 0; i < this->m_NumberOfStages; i++)
   {

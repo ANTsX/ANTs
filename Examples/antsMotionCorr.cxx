@@ -690,16 +690,16 @@ ants_motion(itk::ants::CommandLineParser * parser)
   }
 
   bool                doEstimateLearningRateOnce(false);
-  OptionType::Pointer rateOption = parser->GetOption("use-estimate-learning-rate-once");
-  if (rateOption && rateOption->GetNumberOfFunctions())
-  {
-    std::string rateFunction = rateOption->GetFunction(0)->GetName();
-    ConvertToLowerCase(rateFunction);
-    if (rateFunction.compare("1") == 0 || rateFunction.compare("true") == 0)
-    {
-      doEstimateLearningRateOnce = true;
-    }
-  }
+  // OptionType::Pointer rateOption = parser->GetOption("use-estimate-learning-rate-once");
+  // if (rateOption && rateOption->GetNumberOfFunctions())
+  // {
+  //   std::string rateFunction = rateOption->GetFunction(0)->GetName();
+  //   ConvertToLowerCase(rateFunction);
+  //   if (rateFunction.compare("1") == 0 || rateFunction.compare("true") == 0)
+  //   {
+  //     doEstimateLearningRateOnce = true;
+  //   }
+  // }
 
   bool                doHistogramMatch(true);
   OptionType::Pointer histogramMatchOption = parser->GetOption("use-histogram-matching");
@@ -1813,17 +1813,17 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
     parser->AddOption(option);
   }
 
-  {
-    std::string description =
-      std::string("turn on the option that lets you estimate the learning rate step size only at the beginning of each "
-                  "level.  * useful as a second stage of fine-scale registration.");
+  // {
+  //   std::string description =
+  //     std::string("turn on the option that lets you estimate the learning rate step size only at the beginning of each "
+  //                 "level.  * useful as a second stage of fine-scale registration.");
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName("use-estimate-learning-rate-once");
-    option->SetShortName('l');
-    option->SetDescription(description);
-    parser->AddOption(option);
-  }
+  //   OptionType::Pointer option = OptionType::New();
+  //   option->SetLongName("use-estimate-learning-rate-once");
+  //   option->SetShortName('l');
+  //   option->SetDescription(description);
+  //   parser->AddOption(option);
+  // }
 
   {
     std::string description =
