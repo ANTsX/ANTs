@@ -59,7 +59,7 @@ my @allTags = `git tag`;
 chomp(@allTags);
 
 foreach my $repoTag (@allTags) {
-    if ($repoTag == ${tag}) {
+    if ($repoTag eq ${tag}) {
         print "The tag $tag already exists. Exiting \n";
         exit(1);
     }
@@ -119,4 +119,5 @@ close($outFH);
 system("git add Version.cmake");
 system("git commit -m \"[skip ci] Updating version for development post $tag\"");
 print("\nPushing changed Version.cmake\n");
-system("git push origin $masterBranchLabel") == 0
+system("git push origin $masterBranchLabel") == 0 
+    or die("Could not update Version.cmake post release");
