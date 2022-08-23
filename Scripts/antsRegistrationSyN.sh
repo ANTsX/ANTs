@@ -669,6 +669,14 @@ echo "--------------------------------------------------------------------------
 
 $COMMAND
 
+echo " Registration finished. The antsRegistration call was:"
+echo "--------------------------------------------------------------------------------------"
+echo ${COMMAND}
+echo "--------------------------------------------------------------------------------------"
+echo "Moving image resampled into fixed space: ${OUTPUTNAME}Warped.nii.gz"
+echo "Fixed image resampled into moving space: ${OUTPUTNAME}InverseWarped.nii.gz"
+echo "--------------------------------------------------------------------------------------"
+
 ###############################
 #
 # Restore original number of threads
