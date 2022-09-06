@@ -1501,7 +1501,7 @@ AtroposInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
                               std::string("Alternatively, propagation of the labels with the ") +
                               std::string("fast marching filter respects the distance along the ") +
                               std::string("shape of the mask (e.g. the sinuous sulci and gyri ") +
-                              std::string("of the cortex.");
+                              std::string("of the cortex).");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("use-euclidean-distance");
