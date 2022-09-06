@@ -206,7 +206,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
         for (unsigned int k = 0; k < imageNames.size(); k++)
         {
           typename InputImageType::Pointer image;
-          ReadImage<InputImageType>(image, imageNames[k].c_str());
+          if (!ReadImage<InputImageType>(image, imageNames[k].c_str()))
+          {
+            std::cout << "Input prior probability image could not be read: " << imageNames[k] << std::endl;
+            return EXIT_FAILURE;
+          }
           segmenter->SetPriorProbabilityImage(k + 1, image);
         }
       }
@@ -373,7 +377,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
     try
     {
       typename LabelImageType::Pointer image;
-      ReadImage<LabelImageType>(image, maskOption->GetFunction(0)->GetName().c_str());
+      if (!ReadImage<LabelImageType>(image, maskOption->GetFunction(0)->GetName().c_str()))
+      {
+        std::cout << "Input mask image could not be read." << std::endl;
+        return EXIT_FAILURE;
+      }
       segmenter->SetMaskImage(image);
 
       // Check to see that the labels in the prior label image or the non-zero
@@ -600,7 +608,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
         imagename = imageOption->GetFunction(n)->GetName();
       }
       typename InputImageType::Pointer image;
-      ReadImage<InputImageType>(image, imagename.c_str());
+      if (!ReadImage<InputImageType>(image, imagename.c_str()))
+      {
+        std::cout << "Input intensity image could not be read." << std::endl;
+        return EXIT_FAILURE;
+      }
       segmenter->SetIntensityImage(count, image);
       if (imageOption->GetFunction(count)->GetNumberOfParameters() > 1)
       {
