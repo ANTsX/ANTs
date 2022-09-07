@@ -218,7 +218,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
       {
         using VectorImageType = itk::VectorImage<PixelType, ImageDimension>;
         typename VectorImageType::Pointer image;
-        ReadImage<VectorImageType>(image, filename.c_str());
+        if (!ReadImage<VectorImageType>(image, filename.c_str()))
+        {
+          std::cout << "Input prior probability image could not be read." << std::endl;
+          return EXIT_FAILURE;
+        }
 
         if (image->GetNumberOfComponentsPerPixel() != segmenter->GetNumberOfTissueClasses())
         {
@@ -264,7 +268,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
 
       std::string                      filename = initializationOption->GetFunction(0)->GetParameter(1);
       typename LabelImageType::Pointer image;
-      ReadImage<LabelImageType>(image, filename.c_str());
+      if (!ReadImage<LabelImageType>(image, filename.c_str()))
+      {
+        std::cout << "Input prior label image could not be read." << std::endl;
+        return EXIT_FAILURE;
+      }
       segmenter->SetPriorLabelImage(image);
     }
     else
