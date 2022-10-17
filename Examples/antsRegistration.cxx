@@ -703,15 +703,15 @@ antsRegistration(std::vector<std::string> args, std::ostream * /*out_stream = nu
       return EXIT_FAILURE;
     }
 
-    std::string         precisionType;
-    OptionType::Pointer typeOption = parser->GetOption("float");
-    if (typeOption && parser->Convert<bool>(typeOption->GetFunction(0)->GetName()))
+    std::string precisionType;
+    ParserType::OptionType::Pointer typeOption = parser->GetOption("float");
+    if (typeOption && typeOption->GetNumberOfFunctions() && parser->Convert<bool>(typeOption->GetFunction(0)->GetName()))
     {
       if (verbose)
       {
         std::cout << "Using single precision for computations." << std::endl;
       }
-      precisionType = "float";
+      precisionType = std::string("float");
     }
     else
     {
@@ -719,7 +719,7 @@ antsRegistration(std::vector<std::string> args, std::ostream * /*out_stream = nu
       {
         std::cout << "Using double precision for computations." << std::endl;
       }
-      precisionType = "double";
+      precisionType = std::string("double");
     }
 
     switch (dimension)
