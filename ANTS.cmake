@@ -163,6 +163,6 @@ endif()
 
 #Only install ITK/VTK libraries if shared build and superbuild is used
 if(BUILD_SHARED_LIBS AND ((NOT USE_SYSTEM_ITK) OR ((NOT USE_SYSTEM_VTK) AND USE_VTK)))
-  install(DIRECTORY ${CMAKE_BINARY_DIR}/../staging/lib/
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/../staging/${CMAKE_INSTALL_LIBDIR}/
           DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
