@@ -48,6 +48,8 @@ jobs:
         if: startsWith(matrix.config.image, 'centos')
         run: |
           yum -y update && yum clean all
+          # Need devtoolset-7 to get zip and other goodies, though GCC is installed by default
+          # Also need to add python3 if that ever becomes necessary
           yum -y install devtoolset-7 git zlib-devel
           curl -OL https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
           chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh
@@ -82,9 +84,11 @@ jobs:
       - name: Upload release asset
         # softprops giving ECONNRESET error
         # uses: softprops/action-gh-release@v0.1.14
-        uses: ncipollo/release-action@v1.10.0
+        uses: ncipollo/release-action@v1.11.1
         with:
           allowUpdates: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
           artifacts: "${{ env.ARTIFACT }}"
           artifactContentType: application/zip
           token: ${{ secrets.GITHUB_TOKEN }}

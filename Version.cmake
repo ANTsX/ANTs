@@ -11,7 +11,7 @@ include(ProjectSourceVersion)
 
 set(${PROJECT_NAME}_VERSION_MAJOR "2")
 set(${PROJECT_NAME}_VERSION_MINOR "4")
-set(${PROJECT_NAME}_VERSION_PATCH "1")
+set(${PROJECT_NAME}_VERSION_PATCH "2")
 # set(${PROJECT_NAME}_VERSION_TWEAK "")
 
 # The hash is the current git sha1 hash tag of the HEAD.
