@@ -74,7 +74,7 @@ typename InterpolatorType::Pointer interpolator = nullptr;
     gaussianInterpolator->SetParameters( sigma, alpha );
     interpolator = gaussianInterpolator;
     }
-  else if( !std::strcmp( whichInterpolator.c_str(), "CosineWindowedSinc" ) )
+  else if( !std::strcmp( whichInterpolator.c_str(), "cosinewindowedsinc" ) )
     {
     typedef itk::WindowedSincInterpolateImageFunction
                  <ImageType, 3, itk::Function::CosineWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType> CosineInterpolatorType;
