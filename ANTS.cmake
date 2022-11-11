@@ -156,7 +156,6 @@ if (NOT ANTS_INSTALL_LIBS_ONLY)
      Scripts/waitForSlurmJobs.pl
                 DESTINATION bin
                 PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-                CONFIGURATIONS  Release
                 COMPONENT SCRIPTS
      )
 endif()
