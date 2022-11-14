@@ -78,6 +78,7 @@ Optional arguments:
 
      -e: N4 convergence, e.g. "[25x25x25x25,0]"
      -f: N4 shrink factor
+     -q: N4 B-spline parameters
      -i: Atropos icm useAsynchronousUpdate 0/(1)
      -j: Atropos use-euclidean-distance (0)/1
 
@@ -208,7 +209,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:r:s:t:u:w:x:y:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:w:x:y:z:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -237,6 +238,9 @@ else
               ;;
           f)
               N4_SHRINK_FACTOR=$OPTARG
+              ;;
+          q)
+              N4_BSPLINE_PARAMS=$OPTARG
               ;;
           g) # denoise anatomical images
        DENOISE_ANATOMICAL_IMAGES=$OPTARG
