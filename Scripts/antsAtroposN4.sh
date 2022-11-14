@@ -76,6 +76,12 @@ Optional arguments:
      -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
      -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
 
+     -e: N4 convergence, e.g. "[25x25x25x25,0]"
+     -f: N4 shrink factor
+     -q: N4 B-spline parameters
+     -i: Atropos icm useAsynchronousUpdate 0/(1)
+     -j: Atropos use-euclidean-distance (0)/1
+
      -z:  Test / debug mode                     If > 0, attempts to continue after errors.
 
 USAGE
@@ -108,6 +114,8 @@ echoParameters() {
        Max N4->Atropos iters. = ${N4_ATROPOS_NUMBER_OF_ITERATIONS}
        Max Atropos iters.     = ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS}
        use clock random seed  = ${USE_RANDOM_SEEDING}
+       icm                    = ${ATROPOS_SEGMENTATION_ICM}
+       use-euclidean-distance = ${ATROPOS_SEGMENTATION_USE_EUCLIDEAN_DISTANCE}
 
 PARAMETERS
 }
@@ -192,6 +200,8 @@ ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[ 1 ]"
 ATROPOS_SEGMENTATION_MASK=''
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
 ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES=3
+ATROPOS_SEGMENTATION_ICM=1
+ATROPOS_SEGMENTATION_USE_EUCLIDEAN_DISTANCE=0
 ATROPOS_SEGMENTATION_MRF=''
 ATROPOS_SEGMENTATION_LABEL_PROPAGATION=()
 
@@ -199,7 +209,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:g:h:k:l:m:n:o:p:r:s:t:u:w:x:y:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:w:x:y:z:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -223,9 +233,24 @@ else
           b) #atropos prior weight
        ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION=$OPTARG
        ;;
+          e)
+              N4_CONVERGENCE=$OPTARG
+              ;;
+          f)
+              N4_SHRINK_FACTOR=$OPTARG
+              ;;
+          q)
+              N4_BSPLINE_PARAMS=$OPTARG
+              ;;
           g) # denoise anatomical images
        DENOISE_ANATOMICAL_IMAGES=$OPTARG
        ;;
+          i)
+              ATROPOS_SEGMENTATION_ICM=$OPTARG
+              ;;
+          j)
+              ATROPOS_SEGMENTATION_USE_EUCLIDEAN_DISTANCE=$OPTARG
+              ;;
           k) #keep tmp images
        KEEP_TMP_IMAGES=$OPTARG
        ;;
@@ -499,7 +524,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
       done
 
     exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} --verbose 1"
-    exe_segmentation="${exe_segmentation} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [ ${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS} ] -r ${USE_RANDOM_SEEDING}"
+    exe_segmentation="${exe_segmentation} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -g ${ATROPOS_SEGMENTATION_ICM} -o [ ${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS} ] -r ${USE_RANDOM_SEEDING} -e ${ATROPOS_SEGMENTATION_USE_EUCLIDEAN_DISTANCE}"
 
     if [[ $i -eq 0 ]];
       then
