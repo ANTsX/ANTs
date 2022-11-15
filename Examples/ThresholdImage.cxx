@@ -151,7 +151,7 @@ template <typename TImage, typename TMaskImage>
 typename TImage::Pointer
 OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename TMaskImage::Pointer maskImage)
 {
-  std::cout << " Otsu Thresh with " << NumberOfThresholds << " thresholds" << std::endl;
+  // std::cout << " Otsu Thresh with " << NumberOfThresholds << " thresholds" << std::endl;
 
   if (maskImage.IsNull())
   {
