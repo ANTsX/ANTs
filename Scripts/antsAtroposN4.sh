@@ -11,6 +11,59 @@ if [[ ! -s ${ANTSPATH}/Atropos ]]; then
   exit
 fi
 
+################################################################################
+#
+# Main routine
+#
+################################################################################
+
+HOSTNAME=`hostname`
+DATE=`date`
+
+CURRENT_DIR=`pwd`/
+OUTPUT_DIR=""
+OUTPUT_PREFIX=""
+OUTPUT_SUFFIX="nii.gz"
+
+KEEP_TMP_IMAGES=0
+
+USE_RANDOM_SEEDING=1
+DENOISE_ANATOMICAL_IMAGES=0
+
+DIMENSION=""
+
+ANATOMICAL_IMAGES=()
+
+ATROPOS_SEGMENTATION_PRIORS=""
+
+DEBUG_MODE=0
+
+################################################################################
+#
+# Programs and their parameters
+#
+################################################################################
+
+N4_ATROPOS_NUMBER_OF_ITERATIONS=15
+
+N4=${ANTSPATH}/N4BiasFieldCorrection
+N4_CONVERGENCE="[ 50x50x50x50,0.0000000001 ]"
+N4_SHRINK_FACTOR=2
+N4_BSPLINE_PARAMS="[ 200 ]"
+N4_WEIGHT_MASK_POSTERIOR_LABELS=()
+
+ATROPOS=${ANTSPATH}/Atropos
+ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
+ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
+ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[ 1 ]"
+ATROPOS_SEGMENTATION_MASK=""
+ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
+ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES=""
+ATROPOS_SEGMENTATION_ICM=1
+ATROPOS_SEGMENTATION_USE_EUCLIDEAN_DISTANCE=0
+ATROPOS_SEGMENTATION_MRF=""
+ATROPOS_SEGMENTATION_LABEL_PROPAGATION=()
+
 function Usage {
     cat <<USAGE
 
@@ -21,44 +74,41 @@ Usage:
 `basename $0` -d imageDimension
               -a inputImage
               -x maskImage
-              -m n4AtroposIterations
-              -n atroposIterations
               -c numberOfClasses
-              -l posteriorLabelForN4Mask
               -o outputPrefix
-              <OPTARGS>
+              [Options]
 
 Example:
 
-  bash $0 -d 3 -a t1.nii.gz -x mask.nii.gz -c 4 -p segmentationPriors%d.nii.gz -o output
+  bash $0 -d 3 -a t1.nii.gz -x mask.nii.gz -c 4 -m 3 -p segmentationPriors%d.nii.gz -o output
 
 Required arguments:
 
-     -d:  image dimension                       2 or 3 (for 2- or 3-dimensional image)
-     -a:  input image                           Anatomical image, typically T1.  If more than one
-                                                anatomical image is specified, subsequently specified
-                                                images are used during the segmentation process.
+     -d:  image dimension                       2 or 3, for 2- or 3-dimensional image.
+     -a:  input image                           Anatomical image, typically T1.  If more than one anatomical image
+                                                is specified, subsequent images are also used during the segmentation process.
      -x:  mask image                            Binary mask defining the region of interest.
-     -c:  number of segmentation classes        Number of classes defining the segmentation
+     -c:  number of segmentation classes        Number of classes defining the segmentation.
      -o:  output prefix                         The following images are created:
-                                                  * ${OUTPUT_PREFIX}N4Corrected.${OUTPUT_SUFFIX}
-                                                  * ${OUTPUT_PREFIX}Segmentation.${OUTPUT_SUFFIX}
-                                                  * ${OUTPUT_PREFIX}SegmentationPosteriors.${OUTPUT_SUFFIX}
+                                                  * \${OUTPUT_PREFIX}N4Corrected.\${OUTPUT_SUFFIX}
+                                                  * \${OUTPUT_PREFIX}Segmentation.\${OUTPUT_SUFFIX}
+                                                  * \${OUTPUT_PREFIX}SegmentationPosteriors.\${OUTPUT_SUFFIX}
 
 Optional arguments:
 
-     -m:  max. N4 <-> Atropos iterations        Maximum number of (outer loop) iterations between N4 <-> Atropos.
-     -n:  max. Atropos iterations               Maximum number of (inner loop) iterations in Atropos.
+     -m:  max. N4 <-> Atropos iterations        Maximum number of (outer loop) iterations between N4 <-> Atropos (default = ${N4_ATROPOS_NUMBER_OF_ITERATIONS}).
+     -n:  max. Atropos iterations               Maximum number of (inner loop) iterations in Atropos (default = ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS}).
      -p:  segmentation priors                   Prior probability images initializing the segmentation.
-                                                Specified using c-style formatting, e.g. -p labelsPriors%02d.nii.gz.
+                                                Specified using c-style formatting, e.g. -p labelsPriors%02d.nii.gz. If this
+                                                is not specified, k-means initialization is used instead.
      -r:  mrf                                   Specifies MRF prior (of the form '[ weight,neighborhood ]', e.g.
                                                 '[ 0.1,1x1x1 ]' which is default).
-     -g:  denoise anatomical images             Denoise anatomical images (default = 0).
+     -g:  denoise anatomical images             Denoise anatomical images (1) or not (0) (default = ${DENOISE_ANATOMICAL_IMAGES}).
      -b:  posterior formulation                 Posterior formulation and whether or not to use mixture model proportions.
                                                 e.g 'Socrates[ 1 ]' (default) or 'Aristotle[ 1 ]'.  Choose the latter if you
-                                                want use the distance priors (see also the -l option for label propagation
-                                                control).
-     -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
+                                                want to use the distance priors, see also the -l option for label propagation
+                                                control (default = '${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}').
+     -l:  label propagation                     Incorporate a distance prior into the 'Aristotle' posterior formulation.  Should be
                                                 of the form 'label[ lambda,boundaryProbability ]' where label is a value
                                                 of 1,2,3,... denoting label ID.  The label probability for anything
                                                 outside the current label
@@ -67,20 +117,21 @@ Optional arguments:
 
                                                 Intuitively, smaller lambda values will increase the spatial capture
                                                 range of the distance prior.  To apply to all label values, simply omit
-                                                specifying the label, i.e. -l [ lambda,boundaryProbability ].
+                                                specifying the label, i.e. -l '[ lambda,boundaryProbability ]'.
      -y:  posterior label for N4 weight mask    Which posterior probability image should be used to define the
                                                 N4 weight mask.  Can also specify multiple posteriors in which
                                                 case the chosen posteriors are combined.
-     -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -k:  keep temporary files                  Keep temporary files on disk (default = 0).
-     -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
-     -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
+     -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd.
+     -k:  keep temporary files                  Keep temporary files on disk (1) or delete them (0) (default = ${KEEP_TMP_IMAGES}).
+     -u:  use random seeding                    Use random number generated from system clock in Atropos (default = ${USE_RANDOM_SEEDING}).
+     -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}).
 
-     -e: N4 convergence, e.g. "[25x25x25x25,0]"
-     -f: N4 shrink factor
-     -q: N4 B-spline parameters
-     -i: Atropos icm useAsynchronousUpdate 0/(1)
-     -j: Atropos use-euclidean-distance (0)/1
+     -e: N4 convergence                         Convergence parameters for N4, see "-c" option in N4BiasFieldCorrection (default = ${N4_CONVERGENCE}).
+     -f: N4 shrink factor                       Shrink factor for N4 (default = ${N4_SHRINK_FACTOR}).
+     -q: N4 B-spline parameters                 N4 b-spline specification, see "-b" option in N4BiasFieldCorrection (default = ${N4_BSPLINE_PARAMS}).
+     -i: Atropos icm                            ICM parameters for segmentation, see "-g" option in Atropos (default = ${ATROPOS_SEGMENTATION_ICM}).
+     -j: Atropos use-euclidean-distance         Use euclidean distances in distance prior formulation (1) or not (0), see Atropos usage for
+                                                details (default = ${ATROPOS_SEGMENTATION_USE_EUCLIDEAN_DISTANCE}).
 
      -z:  Test / debug mode                     If > 0, attempts to continue after errors.
 
@@ -123,7 +174,6 @@ PARAMETERS
 
 # Echos a command to stdout, then runs it
 # Will immediately exit on error unless you set debug flag
-DEBUG_MODE=0
 
 function logCmd() {
   cmd="$@"
@@ -154,57 +204,6 @@ function logCmd() {
 }
 
 
-################################################################################
-#
-# Main routine
-#
-################################################################################
-
-HOSTNAME=`hostname`
-DATE=`date`
-
-CURRENT_DIR=`pwd`/
-OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
-OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
-OUTPUT_SUFFIX="nii.gz"
-
-KEEP_TMP_IMAGES=0
-
-USE_RANDOM_SEEDING=1
-DENOISE_ANATOMICAL_IMAGES=0
-
-DIMENSION=3
-
-ANATOMICAL_IMAGES=()
-
-ATROPOS_SEGMENTATION_PRIORS=""
-
-################################################################################
-#
-# Programs and their parameters
-#
-################################################################################
-
-N4_ATROPOS_NUMBER_OF_ITERATIONS=15
-
-N4=${ANTSPATH}/N4BiasFieldCorrection
-N4_CONVERGENCE="[ 50x50x50x50,0.0000000001 ]"
-N4_SHRINK_FACTOR=2
-N4_BSPLINE_PARAMS="[ 200 ]"
-N4_WEIGHT_MASK_POSTERIOR_LABELS=()
-
-ATROPOS=${ANTSPATH}/Atropos
-ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
-ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
-ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[ 1 ]"
-ATROPOS_SEGMENTATION_MASK=''
-ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
-ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES=3
-ATROPOS_SEGMENTATION_ICM=1
-ATROPOS_SEGMENTATION_USE_EUCLIDEAN_DISTANCE=0
-ATROPOS_SEGMENTATION_MRF=''
-ATROPOS_SEGMENTATION_LABEL_PROPAGATION=()
-
 if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
@@ -212,94 +211,119 @@ else
   while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:r:s:t:u:w:x:y:z:" OPT
     do
       case $OPT in
-          c) #number of segmentation classes
-       ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES=$OPTARG
-       ;;
-          d) #dimensions
-       DIMENSION=$OPTARG
-       if [[ ${DIMENSION} -gt 4 || ${DIMENSION} -lt 2 ]];
-         then
-           echo " Error:  ImageDimension must be 2, 3, or 4 "
-           exit 1
-         fi
-       ;;
           h) #help
-       Usage >&2
-       exit 0
-       ;;
+            Usage >&2
+            exit 0
+        ;;
           a) #anatomical t1 image
-       ANATOMICAL_IMAGES[${#ANATOMICAL_IMAGES[@]}]=$OPTARG
-       ;;
+            ANATOMICAL_IMAGES[${#ANATOMICAL_IMAGES[@]}]=$OPTARG
+        ;;
           b) #atropos prior weight
-       ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION=$OPTARG
-       ;;
+            ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION=$OPTARG
+        ;;
+          c) #number of segmentation classes
+            ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES=$OPTARG
+        ;;
+          d) #dimensions
+            DIMENSION=$OPTARG
+            if [[ ${DIMENSION} -gt 4 || ${DIMENSION} -lt 2 ]];
+              then
+                echo " Error:  ImageDimension must be 2, 3, or 4 "
+                exit 1
+              fi
+        ;;
           e)
-              N4_CONVERGENCE=$OPTARG
-              ;;
+            N4_CONVERGENCE=$OPTARG
+        ;;
           f)
-              N4_SHRINK_FACTOR=$OPTARG
-              ;;
-          q)
-              N4_BSPLINE_PARAMS=$OPTARG
-              ;;
+            N4_SHRINK_FACTOR=$OPTARG
+        ;;
           g) # denoise anatomical images
-       DENOISE_ANATOMICAL_IMAGES=$OPTARG
-       ;;
+            DENOISE_ANATOMICAL_IMAGES=$OPTARG
+        ;;
           i)
-              ATROPOS_SEGMENTATION_ICM=$OPTARG
-              ;;
+            ATROPOS_SEGMENTATION_ICM=$OPTARG
+        ;;
           j)
               ATROPOS_SEGMENTATION_USE_EUCLIDEAN_DISTANCE=$OPTARG
-              ;;
+        ;;
           k) #keep tmp images
-       KEEP_TMP_IMAGES=$OPTARG
-       ;;
+            KEEP_TMP_IMAGES=$OPTARG
+        ;;
           l)
-       ATROPOS_SEGMENTATION_LABEL_PROPAGATION[${#ATROPOS_SEGMENTATION_LABEL_PROPAGATION[@]}]=$OPTARG
-       ;;
+            ATROPOS_SEGMENTATION_LABEL_PROPAGATION[${#ATROPOS_SEGMENTATION_LABEL_PROPAGATION[@]}]=$OPTARG
+        ;;
           m) #atropos segmentation iterations
-       N4_ATROPOS_NUMBER_OF_ITERATIONS=$OPTARG
-       ;;
+            N4_ATROPOS_NUMBER_OF_ITERATIONS=$OPTARG
+        ;;
           n) #atropos segmentation iterations
-       ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=$OPTARG
-       ;;
+            ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=$OPTARG
+        ;;
           o) #output prefix
-       OUTPUT_PREFIX=$OPTARG
-       ;;
+            OUTPUT_PREFIX=$OPTARG
+        ;;
           p) # segmentation label prior image
-       ATROPOS_SEGMENTATION_PRIORS=$OPTARG
-       ;;
+            ATROPOS_SEGMENTATION_PRIORS=$OPTARG
+        ;;
+          q)
+              N4_BSPLINE_PARAMS=$OPTARG
+        ;;
           r) #mrf
-       ATROPOS_SEGMENTATION_MRF=$OPTARG
-       ;;
+            ATROPOS_SEGMENTATION_MRF=$OPTARG
+        ;;
           s) #output suffix
-       OUTPUT_SUFFIX=$OPTARG
-       ;;
+            OUTPUT_SUFFIX=$OPTARG
+        ;;
           t) #n4 convergence
-       N4_CONVERGENCE=$OPTARG
-       ;;
+            N4_CONVERGENCE=$OPTARG
+        ;;
           u) #use random seeding
-       USE_RANDOM_SEEDING=$OPTARG
-       ;;
+            USE_RANDOM_SEEDING=$OPTARG
+        ;;
           w) #atropos prior weight
-       ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
-       ;;
+            ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
+        ;;
           x) #atropos segmentation mask
-       ATROPOS_SEGMENTATION_MASK=$OPTARG
-       ;;
+            ATROPOS_SEGMENTATION_MASK=$OPTARG
+        ;;
           y) #
-       N4_WEIGHT_MASK_POSTERIOR_LABELS[${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}]=$OPTARG
-       ;;
+            N4_WEIGHT_MASK_POSTERIOR_LABELS[${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}]=$OPTARG
+        ;;
           z) #debug mode
-       DEBUG_MODE=$OPTARG
-       ;;
+            DEBUG_MODE=$OPTARG
+        ;;
           *) # getopts issues an error message
-       echo "ERROR:  unrecognized option -$OPT $OPTARG"
-       exit 1
-       ;;
+            echo "ERROR:  unrecognized option -$OPT $OPTARG"
+            exit 1
+        ;;
       esac
   done
 fi
+
+# Check required args
+if [[ $DIMENSION -lt 2 ]] || [[ $DIMENSION -gt 3 ]];
+  then
+    echo "Script only supports image dimension 2 or 3"
+    exit 1
+  fi
+
+if [[ ${#ANATOMICAL_IMAGES[@]} -eq 0 ]];
+  then
+    echo "No input anatomical images to segment"
+    exit 1
+  fi
+
+if [[ ! ${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES} -gt 0 ]];
+  then
+    echo "Require number of segmentation classes"
+    exit 1
+  fi
+
+if [[ -z "${OUTPUT_PREFIX}" ]];
+  then
+    echo "Output prefix is required"
+    exit 1
+  fi
 
 if [[ -z "$ATROPOS_SEGMENTATION_MRF" ]];
   then
@@ -328,6 +352,11 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
       exit 1
     fi
   done
+
+if [[ ! -f "${ATROPOS_SEGMENTATION_MASK}" ]];
+  then
+    echo "Required mask image \"${ATROPOS_SEGMENTATION_MASK}\" does not exist."
+  fi
 
 FORMAT=${ATROPOS_SEGMENTATION_PRIORS}
 PREFORMAT=${FORMAT%%\%*}
@@ -391,10 +420,14 @@ for(( j=0; j < $NUMBER_OF_PRIOR_IMAGES; j++ ))
   done
 
 OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
-if [[ ! -d $OUTPUT_DIR ]];
+
+if [[ ${OUTPUT_DIR} != ${OUTPUT_PREFIX} ]];
   then
-    echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
-    mkdir -p $OUTPUT_DIR
+    if [[ ! -d $OUTPUT_DIR ]];
+      then
+        echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
+        mkdir -p $OUTPUT_DIR
+    fi
   fi
 
 echoParameters >&2
