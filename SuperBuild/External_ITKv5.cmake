@@ -154,9 +154,8 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
-  # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
-  set(${proj}_GIT_TAG d9c585d96359bf304ad3047148cee81bf27ac0c1)  # B-spline scattered data speed-up (N4, BSplineSyN)
-  set(ITK_VERSION_ID ITK-5.3) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
+  set(${proj}_GIT_TAG bbf14ddfb6e7d803e8dbf56550464b77714547af)  # Control multi-threading in MI registration
+  set(ITK_VERSION_ID ITK-5.3) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID if ITK version has changed
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
