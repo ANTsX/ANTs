@@ -1988,11 +1988,43 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::GetPo
           radius[d] = this->m_MRFRadius[d];
         }
 
+#define __optimize_omp_GetPosteriorProbabilityImage__
+#ifdef __optimize_omp_GetPosteriorProbabilityImage__
+    if (ImageDimension!=3) {
+      itkWarningMacro( "Only 3 Dimensions are currently supported." );
+      exit(EXIT_FAILURE);
+    }
+std::cout << "optimize_omp_GetPosteriorProbabilityImage" << std::endl;
+
+    unsigned long xSize = this->GetOutput()->GetRequestedRegion().GetSize(0);
+    unsigned long ySize = this->GetOutput()->GetRequestedRegion().GetSize(1);
+    unsigned long zSize = this->GetOutput()->GetRequestedRegion().GetSize(2);
+
+    #pragma omp parallel for schedule(dynamic)
+      for (unsigned int k = 0; k < zSize; k++)
+      {
+#endif // __optimize_omp_GetPosteriorProbabilityImage__
         ConstNeighborhoodIterator<ClassifiedImageType> ItO(
           radius, this->GetOutput(), this->GetOutput()->GetRequestedRegion());
         ImageRegionIterator<RealImageType> ItS(this->m_SumPosteriorProbabilityImage,
                                                this->m_SumPosteriorProbabilityImage->GetRequestedRegion());
+#ifdef __optimize_omp_GetPosteriorProbabilityImage__
+        typename ConstNeighborhoodIterator<ClassifiedImageType>::IndexType startindexItS;
+        typename ImageRegionIterator<RealImageType>::IndexType startindexItO;
+        startindexItO.SetElement(0, 0);
+        startindexItO.SetElement(1, 0);
+        startindexItO.SetElement(2, k);
+        startindexItS.SetElement(0, 0);
+        startindexItS.SetElement(1, 0);
+        startindexItS.SetElement(2, k);
+
+        ItO.SetLocation(startindexItO);
+        ItS.SetIndex(startindexItS);
+
+        for (unsigned int j = 0; j < xSize*ySize; j++, ++ItO, ++ItS)
+#else // __optimize_omp_GetPosteriorProbabilityImage__
         for (ItO.GoToBegin(), ItS.GoToBegin(); !ItO.IsAtEnd(); ++ItO, ++ItS)
+#endif // __optimize_omp_GetPosteriorProbabilityImage__
         {
           if (!this->GetMaskImage() ||
               this->GetMaskImage()->GetPixel(ItO.GetIndex()) != NumericTraits<MaskLabelType>::ZeroValue())
@@ -2113,6 +2145,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::GetPo
             ItS.Set(ItS.Get() + posteriorProbability);
           }
         }
+#ifdef __optimize_omp_GetPosteriorProbabilityImage__
+      }
+	  #pragma omp barrier
+#endif // __optimize_omp_GetPosteriorProbabilityImage__
         if (!this->m_MinimizeMemoryUsage)
         {
           typedef ImageDuplicator<RealImageType> DuplicatorType;
