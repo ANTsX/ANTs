@@ -121,6 +121,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
    * Initialization
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer initializationOption = parser->GetOption("initialization");
+  if (!initializationOption || !initializationOption->GetNumberOfFunctions())
+  {
+    std::cerr << "No initialization option specified." << std::endl;
+    return EXIT_FAILURE;
+  }
   if (initializationOption && initializationOption->GetNumberOfFunctions() &&
       initializationOption->GetFunction(0)->GetNumberOfParameters() < 1)
   {
