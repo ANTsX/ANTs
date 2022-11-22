@@ -193,8 +193,8 @@ function logCmd() {
       if [[ ! $DEBUG_MODE -gt 0 ]];
         then
           exit 1
-        fi
-    fi
+      fi
+  fi
 
   echo "END   <<<<<<<<<<<<<<<<<<<<"
   echo
