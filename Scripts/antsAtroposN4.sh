@@ -181,9 +181,9 @@ function logCmd() {
   echo $cmd
 
   exec 5>&1
-  logCmdOutput=$( "$@" | tee >(cat - >&5) )
+  logCmdOutput=$( "$@" | tee >(cat - >&5); exit ${PIPESTATUS[0]} )
 
-  cmdExit=${PIPESTATUS[0]}
+  cmdExit=$?
 
   if [[ $cmdExit -gt 0 ]];
     then
@@ -193,8 +193,8 @@ function logCmd() {
       if [[ ! $DEBUG_MODE -gt 0 ]];
         then
           exit 1
-        fi
-    fi
+      fi
+  fi
 
   echo "END   <<<<<<<<<<<<<<<<<<<<"
   echo
