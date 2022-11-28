@@ -356,6 +356,7 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
 if [[ ! -f "${ATROPOS_SEGMENTATION_MASK}" ]];
   then
     echo "Required mask image \"${ATROPOS_SEGMENTATION_MASK}\" does not exist."
+    exit 1
   fi
 
 FORMAT=${ATROPOS_SEGMENTATION_PRIORS}
