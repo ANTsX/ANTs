@@ -1988,10 +1988,16 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::GetPo
           radius[d] = this->m_MRFRadius[d];
         }
 
+    auto multiThreader = this->GetMultiThreader();
+    using RegionType = typename RealImageType::RegionType;
+    multiThreader->template ParallelizeImageRegion<ImageDimension>(
+      this->GetOutput()->GetRequestedRegion(),
+      [this, &radius, &c, &totalNumberOfClasses, &distancePriorProbabilityImage, &priorProbabilityImage, &sumPriorProbabilityImage, &smoothImages, &posteriorProbabilityImage](const RegionType & outputRegionForThread) {
+
         ConstNeighborhoodIterator<ClassifiedImageType> ItO(
-          radius, this->GetOutput(), this->GetOutput()->GetRequestedRegion());
+          radius, this->GetOutput(), outputRegionForThread);
         ImageRegionIterator<RealImageType> ItS(this->m_SumPosteriorProbabilityImage,
-                                               this->m_SumPosteriorProbabilityImage->GetRequestedRegion());
+                                               outputRegionForThread);
         for (ItO.GoToBegin(), ItS.GoToBegin(); !ItO.IsAtEnd(); ++ItO, ++ItS)
         {
           if (!this->GetMaskImage() ||
@@ -2113,6 +2119,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::GetPo
             ItS.Set(ItS.Get() + posteriorProbability);
           }
         }
+      }, nullptr); // end ParallelizeImageRegion
         if (!this->m_MinimizeMemoryUsage)
         {
           typedef ImageDuplicator<RealImageType> DuplicatorType;
