@@ -72,7 +72,10 @@ Optional arguments:
                                                 Without this option, this script calls antsAI to search for a good initial moving
                                                 transform.
      -s:  Image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -u:  Use random seeding                    Use random number generated from system clock in Atropos (default = 1)
+     -u:  Use random seeding                    Use random number generated from system clock (1 (default)) or a fixed seed (0). Using
+                                                "-u 0" overrides a system setting of ANTS_RANDOM_SEED. To produce identical results,
+                                                multi-threading must also be disabled by setting the environment variable
+                                                ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1.
      -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -q:  Use floating point precision          Use antsRegistration with floating point precision.
 
@@ -284,6 +287,13 @@ else
        ;;
       esac
   done
+fi
+
+if [[ ${USE_RANDOM_SEEDING} -eq 0 ]]; then
+  # Use random seed from Atropos unless one is already defined
+  if [[ -z $ANTS_RANDOM_SEED ]] ; then
+    export ANTS_RANDOM_SEED=19650218
+  fi
 fi
 
 ATROPOS_BRAIN_EXTRACTION_MRF="[ 0.1,1x1x1 ]"
