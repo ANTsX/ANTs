@@ -2131,6 +2131,10 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber]);
 
+        displacementFieldRegistration->SetMetricSamplingStrategy(
+          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyEnum>(metricSamplingStrategy));
+        displacementFieldRegistration->SetMetricSamplingPercentage(samplingPercentage);
+
         displacementFieldRegistration->SetLearningRate(learningRate);
         displacementFieldRegistration->SetConvergenceThreshold(convergenceThreshold);
         displacementFieldRegistration->SetConvergenceWindowSize(convergenceWindowSize);
