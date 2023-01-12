@@ -32,14 +32,6 @@ jobs:
             generators: "Ninja"
           }
         - {
-            name: "Ubuntu-18.04-GCC",
-            os: ubuntu-18.04,
-            cc: "gcc",
-            cxx: "g++",
-            build_type: "Release",
-            generators: "Ninja"
-          }
-        - {
             name: "Macos-12-clang",
             os: macos-12,
             cc: "clang",
