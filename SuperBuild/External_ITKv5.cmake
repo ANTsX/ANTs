@@ -109,7 +109,8 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   string(REPLACE "-fopenmp" "" ITK_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   string(REPLACE "-fopenmp" "" ITK_CMAKE_CXX_FLAGS "${CMAKE_CX_FLAGS}")
 
-  find_package(ZLIB REQUIRED)
+ # ITK now has zlib-ng, so we no longer depend on system zlib
+ # find_package(ZLIB REQUIRED)
 
   set(${proj}_CMAKE_OPTIONS
       -DBUILD_TESTING:BOOL=OFF
@@ -129,6 +130,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       #-DITK_INSTALL_NO_DEVELOPMENT:BOOL=ON
       -DKWSYS_USE_MD5:BOOL=ON # Required by SlicerExecutionModel
       -DITK_WRAPPING:BOOL=OFF #${BUILD_SHARED_LIBS} ## HACK:  QUICK CHANGE
+      -DITKZLIB:BOOL=ON
       -DModule_MGHIO:BOOL=ON
       -DModule_ITKReview:BOOL=ON
       -DModule_GenericLabelInterpolator:BOOL=ON

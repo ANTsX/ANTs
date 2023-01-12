@@ -64,6 +64,9 @@ jobs:
           cmake \
             -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
             -G "${{ matrix.config.generators }}" \
+            -DBUILD_TESTING=ON \
+            -DRUN_SHORT_TESTS=ON \
+            -DRUN_LONG_TESTS=OFF \
             -DCMAKE_INSTALL_PREFIX:PATH=/opt/install/ants-${{ env.ANTS_VERSION }} \
             ${GITHUB_WORKSPACE}
       - name: Build
@@ -71,6 +74,12 @@ jobs:
         run: |
           cd /opt/build
           cmake --build . --config ${{ matrix.config.build_type }} --parallel 1
+      - name: Test
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd /opt/build/ANTS-build
+          ctest
       - name: Install
         shell: bash
         run: |
