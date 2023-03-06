@@ -69,9 +69,7 @@ cd ${startdir}/${ThisComputer}/${package}
 top=`pwd`
 echo WORKING IN $top
 
-# check out package in a directory unique to each host -- this is unfortunately necessary
-# because svn can't update a directory  checked out by a newer version of svn, so
-# every host has their own copy of BRAINS3 so that it's compatible with the local svn version.
+# clone repository if necessary
 if [ -d ${package} ] ; then
     cd ${package}
     git pull
@@ -81,7 +79,7 @@ fi
 
 if [ $? != 0 ]
 then
-    echo ${package} checkout failed, continuing with old version
+    echo Failed to clone ${package} repository, continuing with old version
 fi
 
 
