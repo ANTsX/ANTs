@@ -8,7 +8,6 @@
 *.nrrd
 *.nhdr
 *.raw
-.svn
 CMakeCache.txt
 CMakeFiles/*
 .RData
