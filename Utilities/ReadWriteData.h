@@ -225,11 +225,39 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
     return false;
   }
 
+  bool fileIsPointer = false;
+
   std::string comparetype1 = std::string("0x");
   std::string comparetype2 = std::string(file);
   comparetype2 = comparetype2.substr(0, 2);
-  // Read the image files begin
+
   if (comparetype1 == comparetype2)
+  {
+    fileIsPointer = true;
+  }
+  else
+  {
+    std::string fileString = std::string(file);
+    // Also treat file as a pointer if it is composed entirely of hex characters, and has appropriate length
+    bool fileIsHexChars = true;
+
+    std::string::iterator fileIt;
+
+    for (fileIt = fileString.begin(); fileIt < fileString.end(); ++fileIt)
+    {
+      if (!std::isxdigit(*fileIt))
+      {
+        fileIsHexChars = false;
+      }
+    }
+
+    if (fileIsHexChars && fileString.length() == (1 + sizeof(int*) * 2))
+    {
+      fileIsPointer = true;
+    }
+  }
+
+  if (fileIsPointer)
   {
     typedef TImageType RImageType;
     void *             ptr;
