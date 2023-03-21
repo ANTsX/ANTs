@@ -251,7 +251,7 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
       }
     }
 
-    if (fileIsHexChars && fileString.length() == (1 + sizeof(int*) * 2))
+    if (fileIsHexChars && fileString.length() == (sizeof(int*) * 2))
     {
       fileIsPointer = true;
     }
