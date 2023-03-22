@@ -210,21 +210,10 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
   }
 }
 
-template <typename TImageType>
-// void ReadImage(typename TImageType::Pointer target, const char *file)
-bool
-ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
+// function to determine if a file name is a memory address rather than a file
+inline bool
+FileIsPointer(const char *file)
 {
-  enum
-  {
-    ImageDimension = TImageType::ImageDimension
-  };
-  if (std::string(file).length() < 3)
-  {
-    target = nullptr;
-    return false;
-  }
-
   bool fileIsPointer = false;
 
   std::string comparetype1 = std::string("0x");
@@ -238,7 +227,9 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
   else
   {
     std::string fileString = std::string(file);
-    // Also treat file as a pointer if it is composed entirely of hex characters, and has appropriate length
+    // Also treat file as a pointer if it is composed entirely of hex characters, and has
+    // appropriate length
+    // Windows pointers are just hex numbers without the leading 0x
     bool fileIsHexChars = true;
 
     std::string::iterator fileIt;
@@ -256,8 +247,25 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
       fileIsPointer = true;
     }
   }
+  return fileIsPointer;
+}
 
-  if (fileIsPointer)
+template <typename TImageType>
+// void ReadImage(typename TImageType::Pointer target, const char *file)
+bool
+ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
+{
+  enum
+  {
+    ImageDimension = TImageType::ImageDimension
+  };
+  if (std::string(file).length() < 3)
+  {
+    target = nullptr;
+    return false;
+  }
+
+  if (FileIsPointer(file))
   {
     typedef TImageType RImageType;
     void *             ptr;
@@ -552,7 +560,7 @@ WriteImage(const itk::SmartPointer<TImageType> image, const char * file)
   // if (writer->GetImageIO->GetNumberOfComponents() == 6)
   // NiftiDTICheck<TImageType>(image,file);
 
-  if (file[0] == '0' && file[1] == 'x')
+  if (FileIsPointer(file))
   {
     void * ptr;
     sscanf(file, "%p", (void **)&ptr);
