@@ -106,10 +106,10 @@ Required arguments:
                                                 images are used during the segmentation process.  However,
                                                 only the first image is used in the registration of priors.
                                                 Our suggestion would be to specify the T1 as the first image.
-     -e:  Brain extraction template             Anatomical template
+     -e:  Brain extraction template             Anatomical template.
      -m:  Brain extraction probability mask     Brain probability mask, with intensity range 1 (definitely brain)
                                                 to 0 (definitely background).
-     -o:  Output prefix                         Output directory + file prefix
+     -o:  Output prefix                         Output directory + file prefix.
 
 Optional arguments:
 
@@ -134,7 +134,7 @@ Optional arguments:
      -u:  Use random seeding                    Use random number generated from system clock (1) or a fixed seed (0). Using
                                                 "-u 0" overrides a system setting of ANTS_RANDOM_SEED. To produce identical results,
                                                 multi-threading must also be disabled by setting the environment variable
-                                                ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1. Default = $USE_RANDOM_SEEDING
+                                                ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1. Default = $USE_RANDOM_SEEDING.
      -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = $KEEP_TMP_IMAGES).
      -q:  Use single floating point precision   Use antsRegistration with single (1) or double (0) floating point precision (default = $USE_FLOAT_PRECISION).
 
