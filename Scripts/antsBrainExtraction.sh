@@ -19,6 +19,67 @@ if [[ ! -s ${ANTSPATH}/antsApplyTransforms ]]; then
   exit
 fi
 
+################################################################################
+#
+# General parameters
+#
+################################################################################
+
+HOSTNAME=`hostname`
+DATE=`date`
+
+CURRENT_DIR=`pwd`/
+OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
+OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
+OUTPUT_SUFFIX="nii.gz"
+
+KEEP_TMP_IMAGES=0
+
+USE_RANDOM_SEEDING=1
+
+DIMENSION=3
+
+ANATOMICAL_IMAGES=()
+
+USE_FLOAT_PRECISION=0
+
+# Intial affine supplied on command line
+USER_INITIAL_AFFINE=""
+
+################################################################################
+#
+# Programs and their parameters
+#
+################################################################################
+
+
+ATROPOS=${ANTSPATH}/Atropos
+ATROPOS_NUM_CLASSES=3
+ATROPOS_CSF_CLASS_LABEL=1
+ATROPOS_GM_CLASS_LABEL=2
+ATROPOS_WM_CLASS_LABEL=3
+ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[ ${ATROPOS_NUM_CLASSES} ]"
+ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD="Gaussian"
+ATROPOS_BRAIN_EXTRACTION_CONVERGENCE="[ 3,0.0 ]"
+
+ANTS=${ANTSPATH}/antsRegistration
+ANTS_MAX_ITERATIONS="100x100x70x20"
+ANTS_TRANSFORMATION="SyN[ 0.1,3,0 ]"
+ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
+ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x100,1e-8,10 ]"
+ANTS_METRIC="CC"
+ANTS_METRIC_PARAMS="1,4"
+
+WARP=${ANTSPATH}/antsApplyTransforms
+
+N4=${ANTSPATH}/N4BiasFieldCorrection
+N4_CONVERGENCE_1="[ 50x50x50x50,0.0000001 ]"
+N4_CONVERGENCE_2="[ 50x50x50x50,0.0000001 ]"
+N4_SHRINK_FACTOR_1=4
+N4_SHRINK_FACTOR_2=2
+N4_BSPLINE_PARAMS="[ 200 ]"
+
+
 function Usage {
     cat <<USAGE
 
@@ -39,18 +100,16 @@ Example:
 
 Required arguments:
 
-     -d:  Image dimension                       2 or 3 (for 2- or 3-dimensional image)
+     -d:  Image dimension                       2 or 3 for 2- or 3-dimensional image (default = $DIMENSION)
      -a:  Anatomical image                      Structural image, typically T1.  If more than one
                                                 anatomical image is specified, subsequently specified
                                                 images are used during the segmentation process.  However,
                                                 only the first image is used in the registration of priors.
                                                 Our suggestion would be to specify the T1 as the first image.
-     -e:  Brain extraction template             Anatomical template created using e.g. LPBA40 data set with
-                                                buildtemplateparallel.sh in ANTs.
-     -m:  Brain extraction probability mask     Brain probability mask created using e.g. LPBA40 data set which
-                                                have brain masks defined, and warped to anatomical template and
-                                                averaged resulting in a probability image.
-     -o:  Output prefix                         Output directory + file prefix
+     -e:  Brain extraction template             Anatomical template.
+     -m:  Brain extraction probability mask     Brain probability mask, with intensity range 1 (definitely brain)
+                                                to 0 (definitely background).
+     -o:  Output prefix                         Output directory + file prefix.
 
 Optional arguments:
 
@@ -59,7 +118,7 @@ Optional arguments:
                                                 This produces a segmentation image with K classes, ordered by mean
                                                 intensity in increasing order. With this option, you can control
                                                 K and tell the script which classes represent CSF, gray and white matter.
-                                                Format (\"KxcsfLabelxgmLabelxwmLabel\")
+                                                Format (\"KxcsfLabelxgmLabelxwmLabel\").
                                                 Examples:
                                                          -c 3x1x2x3 for T1 with K=3, CSF=1, GM=2, WM=3 (default)
                                                          -c 3x3x2x1 for T2 with K=3, CSF=3, GM=2, WM=1
@@ -71,13 +130,13 @@ Optional arguments:
      -r:  Initial moving transform              An ITK affine transform (eg, from antsAI or ITK-SNAP) for the moving image.
                                                 Without this option, this script calls antsAI to search for a good initial moving
                                                 transform.
-     -s:  Image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -u:  Use random seeding                    Use random number generated from system clock (1 (default)) or a fixed seed (0). Using
+     -s:  Image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz, mhd (default = $OUTPUT_SUFFIX)
+     -u:  Use random seeding                    Use random number generated from system clock (1) or a fixed seed (0). Using
                                                 "-u 0" overrides a system setting of ANTS_RANDOM_SEED. To produce identical results,
                                                 multi-threading must also be disabled by setting the environment variable
-                                                ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1.
-     -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
-     -q:  Use floating point precision          Use antsRegistration with floating point precision.
+                                                ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1. Default = $USE_RANDOM_SEEDING.
+     -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = $KEEP_TMP_IMAGES).
+     -q:  Use single floating point precision   Use antsRegistration with single (1) or double (0) floating point precision (default = $USE_FLOAT_PRECISION).
 
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for debugging, results will not be good.
 
@@ -154,61 +213,6 @@ function logCmd() {
 #
 ################################################################################
 
-HOSTNAME=`hostname`
-DATE=`date`
-
-CURRENT_DIR=`pwd`/
-OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
-OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
-OUTPUT_SUFFIX="nii.gz"
-
-KEEP_TMP_IMAGES=0
-
-USE_RANDOM_SEEDING=1
-
-DIMENSION=3
-
-ANATOMICAL_IMAGES=()
-
-################################################################################
-#
-# Programs and their parameters
-#
-################################################################################
-
-ATROPOS=${ANTSPATH}/Atropos
-
-ATROPOS_NUM_CLASSES=3
-
-ATROPOS_CSF_CLASS_LABEL=1
-ATROPOS_GM_CLASS_LABEL=2
-ATROPOS_WM_CLASS_LABEL=3
-
-ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[ ${ATROPOS_NUM_CLASSES} ]"
-ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD="Gaussian"
-ATROPOS_BRAIN_EXTRACTION_CONVERGENCE="[ 3,0.0 ]"
-
-ANTS=${ANTSPATH}/antsRegistration
-ANTS_MAX_ITERATIONS="100x100x70x20"
-ANTS_TRANSFORMATION="SyN[ 0.1,3,0 ]"
-ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
-ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x100,1e-8,10 ]"
-ANTS_METRIC="CC"
-ANTS_METRIC_PARAMS="1,4"
-
-WARP=${ANTSPATH}/antsApplyTransforms
-
-N4=${ANTSPATH}/N4BiasFieldCorrection
-N4_CONVERGENCE_1="[ 50x50x50x50,0.0000001 ]"
-N4_CONVERGENCE_2="[ 50x50x50x50,0.0000001 ]"
-N4_SHRINK_FACTOR_1=4
-N4_SHRINK_FACTOR_2=2
-N4_BSPLINE_PARAMS="[ 200 ]"
-
-USE_FLOAT_PRECISION=0
-
-# Intial affine supplied on command line
-USER_INITIAL_AFFINE=""
 
 if [[ $# -lt 3 ]] ; then
   Usage >&2
