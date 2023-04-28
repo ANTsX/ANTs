@@ -26,6 +26,7 @@
 #include <iostream>
 #include <ostream>
 #include <sstream>
+#include <string>
 
 namespace ants
 {
@@ -46,13 +47,17 @@ LabelGeometryMeasures(int argc, char * argv[])
   bool                            intensityImageUsed = false;
   if (argc > 3)
   {
-    try
+    std::string intensityImageFile = argv[3];
+    ConvertToLowerCase(intensityImageFile);
+    if ( intensityImageFile.compare("na") != 0 && intensityImageFile.compare("none") != 0 )
     {
-      ReadImage<RealImageType>(intensityImage, argv[3]);
+      if (!ReadImage<RealImageType>(intensityImage, intensityImageFile.c_str()))
+      {
+        std::cout << "Input intensity image " << intensityImageFile << " could not be read." << std::endl;
+        return EXIT_FAILURE;
+      }
       intensityImageUsed = true;
     }
-    catch (...)
-    {}
   }
 
   bool outputCSVFormat = false;
@@ -350,10 +355,8 @@ LabelGeometryMeasures(std::vector<std::string> args, std::ostream * itkNotUsed(o
 
   if (argc < 3)
   {
-    std::cout << "Usage 1: " << argv[0] << " imageDimension labelImage [intensityImage=none] [csvFile]" << std::endl;
-    //     std::cout << "Usage 2: " << argv[0] << " X singleLabelImage outputTransform <doReflection=1> <scaleFactor=1>"
-    //     << std::endl;
-
+    std::cout << "Usage 1: " << argv[0] << " imageDimension labelImage [intensityImage] [csvFile]" << std::endl;
+    std::cout << "To output to csvFile without an intensity image, use \"none\" or \"na\" as the third arg" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
