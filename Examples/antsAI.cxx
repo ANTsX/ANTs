@@ -1595,19 +1595,20 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   {
     std::string description =
       std::string("These image metrics are available:  ") +
-      std::string("MI:  joint histogram and Mattes: mutual information  and  GC:  global correlation.");
+      std::string("Mattes: Mattes mutual information (recommended), GC:  global correlation,  MI:  joint histogram mutual information");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("metric");
     option->SetShortName('m');
-    option->SetUsageOption(0,
-                           "MI[fixedImage,movingImage,<numberOfBins=32>,<samplingStrategy={None,Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
     option->SetUsageOption(1,
                            "Mattes[fixedImage,movingImage,<numberOfBins=32>,<samplingStrategy={None,Regular,Random}>,<"
                            "samplingPercentage=[0,1]>]");
     option->SetUsageOption(
       2, "GC[fixedImage,movingImage,<radius=NA>,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]");
+    option->SetUsageOption(3,
+                           "MI[fixedImage,movingImage,<numberOfBins=32>,<samplingStrategy={None,Regular,Random}>,<"
+                           "samplingPercentage=[0,1]>]");
+
     option->SetDescription(description);
     parser->AddOption(option);
   }
