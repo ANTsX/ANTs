@@ -32,7 +32,7 @@ jobs:
             name: "Ubuntu-18.04-GCC",
             # os_desc used to name output
             os_desc: ubuntu-18.04,
-            # Use image that already has gcc installed
+            # This is a minimal image, need to add many dependencies
             image: "ubuntu:18.04",
             container_options: "--user root",
             build_type: "Release",
