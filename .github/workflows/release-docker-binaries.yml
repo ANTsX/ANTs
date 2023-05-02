@@ -57,7 +57,7 @@ jobs:
           echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
           echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
       - name: Install dependencies on Centos
-        if: startsWith(matrix.config.image, 'centos')
+        if: startsWith(matrix.config.image, 'Centos7')
         run: |
           yum -y update && yum clean all
           # Need devtoolset-7 to get zip and other goodies, though GCC is installed by default
@@ -69,7 +69,7 @@ jobs:
           ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix="/opt/cmake"
           echo "/opt/cmake/bin" >> $GITHUB_PATH
       - name: Install dependencies on ubuntu
-        if: startsWith(matrix.config.name, 'ubuntu-')
+        if: startsWith(matrix.config.name, 'Ubuntu-18.04')
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
