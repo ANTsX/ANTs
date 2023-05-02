@@ -57,7 +57,7 @@ jobs:
           echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
           echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
       - name: Install dependencies on Centos
-        if: startsWith(matrix.config.image, 'Centos7')
+        if: startsWith(matrix.config.name, 'Centos7')
         run: |
           yum -y update && yum clean all
           # Need devtoolset-7 to get zip and other goodies, though GCC is installed by default
