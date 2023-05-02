@@ -86,7 +86,7 @@ jobs:
             | apt-key add -
           apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main'
           apt-get update
-          apt-get -y install cmake=${CMAKE_VERSION}-0kitware1 cmake-data=${CMAKE_VERSION}-0kitware1
+          apt-get -y install cmake=${CMAKE_VERSION}-0kitware1ubuntu18.04.1 cmake-data=${CMAKE_VERSION}-0kitware1ubuntu18.04.1
           ninja --version
           cmake --version
           gcc --version
