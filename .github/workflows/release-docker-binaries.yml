@@ -81,7 +81,8 @@ jobs:
               ninja-build \
               git \
               software-properties-common \
-              wget
+              wget \
+              zip
           wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
             | apt-key add -
           apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main'
