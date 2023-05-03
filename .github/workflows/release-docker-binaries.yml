@@ -28,6 +28,18 @@ jobs:
             cxx: "g++",
             generators: "Unix Makefiles"
           }
+        - {
+            name: "Ubuntu-18.04-GCC",
+            # os_desc used to name output
+            os_desc: ubuntu-18.04,
+            # This is a minimal image, need to add many dependencies
+            image: "ubuntu:18.04",
+            container_options: "--user root",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            generators: "Ninja"
+          }
     steps:
       - uses: actions/checkout@v3
         with:
@@ -45,7 +57,7 @@ jobs:
           echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
           echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
       - name: Install dependencies on Centos
-        if: startsWith(matrix.config.image, 'centos')
+        if: startsWith(matrix.config.name, 'Centos7')
         run: |
           yum -y update && yum clean all
           # Need devtoolset-7 to get zip and other goodies, though GCC is installed by default
@@ -56,6 +68,29 @@ jobs:
           mkdir -p /opt/cmake/bin
           ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix="/opt/cmake"
           echo "/opt/cmake/bin" >> $GITHUB_PATH
+      - name: Install dependencies on ubuntu
+        if: startsWith(matrix.config.name, 'Ubuntu-18.04')
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+              apt-transport-https \
+              bc \
+              build-essential \
+              ca-certificates \
+              gnupg \
+              ninja-build \
+              git \
+              software-properties-common \
+              wget \
+              zip
+          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
+            | apt-key add -
+          apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main'
+          apt-get update
+          apt-get -y install cmake=${CMAKE_VERSION}-0kitware1ubuntu18.04.1 cmake-data=${CMAKE_VERSION}-0kitware1ubuntu18.04.1
+          ninja --version
+          cmake --version
+          gcc --version
       - name: Configure
         shell: bash
         run: |
@@ -91,9 +126,7 @@ jobs:
           cd /opt/install
           zip -r ${ARTIFACT} .
       - name: Upload release asset
-        # softprops giving ECONNRESET error
-        # uses: softprops/action-gh-release@v0.1.14
-        uses: ncipollo/release-action@v1.11.1
+        uses: ncipollo/release-action@v1.12.0
         with:
           allowUpdates: true
           omitBodyDuringUpdate: true
