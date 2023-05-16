@@ -75,7 +75,14 @@ public:
 
       if (m_IterationUpdateInterval == 0)
       {
-        m_IterationUpdateInterval = m_TotalNumberOfIterations / 10;
+        if (m_TotalNumberOfIterations > 10)
+        {
+          m_IterationUpdateInterval = m_TotalNumberOfIterations / 10;
+        }
+        else
+        {
+          m_IterationUpdateInterval = 1;
+        }
       }
 
       std::cout << std::endl << "Iteration/Total,MetricValue";
