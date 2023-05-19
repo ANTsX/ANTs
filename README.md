@@ -43,13 +43,10 @@ The [ANTs handout](https://github.com/stnava/ANTsTutorial/raw/master/handout/ant
 
 [ANTsRegistrationTalk - subject to change at any moment](http://stnava.github.io/ANTsRegistrationTalk/)
 
- Install ANTs via pre-built:
-[Packages @ github](https://github.com/stnava/ANTs/releases) older
-versions [@ sourceforge](http://sourceforge.net/projects/advants/files/ANTS/) ... also,
-[Github Releases are here](https://github.com/stnava/ANTs/releases) thanks to Arman Eshaghi. You can also run ANTs Cortical Thickness pipeline in the cloud using the free [http://OpenNeuro.org](OpenNeuro.org) platform (no installation required).
-
- Build [ANTs](https://github.com/stnava/ANTs) from:
-Source-Code (recommended) on [Linux / Mac OS](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or [Windows](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Windows-10).
+Install ANTs via pre-built:
+[Packages @ github](https://github.com/ANTsX/ANTs/releases) or
+build [ANTs](https://github.com/stnava/ANTs) from:
+Source-Code on [Linux / Mac OS](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or [Windows](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Windows-10).
 
 ANTs extracts information from complex datasets that include imaging
 ([Word Cloud](http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg)).
