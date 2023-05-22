@@ -76,7 +76,7 @@ We use *label* to denote a label image with values in range 0 to N.
                                                     * Registration metric mask (-f)
                                                     * Thickness prior image (-r).
 
-     -m:  Brain extraction probability mask     Brain *probability* mask in the segmentation template space. A binary mask 
+     -m:  Brain extraction probability mask     Brain *probability* mask in the segmentation template space. A binary mask
                                                 is an acceptable probability image.
 
      -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
@@ -127,7 +127,7 @@ Optional arguments:
                                                 https://github.com/ANTsX/ANTs/wiki.
 
      -f:  extraction registration mask          Binary metric mask defined in the segmentation template space (-e). During the
-                                                registration for brain extraction, the similarity metric is only computed within 
+                                                registration for brain extraction, the similarity metric is only computed within
                                                 this mask.
 
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = 0).
@@ -147,7 +147,10 @@ Optional arguments:
 
      -j:  use floating-point precision          Use single float precision in registrations (default = 0).
 
-     -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1).
+     -u:  use random seeding                    Use random number generated from system clock (default = 1). If 0, a fixed
+                                                random seed is used. To set your own seed, set this option to 0 and export the
+                                                environment variable ANTS_RANDOM_SEED. To achieve exactly identical results, you must
+                                                also set ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS to 1.
 
      -v:  use b-spline smoothing                Use B-spline SyN for registrations and B-spline exponential mapping in DiReCT (default = 0).
 
@@ -173,7 +176,7 @@ Optional arguments:
                                                 Another example would be computing cortical thickness in the presence
                                                 of white matter lesions. We can accommodate this by specifying a lesion mask
                                                 posterior as an additional posterior (suppose label '7'), combining this with
-                                                normal white matter in the thickness estimation by specifying '-c "WM[ 7 ]"' 
+                                                normal white matter in the thickness estimation by specifying '-c "WM[ 7 ]"'
                                                 or '-c "3[ 7 ]"'.
 
      -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
@@ -539,6 +542,13 @@ if [[ $DEBUG_MODE -gt 0 ]];
     USE_RANDOM_SEEDING=0
 
   fi
+
+if [[ ${USE_RANDOM_SEEDING} -eq 0 ]]; then
+  # Use fixed random seed unless one is already defined
+  if [[ -z $ANTS_RANDOM_SEED ]] ; then
+    export ANTS_RANDOM_SEED=19650218
+  fi
+fi
 
 ################################################################################
 #
