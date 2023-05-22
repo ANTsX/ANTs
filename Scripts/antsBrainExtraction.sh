@@ -131,9 +131,8 @@ Optional arguments:
                                                 Without this option, this script calls antsAI to search for a good initial moving
                                                 transform.
      -s:  Image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz, mhd (default = $OUTPUT_SUFFIX)
-     -u:  Use random seeding                    Use random number generated from system clock (1) or a fixed seed (0). Using
-                                                "-u 0" overrides a system setting of ANTS_RANDOM_SEED. To produce identical results,
-                                                multi-threading must also be disabled by setting the environment variable
+     -u:  Use random seeding                    Use random number generated from system clock (1) or a fixed seed (0). To produce identical
+                                                results, multi-threading must also be disabled by setting the environment variable
                                                 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1. Default = $USE_RANDOM_SEEDING.
      -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = $KEEP_TMP_IMAGES).
      -q:  Use single floating point precision   Use antsRegistration with single (1) or double (0) floating point precision (default = $USE_FLOAT_PRECISION).
