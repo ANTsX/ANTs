@@ -705,23 +705,23 @@ GetTensorPrincipalEigenvector(TTensorType dtv)
 
   itk::RGBPixel<float> rgb;
 
-  float xx = dtv[0];
-  float xy = dtv[1];
-  float xz = dtv[2];
-  float yy = dtv[3];
-  float yz = dtv[4];
-  float zz = dtv[5];
-  float isp = (xx * xx + yy * yy + zz * zz + 2.0f * (xy * xy + xz * xz + yz * yz));
+  // float xx = dtv[0];
+  // float xy = dtv[1];
+  // float xz = dtv[2];
+  // float yy = dtv[3];
+  // float yz = dtv[4];
+  // float zz = dtv[5];
+  // float isp = (xx * xx + yy * yy + zz * zz + 2.0f * (xy * xy + xz * xz + yz * yz));
 
-  float fa = 0.0;
-  if (isp > 0.0f)
-  {
-    float trace = dtv[0];
-    trace += dtv[3];
-    trace += dtv[5];
-    float anisotropy = 3.0f * isp - trace * trace;
-    fa = (std::sqrt(anisotropy / (2.0f * isp)));
-  }
+  // float fa = 0.0;
+  // if (isp > 0.0f)
+  // {
+  //   float trace = dtv[0];
+  //   trace += dtv[3];
+  //   trace += dtv[5];
+  //   float anisotropy = 3.0f * isp - trace * trace;
+  //   fa = (std::sqrt(anisotropy / (2.0f * isp)));
+  // }
 
   // rgb[0]=eig.V(2,0)*fa*255;//+eig.V(1,0)*e2;
   // rgb[1]=eig.V(2,1)*fa*255;//+eig.V(1,1)*e2;
