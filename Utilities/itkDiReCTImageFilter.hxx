@@ -712,7 +712,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>::MakeThicknessImage(RealImagePointe
   ItSmoothTotalImage.GoToBegin();
 
   RealType      meanThickness = 0;
-  unsigned long count = 0;
   while (!ItSegmentationImage.IsAtEnd())
   {
     const typename InputImageType::PixelType grayMatterPixel =
@@ -724,7 +723,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>::MakeThicknessImage(RealImagePointe
       {
         thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
         meanThickness += thicknessValue;
-        count++;
         if (thicknessValue < NumericTraits<RealType>::ZeroValue())
         {
           thicknessValue = NumericTraits<RealType>::ZeroValue();

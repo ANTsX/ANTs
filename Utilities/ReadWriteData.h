@@ -661,10 +661,8 @@ ReadWarpFromFile(std::string warpfn, std::string ext)
   //  std::cout << " spacing xv " << xvec->GetSpacing()[0]
   // << " field " << field->GetSpacing()[0] << std::endl;
 
-  unsigned int ct = 0;
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
-    ct++;
     typename ImageType::IndexType index = it.GetIndex();
 
     VectorType disp;
