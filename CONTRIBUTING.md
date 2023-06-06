@@ -24,7 +24,7 @@ Write your commit messages using the standard prefixes for ITK commit messages:
 * ENH: New functionality
 * PERF: Performance improvement
 * STYLE: No logic impact (indentation, comments)
-* WIP: Work In Progress not ready for merge
+* WIP: Work In Progress not ready for merge (used before PR is ready, or if a draft PR needs feedback or assistance)
 
 A Github continuous integration test will be run on the PR, confirming that it compiles on Linux and doesn't break basic functionality. This is a minimal test, please test new functionality and if at all possible do so on open data, so that the developers can reproduce results.
 
