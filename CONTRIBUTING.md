@@ -26,4 +26,9 @@ Write your commit messages using the standard prefixes for ITK commit messages:
 * STYLE: No logic impact (indentation, comments)
 * WIP: Work In Progress not ready for merge
 
-A Github continuous integration test will be run on the PR, confirming that it compiles on Linux and doesn't break basic functionality. This is a minimal test
+A Github continuous integration test will be run on the PR, confirming that it compiles on Linux and doesn't break basic functionality. This is a minimal test, please test new functionality and if at all possible do so on open data, so that the developers can reproduce results.
+
+
+### Licensing of contributions
+
+All accepted contributions will be incorporated into the ANTs source code and distributed according to the terms of the ANTs license. 
