@@ -1,6 +1,6 @@
 # Contributing to ANTs
 
-Contributions to ANTs are welcome. The developers are grateful to the many contributors to ANTs, both those who have [contributed to the ANTs source code](https://github.com/ANTsX/ANTs/graphs/contributors) and those who have contributed time, testing, feedback and ideas.
+Contributions to ANTs are welcome. The developers are grateful to the many contributors to ANTs, both those who have [contributed to the ANTs source code](https://github.com/ANTsX/ANTs/graphs/contributors) and those who have contributed documentation, testing, feedback and ideas.
 
 ## Contributing code
 
