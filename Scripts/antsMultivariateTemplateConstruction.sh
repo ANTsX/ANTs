@@ -745,7 +745,7 @@ if [[ ${NINFILES} -eq 0 ]];
     exit 1
   elif [[ ${NINFILES} -eq 1 ]];
     then
-    extension=`echo ${IMAGESETVARIABLE#*.}`
+    extension=`echo ${IMAGESETVARIABLE##*.}`
     if [[ $extension = 'csv' || $extension = 'txt' ]];
         then
         IMAGESFILE=$IMAGESETVARIABLE
@@ -766,7 +766,7 @@ if [[ ${NINFILES} -eq 0 ]];
             done
          done < $IMAGESFILE
     else
-        range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d " ]" -f 1 `
+        range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d "]" -f 1 `
         if [[ ${range} -eq 1 && ${TDIM} -ne 4 ]];
             then
             echo "Please provide at least 2 filenames for the template."
