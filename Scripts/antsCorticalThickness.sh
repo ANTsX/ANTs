@@ -950,7 +950,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
       time_elapsed_brain_registration=$((time_end_brain_registration - time_start_brain_registration))
       echo
       echo "--------------------------------------------------------------------------------------"
-      echo " Done with brain registration:  $(( time_elapsed_brain_segmentation / 3600 ))h $(( time_elapsed_brain_registration %3600 / 60 ))m $(( time_elapsed_brain_registration % 60 ))s"
+      echo " Done with brain registration:  $(( time_elapsed_brain_registration / 3600 ))h $(( time_elapsed_brain_registration %3600 / 60 ))m $(( time_elapsed_brain_registration % 60 ))s"
       echo "--------------------------------------------------------------------------------------"
       echo
     fi # BAStages check reg
