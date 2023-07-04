@@ -683,11 +683,11 @@ GetTensorPrincipalEigenvector(TTensorType dtv)
       itk::Math::FloatAlmostEqual(dtv[2], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue()) &&
       itk::Math::FloatAlmostEqual(dtv[4], itk::NumericTraits<typename TTensorType::ValueType>::ZeroValue()))
   {
-    return itk::NumericTraits<float>::ZeroValue();
+    return zero;
   }
   if (mag < eps)
   {
-    return itk::NumericTraits<float>::ZeroValue();
+    return zero;
   }
 
   typedef vnl_matrix<double> MatrixType;
