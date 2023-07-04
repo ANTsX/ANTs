@@ -2164,12 +2164,19 @@ SharpenImage(int argc, char * argv[])
   const std::string outputFilename = std::string(argv[2]);
   const std::string inputFilename = std::string(argv[4]);
 
+  bool useImageSpacing = true;
+  if(argc > 5)
+  {
+  useImageSpacing = static_cast<bool>(std::stoi(argv[5]));
+  }
+
   typename ImageType::Pointer inputImage = nullptr;
   ReadImage<ImageType>(inputImage, inputFilename.c_str());
 
   typedef itk::LaplacianSharpeningImageFilter<ImageType, ImageType> FilterType;
   typename FilterType::Pointer                                      filter = FilterType::New();
   filter->SetInput(inputImage);
+  filter->SetUseImageSpacing(useImageSpacing);
   filter->Update();
 
   ANTs::WriteImage<ImageType>(filter->GetOutput(), outputFilename.c_str());

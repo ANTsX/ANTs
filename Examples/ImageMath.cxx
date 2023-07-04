@@ -593,7 +593,7 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
     std::cout << "      Usage        : SigmoidImage ImageIn [alpha=1.0] [beta=0.0]" << std::endl;
 
     std::cout << "\n  Sharpen        : Apply a Laplacian sharpening filter" << std::endl;
-    std::cout << "      Usage        : Sharpen ImageIn" << std::endl;
+    std::cout << "      Usage        : Sharpen ImageIn [useImageSpacing=(1)/0]" << std::endl;
 
     std::cout << "\n  UnsharpMask     Apply an Unsharp Mask filter" << std::endl;
     std::cout

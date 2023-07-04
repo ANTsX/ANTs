@@ -369,7 +369,7 @@ function summarizeimageset() {
       ;;
     1)
       echo "Laplacian sharpening"
-      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output 0
       ;;
     2)
       echo "Unsharp mask sharpening"
