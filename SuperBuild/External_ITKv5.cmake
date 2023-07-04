@@ -156,7 +156,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
-  set(${proj}_GIT_TAG 490b5c6069a790c2bbc50ece3a578fe1c5cdd50b)  # Initialize random seeds for sparse sampling in SyN
+  set(${proj}_GIT_TAG fabc102c520bcbd21ea35e7303e3756c223e10d7)  # Laplacian sharpening
   set(ITK_VERSION_ID ITK-5.4) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID if ITK version has changed
 
   ExternalProject_Add(${proj}
