@@ -1327,6 +1327,8 @@ DoRegistration(typename ParserType::Pointer & parser)
   CompositeTransformPointer transformToWrite;
   if (shouldCollapseBeDone)
   {
+    // For some reason regHelper->m_CompositeTransform is getting mangled here.
+    // However, both resultTransform and transformToWrite appear to be correct.
     transformToWrite = regHelper->CollapseCompositeTransform(resultTransform);
 
     numTransforms = transformToWrite->GetNumberOfTransforms();
