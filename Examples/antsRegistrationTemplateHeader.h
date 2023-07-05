@@ -1221,6 +1221,54 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
   }
 
+  std::string                                                whichInterpolator("linear");
+  typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption("interpolation");
+  if (interpolationOption && interpolationOption->GetNumberOfFunctions())
+  {
+    whichInterpolator = interpolationOption->GetFunction(0)->GetName();
+    ConvertToLowerCase(whichInterpolator);
+  }
+
+  typename ImageType::SpacingType cache_spacing_for_smoothing_sigmas(
+    itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
+  if (!std::strcmp(whichInterpolator.c_str(), "gaussian") || !std::strcmp(whichInterpolator.c_str(), "multilabel"))
+  {
+#if 1
+    // HACK:: This can just be cached when reading the fixedImage from above!!
+    //
+    std::string fixedImageFileName = metricOption->GetFunction(numberOfTransforms - 1)->GetParameter(0);
+
+    typedef itk::ImageFileReader<ImageType> ImageReaderType;
+    typename ImageReaderType::Pointer       fixedImageReader = ImageReaderType::New();
+
+    fixedImageReader->SetFileName(fixedImageFileName.c_str());
+    fixedImageReader->Update();
+    typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+#endif
+    cache_spacing_for_smoothing_sigmas = fixedImage->GetSpacing();
+  }
+
+#include "make_interpolator_snip.tmpl"
+  regHelper->SetInterpolator(interpolator);
+
+  if (!outputWarpedImageName.empty())
+  {
+    typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
+    if (warpedImage.IsNotNull())
+    {
+      ANTs::WriteImage<ImageType>(warpedImage, outputWarpedImageName.c_str());
+    }
+  }
+
+  if (!outputInverseWarpedImageName.empty())
+  {
+    typename ImageType::Pointer inverseWarpedImage = regHelper->GetInverseWarpedImage();
+    if (inverseWarpedImage.IsNotNull())
+    {
+      ANTs::WriteImage<ImageType>(inverseWarpedImage, outputInverseWarpedImageName.c_str());
+    }
+  }
+
   // write out transforms stored in the composite
   typename CompositeTransformType::Pointer resultTransform = regHelper->GetModifiableCompositeTransform();
   unsigned int                             numTransforms = resultTransform->GetNumberOfTransforms();
@@ -1279,6 +1327,8 @@ DoRegistration(typename ParserType::Pointer & parser)
   CompositeTransformPointer transformToWrite;
   if (shouldCollapseBeDone)
   {
+    // For some reason regHelper->m_CompositeTransform is getting mangled here.
+    // However, both resultTransform and transformToWrite appear to be correct.
     transformToWrite = regHelper->CollapseCompositeTransform(resultTransform);
 
     numTransforms = transformToWrite->GetNumberOfTransforms();
@@ -1320,6 +1370,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   {
     transformToWrite = resultTransform.GetPointer();
   }
+
   if (writeCompositeTransform)
   {
     std::string compositeTransformFileName = outputPrefix;
@@ -1456,54 +1507,6 @@ DoRegistration(typename ParserType::Pointer & parser)
           }
         }
       }
-    }
-  }
-
-  std::string                                                whichInterpolator("linear");
-  typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption("interpolation");
-  if (interpolationOption && interpolationOption->GetNumberOfFunctions())
-  {
-    whichInterpolator = interpolationOption->GetFunction(0)->GetName();
-    ConvertToLowerCase(whichInterpolator);
-  }
-
-  typename ImageType::SpacingType cache_spacing_for_smoothing_sigmas(
-    itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
-  if (!std::strcmp(whichInterpolator.c_str(), "gaussian") || !std::strcmp(whichInterpolator.c_str(), "multilabel"))
-  {
-#if 1
-    // HACK:: This can just be cached when reading the fixedImage from above!!
-    //
-    std::string fixedImageFileName = metricOption->GetFunction(numberOfTransforms - 1)->GetParameter(0);
-
-    typedef itk::ImageFileReader<ImageType> ImageReaderType;
-    typename ImageReaderType::Pointer       fixedImageReader = ImageReaderType::New();
-
-    fixedImageReader->SetFileName(fixedImageFileName.c_str());
-    fixedImageReader->Update();
-    typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
-#endif
-    cache_spacing_for_smoothing_sigmas = fixedImage->GetSpacing();
-  }
-
-#include "make_interpolator_snip.tmpl"
-  regHelper->SetInterpolator(interpolator);
-
-  if (!outputWarpedImageName.empty())
-  {
-    typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
-    if (warpedImage.IsNotNull())
-    {
-      ANTs::WriteImage<ImageType>(warpedImage, outputWarpedImageName.c_str());
-    }
-  }
-
-  if (!outputInverseWarpedImageName.empty())
-  {
-    typename ImageType::Pointer inverseWarpedImage = regHelper->GetInverseWarpedImage();
-    if (inverseWarpedImage.IsNotNull())
-    {
-      ANTs::WriteImage<ImageType>(inverseWarpedImage, outputInverseWarpedImageName.c_str());
     }
   }
 
