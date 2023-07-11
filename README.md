@@ -9,7 +9,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/antsx/ants.svg)](https://hub.docker.com/repository/docker/antsx/ants)
 ![Downloads](https://img.shields.io/github/downloads/antsx/ants/total)
 [![Anaconda-Server Badge](https://anaconda.org/aramislab/ants/badges/version.svg)](https://anaconda.org/aramislab/ants)
-![PubMed](https://img.shields.io/badge/ANTsX_paper-Open_Access-8DABFF?logo=pubmed&link=https%3A%2F%2Fpubmed.ncbi.nlm.nih.gov%2F33907199%2F)
+[![PubMed](https://img.shields.io/badge/ANTsX_paper-Open_Access-8DABFF?logo=pubmed)](https://pubmed.ncbi.nlm.nih.gov/33907199/)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
 ANTs computes high-dimensional mappings to capture the statistics of brain
