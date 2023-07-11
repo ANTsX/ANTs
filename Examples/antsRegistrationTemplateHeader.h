@@ -465,6 +465,24 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
   }
 
+  // Check that we have the same number of required args for each transform:
+  // smoothing sigmas, shrink factors, and convergence
+  unsigned int numSmoothingSigmaFunctions = smoothingSigmasOption->GetNumberOfFunctions();
+  unsigned int numShrinkFactorFunctions = shrinkFactorsOption->GetNumberOfFunctions();
+  unsigned int numConvergenceFunctions = convergenceOption->GetNumberOfFunctions();
+
+  if (numSmoothingSigmaFunctions != numShrinkFactorFunctions ||
+      numShrinkFactorFunctions != numConvergenceFunctions ||
+      numConvergenceFunctions != numberOfTransforms)
+  {
+    if (verbose)
+    {
+      std::cerr << "ERROR: smoothing sigmas, shrink factors, and convergence options must be set "
+                << "once for each transform." << std::endl;
+    }
+    return EXIT_FAILURE;
+  }
+
   std::vector<std::vector<unsigned int>> iterationList;
   std::vector<std::vector<RealType>>     restrictDeformationWeightsList;
   std::vector<RealType>                  convergenceThresholdList;
