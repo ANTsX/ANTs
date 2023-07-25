@@ -9,20 +9,20 @@ SCRIPTS_DEPENDENCIES=( 'antsCorticalThickness.sh' 'antsBrainExtraction.sh' 'ants
 
 for D in ${PROGRAM_DEPENDENCIES[@]};
   do
-    if [[ ! -s ${ANTSPATH}/${D} ]];
+    if ! command -v ${D} &> /dev/null
       then
         echo "Error:  we can't find the $D program."
-        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment."
+        echo "Perhaps you need to \(re\)define \$PATH in your environment."
         exit
       fi
   done
 
 for D in ${SCRIPT_DEPENDENCIES[@]};
   do
-    if [[ ! -s ${ANTSPATH}/${D} ]];
+    if ! command -v ${D} &> /dev/null
       then
         echo "We can't find the $D script."
-        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment."
+        echo "Perhaps you need to \(re\)define \$PATH in your environment."
         exit
       fi
   done
@@ -498,7 +498,7 @@ fi
 
 if [[ ! -f ${TEMPLATE_CORTICAL_THICKNESS} ]];
   then
-    logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+    logCmd antsCorticalThickness.sh \
       -d ${DIMENSION} \
       -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
       $TEMPLATE_IMAGES_LIST \
@@ -543,9 +543,9 @@ if [[ ${TEMPLATE_POSTERIORS_EXIST} -eq 0 ]];
     exit 1
   fi
 
-logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_SKULL_STRIPPED} m ${TEMPLATE_IMAGES[0]} ${TEMPLATE_EXTRACTION_MASK}
-logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${TEMPLATE_EXTRACTION_MASK} 1 ${TEMPLATE_EXTRACTION_PRIOR} 1
-logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_EXTRACTION_REGISTRATION_MASK} MD ${TEMPLATE_EXTRACTION_MASK} 40
+logCmd ImageMath ${DIMENSION} ${TEMPLATE_SKULL_STRIPPED} m ${TEMPLATE_IMAGES[0]} ${TEMPLATE_EXTRACTION_MASK}
+logCmd SmoothImage ${DIMENSION} ${TEMPLATE_EXTRACTION_MASK} 1 ${TEMPLATE_EXTRACTION_PRIOR} 1
+logCmd ImageMath ${DIMENSION} ${TEMPLATE_EXTRACTION_REGISTRATION_MASK} MD ${TEMPLATE_EXTRACTION_MASK} 40
 
 if [[ ${TEMPLATE_PRIORS_EXIST} -eq 0 ]];
   then
@@ -559,7 +559,7 @@ if [[ ${TEMPLATE_PRIORS_EXIST} -eq 0 ]];
         for j in ${TEMPLATE_POSTERIORS[@]}
           do
             PRIOR=${j/BrainSegmentationPosteriors/Priors}
-            logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} $j 1 $PRIOR 1
+            logCmd SmoothImage ${DIMENSION} $j 1 $PRIOR 1
           done
 
       else
@@ -579,7 +579,7 @@ if [[ ${TEMPLATE_PRIORS_EXIST} -eq 0 ]];
 
         if [[ ! -f ${TEMPLATE_MALF_LABELS} ]];
           then
-            logCmd ${ANTSPATH}/antsJointLabelFusion.sh \
+            logCmd antsJointLabelFusion.sh \
               -d ${DIMENSION} \
               -q ${RUN_FAST_MALF_COOKING} \
               -x ${TEMPLATE_EXTRACTION_MASK} \
@@ -598,24 +598,24 @@ if [[ ${TEMPLATE_PRIORS_EXIST} -eq 0 ]];
             TEMPLATE_PRIORS[$j]=${POSTERIOR/BrainSegmentationPosteriors/Priors}
 
             let PRIOR_LABEL=$j+1
-            logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${TEMPLATE_MALF_LABELS} ${TEMPLATE_PRIORS[$j]} ${PRIOR_LABEL} ${PRIOR_LABEL} 1 0
-            logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${TEMPLATE_PRIORS[$j]} 1 ${TEMPLATE_PRIORS[$j]} 1
+            logCmd ThresholdImage ${DIMENSION} ${TEMPLATE_MALF_LABELS} ${TEMPLATE_PRIORS[$j]} ${PRIOR_LABEL} ${PRIOR_LABEL} 1 0
+            logCmd SmoothImage ${DIMENSION} ${TEMPLATE_PRIORS[$j]} 1 ${TEMPLATE_PRIORS[$j]} 1
           done
 
         TMP_CSF_POSTERIOR=${OUTPUT_PREFIX}BrainSegmentationCsfPosteriorTmp.${OUTPUT_SUFFIX}
-        logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${TEMPLATE_POSTERIORS[0]} 1 ${TMP_CSF_POSTERIOR} 1
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[0]} max ${TEMPLATE_PRIORS[0]} ${TMP_CSF_POSTERIOR}
+        logCmd SmoothImage ${DIMENSION} ${TEMPLATE_POSTERIORS[0]} 1 ${TMP_CSF_POSTERIOR} 1
+        logCmd ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[0]} max ${TEMPLATE_PRIORS[0]} ${TMP_CSF_POSTERIOR}
         # Clip priors to remove precision errors
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[0]} WindowImage ${TEMPLATE_PRIORS[0]} 0 1 0 1
+        logCmd ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[0]} WindowImage ${TEMPLATE_PRIORS[0]} 0 1 0 1
 
         # Brian's finishing touches on "cooking"---subtract out CSF from all other priors
         for (( j = 1; j < ${#TEMPLATE_PRIORS[@]}; j++ ))
           do
             let PRIOR_LABEL=$j+1
 
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[$j]} - ${TEMPLATE_PRIORS[$j]} ${TEMPLATE_PRIORS[0]}
+            logCmd ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[$j]} - ${TEMPLATE_PRIORS[$j]} ${TEMPLATE_PRIORS[0]}
             # Clip priors to range [0,1]
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[$j]} WindowImage ${TEMPLATE_PRIORS[$j]} 0 1 0 1
+            logCmd ImageMath ${DIMENSION} ${TEMPLATE_PRIORS[$j]} WindowImage ${TEMPLATE_PRIORS[$j]} 0 1 0 1
           done
 
         logCmd rm -f $TMP_CSF_POSTERIOR

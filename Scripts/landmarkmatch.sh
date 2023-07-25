@@ -10,8 +10,7 @@ hippocampus, then  this is known as "partial matching" as in Pluta, et al Hippoc
 exit
 fi
 
-#ANTSPATH="/mnt/aibs1/avants/bin/ants/"
-ITS=$5
+TS=$5
 LMWT=$6
 INTWT=1
 
@@ -51,14 +50,14 @@ do
 PRE=$OUT
 TOUT=${PRE}locmod.nii.gz
 echo " DOING $TOUT "
-${ANTSPATH}ThresholdImage 3 $i ${PRE}tempb.nii.gz 30.5 32.5
-${ANTSPATH}MultiplyImages 3 $i  ${PRE}tempb.nii.gz $TOUT
-${ANTSPATH}ThresholdImage 3 $i ${PRE}tempb.nii.gz 20.5 22.5
-${ANTSPATH}MultiplyImages 3 $i ${PRE}tempb.nii.gz ${PRE}tempb.nii
-${ANTSPATH}ImageMath 3 $TOUT + $TOUT ${PRE}tempb.nii.gz
-${ANTSPATH}ThresholdImage 3 $i ${PRE}tempb.nii.gz 8.5 10.5
-${ANTSPATH}MultiplyImages 3 $i ${PRE}tempb.nii.gz ${PRE}tempb.nii.gz
-${ANTSPATH}ImageMath 3 $TOUT + $TOUT ${PRE}tempb.nii.gz
+ThresholdImage 3 $i ${PRE}tempb.nii.gz 30.5 32.5
+MultiplyImages 3 $i  ${PRE}tempb.nii.gz $TOUT
+ThresholdImage 3 $i ${PRE}tempb.nii.gz 20.5 22.5
+MultiplyImages 3 $i ${PRE}tempb.nii.gz ${PRE}tempb.nii
+ImageMath 3 $TOUT + $TOUT ${PRE}tempb.nii.gz
+ThresholdImage 3 $i ${PRE}tempb.nii.gz 8.5 10.5
+MultiplyImages 3 $i ${PRE}tempb.nii.gz ${PRE}tempb.nii.gz
+ImageMath 3 $TOUT + $TOUT ${PRE}tempb.nii.gz
 done
 else
 FIXHMOD=$FIXH
@@ -80,17 +79,17 @@ STEPL=0.25
 INTENSITY=PR[ $FIX,${MOV},${INTWT},4]
 if [ $LMWT -le 0 ]
 then
-exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0 ]   -m $INTENSITY   "
+exe="ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0 ]   -m $INTENSITY   "
 else
-exe="${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0 ]   -m   $LM  -m $INTENSITY    "
+exe="ANTS 3  -o $OUT  -i $ITS -t SyN[ ${STEPL}]  -r Gauss[ 3,0 ]   -m   $LM  -m $INTENSITY    "
 fi
 echo " $exe "
 
  $exe
 
- ${ANTSPATH}WarpImageMultiTransform 3 $MOV ${OUT}deformed.nii.gz  ${OUT}Warp.nii.gz ${OUT}Affine.txt  -R $FIX
- ${ANTSPATH}WarpImageMultiTransform 3 $MOVH  ${OUT}label.nii.gz   ${OUT}Warp.nii.gz ${OUT}Affine.txt  -R $FIX --use-NN
- ${ANTSPATH}WarpImageMultiTransform 3 $FIXH ${OUT}labelinv.nii.gz  -i  ${OUT}Affine.txt  ${OUT}InverseWarp.nii.gz   -R $MOV --use-NN
+ WarpImageMultiTransform 3 $MOV ${OUT}deformed.nii.gz  ${OUT}Warp.nii.gz ${OUT}Affine.txt  -R $FIX
+ WarpImageMultiTransform 3 $MOVH  ${OUT}label.nii.gz   ${OUT}Warp.nii.gz ${OUT}Affine.txt  -R $FIX --use-NN
+ WarpImageMultiTransform 3 $FIXH ${OUT}labelinv.nii.gz  -i  ${OUT}Affine.txt  ${OUT}InverseWarp.nii.gz   -R $MOV --use-NN
 
 
 

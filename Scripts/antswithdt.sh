@@ -3,12 +3,10 @@
 NUMPARAMS=$#
 
 MAXITERATIONS=30x90x20
-export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
 if [ $NUMPARAMS -lt 3 ]
 then
 echo " USAGE ::  "
 echo "  sh   ants.sh  ImageDimension  fixed.ext  moving.ext Subject/Moving-DT-To-Deform-To-Fixed-Image  OPTIONAL-Subject/Moving-BZero-To-DistortionCorrect-To-Moving-T1-Image "
-echo " be sure to set ANTSPATH environment variable "
 echo " Max-Iterations in form :    JxKxL where "
 echo "  J = max iterations at coarsest resolution (here, reduce by power of 2^2) "
 echo " K = middle resolution iterations ( here, reduce by power of 2 ) "
@@ -24,12 +22,9 @@ echo " We use the cross-correlation to perform the distortion correction. "
 echo " Some parameter tuning may be required, depending on the distortions present in your acquisition. "
 exit
 fi
-if [ ${#ANTSPATH} -le 3 ] ; then
-  echo we guess at your ants path
-  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
-fi
-if [ ! -s ${ANTSPATH}/ANTS ] ; then
-  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v ANTS &> /dev/null
+then
+  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
 
@@ -91,7 +86,7 @@ fi
 if  [ ${#MOVINGDT} -gt 3 ]
 then
 echo " The BZero DOES NOT EXIST : Using FA Instead!!"
-${ANTSPATH}/ImageMath 3 ${OUTPUTNAME}_fa.nii TensorFA  $MOVINGDT
+ImageMath 3 ${OUTPUTNAME}_fa.nii TensorFA  $MOVINGDT
 MOVINGBZ=${OUTPUTNAME}_fa.nii
 fi
 
@@ -107,7 +102,6 @@ fi
 #echo " $METRICPARAMS  &  $METRIC "
 #exit
 
-echo  " ANTSPATH  $ANTSPATH "
 echo " Mapping Parameters  :: "
 echo  " Transformation is:  $TRANSFORMATION "
 echo " MaxIterations :   $MAXITERATIONS "
@@ -124,26 +118,26 @@ echo " "
 
 # first, do distortion correction of MOVINGDT to MOVING
 # use the B0 image
-${ANTSPATH}/ANTS 3 -m CC[ ${MOVINGBZ},${MOVING},1,2 ]  -o ${OUTPUTNAME}distcorr  -r Gauss[ 3,0 ] -t SyN[ 0.25 ]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
+ANTS 3 -m CC[ ${MOVINGBZ},${MOVING},1,2 ]  -o ${OUTPUTNAME}distcorr  -r Gauss[ 3,0 ] -t SyN[ 0.25 ]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
 
-${ANTSPATH}/WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii.gz ${OUTPUTNAME}distcorrWarp.nii.gz ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
+WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii.gz ${OUTPUTNAME}distcorrWarp.nii.gz ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
 #exit
 
 if [[ ! -s ${OUTPUTNAME}Affine.txt ]] ; then
-  sh ${ANTSPATH}/ants.sh $DIM $FIXED $MOVING ${OUTPUTNAME}
+  sh ants.sh $DIM $FIXED $MOVING ${OUTPUTNAME}
 fi
 
 if  [[ -s ${MOVINGDT} ]] &&  [[  -s ${OUTPUTNAME}Affine.txt ]] ; then
     DTDEF=${OUTPUTNAME}DTdeformed.nii.gz
     FIXEDSUB=${OUTPUTNAME}fixedsub.nii.gz
-#    ${ANTSPATH}/ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2
+#    ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2
     FIXEDSUB=$FIXED
     echo " Warp DT "
-    ${ANTSPATH}/WarpTensorImageMultiTransform $DIM  $MOVINGDT    $DTDEF ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz   -R $FIXEDSUB
+    WarpTensorImageMultiTransform $DIM  $MOVINGDT    $DTDEF ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz   -R $FIXEDSUB
 
     COMPWARP=${OUTPUTNAME}DTwarp.nii.gz
-    ${ANTSPATH}/ComposeMultiTransform $DIM $COMPWARP   -R ${FIXEDSUB}  ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz
-    ${ANTSPATH}/ReorientTensorImage 3 $DTDEF  $DTDEF  $COMPWARP
+    ComposeMultiTransform $DIM $COMPWARP   -R ${FIXEDSUB}  ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz
+    ReorientTensorImage 3 $DTDEF  $DTDEF  $COMPWARP
 
 fi
 

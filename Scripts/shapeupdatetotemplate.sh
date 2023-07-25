@@ -3,47 +3,18 @@
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
 
-function setPath {
-    cat <<SETPATH
+WARP=antsApplyTransforms
+AVERAGE_AFFINE_PROGRAM=AverageAffineTransform # NoRigid
 
---------------------------------------------------------------------------------------
-Error locating ANTS
---------------------------------------------------------------------------------------
-It seems that the ANTSPATH environment variable is not set. Please add the ANTSPATH
-variable. This can be achieved by editing the .bash_profile in the home directory.
-Add:
-
-ANTSPATH=/home/yourname/bin/ants/
-
-Or the correct location of the ANTS binaries.
-
-Alternatively, edit this script ( `basename $0` ) to set up this parameter correctly.
-
-SETPATH
-    exit 1
-}
-
-# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-# export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
-
-#ANTSPATH=YOURANTSPATH
-if [[ ${#ANTSPATH} -le 3 ]];
+if ! command -v ${WARP} &> /dev/null
   then
-    setPath >&2
-  fi
-
-WARP=${ANTSPATH}/antsApplyTransforms
-AVERAGE_AFFINE_PROGRAM=${ANTSPATH}/AverageAffineTransform # NoRigid
-
-if [[ ! -s ${WARP} ]];
-  then
-    echo "antsApplyTransforms program can't be found. Please (re)define \$ANTSPATH in your environment."
+    echo "antsApplyTransforms program can't be found. Please (re)define \$PATH in your environment."
     exit
   fi
 
-if [[ ! -s ${AVERAGE_AFFINE_PROGRAM} ]];
+if ! command -v ${AVERAGE_AFFINE_PROGRAM} &> /dev/null
   then
-    echo "AverageAffineTransform* program can't be found. Please (re)define \$ANTSPATH in your environment."
+    echo "AverageAffineTransform* program can't be found. Please (re)define \$PATH in your environment."
     exit
   fi
 
@@ -92,7 +63,7 @@ while getopts "d:t:o:g:w:s:y:h:" OPT
 done
 
 if [[ $useaff -eq 1 ]] ; then
-  AVERAGE_AFFINE_PROGRAM=${ANTSPATH}/AverageAffineTransformNoRigid
+  AVERAGE_AFFINE_PROGRAM=AverageAffineTransformNoRigid
 fi
 
 
@@ -167,8 +138,8 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
     date
-    #echo "   ${ANTSPATH}/AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
-    #echo "    ${ANTSPATH}/ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
+    #echo "   AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
+    #echo "    ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
     if [[ ${#imagelist[@]} -eq 0 ]] ; then
@@ -191,18 +162,18 @@ function shapeupdatetotemplate() {
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
-          echo "   ${ANTSPATH}/AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
+          echo "   AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
           date
           echo "--------------------------------------------------------------------------------------"
-          ${ANTSPATH}/AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
+          AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
 
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---scale the averaged inverse warp field by the gradient step"
-          echo "   ${ANTSPATH}/MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
+          echo "   MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
           date
           echo "--------------------------------------------------------------------------------------"
-          ${ANTSPATH}/MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
+          MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
         fi
 
         echo
@@ -218,7 +189,7 @@ function shapeupdatetotemplate() {
         if [[ $NWARPS -ne 0 ]];
           then
             ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template}
-            ${ANTSPATH}/MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
+            MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
           fi
       fi
 

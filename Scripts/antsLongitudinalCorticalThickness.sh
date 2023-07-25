@@ -9,20 +9,20 @@ SCRIPTS_DEPENDENCIES=( 'antsBrainExtraction.sh' 'antsAtroposN4.sh' 'antsMultivar
 
 for D in ${PROGRAM_DEPENDENCIES[@]};
   do
-    if [[ ! -s ${ANTSPATH}/${D} ]];
+    if ! command -v ${D} &> /dev/null
       then
         echo "Error:  we can't find the $D program."
-        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment."
+        echo "Perhaps you need to \(re\)define \$PATH in your environment."
         exit
       fi
   done
 
 for D in ${SCRIPT_DEPENDENCIES[@]};
   do
-    if [[ ! -s ${ANTSPATH}/${D} ]];
+    if ! command -v ${D} &> /dev/null
       then
         echo "We can't find the $D script."
-        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment."
+        echo "Perhaps you need to \(re\)define \$PATH in your environment."
         exit
       fi
   done
@@ -548,7 +548,7 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
     # But if you are running a longitudinal script without longitudinal data, that may not be the only problem
     #if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
     #    then
-    #      logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+    #      logCmd antsCorticalThickness.sh \
     #        -d ${DIMENSION} \
     #        -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
     #        -t ${REGISTRATION_TEMPLATE} \
@@ -567,7 +567,7 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
 
     #if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 0 ]];
     #  then
-    #     logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+    #     logCmd antsCorticalThickness.sh \
     #       -d ${DIMENSION} \
     #       -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
     #       -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
@@ -589,7 +589,7 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
     OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE="${OUTPUT_PREFIX}SingleSubjectTemplate/"
     SINGLE_SUBJECT_TEMPLATE=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}T_template0.nii.gz
     logCmd mkdir -p ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}
-    logCmd ${ANTSPATH}/DenoiseImage -d ${DIMENSION} -i ${ANATOMICAL_IMAGES[0]} -o ${SINGLE_SUBJECT_TEMPLATE}  --verbose 1
+    logCmd DenoiseImage -d ${DIMENSION} -i ${ANATOMICAL_IMAGES[0]} -o ${SINGLE_SUBJECT_TEMPLATE}  --verbose 1
   fi
 
 if [[ ! -f ${BRAIN_TEMPLATE} ]];
@@ -656,7 +656,7 @@ for(( i=0; i < ${NUMBER_OF_MODALITIES}; i++ ))
   do
     TEMPLATE_INPUT_IMAGE="${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}initTemplateModality${i}.nii.gz"
 
-    logCmd ${ANTSPATH}/ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$i]} 5
+    logCmd ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$i]} 5
 
     TEMPLATE_Z_IMAGES="${TEMPLATE_Z_IMAGES} -z ${TEMPLATE_INPUT_IMAGE}"
   done
@@ -671,7 +671,7 @@ if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
 
     if [[ $RUN_OLD_ANTS_SST_CREATION -gt 0 ]];
       then
-        logCmd ${ANTSPATH}/antsMultivariateTemplateConstruction.sh \
+        logCmd antsMultivariateTemplateConstruction.sh \
           -d ${DIMENSION} \
           -o ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}T_ \
           -b 0 \
@@ -690,7 +690,7 @@ if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
           ${TEMPLATE_Z_IMAGES} \
           ${ANATOMICAL_IMAGES[@]}
     else
-       logCmd ${ANTSPATH}/antsMultivariateTemplateConstruction2.sh \
+       logCmd antsMultivariateTemplateConstruction2.sh \
          -d ${DIMENSION} \
          -o ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}T_ \
          -a 0 \
@@ -803,7 +803,7 @@ if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS} ]];
   then
     if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 0 ]];
       then
-        logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+        logCmd antsCorticalThickness.sh \
           -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
           -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
           -a ${SINGLE_SUBJECT_TEMPLATE} \
@@ -817,7 +817,7 @@ if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS} ]];
           -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT_SST} \
           -o ${SINGLE_SUBJECT_ANTSCT_PREFIX}
       else
-        logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+        logCmd antsCorticalThickness.sh \
           -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS}  \
           -t ${REGISTRATION_TEMPLATE} \
           -q ${RUN_FAST_ANTSCT_TO_GROUP_TEMPLATE} \
@@ -865,9 +865,9 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS_EXIST} -eq 0 ]];
     exit 1
   fi
 
-logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} m ${SINGLE_SUBJECT_TEMPLATE} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK}
-logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK} 1 ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR} 1
-logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_REGISTRATION_MASK} MD ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK} 40
+logCmd ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} m ${SINGLE_SUBJECT_TEMPLATE} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK}
+logCmd SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK} 1 ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR} 1
+logCmd ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_REGISTRATION_MASK} MD ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK} 40
 
 if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
   then
@@ -881,7 +881,7 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
         for j in ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}
           do
             PRIOR=${j/BrainSegmentationPosteriors/Priors}
-            logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} $j 1 $PRIOR 1
+            logCmd SmoothImage ${DIMENSION} $j 1 $PRIOR 1
           done
 
       else
@@ -901,7 +901,7 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
 
         if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS} ]];
           then
-            logCmd ${ANTSPATH}/antsJointLabelFusion.sh \
+            logCmd antsJointLabelFusion.sh \
               -d ${DIMENSION} \
               -q ${RUN_FAST_MALF_COOKING} \
               -x ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK} \
@@ -920,21 +920,21 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
             SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]=${POSTERIOR/BrainSegmentationPosteriors/Priors}
 
             let PRIOR_LABEL=$j+1
-            logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${PRIOR_LABEL} ${PRIOR_LABEL} 1 0
-            logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 1 ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 1
+            logCmd ThresholdImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${PRIOR_LABEL} ${PRIOR_LABEL} 1 0
+            logCmd SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 1 ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 1
           done
 
         TMP_CSF_POSTERIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainSegmentationCsfPosteriorTmp.${OUTPUT_SUFFIX}
-        logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[0]} 1 ${TMP_CSF_POSTERIOR} 1
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} max ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} ${TMP_CSF_POSTERIOR}
+        logCmd SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[0]} 1 ${TMP_CSF_POSTERIOR} 1
+        logCmd ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} max ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} ${TMP_CSF_POSTERIOR}
 
         # Brian's finishing touches on "cooking"---subtract out CSF from all other priors
         for (( j = 1; j < ${#SINGLE_SUBJECT_TEMPLATE_PRIORS[@]}; j++ ))
           do
             let PRIOR_LABEL=$j+1
 
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} - ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]}
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} WindowImage ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 0 1 0 1
+            logCmd ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} - ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]}
+            logCmd ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} WindowImage ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 0 1 0 1
           done
 
         logCmd rm -f $TMP_CSF_POSTERIOR
@@ -992,7 +992,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
     SUBJECT_ANATOMICAL_IMAGES=''
     if [[ ${RIGID_ALIGNMENT_TO_SST} -ne 0 ]];
       then
-        logCmd ${ANTSPATH}/antsRegistrationSyN.sh \
+        logCmd antsRegistrationSyN.sh \
           -d ${DIMENSION} \
           -o ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS}/${BASENAME_ID}RigidToSST \
           -m ${ANATOMICAL_IMAGES[$i]} \
@@ -1010,7 +1010,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
             BASENAME_LOCAL_ID=${BASENAME_LOCAL_ID/\.nii\.gz/}
             BASENAME_LOCAL_ID=${BASENAME_LOCAL_ID/\.nii/}
 
-            logCmd ${ANTSPATH}/antsApplyTransforms \
+            logCmd antsApplyTransforms \
               -d ${DIMENSION} \
               -i ${ANATOMICAL_IMAGES[$j]} \
               -r ${SINGLE_SUBJECT_TEMPLATE} \
@@ -1035,7 +1035,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
 
     OUTPUT_LOCAL_PREFIX=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS}/${BASENAME_ID}
 
-    logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+    logCmd antsCorticalThickness.sh \
       -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS}  \
       -q ${RUN_ANTSCT_TO_SST_QUICK} \
       ${SUBJECT_ANATOMICAL_IMAGES} \
@@ -1055,7 +1055,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
 
         if [[ ! -f ${OUTPUT_LOCAL_PREFIX}SubjectToGroupTemplateWarp.nii.gz ]];
           then
-            logCmd ${ANTSPATH}/antsApplyTransforms \
+            logCmd antsApplyTransforms \
               -d ${DIMENSION} \
               -r ${REGISTRATION_TEMPLATE} \
               -o [ ${OUTPUT_LOCAL_PREFIX}SubjectToGroupTemplateWarp.nii.gz,1 ] \
@@ -1067,7 +1067,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
 
         if [[ ! -f ${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz ]];
           then
-            logCmd ${ANTSPATH}/antsApplyTransforms \
+            logCmd antsApplyTransforms \
               -d ${DIMENSION} \
               -r ${ANATOMICAL_REFERENCE_IMAGE} \
               -o [ ${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz,1 ] \
@@ -1087,7 +1087,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
 
             if [[ ! -f ${SUBJECT_CORTICAL_LABELS} ]];
               then
-                logCmd ${ANTSPATH}/antsApplyTransforms \
+                logCmd antsApplyTransforms \
                   -d ${DIMENSION} \
                   -i ${CORTICAL_LABEL_IMAGE} \
                   -r ${ANATOMICAL_REFERENCE_IMAGE} \
@@ -1095,9 +1095,9 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
                   -n MultiLabel \
                   -t ${OUTPUT_LOCAL_PREFIX}GroupTemplateToSubjectWarp.nii.gz
 
-                logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${OUTPUT_LOCAL_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX} ${SUBJECT_TMP} 2 2 1 0
-                logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SUBJECT_CORTICAL_LABELS} m ${SUBJECT_TMP} ${SUBJECT_CORTICAL_LABELS}
-                logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SUBJECT_STATS} LabelStats ${SUBJECT_CORTICAL_LABELS} ${SUBJECT_CORTICAL_THICKNESS}
+                logCmd ThresholdImage ${DIMENSION} ${OUTPUT_LOCAL_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX} ${SUBJECT_TMP} 2 2 1 0
+                logCmd ImageMath ${DIMENSION} ${SUBJECT_CORTICAL_LABELS} m ${SUBJECT_TMP} ${SUBJECT_CORTICAL_LABELS}
+                logCmd ImageMath ${DIMENSION} ${SUBJECT_STATS} LabelStats ${SUBJECT_CORTICAL_LABELS} ${SUBJECT_CORTICAL_THICKNESS}
               fi
 
             logCmd rm -f $SUBJECT_TMP

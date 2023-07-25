@@ -2,12 +2,14 @@
 
 VERSION="0.0"
 
-if [[ ! -s ${ANTSPATH}/N4BiasFieldCorrection ]]; then
-  echo we cant find the N4 program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v N4BiasFieldCorrection &> /dev/null
+then
+  echo we cant find the N4 program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
-if [[ ! -s ${ANTSPATH}/Atropos ]]; then
-  echo we cant find the Atropos program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v Atropos &> /dev/null
+then
+  echo we cant find the Atropos program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
 
@@ -46,13 +48,13 @@ DEBUG_MODE=0
 
 N4_ATROPOS_NUMBER_OF_ITERATIONS=15
 
-N4=${ANTSPATH}/N4BiasFieldCorrection
+N4=N4BiasFieldCorrection
 N4_CONVERGENCE="[ 50x50x50x50,0.0000000001 ]"
 N4_SHRINK_FACTOR=2
 N4_BSPLINE_PARAMS="[ 200 ]"
 N4_WEIGHT_MASK_POSTERIOR_LABELS=()
 
-ATROPOS=${ANTSPATH}/Atropos
+ATROPOS=Atropos
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
 ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[ 1 ]"
@@ -457,10 +459,10 @@ ATROPOS_SEGMENTATION_POSTERIORS=${ATROPOS_SEGMENTATION_OUTPUT}Posteriors%${FORMA
 
 if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
   then
-    if [[ ! -s ${ANTSPATH}/DenoiseImage ]];
+    if [[ ! -s DenoiseImage ]];
       then
         echo "Error:  we can't find the DenoiseImage program."
-        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment or update your repository."
+        echo "Perhaps you need to \(re\)define \$PATH in your environment or update your repository."
         exit
       fi
   fi
@@ -472,10 +474,10 @@ for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
   do
     SEGMENTATION_PREPROCESSED_IMAGES=( ${SEGMENTATION_PREPROCESSED_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}PreprocessedAnatomical${j}.${OUTPUT_SUFFIX} )
     # Truncate on the whole head to get outliers over the whole volume, without losing contrast in the brain
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0 0.995 256
+    logCmd ImageMath ${DIMENSION} ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0 0.995 256
     if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
       then
-        logCmd ${ANTSPATH}/DenoiseImage -d ${DIMENSION} -i ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} -o ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} --verbose 1
+        logCmd DenoiseImage -d ${DIMENSION} -i ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} -o ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} --verbose 1
       fi
   done
 
@@ -508,7 +510,7 @@ if [[ $INITIALIZE_WITH_KMEANS -eq 0 ]]
 
     if [[ ${#N4_WEIGHT_MASK_IMAGES[@]} -gt 0 ]];
       then
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+        logCmd ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
       fi
   fi
 
@@ -530,8 +532,8 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
             exe_n4_correction="${exe_n4_correction} -w ${SEGMENTATION_WEIGHT_MASK}"
           fi
         logCmd $exe_n4_correction
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} Normalize ${SEGMENTATION_N4_IMAGES[$j]}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} m ${SEGMENTATION_N4_IMAGES[$j]} 1000
+        logCmd ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} Normalize ${SEGMENTATION_N4_IMAGES[$j]}
+        logCmd ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} m ${SEGMENTATION_N4_IMAGES[$j]} 1000
       done
 
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE=''
@@ -642,7 +644,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
 
     if [[ ${#N4_WEIGHT_MASK_IMAGES[@]} -gt 0 ]];
       then
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+        logCmd ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
       fi
 
   done

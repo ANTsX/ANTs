@@ -13,12 +13,9 @@ echo these are BASIC examples --- not intended to illustrate optimal usage but p
 exit
 fi
 #
-if [ ${#ANTSPATH} -le 3 ] ; then
-  echo we guess at your ants path
-  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
-fi
-if [ ! -s ${ANTSPATH}/ANTS ] ; then
-  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v ANTS &> /dev/null
+then
+  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
 #
@@ -64,10 +61,10 @@ TRAN=$BGREEDYSYN  # choose a transformation
 if [[ $OPT == "Reg" ]] ; then
 
 # run the registration
-${ANTSPATH}/ANTS $DIM -o $OUTPUTNAME $ITS $TRAN $INT
+ANTS $DIM -o $OUTPUTNAME $ITS $TRAN $INT
 # this is how you apply the output transformation
-${ANTSPATH}/WarpImageMultiTransform $DIM ${II} ${OUTPUTNAME}IItoJJ.nii.gz -R ${JJ} $INVW
-${ANTSPATH}/WarpImageMultiTransform $DIM ${JJ} ${OUTPUTNAME}JJtoII.nii.gz -R ${II} $FWDW
+WarpImageMultiTransform $DIM ${II} ${OUTPUTNAME}IItoJJ.nii.gz -R ${JJ} $INVW
+WarpImageMultiTransform $DIM ${JJ} ${OUTPUTNAME}JJtoII.nii.gz -R ${II} $FWDW
 
 elif [[ $OPT == "RegSegPSE" ]] ; then
 
@@ -78,21 +75,21 @@ JJSEG=${OUTPUTNAME}B_seg.nii.gz
 #
 # get masks for atropos
 #
-${ANTSPATH}/ThresholdImage $DIM $II $IISEG 1 1.e9
-${ANTSPATH}/ThresholdImage $DIM $JJ $JJSEG 1 1.e9
+ThresholdImage $DIM $II $IISEG 1 1.e9
+ThresholdImage $DIM $JJ $JJSEG 1 1.e9
 AtroposParams=" -d $DIM -m [ 0.1,1x1 ] -c [ 5,0 ] -i kmeans[ 3 ] "
-${ANTSPATH}/Atropos $AtroposParams -a $II -o $IISEG  -x $IISEG
-${ANTSPATH}/Atropos $AtroposParams -a $JJ -o $JJSEG  -x $JJSEG
+Atropos $AtroposParams -a $II -o $IISEG  -x $IISEG
+Atropos $AtroposParams -a $JJ -o $JJSEG  -x $JJSEG
 # compute some segmentations and use them in labelguided mapping
 LABELGUIDED=" -m PSE[ ${II},${JJ},${IISEG},${JJSEG},0.75,0.1,25,0,10 ] "
 #
-${ANTSPATH}/ANTS $DIM -o ${OUTPUTNAME} $ITS $TRAN $INT $LABELGUIDED
-${ANTSPATH}/WarpImageMultiTransform $DIM ${II} ${OUTPUTNAME}IItoJJ.nii.gz -R ${JJ} $INVW
-${ANTSPATH}/WarpImageMultiTransform $DIM ${JJ} ${OUTPUTNAME}JJtoII.nii.gz -R ${II} $FWDW
+ANTS $DIM -o ${OUTPUTNAME} $ITS $TRAN $INT $LABELGUIDED
+WarpImageMultiTransform $DIM ${II} ${OUTPUTNAME}IItoJJ.nii.gz -R ${JJ} $INVW
+WarpImageMultiTransform $DIM ${JJ} ${OUTPUTNAME}JJtoII.nii.gz -R ${II} $FWDW
 
 # now warp the labels in both directions
-${ANTSPATH}/WarpImageMultiTransform $DIM ${IISEG} ${OUTPUTNAME}IIsegtoJJseg.nii.gz -R ${JJ} $INVW --use-NN
-${ANTSPATH}/WarpImageMultiTransform $DIM ${JJSEG} ${OUTPUTNAME}JJsegtoIIseg.nii.gz -R ${II} $FWDW --use-NN
+WarpImageMultiTransform $DIM ${IISEG} ${OUTPUTNAME}IIsegtoJJseg.nii.gz -R ${JJ} $INVW --use-NN
+WarpImageMultiTransform $DIM ${JJSEG} ${OUTPUTNAME}JJsegtoIIseg.nii.gz -R ${II} $FWDW --use-NN
 
 
 elif [[ $OPT == "RegSegMSQ" ]] ; then
@@ -104,21 +101,21 @@ JJSEG=${OUTPUTNAME}B_seg.nii.gz
 #
 # get masks for atropos
 #
-${ANTSPATH}/ThresholdImage $DIM $II $IISEG 1 1.e9
-${ANTSPATH}/ThresholdImage $DIM $JJ $JJSEG 1 1.e9
+ThresholdImage $DIM $II $IISEG 1 1.e9
+ThresholdImage $DIM $JJ $JJSEG 1 1.e9
 AtroposParams=" -d $DIM -m [ 0.1,1x1 ] -c [ 5,0 ] -i kmeans[ 3 ] "
-${ANTSPATH}/Atropos $AtroposParams -a $II -o $IISEG  -x $IISEG
-${ANTSPATH}/Atropos $AtroposParams -a $JJ -o $JJSEG  -x $JJSEG
+Atropos $AtroposParams -a $II -o $IISEG  -x $IISEG
+Atropos $AtroposParams -a $JJ -o $JJSEG  -x $JJSEG
 # compute some segmentations and use them in labelguided mapping
 LABELGUIDED=" -m MSQ[ ${IISEG},${JJSEG},0.75 ] "
 #
-${ANTSPATH}/ANTS $DIM -o ${OUTPUTNAME} $ITS $TRAN $INT $LABELGUIDED
-${ANTSPATH}/WarpImageMultiTransform $DIM ${II} ${OUTPUTNAME}IItoJJ.nii.gz -R ${JJ} $INVW
-${ANTSPATH}/WarpImageMultiTransform $DIM ${JJ} ${OUTPUTNAME}JJtoII.nii.gz -R ${II} $FWDW
+ANTS $DIM -o ${OUTPUTNAME} $ITS $TRAN $INT $LABELGUIDED
+WarpImageMultiTransform $DIM ${II} ${OUTPUTNAME}IItoJJ.nii.gz -R ${JJ} $INVW
+WarpImageMultiTransform $DIM ${JJ} ${OUTPUTNAME}JJtoII.nii.gz -R ${II} $FWDW
 
 # now warp the labels in both directions
-${ANTSPATH}/WarpImageMultiTransform $DIM ${IISEG} ${OUTPUTNAME}IIsegtoJJseg.nii.gz -R ${JJ} $INVW --use-NN
-${ANTSPATH}/WarpImageMultiTransform $DIM ${JJSEG} ${OUTPUTNAME}JJsegtoIIseg.nii.gz -R ${II} $FWDW --use-NN
+WarpImageMultiTransform $DIM ${IISEG} ${OUTPUTNAME}IIsegtoJJseg.nii.gz -R ${JJ} $INVW --use-NN
+WarpImageMultiTransform $DIM ${JJSEG} ${OUTPUTNAME}JJsegtoIIseg.nii.gz -R ${II} $FWDW --use-NN
 
 
 elif [[ $OPT == "BTP" ]] ; then
@@ -128,15 +125,15 @@ elif [[ $OPT == "BTP" ]] ; then
 # such that it's more appropriate for your data.
 # call buildtemplateparallel.sh -h to get usage.
 #
-${ANTSPATH}/buildtemplateparallel.sh -d 2  -o ${OUTPUTNAME}BTP -c 0  $II $JJ
+buildtemplateparallel.sh -d 2  -o ${OUTPUTNAME}BTP -c 0  $II $JJ
 rm -r GR* *cfg
 
 TEM=${OUTPUTNAME}BTPtemplate.nii.gz
 NM1=` echo $JJ | cut -d '.' -f 1 `
 INVW=" -i ${OUTPUTNAME}BTP${NM1}Affine.txt ${OUTPUTNAME}BTP${NM1}InverseWarp.nii.gz "
 FWDW=" ${OUTPUTNAME}BTP${NM1}Warp.nii.gz ${OUTPUTNAME}BTP${NM1}Affine.txt "
-${ANTSPATH}/WarpImageMultiTransform $DIM ${JJ} ${OUTPUTNAME}JJtoTemplate.nii.gz -R $TEM $FWDW
-${ANTSPATH}/WarpImageMultiTransform $DIM $TEM ${OUTPUTNAME}TemplatetoJJ.nii.gz -R ${JJ} $INVW
+WarpImageMultiTransform $DIM ${JJ} ${OUTPUTNAME}JJtoTemplate.nii.gz -R $TEM $FWDW
+WarpImageMultiTransform $DIM $TEM ${OUTPUTNAME}TemplatetoJJ.nii.gz -R ${JJ} $INVW
 
 else
  echo unrecognized option $OPT
