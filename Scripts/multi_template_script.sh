@@ -5,9 +5,9 @@ if [ ${#ANTSPATH} -lt 3 ] ; then
  echo $0 PATH_TO_ANTS_BINARIES image_to_label.nii.gz
  exit
 fi
-ANTSPATH=${ANTSPATH}/
-if [ ! -s ${ANTSPATH}/ants.sh ] ; then
-  echo you need the file ${ANTSPATH}/ants.sh - exiting
+if ! command -v ants.sh &> /dev/null
+then
+  echo you need the file ants.sh - exiting
   exit
 fi
 
@@ -25,8 +25,8 @@ LIST_OF_IMAGES=" image1.nii.gz image2.nii.gz "
 LIST_OF_LABELS=( image1_labels.nii.gz image2_labels.nii.gz )
 LIST_OF_OUTPUT=( image1_output image2_output  )
 for  labeled_img in $LIST_OF_IMAGES ; do
-  sh ${ANTSPATH}/ants.sh 3  $labeled_img  $Image_To_Be_Labeled ${LIST_OF_OUTPUT[${ct}]} $FASTITERATIONS ${LIST_OF_LABELS[${ct}]}
+  sh ants.sh 3  $labeled_img  $Image_To_Be_Labeled ${LIST_OF_OUTPUT[${ct}]} $FASTITERATIONS ${LIST_OF_LABELS[${ct}]}
   let ct=$ct+1
 done
 ls *labeled.nii.gz > labeled_list.txt
-${ANTSPATH}/ImageSetStatistics 3 labeled_list.txt  new_subject_labels.nii.gz  1
+ImageSetStatistics 3 labeled_list.txt  new_subject_labels.nii.gz  1

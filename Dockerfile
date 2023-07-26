@@ -49,8 +49,7 @@ LABEL maintainer="ANTsX team" \
       description="ANTs is part of the ANTsX ecosystem (https://github.com/ANTsX). \
 ANTs Citation: https://pubmed.ncbi.nlm.nih.gov/24879923"
 
-ENV ANTSPATH="/opt/ants/bin/" \
-    PATH="/opt/ants/bin:$PATH" \
+ENV PATH="/opt/ants/bin:$PATH" \
     LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
 RUN apt-get update \
     && apt install -y --no-install-recommends \

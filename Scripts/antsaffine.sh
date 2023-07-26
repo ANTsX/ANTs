@@ -1,11 +1,8 @@
 #!/bin/bash
 
-if [[ -z ${ANTSPATH} ]] ; then
-  echo "Environment variable ANTSPATH must be defined"
-  exit 1
-fi
-if [[ ! -f "${ANTSPATH}/ANTS" ]] ; then
-  echo "Cannot find the ANTS program. Please \(re\)define \$ANTSPATH in your environment."
+if ! command -v ANTS &> /dev/null
+then
+  echo "Cannot find the ANTS program. Please \(re\)define \$PATH in your environment."
   exit 1
 fi
 
@@ -15,22 +12,8 @@ if [ $NUMPARAMS -lt 3 ]
 then
 echo " USAGE ::  "
 echo "  sh   antsaffine.sh  ImageDimension  fixed.ext  moving.ext  OPTIONAL-OUTPREFIX   PURELY-RIGID  "
-echo " be sure to set ANTSPATH environment variable "
 echo " affine only registration "
 exit
-fi
-
-#ANTSPATH=YOURANTSPATH
-if [  ${#ANTSPATH} -le 0 ]
-then
-echo " Please set ANTSPATH=LocationOfYourAntsBinaries "
-echo " Either set this in your profile or directly, here in the script. "
-echo " For example : "
-echo $ANTSPATH
-echo " ANTSPATH=/home/yourname/bin/ants/ "
-exit
-else
-echo " ANTSPATH is $ANTSPATH "
 fi
 
 #initialization, here, is unbiased
@@ -72,14 +55,13 @@ then
 fi
 echo " Will this mapping be purely rigid?  $RIGID "
 
-echo  " ANTSPATH  is $ANTSPATH     "
  #below, some affine options
   #--MI-option 16x8000 #-a InitAffine.txt --continue-affine 0
 
-exe=" ${ANTSPATH}/ANTS $DIM -m  MI[ ${FIXED},${MOVING},1,32 ] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000  $RIGID   "
+exe=" ANTS $DIM -m  MI[ ${FIXED},${MOVING},1,32 ] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000  $RIGID   "
 
  echo " $exe "
 
   $exe
 
-    ${ANTSPATH}/WarpImageMultiTransform $DIM  $MOVING  ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Affine.txt  -R ${FIXED}
+    WarpImageMultiTransform $DIM  $MOVING  ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Affine.txt  -R ${FIXED}

@@ -2,12 +2,12 @@
 
 VERSION="0.0"
 
-if [[ ! -s ${ANTSPATH}/antsRegistration ]]; then
-  echo we cant find the antsRegistration program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v antsRegistration &> /dev/null
+  echo we cant find the antsRegistration program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
-if [[ ! -s ${ANTSPATH}/antsApplyTransforms ]]; then
-  echo we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v antsApplyTransforms &> /dev/null
+  echo we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
 
@@ -115,8 +115,8 @@ TEMPLATE=""
 #
 ################################################################################
 
-ANTS=${ANTSPATH}/antsRegistration
-WARP=${ANTSPATH}/antsApplyTransforms
+ANTS=antsRegistration
+WARP=antsApplyTransforms
 
 if [[ $# -lt 3 ]] ; then
   Usage >&2
@@ -286,7 +286,7 @@ if [[ ${TRANSFORM_TYPE} -gt 1 ]] ; then
 fi
 globalparams=" -z 1 --winsorize-image-intensities [ 0.005, 0.995 ] "
 
-cmd="${ANTSPATH}/antsRegistration -d $DIMENSION $stage1 $stage2 $globalparams -o ${OUTPUT_PREFIX}"
+cmd="antsRegistration -d $DIMENSION $stage1 $stage2 $globalparams -o ${OUTPUT_PREFIX}"
 echo $cmd
 if [[ ! -s ${OUTPUT_PREFIX}0GenericAffine.mat ]] ; then
   $cmd
@@ -302,12 +302,12 @@ then
   warp="-t ${OUTPUT_PREFIX}1Warp.nii.gz"
   iwarp="-t ${OUTPUT_PREFIX}1InverseWarp.nii.gz"
 fi
-${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}anatomical.nii.gz -r $ANATOMICAL_SPACE $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
+antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}anatomical.nii.gz -r $ANATOMICAL_SPACE $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
 if  [[ ! -s ${TEMPLATE_TRANSFORM}1Warp.nii.gz ]] ; then
   echo ${TEMPLATE_TRANSFORM}1Warp.nii.gz does not exist - please specify in order to proceed to steps that map to the template
   exit
 fi
-cmd="${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}template.nii.gz -r ${TEMPLATE} -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear"
+cmd="antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}template.nii.gz -r ${TEMPLATE} -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear"
 $cmd
 
 echo "AUX IMAGES"
@@ -317,9 +317,9 @@ for (( i = 0; i < ${#AUX_IMAGES[@]}; i++ ))
     # FIXME - how to name these reasonably
     AUXO=`basename ${AUX_IMAGES[$i]} .nii.gz`
     #AUXO=${OUTPUT_PREFIX}_aux_${i}_warped.nii.gz
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r $ANATOMICAL_SPACE $warp -n Linear -o ${OUTPUT_DIR}/${AUXO}_anatomical.nii.gz $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
+    antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r $ANATOMICAL_SPACE $warp -n Linear -o ${OUTPUT_DIR}/${AUXO}_anatomical.nii.gz $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
 
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r ${TEMPLATE} -n Linear -o ${OUTPUT_DIR}/${AUXO}_template.nii.gz -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
+    antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r ${TEMPLATE} -n Linear -o ${OUTPUT_DIR}/${AUXO}_template.nii.gz -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
 
 done
 
@@ -327,18 +327,18 @@ echo "DTI"
 # warp DT image to t1
 if [[ -f $DTI ]];
 then
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r $ANATOMICAL_SPACE $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_anatomical.nii.gz -e 2
+    antsApplyTransforms -d $DIMENSION -i ${DTI} -r $ANATOMICAL_SPACE $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_anatomical.nii.gz -e 2
 
-   ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -e 2 -i ${DTI} -r ${TEMPLATE} -n Linear -o ${OUTPUT_PREFIX}dt_template.nii.gz -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
+   antsApplyTransforms -d $DIMENSION -e 2 -i ${DTI} -r ${TEMPLATE} -n Linear -o ${OUTPUT_PREFIX}dt_template.nii.gz -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
 
-   ${ANTSPATH}/ImageMath 3 ${OUTPUT_PREFIX}fa_template.nii.gz TensorFA ${OUTPUT_PREFIX}dt_template.nii.gz
-   ${ANTSPATH}/ImageMath 3 ${OUTPUT_PREFIX}md_template.nii.gz TensorMeanDiffusion ${OUTPUT_PREFIX}dt_template.nii.gz
+   ImageMath 3 ${OUTPUT_PREFIX}fa_template.nii.gz TensorFA ${OUTPUT_PREFIX}dt_template.nii.gz
+   ImageMath 3 ${OUTPUT_PREFIX}md_template.nii.gz TensorMeanDiffusion ${OUTPUT_PREFIX}dt_template.nii.gz
 
 fi
 
 # warp brainmask from anatomy to subject
 if [[ -f $TEMPLATE_MASK ]]; then
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_MASK -o ${OUTPUT_PREFIX}brainmask.nii.gz \
+    antsApplyTransforms -d $DIMENSION -i $TEMPLATE_MASK -o ${OUTPUT_PREFIX}brainmask.nii.gz \
 	-r $BRAIN  -n NearestNeighbor \
 	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1 ]       \
 	$iwarp
@@ -346,7 +346,7 @@ fi
 
 # warp Labels from template to subject (if passed)
 if [[ -f $TEMPLATE_LABELS ]]; then
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_LABELS -o ${OUTPUT_PREFIX}labels.nii.gz \
+    antsApplyTransforms -d $DIMENSION -i $TEMPLATE_LABELS -o ${OUTPUT_PREFIX}labels.nii.gz \
 	-r $BRAIN  -n NearestNeighbor \
 	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1 ]       \
 	$iwarp           \

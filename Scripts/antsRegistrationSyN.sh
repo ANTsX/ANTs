@@ -5,40 +5,11 @@ VERSION="0.0.0 test"
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
 
-function setPath {
-    cat <<SETPATH
+ANTS=antsRegistration
 
---------------------------------------------------------------------------------------
-Error locating ANTS
---------------------------------------------------------------------------------------
-It seems that the ANTSPATH environment variable is not set. Please add the ANTSPATH
-variable. This can be achieved by editing the .bash_profile in the home directory.
-Add:
-
-ANTSPATH=/home/yourname/bin/ants/
-
-Or the correct location of the ANTS binaries.
-
-Alternatively, edit this script ( `basename $0` ) to set up this parameter correctly.
-
-SETPATH
-    exit 1
-}
-
-# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-# export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
-
-#ANTSPATH=YOURANTSPATH
-if [[ ${#ANTSPATH} -le 3 ]];
+if ! command -v ${ANTS} &> /dev/null
   then
-    setPath >&2
-  fi
-
-ANTS=${ANTSPATH}/antsRegistration
-
-if [[ ! -s ${ANTS} ]];
-  then
-    echo "antsRegistration program can't be found. Please (re)define \$ANTSPATH in your environment."
+    echo "antsRegistration program can't be found. Please (re)define \$PATH in your environment."
     exit
   fi
 
@@ -243,8 +214,6 @@ function reportMappingParameters {
 --------------------------------------------------------------------------------------
  Mapping parameters
 --------------------------------------------------------------------------------------
- ANTSPATH is $ANTSPATH
-
  Dimensionality:           $DIM
  Output name prefix:       $OUTPUTNAME
  Fixed images:             ${FIXEDIMAGES[@]}
@@ -465,7 +434,7 @@ reportMappingParameters
 
 ISLARGEIMAGE=0
 
-SIZESTRING=$( ${ANTSPATH}/PrintHeader ${FIXEDIMAGES[0]} 2 )
+SIZESTRING=$( PrintHeader ${FIXEDIMAGES[0]} 2 )
 SIZESTRING="${SIZESTRING%\\n}"
 SIZE=( `echo $SIZESTRING | tr 'x' ' '` )
 
