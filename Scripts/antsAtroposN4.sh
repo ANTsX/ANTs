@@ -422,15 +422,17 @@ for(( j=0; j < $NUMBER_OF_PRIOR_IMAGES; j++ ))
       fi
   done
 
-OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
-
-if [[ ${OUTPUT_DIR} != ${OUTPUT_PREFIX} ]];
+if [[ ${OUTPUT_PREFIX} == */ ]];
   then
-    if [[ ! -d $OUTPUT_DIR ]];
-      then
-        echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
-        mkdir -p $OUTPUT_DIR
-    fi
+    OUTPUT_DIR=${OUTPUT_PREFIX%/}
+  else
+    OUTPUT_DIR=$(dirname $OUTPUT_PREFIX)
+  fi
+
+if [[ ! -d $OUTPUT_DIR ]];
+  then
+    echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
+    mkdir -p $OUTPUT_DIR
   fi
 
 echoParameters >&2
@@ -459,7 +461,7 @@ ATROPOS_SEGMENTATION_POSTERIORS=${ATROPOS_SEGMENTATION_OUTPUT}Posteriors%${FORMA
 
 if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
   then
-    if [[ ! -s DenoiseImage ]];
+    if ! command -v DenoiseImage &> /dev/null
       then
         echo "Error:  we can't find the DenoiseImage program."
         echo "Perhaps you need to \(re\)define \$PATH in your environment or update your repository."
