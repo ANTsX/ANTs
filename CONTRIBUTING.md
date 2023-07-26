@@ -14,7 +14,7 @@ Once your code compiles without error and runs satisfactorily, you can open a pu
 
 ### 3. Open a pull request
 
-All contributions must be made via pull request on a fork of the ANTs repository. The developers will review and give feedback. 
+All contributions must be made via pull request on a fork of the ANTs repository. The developers will review and give feedback.
 
 Write your commit messages using the standard prefixes for ITK commit messages:
 
@@ -31,4 +31,4 @@ A Github continuous integration test will be run on the PR, confirming that it c
 
 ### Licensing of contributions
 
-All accepted contributions will be incorporated into the ANTs source code and distributed according to the terms of the ANTs license. 
+All accepted contributions will be incorporated into the ANTs source code and distributed according to the terms of the ANTs license.
