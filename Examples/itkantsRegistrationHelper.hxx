@@ -3712,9 +3712,16 @@ RegistrationHelper<TComputeType, VImageDimension>::CalculateMeshSizeForSpecified
 
   for (unsigned int d = 0; d < ImageDimension; d++)
   {
+    if (itk::Math::FloatAlmostEqual(knotSpacing, itk::NumericTraits<PixelType>::ZeroValue()))
+    {
+    meshSize.push_back(itk::NumericTraits<unsigned int>::ZeroValue());
+    }
+    else
+    {
     RealType domain = static_cast<RealType>(inputImage->GetLargestPossibleRegion().GetSize()[d] - 1) *
                       static_cast<RealType>(inputImage->GetSpacing()[d]);
     meshSize.push_back(static_cast<unsigned int>(std::ceil(domain / knotSpacing)));
+    }
     //     unsigned long extraPadding = static_cast<unsigned long>(
     //       ( numberOfSpans * splineDistance - domain ) / inputImage->GetSpacing()[d] + 0.5 );
     //     lowerBound[d] = static_cast<unsigned long>( 0.5 * extraPadding );
