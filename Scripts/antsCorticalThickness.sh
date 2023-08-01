@@ -9,7 +9,7 @@ SCRIPTS_DEPENDENCIES=( 'antsBrainExtraction.sh' 'antsAtroposN4.sh' )
 
 for D in ${PROGRAM_DEPENDENCIES[@]};
   do
-    if ! command -v ${D} &> /dev/null 
+    if ! command -v ${D} &> /dev/null
       then
         echo "Error:  we can't find the $D program."
         echo "Perhaps you need to \(re\)define \$PATH in your environment."
@@ -19,7 +19,7 @@ for D in ${PROGRAM_DEPENDENCIES[@]};
 
 for D in ${SCRIPT_DEPENDENCIES[@]};
   do
-    if ! command -v ${D} &> /dev/null 
+    if ! command -v ${D} &> /dev/null
       then
         echo "We can't find the $D script."
         echo "Perhaps you need to \(re\)define \$PATH in your environment."
@@ -703,7 +703,13 @@ if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
       fi
   fi
 
-OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
+if [[ ${OUTPUT_PREFIX} == */ ]];
+  then
+    OUTPUT_DIR=${OUTPUT_PREFIX%/}
+  else
+    OUTPUT_DIR=$(dirname $OUTPUT_PREFIX)
+  fi
+
 if [[ ! -d $OUTPUT_DIR ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."

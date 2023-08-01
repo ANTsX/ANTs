@@ -193,7 +193,7 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
      -l:  Labels:         Labels corresponding to atlas (cf -g).
 
 Optional arguments:
-  
+
      -m:  Majority vote:  Use majority vote instead of joint label fusion (default = ${MAJORITYVOTE}).
 
      -k:  Keep files:     Keep warped atlas and label files (default = ${KEEP_ALL_IMAGES}).
@@ -492,7 +492,19 @@ if [[ ${PRECISION} -eq 0 ]];
     PRECISIONFLAG='d'
   fi
 
-mkdir ${OUTPUT_DIR}
+if [[ ${OUTPUT_PREFIX} == */ ]];
+  then
+    OUTPUT_DIR=${OUTPUT_PREFIX%/}
+  else
+    OUTPUT_DIR=$(dirname $OUTPUT_PREFIX)
+  fi
+
+if [[ ! -d $OUTPUT_DIR ]];
+  then
+    echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
+    mkdir -p $OUTPUT_DIR
+  fi
+
 
 ##########################################################################
 #

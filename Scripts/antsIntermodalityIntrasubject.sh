@@ -222,7 +222,13 @@ if [[ ${#ANATOMICAL_SPACE} -lt 1 ]];
     ANATOMICAL_SPACE=$ANATOMICAL_BRAIN
   fi
 
-OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
+if [[ ${OUTPUT_PREFIX} == */ ]];
+  then
+    OUTPUT_DIR=${OUTPUT_PREFIX%/}
+  else
+    OUTPUT_DIR=$(dirname $OUTPUT_PREFIX)
+  fi
+
 if [[ ! -d $OUTPUT_DIR ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."

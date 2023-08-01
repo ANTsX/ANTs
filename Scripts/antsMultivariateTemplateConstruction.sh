@@ -600,7 +600,19 @@ elif [[ $nargs -lt 6 ]]
     Usage >&2
 fi
 
-OUTPUT_DIR=`dirname ${OUTPUTNAME}`
+if [[ -z ${DIM} ]]
+  then
+    echo "Image dimension (-d) is required"
+    exit 1
+  fi
+
+if [[ ${OUTPUTNAME} == */ ]];
+  then
+    OUTPUT_DIR=${OUTPUTNAME%/}
+  else
+    OUTPUT_DIR=$(dirname $OUTPUTNAME)
+  fi
+
 if [[ ! -d $OUTPUT_DIR ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
