@@ -50,6 +50,8 @@ Install ANTs via pre-built:
 build [ANTs](https://github.com/stnava/ANTs) from:
 Source-Code on [Linux / Mac OS](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or [Windows](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Windows-10).
 
+conda-forge install for linux: `conda install -c conda-forge ants `
+
 ANTs extracts information from complex datasets that include imaging
 ([Word Cloud](http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg)).
 Paired with [ANTsR](http://stnava.github.io/software/2014/01/08/antsr/) (answer), ANTs is
