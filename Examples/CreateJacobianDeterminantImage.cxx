@@ -171,7 +171,7 @@ CreateJacobianDeterminantImage(std::vector<std::string> args, std::ostream * itk
   {
     std::cout << "Usage: " << argv[0]
               << " imageDimension deformationField outputImage [doLogJacobian=0] [useGeometric=0] [deformationGradient=0]" << std::endl;
-    std::cout << "deformationGradient cannot be written to nifti: try mhd or nrrd."
+    std::cout << "deformationGradient cannot be written to nifti: try mhd or nrrd." << std::endl;
     return EXIT_FAILURE;
   }
 
