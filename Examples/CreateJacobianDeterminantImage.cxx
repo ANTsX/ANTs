@@ -46,6 +46,12 @@ CreateJacobianDeterminantImage(int argc, char * argv[])
     calculateGeometricJacobian = static_cast<bool>(std::stoi(argv[5]));
   }
 
+  bool returnDeformationGradient = false;
+  if (argc > 6)
+  {
+    returnDeformationGradient = static_cast<bool>(std::stoi(argv[6]));
+  }
+
   if (calculateGeometricJacobian)
   {
     using JacobianFilterType = itk::GeometricJacobianDeterminantImageFilter<VectorImageType, RealType, ImageType>;
@@ -65,6 +71,12 @@ CreateJacobianDeterminantImage(int argc, char * argv[])
     jacobianFilter->SetUseImageSpacing(true);
     jacobianFilter->SetOrder(2);
     jacobianFilter->SetUseCenteredDifference(true);
+
+    if ( returnDeformationGradient ) {
+      jacobianFilter->Update();
+      ANTs::WriteImage<typename JacobianFilterType::OutputImageType>(jacobianFilter->GetOutput(), argv[3]);
+      return EXIT_SUCCESS;
+    }
 
     using DeterminantFilterType =
       itk::DeterminantTensorImageFilter<typename JacobianFilterType::OutputImageType, RealType>;
@@ -158,7 +170,8 @@ CreateJacobianDeterminantImage(std::vector<std::string> args, std::ostream * itk
   if (argc < 3)
   {
     std::cout << "Usage: " << argv[0]
-              << " imageDimension deformationField outputImage [doLogJacobian=0] [useGeometric=0]" << std::endl;
+              << " imageDimension deformationField outputImage [doLogJacobian=0] [useGeometric=0] [deformationGradient=0]" << std::endl;
+    std::cout << "deformationGradient cannot be written to nifti: try mhd or nrrd."
     return EXIT_FAILURE;
   }
 
