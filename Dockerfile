@@ -10,8 +10,7 @@ RUN apt-get update \
                     ninja-build \
                     git \
                     software-properties-common \
-                    wget \
-                    zlib1g-dev
+                    wget
 
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
     | apt-key add - \
@@ -52,9 +51,7 @@ ANTs Citation: https://pubmed.ncbi.nlm.nih.gov/24879923"
 ENV PATH="/opt/ants/bin:$PATH" \
     LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
 RUN apt-get update \
-    && apt install -y --no-install-recommends \
-                   bc \
-                   zlib1g-dev \
+    && apt install -y --no-install-recommends bc \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
