@@ -419,11 +419,15 @@ PermuteMatrix(vnl_matrix<TComp> q, bool doperm = true)
   }
 // std::random_shuffle is deprecated since C++14,
 // see: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4190.htm
-#if __cplusplus >= 201402L
-  std::shuffle(permvec.begin(), permvec.end(), std::random_device());
-#else
-  std::random_shuffle(permvec.begin(), permvec.end(), sccanRandom);
-#endif
+// 2023-08-30: MSVC 2019 on Github Actions runners having problems detecting C++ version,
+// so use new std::shuffle
+// #if __cplusplus >= 201402L
+//  std::shuffle(permvec.begin(), permvec.end(), std::random_device());
+// #else
+//   std::random_shuffle(permvec.begin(), permvec.end(), sccanRandom);
+// #endif
+std::shuffle(permvec.begin(), permvec.end(), std::random_device());
+
   //    for (unsigned long i=0; i < q.rows(); i++)
   //  // std::cout << " permv " << i << " is " << permvec[i] << std::endl;
   // for (unsigned long i=0; i < q.rows(); i++)
