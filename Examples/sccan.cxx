@@ -13,6 +13,7 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include <sstream>
 #include <iostream>
+#include <random>
 #include <string>
 #include <algorithm>
 #include <vector>
@@ -29,12 +30,6 @@
 #include "itkCSVArray2DFileReader.h"
 #include "itkExtractImageFilter.h"
 #include "ReadWriteData.h"
-
-// For random number generation.
-#if __cplusplus >= 201402L
-#  include <random>
-#endif
-
 
 namespace ants
 {
