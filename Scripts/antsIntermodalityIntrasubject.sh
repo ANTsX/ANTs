@@ -3,13 +3,16 @@
 VERSION="0.0"
 
 if ! command -v antsRegistration &> /dev/null
-  echo we cant find the antsRegistration program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
-  exit
-fi
+  then
+    echo "we cant find the antsRegistration program -- does not seem to exist.  please \(re\)define \$PATH in your environment."
+    exit
+  fi
+
 if ! command -v antsApplyTransforms &> /dev/null
-  echo we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
-  exit
-fi
+  then
+    echo "we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$PATH in your environment."
+    exit
+  fi
 
 function Usage {
     cat <<USAGE
