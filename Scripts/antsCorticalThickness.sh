@@ -79,24 +79,33 @@ We use *label* to denote a label image with values in range 0 to N.
      -m:  Brain extraction probability mask     Brain *probability* mask in the segmentation template space. A binary mask
                                                 is an acceptable probability image.
 
-     -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
-                                                with the -e option.  Specified using c-style formatting, e.g.
-                                                -p labelsPriors%02d.nii.gz.  We assume that the first four priors
-                                                are ordered as follows
-                                                  1:  csf
-                                                  2:  cortical gm
-                                                  3:  wm
-                                                  4:  deep gm
+     -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the template image specified
+                                                with the -e option.  Specified using c-style formatting, either with numeric indices
+                                                e.g.
+                                                  -p template/priors/Priors%02d.nii.gz
+                                                or BIDS style, eg
+                                                  -p tpl-templateName/tpl-templateName_res-01_label-%s_probseg.nii.gz
+
+                                                At least four priors must exist, corresponding to CSF, Cortical GM, WM, Subcortical GM.
+                                                If priors are numbered numerically, the classes must be ordered in the same way, ie
+                                                  1:  CSF
+                                                  2:  Cortical GM
+                                                  3:  WM
+                                                  4:  Subcortical GM
+
+                                                In BIDS format, the labels must include CSF, CGM, WM, SGM, and may optionally include BS, CBM.
+                                                Other labels will not be used. Templateflow labels use "SCGM" instead of "SGM", if "SGM" is not
+                                                found, "SCGM" will be used instead.
 
      -o:  Output prefix                         A partial list of output images:
                                                   * ${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}BrainSegmentation*N4.${OUTPUT_SUFFIX} One for each anatomical input
                                                   * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*1.${OUTPUT_SUFFIX}  CSF
-                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*2.${OUTPUT_SUFFIX}  GM
+                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*2.${OUTPUT_SUFFIX}  Cortical GM
                                                   * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*3.${OUTPUT_SUFFIX}  WM
-                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*4.${OUTPUT_SUFFIX}  DEEP GM
-                                                  * ...
+                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*4.${OUTPUT_SUFFIX}  Subcortical GM
+                                                  * ... and so on for additional segmentation classes
                                                   * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*N.${OUTPUT_SUFFIX} where there are N priors
                                                   *                              Number formatting of posteriors matches that of the priors.
                                                   * ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
@@ -234,12 +243,9 @@ function checkOutputExists() {
         fi
     done
 
-  # Segmentation output depends on the number of priors and the numbering format
-  segNumWidth=${#GRAY_MATTER_LABEL_FORMAT}
-
   for (( j = 1; j <= ${NUMBER_OF_PRIOR_IMAGES}; j++ ));
     do
-      num=$(printf "%0${segNumWidth}d" $j)
+      num=$(printf "${WARPED_PRIOR_FORMAT}" $j)
 
       if [[ ! -f ${OUTPUT_PREFIX}BrainSegmentationPosteriors${num}.${OUTPUT_SUFFIX} ]];
         then
@@ -555,6 +561,7 @@ fi
 # Preliminaries:
 #  1. Check existence of inputs
 #  2. Figure out output directory and mkdir if necessary
+#  3. Check template priors and define numbering for warped priors
 #
 ################################################################################
 
@@ -567,96 +574,99 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
     fi
   done
 
-FORMAT=${SEGMENTATION_PRIOR}
-PREFORMAT=${FORMAT%%\%*}
-POSTFORMAT=${FORMAT##*d}
-FORMAT=${FORMAT#*\%}
-FORMAT=${FORMAT%%d*}
+# SEGMENTATION_PRIOR is a c-style string containing the path to priors, eg /path/to/priors%d.nii.gz
+# Allow either numeric formatting eg priors%02d.nii.gz or BIDS string formatting using BIDS common
+# derived labels eg tpl-templateName_res-01_label-%s_probseg.nii.gz or templateflow labels (same
+# except for SGM).
+#
+# Warped priors and posteriors are always formatted numerically, eg warpedPriors%02d.nii.gz.
+#
+# If the template priors use a different format, eg %0d or %03d, the warped priors and posteriors
+# will be formatted accordingly.
 
-REPCHARACTER=''
-TOTAL_LENGTH=0
-if [[ ${#FORMAT} -eq 2 ]]
-  then
-    REPCHARACTER=${FORMAT:0:1}
-    TOTAL_LENGTH=${FORMAT:1:1}
-  fi
 
-# MAXNUMBER=$(( 10 ** $TOTAL_LENGTH ))
-MAXNUMBER=1000
-
+# List of file names in template space, in order: CSF, GM, WM, deep GM[, BS, CBM, others]
 PRIOR_IMAGE_FILENAMES=()
+
+# Default, overwrite with input numeric format if used
+WARPED_PRIOR_FORMAT="%02d"
+
+# Test if the pattern contains "%d" or "%s"
+if [[ "$SEGMENTATION_PRIOR" =~ %([0-9]*)d ]]; then
+  # Numeric formatting - normally 1 through 6, though only the first four are mandatory
+  WARPED_PRIOR_FORMAT="%${BASH_REMATCH[1]}d"
+
+  PRIOR_COUNTER=1
+  FOUND_PRIOR=1
+  while [[ $FOUND_PRIOR -gt 0 ]]; do
+    PRIOR_FILE=$(printf "$SEGMENTATION_PRIOR" "$PRIOR_COUNTER")
+    if [[ -f "$PRIOR_FILE" ]]; then
+      PRIOR_IMAGE_FILENAMES+=("$PRIOR_FILE")
+    else
+        FOUND_PRIOR=0
+    fi
+    PRIOR_COUNTER=$((PRIOR_COUNTER+1))
+  done
+elif [[ "$SEGMENTATION_PRIOR" =~ label-%s ]]; then
+
+  # BIDS label-%s formatting
+  # Order matters here - they will be added to an array in order, required labels first and then
+  # optional. Order must match ants expectations, ie CSF, GM, WM, deep GM [, BS, CBM]
+  REQUIRED_LABELS=("CSF" "CGM" "WM" "SGM")
+  OPTIONAL_LABELS=("BS" "CBM")
+
+  # Check for the existence of required labels
+  for BIDS_LABEL in "${REQUIRED_LABELS[@]}"; do
+    PRIOR_FILE=$(printf "$SEGMENTATION_PRIOR" "$BIDS_LABEL")
+    if [[ -f "$PRIOR_FILE" ]]; then
+      PRIOR_IMAGE_FILENAMES+=("$PRIOR_FILE")
+    elif [[ "$BIDS_LABEL" == "SGM" ]]; then
+      # Hack for templateflow - try SCGM instead of SGM
+      # Unfortunately templateflow does not use BIDS standard labels for SGM
+      PRIOR_FILE=$(printf "$SEGMENTATION_PRIOR" "SCGM")
+        if [[ -f "$PRIOR_FILE" ]]; then
+          PRIOR_IMAGE_FILENAMES+=("$PRIOR_FILE")
+        else
+          echo "Error: Required segmentation label "SGM" not found (also tried templateflow "SCGM")"
+          exit 1
+        fi
+    else
+      echo "Error: Required segmentation label $BIDS_LABEL not found."
+      exit 1
+    fi
+  done
+
+  # Check for the existence of optional labels
+  for BIDS_LABEL in "${OPTIONAL_LABELS[@]}"; do
+    PRIOR_FILE=$(printf "$SEGMENTATION_PRIOR" "$BIDS_LABEL")
+    if [[ -f "$PRIOR_FILE" ]]; then
+      PRIOR_IMAGE_FILENAMES+=("$PRIOR_FILE")
+    fi
+  done
+else
+  echo "Error: Invalid prior specification $SEGMENTATION_PRIOR"
+  exit 1
+fi
+
+NUMBER_OF_PRIOR_IMAGES=${#PRIOR_IMAGE_FILENAMES[*]}
+
+if [[ ${NUMBER_OF_PRIOR_IMAGES} -lt 4 ]]; then
+  echo "Expected at least 4 prior images (${NUMBER_OF_PRIOR_IMAGES} are specified).  Check the command line specification."
+  exit 1
+fi
+
+BRAIN_SEGMENTATION_OUTPUT_PREFIX=${OUTPUT_PREFIX}BrainSegmentation
+SEGMENTATION_WARP_OUTPUT_PREFIX=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Prior
+SEGMENTATION_PRIOR_WARPED_PREFIX=${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped
+
+SEGMENTATION_PRIOR_WARPED_FORMAT=${SEGMENTATION_PRIOR_WARPED_PREFIX}${WARPED_PRIOR_FORMAT}.${OUTPUT_SUFFIX}
+
+# Whatever the input spec for priors, we always number warped priors sequentially as required by Atropos
 WARPED_PRIOR_IMAGE_FILENAMES=()
-BRAIN_SEGMENTATION_OUTPUT=${OUTPUT_PREFIX}BrainSegmentation
-SEGMENTATION_WARP_OUTPUT_PREFIX=${BRAIN_SEGMENTATION_OUTPUT}Prior
-SEGMENTATION_PRIOR_WARPED=${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped
-for (( i = 1; i < $MAXNUMBER; i++ ))
-  do
-    NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#i} ))
-    ROOT='';
-    for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-      do
-        ROOT=${ROOT}${REPCHARACTER}
-      done
-    FILENAME=${PREFORMAT}${ROOT}${i}${POSTFORMAT}
-    WARPED_FILENAME=${SEGMENTATION_PRIOR_WARPED}${ROOT}${i}.${OUTPUT_SUFFIX}
-    if [[ -f $FILENAME ]];
-      then
-        PRIOR_IMAGE_FILENAMES=( ${PRIOR_IMAGE_FILENAMES[@]} $FILENAME )
-        WARPED_PRIOR_IMAGE_FILENAMES=( ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $WARPED_FILENAME )
-      else
-        break 1
-      fi
-  done
 
-NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#DEEP_GRAY_MATTER_LABEL} ))
-ROOT='';
-for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-  do
-    ROOT=${ROOT}${REPCHARACTER}
-  done
-DEEP_GRAY_MATTER_LABEL_FORMAT=${ROOT}${DEEP_GRAY_MATTER_LABEL}
-
-NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#WHITE_MATTER_LABEL} ))
-ROOT='';
-for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-  do
-    ROOT=${ROOT}${REPCHARACTER}
-  done
-WHITE_MATTER_LABEL_FORMAT=${ROOT}${WHITE_MATTER_LABEL}
-
-NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#GRAY_MATTER_LABEL} ))
-ROOT='';
-for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-  do
-    ROOT=${ROOT}${REPCHARACTER}
-  done
-GRAY_MATTER_LABEL_FORMAT=${ROOT}${GRAY_MATTER_LABEL}
-
-NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#CSF_MATTER_LABEL} ))
-ROOT='';
-for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-  do
-    ROOT=${ROOT}${REPCHARACTER}
-  done
-CSF_MATTER_LABEL_FORMAT=${ROOT}${CSF_MATTER_LABEL}
-
-SEGMENTATION_PRIOR_WARPED=${SEGMENTATION_PRIOR_WARPED}\%${FORMAT}d.${OUTPUT_SUFFIX}
-NUMBER_OF_PRIOR_IMAGES=${#WARPED_PRIOR_IMAGE_FILENAMES[*]}
-
-if [[ ${NUMBER_OF_PRIOR_IMAGES} -lt 4 ]];
-  then
-    echo "Expected at least 4 prior images (${NUMBER_OF_PRIOR_IMAGES} are specified).  Check the command line specification."
-    exit 1
-  fi
-
-for(( j=0; j < $NUMBER_OF_PRIOR_IMAGES; j++ ))
-  do
-    if [[ ! -f ${PRIOR_IMAGE_FILENAMES[$j]} ]];
-      then
-        echo "Prior image $j ${PRIOR_IMAGE_FILENAMES[$j]} does not exist."
-        exit 1
-      fi
-  done
+for (( i = 0; i < ${NUMBER_OF_PRIOR_IMAGES}; i++ )); do
+    WARPED_PRIOR_IMAGE_FILENAMES[${#WARPED_PRIOR_IMAGE_FILENAMES[@]}]=$( printf ${SEGMENTATION_PRIOR_WARPED_FORMAT} $((i+1)) )
+done
 
 # These arrays contain the formatted labels that will be used to combine with the white
 # and gray matter posteriors for the cortical thickness section.
@@ -691,8 +701,6 @@ for(( j=0; j < ${#PRIOR_COMBINATIONS[@]}; j++ ))
         exit 1
       fi
   done
-CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS_FORMAT=( $( echo "${CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS_FORMAT[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ' ) )
-CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS_FORMAT=( $( echo "${CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS_FORMAT[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ' ) )
 
 if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
   then
@@ -816,8 +824,8 @@ fi # check completion
 SEGMENTATION_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1Warp.nii.gz
 SEGMENTATION_INVERSE_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1InverseWarp.nii.gz
 SEGMENTATION_GENERIC_AFFINE=${SEGMENTATION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
-SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.${OUTPUT_SUFFIX}
-SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
+SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}MaskDilated.${OUTPUT_SUFFIX}
+SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Convergence.txt
 
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
    [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then
@@ -1000,7 +1008,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
       -n ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
       -c ${NUMBER_OF_PRIOR_IMAGES} \
       ${N4_INCLUDE_PRIORS_COMMAND_LINE} \
-      -p ${SEGMENTATION_PRIOR_WARPED} \
+      -p ${SEGMENTATION_PRIOR_WARPED_FORMAT} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
       -u ${USE_RANDOM_SEEDING} \
@@ -1026,7 +1034,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
       -n ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
       -c ${NUMBER_OF_PRIOR_IMAGES} \
       ${N4_INCLUDE_PRIORS_COMMAND_LINE} \
-      -p ${SEGMENTATION_PRIOR_WARPED} \
+      -p ${SEGMENTATION_PRIOR_WARPED_FORMAT} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
       -u ${USE_RANDOM_SEEDING} \
@@ -1201,12 +1209,16 @@ fi # check completion
 #
 ################################################################################
 
-BRAIN_SEGMENTATION_GM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-BRAIN_SEGMENTATION_WM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${WHITE_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-BRAIN_SEGMENTATION_DEEP_GM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${DEEP_GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+WARPED_GRAY_MATTER_LABEL=$( printf "${WARPED_PRIOR_FORMAT}" ${GRAY_MATTER_LABEL} )
+WARPED_WHITE_MATTER_LABEL=$( printf "${WARPED_PRIOR_FORMAT}" ${WHITE_MATTER_LABEL} )
+WARPED_DEEP_GRAY_MATTER_LABEL=$( printf "${WARPED_PRIOR_FORMAT}" ${DEEP_GRAY_MATTER_LABEL} )
 
-CORTICAL_THICKNESS_GM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-CORTICAL_THICKNESS_WM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${WHITE_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+BRAIN_SEGMENTATION_GM=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${WARPED_GRAY_MATTER_LABEL}.${OUTPUT_SUFFIX}
+BRAIN_SEGMENTATION_WM=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${WARPED_WHITE_MATTER_LABEL}.${OUTPUT_SUFFIX}
+BRAIN_SEGMENTATION_DEEP_GM=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${WARPED_DEEP_GRAY_MATTER_LABEL}.${OUTPUT_SUFFIX}
+
+CORTICAL_THICKNESS_GM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${WARPED_GRAY_MATTER_LABEL}.${OUTPUT_SUFFIX}
+CORTICAL_THICKNESS_WM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${WARPED_WHITE_MATTER_LABEL}.${OUTPUT_SUFFIX}
 CORTICAL_THICKNESS_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_THICKNESS_GM_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessGMSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_LABEL_THICKNESS_PRIOR=${OUTPUT_PREFIX}CorticalLabelThicknessPrior.${OUTPUT_SUFFIX}
@@ -1231,14 +1243,8 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     for(( i=0; i < ${#CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS[@]}; i++ ))
       do
         OTHER_LABEL=${CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS[$i]}
-        NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#OTHER_LABEL} ))
-        ROOT='';
-        for(( l=0; l < $NUMBER_OF_REPS; l++ ))
-          do
-            ROOT=${ROOT}${REPCHARACTER}
-          done
-        OTHER_LABEL_FORMAT=${ROOT}${OTHER_LABEL}
-        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${OTHER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+        OTHER_LABEL_FORMATTED=$( printf "${WARPED_PRIOR_FORMAT}" ${OTHER_LABEL} )
+        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${OTHER_LABEL_FORMATTED}.${OUTPUT_SUFFIX}
 
         logCmd ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_GM} + ${CORTICAL_THICKNESS_GM} ${BRAIN_SEGMENTATION_OTHER_LABEL}
         logCmd ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${OTHER_LABEL} ${OTHER_LABEL} ${GRAY_MATTER_LABEL}
@@ -1248,14 +1254,8 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     for(( i=0; i < ${#CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS[@]}; i++ ))
       do
         OTHER_LABEL=${CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS[$i]}
-        NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#OTHER_LABEL} ))
-        ROOT='';
-        for(( l=0; l < $NUMBER_OF_REPS; l++ ))
-          do
-            ROOT=${ROOT}${REPCHARACTER}
-          done
-        OTHER_LABEL_FORMAT=${ROOT}${OTHER_LABEL}
-        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${OTHER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+        OTHER_LABEL_FORMATTED=$( printf "${WARPED_PRIOR_FORMAT}" ${OTHER_LABEL} )
+        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${OTHER_LABEL_FORMATTED}.${OUTPUT_SUFFIX}
 
         logCmd ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_WM} + ${CORTICAL_THICKNESS_WM} ${BRAIN_SEGMENTATION_OTHER_LABEL}
         logCmd ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${OTHER_LABEL} ${OTHER_LABEL} ${WHITE_MATTER_LABEL}
