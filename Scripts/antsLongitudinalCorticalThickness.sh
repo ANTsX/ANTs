@@ -76,13 +76,22 @@ Required arguments:
                                                 is an acceptable probability image.
 
      -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
-                                                with the -e option.  Specified using c-style formatting, e.g.
-                                                -p labelsPriors%02d.nii.gz.  We assume that the first four priors
-                                                are ordered as follows
-                                                  1:  csf
-                                                  2:  cortical gm
-                                                  3:  wm
-                                                  4:  deep gm.
+                                                with the -e option.  Specified using c-style formatting, either with numeric indices
+                                                e.g.
+                                                  -p template/priors/Priors%02d.nii.gz
+                                                or BIDS style, eg
+                                                  -p tpl-templateName/tpl-templateName_res-01_label-%s_probseg.nii.gz
+
+                                                At least four priors must exist, corresponding to CSF, Cortical GM, WM, Subcortical GM.
+                                                If priors are numbered numerically, the classes must be ordered in the same way, ie
+                                                  1:  CSF
+                                                  2:  Cortical GM
+                                                  3:  WM
+                                                  4:  Subcortical GM
+
+                                                In BIDS format, the labels must include CSF, CGM, WM, SGM, and may optionally include BS, CBM.
+                                                Other labels will not be used. Templateflow labels use "SCGM" instead of "SGM", if "SGM" is not
+                                                found, "SCGM" will be used instead.
 
      -o:  Output prefix                         The following subdirectory and images are created for the single
                                                 subject template
@@ -396,48 +405,27 @@ else
   done
 fi
 
-FORMAT=${SEGMENTATION_PRIOR}
-PREFORMAT=${FORMAT%%\%*}
-POSTFORMAT=${FORMAT##*d}
-FORMAT=${FORMAT#*\%}
-FORMAT=${FORMAT%%d*}
+# This is the numeric format used by template priors (if formatted numerically)
+# and the numeric format used for warped priors / posteriors in antsCorticalThickness.sh.
+#
+# If template priors are named using BIDS convention, output priors and posteriors will use
+# this format.
+#
+# If template priors are named numerically with a different format (eg, %d or $03d), then
+# PRIOR_NUMERIC_FORMAT will be set to match template priors
+#
+PRIOR_NUMERIC_FORMAT=""
 
-REPCHARACTER=''
-TOTAL_LENGTH=0
-if [[ ${#FORMAT} -eq 2 ]]
-  then
-    REPCHARACTER=${FORMAT:0:1}
-    TOTAL_LENGTH=${FORMAT:1:1}
-  fi
-
-# MAXNUMBER=$(( 10 ** $TOTAL_LENGTH ))
-MAXNUMBER=1000
-
-PRIOR_IMAGE_FILENAMES=()
-WARPED_PRIOR_IMAGE_FILENAMES=()
-BRAIN_SEGMENTATION_OUTPUT=${OUTPUT_PREFIX}BrainSegmentation
-SEGMENTATION_WARP_OUTPUT_PREFIX=${BRAIN_SEGMENTATION_OUTPUT}Prior
-SEGMENTATION_PRIOR_WARPED=${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped
-for (( i = 1; i < $MAXNUMBER; i++ ))
-  do
-    NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#i} ))
-    ROOT='';
-    for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-      do
-        ROOT=${ROOT}${REPCHARACTER}
-      done
-    FILENAME=${PREFORMAT}${ROOT}${i}${POSTFORMAT}
-    WARPED_FILENAME=${SEGMENTATION_PRIOR_WARPED}${ROOT}${i}.${OUTPUT_SUFFIX}
-    if [[ -f $FILENAME ]];
-      then
-        PRIOR_IMAGE_FILENAMES=( ${PRIOR_IMAGE_FILENAMES[@]} $FILENAME )
-        WARPED_PRIOR_IMAGE_FILENAMES=( ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $WARPED_FILENAME )
-      else
-        break 1
-      fi
-  done
-
-NUMBER_OF_PRIOR_IMAGES=${#WARPED_PRIOR_IMAGE_FILENAMES[*]}
+if [[ "${SEGMENTATION_PRIOR}" =~ %([0-9]*)d ]]; then
+  # Numeric formatting - normally 1 through 6, though only the first four are mandatory
+  PRIOR_NUMERIC_FORMAT="%${BASH_REMATCH[1]}d"
+elif [[ "${SEGMENTATION_PRIOR}" =~ label-%s ]]; then
+  # antsCorticalThickness.sh will use this format if the priors are named using BIDS convention
+  PRIOR_NUMERIC_FORMAT="%02d"
+else
+  echo "Invalid prior specification, priors must use c-style printf formatting, see usage"
+  exit 1
+fi
 
 # Shiftsize is calculated because a variable amount of arguments can be used on the command line.
 # The shiftsize variable will give the correct number of arguments to skip. Issuing shift $shiftsize will
@@ -792,7 +780,7 @@ echo
 
 SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX}
 SINGLE_SUBJECT_TEMPLATE_EXTRACTION_REGISTRATION_MASK=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionRegistrationMask.${OUTPUT_SUFFIX}
-SINGLE_SUBJECT_TEMPLATE_PRIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}Priors\%${FORMAT}d.${OUTPUT_SUFFIX}
+SINGLE_SUBJECT_TEMPLATE_PRIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}Priors${PRIOR_NUMERIC_FORMAT}.${OUTPUT_SUFFIX}
 SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionMaskPrior.${OUTPUT_SUFFIX}
 SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS=${SINGLE_SUBJECT_ANTSCT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
