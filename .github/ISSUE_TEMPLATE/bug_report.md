@@ -55,6 +55,8 @@ about your computing environment.
  - OS version: [e.g. 10.15.1]
  - Type of system: [Desktop, laptop, HPC cluster, cloud instance,
    other]
+ - CPU architecture (x86, ARM, other, unknown)
+
 <!--
    If you are building inside a virtual machine, container, Cygwin,
    Windows Subsystem for Linux, or other non-native environment, please
@@ -64,9 +66,14 @@ about your computing environment.
 
 **ANTs version information**
  - ANTs code version: [output of antsRegistration --version]
- - ANTs installation type: [Compiled from source, downloaded binary
-   (from where?), installed by another package (which?), installed in
-   container (URL?), other (please specify)]
+ - ANTs installation type: 
+<!-- Select one, delete the rest -->
+Compiled from source
+Downloaded Github release binaries
+Conda (Please show source with `conda list --show-channel-urls | grep ants`)
+ANTsX docker image (https://hub.docker.com/repository/docker/antsx/ants/general)
+Other (please specify)
+
 
 **Additional information**
 <!--
