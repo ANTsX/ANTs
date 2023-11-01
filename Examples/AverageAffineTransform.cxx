@@ -274,10 +274,13 @@ AverageAffineTransform(std::vector<std::string> args, std::ostream * /*out_strea
   {
     std::cerr
       << "AverageAffineTransform ImageDimension output_affine_transform [-R reference_affine_transform] "
-      << "{[-i] affine_transform_txt [weight(=1)] ]}" << std::endl
+      << "{[-i] affine_transform [weight(=1)] ]}" << std::endl
       << std::endl
-      << " Usage: Compute weighted average of input affine transforms. " << std::endl
-      << "For 2D and 3D transform, the affine transform is first decomposed into "
+      << std::endl
+      << " Usage: Compute weighted average of input affine transforms, either in text (.txt) or binary (.mat) format. "
+      << std::endl
+      << std::endl
+      << "For 2D and 3D transforms, the affine transform is first decomposed into "
          "scale x shearing x rotation. Then these parameters are averaged, using the weights if they provided. "
          "For 3D transform, the rotation component is the quaternion. After averaging, the quaternion will also "
          "be normalized to have unit norm. For 2D transform, the rotation component is the rotation angle. "
@@ -285,15 +288,16 @@ AverageAffineTransform(std::vector<std::string> args, std::ostream * /*out_strea
          "before averaging. The default value for each weight is 1.0. "
       << std::endl
       << std::endl
-      << "All affine transforms is a \"centerd\" transform, following ITK convention. A reference_affine_transform"
+      << "All affine transforms are \"centered\" transforms, following ITK convention. A reference_affine_transform"
          " defines the center for the output transform. The first provided transform is the default reference "
          "transform"
       << std::endl
       << "Output affine transform is a MatrixOffsetBaseTransform." << std::endl
       << " -i option takes the inverse of the affine mapping." << std::endl
       << " For example: " << std::endl
-      << " 2 output_affine.txt -R A.txt A1.txt 1.0 -i A2.txt 2.0 A3.txt A4.txt 6.0 A5.txt" << std::endl
-      << "This computes: (1*A1 + 2*(A2)^-1 + A3 + A4*6 + A5 ) / (1+2+1+6+5)" << std::endl;
+      << "   AverageAffineTransform 2 output_affine.txt -R A.txt A1.txt 1.0 -i A2.txt 2.0 A3.txt A4.txt 6.0 A5.txt"
+      << std::endl
+      << "This computes: (1*A1 + 2*(A2)^{-1} + A3 + A4*6 + A5 ) / (1+2+1+6+5)" << std::endl;
     return EXIT_SUCCESS;
   }
 
@@ -302,7 +306,16 @@ AverageAffineTransform(std::vector<std::string> args, std::ostream * /*out_strea
   char * output_transform_filename = nullptr;
   char * reference_transform_filename = nullptr;
 
-  int kImageDim = std::stoi(argv[1]);
+  int kImageDim;
+  try
+  {
+    kImageDim = std::stoi(argv[1]);
+  }
+  catch (const std::invalid_argument & e)
+  {
+    std::cerr << "Invalid image dimension: " << argv[1] << std::endl;
+    return EXIT_FAILURE;
+  }
 
   const bool is_parsing_ok = AverageAffineTransform_ParseInput(
     argc - 2, argv + 2, output_transform_filename, reference_transform_filename, opt_queue);
@@ -335,6 +348,11 @@ AverageAffineTransform(std::vector<std::string> args, std::ostream * /*out_strea
         AverageAffineTransform<3>(output_transform_filename, reference_transform_filename, opt_queue);
       }
       break;
+      default:
+      {
+        std::cerr << "Unsupported image dimension " << kImageDim << std::endl;
+        return EXIT_FAILURE;
+      }
     }
   }
 
