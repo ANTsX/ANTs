@@ -90,7 +90,7 @@ public:
    * mean shift algorithm to find the best neighborhood.
    */
   void
-  FindNeighborhood(unsigned int numMeanShifts = 2) override;
+  FindNeighborhood(unsigned int numMeanShifts = 0) override;
 
   void
   FindEuclideanNeighborhood(PointType p);
