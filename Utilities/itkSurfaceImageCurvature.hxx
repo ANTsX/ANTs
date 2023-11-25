@@ -166,7 +166,7 @@ SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood(
   this->m_FunctionImage->TransformPhysicalPointToIndex(tempp, oindex);
   for (unsigned int i = 0; i < ImageDimension; i++)
   {
-    rad[i] = (long)(m_NeighborhoodRadius);
+    rad[i] = (long)(m_NeighborhoodRadius/this->m_Spacing[i]+0.5);
   }
   m_ti.SetLocation(oindex);
   unsigned int temp = 0;
@@ -190,7 +190,8 @@ SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood(
             isorigin = false;
           }
           p[k] = ipt[k];
-          RealType delt = static_cast<RealType>(oindex[k]) - static_cast<RealType>(index[k]);
+          RealType delt = rootpoint[k] - ipt[k];
+//          RealType delt = static_cast<RealType>(oindex[k]) - static_cast<RealType>(index[k]);
           dist += delt * delt;
         }
         dist = sqrt(dist);
@@ -419,6 +420,7 @@ void
 SurfaceImageCurvature<TSurface>::EstimateNormalsFromGradient()
 {
   typename ImageType::Pointer image = GetInput();
+  this->m_Spacing = image->GetSpacing();
 
   if (!image)
   {
@@ -748,9 +750,9 @@ SurfaceImageCurvature<TSurface>::ComputeSurfaceArea()
 
   RealType area = 0.0;
   this->m_TotalArea = 0.0;
+  unsigned long ct = 0;
 
   ti.GoToBegin();
-  unsigned int ct = 0;
   while (!ti.IsAtEnd())
   {
     index = ti.GetIndex();
@@ -847,6 +849,7 @@ SurfaceImageCurvature<TSurface>::IntegrateFunctionOverSurface(bool norm)
 
   this->m_ti.Initialize(rad, this->GetInput(), image->GetLargestPossibleRegion());
   this->m_ti2.Initialize(rad2, this->GetInput(), image->GetLargestPossibleRegion());
+  unsigned long ct = 0;
 
   IndexType index;
 
@@ -855,8 +858,6 @@ SurfaceImageCurvature<TSurface>::IntegrateFunctionOverSurface(bool norm)
   //  std::cout << " begin integrate ";
 
   ti.GoToBegin();
-  unsigned int ct = 0;
-  //  std::cout << " begin while " << std::endl;
   while (!ti.IsAtEnd())
   {
     index = ti.GetIndex();
@@ -1039,8 +1040,8 @@ SurfaceImageCurvature<TSurface>::ComputeFrameOverDomain(unsigned int which)
   unsigned int  ct = 1;
   unsigned long ct2 = 0;
   RealType      kpix = 0;
-
   double thresh = 0.0;
+
 
   ti.GoToBegin();
   while (!ti.IsAtEnd())

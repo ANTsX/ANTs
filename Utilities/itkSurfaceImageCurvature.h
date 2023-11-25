@@ -54,6 +54,7 @@ public:
   };
   typedef Image<PixelType, itkGetStaticConstMacro(ImageDimension)> ImageType;
   typedef typename ImageType::IndexType                            IndexType;
+  typedef typename ImageType::SpacingType                          SpacingType;
   typedef typename ImageType::SizeType                             SizeType;
   typedef ImageRegionIteratorWithIndex<ImageType>                  ImageIteratorType;
   /** Image dimension. */
@@ -89,7 +90,7 @@ public:
    * mean shift algorithm to find the best neighborhood.
    */
   void
-  FindNeighborhood(unsigned int numMeanShifts = 0) override;
+  FindNeighborhood(unsigned int numMeanShifts = 2) override;
 
   void
   FindEuclideanNeighborhood(PointType p);
@@ -173,11 +174,10 @@ public:
   CurvatureAtIndex(IndexType index)
   {
     PointType p;
-
-    for (unsigned int k = 0; k < ImageDimension; k++)
-    {
-      p[k] = (RealType)index[k];
-    }
+    this->m_FunctionImage->TransformIndexToPhysicalPoint(index, p);
+//    for (unsigned int k = 0; k < ImageDimension; k++) {
+//      p[k] = (RealType)index[k];
+//    }
     this->SetOrigin(p);
     this->EstimateFrameFromGradient(index);
     this->FindNeighborhood();
@@ -272,6 +272,7 @@ private:
   float                                    m_Area;
   RealType                                 m_MinSpacing;
   typename VectorInterpolatorType::Pointer m_Vinterp;
+  SpacingType                              m_Spacing;
 };
 } // namespace itk
 
