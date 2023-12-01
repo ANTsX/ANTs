@@ -54,6 +54,8 @@ public:
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
+  using DataObjectPointer = DataObject::Pointer;
+
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
@@ -77,6 +79,8 @@ public:
   using VectorType = Vector<RealType, ImageDimension>;
   using DisplacementFieldType = Image<VectorType, ImageDimension>;
   using DisplacementFieldPointer = typename DisplacementFieldType::Pointer;
+  using CumulativeVelocityFieldType = Image<VectorType, ImageDimension+1>;
+  using CumulativeVelocityFieldPointer = typename CumulativeVelocityFieldType::Pointer;
   using VectorValueType = typename VectorType::ValueType;
   using PointType = typename DisplacementFieldType::PointType;
   using SparseMatrixType = vnl_sparse_matrix<RealType>;
@@ -295,6 +299,13 @@ public:
   itkBooleanMacro(UseBSplineSmoothing);
 
   /**
+   * Set/Get the option to include the cumulative velocity fields as output.  Default = false.
+   */
+  itkSetMacro(IncludeCumulativeVelocityFields, bool);
+  itkGetConstMacro(IncludeCumulativeVelocityFields, bool);
+  itkBooleanMacro(IncludeCumulativeVelocityFields);
+
+  /**
    * Get the number of elapsed iterations.  This is a helper function for
    * reporting observations.
    */
@@ -312,12 +323,36 @@ public:
    */
   itkGetConstMacro(CurrentConvergenceMeasurement, RealType);
 
+  /**
+   * Get thickness image.
+   */
+  OutputImageType * GetThicknessImage();
+
+  /**
+   * Get forward cumulative velocity
+   */
+  CumulativeVelocityFieldType * GetForwardCumulativeVelocityField();
+
+  /**
+   * Get inverse cumulative velocity
+   */
+  CumulativeVelocityFieldType * GetInverseCumulativeVelocityField();
+
+  /** Standard itk::ProcessObject subclass method. */
+  using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
+  using Superclass::MakeOutput;
+  DataObjectPointer
+  MakeOutput(DataObjectPointerArraySizeType idx) override;
+
 protected:
   DiReCTImageFilter();
   ~DiReCTImageFilter() override;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
+
+  void
+  GenerateOutputInformation() override;
 
   void
   ThreadedGenerateData(const RegionType &, ThreadIdType) override{};
@@ -358,12 +393,6 @@ private:
    */
   RealImagePointer
   WarpImage(const RealImageType *, const DisplacementFieldType *);
-
-  /**
-   * Private function for inverting the deformation field.
-   */
-  void
-  InvertDisplacementField(const DisplacementFieldType *, DisplacementFieldType *);
 
   /**
    * Private function for smoothing the deformation field.
@@ -415,6 +444,7 @@ private:
   bool                  m_UseBSplineSmoothing;
   bool                  m_UseMaskedSmoothing;
   bool                  m_RestrictDeformation;
+  bool                  m_IncludeCumulativeVelocityFields;
   SparseMatrixType      m_SparseMatrix;
   RealImagePointer      m_SparseMatrixIndexImage;
   std::vector<RealType> m_TimePoints;

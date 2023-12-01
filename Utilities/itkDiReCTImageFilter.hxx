@@ -34,6 +34,7 @@
 #include "itkIterationReporter.h"
 #include "itkMaskedSmoothingImageFilter.h"
 #include "itkMaximumImageFilter.h"
+#include "itkPasteImageFilter.h"
 #include "itkMultiplyByConstantImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
@@ -63,26 +64,105 @@ DiReCTImageFilter<TInputImage, TOutputImage>::DiReCTImageFilter()
   , m_UseBSplineSmoothing(false)
   , m_UseMaskedSmoothing(false)
   , m_RestrictDeformation(false)
+  , m_IncludeCumulativeVelocityFields(false)
   , m_TimeSmoothingVariance(1.0)
 {
   this->m_ThicknessPriorImage = nullptr;
   this->m_SparseMatrixIndexImage = nullptr;
-  this->SetNumberOfRequiredInputs(3);
-
   this->m_TimePoints.clear();
+
+  this->SetNumberOfRequiredOutputs(3);
+
+  // thickness image
+  this->SetNthOutput(0, this->MakeOutput(0));
+
+  // forward/inverse cumulative velocity fields
+  this->SetNthOutput(1, this->MakeOutput(1));
+  this->SetNthOutput(2, this->MakeOutput(2));
 }
 
 template <typename TInputImage, typename TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>::~DiReCTImageFilter() = default;
 
 template <typename TInputImage, typename TOutputImage>
+auto
+DiReCTImageFilter<TInputImage, TOutputImage>::MakeOutput(
+  DataObjectPointerArraySizeType idx) -> DataObjectPointer
+{
+  if (idx > 0)
+  {
+    return CumulativeVelocityFieldType::New().GetPointer();
+  }
+  return Superclass::MakeOutput(idx);
+} 
+
+template <typename TInputImage, typename TOutputImage>
+auto
+DiReCTImageFilter<TInputImage, TOutputImage>::GetThicknessImage() -> OutputImageType *
+{
+  return dynamic_cast<OutputImageType *>(this->ProcessObject::GetOutput(0));
+}
+
+template <typename TInputImage, typename TOutputImage>
+auto
+DiReCTImageFilter<TInputImage, TOutputImage>::GetForwardCumulativeVelocityField() -> CumulativeVelocityFieldType *
+{
+  return dynamic_cast<CumulativeVelocityFieldType *>(this->ProcessObject::GetOutput(1));
+}
+
+template <typename TInputImage, typename TOutputImage>
+auto
+DiReCTImageFilter<TInputImage, TOutputImage>::GetInverseCumulativeVelocityField() -> CumulativeVelocityFieldType *
+{
+  return dynamic_cast<CumulativeVelocityFieldType *>(this->ProcessObject::GetOutput(2));
+}
+
+template <typename TInputImage, typename TOutputImage>
+void
+DiReCTImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
+{
+  RealImagePointer corticalThicknessImage = this->GetThicknessImage();
+  corticalThicknessImage->CopyInformation(this->GetInput());
+  corticalThicknessImage->SetRegions(this->GetInput()->GetLargestPossibleRegion());
+
+  if (this->m_IncludeCumulativeVelocityFields)
+  {
+    CumulativeVelocityFieldPointer forwardCumulativeVelocityField = this->GetForwardCumulativeVelocityField();
+    CumulativeVelocityFieldPointer inverseCumulativeVelocityField = this->GetInverseCumulativeVelocityField();
+
+    typename CumulativeVelocityFieldType::PointType origin;
+    typename CumulativeVelocityFieldType::DirectionType direction;
+    typename CumulativeVelocityFieldType::SpacingType spacing;
+    typename CumulativeVelocityFieldType::RegionType region;
+    typename CumulativeVelocityFieldType::RegionType::SizeType size;
+    
+    for (unsigned int d = 0; d < ImageDimension; d++ )
+    {
+      origin[d] = this->GetInput()->GetOrigin()[d];
+      spacing[d] = this->GetInput()->GetSpacing()[d];
+      size[d] = this->GetInput()->GetLargestPossibleRegion().GetSize()[d];
+    }
+    origin[ImageDimension] = 0.0;
+    spacing[ImageDimension] = 1.0;
+    direction.SetIdentity();
+    size[ImageDimension] = this->m_NumberOfIntegrationPoints;
+
+    inverseCumulativeVelocityField->SetSpacing(spacing);
+    inverseCumulativeVelocityField->SetOrigin(origin);
+    inverseCumulativeVelocityField->SetDirection(direction);
+    inverseCumulativeVelocityField->SetRegions(size);
+
+    forwardCumulativeVelocityField->SetSpacing(spacing);
+    forwardCumulativeVelocityField->SetOrigin(origin);
+    forwardCumulativeVelocityField->SetDirection(direction);
+    forwardCumulativeVelocityField->SetRegions(size);
+  } 
+}
+
+template <typename TInputImage, typename TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
 {
-  if (this->m_ThicknessPriorImage)
-  {
-    std::cout << "Using prior thickness image." << std::endl;
-  }
   this->m_CurrentGradientStep = this->m_InitialGradientStep;
 
   // Convert all input direction matrices to identities saving the original
@@ -170,11 +250,18 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
   // Initialize fields and images.
   VectorType zeroVector(0.0);
 
-  RealImagePointer corticalThicknessImage = RealImageType::New();
-  corticalThicknessImage->CopyInformation(segmentationImage);
-  corticalThicknessImage->SetRegions(segmentationImage->GetRequestedRegion());
+  RealImagePointer corticalThicknessImage = this->GetThicknessImage();
+  corticalThicknessImage->SetDirection(segmentationImage->GetDirection());
   corticalThicknessImage->Allocate();
   corticalThicknessImage->FillBuffer(0.0);
+
+  if (this->m_IncludeCumulativeVelocityFields)
+  {
+    CumulativeVelocityFieldPointer forwardCumulativeVelocityField = this->GetForwardCumulativeVelocityField();
+    forwardCumulativeVelocityField->Allocate();
+    CumulativeVelocityFieldPointer inverseCumulativeVelocityField = this->GetInverseCumulativeVelocityField();
+    inverseCumulativeVelocityField->Allocate();
+  }
 
   DisplacementFieldPointer forwardIncrementalField = DisplacementFieldType::New();
   forwardIncrementalField->CopyInformation(segmentationImage);
@@ -226,9 +313,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
   // Instantiate most of the iterators all in one place
 
   ImageRegionIterator<RealImageType>         ItCorticalThicknessImage(corticalThicknessImage,
-                                                              corticalThicknessImage->GetRequestedRegion());
+                                                                      corticalThicknessImage->GetRequestedRegion());
   ImageRegionConstIterator<RealImageType>    ItGrayMatterProbabilityMap(grayMatterProbabilityImage,
-                                                                     grayMatterProbabilityImage->GetRequestedRegion());
+                                                                        grayMatterProbabilityImage->GetRequestedRegion());
   ImageRegionIterator<RealImageType>         ItHitImage(hitImage, hitImage->GetRequestedRegion());
   ImageRegionIterator<DisplacementFieldType> ItForwardIncrementalField(forwardIncrementalField,
                                                                        forwardIncrementalField->GetRequestedRegion());
@@ -470,6 +557,36 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
 
       inverseField = inverter2->GetOutput();
       inverseField->DisconnectPipeline();
+
+      if (this->m_IncludeCumulativeVelocityFields)
+      {
+        CumulativeVelocityFieldPointer forwardCumulativeVelocityField = this->GetForwardCumulativeVelocityField();
+        CumulativeVelocityFieldPointer inverseCumulativeVelocityField = this->GetInverseCumulativeVelocityField();
+
+        using PasterType = PasteImageFilter<CumulativeVelocityFieldType, DisplacementFieldType>;
+
+        typename CumulativeVelocityFieldType::IndexType destinationIndex;
+        destinationIndex.Fill(NumericTraits<typename IndexType::IndexValueType>::Zero);
+        destinationIndex[ImageDimension] = static_cast<typename IndexType::IndexValueType>(integrationPoint);
+
+        typename PasterType::Pointer paster1 = PasterType::New();
+        paster1->SetSourceImage(integratedField);
+        paster1->SetSourceRegion(integratedField->GetLargestPossibleRegion());
+        paster1->SetDestinationImage(forwardCumulativeVelocityField);
+        paster1->SetDestinationIndex(destinationIndex);
+        paster1->Update();
+
+        this->ProcessObject::SetNthOutput(1, paster1->GetOutput());
+
+        typename PasterType::Pointer paster2 = PasterType::New();
+        paster2->SetSourceImage(inverseField);
+        paster2->SetSourceRegion(inverseField->GetLargestPossibleRegion());
+        paster2->SetDestinationImage(inverseCumulativeVelocityField);
+        paster2->SetDestinationIndex(destinationIndex);
+        paster2->Update();
+
+        this->ProcessObject::SetNthOutput(2, paster2->GetOutput());
+      }
     }
 
     // calculate the size of the solution to allow us to adjust the
@@ -624,12 +741,24 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   // Replace the identity direction with the original direction in the outputs
 
-  RealImagePointer warpedWhiteMatterProbabilityImage = this->WarpImage(whiteMatterProbabilityImage, inverseField);
-  warpedWhiteMatterProbabilityImage->SetDirection(this->GetSegmentationImage()->GetDirection());
   corticalThicknessImage->SetDirection(this->GetSegmentationImage()->GetDirection());
 
-  this->SetNthOutput(0, corticalThicknessImage);
-  this->SetNthOutput(1, warpedWhiteMatterProbabilityImage);
+  if (this->m_IncludeCumulativeVelocityFields)
+  {
+    typename CumulativeVelocityFieldType::DirectionType direction;
+    direction.SetIdentity();
+
+    for (unsigned int d = 0; d < ImageDimension; d++)
+    {
+      for (unsigned int e = 0; e < ImageDimension; e++) 
+      { 
+        direction(d, e) = this->GetSegmentationImage()->GetDirection()(d, e);
+      }
+    }
+   
+    this->GetForwardCumulativeVelocityField()->SetDirection(direction);
+    this->GetInverseCumulativeVelocityField()->SetDirection(direction);
+  }  
 }
 
 template <typename TInputImage, typename TOutputImage>
