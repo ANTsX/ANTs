@@ -154,7 +154,8 @@ DiReCT(itk::ants::CommandLineParser * parser)
     if (verbose)
     {
       std::cout << "  Grey matter probability image not specified. "
-                << "Creating one from the segmentation image." << std::endl;
+                << "Creating one from the segmentation image using label value " 
+                << direct->GetGrayMatterLabel() << std::endl;
     }
 
     using ThresholderType = itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType>;
@@ -191,8 +192,8 @@ DiReCT(itk::ants::CommandLineParser * parser)
     if (verbose)
     {
       std::cout << "  White matter probability image not specified. "
-                << "Creating one from the segmentation image." << std::endl
-                << std::endl;
+                << "Creating one from the segmentation image using label value " 
+                << direct->GetWhiteMatterLabel() << std::endl;
     }
 
     using ThresholderType = itk::BinaryThresholdImageFilter<LabelImageType, ImageType>;
@@ -366,6 +367,19 @@ DiReCT(itk::ants::CommandLineParser * parser)
     direct->AddObserver(itk::IterationEvent(), observer);
   }
 
+  /**
+   * output
+   */
+  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption("output");
+  if (outputOption)
+  {
+    if (outputOption->GetFunction(0)->GetNumberOfParameters() > 1)
+    {
+    direct->SetIncludeCumulativeVelocityFields(true);
+    } 
+  }
+
+
   itk::TimeProbe timer;
   timer.Start();
   try
@@ -391,35 +405,25 @@ DiReCT(itk::ants::CommandLineParser * parser)
   /**
    * output
    */
-  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption("output");
 
   if (outputOption && outputOption->GetNumberOfFunctions() > 0)
   {
     if (outputOption->GetFunction(0)->GetNumberOfParameters() == 0)
     {
-      ANTs::WriteImage<ImageType>(direct->GetOutput(), (outputOption->GetFunction(0)->GetName()).c_str());
+      ANTs::WriteImage<ImageType>(direct->GetThicknessImage(), (outputOption->GetFunction(0)->GetName()).c_str());
     }
     else if (outputOption->GetFunction(0)->GetNumberOfParameters() > 0)
     {
-      ANTs::WriteImage<ImageType>(direct->GetOutput(), (outputOption->GetFunction(0)->GetParameter()).c_str());
+      ANTs::WriteImage<ImageType>(direct->GetThicknessImage(), (outputOption->GetFunction(0)->GetParameter(0)).c_str());
       if (outputOption->GetFunction(0)->GetNumberOfParameters() > 1)
       {
-        ANTs::WriteImage<ImageType>(direct->GetOutput(1), (outputOption->GetFunction(0)->GetParameter(1)).c_str());
+        direct->GetForwardCumulativeVelocityField()->Print(std::cout, 3);
+        ANTs::WriteImage<typename DiReCTFilterType::CumulativeVelocityFieldType>(direct->GetForwardCumulativeVelocityField(), 
+                                          (outputOption->GetFunction(0)->GetParameter(1) + "ForwardVelocityField.nii.gz").c_str());
+        ANTs::WriteImage<typename DiReCTFilterType::CumulativeVelocityFieldType>(direct->GetInverseCumulativeVelocityField(), 
+                                          (outputOption->GetFunction(0)->GetParameter(1) + "InverseVelocityField.nii.gz").c_str());
       }
     }
-  }
-
-  if (segmentationImageOption->GetFunction(0)->GetNumberOfParameters() == 0)
-  {
-    std::string inputFile = segmentationImageOption->GetFunction(0)->GetName();
-    ReadImage<LabelImageType>(segmentationImage, inputFile.c_str());
-  }
-  else if (segmentationImageOption->GetFunction(0)->GetNumberOfParameters() > 0)
-
-  {}
-  if (outputOption && outputOption->GetNumberOfFunctions() > 1)
-  {
-    ANTs::WriteImage<ImageType>(direct->GetOutput(1), (outputOption->GetFunction(1)->GetName()).c_str());
   }
 
   return EXIT_SUCCESS;
@@ -642,7 +646,7 @@ KellyKapowskiInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
     option->SetLongName("output");
     option->SetShortName('o');
     option->SetUsageOption(0, "imageFileName");
-    option->SetUsageOption(1, "[imageFileName,warpedWhiteMatterImageFileName]");
+    option->SetUsageOption(1, "[imageFileName,cumulativeVelocityFieldFileNamePrefix]");
     option->SetDescription(description);
     parser->AddOption(option);
   }
