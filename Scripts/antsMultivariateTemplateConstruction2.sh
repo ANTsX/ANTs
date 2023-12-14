@@ -1471,7 +1471,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             IMGbase=`basename ${IMAGESETARRAY[$l]}`
             OUTFN=${OUTPUTNAME}template${k}${IMGbase/%?(.nii.gz|.nii)}
             OUTFN=`basename ${OUTFN}`
-            OUTFN="${OUTFN}${j}"
+            OUTFN="${OUTFN}${l}"
             DEFORMED="${outdir}/${OUTFN}${l}WarpedToTemplate.nii.gz"
 
             IMGbase=`basename ${IMAGESETARRAY[$j]}`
