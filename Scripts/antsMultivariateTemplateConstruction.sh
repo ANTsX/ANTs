@@ -1349,6 +1349,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             POO=${OUTPUTNAME}template${k}${IMGbase}
             OUTFN=${POO%.*.*}
             OUTFN=`basename ${OUTFN}`
+            OUTFN="${OUTFN}${j}"
             DEFORMED="${outdir}/${OUTFN}${l}WarpedToTemplate.nii.gz"
 
             IMGbase=`basename ${IMAGESETARRAY[$j]}`
