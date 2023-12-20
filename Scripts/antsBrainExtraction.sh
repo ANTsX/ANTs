@@ -142,9 +142,15 @@ Optional arguments:
 
      -f:  Brain extraction registration mask    Mask used for registration to limit the metric computation to
                                                 a specific region.
+
+     -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = $KEEP_TMP_IMAGES).
+
+     -q:  Use single floating point precision   Use antsRegistration with single (1) or double (0) floating point precision (default = $USE_FLOAT_PRECISION).
+
      -r:  Initial moving transform              An ITK affine transform (eg, from antsAI or ITK-SNAP) for the moving image.
                                                 Without this option, this script calls antsAI to search for a good initial moving
                                                 transform.
+
      -R:  Rotation search parameters            Rotation search parameters for antsAI in format step,arcFraction. The step is in
                                                 degrees, the arc fraction goes from 0 (no search) to 1 (search -180 to 180
                                                 degree rotations in increements of step). The search begins at -(180*arcFraction)
@@ -158,12 +164,9 @@ Optional arguments:
                                                 left-right translations because the brain is usually well-centered along this
                                                 dimension in human images. Default = $ANTS_AI_TRANSLATION_SEARCH_PARAMS.
 
-
      -u:  Use random seeding                    Use random number generated from system clock (1) or a fixed seed (0). To produce identical
                                                 results, multi-threading must also be disabled by setting the environment variable
                                                 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1. Default = $USE_RANDOM_SEEDING.
-     -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = $KEEP_TMP_IMAGES).
-     -q:  Use single floating point precision   Use antsRegistration with single (1) or double (0) floating point precision (default = $USE_FLOAT_PRECISION).
 
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for debugging, results will not be good.
 
