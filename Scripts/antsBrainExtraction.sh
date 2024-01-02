@@ -22,6 +22,11 @@ then
   echo we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
+if ! command -v bc &> /dev/null
+then
+  echo we cant find the bc program -- does not seem to exist. Please install gnu coreutils.
+  exit
+fi
 
 ################################################################################
 #
@@ -74,6 +79,13 @@ ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x100,1e-8,10 ]"
 ANTS_METRIC="CC"
 ANTS_METRIC_PARAMS="1,4"
 
+# Default to search an arc fraction of 0.12 in 20 degree intervals
+# In other words, roughly +/- 20 degrees from the initial angle
+ANTS_AI_ROTATION_SEARCH_PARAMS="20,0.12"
+
+# Default to search a translation of 40mm in the y and z direction
+ANTS_AI_TRANSLATION_SEARCH_PARAMS="40,0x40x40"
+
 WARP=antsApplyTransforms
 
 N4=N4BiasFieldCorrection
@@ -81,7 +93,6 @@ N4_CONVERGENCE_1="[ 50x50x50x50,0.0000001 ]"
 N4_CONVERGENCE_2="[ 50x50x50x50,0.0000001 ]"
 N4_SHRINK_FACTOR_1=4
 N4_SHRINK_FACTOR_2=2
-N4_BSPLINE_PARAMS="[ 200 ]"
 
 
 function Usage {
@@ -131,15 +142,31 @@ Optional arguments:
 
      -f:  Brain extraction registration mask    Mask used for registration to limit the metric computation to
                                                 a specific region.
+
+     -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = $KEEP_TMP_IMAGES).
+
+     -q:  Use single floating point precision   Use antsRegistration with single (1) or double (0) floating point precision (default = $USE_FLOAT_PRECISION).
+
      -r:  Initial moving transform              An ITK affine transform (eg, from antsAI or ITK-SNAP) for the moving image.
                                                 Without this option, this script calls antsAI to search for a good initial moving
                                                 transform.
+
+     -R:  Rotation search parameters            Rotation search parameters for antsAI in format step,arcFraction. The step is in
+                                                degrees, the arc fraction goes from 0 (no search) to 1 (search -180 to 180
+                                                degree rotations in increements of step). The search begins at -(180*arcFraction)
+                                                in each dimension - users should choose parameters so that there is a search point
+                                                near zero rotation. Default = $ANTS_AI_ROTATION_SEARCH_PARAMS.
+
      -s:  Image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz, mhd (default = $OUTPUT_SUFFIX)
+
+     -T:  Translation search parameters         Translation search parameters for antsAI in format step,range. The step is in
+                                                mm, -range to range will be tested in each dimension. The default does not search
+                                                left-right translations because the brain is usually well-centered along this
+                                                dimension in human images. Default = $ANTS_AI_TRANSLATION_SEARCH_PARAMS.
+
      -u:  Use random seeding                    Use random number generated from system clock (1) or a fixed seed (0). To produce identical
                                                 results, multi-threading must also be disabled by setting the environment variable
                                                 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1. Default = $USE_RANDOM_SEEDING.
-     -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = $KEEP_TMP_IMAGES).
-     -q:  Use single floating point precision   Use antsRegistration with single (1) or double (0) floating point precision (default = $USE_FLOAT_PRECISION).
 
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for debugging, results will not be good.
 
@@ -158,6 +185,10 @@ echoParameters() {
       extraction prior        = ${EXTRACTION_PRIOR}
       output prefix           = ${OUTPUT_PREFIX}
       output image suffix     = ${OUTPUT_SUFFIX}
+
+    antsAI parameters (initial alignment):
+      rotation search params  = ${ANTS_AI_ROTATION_SEARCH_PARAMS}
+      translation search params = ${ANTS_AI_TRANSLATION_SEARCH_PARAMS}
 
     N4 parameters (pre brain extraction):
       convergence             = ${N4_CONVERGENCE_1}
@@ -221,7 +252,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:c:d:e:f:h:k:m:o:q:r:s:u:z:" OPT
+  while getopts "a:c:d:e:f:h:k:m:o:q:r:R:s:T:u:z:" OPT
     do
       case $OPT in
           d) #dimensions
@@ -279,8 +310,14 @@ else
           r)
        USER_INITIAL_AFFINE=$OPTARG
        ;;
+          R)
+       ANTS_AI_ROTATION_SEARCH_PARAMS=$OPTARG
+       ;;
           s) #output suffix
        OUTPUT_SUFFIX=$OPTARG
+       ;;
+          T)
+       ANTS_AI_TRANSLATION_SEARCH_PARAMS=$OPTARG
        ;;
           u) #use random seeding
        USE_RANDOM_SEEDING=$OPTARG
@@ -317,6 +354,15 @@ if [[ -z "$ATROPOS_SEGMENTATION_MRF" ]];
         ATROPOS_SEGMENTATION_MRF="[ 0.1,1x1 ]"
       fi
   fi
+
+
+N4_BSPLINE_PARAMS="[ 1x1x1, 3 ]"
+
+if [[ $DIMENSION -eq 2 ]];
+  then
+    N4_BSPLINE_PARAMS="[ 1x1, 3 ]"
+  fi
+
 
 echo "
 Will run Atropos segmentation with K=${ATROPOS_NUM_CLASSES}. Classes labeled in order of mean intensity. Assuming CSF=${ATROPOS_CSF_CLASS_LABEL}, GM=${ATROPOS_GM_CLASS_LABEL}, WM=${ATROPOS_WM_CLASS_LABEL}
@@ -492,14 +538,32 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
           if [[ ! -f "${USER_INITIAL_AFFINE}" ]]
             then
 
-              logCmd ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_TEMPLATE} ${EXTRACTION_INITIAL_AFFINE_FIXED} 4 4 4 1
-              logCmd ResampleImageBySpacing ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_INITIAL_AFFINE_MOVING} 4 4 4 1
+              # Smooth by 4 voxels
+              antomical_spacing=($(PrintHeader ${N4_CORRECTED_IMAGES[0]} 1 | tr 'x' '\n'))
+              template_spacing=($(PrintHeader ${EXTRACTION_TEMPLATE} 1 | tr 'x' '\n'))
+
+              logCmd SmoothImage ${DIMENSION} ${EXTRACTION_TEMPLATE} 4 ${EXTRACTION_INITIAL_AFFINE_FIXED}
+              logCmd SmoothImage ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} 4 ${EXTRACTION_INITIAL_AFFINE_MOVING}
+
+              # Downsample the template by a factor of 5, and resample both images to that resolution
+              downsample_template_spacing=()
+
+              for (( i = 0; i < ${DIMENSION}; i++ ))
+                do
+                  downsample_template_spacing[$i]=$(echo "${template_spacing[$i]} * 5" | bc -l)
+                done
+
+              logCmd ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} \
+                ${EXTRACTION_INITIAL_AFFINE_FIXED} ${downsample_template_spacing[@]} 0
+
+              logCmd ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_MOVING} \
+                ${EXTRACTION_INITIAL_AFFINE_MOVING} ${downsample_template_spacing[@]} 0
 
               exe_initial_align="antsAI -d ${DIMENSION} -v 1"
               exe_initial_align="${exe_initial_align} -m Mattes[ ${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2 ]"
               exe_initial_align="${exe_initial_align} -t Affine[ 0.1 ]"
-              exe_initial_align="${exe_initial_align} -s [ 20,0.12 ]"
-              exe_initial_align="${exe_initial_align} -g [ 40,0x40x40 ]"
+              exe_initial_align="${exe_initial_align} -s [ ${ANTS_AI_ROTATION_SEARCH_PARAMS} ]"
+              exe_initial_align="${exe_initial_align} -g [ ${ANTS_AI_TRANSLATION_SEARCH_PARAMS} ]"
               exe_initial_align="${exe_initial_align} -p 0"
               exe_initial_align="${exe_initial_align} -c 10"
               exe_initial_align="${exe_initial_align} -o ${EXTRACTION_INITIAL_AFFINE}"
@@ -511,7 +575,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
               logCmd $exe_initial_align
             else
-              antsApplyTransforms -d ${DIMENSION} -t ${USER_INITIAL_AFFINE} -o Linear[ ${EXTRACTION_INITIAL_AFFINE}, 0 ]
+              logCmd antsApplyTransforms -d ${DIMENSION} -t ${USER_INITIAL_AFFINE} -o Linear[ ${EXTRACTION_INITIAL_AFFINE}, 0 ]
             fi
 
           basecall="${ANTS} -d ${DIMENSION} -u 1 -w [ 0.025,0.975 ] -o ${EXTRACTION_WARP_OUTPUT_PREFIX} -r ${EXTRACTION_INITIAL_AFFINE} -z 1 --float ${USE_FLOAT_PRECISION} --verbose 1"
