@@ -26,6 +26,11 @@ RUN cmake --install .
 
 FROM base
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bc \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 COPY --from=builder /opt/ants /opt/ants
 ENV PATH="/opt/ants/bin:$PATH" \
     LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
