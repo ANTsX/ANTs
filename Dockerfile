@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20220427 as builder
+FROM ubuntu:jammy as builder
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -12,11 +12,15 @@ RUN apt-get update \
                     software-properties-common \
                     wget
 
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
-    | apt-key add - \
-  && apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main' \
-  && apt-get update \
-  && apt-get -y install cmake=3.18.3-0kitware1 cmake-data=3.18.3-0kitware1
+# install miniconda3
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py310_23.11.0-1-Linux-$(uname -m).sh \
+    && /bin/bash Miniconda3-py310_23.11.0-1-Linux-$(uname -m).sh -b -p /opt/conda \
+    && rm Miniconda3-py310_23.11.0-1-Linux-$(uname -m).sh
+ENV PATH=/opt/conda/bin:$PATH
+
+# install cmake binary using conda for multi-arch support
+RUN conda update -c defaults conda
+RUN conda install -c conda-forge cmake
 
 ADD . /tmp/ants/source
 RUN mkdir -p /tmp/ants/build \
@@ -41,7 +45,7 @@ ENV LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
 RUN cd /tmp/ants/build/ANTS-build \
     && cmake --build . --target test
 
-FROM ubuntu:bionic-20220427
+FROM ubuntu:jammy
 COPY --from=builder /opt/ants /opt/ants
 
 LABEL maintainer="ANTsX team" \
