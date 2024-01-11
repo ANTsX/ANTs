@@ -5916,7 +5916,11 @@ VImageMath(int argc, char * argv[])
 
     if (strcmp(operation.c_str(), "vm") == 0)
     {
-      result = pix1 * pix2;
+      // element-wise multiplication
+      for (unsigned d = 0; d < pix1.GetNumberOfComponents(); ++d)
+      {
+        result[d] = pix1[d] * pix2[d];
+      }
     }
     else if (strcmp(operation.c_str(), "v+") == 0)
     {
@@ -5933,7 +5937,7 @@ VImageMath(int argc, char * argv[])
     }
     else if (strcmp(operation.c_str(), "vtotal") == 0)
     {
-      result += pix1 * pix2;
+      result.Fill(pix1 * pix2);
     }
     vfIter2.Set(result);
   }
