@@ -98,7 +98,8 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   shapePoint[1] = eigenvalue2 * (this->m_NumberOfShapeJointHistogramBins - 1);
 
   ContinuousIndex<double, 2> shapeCidx;
-  this->m_JointHistogramImages[0]->TransformPhysicalPointToContinuousIndex(shapePoint, shapeCidx);
+  shapeCidx =
+    this->m_JointHistogramImages[0]->TransformPhysicalPointToContinuousIndex<double, SpacePrecisionType>(shapePoint);
 
   typedef typename JointHistogramImageType::IndexType JointHistogramImageIndexType;
   JointHistogramImageIndexType                        shapeIdx;
@@ -272,7 +273,8 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     static_cast<RealType>(this->m_NumberOfOrientationJointHistogramBins - 1));
 
   ContinuousIndex<double, 2> orientCidx;
-  this->m_JointHistogramImages[whichHistogram]->TransformPhysicalPointToContinuousIndex(orientPoint, orientCidx);
+  orientCidx = this->m_JointHistogramImages[whichHistogram]
+                 ->TransformPhysicalPointToContinuousIndex<double, itk::SpacePrecisionType>(orientPoint);
 
   typedef typename JointHistogramImageType::IndexType JointHistogramImageIndexType;
   JointHistogramImageIndexType                        orientIdx;

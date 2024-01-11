@@ -13,6 +13,7 @@
 #include "itkRigid2DTransform.h"
 #include "itkVersorRigid3DTransform.h"
 #include "itkTransformFileWriter.h"
+#include "itkFloatTypes.h"
 
 #include <string>
 #include <vector>
@@ -372,10 +373,12 @@ InitializeBSplineTransform(int argc, char * argv[])
         }
 
         itk::ContinuousIndex<double, ImageDimension> fixedCidx;
-        fixedImage->TransformPhysicalPointToContinuousIndex(fixedPhysicalPoint, fixedCidx);
+        fixedCidx =
+          fixedImage->TransformPhysicalPointToContinuousIndex<double, itk::SpacePrecisionType>(fixedPhysicalPoint);
 
         typename DisplacementFieldType::PointType fieldPoint;
-        parametricInputImage->TransformContinuousIndexToPhysicalPoint(fixedCidx, fieldPoint);
+        fieldPoint =
+          parametricInputImage->TransformContinuousIndexToPhysicalPoint<double, itk::SpacePrecisionType>(fixedCidx);
 
         fieldPoints->SetPoint(count, fieldPoint);
         fieldPoints->SetPointData(count, vector);

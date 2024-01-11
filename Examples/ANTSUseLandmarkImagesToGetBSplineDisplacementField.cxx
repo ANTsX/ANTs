@@ -11,6 +11,7 @@
 #include "itkImportImageFilter.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkPointSet.h"
+#include "itkFloatTypes.h"
 
 #include <string>
 #include <vector>
@@ -283,7 +284,7 @@ LandmarkBasedDisplacementFieldTransformInitializer(int argc, char * argv[])
         }
 
         itk::ContinuousIndex<double, ImageDimension> fixedCidx;
-        fixedImage->TransformPhysicalPointToContinuousIndex(fixedPhysicalPoint, fixedCidx);
+        fixedCidx = fixedImage->TransformPhysicalPointToContinuousIndex<double, itk::SpacePrecisionType>(fixedPhysicalPoint);
 
         typename DisplacementFieldType::PointType fieldPoint;
         parametricInputImage->TransformContinuousIndexToPhysicalPoint(fixedCidx, fieldPoint);
@@ -540,13 +541,11 @@ ANTSUseLandmarkImagesToGetBSplineDisplacementField(std::vector<std::string> args
 
   switch (imageIO->GetNumberOfDimensions())
   {
-    case 2:
-    {
+    case 2: {
       LandmarkBasedDisplacementFieldTransformInitializer<2>(argc, argv);
     }
     break;
-    case 3:
-    {
+    case 3: {
       LandmarkBasedDisplacementFieldTransformInitializer<3>(argc, argv);
     }
     break;

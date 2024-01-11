@@ -658,15 +658,15 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
           samplingStrategy = metricOption->GetFunction(currentStage)->GetParameter(4);
         }
         ConvertToLowerCase(samplingStrategy);
-        typename TranslationRegistrationType::MetricSamplingStrategyEnum metricSamplingStrategy =
-          TranslationRegistrationType::NONE;
+        itk::ImageRegistrationMethodv4Enums::MetricSamplingStrategy metricSamplingStrategy =
+		  itk::ImageRegistrationMethodv4Enums::MetricSamplingStrategy::NONE;
         if (std::strcmp(samplingStrategy.c_str(), "random") == 0)
         {
-          metricSamplingStrategy = TranslationRegistrationType::RANDOM;
+          metricSamplingStrategy = itk::ImageRegistrationMethodv4Enums::MetricSamplingStrategy::RANDOM;
         }
         if (std::strcmp(samplingStrategy.c_str(), "regular") == 0)
         {
-          metricSamplingStrategy = TranslationRegistrationType::REGULAR;
+          metricSamplingStrategy = itk::ImageRegistrationMethodv4Enums::MetricSamplingStrategy::REGULAR;
         }
 
         if (std::strcmp(whichMetric.c_str(), "cc") == 0)

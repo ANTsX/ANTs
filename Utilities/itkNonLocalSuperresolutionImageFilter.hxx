@@ -64,7 +64,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>::NonLocalSuperreso
   typedef LinearInterpolateImageFunction<InputImageType, RealType> LinearInterpolatorType;
   this->m_Interpolator = LinearInterpolatorType::New();
 
-  this->SetSimilarityMetric(Superclass::MEAN_SQUARES);
+  this->SetSimilarityMetric(NonLocalPatchBasedImageFilterEnums::SimilarityMetric::MEAN_SQUARES);
 }
 
 template <typename TInputImage, typename TOutputImage>

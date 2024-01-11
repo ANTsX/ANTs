@@ -163,7 +163,7 @@ SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood(
   tempp[0] = rootpoint[0];
   tempp[1] = rootpoint[1];
   tempp[2] = rootpoint[2];
-  this->m_FunctionImage->TransformPhysicalPointToIndex(tempp, oindex);
+  oindex = this->m_FunctionImage->TransformPhysicalPointToIndex(tempp);
   for (unsigned int i = 0; i < ImageDimension; i++)
   {
     rad[i] = (long)(m_NeighborhoodRadius/this->m_Spacing[i]+0.5);

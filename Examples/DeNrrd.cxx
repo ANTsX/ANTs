@@ -26,6 +26,7 @@
 #include <itkNrrdImageIO.h>
 #include <itkVectorImage.h>
 #include <itkVariableLengthVector.h>
+#include <itkCommonEnums.h>
 
 #include <itkMetaDataDictionary.h>
 
@@ -113,7 +114,7 @@ DeNrrd(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
 
   itk::NrrdImageIO::Pointer io = itk::NrrdImageIO::New();
   // io->SetNrrdVectorType( nrrdKindList );
-  io->SetFileType(itk::ImageIOBase::ASCII);
+  io->SetFileType(itk::CommonEnums::IOFile::ASCII);
 
   // std::cout  << "Number of dwi values " << reader->GetOutput()->GetNumberOfComponentsPerPixel() << std::endl;
 
