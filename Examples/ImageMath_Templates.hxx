@@ -1703,7 +1703,7 @@ SetOrGetPixel(int argc, char * argv[])
     {
       porig[2] = indz;
     }
-    image1->TransformPhysicalPointToIndex(porig, index);
+    index = image1->TransformPhysicalPointToIndex(porig);
   }
   // std::cout << " use phy " << usephyspace << " " << indx << " " << indy << " " << indz << std::endl;
   // std::cout << " Ind " << index << std::endl;
@@ -5906,7 +5906,7 @@ VImageMath(int argc, char * argv[])
     PixelType pix2;
     if (isfloat)
     {
-      pix2 = floatval;
+      pix2.Fill(floatval);
     }
     else
     {
