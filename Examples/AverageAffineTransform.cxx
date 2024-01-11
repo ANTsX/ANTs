@@ -311,7 +311,7 @@ AverageAffineTransform(std::vector<std::string> args, std::ostream * /*out_strea
   {
     kImageDim = std::stoi(argv[1]);
   }
-  catch (const std::invalid_argument & e)
+  catch (const std::invalid_argument &)
   {
     std::cerr << "Invalid image dimension: " << argv[1] << std::endl;
     return EXIT_FAILURE;
