@@ -365,7 +365,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
       this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, jointPDFpoint);
       JointPDFIndexType jointPDFIndex;
       jointPDFIndex.Fill(0);
-      this->m_JointPDF->TransformPhysicalPointToIndex(jointPDFpoint, jointPDFIndex);
+      jointPDFIndex = this->m_JointPDF->TransformPhysicalPointToIndex(jointPDFpoint);
       this->m_JointPDF->SetPixel(jointPDFIndex, this->m_JointPDF->GetPixel(jointPDFIndex) + 1);
 
       ++nSamples;

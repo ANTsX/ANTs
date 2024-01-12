@@ -540,9 +540,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
           // use continous coordinates
           typename DefaultVectorInterpolatorType::ContinuousIndexType contind;
           // use ITK implementation to use orientation header
-          fieldPtr->TransformPhysicalPointToContinuousIndex(point1, contind);
-
-          isinside = fieldPtr->GetLargestPossibleRegion().IsInside(contind);
+          isinside = fieldPtr->TransformPhysicalPointToContinuousIndex(point1, contind);
 
           VectorInterpolatorPointer                          vinterp = it->second.dex.vinterp;
           typename DefaultVectorInterpolatorType::OutputType disp2;

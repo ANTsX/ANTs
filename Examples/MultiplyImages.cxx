@@ -114,7 +114,13 @@ MultiplyImages(int argc, char * argv[])
     }
     else
     {
-      vfIter2.Set(pix1 * image2->GetPixel(ind));
+      // element-wise multiplication
+      PixelType result = image2->GetPixel(ind);
+      for (unsigned d = 0; d < pix1.GetNumberOfComponents(); ++d)
+      {
+        result[d] *= pix1[d];
+      }
+      vfIter2.Set(result);
     }
   }
   typename writertype::Pointer writer = writertype::New();

@@ -1322,25 +1322,25 @@ AtroposInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Different posterior probability formulations are possible as ") +
-                              std::string("are different update options.  To guarantee theoretical ") +
-                              std::string("convergence properties, a proper formulation of the well-known ") +
-                              std::string("iterated conditional modes (ICM) uses an asynchronous update step ") +
-                              std::string("modulated by a specified annealing temperature.  If one sets ") +
-                              std::string("the AnnealingTemperature > 1 in the posterior formulation ") +
-                              std::string("a traditional code set for a proper ICM update will be created. ") +
-                              std::string("Otherwise, a synchronous update step will take place at each iteration. ") +
-                              std::string("The annealing temperature, T, converts the posteriorProbability ") +
-                              std::string("to posteriorProbability^(1/T) over the course of optimization. ");
-    std::string("Options include the following:  ") +
+    std::string description =
+      std::string("Different posterior probability formulations are possible as ") +
+      std::string("are different update options.  To guarantee theoretical ") +
+      std::string("convergence properties, a proper formulation of the well-known ") +
+      std::string("iterated conditional modes (ICM) uses an asynchronous update step ") +
+      std::string("modulated by a specified annealing temperature.  If one sets ") +
+      std::string("the AnnealingTemperature > 1 in the posterior formulation ") +
+      std::string("a traditional code set for a proper ICM update will be created. ") +
+      std::string("Otherwise, a synchronous update step will take place at each iteration. ") +
+      std::string("The annealing temperature, T, converts the posteriorProbability ") +
+      std::string("to posteriorProbability^(1/T) over the course of optimization. ") +
+      std::string("Options include the following:  ") +
       std::string(" Socrates: posteriorProbability = (spatialPrior)^priorWeight") +
       std::string("*(likelihood*mrfPrior)^(1-priorWeight), ") + std::string(" Plato: posteriorProbability = 1.0, ") +
-      std::string(" Aristotle: posteriorProbability = 1.0, ") +
-      std::string(" Sigmoid: posteriorProbability = 1.0, ") /* +
-   std::string( " Zeno: posteriorProbability = 1.0\n" ) +
-   std::string( " Diogenes: posteriorProbability = 1.0\n" ) +
-   std::string( " Thales: posteriorProbability = 1.0\n" ) +
-   std::string( " Democritus: posteriorProbability = 1.0.\n" ) */
+      std::string(" Aristotle: posteriorProbability = 1.0, ") + std::string(" Sigmoid: posteriorProbability = 1.0, ")
+      // std::string( " Zeno: posteriorProbability = 1.0\n" ) +
+      // std::string( " Diogenes: posteriorProbability = 1.0\n" ) +
+      // std::string( " Thales: posteriorProbability = 1.0\n" ) +
+      // std::string( " Democritus: posteriorProbability = 1.0.\n" )
       ;
 
     OptionType::Pointer option = OptionType::New();

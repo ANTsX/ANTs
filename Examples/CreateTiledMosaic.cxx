@@ -826,7 +826,9 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
           rgbPadder->SetInput(rgbExtracter->GetOutput());
           rgbPadder->SetPadLowerBound(lowerBound);
           rgbPadder->SetPadUpperBound(upperBound);
-          rgbPadder->SetConstant(static_cast<PixelType>(padValue));
+          RgbPixelType rgbPadValue;
+          rgbPadValue.Fill(padValue);
+          rgbPadder->SetConstant(rgbPadValue);
 
           outputRgbSlice = rgbPadder->GetOutput();
           outputRgbSlice->Update();

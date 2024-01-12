@@ -248,11 +248,11 @@ antsJointTensorFusion(itk::ants::CommandLineParser * parser)
     ConvertToLowerCase(metricString);
     if (metricString.compare("pc") == 0)
     {
-      fusionFilter->SetSimilarityMetric(FusionFilterType::PEARSON_CORRELATION);
+      fusionFilter->SetSimilarityMetric(itk::NonLocalPatchBasedImageFilterEnums::SimilarityMetric::PEARSON_CORRELATION);
     }
     else if (metricString.compare("msq") == 0)
     {
-      fusionFilter->SetSimilarityMetric(FusionFilterType::MEAN_SQUARES);
+      fusionFilter->SetSimilarityMetric(itk::NonLocalPatchBasedImageFilterEnums::SimilarityMetric::MEAN_SQUARES);
     }
     else
     {

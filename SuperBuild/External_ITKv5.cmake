@@ -109,15 +109,12 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   string(REPLACE "-fopenmp" "" ITK_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   string(REPLACE "-fopenmp" "" ITK_CMAKE_CXX_FLAGS "${CMAKE_CX_FLAGS}")
 
- # ITK now has zlib-ng, so we no longer depend on system zlib
- # find_package(ZLIB REQUIRED)
-
   set(${proj}_CMAKE_OPTIONS
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
       -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/staging
-      -DITK_LEGACY_REMOVE:BOOL=OFF # <--- NEEDED TEMPORARILY until fixes for enum-class and ITK 5.1 release are required
-      -DITK_FUTURE_LEGACY_REMOVE:BOOL=ON
+      -DITK_LEGACY_REMOVE:BOOL=ON
+      -DITK_FUTURE_LEGACY_REMOVE:BOOL=OFF
       -DITKV3_COMPATIBILITY:BOOL=OFF
       -DITK_BUILD_DEFAULT_MODULES:BOOL=ON
       -DITK_USE_SYSTEM_PNG=${ITK_USE_SYSTEM_PNG}
@@ -130,7 +127,6 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       #-DITK_INSTALL_NO_DEVELOPMENT:BOOL=ON
       -DKWSYS_USE_MD5:BOOL=ON # Required by SlicerExecutionModel
       -DITK_WRAPPING:BOOL=OFF #${BUILD_SHARED_LIBS} ## HACK:  QUICK CHANGE
-      -DITKZLIB:BOOL=ON
       -DModule_MGHIO:BOOL=ON
       -DModule_ITKReview:BOOL=ON
       -DModule_GenericLabelInterpolator:BOOL=ON
@@ -156,7 +152,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
-  set(${proj}_GIT_TAG fabc102c520bcbd21ea35e7303e3756c223e10d7)  # Laplacian sharpening
+  set(${proj}_GIT_TAG d45127b5a3296b7f1721b57e0ffe8e0071d0c64f)  # 2023-12-27
   set(ITK_VERSION_ID ITK-5.4) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID if ITK version has changed
 
   ExternalProject_Add(${proj}
