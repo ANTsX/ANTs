@@ -136,7 +136,8 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>::SetIn
       point[0] = inputMeasurement[d];
 
       ContinuousIndex<double, 1> cidx;
-      cidx = this->m_HistogramImages[d]->TransformPhysicalPointToContinuousIndex<double,SpacePrecisionType>(point);
+      cidx = this->m_HistogramImages[d]->
+              template TransformPhysicalPointToContinuousIndex<double, SpacePrecisionType>(point);
 
       typename HistogramImageType::IndexType idx;
 

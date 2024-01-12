@@ -373,12 +373,12 @@ InitializeBSplineTransform(int argc, char * argv[])
         }
 
         itk::ContinuousIndex<double, ImageDimension> fixedCidx;
-        fixedCidx =
-          fixedImage->TransformPhysicalPointToContinuousIndex<double, itk::SpacePrecisionType>(fixedPhysicalPoint);
+        fixedCidx = fixedImage->
+                template TransformPhysicalPointToContinuousIndex<double, itk::SpacePrecisionType>(fixedPhysicalPoint);
 
         typename DisplacementFieldType::PointType fieldPoint;
-        fieldPoint =
-          parametricInputImage->TransformContinuousIndexToPhysicalPoint<double, itk::SpacePrecisionType>(fixedCidx);
+        fieldPoint = parametricInputImage->
+                template TransformContinuousIndexToPhysicalPoint<double, itk::SpacePrecisionType>(fixedCidx);
 
         fieldPoints->SetPoint(count, fieldPoint);
         fieldPoints->SetPointData(count, vector);

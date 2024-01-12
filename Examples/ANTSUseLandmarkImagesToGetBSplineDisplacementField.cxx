@@ -284,7 +284,8 @@ LandmarkBasedDisplacementFieldTransformInitializer(int argc, char * argv[])
         }
 
         itk::ContinuousIndex<double, ImageDimension> fixedCidx;
-        fixedCidx = fixedImage->TransformPhysicalPointToContinuousIndex<double, itk::SpacePrecisionType>(fixedPhysicalPoint);
+        fixedCidx = fixedImage->
+                template TransformPhysicalPointToContinuousIndex<double, itk::SpacePrecisionType>(fixedPhysicalPoint);
 
         typename DisplacementFieldType::PointType fieldPoint;
         parametricInputImage->TransformContinuousIndexToPhysicalPoint(fixedCidx, fieldPoint);
