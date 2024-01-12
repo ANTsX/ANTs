@@ -1331,7 +1331,7 @@ AtroposInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
                               std::string("a traditional code set for a proper ICM update will be created. ") +
                               std::string("Otherwise, a synchronous update step will take place at each iteration. ") +
                               std::string("The annealing temperature, T, converts the posteriorProbability ") +
-                              std::string("to posteriorProbability^(1/T) over the course of optimization. ");
+                              std::string("to posteriorProbability^(1/T) over the course of optimization. ") +
     std::string("Options include the following:  ") +
       std::string(" Socrates: posteriorProbability = (spatialPrior)^priorWeight") +
       std::string("*(likelihood*mrfPrior)^(1-priorWeight), ") + std::string(" Plato: posteriorProbability = 1.0, ") +
