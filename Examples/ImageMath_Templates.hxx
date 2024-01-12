@@ -3756,8 +3756,8 @@ TimeSeriesToMatrix(int argc, char * argv[])
       {
         typename MatrixImageType::IndexType matind;
         matind.Fill(0);
-        matind[1] = t;
-        matind[2] = voxct;
+        matind[0] = t;
+        matind[1] = voxct;
         tind[ImageDimension - 1] = t;
         Scalar pix = image1->GetPixel(tind);
         mSample(t) = pix;
