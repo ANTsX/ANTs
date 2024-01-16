@@ -21,6 +21,7 @@ install(TARGETS antsUtilities
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     COMPONENT DEVELOPMENT_antsUtilities
   )
+set(ANTSTargets antsUtilities)
 
 macro(STATIC_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   set( ANTS_FUNCTION_NAME ${ANTS_FUNCTION_NAME} )
@@ -31,6 +32,7 @@ macro(STATIC_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   message(STATUS "${ANTS_FUNCTION_NAME} ${EXTRA_LIBS}")
   target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${EXTRA_LIBS} )
   configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
+  list(APPEND ANTSTargets l_${ANTS_FUNCTION_NAME})
 
   if (ANTS_INSTALL_LIBS_ONLY)
     install(TARGETS l_${ANTS_FUNCTION_NAME}
@@ -65,6 +67,7 @@ macro(DYNAMIC_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   message(STATUS "${ANTS_FUNCTION_NAME} ${EXTRA_LIBS}")
   target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${EXTRA_LIBS} )
   configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
+  list(APPEND ANTSTargets l_${ANTS_FUNCTION_NAME})
 
   if (ANTS_INSTALL_LIBS_ONLY)
     install(TARGETS l_${ANTS_FUNCTION_NAME}
