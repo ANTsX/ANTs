@@ -1,6 +1,8 @@
 #ifndef antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate__h_
 #define antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate__h_
 
+#include "itkImageDuplicator.h"
+
 namespace ants
 {
 /*

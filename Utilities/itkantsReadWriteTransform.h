@@ -7,7 +7,7 @@
 #include "itkImageFileWriter.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
-
+#include "itksys/SystemTools.hxx"
 #include "itkCompositeTransform.h"
 
 namespace itk
