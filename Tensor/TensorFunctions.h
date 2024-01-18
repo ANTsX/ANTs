@@ -438,7 +438,7 @@ GetMetricTensorCost(TVectorType dpath, TTensorType dtv, unsigned int matrixpower
   vec(0, 0) = dpath[0];
   vec(1, 0) = dpath[1];
   vec(2, 0) = dpath[2];
-  MatrixType inv = vnl_matrix_inverse<double>(DT);
+  MatrixType inv = vnl_matrix_inverse<double>(DT).inverse();
   for (unsigned int lo = 1; lo < matrixpower; lo++)
   {
     inv = inv * inv;
@@ -837,7 +837,7 @@ GetMetricTensorCost(itk::Vector<float, 3> dpath, TTensorType dtv)
   vec(0, 0) = dpath[0];
   vec(1, 0) = dpath[1];
   vec(2, 0) = dpath[2];
-  MatrixType inv = vnl_matrix_inverse<double>(DT);
+  MatrixType inv = vnl_matrix_inverse<double>(DT).inverse();
 
   MatrixType sol = vec.transpose() * inv * vec;
   float      cost = sol(0, 0) / etot;
