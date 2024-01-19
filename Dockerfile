@@ -1,60 +1,45 @@
-FROM ubuntu:bionic-20220427 as builder
+FROM docker.io/library/debian:bookworm-slim AS base
+FROM base AS builder
+
+RUN \
+    --mount=type=cache,sharing=private,target=/var/cache/apt \
+    apt-get update && apt-get install -y g++-11 cmake make ninja-build git
+
+RUN git config --global url.'https://'.insteadOf 'git://'
+
+COPY . /usr/local/src/ants
+WORKDIR /build
+
+ARG CC=gcc-11 CXX=g++-11
+
+RUN cmake \
+    -GNinja \
+    -DBUILD_TESTING=ON \
+    -DRUN_LONG_TESTS=OFF \
+    -DRUN_SHORT_TESTS=ON \
+    -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_INSTALL_PREFIX=/opt/ants \
+    /usr/local/src/ants
+RUN cmake --build . --parallel
+WORKDIR /build/ANTS-build
+RUN cmake --install .
+
+FROM base
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-                    apt-transport-https \
-                    bc \
-                    build-essential \
-                    ca-certificates \
-                    gnupg \
-                    ninja-build \
-                    git \
-                    software-properties-common \
-                    wget
-
-RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
-    | apt-key add - \
-  && apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main' \
-  && apt-get update \
-  && apt-get -y install cmake=3.18.3-0kitware1 cmake-data=3.18.3-0kitware1
-
-ADD . /tmp/ants/source
-RUN mkdir -p /tmp/ants/build \
-    && cd /tmp/ants/build \
-    && mkdir -p /opt/ants \
-    && git config --global url."https://".insteadOf git:// \
-    && cmake \
-      -GNinja \
-      -DBUILD_TESTING=ON \
-      -DRUN_LONG_TESTS=OFF \
-      -DRUN_SHORT_TESTS=ON \
-      -DBUILD_SHARED_LIBS=ON \
-      -DCMAKE_INSTALL_PREFIX=/opt/ants \
-      /tmp/ants/source \
-    && cmake --build . --parallel \
-    && cd ANTS-build \
-    && cmake --install .
-
-# Need to set library path to run tests
-ENV LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
-
-RUN cd /tmp/ants/build/ANTS-build \
-    && cmake --build . --target test
-
-FROM ubuntu:bionic-20220427
-COPY --from=builder /opt/ants /opt/ants
-
-LABEL maintainer="ANTsX team" \
-      description="ANTs is part of the ANTsX ecosystem (https://github.com/ANTsX). \
-ANTs Citation: https://pubmed.ncbi.nlm.nih.gov/24879923"
-
-ENV PATH="/opt/ants/bin:$PATH" \
-    LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
-RUN apt-get update \
-    && apt install -y --no-install-recommends bc \
+    && apt-get install -y --no-install-recommends bc \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-WORKDIR /data
+COPY --from=builder /opt/ants /opt/ants
+ENV PATH="/opt/ants/bin:$PATH" \
+    LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
 
-CMD ["/bin/bash"]
+LABEL org.opencontainers.image.authors="ANTsX team" \
+      org.opencontainers.image.url="https://stnava.github.io/ANTs/" \
+      org.opencontainers.image.source="https://github.com/ANTsX/ANTs" \
+      org.opencontainers.image.licenses="Apache License 2.0" \
+      org.opencontainers.image.title="Advanced Normalization Tools" \
+      org.opencontainers.image.description="ANTs is part of the ANTsX ecosystem (https://github.com/ANTsX). \
+ANTs Citation: https://pubmed.ncbi.nlm.nih.gov/24879923"
+
