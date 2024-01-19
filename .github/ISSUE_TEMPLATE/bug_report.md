@@ -13,7 +13,8 @@ ANTs Wiki is at:
 https://github.com/ANTsX/ANTs/wiki
 
 The main Github search bar can search issues and wikis simultaneously. Type 
-search times and select "In this repository".
+search terms from the main ANTsX/ANTs page, leaving "repo:ANTsX/ANTs" in the search
+box.
 
 If you find related issues but still have questions, you can open a new issue
 and reference them with #number. Eg, "This is similar to #1234, but my data..."
@@ -38,7 +39,8 @@ Even if you can't share data, please include:
    fewer iterations).
 
  * The full verbose output printed to the terminal when you run the command. If
-   this is very long, please save in a text file and upload as an attachment.
+   this is very long, please save in a text file and upload as an attachment by
+   dragging the text file onto the issue page.
 
 If uploading data as an attachment, please try to minimize the file size by
 compressing, downsampling or otherwise creating smaller images that demonstrate
@@ -53,7 +55,7 @@ about your computing environment.
 
  - OS: [e.g. Mac OS]
  - OS version: [e.g. 10.15.1]
- - Type of system: [Desktop, laptop, HPC cluster, cloud instance,
+ - Type of system: [e.g. Desktop, laptop, HPC cluster, cloud instance,
    other]
  - CPU architecture (x86, ARM, other, unknown)
 
