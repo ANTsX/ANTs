@@ -32,9 +32,6 @@ namespace Statistics
 template <typename TListSample, typename TOutput, typename TCoordRep>
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>::HistogramParzenWindowsListSampleFunction()
 {
-  this->m_Interpolator = InterpolatorType::New();
-  this->m_Interpolator->SetSplineOrder(3);
-
   this->m_NumberOfHistogramBins = 32;
   this->m_Sigma = 1.0;
 }
@@ -187,6 +184,15 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>::SetIn
     divider->Update();
     this->m_HistogramImages[d] = divider->GetOutput();
   }
+
+  this->m_Interpolators.clear();
+  this->m_Interpolators.resize(this->m_HistogramImages.size());
+    for (size_t d = 0; d < m_HistogramImages.size(); ++d)
+    {
+        this->m_Interpolators[d] = InterpolatorType::New();
+        this->m_Interpolators[d]->SetSplineOrder(3);
+        this->m_Interpolators[d]->SetInputImage(m_HistogramImages[d]);
+    }
 }
 
 template <typename TListSample, typename TOutput, typename TCoordRep>
@@ -202,10 +208,9 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>::Evalu
       typename HistogramImageType::PointType point;
       point[0] = measurement[d];
 
-      this->m_Interpolator->SetInputImage(this->m_HistogramImages[d]);
-      if (this->m_Interpolator->IsInsideBuffer(point))
+      if (this->m_Interpolators[d]->IsInsideBuffer(point))
       {
-        probability *= static_cast<RealType>(this->m_Interpolator->Evaluate(point));
+        probability *= static_cast<RealType>(this->m_Interpolators[d]->Evaluate(point));
       }
       else
       {
