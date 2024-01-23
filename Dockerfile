@@ -36,6 +36,9 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+ENV PATH="/opt/ants/bin:$PATH" \
+    LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
+
 COPY --from=builder /opt/ants /opt/ants
 
 LABEL org.opencontainers.image.authors="ANTsX team" \
