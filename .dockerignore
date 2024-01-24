@@ -21,6 +21,3 @@ bin
 build
 *.orig
 *.bak
-
-.git
-Dockerfile

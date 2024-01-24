@@ -10,19 +10,24 @@ RUN git config --global url.'https://'.insteadOf 'git://'
 COPY . /usr/local/src/ants
 WORKDIR /build
 
-ARG CC=gcc-11 CXX=g++-11
+ARG CC=gcc-11 CXX=g++-11 BUILD_SHARED_LIBS=ON
 
 RUN cmake \
     -GNinja \
     -DBUILD_TESTING=ON \
     -DRUN_LONG_TESTS=OFF \
     -DRUN_SHORT_TESTS=ON \
-    -DBUILD_SHARED_LIBS=ON \
+    -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
     -DCMAKE_INSTALL_PREFIX=/opt/ants \
     /usr/local/src/ants
 RUN cmake --build . --parallel
 WORKDIR /build/ANTS-build
 RUN cmake --install .
+
+ENV PATH="/opt/ants/bin:$PATH" \
+    LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
+
+RUN cmake --build . --target test
 
 FROM base
 
@@ -31,9 +36,10 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-COPY --from=builder /opt/ants /opt/ants
 ENV PATH="/opt/ants/bin:$PATH" \
     LD_LIBRARY_PATH="/opt/ants/lib:$LD_LIBRARY_PATH"
+
+COPY --from=builder /opt/ants /opt/ants
 
 LABEL org.opencontainers.image.authors="ANTsX team" \
       org.opencontainers.image.url="https://stnava.github.io/ANTs/" \
