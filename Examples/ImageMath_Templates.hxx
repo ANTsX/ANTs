@@ -448,12 +448,12 @@ GetLargestComponent(int argc, char * argv[])
   typename ImageType::Pointer image1 = nullptr;
   ReadImage<ImageType>(image1, fn1.c_str());
   // compute the voxel volume
-  typename ImageType::SpacingType spacing = image1->GetSpacing();
-  float                           volumeelement = 1.0;
-  for (unsigned int i = 0; i < spacing.Size(); i++)
-  {
-    volumeelement *= static_cast<float>(spacing[i]);
-  }
+  // typename ImageType::SpacingType spacing = image1->GetSpacing();
+  // float                           volumeelement = 1.0;
+  // for (unsigned int i = 0; i < spacing.Size(); i++)
+  // {
+  //   volumeelement *= static_cast<float>(spacing[i]);
+  // }
 
   typedef itk::Image<unsigned long, ImageDimension>                          labelimagetype;
   typedef ImageType                                                          InternalImageType;
@@ -646,7 +646,7 @@ ClusterThresholdVariate(int argc, char * argv[])
   // iterate through the image and set the voxels where  countinlabel[(unsigned
   // long)(labelimage->GetPixel(vfIter.GetIndex()) - min)]
   // is < MinClusterSize
-  unsigned long vecind = 0;
+  // unsigned long vecind = 0;
   fIterator     mIter(mask, mask->GetLargestPossibleRegion());
   for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
   {
@@ -660,7 +660,7 @@ ClusterThresholdVariate(int argc, char * argv[])
         {
           image->SetPixel(mIter.GetIndex(), 0);
         }
-        vecind++;
+        // vecind++;
       }
     }
   }
@@ -1482,20 +1482,20 @@ ConvertVectorToImage(unsigned int argc, char * argv[])
   ReadImage<ImageType>(mask, maskfn.c_str());
   typename MatrixImageType::Pointer vecimg = nullptr;
   ReadImage<MatrixImageType>(vecimg, vecfn.c_str());
-  unsigned long voxct = 0, mct = 0;
+  // unsigned long voxct = 0, mct = 0;
   Iterator      mIter(mask, mask->GetLargestPossibleRegion());
-  for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
-  {
-    if (mIter.Get() >= 0.5f)
-    {
-      mct++;
-    }
-  }
+  // for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
+  // {
+  //   if (mIter.Get() >= 0.5f)
+  //   {
+  //     mct++;
+  //   }
+  // }
   vIterator vIter(vecimg, vecimg->GetLargestPossibleRegion());
-  for (vIter.GoToBegin(); !vIter.IsAtEnd(); ++vIter)
-  {
-    voxct++;
-  }
+  // for (vIter.GoToBegin(); !vIter.IsAtEnd(); ++vIter)
+  // {
+  //   voxct++;
+  // }
 
   // std::cout << " vct " << voxct << " mct " << mct << std::endl;
 
@@ -1577,12 +1577,12 @@ Where(int argc, char * argv[])
 {
   typedef float                                        PixelType;
   typedef itk::Image<PixelType, ImageDimension>        ImageType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  // typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
   int         argct = 4;
   std::string fn1 = std::string(argv[argct]);
   argct++;
-  float value = atof(argv[argct]);
+  // float value = atof(argv[argct]);
   argct++;
   std::string fn2 = "";
   if (argc > argct)
@@ -1590,12 +1590,12 @@ Where(int argc, char * argv[])
     fn2 = std::string(argv[argct]);
     argct++;
   }
-  float tol = 0.0;
-  if (argc > argct)
-  {
-    tol = atof(argv[argct]);
-    argct++;
-  }
+  // float tol = 0.0;
+  // if (argc > argct)
+  // {
+  //   tol = atof(argv[argct]);
+  //   argct++;
+  // }
 
   typename ImageType::Pointer image1 = nullptr;
   typename ImageType::Pointer image2 = nullptr;
@@ -1608,25 +1608,25 @@ Where(int argc, char * argv[])
     ReadImage<ImageType>(image2, fn2.c_str());
   }
 
-  unsigned long                                        ct = 0;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  Iterator                                             iter(image1, image1->GetLargestPossibleRegion());
-  for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
-  {
-    if (!image2)
-    {
-      if (static_cast<float>(std::fabs(iter.Get() - value)) < tol)
-      {
-        // std::cout << iter.GetIndex() << std::endl;
-        ct++;
-      }
-    }
-    else if (image2->GetPixel(iter.GetIndex()) > 0 && static_cast<float>(fabs(iter.Get() - value)) < tol)
-    {
-      // std::cout << iter.GetIndex() << std::endl;
-      ct++;
-    }
-  }
+  // unsigned long                                        ct = 0;
+  // typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  // Iterator                                             iter(image1, image1->GetLargestPossibleRegion());
+  // for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
+  // {
+  //   if (!image2)
+  //   {
+  //     if (static_cast<float>(std::fabs(iter.Get() - value)) < tol)
+  //     {
+  //       // std::cout << iter.GetIndex() << std::endl;
+  //       ct++;
+  //     }
+  //   }
+  //   else if (image2->GetPixel(iter.GetIndex()) > 0 && static_cast<float>(fabs(iter.Get() - value)) < tol)
+  //   {
+  //     // std::cout << iter.GetIndex() << std::endl;
+  //     ct++;
+  //   }
+  // }
   // std::cout << ct <<  " voxels have the value " << value << std::endl;
   return 0;
 }
@@ -3739,8 +3739,8 @@ TimeSeriesToMatrix(int argc, char * argv[])
   }
   SliceIt vfIter2(outimage, outimage->GetLargestPossibleRegion());
   voxct = 0;
-  PixelType     meanval = 0;
-  unsigned long fullct = 0;
+  // PixelType     meanval = 0;
+  // unsigned long fullct = 0;
   for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
   {
     OutIndexType ind = vfIter2.GetIndex();
@@ -3767,8 +3767,8 @@ TimeSeriesToMatrix(int argc, char * argv[])
         {
           matriximage->SetPixel(matind, pix);
         }
-        meanval += static_cast<PixelType>(pix);
-        fullct++;
+        // meanval += static_cast<PixelType>(pix);
+        // fullct++;
       }
       std::string colname = std::string("V") + ants_to_string<unsigned int>(voxct);
       ColumnHeaders.push_back(colname);
@@ -6600,16 +6600,16 @@ CompareHeadersAndImages(int argc, char * argv[])
 
   // compute error in spacing, in orientation and in offset
   unsigned int failure = 0;
-  float        sperr = 0, merr = 0, operr = 0, orsignerr = 0;
+  float        merr = 0, orsignerr = 0;
 
   typename ImageType::SpacingType sp1, sp2;
   sp1 = image1->GetSpacing();
   sp2 = image2->GetSpacing();
-  for (unsigned int i = 0; i < ImageDimension; i++)
-  {
-    float temp = sp1[i] - sp2[i];
-    sperr += temp * temp;
-  }
+  // for (unsigned int i = 0; i < ImageDimension; i++)
+  // {
+  //   float temp = sp1[i] - sp2[i];
+  //   sperr += temp * temp;
+  // }
   // std::cout << " SpacingError: " << sqrt(sperr) << std::endl;
 
   typename ImageType::PointType op1, op2;
@@ -6617,8 +6617,8 @@ CompareHeadersAndImages(int argc, char * argv[])
   op2 = image2->GetOrigin();
   for (unsigned int i = 0; i < ImageDimension; i++)
   {
-    float temp = op1[i] - op2[i];
-    operr += temp * temp;
+    // float temp = op1[i] - op2[i];
+    // operr += temp * temp;
     if (op1[i] > 0 && op2[i] <= 0)
     {
       orsignerr += 1;
@@ -6703,8 +6703,8 @@ CompareHeadersAndImages(int argc, char * argv[])
       resample->UpdateLargestPossibleRegion();
       typename ImageType::Pointer varimage = resample->GetOutput();
     }
-    float         i1norm = 0, i2norm = 0, i1i2norm = 0; // i3norm=0,i1i3norm=0;
-    unsigned long ct1 = 1, ct2 = 1, ct12 = 1;           // ct3=1,ct13=1;
+    float         i1norm = 0, i2norm = 0; // i3norm=0,i1i3norm=0;
+    unsigned long ct1 = 1, ct2 = 1;           // ct3=1,ct13=1;
     Iterator      vfIter2(image1, image1->GetLargestPossibleRegion());
     for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
     {
@@ -6747,32 +6747,32 @@ CompareHeadersAndImages(int argc, char * argv[])
     {
       mean2 = 1;
     }
-    for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
-    {
-      IndexType ind = vfIter2.GetIndex();
-      float     pix2;
-      if (isfloat)
-      {
-        pix2 = floatval;
-      }
-      else
-      {
-        pix2 = image2->GetPixel(ind) / mean2;
-      }
+    // for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
+    // {
+    //   IndexType ind = vfIter2.GetIndex();
+      // float     pix2;
+      // if (isfloat)
+      // {
+      //   pix2 = floatval;
+      // }
+      // else
+      // {
+      //   pix2 = image2->GetPixel(ind) / mean2;
+      // }
       //      float pix3=vfIter2.Get()/mean2;
-      float pix1 = image1->GetPixel(ind) / mean1;
+      // float pix1 = image1->GetPixel(ind) / mean1;
 
-      if (pix1 > 0 || pix2 > 0)
-      {
-        i1i2norm += static_cast<float>(std::fabs(pix1 - pix2));
-        ct12++;
-      }
+      // if (pix1 > 0 || pix2 > 0)
+      // {
+      //   i1i2norm += static_cast<float>(std::fabs(pix1 - pix2));
+      //   ct12++;
+      // }
       //      if ( pix1 > 0 || pix3 > 0)
       // {
       //  i1i3norm+=fabs(pix1-pix3);
       //  ct13++;
       // }
-    }
+    // }
     //  float idice1 = 1.0 - 2.0*i1i3norm/ct13 /  (  i1norm/ct1 + i3norm / ct3 );
     // std::cout << " DiceImageDifference: " << idice0 << " IntensityDifference: " << i1i2norm << std::endl;
     // std::cout << " CenterOfMassTransImageDifference: " << idice1 << " and " << i1i3norm << std::endl;
@@ -8339,7 +8339,7 @@ FastMarchingExtension(int argc, char * argv[])
   seeds->Initialize();
   typename NodePairContainerType::Pointer alivePoints = NodePairContainerType::New();
   alivePoints->Initialize();
-  unsigned int seedct = 0, alivect = 0;
+  // unsigned int seedct = 0, alivect = 0;
   Iterator     vfIter2(labimage, labimage->GetLargestPossibleRegion());
   for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
   {
@@ -8352,7 +8352,7 @@ FastMarchingExtension(int argc, char * argv[])
       AuxValueVectorType vector;
       vector[0] = valimage->GetPixel(ind);
       auxTrialValues->push_back(vector);
-      seedct++;
+      // seedct++;
     }
     if ((labval > 0) && ((unsigned int)contourval != 1))
     {
@@ -8360,7 +8360,7 @@ FastMarchingExtension(int argc, char * argv[])
       AuxValueVectorType vector;
       vector[0] = valimage->GetPixel(ind);
       auxAliveValues->push_back(vector);
-      alivect++;
+      // alivect++;
     }
   }
   fastMarching->SetTrialPoints(seeds);
@@ -8734,9 +8734,9 @@ FillHoles(int argc, char * argv[])
       GHood.GoToBegin();
 
       unsigned long objectedge = 0;
-      unsigned long backgroundedge = 0;
+      // unsigned long backgroundedge = 0;
       unsigned long totaledge = 0;
-      unsigned long volume = 0;
+      // unsigned long volume = 0;
 
       while (!GHood.IsAtEnd())
       {
@@ -8744,7 +8744,7 @@ FillHoles(int argc, char * argv[])
         typename ImageType::IndexType ind2;
         if (itk::Math::FloatAlmostEqual(p, static_cast<float>(lab)))
         {
-          volume++;
+          // volume++;
           for (unsigned int i = 0; i < GHood.Size(); i++)
           {
             ind2 = GHood.GetIndex(i);
@@ -8756,7 +8756,7 @@ FillHoles(int argc, char * argv[])
             }
             else if (val2 < 0.5f && !itk::Math::FloatAlmostEqual(GHood.GetPixel(i), static_cast<float>(lab)))
             {
-              backgroundedge++;
+              // backgroundedge++;
               totaledge++;
             }
           }
@@ -10717,12 +10717,12 @@ LabelThickness(int argc, char * argv[])
   }
 
   std::sort(myLabelSet.begin(), myLabelSet.end());
-  typename LabelSetType::const_iterator it;
-  unsigned long                         labelcount = 0;
-  for (it = myLabelSet.begin(); it != myLabelSet.end(); ++it)
-  {
-    labelcount++;
-  }
+  // typename LabelSetType::const_iterator it;
+  // unsigned long                         labelcount = 0;
+  // for (it = myLabelSet.begin(); it != myLabelSet.end(); ++it)
+  // {
+  //   labelcount++;
+  // }
 
   typename ImageType::SpacingType spacing = image->GetSpacing();
   float                           volumeelement = 1.0;
@@ -11681,14 +11681,14 @@ ConvertImageSetToEigenvectors(unsigned int argc, char * argv[])
   for (unsigned long mv = 1; mv <= maxval; mv++)
   {
     /** 2. count the voxels in this label */
-    unsigned long voxct = 0;
-    for (Iterator mIter(mask, mask->GetLargestPossibleRegion()); !mIter.IsAtEnd(); ++mIter)
-    {
-      if (itk::Math::FloatAlmostEqual(mIter.Get(), static_cast<float>(mv)))
-      {
-        voxct++;
-      }
-    }
+    // unsigned long voxct = 0;
+    // for (Iterator mIter(mask, mask->GetLargestPossibleRegion()); !mIter.IsAtEnd(); ++mIter)
+    // {
+    //   if (itk::Math::FloatAlmostEqual(mIter.Get(), static_cast<float>(mv)))
+    //   {
+    //     voxct++;
+    //   }
+    // }
 
     unsigned long xx1 = 0, yy1 = 0;
     if (rowcoloption == 0)
@@ -13706,7 +13706,7 @@ getBlobCorrespondenceMatrix(unsigned int             radval,
   BlobPointer bestblob = nullptr;
   if ((!blobs2.empty()) && (!blobs1.empty()))
   {
-    unsigned int                                                  count2;
+    // unsigned int                                                  count2;
     RealType                                                      smallval = 1.e-4;
     typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
     typedef typename ScalarInterpolatorType::Pointer              InterpPointer;
@@ -13714,7 +13714,7 @@ getBlobCorrespondenceMatrix(unsigned int             radval,
     interp1->SetInputImage(image);
     InterpPointer interp2 = ScalarInterpolatorType::New();
     interp2->SetInputImage(image2);
-    unsigned int count1 = 0;
+    // unsigned int count1 = 0;
     for (unsigned int i = 0; i < blobs1.size(); i++)
     {
       BlobPointer blob1 = blobs1[i];
@@ -13723,7 +13723,7 @@ getBlobCorrespondenceMatrix(unsigned int             radval,
       {
         GHood.SetLocation(indexi);
         bestblob = nullptr;
-        count2 = 0;
+        // count2 = 0;
         for (unsigned int j = 0; j < blobs2.size(); j++)
         {
           const BlobPointer & blob2 = blobs2[j];
@@ -13739,10 +13739,10 @@ getBlobCorrespondenceMatrix(unsigned int             radval,
               correlation = 0;
             }
             correspondencematrix(i, j) = correlation;
-            count2++;
+            // count2++;
           }
         }
-        count1++;
+        // count1++;
       } // imagei GetPixel gt 0
       if (i % 100 == 0)
       {
@@ -14141,7 +14141,7 @@ MatchBlobs(int argc, char * argv[])
   unsigned int matchpt = 1;
   std::cout << " now compute pairwise matching " << correspondencematrix.max_value() << " reducing to " << corrthresh
             << std::endl;
-  unsigned int                                count1 = 0;
+  // unsigned int                                count1 = 0;
   typedef std::pair<BlobPointer, BlobPointer> BlobPairType;
   std::vector<BlobPairType>                   blobpairs;
   vnl_matrix<RealType>                        correspondencematrix_hard(correspondencematrix);
@@ -14176,7 +14176,7 @@ MatchBlobs(int argc, char * argv[])
     correspondencematrix_hard.set_row(maxrow, correspondencematrix_hard.get_row(maxrow).fill(0));
     correspondencematrix_hard.set_column(maxcol, correspondencematrix_hard.get_column(maxcol).fill(0));
     correspondencematrix_soft(maxrow, maxcol) = 0;
-    count1++;
+    // count1++;
   }
 
   /** For every blob, compute the distance to its neighbors before and after matching */

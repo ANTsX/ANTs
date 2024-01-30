@@ -1249,12 +1249,12 @@ protected:
   RPearsonCorr(VectorType v1, VectorType v2)
   {
     std::vector<TRealType> zeromatch(v1.size(), 0);
-    unsigned int           zct = 0;
+
     for (unsigned int zm = 0; zm < v1.size(); zm++)
     {
       if ((this->Close2Zero(v1(zm)) || this->Close2Zero(v2(zm))))
       {
-        zct++;
+
         zeromatch[zm] = 1;
         v1(zm) = 0;
         v2(zm) = 0;

@@ -849,7 +849,7 @@ SurfaceImageCurvature<TSurface>::IntegrateFunctionOverSurface(bool norm)
 
   this->m_ti.Initialize(rad, this->GetInput(), image->GetLargestPossibleRegion());
   this->m_ti2.Initialize(rad2, this->GetInput(), image->GetLargestPossibleRegion());
-  unsigned long ct = 0;
+  // unsigned long ct = 0;
 
   IndexType index;
 
@@ -869,7 +869,7 @@ SurfaceImageCurvature<TSurface>::IntegrateFunctionOverSurface(bool norm)
       index[2] > this->m_NeighborhoodRadius)
     {
       PointType p;
-      ct++;
+      // ct++;
       for (unsigned int k = 0; k < ImageDimension; k++)
       {
         p[k] = (RealType)index[k];
@@ -1037,10 +1037,10 @@ SurfaceImageCurvature<TSurface>::ComputeFrameOverDomain(unsigned int which)
   // Get Normals First!
   this->EstimateNormalsFromGradient();
 
-  unsigned int  ct = 1;
-  unsigned long ct2 = 0;
+  // unsigned int  ct = 1;
+  // unsigned long ct2 = 0;
   RealType      kpix = 0;
-  double thresh = 0.0;
+  // double thresh = 0.0;
 
 
   ti.GoToBegin();
@@ -1149,10 +1149,10 @@ SurfaceImageCurvature<TSurface>::ComputeFrameOverDomain(unsigned int which)
       {
         kpix = this->m_Area;
       }
-      ct++;
+      // ct++;
       this->m_PointList.clear();
     }
-    thresh += static_cast<double>(kpix);
+    // thresh += static_cast<double>(kpix);
     float offset = 0;
     if (which == 5)
     {
@@ -1160,7 +1160,7 @@ SurfaceImageCurvature<TSurface>::ComputeFrameOverDomain(unsigned int which)
     }
     //    if (  ()  && ( )  ) kpix=0;
     this->m_FunctionImage->SetPixel(index, offset + kpix);
-    ct2++;
+    // ct2++;
     ++ti;
   }
 }
