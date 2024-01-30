@@ -252,11 +252,11 @@ public:
         }
         case MI:
         {
-          return std::string("MI");
+          return std::string("JointHistogramMI");
         }
         case Mattes:
         {
-          return std::string("Mattes");
+          return std::string("MattesMI");
         }
         case MeanSquares:
         {
