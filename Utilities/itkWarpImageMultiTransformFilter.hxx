@@ -585,8 +585,8 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
     {
       DisplacementFieldPointer field = m_TransformList.front().second.dex.field;
 
-      m_bFirstDeformNoInterp = (this->GetOutputSize() == field->GetLargestPossibleRegion().GetSize()) &
-                               (this->GetOutputSpacing() == field->GetSpacing()) &
+      m_bFirstDeformNoInterp = (this->GetOutputSize() == field->GetLargestPossibleRegion().GetSize()) &&
+                               (this->GetOutputSpacing() == field->GetSpacing()) &&
                                (this->GetOutputOrigin() == field->GetOrigin());
 
       //            std::cout << "in set: field size: " << field->GetLargestPossibleRegion().GetSize()

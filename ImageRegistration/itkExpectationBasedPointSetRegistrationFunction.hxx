@@ -455,11 +455,11 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   this->m_bweights->Initialize();
   this->m_bcount = 0;
 
-  unsigned int                          lct = 0;
+  // unsigned int                          lct = 0;
   typename LabelSetType::const_iterator it;
   for (it = this->m_LabelSet.begin(); it != this->m_LabelSet.end(); ++it)
   {
-    lct++;
+    // lct++;
     auto label = (PointDataType)*it;
     //     std::cout << " doing label " << label << std::endl;
     this->SetUpKDTrees(label);

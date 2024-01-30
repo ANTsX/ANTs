@@ -2069,7 +2069,7 @@ protected:
     // all we have to do here is add the local field to the global field.
     Iterator      vfIter(field, field->GetLargestPossibleRegion());
     SizeType      size = field->GetLargestPossibleRegion().GetSize();
-    unsigned long ct = 1;
+    // unsigned long ct = 1;
     TReal         totalmag = 0;
     TReal         maxstep = 0;
     //  this->m_EuclideanNorm=0;
@@ -2110,7 +2110,7 @@ protected:
       {
         maxstep = stepl;
       }
-      ct++;
+      // ct++;
       totalmag += mag;
       //    this->m_EuclideanNorm+=stepl;
     }

@@ -333,7 +333,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   // Reset the joint pdfs to zero
   m_JointPDF->FillBuffer(0.0);
 
-  unsigned long  nSamples = 0;
+  // unsigned long  nSamples = 0;
   RandomIterator iter(this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion());
   for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
   {
@@ -368,7 +368,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
       jointPDFIndex = this->m_JointPDF->TransformPhysicalPointToIndex(jointPDFpoint);
       this->m_JointPDF->SetPixel(jointPDFIndex, this->m_JointPDF->GetPixel(jointPDFIndex) + 1);
 
-      ++nSamples;
+      // ++nSamples;
     }
   }
 
