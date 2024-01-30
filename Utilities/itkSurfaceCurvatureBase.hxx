@@ -506,7 +506,7 @@ SurfaceCurvatureBase<TSurface, TDimension>::ComputeJoshiFrame(PointType origin)
 
   D.set_size(npts, 3);
   D.fill(0.0);
-  float totw = 0;
+  // float totw = 0;
   for (unsigned int i = 0; i < npts; i++)
   {
     PointType Q = m_PointList[i];
@@ -520,7 +520,7 @@ SurfaceCurvatureBase<TSurface, TDimension>::ComputeJoshiFrame(PointType origin)
       u2 += (Q[ijj] - origin[ijj]) * m_Tangent2[ijj];
       sqdif += ((Q[ijj] - origin[ijj]) * (Q[ijj] - origin[ijj]));
     }
-    totw += 1.0f / sqdif;
+    // totw += 1.0f / sqdif;
     //
     // co-ordinates in tangent plane
     //   RealType sign=1.0;
@@ -1250,7 +1250,7 @@ SurfaceCurvatureBase<TSurface, TDimension>::dstarUestimate()
   D.set_size(npts, 3); // each row contains [ u, v, 1] for point p
   D.fill(0.0);
 
-  float totwt = 0.0;
+  // float totwt = 0.0;
   float totfunc = 0.0;
   float wt = 0.0;
   float meanu1 = 0;
@@ -1268,7 +1268,7 @@ SurfaceCurvatureBase<TSurface, TDimension>::dstarUestimate()
     float u2 = 0.0;
     wt = Dif.magnitude();
     wts[i] = wt;
-    totwt += wt;
+    // totwt += wt;
     for (unsigned int pp = 0; pp < SurfaceDimension; pp++)
     {
       u1 += Dif[pp] * m_Tangent1[pp];
