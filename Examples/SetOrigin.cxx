@@ -29,7 +29,7 @@ namespace ants
 {
 template <unsigned int ImageDimension>
 int
-SetOrigin(int argc, char * argv[])
+SetOrigin(int itkNotUsed(argc), char * argv[])
 {
   using outPixelType = float;
   using inPixelType = float;
@@ -46,17 +46,10 @@ SetOrigin(int argc, char * argv[])
   typename OutImageType::PointType orig = outim->GetOrigin();
 
   std::cout << " Old Orig " << outim->GetOrigin();
-  if (argc > 3)
+
+  for (unsigned int d = 0; d < ImageDimension; d++)
   {
-    orig[0] = atof(argv[3]);
-  }
-  if (argc > 4)
-  {
-    orig[1] = atof(argv[4]);
-  }
-  if (argc > 5)
-  {
-    orig[2] = atof(argv[5]);
+    orig[d] = atof(argv[d+3]);
   }
   std::cout << "  New Orig " << orig << std::endl;
 

@@ -432,7 +432,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     for (unsigned long ii = 0; ii < sz1; ii++)
     {
       PointType     fixedpoint;
-      PointDataType label;
+      PointDataType label = 0;
       this->m_FixedPointSet->GetPoint(ii, &fixedpoint);
       this->m_FixedPointSet->GetPointData(ii, &label);
       if (label > 0)
