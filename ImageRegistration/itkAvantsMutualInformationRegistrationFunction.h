@@ -464,7 +464,7 @@ modified to round. 6- The normalization is done based on NomberOfHistogramBins-1
     float         px, py, pxy;
     double        mival = 0;
     double        mi;
-    unsigned long ct = 0;
+    // unsigned long ct = 0;
 
     typename JointPDFType::IndexType index;
     for (unsigned int ii = 0; ii < m_NumberOfHistogramBins; ii++)
@@ -496,7 +496,7 @@ modified to round. 6- The normalization is done based on NomberOfHistogramBins-1
             mi = pxy * std::log(pxy / denom);
             // test mi
             // mi = 1.0 + log(pxy/denom);
-            ct++;
+            // ct++;
           }
         }
 

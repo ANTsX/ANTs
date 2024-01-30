@@ -335,7 +335,7 @@ public:
     float         px, py, pxy;
     double        mival = 0;
     double        mi;
-    unsigned long ct = 0;
+    // unsigned long ct = 0;
 
     typename JointPDFType::IndexType index;
     //    for (unsigned int ii=this->m_Padding+1; ii<m_NumberOfHistogramBins-this->m_Padding-2; ii++)
@@ -369,7 +369,7 @@ public:
             mi = static_cast<double>(pxy * std::log(pxy / denom));
             // test mi
             // mi = 1.0 + log(pxy/denom);
-            ct++;
+            // ct++;
           }
         }
 

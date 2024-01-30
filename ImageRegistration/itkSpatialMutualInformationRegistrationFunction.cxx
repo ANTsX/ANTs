@@ -393,7 +393,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_JointPDFXuYr->FillBuffer(0.0);
   m_JointHist->FillBuffer(0.0);
 
-  unsigned long  nSamples = 0;
+  // unsigned long  nSamples = 0;
   RandomIterator iter(this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion());
   for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
   {
@@ -524,7 +524,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         pdfPtr += pdfMovingIndex;
         *(pdfPtr) += static_cast<PDFValueType>(1);
 
-        ++nSamples;
+        // ++nSamples;
       }
     }
   }
