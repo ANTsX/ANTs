@@ -907,7 +907,7 @@ ConvertTimeSeriesImageToFiveDimensionalImage(TTimeSeriesImageType * timeSeriesIm
 {
   enum
   {
-    ImageDimension = 3
+    ImageDimension = TTimeSeriesImageType::ImageDimension - 1
   };
 
   typename FiveDimensionalImageType::SpacingType          spacing;
@@ -968,7 +968,7 @@ ConvertFiveDimensionalImageToTimeSeriesImage(FiveDimensionalImageType * FiveDime
 {
   enum
   {
-    ImageDimension = 3
+    ImageDimension = TimeSeriesImageType::ImageDimension - 1
   };
 
   typename FiveDimensionalImageType::SpacingType          spacing = FiveDimensionalImage->GetSpacing();
@@ -995,7 +995,7 @@ ConvertFiveDimensionalImageToTimeSeriesImage(FiveDimensionalImageType * FiveDime
       timeSeriesDirection(d, e) = direction(d, e);
     }
   }
-  timeSeriesSize[3] = size[4];
+  timeSeriesSize[ImageDimension] = size[4];
 
   typename TimeSeriesImageType::Pointer timeSeriesImage =
     AllocImage<TimeSeriesImageType>(timeSeriesSize, timeSeriesSpacing, timeSeriesOrigin, timeSeriesDirection);

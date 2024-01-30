@@ -391,6 +391,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
   PointType &       point2)
 {
   IndexType null_index;
+  null_index.Fill(0);
 
   bool isinside = MultiTransformPoint(point1, point2, false, null_index);
 
