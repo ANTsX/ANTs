@@ -32,6 +32,14 @@ jobs:
             generators: "Ninja"
           }
         - {
+            name: "Macos-14-clang",
+            os: macos-14,
+            cc: "clang",
+            cxx: "clang++",
+            build_type: "Release",
+            generators: "Ninja"
+        }
+        - {
             name: "Macos-12-clang",
             os: macos-12,
             cc: "clang",
