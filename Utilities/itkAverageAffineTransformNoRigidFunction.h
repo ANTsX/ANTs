@@ -55,7 +55,7 @@ struct HelperCommonType
                                   unsigned int                iEnd);
 };
 
-template <typename T>
+template <typename T, typename TParametersValueType>
 class HelperType;
 
 // {
@@ -63,18 +63,18 @@ class HelperType;
 // };
 
 // explicit specialization for 2D affine transform
-template <>
-class HelperType<Dispatcher<2>>
+template <typename TParametersValueType>
+class HelperType<Dispatcher<2>, TParametersValueType>
 {
 public:
-  typedef ANTSCenteredAffine2DTransform<double> InternalAffineTransformType;
+  typedef ANTSCenteredAffine2DTransform<TParametersValueType> InternalAffineTransformType;
 
-  typedef HelperCommonType<InternalAffineTransformType>::InternalAffineTransformPointerType
+  typedef typename HelperCommonType<InternalAffineTransformType>::InternalAffineTransformPointerType
     InternalAffineTransformPointerType;
-  typedef HelperCommonType<InternalAffineTransformType>::SingleInternalTransformItemType
-                                                                                   SingleInternalTransformItemType;
-  typedef HelperCommonType<InternalAffineTransformType>::InternalTransformListType InternalTransformListType;
-  typedef HelperCommonType<InternalAffineTransformType>::ParametersType            ParametersType;
+  typedef typename HelperCommonType<InternalAffineTransformType>::SingleInternalTransformItemType
+    SingleInternalTransformItemType;
+  typedef typename HelperCommonType<InternalAffineTransformType>::InternalTransformListType InternalTransformListType;
+  typedef typename HelperCommonType<InternalAffineTransformType>::ParametersType            ParametersType;
 
   static void
   ComputeAverageScaleParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
@@ -90,18 +90,18 @@ public:
 };
 
 // explicit specialization for 3D affine transform
-template <>
-class HelperType<Dispatcher<3>>
+template <typename TParametersValueType>
+class HelperType<Dispatcher<3>, TParametersValueType>
 {
 public:
-  typedef ANTSAffine3DTransform<double> InternalAffineTransformType;
+  typedef ANTSAffine3DTransform<TParametersValueType> InternalAffineTransformType;
 
-  typedef HelperCommonType<InternalAffineTransformType>::InternalAffineTransformPointerType
+  typedef typename HelperCommonType<InternalAffineTransformType>::InternalAffineTransformPointerType
     InternalAffineTransformPointerType;
-  typedef HelperCommonType<InternalAffineTransformType>::SingleInternalTransformItemType
-                                                                                   SingleInternalTransformItemType;
-  typedef HelperCommonType<InternalAffineTransformType>::InternalTransformListType InternalTransformListType;
-  typedef HelperCommonType<InternalAffineTransformType>::ParametersType            ParametersType;
+  typedef typename HelperCommonType<InternalAffineTransformType>::SingleInternalTransformItemType
+    SingleInternalTransformItemType;
+  typedef typename HelperCommonType<InternalAffineTransformType>::InternalTransformListType InternalTransformListType;
+  typedef typename HelperCommonType<InternalAffineTransformType>::ParametersType            ParametersType;
 
   static void
   ComputeAverageScaleParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
@@ -127,7 +127,7 @@ public:
   static constexpr unsigned int OutputSpaceDimension = GenericAffineTransformType::OutputSpaceDimension;
   static constexpr unsigned int SpaceDimension = InputSpaceDimension;
 
-  typedef double                                    InternalScalarType;
+  typedef typename TTransform::ParametersValueType  InternalScalarType;
   typedef Point<InternalScalarType, SpaceDimension> PointType;
 
   AverageAffineTransformNoRigidFunction();
@@ -171,7 +171,8 @@ protected:
   // type declaration to include support both 2D and 3D affine transform
 protected:
   typedef typename ::itk::AverageAffineTransformNoRigidFunctionHelperNameSpace::HelperType<
-    ::itk::AverageAffineTransformNoRigidFunctionHelperNameSpace::Dispatcher<SpaceDimension>>
+    ::itk::AverageAffineTransformNoRigidFunctionHelperNameSpace::Dispatcher<SpaceDimension>,
+    InternalScalarType>
     HelperType;
 
   typedef typename HelperType::InternalAffineTransformType        InternalAffineTransformType;

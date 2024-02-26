@@ -203,9 +203,11 @@ HelperCommonType<TAffine>::ComputeAveragePartialParameters(InternalTransformList
   return;
 }
 
+template <typename TParametersValueType>
 void
-HelperType<Dispatcher<2>>::ComputeAverageScaleParameters(InternalTransformListType & transform_list,
-                                                         ParametersType &            average_parameters)
+HelperType<Dispatcher<2>, TParametersValueType>::ComputeAverageScaleParameters(
+  InternalTransformListType & transform_list,
+  ParametersType &            average_parameters)
 {
   unsigned int istart = 1;
   unsigned int iend = 2;
@@ -216,9 +218,11 @@ HelperType<Dispatcher<2>>::ComputeAverageScaleParameters(InternalTransformListTy
     transform_list, average_parameters, istart, iend);
 }
 
+template <typename TParametersValueType>
 void
-HelperType<Dispatcher<2>>::ComputeAverageShearingParameters(InternalTransformListType & transform_list,
-                                                            ParametersType &            average_parameters)
+HelperType<Dispatcher<2>, TParametersValueType>::ComputeAverageShearingParameters(
+  InternalTransformListType & transform_list,
+  ParametersType &            average_parameters)
 {
   unsigned int istart = 3;
   unsigned int iend = 3;
@@ -229,9 +233,11 @@ HelperType<Dispatcher<2>>::ComputeAverageShearingParameters(InternalTransformLis
     transform_list, average_parameters, istart, iend);
 }
 
+template <typename TParametersValueType>
 void
-HelperType<Dispatcher<2>>::ComputeAverageRotationParameters(InternalTransformListType & transform_list,
-                                                            ParametersType &            average_parameters)
+HelperType<Dispatcher<2>, TParametersValueType>::ComputeAverageRotationParameters(
+  InternalTransformListType & transform_list,
+  ParametersType &            average_parameters)
 {
   unsigned int istart = 0;
   unsigned int iend = 0;
@@ -242,9 +248,11 @@ HelperType<Dispatcher<2>>::ComputeAverageRotationParameters(InternalTransformLis
     transform_list, average_parameters, istart, iend);
 }
 
+template <typename TParametersValueType>
 void
-HelperType<Dispatcher<2>>::ComputeAverageTranslationParameters(InternalTransformListType & transform_list,
-                                                               ParametersType &            average_parameters)
+HelperType<Dispatcher<2>, TParametersValueType>::ComputeAverageTranslationParameters(
+  InternalTransformListType & transform_list,
+  ParametersType &            average_parameters)
 {
   unsigned int istart = 6;
   unsigned int iend = 7;
@@ -255,9 +263,11 @@ HelperType<Dispatcher<2>>::ComputeAverageTranslationParameters(InternalTransform
     transform_list, average_parameters, istart, iend);
 }
 
+template <typename TParametersValueType>
 void
-HelperType<Dispatcher<3>>::ComputeAverageScaleParameters(InternalTransformListType & transform_list,
-                                                         ParametersType &            average_parameters)
+HelperType<Dispatcher<3>, TParametersValueType>::ComputeAverageScaleParameters(
+  InternalTransformListType & transform_list,
+  ParametersType &            average_parameters)
 {
   unsigned int istart = 4;
   unsigned int iend = 6;
@@ -268,9 +278,11 @@ HelperType<Dispatcher<3>>::ComputeAverageScaleParameters(InternalTransformListTy
     transform_list, average_parameters, istart, iend);
 }
 
+template <typename TParametersValueType>
 void
-HelperType<Dispatcher<3>>::ComputeAverageShearingParameters(InternalTransformListType & transform_list,
-                                                            ParametersType &            average_parameters)
+HelperType<Dispatcher<3>, TParametersValueType>::ComputeAverageShearingParameters(
+  InternalTransformListType & transform_list,
+  ParametersType &            average_parameters)
 {
   unsigned int istart = 7;
   unsigned int iend = 9;
@@ -281,9 +293,11 @@ HelperType<Dispatcher<3>>::ComputeAverageShearingParameters(InternalTransformLis
     transform_list, average_parameters, istart, iend);
 }
 
+template <typename TParametersValueType>
 void
-HelperType<Dispatcher<3>>::ComputeAverageRotationParameters(InternalTransformListType & transform_list,
-                                                            ParametersType &            average_parameters)
+HelperType<Dispatcher<3>, TParametersValueType>::ComputeAverageRotationParameters(
+  InternalTransformListType & transform_list,
+  ParametersType &            average_parameters)
 {
   unsigned int istart = 0;
   unsigned int iend = 3;
@@ -307,9 +321,11 @@ HelperType<Dispatcher<3>>::ComputeAverageRotationParameters(InternalTransformLis
   }
 }
 
+template <typename TParametersValueType>
 void
-HelperType<Dispatcher<3>>::ComputeAverageTranslationParameters(InternalTransformListType & transform_list,
-                                                               ParametersType &            average_parameters)
+HelperType<Dispatcher<3>, TParametersValueType>::ComputeAverageTranslationParameters(
+  InternalTransformListType & transform_list,
+  ParametersType &            average_parameters)
 {
   unsigned int istart = 10;
   unsigned int iend = 12;
