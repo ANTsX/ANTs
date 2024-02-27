@@ -160,6 +160,9 @@ public:
   void
   AverageMultipleAffineTransform(const PointType & center_output, GenericAffineTransformPointerType & affine_output);
 
+  /** Set to false to ignore rotation and translation. */
+  bool useRigid = true;
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck1, (Concept::SameDimension<InputSpaceDimension, OutputSpaceDimension>));

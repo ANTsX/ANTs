@@ -100,8 +100,11 @@ AverageAffineTransformFunction<TTransform>::AverageMultipleAffineTransform(
 
   HelperType::ComputeAverageScaleParameters(m_InternalTransformList, average_parameters);
   HelperType::ComputeAverageShearingParameters(m_InternalTransformList, average_parameters);
-  HelperType::ComputeAverageRotationParameters(m_InternalTransformList, average_parameters);
-  HelperType::ComputeAverageTranslationParameters(m_InternalTransformList, average_parameters);
+  if (useRigid)
+  {
+    HelperType::ComputeAverageRotationParameters(m_InternalTransformList, average_parameters);
+    HelperType::ComputeAverageTranslationParameters(m_InternalTransformList, average_parameters);
+  }
 
   average_iaff->SetParameters(average_parameters);
   average_iaff->SetCenter(reference_center);
