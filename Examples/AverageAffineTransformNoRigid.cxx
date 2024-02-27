@@ -129,6 +129,7 @@ AverageAffineTransformNoRigid(char * output_affine_txt, char * reference_affine_
   // typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
 
   WarperType average_func;
+  average_func.verbose = true;
   average_func.useRigid = false;
   // warper->SetInput(img_mov);
   // warper->SetEdgePaddingValue( 0);
