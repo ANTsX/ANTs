@@ -7,7 +7,7 @@
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 
-#include "itkAverageAffineTransformNoRigidFunction.h"
+#include "itkAverageAffineTransformFunction.h"
 
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
@@ -118,7 +118,7 @@ AverageAffineTransformNoRigid(char * output_affine_txt, char * reference_affine_
   //    typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType,
   //            DisplacementFieldType, AffineTransformType> WarperType;
 
-  using WarperType = itk::AverageAffineTransformNoRigidFunction<AffineTransformType>;
+  using WarperType = itk::AverageAffineTransformFunction<AffineTransformType>;
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
@@ -129,6 +129,8 @@ AverageAffineTransformNoRigid(char * output_affine_txt, char * reference_affine_
   // typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
 
   WarperType average_func;
+  average_func.verbose = true;
+  average_func.useRigid = false;
   // warper->SetInput(img_mov);
   // warper->SetEdgePaddingValue( 0);
   //    VectorType pad;

@@ -69,8 +69,7 @@ AverageAffineTransformFunction<TTransform>::AverageMultipleAffineTransform(
   const PointType &                   reference_center,
   GenericAffineTransformPointerType & affine_output)
 {
-  //    std::cout << "test " ;
-  //    TransformTypePointer affine_output = TransformType::New();
+  // TransformTypePointer affine_output = TransformType::New();
 
   affine_output->SetIdentity();
   affine_output->SetCenter(reference_center);
@@ -79,11 +78,13 @@ AverageAffineTransformFunction<TTransform>::AverageMultipleAffineTransform(
 
   number_of_affine--;
 
-  //    std::cout << affine_output;
+  // if (verbose)
+  // {
+  //   std::cout << affine_output;
+  // }
 
   typename TransformListType::iterator it = m_TransformList.begin();
 
-  //    typename InternalAffineTransformType::InputPointType center_ref = m_ReferenceCenter;
   typename InternalAffineTransformType::Pointer average_iaff = InternalAffineTransformType::New();
 
   typename InternalAffineTransformType::ParametersType average_parameters = average_iaff->GetParameters();
@@ -95,22 +96,34 @@ AverageAffineTransformFunction<TTransform>::AverageMultipleAffineTransform(
     internal_item.weight = it->weight;
     m_InternalTransformList.push_back(internal_item);
 
-    std::cout << "internal_transform: " << internal_item.aff << std::endl;
+    if (verbose)
+    {
+      std::cout << "internal_transform: " << internal_item.aff << std::endl;
+    }
   }
 
-  HelperType::ComputeAverageScaleParameters(m_InternalTransformList, average_parameters);
-  HelperType::ComputeAverageShearingParameters(m_InternalTransformList, average_parameters);
-  HelperType::ComputeAverageRotationParameters(m_InternalTransformList, average_parameters);
-  HelperType::ComputeAverageTranslationParameters(m_InternalTransformList, average_parameters);
+  HelperType::ComputeAverageScaleParameters(m_InternalTransformList, average_parameters, verbose);
+  HelperType::ComputeAverageShearingParameters(m_InternalTransformList, average_parameters, verbose);
+  if (useRigid)
+  {
+    HelperType::ComputeAverageRotationParameters(m_InternalTransformList, average_parameters, verbose);
+    HelperType::ComputeAverageTranslationParameters(m_InternalTransformList, average_parameters, verbose);
+  }
 
   average_iaff->SetParameters(average_parameters);
   average_iaff->SetCenter(reference_center);
 
-  std::cout << "average_iaff" << average_iaff << std::endl;
+  if (verbose)
+  {
+    std::cout << "average_iaff" << average_iaff << std::endl;
+  }
 
   ConvertInternalAffineToGenericAffine(average_iaff, affine_output);
 
-  std::cout << "affine_output" << affine_output << std::endl;
+  if (verbose)
+  {
+    std::cout << "affine_output" << affine_output << std::endl;
+  }
   return;
 }
 
@@ -148,7 +161,7 @@ void
 HelperCommonType<TAffine>::ComputeAveragePartialParameters(InternalTransformListType & transform_list,
                                                            ParametersType &            average_parameters,
                                                            unsigned int                istart,
-                                                           unsigned int                iend)
+                                                           unsigned int                iend, bool verbose)
 {
   double w = 0.0;
 
@@ -164,42 +177,58 @@ HelperCommonType<TAffine>::ComputeAveragePartialParameters(InternalTransformList
   {
     ParametersType current_parameters = it->aff->GetParameters();
     w += it->weight;
-
-    std::cout << "[" << cnt++ << "]:" << it->weight << "\t";
+    ++cnt;
     for (unsigned int k = istart; k <= iend; k++)
     {
       average_parameters[k] += it->weight * current_parameters[k];
-
-      std::cout << current_parameters[k] << " ";
     }
 
-    std::cout << std::endl;
+    if (verbose)
+    {
+      std::cout << "[" << cnt << "]:" << it->weight << "\t";
+      for (unsigned int k = istart; k <= iend; k++)
+      {
+        std::cout << current_parameters[k] << " ";
+      }
+      std::cout << std::endl;
+    }
   }
 
   if (w <= 0.0)
   {
-    std::cout << "Total weight smaller than 0!!!" << std::endl;
-    std::exception();
+    if (verbose)
+    {
+      std::cout << "Total weight smaller than 0!!!" << std::endl;
+    }
+    // throw std::runtime_error("Total weight smaller than 0");
   }
 
-  // normalize by weight
-  std::cout << "sum:w=" << w << "\t";
-  for (unsigned int k = istart; k <= iend; k++)
+  if (verbose)
   {
-    std::cout << average_parameters[k] << " ";
+    std::cout << "sum:w=" << w << "\t";
+    for (unsigned int k = istart; k <= iend; k++)
+    {
+      std::cout << average_parameters[k] << " ";
+    }
+    std::cout << std::endl;
   }
-  std::cout << std::endl;
 
   // normalize by weight
-  std::cout << "average"
-            << "\t";
   for (unsigned int k = istart; k <= iend; k++)
   {
     average_parameters[k] /= w;
-    std::cout << average_parameters[k] << " ";
   }
 
-  std::cout << std::endl;
+  if (verbose)
+  {
+    std::cout << "average\t";
+    for (unsigned int k = istart; k <= iend; k++)
+    {
+      std::cout << average_parameters[k] << " ";
+    }
+    std::cout << std::endl;
+  }
+
   return;
 }
 
@@ -207,105 +236,127 @@ template <typename TParametersValueType>
 void
 HelperType<Dispatcher<2>, TParametersValueType>::ComputeAverageScaleParameters(
   InternalTransformListType & transform_list,
-  ParametersType &            average_parameters)
+  ParametersType &            average_parameters, bool verbose)
 {
   unsigned int istart = 1;
   unsigned int iend = 2;
 
-  std::cout << "average 2D scale parameter " << std::endl;
+  if (verbose)
+  {
+    std::cout << "average 2D scale parameter " << std::endl;
+  }
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
-    transform_list, average_parameters, istart, iend);
+    transform_list, average_parameters, istart, iend, verbose);
 }
 
 template <typename TParametersValueType>
 void
 HelperType<Dispatcher<2>, TParametersValueType>::ComputeAverageShearingParameters(
   InternalTransformListType & transform_list,
-  ParametersType &            average_parameters)
+  ParametersType &            average_parameters, bool verbose)
 {
   unsigned int istart = 3;
   unsigned int iend = 3;
 
-  std::cout << "average 2D shearing parameter " << std::endl;
+  if (verbose)
+  {
+    std::cout << "average 2D shearing parameter " << std::endl;
+  }
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
-    transform_list, average_parameters, istart, iend);
+    transform_list, average_parameters, istart, iend, verbose);
 }
 
 template <typename TParametersValueType>
 void
 HelperType<Dispatcher<2>, TParametersValueType>::ComputeAverageRotationParameters(
   InternalTransformListType & transform_list,
-  ParametersType &            average_parameters)
+  ParametersType &            average_parameters, bool verbose)
 {
   unsigned int istart = 0;
   unsigned int iend = 0;
 
-  std::cout << "average 2D rotation parameter " << std::endl;
+  if (verbose)
+  {
+    std::cout << "average 2D rotation parameter " << std::endl;
+  }
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
-    transform_list, average_parameters, istart, iend);
+    transform_list, average_parameters, istart, iend, verbose);
 }
 
 template <typename TParametersValueType>
 void
 HelperType<Dispatcher<2>, TParametersValueType>::ComputeAverageTranslationParameters(
   InternalTransformListType & transform_list,
-  ParametersType &            average_parameters)
+  ParametersType &            average_parameters, bool verbose)
 {
   unsigned int istart = 6;
   unsigned int iend = 7;
 
-  std::cout << "average 2D translation parameter " << std::endl;
+  if (verbose)
+  {
+    std::cout << "average 2D translation parameter " << std::endl;
+  }
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
-    transform_list, average_parameters, istart, iend);
+    transform_list, average_parameters, istart, iend, verbose);
 }
 
 template <typename TParametersValueType>
 void
 HelperType<Dispatcher<3>, TParametersValueType>::ComputeAverageScaleParameters(
   InternalTransformListType & transform_list,
-  ParametersType &            average_parameters)
+  ParametersType &            average_parameters, bool verbose)
 {
   unsigned int istart = 4;
   unsigned int iend = 6;
 
-  std::cout << "average 3D scale parameter " << std::endl;
+  if (verbose)
+  {
+    std::cout << "average 3D scale parameter " << std::endl;
+  }
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
-    transform_list, average_parameters, istart, iend);
+    transform_list, average_parameters, istart, iend, verbose);
 }
 
 template <typename TParametersValueType>
 void
 HelperType<Dispatcher<3>, TParametersValueType>::ComputeAverageShearingParameters(
   InternalTransformListType & transform_list,
-  ParametersType &            average_parameters)
+  ParametersType &            average_parameters, bool verbose)
 {
   unsigned int istart = 7;
   unsigned int iend = 9;
 
-  std::cout << "average 3D shearing parameter " << std::endl;
+  if (verbose)
+  {
+    std::cout << "average 3D shearing parameter " << std::endl;
+  }
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
-    transform_list, average_parameters, istart, iend);
+    transform_list, average_parameters, istart, iend, verbose);
 }
 
 template <typename TParametersValueType>
 void
 HelperType<Dispatcher<3>, TParametersValueType>::ComputeAverageRotationParameters(
   InternalTransformListType & transform_list,
-  ParametersType &            average_parameters)
+  ParametersType &            average_parameters,
+        bool verbose)
 {
   unsigned int istart = 0;
   unsigned int iend = 3;
 
-  std::cout << "average 3D rotation parameter " << std::endl;
+  if (verbose)
+  {
+    std::cout << "average 3D rotation parameter " << std::endl;
+  }
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
-    transform_list, average_parameters, istart, iend);
+    transform_list, average_parameters, istart, iend, verbose);
 
   // extra normalization for quaternion
 
@@ -325,15 +376,19 @@ template <typename TParametersValueType>
 void
 HelperType<Dispatcher<3>, TParametersValueType>::ComputeAverageTranslationParameters(
   InternalTransformListType & transform_list,
-  ParametersType &            average_parameters)
+  ParametersType &            average_parameters,
+        bool verbose)
 {
   unsigned int istart = 10;
   unsigned int iend = 12;
 
-  std::cout << "average 3D translation parameter " << std::endl;
+  if (verbose)
+  {
+    std::cout << "average 3D translation parameter " << std::endl;
+  }
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
-    transform_list, average_parameters, istart, iend);
+    transform_list, average_parameters, istart, iend, verbose);
 }
 } // end namespace AverageAffineTransformFunctionHelperNameSpace
 } // end namespace itk

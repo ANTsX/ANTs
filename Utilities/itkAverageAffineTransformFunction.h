@@ -52,7 +52,7 @@ struct HelperCommonType
   ComputeAveragePartialParameters(InternalTransformListType & transform_list,
                                   ParametersType &            average_parameters,
                                   unsigned int                iStart,
-                                  unsigned int                iEnd);
+                                  unsigned int                iEnd, bool verbose);
 };
 
 template <typename T, typename TParametersValueType>
@@ -77,16 +77,16 @@ public:
   typedef typename HelperCommonType<InternalAffineTransformType>::ParametersType            ParametersType;
 
   static void
-  ComputeAverageScaleParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
+  ComputeAverageScaleParameters(InternalTransformListType & transform_list, ParametersType & average_parameters, bool verbose);
 
   static void
-  ComputeAverageShearingParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
+  ComputeAverageShearingParameters(InternalTransformListType & transform_list, ParametersType & average_parameters, bool verbose);
 
   static void
-  ComputeAverageRotationParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
+  ComputeAverageRotationParameters(InternalTransformListType & transform_list, ParametersType & average_parameters, bool verbose);
 
   static void
-  ComputeAverageTranslationParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
+  ComputeAverageTranslationParameters(InternalTransformListType & transform_list, ParametersType & average_parameters, bool verbose);
 };
 
 // explicit specialization for 3D affine transform
@@ -104,16 +104,16 @@ public:
   typedef typename HelperCommonType<InternalAffineTransformType>::ParametersType            ParametersType;
 
   static void
-  ComputeAverageScaleParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
+  ComputeAverageScaleParameters(InternalTransformListType & transform_list, ParametersType & average_parameters, bool verbose);
 
   static void
-  ComputeAverageShearingParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
+  ComputeAverageShearingParameters(InternalTransformListType & transform_list, ParametersType & average_parameters, bool verbose);
 
   static void
-  ComputeAverageRotationParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
+  ComputeAverageRotationParameters(InternalTransformListType & transform_list, ParametersType & average_parameters, bool verbose);
 
   static void
-  ComputeAverageTranslationParameters(InternalTransformListType & transform_list, ParametersType & average_parameters);
+  ComputeAverageTranslationParameters(InternalTransformListType & transform_list, ParametersType & average_parameters, bool verbose);
 };
 } // namespace AverageAffineTransformFunctionHelperNameSpace
 
@@ -159,6 +159,12 @@ public:
 
   void
   AverageMultipleAffineTransform(const PointType & center_output, GenericAffineTransformPointerType & affine_output);
+
+  /** Whether progress and debugging information are printed to standard output (cout). */
+  bool verbose = false;
+
+  /** Set to false to ignore rotation and translation. */
+  bool useRigid = true;
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
