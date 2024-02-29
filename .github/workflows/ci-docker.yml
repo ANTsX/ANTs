@@ -47,7 +47,7 @@ jobs:
         name: Export Docker image for PR
         if: github.event_name == 'pull_request'
         run: |
-          docker save antsx/ants:${{ steps.meta.outputs.version }} | ants_image.tar
+          docker save antsx/ants:${{ steps.meta.outputs.version }} > ants_image.tar
       -
         name: Upload PR Docker image as artifact
         if: github.event_name == 'pull_request'
