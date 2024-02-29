@@ -47,12 +47,12 @@ jobs:
         name: Export Docker image for PR
         if: github.event_name == 'pull_request'
         run: |
-          docker save antsx/ants:${{ steps.meta.outputs.version }} | gzip > ants_image.tar.gz
+          docker save antsx/ants:${{ steps.meta.outputs.version }} | ants_image.tar
       -
         name: Upload PR Docker image as artifact
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v3
         with:
             name: ants-docker-image
-            path: ants_image.tar.gz
+            path: ants_image.tar
             retention-days: 7
