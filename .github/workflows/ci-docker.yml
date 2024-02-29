@@ -35,10 +35,24 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and push
+        name: Build and load (PR) or push (commit/tag)
         uses: docker/build-push-action@v3
         with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+            context: .
+            push: ${{ github.event_name != 'pull_request' }}
+            load: ${{ github.event_name == 'pull_request' }}
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
+      -
+        name: Export Docker image for PR
+        if: github.event_name == 'pull_request'
+        run: |
+          docker save antsx/ants:${{ steps.meta.outputs.version }} > ants_image.tar
+      -
+        name: Upload PR Docker image as artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v3
+        with:
+            name: ants-docker-image
+            path: ants_image.tar
+            retention-days: 7
