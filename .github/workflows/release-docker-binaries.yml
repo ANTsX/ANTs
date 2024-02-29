@@ -41,7 +41,7 @@ jobs:
             generators: "Ninja"
           }
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
       - name: Get ANTs version
@@ -126,7 +126,7 @@ jobs:
           cd /opt/install
           zip -r ${ARTIFACT} .
       - name: Upload release asset
-        uses: ncipollo/release-action@v1.12.0
+        uses: ncipollo/release-action@v1.14.0
         with:
           allowUpdates: true
           omitBodyDuringUpdate: true
