@@ -57,7 +57,7 @@ jobs:
           }
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
       - name: Get ANTs version
@@ -128,7 +128,7 @@ jobs:
       - name: Upload release asset
         # Previously was using actions/upload-release-asset@v1 , but this had some
         # errors with large files
-        uses: ncipollo/release-action@v1.11.1
+        uses: ncipollo/release-action@v1.14.0
         with:
           allowUpdates: true
           omitBodyDuringUpdate: true
