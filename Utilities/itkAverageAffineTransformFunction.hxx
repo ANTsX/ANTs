@@ -86,12 +86,20 @@ AverageAffineTransformFunction<TTransform>::AverageMultipleAffineTransform(
   typename TransformListType::iterator it = m_TransformList.begin();
 
   typename InternalAffineTransformType::Pointer average_iaff = InternalAffineTransformType::New();
+  if (verbose)
+  {
+    average_iaff->DebugOn();
+  }
 
   typename InternalAffineTransformType::ParametersType average_parameters = average_iaff->GetParameters();
   for (; it != m_TransformList.end(); it++)
   {
     SingleInternalTransformItemType internal_item;
     internal_item.aff = InternalAffineTransformType::New();
+    if (verbose)
+    {
+      internal_item.aff->DebugOn();
+    }
     ConvertGenericAffineToInternalAffineByFixingCenter(it->aff, internal_item.aff, reference_center);
     internal_item.weight = it->weight;
     m_InternalTransformList.push_back(internal_item);
