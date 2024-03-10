@@ -15,6 +15,8 @@
 #include "itkCompositeTransform.h"
 #include "itkDisplacementFieldTransform.h"
 #include "itkIdentityTransform.h"
+#include "itkImageIOBase.h"
+#include "itkImageIOFactory.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
@@ -246,12 +248,46 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
   }
   else if (inputImageType == 0 && inputOption && inputOption->GetNumberOfFunctions())
   {
+    const std::string inputFN = inputOption->GetFunction(0)->GetName();
+
     if (verbose)
     {
-      std::cout << "Input scalar image: " << inputOption->GetFunction(0)->GetName() << std::endl;
+      std::cout << "Input scalar image: " << inputFN << std::endl;
     }
+
+    // As this is the default input type, check that input is correct otherwise instruct user to use
+    // the -e option
+
+    itk::ImageIOBase::Pointer imageIO =
+        itk::ImageIOFactory::CreateImageIO(inputFN.c_str(), itk::IOFileModeEnum::ReadMode);
+
+    if (!imageIO) {
+        std::cerr << "Could not create ImageIO for the input file: " << inputFN << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    imageIO->SetFileName(inputFN.c_str());
+    imageIO->ReadImageInformation();
+
+    const size_t inputDimension = imageIO->GetNumberOfDimensions();
+
+    // Check if the dimension matches
+    if (inputDimension != Dimension) {
+        std::cerr << "Input image dimension does not match. Expected: " << Dimension
+                  << ", but got: " << inputDimension << std::endl << "See -e option for available input types."
+                  << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    // Check if the pixel type is scalar
+    if (imageIO->GetPixelType() != itk::IOPixelEnum::SCALAR) {
+        std::cerr << "Image pixel type is not scalar." << std::endl << "See -e option for available input types."
+                  << std::endl;
+        return EXIT_FAILURE;
+    }
+
     typename ImageType::Pointer image;
-    ReadImage<ImageType>(image, (inputOption->GetFunction(0)->GetName()).c_str());
+    ReadImage<ImageType>(image, inputFN.c_str());
     inputImages.push_back(image);
   }
   else if (inputImageType == 1 && inputOption && inputOption->GetNumberOfFunctions())
