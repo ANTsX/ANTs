@@ -263,41 +263,43 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
 
     if (!imageIO)
     {
+      // can only check files, so skip checks if using a pointer in ANTsR / ANTsPy
       if (verbose)
       {
-        std::cout << "Could not create ImageIO for the input file: " << inputFN << std::endl;
+        std::cout << "Could not create ImageIO for the input file, cannot check pixel type" << std::endl;
       }
       return EXIT_FAILURE;
     }
-
-    imageIO->SetFileName(inputFN.c_str());
-    imageIO->ReadImageInformation();
-
-    const size_t inputDimension = imageIO->GetNumberOfDimensions();
-
-    // Check if the dimension matches
-    if (inputDimension != Dimension)
+    else
     {
+      imageIO->SetFileName(inputFN.c_str());
+      imageIO->ReadImageInformation();
+
+      const size_t inputDimension = imageIO->GetNumberOfDimensions();
+
+      // Check if the dimension matches
+      if (inputDimension != Dimension)
+      {
         if (verbose)
-        {
-          std::cout << "Input image dimension does not match. Expected: " << Dimension
-                << ", but got: " << inputDimension << std::endl << "See -e option for available input types."
-                << std::endl;
-        }
-        return EXIT_FAILURE;
-    }
+          {
+            std::cout << "Input image dimension does not match. Expected: " << Dimension
+                    << ", but got: " << inputDimension << std::endl << "See -e option for available input types."
+                    << std::endl;
+          }
+          return EXIT_FAILURE;
+      }
 
-    // Check if the pixel type is scalar
-    if (imageIO->GetPixelType() != itk::IOPixelEnum::SCALAR)
-    {
+      // Check if the pixel type is scalar
+      if (imageIO->GetPixelType() != itk::IOPixelEnum::SCALAR)
+      {
         if (verbose)
         {
           std::cout << "Image pixel type is not scalar." << std::endl << "See -e option for available input types."
-                << std::endl;
+                  << std::endl;
         }
         return EXIT_FAILURE;
+      }
     }
-
     typename ImageType::Pointer image;
     ReadImage<ImageType>(image, inputFN.c_str());
     inputImages.push_back(image);
