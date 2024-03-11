@@ -70,7 +70,7 @@ Disassemble(itk::TransformBaseTemplate<double> * transform,
     TransformPointer  curXfrm = composite->GetNthTransform(i);
     auto *            dispXfrm = dynamic_cast<DisplacementFieldTransformType *>(curXfrm.GetPointer());
     std::stringstream fname;
-    fname << std::setfill('0') << std::setw(2) << i << "_" << prefix << "_" << curXfrm->GetNameOfClass();
+    fname << prefix << "_" << std::setfill('0') << std::setw(2) << i << "_" << curXfrm->GetNameOfClass();
     if (dispXfrm != nullptr)
     {
       fname << ".nii.gz"; // if it's a displacement field transform
