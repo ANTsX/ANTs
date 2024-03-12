@@ -133,9 +133,12 @@ ANTSCenteredAffine2DTransform<TScalarType>::ComputeMatrixParameters(void)
 
   this->ComputeMatrix();
 
-  if (static_cast<double>(this->GetMatrix()[1][0]) - static_cast<double>(std::sin(m_Angle)) > 0.000001)
+  if (this->GetDebug())
   {
-    itkWarningMacro("Bad Rotation Matrix " << this->GetMatrix());
+    if (static_cast<double>(this->GetMatrix()[1][0]) - static_cast<double>(std::sin(m_Angle)) > 0.000001)
+    {
+      itkWarningMacro("Bad Rotation Matrix " << this->GetMatrix());
+    }
   }
 }
 
