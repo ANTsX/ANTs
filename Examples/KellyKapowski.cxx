@@ -154,7 +154,7 @@ DiReCT(itk::ants::CommandLineParser * parser)
     if (verbose)
     {
       std::cout << "  Grey matter probability image not specified. "
-                << "Creating one from the segmentation image using label value " 
+                << "Creating one from the segmentation image using label value "
                 << direct->GetGrayMatterLabel() << std::endl;
     }
 
@@ -192,7 +192,7 @@ DiReCT(itk::ants::CommandLineParser * parser)
     if (verbose)
     {
       std::cout << "  White matter probability image not specified. "
-                << "Creating one from the segmentation image using label value " 
+                << "Creating one from the segmentation image using label value "
                 << direct->GetWhiteMatterLabel() << std::endl;
     }
 
@@ -376,7 +376,7 @@ DiReCT(itk::ants::CommandLineParser * parser)
     if (outputOption->GetFunction(0)->GetNumberOfParameters() > 1)
     {
     direct->SetIncludeCumulativeVelocityFields(true);
-    } 
+    }
   }
 
 
@@ -418,9 +418,9 @@ DiReCT(itk::ants::CommandLineParser * parser)
       if (outputOption->GetFunction(0)->GetNumberOfParameters() > 1)
       {
         direct->GetForwardCumulativeVelocityField()->Print(std::cout, 3);
-        ANTs::WriteImage<typename DiReCTFilterType::CumulativeVelocityFieldType>(direct->GetForwardCumulativeVelocityField(), 
+        ANTs::WriteImage<typename DiReCTFilterType::CumulativeVelocityFieldType>(direct->GetForwardCumulativeVelocityField(),
                                           (outputOption->GetFunction(0)->GetParameter(1) + "ForwardVelocityField.nii.gz").c_str());
-        ANTs::WriteImage<typename DiReCTFilterType::CumulativeVelocityFieldType>(direct->GetInverseCumulativeVelocityField(), 
+        ANTs::WriteImage<typename DiReCTFilterType::CumulativeVelocityFieldType>(direct->GetInverseCumulativeVelocityField(),
                                           (outputOption->GetFunction(0)->GetParameter(1) + "InverseVelocityField.nii.gz").c_str());
       }
     }
@@ -782,7 +782,7 @@ KellyKapowski(std::vector<std::string> args, std::ostream * /*out_stream = nullp
     // Read in the first intensity image to get the image dimension.
     std::string filename;
 
-    itk::ants::CommandLineParser::OptionType::Pointer imageOption = parser->GetOption("input-image");
+    itk::ants::CommandLineParser::OptionType::Pointer imageOption = parser->GetOption("segmentation-image");
     if (imageOption && imageOption->GetNumberOfFunctions() > 0)
     {
       if (imageOption->GetFunction(0)->GetNumberOfParameters() > 0)
