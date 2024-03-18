@@ -800,8 +800,15 @@ KellyKapowski(std::vector<std::string> args, std::ostream * /*out_stream = nullp
                 << " segmentation image with the -s option" << std::endl;
       return EXIT_FAILURE;
     }
+
     itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(filename.c_str(), itk::IOFileModeEnum::ReadMode);
+    if (!imageIO)
+    {
+      std::cout << "Could not create ImageIO object for file " << filename.c_str() << std::endl;
+      return EXIT_FAILURE;
+    }
+
     dimension = imageIO->GetNumberOfDimensions();
   }
 
