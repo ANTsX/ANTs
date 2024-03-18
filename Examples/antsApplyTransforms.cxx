@@ -266,9 +266,9 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       // can only check files, so skip checks if using a pointer in ANTsR / ANTsPy
       if (verbose)
       {
-        std::cout << "Could not create ImageIO for the input file, cannot check pixel type" << std::endl;
+        std::cout << "Could not create ImageIO for the input file, assuming dimension = " << Dimension <<
+            " and scalar pixel type" << std::endl;
       }
-      return EXIT_FAILURE;
     }
     else
     {
