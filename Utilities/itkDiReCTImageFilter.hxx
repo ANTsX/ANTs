@@ -259,19 +259,23 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
   {
     CumulativeVelocityFieldPointer forwardCumulativeVelocityField = this->GetForwardCumulativeVelocityField();
     forwardCumulativeVelocityField->Allocate();
+    forwardCumulativeVelocityField->FillBuffer(zeroVector);
     CumulativeVelocityFieldPointer inverseCumulativeVelocityField = this->GetInverseCumulativeVelocityField();
     inverseCumulativeVelocityField->Allocate();
+    inverseCumulativeVelocityField->FillBuffer(zeroVector);
   }
 
   DisplacementFieldPointer forwardIncrementalField = DisplacementFieldType::New();
   forwardIncrementalField->CopyInformation(segmentationImage);
   forwardIncrementalField->SetRegions(segmentationImage->GetRequestedRegion());
   forwardIncrementalField->Allocate();
+  forwardIncrementalField->FillBuffer(zeroVector);
 
   RealImagePointer hitImage = RealImageType::New();
   hitImage->CopyInformation(segmentationImage);
   hitImage->SetRegions(segmentationImage->GetRequestedRegion());
   hitImage->Allocate();
+  hitImage->FillBuffer(0.0);
 
   DisplacementFieldPointer integratedField = DisplacementFieldType::New();
   integratedField->CopyInformation(segmentationImage);
@@ -283,26 +287,31 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
   inverseField->CopyInformation(segmentationImage);
   inverseField->SetRegions(segmentationImage->GetRequestedRegion());
   inverseField->Allocate();
+  inverseField->FillBuffer(zeroVector);
 
   DisplacementFieldPointer inverseIncrementalField = DisplacementFieldType::New();
   inverseIncrementalField->CopyInformation(segmentationImage);
   inverseIncrementalField->SetRegions(segmentationImage->GetRequestedRegion());
   inverseIncrementalField->Allocate();
+  inverseIncrementalField->FillBuffer(zeroVector);
 
   RealImagePointer speedImage = RealImageType::New();
   speedImage->CopyInformation(segmentationImage);
   speedImage->SetRegions(segmentationImage->GetRequestedRegion());
   speedImage->Allocate();
+  speedImage->FillBuffer(0.0);
 
   RealImagePointer thicknessImage = RealImageType::New();
   thicknessImage->CopyInformation(segmentationImage);
   thicknessImage->SetRegions(segmentationImage->GetRequestedRegion());
   thicknessImage->Allocate();
+  thicknessImage->FillBuffer(0.0);
 
   RealImagePointer totalImage = RealImageType::New();
   totalImage->CopyInformation(segmentationImage);
   totalImage->SetRegions(segmentationImage->GetRequestedRegion());
   totalImage->Allocate();
+  totalImage->FillBuffer(0.0);
 
   DisplacementFieldPointer velocityField = DisplacementFieldType::New();
   velocityField->CopyInformation(segmentationImage);
@@ -398,7 +407,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
 
       // Generate speed image
 
-      speedImage->FillBuffer(0.0);
+      speedImage->FillBuffer(NumericTraits<RealType>::Zero);
 
       ItGradientImage.GoToBegin();
       ItGrayMatterProbabilityMap.GoToBegin();
@@ -424,19 +433,18 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
             ItGradientImage.Set(zeroVector);
           }
           RealType delta = (ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get());
-          currentEnergy += itk::Math::abs(delta);
+          currentEnergy += Math::abs(delta);
           numberOfGrayMatterVoxels++;
-          RealType speedValue =
-            static_cast<RealType>(-1.0) * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
+          RealType speedValue = -delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
           if (std::isnan(speedValue) || std::isinf(speedValue))
           {
-            speedValue = 0.0;
+            speedValue = NumericTraits<RealType>::Zero;
           }
           ItSpeedImage.Set(speedValue);
         }
         else
         {
-          ItSpeedImage.Set(0.0);
+          ItSpeedImage.Set(NumericTraits<RealType>::Zero);
         }
 
         ++ItGradientImage;
@@ -698,7 +706,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
     }
     else if (this->m_UseMaskedSmoothing)
     {
-      using MaskedSmootherType = MaskedSmoothingImageFilter<DisplacementFieldType, InputImageType>;
+      using MaskedSmootherType = MaskedSmoothingImageFilter<DisplacementFieldType, InputImageType, DisplacementFieldType>;
       typename MaskedSmootherType::Pointer maskedSmoother = MaskedSmootherType::New();
       maskedSmoother->SetInput(velocityField);
       maskedSmoother->SetMaskImage(thresholdedRegion);
@@ -871,14 +879,18 @@ typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>::WarpImage(const RealImageType *         inputImage,
                                                         const DisplacementFieldType * displacementField)
 {
+  using InterpolatorType = itk::LinearInterpolateImageFunction<RealImageType, double>;
+  auto interpolator = InterpolatorType::New();
+
   using WarperType = WarpImageFilter<RealImageType, RealImageType, DisplacementFieldType>;
   typename WarperType::Pointer warper = WarperType::New();
   warper->SetInput(inputImage);
-  warper->SetDisplacementField(displacementField);
+  warper->SetInterpolator(interpolator);
   warper->SetEdgePaddingValue(0);
-  warper->SetOutputSpacing(inputImage->GetSpacing());
-  warper->SetOutputOrigin(inputImage->GetOrigin());
-  warper->SetOutputDirection(inputImage->GetDirection());
+  warper->SetOutputSpacing(displacementField->GetSpacing());
+  warper->SetOutputOrigin(displacementField->GetOrigin());
+  warper->SetOutputDirection(displacementField->GetDirection());
+  warper->SetDisplacementField(displacementField);
 
   RealImagePointer warpedImage = warper->GetOutput();
   warpedImage->Update();
