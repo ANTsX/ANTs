@@ -2175,8 +2175,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::GetPo
         sumPriorProbabilityImage = RealImageType::New();
         sumPriorProbabilityImage->CopyInformation(this->GetOutput());
         sumPriorProbabilityImage->SetRegions(this->GetOutput()->GetRequestedRegion());
-        sumPriorProbabilityImage->Allocate();
-        sumPriorProbabilityImage->FillBuffer(0);
+        sumPriorProbabilityImage->AllocateInitialized();
         for (unsigned int c = 0; c < totalNumberOfClasses; c++)
         {
           RealImagePointer priorProbabilityImage = this->GetPriorProbabilityImage(c + 1);
@@ -2415,8 +2414,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::GetDi
       this->m_SumDistancePriorProbabilityImage = RealImageType::New();
       this->m_SumDistancePriorProbabilityImage->CopyInformation(this->GetOutput());
       this->m_SumDistancePriorProbabilityImage->SetRegions(this->GetOutput()->GetRequestedRegion());
-      this->m_SumDistancePriorProbabilityImage->Allocate();
-      this->m_SumDistancePriorProbabilityImage->FillBuffer(0);
+      this->m_SumDistancePriorProbabilityImage->AllocateInitialized();
       for (unsigned int c = 0; c < this->m_NumberOfTissueClasses; c++)
       {
         typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType> ThresholderType;
@@ -2936,8 +2934,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::GetLi
 
   likelihoodImage->CopyInformation(this->GetInput());
   likelihoodImage->SetRegions(this->GetInput()->GetRequestedRegion());
-  likelihoodImage->Allocate();
-  likelihoodImage->FillBuffer(0);
+  likelihoodImage->AllocateInitialized();
 
   std::vector<RealImagePointer> smoothImages;
   if (this->m_InitializationStrategy == PriorProbabilityImages || this->m_InitializationStrategy == PriorLabelImage)
@@ -2994,8 +2991,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Compu
     this->m_ICMCodeImage = ClassifiedImageType::New();
     this->m_ICMCodeImage->CopyInformation(this->GetInput());
     this->m_ICMCodeImage->SetRegions(this->GetInput()->GetRequestedRegion());
-    this->m_ICMCodeImage->Allocate();
-    this->m_ICMCodeImage->FillBuffer(0);
+    this->m_ICMCodeImage->AllocateInitialized();
   }
 
   typename NeighborhoodIterator<ClassifiedImageType>::RadiusType radius;

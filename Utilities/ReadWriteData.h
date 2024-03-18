@@ -811,7 +811,7 @@ ConvertTimeSeriesImageToMultiChannelImage(TTimeSeriesImageType * timeSeriesImage
   multiChannelImage->SetOrigin(origin);
   multiChannelImage->SetDirection(direction);
   multiChannelImage->SetVectorLength(timeSeriesSize[ImageDimension]);
-  multiChannelImage->Allocate();
+  multiChannelImage->AllocateInitialized();
 
   itk::ImageRegionIteratorWithIndex<MultiChannelImageType> It(multiChannelImage,
                                                               multiChannelImage->GetRequestedRegion());
@@ -942,7 +942,7 @@ ConvertTimeSeriesImageToFiveDimensionalImage(TTimeSeriesImageType * timeSeriesIm
   FiveDimensionalImage->SetSpacing(spacing);
   FiveDimensionalImage->SetOrigin(origin);
   FiveDimensionalImage->SetDirection(direction);
-  FiveDimensionalImage->Allocate();
+  FiveDimensionalImage->AllocateInitialized();
 
   itk::ImageRegionIteratorWithIndex<FiveDimensionalImageType> It(FiveDimensionalImage,
                                                                  FiveDimensionalImage->GetRequestedRegion());

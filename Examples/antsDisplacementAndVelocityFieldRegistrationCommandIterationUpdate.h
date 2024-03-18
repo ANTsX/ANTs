@@ -337,12 +337,10 @@ public:
         typedef typename itk::IdentityTransform<RealType, VImageDimension> IdentityTransformType;
         typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
 
-        const DisplacementVectorType            zeroVector(0.0);
         typename DisplacementFieldType::Pointer identityField = DisplacementFieldType::New();
         identityField->CopyInformation(this->m_origFixedImage);
         identityField->SetRegions(this->m_origFixedImage->GetRequestedRegion());
-        identityField->Allocate();
-        identityField->FillBuffer(zeroVector);
+        identityField->AllocateInitialized();
 
         typename DisplacementFieldTransformType::Pointer identityDisplacementFieldTransform =
           DisplacementFieldTransformType::New();

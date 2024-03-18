@@ -837,7 +837,7 @@ SurfaceImageCurvature<TSurface>::IntegrateFunctionOverSurface(bool norm)
   typename OutputImageType::Pointer tempimage = OutputImageType::New();
   tempimage->SetLargestPossibleRegion(image->GetLargestPossibleRegion());
   tempimage->SetBufferedRegion(image->GetLargestPossibleRegion());
-  tempimage->Allocate();
+  tempimage->AllocateInitialized();
 
   typename ImageType::SizeType rad;
   typename ImageType::SizeType rad2;
@@ -1199,8 +1199,7 @@ SurfaceImageCurvature<TSurface>::SetInputImage(typename ImageType::Pointer & inp
     this->m_FunctionImage = OutputImageType::New();
     this->m_FunctionImage->CopyInformation(input);
     this->m_FunctionImage->SetRegions(region);
-    this->m_FunctionImage->Allocate();
-    this->m_FunctionImage->FillBuffer(0);
+    this->m_FunctionImage->AllocateInitialized();
   }
 }
 } // namespace itk

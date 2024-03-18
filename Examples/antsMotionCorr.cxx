@@ -807,8 +807,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
     outputImage->SetSpacing(outSpacing);
     outputImage->SetOrigin(outOrigin);
     outputImage->SetDirection(outDirection);
-    outputImage->Allocate();
-    outputImage->FillBuffer(0);
+    outputImage->AllocateInitialized();
 
 
     if (writeDisplacementField > 0)

@@ -192,8 +192,7 @@ SmoothDisplacementField(int argc, char * argv[])
   rmseImage->SetDirection(field->GetDirection());
   rmseImage->SetSpacing(field->GetSpacing());
   rmseImage->SetRegions(field->GetLargestPossibleRegion());
-  rmseImage->Allocate();
-  rmseImage->FillBuffer(0.0);
+  rmseImage->AllocateInitialized();
 
   itk::ImageRegionConstIterator<DisplacementFieldType> fieldIt(field, field->GetLargestPossibleRegion());
   itk::ImageRegionConstIterator<DisplacementFieldType> smoothedFieldIt(smoothField,

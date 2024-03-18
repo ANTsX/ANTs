@@ -746,8 +746,8 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
         std::string whichTransform = transformOption->GetFunction(currentStage)->GetName();
         ConvertToLowerCase(whichTransform);
         typename TranslationRegistrationType::Pointer translationRegistration = TranslationRegistrationType::New();
-        if ((std::strcmp(whichTransform.c_str(), "translation") == 0) |
-            (std::strcmp(whichTransform.c_str(), "rigid") == 0) |
+        if ((std::strcmp(whichTransform.c_str(), "translation") == 0) ||
+            (std::strcmp(whichTransform.c_str(), "rigid") == 0) ||
             (std::strcmp(whichTransform.c_str(), "similarity") == 0))
         {
           transformList[timedim]->GetNumberOfParameters();
@@ -942,7 +942,7 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
     typename DisplacementIOFieldType::Pointer displacementinv = DisplacementIOFieldType::New();
     displacementinv->CopyInformation(displacementout);
     displacementinv->SetRegions(displacementout->GetRequestedRegion());
-    displacementinv->Allocate();
+    displacementinv->AllocateInitialized();
     typename DisplacementIOFieldType::IndexType dind;
     dind.Fill(0);
     displacementinv->FillBuffer(displacementout->GetPixel(dind));

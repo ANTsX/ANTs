@@ -112,8 +112,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>::SetIn
     this->m_HistogramImages[d]->SetOrigin(origin);
     this->m_HistogramImages[d]->SetSpacing(spacing);
     this->m_HistogramImages[d]->SetRegions(size);
-    this->m_HistogramImages[d]->Allocate();
-    this->m_HistogramImages[d]->FillBuffer(0);
+    this->m_HistogramImages[d]->AllocateInitialized();
   }
 
   unsigned long count = 0;

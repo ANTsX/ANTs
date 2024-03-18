@@ -260,7 +260,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenera
     labelProbabilityImage->CopyInformation(this->m_TargetImage[0]);
     labelProbabilityImage->SetRegions(this->m_TargetImage[0]->GetRequestedRegion());
     labelProbabilityImage->SetLargestPossibleRegion(this->m_TargetImage[0]->GetLargestPossibleRegion());
-    labelProbabilityImage->Allocate(true);
+    labelProbabilityImage->AllocateInitialized();
 
     this->m_LabelPosteriorProbabilityImages.insert(
       std::pair<LabelType, ProbabilityImagePointer>(*labelIt, labelProbabilityImage));
@@ -278,7 +278,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenera
       this->m_AtlasVotingWeightImages[i]->CopyInformation(this->m_TargetImage[0]);
       this->m_AtlasVotingWeightImages[i]->SetRegions(this->m_TargetImage[0]->GetRequestedRegion());
       this->m_AtlasVotingWeightImages[i]->SetLargestPossibleRegion(this->m_TargetImage[0]->GetLargestPossibleRegion());
-      this->m_AtlasVotingWeightImages[i]->Allocate(true);
+      this->m_AtlasVotingWeightImages[i]->AllocateInitialized();
     }
   }
 
@@ -292,7 +292,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenera
     this->m_JointIntensityFusionImage[i]->CopyInformation(this->m_TargetImage[0]);
     this->m_JointIntensityFusionImage[i]->SetRegions(this->m_TargetImage[0]->GetRequestedRegion());
     this->m_JointIntensityFusionImage[i]->SetLargestPossibleRegion(this->m_TargetImage[0]->GetLargestPossibleRegion());
-    this->m_JointIntensityFusionImage[i]->Allocate(true);
+    this->m_JointIntensityFusionImage[i]->AllocateInitialized();
   }
 
   // Initialize the weight sum image
@@ -300,14 +300,14 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenera
   this->m_WeightSumImage->CopyInformation(this->m_TargetImage[0]);
   this->m_WeightSumImage->SetRegions(this->m_TargetImage[0]->GetRequestedRegion());
   this->m_WeightSumImage->SetLargestPossibleRegion(this->m_TargetImage[0]->GetLargestPossibleRegion());
-  this->m_WeightSumImage->Allocate(true);
+  this->m_WeightSumImage->AllocateInitialized();
 
   // Initialize the count image
   this->m_CountImage = CountImageType::New();
   this->m_CountImage->CopyInformation(this->m_TargetImage[0]);
   this->m_CountImage->SetRegions(this->m_TargetImage[0]->GetRequestedRegion());
   this->m_CountImage->SetLargestPossibleRegion(this->m_TargetImage[0]->GetLargestPossibleRegion());
-  this->m_CountImage->Allocate(true);
+  this->m_CountImage->AllocateInitialized();
 
   // Determine the ordered search offset list (or map if an search radius image is specified)
 

@@ -1208,7 +1208,7 @@ FEMDiscConformalMap<TSurface, TImage, TDimension>::MakeFlatImage()
   region.SetSize(size);
   m_FlatImage = FlatImageType::New();
   m_FlatImage->SetRegions(region);
-  m_FlatImage->Allocate();
+  m_FlatImage->AllocateInitialized();
   typename FlatImageType::IndexType index;
 
   std::cout << " Making flat image " << std::endl;

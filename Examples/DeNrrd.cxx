@@ -188,7 +188,7 @@ DeNrrd(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   OutputImageType::RegionType outRegion;
   outRegion.SetSize( outSize );
   outImage->SetRegions( outRegion );
-  outImage->Allocate();
+  outImage->AllocateInitialized();
 
   OutputImageType::SpacingType spacing;
   spacing[0] = reader->GetOutput()->GetSpacing()[0];

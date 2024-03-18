@@ -177,7 +177,7 @@ antsVolumetricRendering(itk::ants::CommandLineParser * parser)
   RgbaImageType::Pointer rgbaImage = RgbaImageType::New();
   rgbaImage->CopyInformation(inputImage);
   rgbaImage->SetRegions(inputImage->GetRequestedRegion());
-  rgbaImage->Allocate();
+  rgbaImage->AllocateInitialized();
 
   itk::ImageRegionConstIteratorWithIndex<ImageType> It(inputImage, inputImage->GetRequestedRegion());
 

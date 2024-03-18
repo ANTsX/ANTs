@@ -1339,7 +1339,7 @@ create_deformation_field_byref(const DisplacementFieldPointerType & ref, Displac
   field->SetRegions(region);
   field->SetSpacing(ref->GetSpacing());
   field->SetOrigin(ref->GetOrigin());
-  field->Allocate();
+  field->AllocateInitialized();
 }
 
 // compose affine transform (in a matrix format A: (Ax+b)) with a deformation field F:

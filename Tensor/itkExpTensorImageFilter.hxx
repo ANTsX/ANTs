@@ -40,7 +40,7 @@ ExpTensorImageFilter<TInputImage, TOutputImage>::GenerateData()
   ImageRegionConstIterator<InputImageType> inputIt(input, input->GetLargestPossibleRegion());
 
   output->SetRegions(input->GetLargestPossibleRegion());
-  output->Allocate();
+  output->AllocateInitialized();
 
   ImageRegionIterator<OutputImageType> outputIt(output, output->GetLargestPossibleRegion());
   for (inputIt.GoToBegin(), outputIt.GoToBegin(); !inputIt.IsAtEnd() && !outputIt.IsAtEnd(); ++inputIt, ++outputIt)

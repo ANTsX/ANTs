@@ -105,8 +105,7 @@ RegionSCCA(typename NetworkType::Pointer network,
   size[1] = N;
   region.SetSize(size);
   network->SetRegions(region);
-  network->Allocate();
-  network->FillBuffer(0.0);
+  network->AllocateInitialized();
 
   unsigned int nVoxels = labels->GetLargestPossibleRegion().GetSize()[0];
   unsigned int nTimes = time->GetLargestPossibleRegion().GetSize()[0];
@@ -311,8 +310,7 @@ RegionAveraging(typename NetworkType::Pointer network,
   size[1] = N;
   region.SetSize(size);
   network->SetRegions(region);
-  network->Allocate();
-  network->FillBuffer(0.0);
+  network->AllocateInitialized();
 
   unsigned int nVoxels = labels->GetLargestPossibleRegion().GetSize()[0];
   unsigned int nTimes = time->GetLargestPossibleRegion().GetSize()[0];

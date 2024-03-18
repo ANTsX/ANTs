@@ -79,8 +79,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>::AllocateOutputs()
   typename OutputImageType::Pointer outputImage = this->GetOutput();
   outputImage->CopyInformation(this->GetHighResolutionReferenceImage());
   outputImage->SetRegions(this->GetHighResolutionReferenceImage()->GetBufferedRegion());
-  outputImage->Allocate();
-  outputImage->FillBuffer(0);
+  outputImage->AllocateInitialized();
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -230,7 +229,7 @@ NonLocalSuperresolutionImageFilter<TInputImage, TOutputImage>::BeforeThreadedGen
     this->m_WeightSumImage->SetLargestPossibleRegion(
       this->GetHighResolutionReferenceImage()->GetLargestPossibleRegion());
     this->m_WeightSumImage->Allocate();
-    this->m_WeightSumImage->FillBuffer(1.0);
+    this->m_WeightSumImage->FillBuffer(itk::NumericTraits<typename RealImageType::PixelType>::OneValue());
 
     Superclass::SetTargetImageRegion(this->GetHighResolutionReferenceImage()->GetBufferedRegion());
 

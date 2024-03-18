@@ -290,7 +290,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     output->SetSpacing(input->GetSpacing());
     output->SetOrigin(input->GetOrigin());
     output->SetDirection(input->GetDirection());
-    output->Allocate();
+    output->AllocateInitialized();
   }
   else
   {
@@ -302,7 +302,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     output->SetSpacing(input->GetSpacing());
     output->SetOrigin(input->GetOrigin());
     output->SetDirection(input->GetDirection());
-    output->Allocate();
+    output->AllocateInitialized();
 
     this->m_DisplacementTransform = DisplacementFieldTransformType::New();
     this->m_DisplacementTransform->SetDisplacementField(m_DisplacementField);

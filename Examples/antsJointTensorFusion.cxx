@@ -517,10 +517,7 @@ antsJointTensorFusion(itk::ants::CommandLineParser * parser)
       jointTensorImage->SetSpacing(fusionFilter->GetJointIntensityFusionImage(0)->GetSpacing());
       jointTensorImage->SetOrigin(fusionFilter->GetJointIntensityFusionImage(0)->GetOrigin());
       jointTensorImage->SetDirection(fusionFilter->GetJointIntensityFusionImage(0)->GetDirection());
-      jointTensorImage->Allocate();
-      TensorType nullDT;
-      nullDT.Fill(0.0);
-      jointTensorImage->FillBuffer(nullDT);
+      jointTensorImage->AllocateInitialized();
 
       for (unsigned int i = 0; i < 6; i++)
       {

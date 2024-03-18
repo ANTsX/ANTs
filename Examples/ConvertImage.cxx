@@ -49,12 +49,7 @@ ConvertImage(int argc, char * argv[])
       {
         displacementField->CopyInformation(inputImage);
         displacementField->SetRegions(inputImage->GetRequestedRegion());
-        displacementField->Allocate();
-
-        VectorType V;
-        V.Fill(0.0);
-
-        displacementField->FillBuffer(V);
+        displacementField->AllocateInitialized();
       }
 
       itk::ImageRegionConstIterator<ComponentImageType> It(inputImage, inputImage->GetLargestPossibleRegion());

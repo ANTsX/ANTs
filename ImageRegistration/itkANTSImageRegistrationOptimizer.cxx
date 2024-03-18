@@ -2181,8 +2181,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
   velocityUpdate->SetLargestPossibleRegion(gregion);
   velocityUpdate->SetRequestedRegion(gregion);
   velocityUpdate->SetBufferedRegion(gregion);
-  velocityUpdate->Allocate();
-  velocityUpdate->FillBuffer(zero);
+  velocityUpdate->AllocateInitialized();
 
   if (generatetvfield)
   {
@@ -2193,8 +2192,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_TimeVaryingVelocity->SetLargestPossibleRegion(gregion);
     this->m_TimeVaryingVelocity->SetRequestedRegion(gregion);
     this->m_TimeVaryingVelocity->SetBufferedRegion(gregion);
-    this->m_TimeVaryingVelocity->Allocate();
-    this->m_TimeVaryingVelocity->FillBuffer(zero);
+    this->m_TimeVaryingVelocity->AllocateInitialized();
     /*    this->m_LastTimeVaryingVelocity=tvt::New();
     this->m_LastTimeVaryingVelocity->SetSpacing( gspace );
     this->m_LastTimeVaryingVelocity->SetOrigin( gorigin );
@@ -2202,8 +2200,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_LastTimeVaryingVelocity->SetLargestPossibleRegion(gregion);
     this->m_LastTimeVaryingVelocity->SetRequestedRegion( gregion);
     this->m_LastTimeVaryingVelocity->SetBufferedRegion( gregion  );
-    this->m_LastTimeVaryingVelocity->Allocate();
-    this->m_LastTimeVaryingVelocity->FillBuffer(zero); */
+    this->m_LastTimeVaryingVelocity->AllocateInitialized(); */
     this->m_LastTimeVaryingUpdate = tvt::New();
     this->m_LastTimeVaryingUpdate->SetSpacing(gspace);
     this->m_LastTimeVaryingUpdate->SetOrigin(gorigin);
@@ -2211,8 +2208,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_LastTimeVaryingUpdate->SetLargestPossibleRegion(gregion);
     this->m_LastTimeVaryingUpdate->SetRequestedRegion(gregion);
     this->m_LastTimeVaryingUpdate->SetBufferedRegion(gregion);
-    this->m_LastTimeVaryingUpdate->Allocate();
-    this->m_LastTimeVaryingUpdate->FillBuffer(zero);
+    this->m_LastTimeVaryingUpdate->AllocateInitialized();
   }
   else if (enlargefield)
   {
@@ -2226,8 +2222,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_LastTimeVaryingVelocity->SetLargestPossibleRegion(gregion);
     this->m_LastTimeVaryingVelocity->SetRequestedRegion( gregion);
     this->m_LastTimeVaryingVelocity->SetBufferedRegion( gregion  );
-    this->m_LastTimeVaryingVelocity->Allocate();
-    this->m_LastTimeVaryingVelocity->FillBuffer(zero);*/
+    this->m_LastTimeVaryingVelocity->AllocateInitialized(); */
     this->m_LastTimeVaryingUpdate = tvt::New();
     this->m_LastTimeVaryingUpdate->SetSpacing(gspace);
     this->m_LastTimeVaryingUpdate->SetOrigin(gorigin);
@@ -2235,8 +2230,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_LastTimeVaryingUpdate->SetLargestPossibleRegion(gregion);
     this->m_LastTimeVaryingUpdate->SetRequestedRegion(gregion);
     this->m_LastTimeVaryingUpdate->SetBufferedRegion(gregion);
-    this->m_LastTimeVaryingUpdate->Allocate();
-    this->m_LastTimeVaryingUpdate->FillBuffer(zero);
+    this->m_LastTimeVaryingUpdate->AllocateInitialized();
   }
   if (!this->m_SyNF)
   {

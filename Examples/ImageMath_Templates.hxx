@@ -2125,7 +2125,7 @@ CoordinateComponentImages(int argc, char * argv[])
     coordinateImages[d] = ImageType::New();
     coordinateImages[d]->CopyInformation(domainImage);
     coordinateImages[d]->SetRegions(domainImage->GetRequestedRegion());
-    coordinateImages[d]->Allocate();
+    coordinateImages[d]->AllocateInitialized();
   }
 
   itk::ImageRegionIteratorWithIndex<ImageType> It(domainImage, domainImage->GetRequestedRegion());
@@ -2541,7 +2541,7 @@ TimeSeriesAssemble(int argc, char * argv[])
       outimage->SetSpacing(outSpacing);
       outimage->SetOrigin(outOrigin);
       outimage->SetDirection(outDirection);
-      outimage->Allocate();
+      outimage->AllocateInitialized();
     }
 
     ImageIt it(image1, image1->GetLargestPossibleRegion());
@@ -3082,8 +3082,7 @@ TimeSeriesRegionSCCA(int argc, char * argv[])
   region.SetSize(0, nLabels);
   region.SetSize(1, nLabels);
   connmat->SetRegions(region);
-  connmat->Allocate();
-  connmat->FillBuffer(0);
+  connmat->AllocateInitialized();
 
   // Coorelation parameters
   bool         robust = false;
@@ -3251,7 +3250,7 @@ TimeSeriesRegionCorr(int argc, char * argv[])
   region.SetSize(1, nLabels);
   connmat->SetRegions(region);
   connmat->Allocate();
-  connmat->FillBuffer(-1);
+  connmat->FillBuffer(-itk::NumericTraits<typename InputImageType::PixelType>::OneValue());
 
   MatrixType timeSig(nLabels, nTimes, 0.0);
   for (unsigned int i = 0; i < nLabels; i++)
@@ -5035,7 +5034,7 @@ StackImage(int argc, char * argv[])
   stackImage->SetDirection(refDirection);
   stackImage->SetOrigin(refOrigin);
   stackImage->SetSpacing(refSpacing);
-  stackImage->Allocate();
+  stackImage->AllocateInitialized();
 
   unsigned int offset = 0;
   while (argc > argct)
@@ -6884,7 +6883,7 @@ CompareHeadersAndImages(int argc, char * argv[])
 //   varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
 //   varimage->SetBufferedRegion( image->GetLargestPossibleRegion() );
 //   varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
-//   varimage->Allocate();
+//   varimage->AllocateInitialized();
 //   varimage->SetSpacing(image->GetSpacing());
 //   varimage->SetOrigin(image->GetOrigin());
 //   varimage->SetDirection(image->GetDirection());
@@ -6981,7 +6980,7 @@ CompareHeadersAndImages(int argc, char * argv[])
 //   varimage->SetSpacing(image->GetSpacing());
 //   varimage->SetOrigin(image->GetOrigin());
 //   varimage->SetDirection(image->GetDirection());
-//   varimage->Allocate();
+//   varimage->AllocateInitialized();
 //
 //   std::vector<double>  estimatedVar(nclasses,0);
 //   std::vector<double>  estimatedCounts(nclasses,0);
@@ -7026,13 +7025,13 @@ CompareHeadersAndImages(int argc, char * argv[])
 //                               InputImageType,LabelType,
 //                               PosteriorType,PriorType >   ClassifierFilterType;
 //
-//   typename InputImageType::Pointer vecImage = InputImageType::New();
+//   typename InputImageType::Pointer vecImage = InputImageType::New();A
 //   typedef typename InputImageType::PixelType VecPixelType;
 //   vecImage->SetSpacing(image->GetSpacing());
 //   vecImage->SetOrigin(image->GetOrigin());
 //   vecImage->SetRegions( image->GetLargestPossibleRegion() );
 //   vecImage->SetVectorLength(nclasses);
-//   vecImage->Allocate();
+//   vecImage->AllocateInitialized();
 //   VecPixelType vvv(nclasses);
 //   vvv.Fill(0);
 //   vecImage->FillBuffer(vvv);
@@ -7107,7 +7106,7 @@ CompareHeadersAndImages(int argc, char * argv[])
 //       priors->SetDirection(image->GetDirection());
 //       priors->SetRegions( image->GetLargestPossibleRegion() );
 //       priors->SetVectorLength(nclasses);
-//       priors->Allocate();
+//       priors->AllocateInitialized();
 //       // std::cout <<" Allocated " << std::endl;
 //
 //       for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -7312,10 +7311,7 @@ NegativeImage(int /*argc */, char * argv[])
 //   vecImage->SetOrigin(image->GetOrigin());
 //   vecImage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
 //   vecImage->SetBufferedRegion(  image->GetLargestPossibleRegion() );
-//   vecImage->Allocate();
-//   VecPixelType vvv;
-//   vvv.Fill(0);
-//   vecImage->FillBuffer(vvv);
+//   vecImage->AllocateInitialized();
 //
 //   // setup the iterators
 //   //  typedef VecImageType::PixelType::VectorType VecPixelType;
@@ -7657,10 +7653,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
 //   vecImage->SetOrigin(image->GetOrigin());
 //   vecImage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
 //   vecImage->SetBufferedRegion(  image->GetLargestPossibleRegion() );
-//   vecImage->Allocate();
-//   VecPixelType vvv;
-//   vvv.Fill(0);
-//   vecImage->FillBuffer(vvv);
+//   vecImage->AllocateInitialized();
 //
 //   // setup the iterators
 //   //  typedef VecImageType::PixelType::VectorType VecPixelType;
@@ -9324,8 +9317,7 @@ ReplaceVoxelValue(int argc, char * argv[])
   typename ImageType::Pointer outputImage = ImageType::New();
   outputImage->CopyInformation(inputImage);
   outputImage->SetRegions(inputImage->GetRequestedRegion());
-  outputImage->Allocate();
-  outputImage->FillBuffer(0);
+  outputImage->AllocateInitialized();
 
   typename itk::ImageRegionIterator<ImageType> ItI(inputImage, inputImage->GetRequestedRegion());
   typename itk::ImageRegionIterator<ImageType> ItO(outputImage, outputImage->GetRequestedRegion());
@@ -10353,14 +10345,12 @@ ReplicateDisplacement(int argc, char * argv[])
   outputImage->SetSpacing(outSpacing);
   outputImage->SetOrigin(outOrigin);
   outputImage->SetDirection(outDirection);
-  outputImage->Allocate();
-  VectorRType vec;
-  vec.Fill(0);
-  outputImage->FillBuffer(vec);
+  outputImage->AllocateInitialized();
   // perform the replication
   typename VectorImageType::IndexType  ind;
   typename VectorRImageType::IndexType indp1;
   Iterator                             It1(vecimage1, vecimage1->GetLargestPossibleRegion());
+  typename VectorRImageType::PixelType vec;
   for (It1.GoToBegin(); !It1.IsAtEnd(); ++It1)
   {
     ind = It1.GetIndex();
@@ -10487,8 +10477,7 @@ ReplicateImage(int argc, char * argv[])
   outputImage->SetSpacing(outSpacing);
   outputImage->SetOrigin(outOrigin);
   outputImage->SetDirection(outDirection);
-  outputImage->Allocate();
-  outputImage->FillBuffer(0);
+  outputImage->AllocateInitialized();
   // perform the replication
   typename ImageType::IndexType  ind;
   typename RImageType::IndexType indp1;
@@ -10856,8 +10845,7 @@ LabelThickness2(int argc, char * argv[])
   typename RealImageType::Pointer thicknessPriorImage = RealImageType::New();
   thicknessPriorImage->CopyInformation(labelImage);
   thicknessPriorImage->SetRegions(labelImage->GetLargestPossibleRegion());
-  thicknessPriorImage->Allocate();
-  thicknessPriorImage->FillBuffer(0);
+  thicknessPriorImage->AllocateInitialized();
 
   itk::ImageRegionIteratorWithIndex<LabelImageType> It(labelImage, labelImage->GetLargestPossibleRegion());
   for (It.GoToBegin(); !It.IsAtEnd(); ++It)
@@ -12127,15 +12115,13 @@ MostLikely(int argc, char * argv[])
       output->SetSpacing(iLabel->GetSpacing());
       output->SetOrigin(iLabel->GetOrigin());
       output->SetDirection(iLabel->GetDirection());
-      output->Allocate();
-      output->FillBuffer(0);
+      output->AllocateInitialized();
 
       prob->SetRegions(iLabel->GetLargestPossibleRegion());
       prob->SetSpacing(iLabel->GetSpacing());
       prob->SetOrigin(iLabel->GetOrigin());
       prob->SetDirection(iLabel->GetDirection());
-      prob->Allocate();
-      prob->FillBuffer(0);
+      prob->AllocateInitialized();
     }
 
     IteratorType it(output, output->GetLargestPossibleRegion());
@@ -12273,8 +12259,7 @@ AverageLabels(int argc, char * argv[])
     img->SetDirection(images[0]->GetDirection());
     img->SetOrigin(images[0]->GetOrigin());
     img->SetSpacing(images[0]->GetSpacing());
-    img->Allocate();
-    outimages.push_back(img);
+    img->AllocateInitialized();
   }
   for (unsigned int i = 0; i < images.size(); i++)
   {
@@ -13048,8 +13033,7 @@ PureTissueN4WeightMask(int argc, char * argv[])
   typename ImageType::Pointer output = ImageType::New();
   output->CopyInformation(images[0]);
   output->SetRegions(images[0]->GetLargestPossibleRegion());
-  output->Allocate();
-  output->FillBuffer(0);
+  output->AllocateInitialized();
 
   itk::ImageRegionIteratorWithIndex<ImageType> ItO(output, output->GetLargestPossibleRegion());
   for (ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO)
@@ -13217,7 +13201,7 @@ InPaint(int argc, char * argv[])
   region.SetSize(size);
   region.SetIndex(start);
   kernel->SetRegions(region);
-  kernel->Allocate();
+  kernel->AllocateInitialized();
   kernel->SetSpacing(image1->GetSpacing());
   unsigned long                       kernelsize = region.GetNumberOfPixels();
   itk::ImageRegionIterator<ImageType> imageIterator(kernel, region);
@@ -13341,7 +13325,7 @@ InPaint2(int argc, char * argv[])
   region.SetSize(size);
   region.SetIndex(start);
   kernel->SetRegions(region);
-  kernel->Allocate();
+  kernel->AllocateInitialized();
   kernel->SetSpacing(image1->GetSpacing());
   unsigned long                       kernelsize = region.GetNumberOfPixels();
   itk::ImageRegionIterator<ImageType> imageIterator(kernel, region);
@@ -13457,8 +13441,7 @@ Check3TissueLabeling(int argc, char * argv[])
   typename LabelImageType::Pointer maxPriorLabelImage = LabelImageType::New();
   maxPriorLabelImage->CopyInformation(labelImage);
   maxPriorLabelImage->SetRegions(labelImage->GetRequestedRegion());
-  maxPriorLabelImage->Allocate();
-  maxPriorLabelImage->FillBuffer(0);
+  maxPriorLabelImage->AllocateInitialized();
 
   itk::ImageRegionIteratorWithIndex<LabelImageType> ItL(labelImage, labelImage->GetRequestedRegion());
   itk::ImageRegionIterator<LabelImageType>          ItM(maxPriorLabelImage, maxPriorLabelImage->GetRequestedRegion());
@@ -14366,7 +14349,7 @@ KinematicTensor(int argc, char * argv[])
   typename TensorImageType::Pointer strain = TensorImageType::New();
   strain->CopyInformation(reader->GetOutput());
   strain->SetRegions(reader->GetOutput()->GetLargestPossibleRegion());
-  strain->Allocate();
+  strain->AllocateInitialized();
 
   itk::ImageRegionIteratorWithIndex<TensorImageType> It(strain, strain->GetLargestPossibleRegion());
 
