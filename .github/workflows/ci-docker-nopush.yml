@@ -1,4 +1,4 @@
-name: ci-docker
+name: ci-docker-nopush
 on:
   push:
     branches:
