@@ -57,8 +57,7 @@ MaskedSmoothingImageFilter<TInputImage, TMaskImage, TOutputImage>::GenerateData(
   this->m_SparseMatrixIndexImage = RealImageType::New();
   this->m_SparseMatrixIndexImage->CopyInformation(inputImage);
   this->m_SparseMatrixIndexImage->SetRegions(inputImage->GetRequestedRegion());
-  this->m_SparseMatrixIndexImage->Allocate();
-  this->m_SparseMatrixIndexImage->FillBuffer(0.0);
+  this->m_SparseMatrixIndexImage->AllocateInitialized();
 
   ImageRegionIteratorWithIndex<RealImageType> ItSparseImage(this->m_SparseMatrixIndexImage,
                                                             inputImage->GetRequestedRegion());

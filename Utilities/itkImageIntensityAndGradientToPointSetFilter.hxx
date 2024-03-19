@@ -69,8 +69,7 @@ ImageIntensityAndGradientToPointSetFilter<TInputImage, TMaskImage, TOutputMesh>:
     gradientImage = GradientImageType::New();
     gradientImage->CopyInformation(inputImage);
     gradientImage->SetRegions(inputImage->GetRequestedRegion());
-    gradientImage->Allocate();
-    gradientImage->FillBuffer(zeroVector);
+    gradientImage->AllocateInitialized();
 
     typedef CentralDifferenceImageFunction<InputImageType, InputImagePixelType, GradientPixelType>
                                              GradientCalculatorType;

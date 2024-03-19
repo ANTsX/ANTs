@@ -286,7 +286,7 @@ FEMConformalMap<TSurface, TImage, TDimension>::MapImageToSphere(TImage * img, fl
   m_SphereImage = ImageType::New();
 
   m_SphereImage->SetRegions(region);
-  m_SphereImage->Allocate();
+  m_SphereImage->AllocateInitialized();
 
   int center = (int)WIDTH / 2;
 

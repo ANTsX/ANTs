@@ -191,7 +191,7 @@ OptimalSharpeningImageFilter<TInputImage, TOutputImage>::GenerateData()
   // copy and cast the output
   typename TOutputImage::Pointer output = this->GetOutput();
   output->SetBufferedRegion(output->GetRequestedRegion());
-  output->Allocate();
+  output->AllocateInitialized();
 
   RealType        inputMinimum = inputCalculator->GetMinimum();
   RealType        inputMaximum = inputCalculator->GetMaximum();

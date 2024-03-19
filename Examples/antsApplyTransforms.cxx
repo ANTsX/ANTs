@@ -620,13 +620,10 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
           return EXIT_FAILURE;
         }
 
-        VectorType zeroVector(0.0);
-
         typename DisplacementFieldType::Pointer outputVectorImage = DisplacementFieldType::New();
         outputVectorImage->CopyInformation(referenceImage);
         outputVectorImage->SetRegions(referenceImage->GetRequestedRegion());
-        outputVectorImage->Allocate();
-        outputVectorImage->FillBuffer(zeroVector);
+        outputVectorImage->AllocateInitialized();
 
         itk::ImageRegionIteratorWithIndex<DisplacementFieldType> It(outputVectorImage,
                                                                     outputVectorImage->GetRequestedRegion());
@@ -663,13 +660,10 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
           return EXIT_FAILURE;
         }
 
-        TensorPixelType zeroTensor(0.0);
-
         typename TensorImageType::Pointer outputTensorImage = TensorImageType::New();
         outputTensorImage->CopyInformation(referenceImage);
         outputTensorImage->SetRegions(referenceImage->GetRequestedRegion());
-        outputTensorImage->Allocate();
-        outputTensorImage->FillBuffer(zeroTensor);
+        outputTensorImage->AllocateInitialized();
 
         itk::ImageRegionIteratorWithIndex<TensorImageType> It(outputTensorImage,
                                                               outputTensorImage->GetRequestedRegion());
@@ -730,8 +724,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
         outputTimeSeriesImage->SetDirection(direction);
         outputTimeSeriesImage->SetSpacing(spacing);
         outputTimeSeriesImage->SetRegions(region);
-        outputTimeSeriesImage->Allocate();
-        outputTimeSeriesImage->FillBuffer(0);
+        outputTimeSeriesImage->AllocateInitialized();
 
         typename ImageType::IndexType referenceIndex;
 

@@ -463,8 +463,7 @@ iMathPropagateLabelsThroughMask(typename ImageType::Pointer speedimage, /*1*/
   outlabimage->SetSpacing( speedimage->GetSpacing() );
   outlabimage->SetOrigin( speedimage->GetOrigin() );
   outlabimage->SetDirection( speedimage->GetDirection() );
-  outlabimage->Allocate();
-  outlabimage->FillBuffer(0);
+  outlabimage->AllocateInitialized();
   */
 
   typename CastFilterType::Pointer caster = CastFilterType::New();

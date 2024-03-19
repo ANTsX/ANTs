@@ -154,8 +154,7 @@ public:
             this->m_DisplacementField->SetLargestPossibleRegion( m_DeformationRegionOfInterest );
             this->m_DisplacementField->SetRequestedRegion( m_DeformationRegionOfInterest );
             this->m_DisplacementField->SetBufferedRegion( m_DeformationRegionOfInterest );
-            this->m_DisplacementField->Allocate();
-            this->m_DisplacementField->FillBuffer(zero);
+            this->m_DisplacementField->AllocateInitialized();
       */
     }
   }

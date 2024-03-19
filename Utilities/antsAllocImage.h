@@ -10,7 +10,7 @@ AllocImage(const typename ImageType::RegionType & region)
 {
   typename ImageType::Pointer rval = ImageType::New();
   rval->SetRegions(region);
-  rval->Allocate();
+  rval->AllocateInitialized();
   return rval;
 }
 
@@ -109,7 +109,7 @@ AllocImage(const typename itk::ImageBase<ImageType::ImageDimension> * exemplar)
   rval->SetSpacing(exemplar->GetSpacing());
   rval->SetOrigin(exemplar->GetOrigin());
   rval->SetDirection(exemplar->GetDirection());
-  rval->Allocate();
+  rval->AllocateInitialized();
   return rval;
 }
 

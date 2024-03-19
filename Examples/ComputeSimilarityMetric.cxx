@@ -74,7 +74,7 @@ ComputeSimilarityMetric(int argc, char * argv[])
     field->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
     field->SetBufferedRegion( image1->GetLargestPossibleRegion() );
     field->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-    field->Allocate();
+    field->AllocateInitialized();
     field->SetSpacing(image1->GetSpacing());
     field->SetOrigin(image1->GetOrigin());
     VectorType zero;

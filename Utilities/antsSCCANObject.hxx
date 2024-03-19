@@ -90,8 +90,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertVariateToSpatialImage(
   weights->SetSpacing(mask->GetSpacing());
   weights->SetRegions(mask->GetLargestPossibleRegion());
   weights->SetDirection(mask->GetDirection());
-  weights->Allocate();
-  weights->FillBuffer(itk::NumericTraits<PixelType>::ZeroValue());
+  weights->AllocateInitialized();
 
   // overwrite weights with vector values;
   unsigned long                                          vecind = 0;
@@ -165,8 +164,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertVariateToSpatialImage4D(
   weights->SetSpacing(mask->GetSpacing());
   weights->SetRegions(mask->GetLargestPossibleRegion());
   weights->SetDirection(mask->GetDirection());
-  weights->Allocate();
-  weights->FillBuffer(itk::NumericTraits<PixelType>::ZeroValue());
+  weights->AllocateInitialized();
 
   typename RealImageTypeDminus1::Pointer                             maskdm1;
   typedef itk::ExtractImageFilter<TInputImage, RealImageTypeDminus1> ExtractFilterType;
@@ -6638,13 +6636,11 @@ antsSCCANObject<TInputImage, TRealType>::MRFFilterVariateMatrix()
   typename LabelImageType::Pointer              labelimage = LabelImageType::New();
   labelimage->SetRegions(flabelimage->GetRequestedRegion());
   labelimage->CopyInformation(flabelimage);
-  labelimage->Allocate();
-  labelimage->FillBuffer(0);
+  labelimage->AllocateInitialized();
   typename LabelImageType::Pointer maskimage = LabelImageType::New();
   maskimage->SetRegions(flabelimage->GetRequestedRegion());
   maskimage->CopyInformation(flabelimage);
-  maskimage->Allocate();
-  maskimage->FillBuffer(0);
+  maskimage->AllocateInitialized();
   itk::ImageRegionConstIterator<TInputImage> Itf(flabelimage, flabelimage->GetLargestPossibleRegion());
   for (Itf.GoToBegin(); !Itf.IsAtEnd(); ++Itf)
   {

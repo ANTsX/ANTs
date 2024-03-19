@@ -219,8 +219,7 @@ OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename T
     typename ImageType::Pointer output = ImageType::New();
     output->CopyInformation(maskImage);
     output->SetRegions(maskImage->GetLargestPossibleRegion());
-    output->Allocate();
-    output->FillBuffer(0);
+    output->AllocateInitialized();
 
     itk::ImageRegionIterator<ImageType> ItO(output, output->GetLargestPossibleRegion());
     for (unsigned int i = 0; i < thresholds.size(); i++)

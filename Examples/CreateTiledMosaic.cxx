@@ -135,7 +135,7 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
       maskImage->CopyInformation(rgbImage);
       maskImage->SetRegions(rgbImage->GetRequestedRegion());
       maskImage->Allocate();
-      maskImage->FillBuffer(1);
+      maskImage->FillBuffer(itk::NumericTraits<typename ImageType::PixelType>::OneValue());
 
       using ShortImageType = itk::Image<unsigned short, ImageDimension>;
       using CasterType = itk::CastImageFilter<ImageType, ShortImageType>;

@@ -41,8 +41,7 @@ GetConnectedComponentsFeatureImages(int itkNotUsed(argc), char * argv[])
     typename RealImageType::Pointer output = RealImageType::New();
     output->CopyInformation(inputImage);
     output->SetRegions(inputImage->GetRequestedRegion());
-    output->Allocate();
-    output->FillBuffer(0.0);
+    output->AllocateInitialized();
 
     outputImages.push_back(output);
   }

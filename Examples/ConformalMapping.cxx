@@ -835,7 +835,7 @@ typename ImageType::Pointer outimage = ImageType::New();
 outimage->SetSpacing( bspliner->GetOutput()->GetSpacing() );
 outimage->SetOrigin( bspliner->GetOutput()->GetOrigin() );
 outimage->SetRegions( bspliner->GetOutput()->GetLargestPossibleRegion() );
-outimage->Allocate();
+outimage->AllocateInitialized();
 
 */
 /*

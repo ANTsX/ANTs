@@ -252,72 +252,60 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
 
   RealImagePointer corticalThicknessImage = this->GetThicknessImage();
   corticalThicknessImage->SetDirection(segmentationImage->GetDirection());
-  corticalThicknessImage->Allocate();
-  corticalThicknessImage->FillBuffer(0.0);
+  corticalThicknessImage->AllocateInitialized();
 
   if (this->m_IncludeCumulativeVelocityFields)
   {
     CumulativeVelocityFieldPointer forwardCumulativeVelocityField = this->GetForwardCumulativeVelocityField();
-    forwardCumulativeVelocityField->Allocate();
-    forwardCumulativeVelocityField->FillBuffer(zeroVector);
+    forwardCumulativeVelocityField->AllocateInitialized();
     CumulativeVelocityFieldPointer inverseCumulativeVelocityField = this->GetInverseCumulativeVelocityField();
-    inverseCumulativeVelocityField->Allocate();
-    inverseCumulativeVelocityField->FillBuffer(zeroVector);
+    inverseCumulativeVelocityField->AllocateInitialized();
   }
 
   DisplacementFieldPointer forwardIncrementalField = DisplacementFieldType::New();
   forwardIncrementalField->CopyInformation(segmentationImage);
   forwardIncrementalField->SetRegions(segmentationImage->GetRequestedRegion());
-  forwardIncrementalField->Allocate();
-  forwardIncrementalField->FillBuffer(zeroVector);
+  forwardIncrementalField->AllocateInitialized();
 
   RealImagePointer hitImage = RealImageType::New();
   hitImage->CopyInformation(segmentationImage);
   hitImage->SetRegions(segmentationImage->GetRequestedRegion());
-  hitImage->Allocate();
-  hitImage->FillBuffer(0.0);
+  hitImage->AllocateInitialized();
 
   DisplacementFieldPointer integratedField = DisplacementFieldType::New();
   integratedField->CopyInformation(segmentationImage);
   integratedField->SetRegions(segmentationImage->GetRequestedRegion());
-  integratedField->Allocate();
-  integratedField->FillBuffer(zeroVector);
+  integratedField->AllocateInitialized();
 
   DisplacementFieldPointer inverseField = DisplacementFieldType::New();
   inverseField->CopyInformation(segmentationImage);
   inverseField->SetRegions(segmentationImage->GetRequestedRegion());
-  inverseField->Allocate();
-  inverseField->FillBuffer(zeroVector);
+  inverseField->AllocateInitialized();
 
   DisplacementFieldPointer inverseIncrementalField = DisplacementFieldType::New();
   inverseIncrementalField->CopyInformation(segmentationImage);
   inverseIncrementalField->SetRegions(segmentationImage->GetRequestedRegion());
-  inverseIncrementalField->Allocate();
-  inverseIncrementalField->FillBuffer(zeroVector);
+  inverseIncrementalField->AllocateInitialized();
 
   RealImagePointer speedImage = RealImageType::New();
   speedImage->CopyInformation(segmentationImage);
   speedImage->SetRegions(segmentationImage->GetRequestedRegion());
-  speedImage->Allocate();
-  speedImage->FillBuffer(0.0);
+  speedImage->AllocateInitialized();
 
   RealImagePointer thicknessImage = RealImageType::New();
   thicknessImage->CopyInformation(segmentationImage);
   thicknessImage->SetRegions(segmentationImage->GetRequestedRegion());
-  thicknessImage->Allocate();
-  thicknessImage->FillBuffer(0.0);
+  thicknessImage->AllocateInitialized();
 
   RealImagePointer totalImage = RealImageType::New();
   totalImage->CopyInformation(segmentationImage);
   totalImage->SetRegions(segmentationImage->GetRequestedRegion());
-  totalImage->Allocate();
-  totalImage->FillBuffer(0.0);
+  totalImage->AllocateInitialized();
 
   DisplacementFieldPointer velocityField = DisplacementFieldType::New();
   velocityField->CopyInformation(segmentationImage);
   velocityField->SetRegions(segmentationImage->GetRequestedRegion());
-  velocityField->Allocate();
-  velocityField->FillBuffer(zeroVector);
+  velocityField->AllocateInitialized();
 
   // Instantiate most of the iterators all in one place
 

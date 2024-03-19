@@ -40,7 +40,7 @@ LogTensorImageFilter<TInputImage, TOutputImage>::GenerateData()
   ImageRegionConstIterator<InputImageType> inputIt(input, input->GetLargestPossibleRegion());
 
   output->SetRegions(input->GetLargestPossibleRegion());
-  output->Allocate();
+  output->AllocateInitialized();
 
   ImageRegionIteratorWithIndex<OutputImageType> outputIt(output, output->GetLargestPossibleRegion());
   for (inputIt.GoToBegin(), outputIt.GoToBegin(); !inputIt.IsAtEnd() && !outputIt.IsAtEnd(); ++inputIt, ++outputIt)
