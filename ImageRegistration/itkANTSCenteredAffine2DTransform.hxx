@@ -15,6 +15,7 @@
 #define _itkANTSCenteredAffine2DTransform_hxx
 
 // #include "itkRigid2DTransform.h"
+#include "itkMath.h"
 #include "vnl/algo/vnl_qr.h"
 
 namespace itk
@@ -135,9 +136,46 @@ ANTSCenteredAffine2DTransform<TScalarType>::ComputeMatrixParameters(void)
 
   if (this->GetDebug())
   {
-    if (static_cast<double>(this->GetMatrix()[1][0]) - static_cast<double>(std::sin(m_Angle)) > 0.000001)
+    // check that the matrix computed from the parameters contains a valid rotation of m_Angle
+    const TMatrix U{ this->GetMatrix().GetVnlMatrix() };
+    vnl_qr<ScalarType> myqr_updated(U.as_matrix());
+
+    // Note switch of Q and R from vnl names here!
+    R = myqr_updated.Q(); // Q() is the rotation
+    Q = myqr_updated.R(); // R() is the upper triangluar
+
+    TMatrix dq_updated(itk::NumericTraits<TScalarType>::ZeroValue());
+    for (unsigned i = 0; i < 2; i++)
     {
-      itkWarningMacro("Bad Rotation Matrix " << this->GetMatrix());
+      dq_updated(i, i) = (Q(i, i) >= 0) ? 1 : -1;
+    }
+
+    R = R * dq_updated;
+    Q = dq_updated * Q;
+
+    double angleCheck = static_cast<double>(std::acos(R[0][0]));
+
+    if (R[1][0] < itk::NumericTraits<TScalarType>::ZeroValue())
+    {
+      angleCheck = -angleCheck;
+    }
+
+    double tolerance = 1e-4;
+
+    if (std::abs(angleCheck - static_cast<double>(m_Angle)) > tolerance)
+    {
+      itkWarningMacro("Bad rotation in affine transform matrix " << this->GetMatrix() << std::endl
+                                                                 << "Angle = " << angleCheck << std::endl
+                                                                 << "acos(R[0][0]) = " << std::acos(R[0][0]) << std::endl
+                                                                 << "cos(Angle) = " << std::cos(angleCheck) << std::endl
+                                                                 << "R[0][0] = " << R[0][0]);
+    }
+    if (std::abs(static_cast<double>(R[1][0]) - static_cast<double>(std::sin(angleCheck))) > tolerance)
+    {
+      itkWarningMacro("Bad rotation in affine transform matrix " << this->GetMatrix() << std::endl
+                                                                 << "Angle = " << angleCheck << std::endl
+                                                                 << "sin(Angle) = " << std::sin(angleCheck) << std::endl
+                                                                 << "R[1][0] = " << R[1][0]);
     }
   }
 }
