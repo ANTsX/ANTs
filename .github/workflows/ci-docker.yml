@@ -13,6 +13,11 @@ on:
       - reopened
       - synchronize
       - ready_for_review
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) }}
+
 jobs:
   docker:
     runs-on: ubuntu-latest
