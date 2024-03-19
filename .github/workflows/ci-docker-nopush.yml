@@ -1,0 +1,53 @@
+name: ci-docker
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'master'
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+concurrency:
+  group: ${{ github.workflow }}-${{
+      startsWith(github.ref, 'refs/tags/') && 'tag-' ||
+      startsWith(github.ref, 'refs/heads/') && 'branch-' ||
+      'pr-'}}${{ github.ref_name }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: antsx/ants
+      -
+        name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME_NOPUSH }}
+          password: ${{ secrets.DOCKERHUB_TOKEN_NOPUSH }}
+      -
+        name: Build and load (PR) or push (commit/tag)
+        uses: docker/build-push-action@v5
+        with:
+            context: .
+            push: false
+            load: false
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
