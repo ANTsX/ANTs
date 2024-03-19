@@ -15,6 +15,8 @@
 #include "itkCompositeTransform.h"
 #include "itkDisplacementFieldTransform.h"
 #include "itkIdentityTransform.h"
+#include "itkImageIOBase.h"
+#include "itkImageIOFactory.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
@@ -246,12 +248,60 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
   }
   else if (inputImageType == 0 && inputOption && inputOption->GetNumberOfFunctions())
   {
+    const std::string inputFN = inputOption->GetFunction(0)->GetName();
+
     if (verbose)
     {
-      std::cout << "Input scalar image: " << inputOption->GetFunction(0)->GetName() << std::endl;
+      std::cout << "Input scalar image: " << inputFN << std::endl;
+    }
+
+    // As this is the default input type, check that input is correct otherwise instruct user to use
+    // the -e option
+
+    itk::ImageIOBase::Pointer imageIO =
+        itk::ImageIOFactory::CreateImageIO(inputFN.c_str(), itk::IOFileModeEnum::ReadMode);
+
+    if (!imageIO)
+    {
+      // can only check files, so skip checks if using a pointer in ANTsR / ANTsPy
+      if (verbose)
+      {
+        std::cout << "Could not create ImageIO for the input file, assuming dimension = " << Dimension <<
+            " and scalar pixel type" << std::endl;
+      }
+    }
+    else
+    {
+      imageIO->SetFileName(inputFN.c_str());
+      imageIO->ReadImageInformation();
+
+      const size_t inputDimension = imageIO->GetNumberOfDimensions();
+
+      // Check if the dimension matches
+      if (inputDimension != Dimension)
+      {
+        if (verbose)
+          {
+            std::cout << "Input image dimension does not match. Expected: " << Dimension
+                    << ", but got: " << inputDimension << std::endl << "See -e option for available input types."
+                    << std::endl;
+          }
+          return EXIT_FAILURE;
+      }
+
+      // Check if the pixel type is scalar
+      if (imageIO->GetPixelType() != itk::IOPixelEnum::SCALAR)
+      {
+        if (verbose)
+        {
+          std::cout << "Image pixel type is not scalar." << std::endl << "See -e option for available input types."
+                  << std::endl;
+        }
+        return EXIT_FAILURE;
+      }
     }
     typename ImageType::Pointer image;
-    ReadImage<ImageType>(image, (inputOption->GetFunction(0)->GetName()).c_str());
+    ReadImage<ImageType>(image, inputFN.c_str());
     inputImages.push_back(image);
   }
   else if (inputImageType == 1 && inputOption && inputOption->GetNumberOfFunctions())
@@ -815,9 +865,10 @@ static void
 antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
 {
   {
-    std::string description = std::string("This option forces the image to be treated as a specified-") +
-                              std::string("dimensional image.  If not specified, antsWarp tries to ") +
-                              std::string("infer the dimensionality from the input image.");
+    std::string description = std::string("Sets the dimensionality of transforms and scalar inputs.") +
+                              std::string("dimensional image.  This will be the same dimension as used in ") +
+                              std::string("antsRegistration. This does not change for multi-valued inputs, use ") +
+                              std::string("the -e option for time series and other multi-component images.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("dimensionality");
