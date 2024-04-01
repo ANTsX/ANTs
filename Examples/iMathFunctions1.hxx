@@ -622,7 +622,7 @@ iMathTruncateIntensity(typename ImageType::Pointer                              
     typedef itk::BinaryThresholdImageFilter<ImageType, MaskType> ThresholdFilterType;
     typename ThresholdFilterType::Pointer                        thresh = ThresholdFilterType::New();
     thresh->SetInput(image);
-    thresh->SetLowerThreshold(itk::NumericTraits<PixelType>::min());
+    thresh->SetLowerThreshold(itk::NumericTraits<PixelType>::NonpositiveMin());
     thresh->SetUpperThreshold(itk::NumericTraits<PixelType>::max());
     thresh->SetInsideValue(1);
     thresh->SetOutsideValue(0);
