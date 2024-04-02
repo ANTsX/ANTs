@@ -19,6 +19,9 @@
 
 #include "antsCommandLineParser.h"
 #include "itkTransformFileReader.h"
+#include "itkMatrixOffsetTransformBase.h"
+#include "itkCompositeTransform.h"
+
 
 #include <sstream>
 
@@ -72,16 +75,111 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
   };
   Cleanup_argv cleanup_argv(argv, argc + 1);
 
+  using ReadScalarType = double;
+
   for (int i = 1; i < argc; i++)
   {
 
     std::cout << "Transform file: " << argv[i] << std::endl;
 
-    itk::TransformFileReader::Pointer reader = itk::TransformFileReader::New();
-    reader->SetFileName(argv[i]);
-    reader->Update();
+    using TransformReaderType = itk::TransformFileReaderTemplate<ReadScalarType>;
+    auto reader = TransformReaderType::New();
 
-    std::cout << *(reader->GetTransformList()->begin()) << std::endl;
+    reader->SetFileName(argv[i]);
+    try
+    {
+      reader->Update();
+    }
+    catch (const itk::ExceptionObject & excp)
+    {
+      std::cerr << "Error while reading the transform file" << std::endl;
+      std::cerr << excp << std::endl;
+      std::cerr << "[FAILED]" << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    const TransformReaderType::TransformListType * transforms = reader->GetTransformList();
+    std::cout << "Number of transforms = " << transforms->size() << std::endl;
+
+    unsigned int Dimension = transforms->front()->GetInputSpaceDimension();
+
+
+    for (auto it = transforms->begin(); it != transforms->end(); ++it)
+    {
+
+      if (Dimension == 3)
+      {
+        using ReadCompositeTransformType3D = itk::CompositeTransform<ReadScalarType, 3>;
+        if (!strcmp((*it)->GetNameOfClass(), "CompositeTransform"))
+        {
+          ReadCompositeTransformType3D::Pointer compositeRead =
+            static_cast<ReadCompositeTransformType3D *>((*it).GetPointer());
+          const ReadCompositeTransformType3D::TransformQueueType & compositeTransformQueue =
+            compositeRead->GetTransformQueue();
+          std::cout << "Number of transforms in composite queue = " << compositeTransformQueue.size() << std::endl;
+
+          for (auto it2 = compositeTransformQueue.begin(); it2 != compositeTransformQueue.end(); ++it2)
+          {
+
+            using TransformType3D = itk::MatrixOffsetTransformBase<double, 3, 3>;
+            TransformType3D * itktx3d = dynamic_cast<TransformType3D *>((*it2).GetPointer());
+
+            if (itktx3d)
+            {
+              itktx3d->Print(std::cout);
+              std::cout << "Determinant: " << vnl_determinant(itktx3d->GetMatrix().GetVnlMatrix()) << std::endl;
+            }
+            else
+            {
+              it2->Print(std::cout);
+            }
+          }
+        }
+        else
+        {
+          using TransformType3D = itk::MatrixOffsetTransformBase<double, 3, 3>;
+          TransformType3D * itktx3d = dynamic_cast<TransformType3D *>((*it).GetPointer());
+          itktx3d->Print(std::cout);
+          std::cout << "Determinant: " << vnl_determinant(itktx3d->GetMatrix().GetVnlMatrix()) << std::endl;
+        }
+      }
+      else if (Dimension == 2)
+      {
+        using ReadCompositeTransformType2D = itk::CompositeTransform<ReadScalarType, 2>;
+        if (!strcmp((*it)->GetNameOfClass(), "CompositeTransform"))
+        {
+          ReadCompositeTransformType2D::Pointer compositeRead =
+            static_cast<ReadCompositeTransformType2D *>((*it).GetPointer());
+          const ReadCompositeTransformType2D::TransformQueueType & compositeTransformQueue =
+            compositeRead->GetTransformQueue();
+          std::cout << "Number of transforms in composite queue = " << compositeTransformQueue.size() << std::endl;
+
+          for (auto it2 = compositeTransformQueue.begin(); it2 != compositeTransformQueue.end(); ++it2)
+          {
+
+            using TransformType2D = itk::MatrixOffsetTransformBase<double, 2, 2>;
+            TransformType2D * itktx2d = dynamic_cast<TransformType2D *>((*it2).GetPointer());
+
+            if (itktx2d)
+            {
+              itktx2d->Print(std::cout);
+              std::cout << "Determinant: " << vnl_determinant(itktx2d->GetMatrix().GetVnlMatrix()) << std::endl;
+            }
+            else
+            {
+              it2->Print(std::cout);
+            }
+          }
+        }
+        else
+        {
+          using TransformType2D = itk::MatrixOffsetTransformBase<double, 2, 2>;
+          TransformType2D * itktx2d = dynamic_cast<TransformType2D *>((*it).GetPointer());
+          itktx2d->Print(std::cout);
+          std::cout << "Determinant: " << vnl_determinant(itktx2d->GetMatrix().GetVnlMatrix()) << std::endl;
+        }
+      }
+    }
   }
 
   return EXIT_SUCCESS;
