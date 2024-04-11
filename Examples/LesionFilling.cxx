@@ -44,7 +44,7 @@ LesionFilling(int argc, char * argv[])
     throw;
   }
   using T1ImageType = itk::Image<double, ImageDimension>;
-  using LesionImageType = itk::Image<unsigned char, ImageDimension>;
+  using LesionImageType = itk::Image<unsigned short, ImageDimension>;
   using T1ImageReaderType = itk::ImageFileReader<T1ImageType>;
   using LesionImageReaderType = itk::ImageFileReader<LesionImageType>;
   typename LesionImageReaderType::Pointer LesionReader = LesionImageReaderType::New();
