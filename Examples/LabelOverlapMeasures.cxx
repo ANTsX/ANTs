@@ -235,6 +235,11 @@ LabelOverlapMeasures(std::vector<std::string> args, std::ostream * /*out_stream 
       return LabelOverlapMeasures<3>(argc, argv);
     }
     break;
+    case 4:
+    {
+      return LabelOverlapMeasures<4>(argc, argv);
+    }
+    break;
     default:
       std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
