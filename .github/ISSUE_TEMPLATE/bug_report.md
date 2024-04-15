@@ -40,11 +40,19 @@ Even if you can't share data, please include:
 
  * The full verbose output printed to the terminal when you run the command. If
    this is very long, please save in a text file and upload as an attachment by
-   dragging the text file onto the issue page.
+   dragging the text file onto the issue page. On most unix-like systems you can
+   run 
 
-If uploading data as an attachment, please try to minimize the file size by
-compressing, downsampling or otherwise creating smaller images that demonstrate
-the problem.
+     <your command or script> 2>&1 | tee my_log.txt
+
+   which will print output to the terminal and also save to a text file.
+
+If your data is very large, please try to reduce the file size by compressing, 
+downsampling (see ResampleImageBySpacing) or otherwise creating smaller images that 
+demonstrate the problem. This isn't a critical requirement (large data is more helpful
+than none) but will help us to respond quickly. If you have .nii files, please compress
+with gzip.
+
 -->
 
 **System information (please complete the following information)**
