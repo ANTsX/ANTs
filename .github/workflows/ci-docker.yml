@@ -32,6 +32,10 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: antsx/ants
+          tags: |
+            type=ref,event=tag,enable=true,strip-prefix=v
+            type=ref,event=branch
+            type=ref,event=pr,prefix=pr-
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
