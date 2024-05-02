@@ -120,7 +120,7 @@ LabelGeometryMeasures(int argc, char * argv[])
     statisticsFilter->Update();
   }
 
-  std::vector<std::string> columnHeaders = {"Label", "NumberOfVoxels", "PhysicalSize", "Perimeter",
+  std::vector<std::string> columnHeaders = {"Label", "VolumeInVoxels", "VolumeInMillimeters", "SurfaceAreaInMillimetersSquared",
                                             "Elongation", "Roundness", "Flatness"};
 
   if (writeCSV)
@@ -160,6 +160,7 @@ LabelGeometryMeasures(int argc, char * argv[])
     columnHeaders.push_back("MedianIntensity");
     columnHeaders.push_back("MinIntensity");
     columnHeaders.push_back("MaxIntensity");
+    columnHeaders.push_back("IntegratedIntensity");
   }
 
   std::vector<std::vector<std::string>> data;
@@ -230,6 +231,7 @@ LabelGeometryMeasures(int argc, char * argv[])
       row.push_back(std::to_string(statisticsFilter->GetMedian(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetMinimum(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetMaximum(labelObject->GetLabel())));
+      row.push_back(std::to_string(statisticsFilter->GetSum(labelObject->GetLabel())));
     }
 
     data.push_back(row);
