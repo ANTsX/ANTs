@@ -15,6 +15,8 @@
 ANTs computes high-dimensional mappings to capture the statistics of brain
 structure and function.  See the [collection of examples at this page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd).
 
+Installation options: [download binaries](https://github.com/ANTsX/ANTs/releases) | [build from source](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) | [docker](https://hub.docker.com/r/antsx/ants) | [conda](https://anaconda.org/aramislab/ants).
+
 ![ants template](http://i.imgur.com/mLZ71Ai.png)
 
 ANTs allows one to organize, visualize and statistically explore large biomedical image sets.
