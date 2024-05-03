@@ -140,14 +140,6 @@ iMathGetLargestComponent(typename ImageType::Pointer image, /*3*/
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
-  // compute the voxel volume
-  typename ImageType::SpacingType spacing = image->GetSpacing();
-  float                           volumeelement = 1.0;
-  for (unsigned int i = 0; i < spacing.Size(); i++)
-  {
-    volumeelement *= static_cast<float>(spacing[i]);
-  }
-
   typedef itk::Image<unsigned long, ImageDimension>                          LabelImageType;
   typedef itk::BinaryThresholdImageFilter<ImageType, LabelImageType>         ThresholdFilterType;
   typedef itk::ConnectedComponentImageFilter<LabelImageType, LabelImageType> FilterType;
