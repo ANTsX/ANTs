@@ -387,7 +387,7 @@ function shapeupdatetotemplate() {
     #echo "    ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
 
-    imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
+    imagelist=(`ls ${outputname}template-modality${whichtemplate}-*WarpedToTemplate.nii.gz`)
     if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]]
       then
         echo "ERROR shapeupdatedtotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
@@ -1469,7 +1469,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 indir=`pwd`
               fi
             IMGbase=`basename ${IMAGESETARRAY[$l]}`
-            OUTFN=${OUTPUTNAME}template${k}${IMGbase/%?(.nii.gz|.nii)}
+            OUTFN=${OUTPUTNAME}template-modality${k}-${IMGbase/%?(.nii.gz|.nii)}
             OUTFN=`basename ${OUTFN}`
             OUTFN="${OUTFN}${l}"
             DEFORMED="${outdir}/${OUTFN}${l}WarpedToTemplate.nii.gz"
