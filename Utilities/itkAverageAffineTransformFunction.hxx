@@ -74,15 +74,6 @@ AverageAffineTransformFunction<TTransform>::AverageMultipleAffineTransform(
   affine_output->SetIdentity();
   affine_output->SetCenter(reference_center);
 
-  unsigned int number_of_affine = m_TransformList.size();
-
-  number_of_affine--;
-
-  // if (verbose)
-  // {
-  //   std::cout << affine_output;
-  // }
-
   typename TransformListType::iterator it = m_TransformList.begin();
 
   typename InternalAffineTransformType::Pointer average_iaff = InternalAffineTransformType::New();
