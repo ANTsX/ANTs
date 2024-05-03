@@ -4,21 +4,52 @@ shopt -s extglob
 
 VERSION="0.0.0"
 
+# trap keyboard interrupt (control-c)
+trap control_c SIGINT
+
+function setPath {
+    cat <<SETPATH
+
+--------------------------------------------------------------------------------------
+Error locating ANTS
+--------------------------------------------------------------------------------------
+It seems that the ANTSPATH environment variable is not set. Please add the ANTSPATH
+variable. This can be achieved by editing the .bash_profile in the home directory.
+Add:
+
+ANTSPATH=/home/yourname/bin/ants/
+
+Or the correct location of the ANTS binaries.
+
+Alternatively, edit this script ( `basename $0` ) to set up this parameter correctly.
+
+SETPATH
+    exit 1
+}
+
+# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
+# export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+
+if [[ ${#ANTSPATH} -le 3 ]];
+  then
+    setPath >&2
+  fi
+
 # Test availability of helper scripts.
 # No need to test this more than once. Can reside outside of the main loop.
-ANTS=antsRegistration
-WARP=antsApplyTransforms
-N4=N4BiasFieldCorrection
-PEXEC=ANTSpexec.sh
-SGE=waitForSGEQJobs.pl
-PBS=waitForPBSQJobs.pl
-XGRID=waitForXGridJobs.pl
-SLURM=waitForSlurmJobs.pl
+ANTS=${ANTSPATH}/antsRegistration
+WARP=${ANTSPATH}/antsApplyTransforms
+N4=${ANTSPATH}/N4BiasFieldCorrection
+PEXEC=${ANTSPATH}/ANTSpexec.sh
+SGE=${ANTSPATH}/waitForSGEQJobs.pl
+PBS=${ANTSPATH}/waitForPBSQJobs.pl
+XGRID=${ANTSPATH}/waitForXGridJobs.pl
+SLURM=${ANTSPATH}/waitForSlurmJobs.pl
 
 fle_error=0
 for FLE in $ANTS $WARP $N4 $PEXEC $SGE $XGRID $PBS $SLURM
   do
-    if ! command -v $FLE &> /dev/null
+    if [[ ! -x $FLE ]];
       then
         echo
         echo "-----------------------------------------------------------------------------"
@@ -264,6 +295,8 @@ function reportMappingParameters {
 --------------------------------------------------------------------------------------
  Mapping parameters
 --------------------------------------------------------------------------------------
+ ANTSPATH is $ANTSPATH
+
  Dimensionality:           $DIM
  Do N4 bias correction:    $N4CORRECT
  Back up each iteration:   $BACKUPEACHITERATION
@@ -308,10 +341,10 @@ function summarizeimageset() {
 
   case $summarizemethod in
     0) #mean
-      AverageImages $dim $output 0 ${images[@]}
+      ${ANTSPATH}/AverageImages $dim $output 0 ${images[@]}
       ;;
     1) #mean of normalized images
-      AverageImages $dim $output 2 ${images[@]}
+      ${ANTSPATH}/AverageImages $dim $output 2 ${images[@]}
       ;;
     2) #median
       local image
@@ -319,7 +352,7 @@ function summarizeimageset() {
         do
           echo $image >> ${output}_list.txt
         done
-      ImageSetStatistics $dim ${output}_list.txt ${output} 0
+      ${ANTSPATH}/ImageSetStatistics $dim ${output}_list.txt ${output} 0
       rm ${output}_list.txt
       ;;
   esac
@@ -336,11 +369,11 @@ function summarizeimageset() {
       ;;
     1)
       echo "Laplacian sharpening"
-      ImageMath $dim $output Sharpen $output 0
+      ${ANTSPATH}/ImageMath $dim $output Sharpen $output
       ;;
     2)
       echo "Unsharp mask sharpening"
-      ImageMath $dim $output UnsharpMask $output 0.5 1 0 0
+      ${ANTSPATH}/ImageMath $dim $output UnsharpMask $output 0.5 1 0 0
       ;;
   esac
 
@@ -383,11 +416,11 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
     date
-    #echo "   AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
-    #echo "    ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
+    #echo "   ${ANTSPATH}/AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
+    #echo "    ${ANTSPATH}/ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
 
-    imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
+    imagelist=(`ls ${outputname}template-modality${whichtemplate}-*WarpedToTemplate.nii.gz`)
     if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]]
       then
         echo "ERROR shapeupdatedtotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
@@ -409,34 +442,34 @@ function shapeupdatetotemplate() {
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
-          echo "   AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
+          echo "   ${ANTSPATH}/AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
           date
           echo "--------------------------------------------------------------------------------------"
-          AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
+          ${ANTSPATH}/AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
 
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---scale the averaged inverse warp field by the gradient step"
-          echo "   MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
+          echo "   ${ANTSPATH}/MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
           date
           echo "--------------------------------------------------------------------------------------"
-          MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
+          ${ANTSPATH}/MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
         fi
 
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
-        echo "   ${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
+        echo "   ${ANTSPATH}/${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
         echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template} --verbose 1"
         echo "--------------------------------------------------------------------------------------"
 
-        ${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
+        ${ANTSPATH}/${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
 
         if [[ $NWARPS -ne 0 ]];
           then
             ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template} --verbose 1
-            MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
+            ${ANTSPATH}/MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
           fi
       fi
 
@@ -699,18 +732,7 @@ elif [[ $nargs -lt 6 ]]
     Usage >&2
 fi
 
-if [[ -z ${DIM} ]]
-  then
-    echo "Image dimension (-d) is required"
-    exit 1
-  fi
-
-if [[ ${OUTPUTNAME} == */ ]];
-  then
-    OUTPUT_DIR=${OUTPUTNAME%/}
-  else
-    OUTPUT_DIR=$(dirname $OUTPUTNAME)
-  fi
+OUTPUT_DIR=`dirname ${OUTPUTNAME}`
 
 if [[ ! -d $OUTPUT_DIR ]];
   then
@@ -882,7 +904,7 @@ if [[ ${NINFILES} -eq 0 ]];
     exit 1
 elif [[ ${NINFILES} -eq 1 ]];
     then
-    extension=`echo ${IMAGESETVARIABLE##*.}`
+    extension=`echo ${IMAGESETVARIABLE#*.}`
     if [[ $extension = 'csv' || $extension = 'txt' ]];
         then
         IMAGESFILE=$IMAGESETVARIABLE
@@ -903,7 +925,7 @@ elif [[ ${NINFILES} -eq 1 ]];
             done
          done < $IMAGESFILE
     else
-        range=`ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d "]" -f 1 `
+        range=`${ANTSPATH}/ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d " ]" -f 1 `
         if [[ ${range} -eq 1 && ${TDIM} -ne 4 ]];
           then
             echo "Please provide at least 2 filenames for the template."
@@ -934,7 +956,7 @@ elif [[ ${NINFILES} -eq 1 ]];
              #split the 4D file into 3D elements
              cp ${IMAGESETVARIABLE} ${tmpdir}/
              cd ${tmpdir}/
-             # ImageMath $TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
+             # ${ANTSPATH}/ImageMath $TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
              # rm -f ${IMAGESETVARIABLE}
 
              # selecting 16 volumes randomly from the timeseries for averaging, placing them in tmp/selection folder.
@@ -970,15 +992,15 @@ elif [[ ${NINFILES} -eq 1 ]];
 
                     if [[ ${number} -lt 10 ]];
                         then
-                        ImageMath $TDIM selection/vol000${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                        ${ANTSPATH}/ImageMath $TDIM selection/vol000${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                         #   cp vol000${number}.nii.gz selection/
                     elif [[ ${number} -ge 10 && ${number} -lt 100 ]];
                         then
-                        ImageMath $TDIM selection/vol00${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                        ${ANTSPATH}/ImageMath $TDIM selection/vol00${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                         #   cp vol00${number}.nii.gz selection/
                     elif [[ ${number} -ge 100 && ${number} -lt 1000 ]];
                         then
-                        ImageMath $TDIM selection/vol0${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                        ${ANTSPATH}/ImageMath $TDIM selection/vol0${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                         #   cp vol0${number}.nii.gz selection/
                     fi
                     let j++
@@ -992,17 +1014,17 @@ elif [[ ${NINFILES} -eq 1 ]];
                 let "number %= $range"
                 if [[ ${number} -lt 10 ]];
                     then
-                    ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                    ${ANTSPATH}/ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                     #   cp vol000${number}.nii.gz selection/
                 elif [[ ${number} -ge 10 && ${number} -lt 100 ]];
                     then
-                    ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+                    ${ANTSPATH}/ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                     #   cp vol00${number}.nii.gz selection/
                 fi
             done
         elif [[ ${range} -le ${nfmribins} ]];
             then
-            ImageMath selection/$TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
+            ${ANTSPATH}/ImageMath selection/$TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
             # cp *.nii.gz selection/
         fi
         # set filelist variable
@@ -1081,8 +1103,8 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
             BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
             COM="${OUTPUT_DIR}/initialCOM${i}_${j}_${IMGbase}"
             COMTRANSFORM="${OUTPUT_DIR}/initialCOM${i}_${j}_${BASENAME}.mat"
-            antsAI -d ${DIM} --convergence 0 --verbose 1 -m Mattes[${TEMPLATES[$i]},${CURRENTIMAGESET[$j]},32,None] -o ${COMTRANSFORM} -t AlignCentersOfMass
-            antsApplyTransforms -d ${DIM} -r ${TEMPLATES[$i]} -i ${CURRENTIMAGESET[$j]} -t ${COMTRANSFORM} -o ${COM} --verbose
+            antsAI -d 3 --convergence 0 --verbose 1 -m Mattes[${TEMPLATES[$i]},${CURRENTIMAGESET[$j]},32,None] -o ${COMTRANSFORM} -t AlignCentersOfMass
+            antsApplyTransforms -d 3 -r ${TEMPLATES[$i]} -i ${CURRENTIMAGESET[$j]} -t ${COMTRANSFORM} -o ${COM} --verbose
             rm -f $COMTRANSFORM
             IMAGECOMSET[${#IMAGECOMSET[@]}]=$COM
           done
@@ -1177,12 +1199,12 @@ if [[ "$RIGID" -eq 1 ]];
 
         if [[ $DOQSUB -eq 1 ]];
           then
-            id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v  $QSUBOPTS $qscript | awk '{print $3}'`
+            id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 4 ]];
           then
-            id=`qsub -N antsrigid -v  $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${MEMORY} -l walltime=${WALLTIME} $qscript | awk '{print $1}'`
+            id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${MEMORY} -l walltime=${WALLTIME} $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1197,7 +1219,7 @@ if [[ "$RIGID" -eq 1 ]];
             jobIDs="$jobIDs $id"
         elif [[ $DOQSUB -eq 5 ]];
             then
-            id=`sbatch --job-name=antsrigid --export=${QSUBOPTS} --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $qscript | rev | cut -f1 -d\ | rev`
+            id=`sbatch --job-name=antsrigid --export=ANTSPATH=$ANTSPATH $QSUBOPTS --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $qscript | rev | cut -f1 -d\ | rev`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
@@ -1216,7 +1238,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo " Starting ANTS rigid registration on SGE cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
         # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-        waitForSGEQJobs.pl 1 60 $jobIDs
+        ${ANTSPATH}/waitForSGEQJobs.pl 1 60 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
           then
@@ -1232,7 +1254,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo " Starting ANTS rigid registration on PBS cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
                # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-        waitForPBSQJobs.pl 1 60 $jobIDs
+        ${ANTSPATH}/waitForPBSQJobs.pl 1 60 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
           then
@@ -1260,7 +1282,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo " Starting ANTS rigid registration on XGrid cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
         # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-        waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 30 $jobIDs
+        ${ANTSPATH}/waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 30 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
           then
@@ -1276,7 +1298,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo " Starting ANTS rigid registration on SLURM cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
                # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-        waitForSlurmJobs.pl 1 60 $jobIDs
+        ${ANTSPATH}/waitForSlurmJobs.pl 1 60 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
           then
@@ -1469,9 +1491,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 indir=`pwd`
               fi
             IMGbase=`basename ${IMAGESETARRAY[$l]}`
-            OUTFN=${OUTPUTNAME}template${k}${IMGbase/%?(.nii.gz|.nii)}
+            OUTFN=${OUTPUTNAME}template-modality${k}-${IMGbase/%?(.nii.gz|.nii)}
             OUTFN=`basename ${OUTFN}`
-            OUTFN="${OUTFN}${l}"
             DEFORMED="${outdir}/${OUTFN}${l}WarpedToTemplate.nii.gz"
 
             IMGbase=`basename ${IMAGESETARRAY[$j]}`
@@ -1489,10 +1510,9 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             if [[ $N4CORRECT -eq 1 ]];
               then
                 REPAIRED="${outdir}/${OUTFN}Repaired.nii.gz"
-                if [[ ! -s ${REPAIRED} ]]; then
-                  exe=" $exe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1\n"
-                  pexe=" $pexe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1  >> ${outdir}/job_${count}_metriclog.txt >> ${outdir}/job_${count}_metriclog.txt\n"
-                fi
+                exe=" $exe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1\n"
+                pexe=" $pexe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -r 0 -s 2 --verbose 1  >> ${outdir}/job_${count}_metriclog.txt >> ${outdir}/job_${count}_metriclog.txt\n"
+
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${REPAIRED},${METRICPARAMS}"
                 IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[ ${TEMPLATES[$k]},${REPAIRED},${MODALITYWEIGHTS[$k]},32,Regular,0.25 ]"
 
@@ -1555,14 +1575,14 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
           then
             echo "$SCRIPTPREPEND" > $qscript
             echo -e "$exe" >> $qscript
-            id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash -v  $QSUBOPTS $qscript | awk '{print $3}'`
+            id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 4 ]];
           then
             echo -e "$SCRIPTPREPEND" > $qscript
             echo -e "$exe" >> $qscript
-            id=`qsub -N antsdef${i} -v  -q nopreempt -l nodes=1:ppn=1 -l mem=${MEMORY} -l walltime=${WALLTIME} $QSUBOPTS $qscript | awk '{print $1}'`
+            id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l mem=${MEMORY} -l walltime=${WALLTIME} $QSUBOPTS $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1579,7 +1599,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             echo '#!/bin/sh' > $qscript
             echo -e "$SCRIPTPREPEND" >> $qscript
             echo -e "$exe" >> $qscript
-            id=`sbatch --job-name=antsdef${i} --export=${QSUBOPTS} --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
+            id=`sbatch --job-name=antsdef${i} --export=ANTSPATH=$ANTSPATH --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
@@ -1600,7 +1620,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Starting ANTS registration on SGE cluster. Iteration: $itdisplay of $ITERATIONLIMIT"
         echo "--------------------------------------------------------------------------------------"
         # now wait for the stuff to finish - this will take a while so poll queue every 10 mins
-        waitForSGEQJobs.pl 1 600 $jobIDs
+        ${ANTSPATH}/waitForSGEQJobs.pl 1 600 $jobIDs
         if [[ ! $? -eq 0 ]];
           then
             echo "qsub submission failed - jobs went into error state"
@@ -1613,7 +1633,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Starting ANTS registration on PBS cluster. Iteration: $itdisplay of $ITERATIONLIMIT"
         echo "--------------------------------------------------------------------------------------"
         # now wait for the stuff to finish - this will take a while so poll queue every 10 mins
-        waitForPBSQJobs.pl 1 600 $jobIDs
+        ${ANTSPATH}/waitForPBSQJobs.pl 1 600 $jobIDs
         if [[ ! $? -eq 0 ]];
           then
             echo "qsub submission failed - jobs went into error state"
@@ -1641,7 +1661,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Starting ANTS registration on XGrid cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
         # now wait for the jobs to finish. This is slow, so poll less often
-        waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 300 $jobIDs
+        ${ANTSPATH}/waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 300 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
           then
@@ -1658,7 +1678,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Starting ANTS registration on SLURM cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
         # now wait for the stuff to finish - this will take a while so poll queue every 10 mins
-        waitForSlurmJobs.pl 1 600 $jobIDs
+        ${ANTSPATH}/waitForSlurmJobs.pl 1 600 $jobIDs
         if [[ ! $? -eq 0 ]];
           then
             echo "SLURM submission failed - jobs went into error state"
