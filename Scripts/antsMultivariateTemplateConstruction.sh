@@ -324,7 +324,7 @@ function shapeupdatetotemplate() {
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
     echo "--------------------------------------------------------------------------------------"
 
-    imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
+    imagelist=(`ls ${outputname}template-modality${whichtemplate}-*WarpedToTemplate.nii.gz`)
     if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]]
       then
         echo "ERROR shapeupdatedtotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
@@ -1346,7 +1346,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 indir=`pwd`
             fi
             IMGbase=`basename ${IMAGESETARRAY[$l]}`
-            POO=${OUTPUTNAME}template${k}${IMGbase}
+            POO=${OUTPUTNAME}template-modality${k}-${IMGbase}
             OUTFN=${POO%.*.*}
             OUTFN=`basename ${OUTFN}`
             OUTFN="${OUTFN}${l}"
