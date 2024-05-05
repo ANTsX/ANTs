@@ -110,7 +110,7 @@ LabelGeometryMeasures(int argc, char * argv[])
 
   using FilterType = itk::LabelImageToShapeLabelMapFilter<LabelImageType>;
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetComputeOrientedBoundingBox(true);
+  filter->SetComputeOrientedBoundingBox(false);
   filter->SetComputePerimeter(true);
   filter->SetComputeFeretDiameter(false); // slow for large labels eg brain mask
   filter->SetInput(labelImage);
@@ -214,7 +214,7 @@ LabelGeometryMeasures(int argc, char * argv[])
     for (unsigned int idx = 0; idx < ImageDimension; ++idx)
     {
       if (principalMoments[idx] > 0)
-        axesLengths[idx] = 2.0 * std::sqrt(principalMoments[idx]);
+        axesLengths[idx] = 4.0 * std::sqrt(principalMoments[idx]);
       else
         axesLengths[idx] = 0.0;
     }
