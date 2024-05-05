@@ -33,6 +33,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkIterationReporter.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
+#include "itkLabelImageToShapeLabelMapFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkMinimumDecisionRule.h"
 #include "itkMultiplyImageFilter.h"
@@ -1305,7 +1306,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
         NumericTraits<RealType>::OneValue() / static_cast<RealType>(totalNumberOfClasses);
     }
   }
-geToShapeLabelMapFilter<ClassifiedImageType>::New();
+  auto labelMapFilter = itk::LabelImageToShapeLabelMapFilter<ClassifiedImageType>::New();
   labelMapFilter->SetInput(maxLabels);
   labelMapFilter->SetComputeOrientedBoundingBox(false);
   labelMapFilter->SetComputePerimeter(false);
@@ -1315,7 +1316,7 @@ geToShapeLabelMapFilter<ClassifiedImageType>::New();
 
   for (unsigned int n = 0; n < totalNumberOfClasses; n++)
   {
-    auto labelObject = labelMap->GetNthLabelObject(n+1);
+    auto labelObject = labelMapFilter->GetOutput()->GetNthLabelObject(n);
     this->m_LabelVolumes[n] = labelObject->GetNumberOfPixels();
   }
 
