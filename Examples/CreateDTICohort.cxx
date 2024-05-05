@@ -12,7 +12,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
-#include "itkLabelGeometryImageFilter.h"
+#include "itkLabelImageToShapeLabelMapFilter.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkNumericSeriesFileNames.h"
 #include "itkTimeProbe.h"
@@ -222,29 +222,28 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
   //
   // Get label information for pathology option
   //
-  using LabelGeometryFilterType = itk::LabelGeometryImageFilter<MaskImageType, ImageType>;
-  typename LabelGeometryFilterType::Pointer labelGeometry = LabelGeometryFilterType::New();
-  labelGeometry->SetInput(maskImage);
-  labelGeometry->CalculatePixelIndicesOff();
-  labelGeometry->CalculateOrientedBoundingBoxOff();
-  labelGeometry->CalculateOrientedLabelRegionsOff();
-  labelGeometry->Update();
+  using LabelMapFilterType = itk::LabelImageToShapeLabelMapFilter<MaskImageType>;
+  typename LabelMapFilterType::Pointer labelMapper = LabelMapFilterType::New();
+  labelMapper->SetInput(maskImage);
+  labelMapper->ComputeOrientedBoundingBoxOff();
+  labelMapper->ComputePerimeterOff();
+  labelMapper->Update();
 
-  typename LabelGeometryFilterType::LabelsType labels = labelGeometry->GetLabels();
-  std::sort(labels.begin(), labels.end());
+  auto labelObjects = labelMapper->GetOutput()->GetLabelObjects();
+  std::sort(labelObjects.begin(), labelObjects.end());
 
   unsigned int totalMaskVolume = 0;
-  for (unsigned int n = 0; n < labels.size(); n++)
+  for (unsigned int n = 0; n < labelObjects.size(); n++)
   {
-    totalMaskVolume += static_cast<unsigned int>(labelGeometry->GetVolume(labels[n]));
+    totalMaskVolume += static_cast<unsigned int>(labelObjects[n]->GetNumberOfPixels());
   }
 
   // Fill in default values per label:
   //    column 1:  percentage change in longitudinal eigenvalue
   //    column 2:  percentage change in average of transverse eigenvalue(s)
   //    column 3:  percentage of affected voxels
-  itk::Array2D<RealType> pathologyParameters(labels.size(), 3);
-  for (unsigned int i = 0; i < labels.size(); i++)
+  itk::Array2D<RealType> pathologyParameters(labelObjects.size(), 3);
+  for (unsigned int i = 0; i < labelObjects.size(); i++)
   {
     pathologyParameters(i, 0) = 0.0;
     pathologyParameters(i, 1) = 0.0;
@@ -275,12 +274,12 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
       {
         percentageVoxels = parser->Convert<float>(pathologyOption->GetFunction(0)->GetParameter(2));
       }
-      for (unsigned int n = 0; n < labels.size(); n++)
+      for (unsigned int n = 0; n < labelObjects.size(); n++)
       {
         RealType percentage = percentageVoxels;
         if (percentage > itk::NumericTraits<RealType>::OneValue())
         {
-          percentage /= static_cast<RealType>(labelGeometry->GetVolume(labels[n]));
+          percentage /= static_cast<RealType>(labelObjects[n]->GetNumberOfPixels());
         }
 
         pathologyParameters(n, 0) = pathologyDeltaEig1;
@@ -294,9 +293,17 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
       {
         auto whichClass = parser->Convert<LabelType>(pathologyOption->GetFunction(n)->GetName());
 
-        auto it = std::find(labels.begin(), labels.end(), whichClass);
+        auto it = labelObjects.begin();
 
-        if (it == labels.end())
+        for (it = labelObjects.begin(); it != labelObjects.end(); ++it)
+        {
+          if ((*it)->GetLabel() == whichClass)
+          {
+            break;
+          }
+        }
+
+        if (it == labelObjects.end())
         {
           continue;
         }
@@ -321,11 +328,11 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
         RealType percentage = percentageVoxels;
         if (percentage > itk::NumericTraits<RealType>::OneValue())
         {
-          percentage /= static_cast<RealType>(labelGeometry->GetVolume(*it));
+          percentage /= static_cast<RealType>((*it)->GetNumberOfPixels());
         }
-        pathologyParameters(it - labels.begin(), 0) = pathologyDeltaEig1;
-        pathologyParameters(it - labels.begin(), 1) = pathologyDeltaEig2_Eig3;
-        pathologyParameters(it - labels.begin(), 2) = percentage;
+        pathologyParameters(it - labelObjects.begin(), 0) = pathologyDeltaEig1;
+        pathologyParameters(it - labelObjects.begin(), 1) = pathologyDeltaEig2_Eig3;
+        pathologyParameters(it - labelObjects.begin(), 2) = percentage;
       }
     }
   }
@@ -539,7 +546,7 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
   //
   itksys::SystemTools::MakeDirectory(outputDirectory.c_str());
 
-  itk::Array2D<RealType> meanFAandMD(labels.size(), 5);
+  itk::Array2D<RealType> meanFAandMD(labelObjects.size(), 5);
   meanFAandMD.Fill(0.0);
   for (unsigned n = 0; n <= numberOfControls + numberOfExperimentals; n++)
   {
@@ -609,12 +616,22 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
         eigenvalues[2] = eigenvalues[1];
       }
 
-      auto it = std::find(labels.begin(), labels.end(), label);
-      if (it == labels.end())
+      auto it = labelObjects.begin();
+
+      for (it = labelObjects.begin(); it != labelObjects.end(); ++it)
+      {
+        if ((*it)->GetLabel() == label)
+        {
+          break;
+        }
+      }
+
+      if (it == labelObjects.end())
       {
         std::cout << "ERROR:  unknown label." << std::endl;
       }
-      unsigned int labelIndex = it - labels.begin();
+
+      unsigned int labelIndex = it - labelObjects.begin();
 
       typename TensorType::EigenValuesArrayType newEigenvalues;
 
@@ -729,9 +746,9 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
                 << std::left << std::setw(15) << "FA (path+isv)" << std::left << std::setw(15) << "FA (% change)"
                 << std::left << std::setw(15) << "MD (original)" << std::left << std::setw(15) << "MD (path+isv)"
                 << std::left << std::setw(15) << "MD (% change)" << std::endl;
-      for (unsigned int l = 1; l < labels.size(); l++)
+      for (unsigned int l = 1; l < labelObjects.size(); l++)
       {
-        std::cout << "   " << std::left << std::setw(7) << labels[l] << std::left << std::setw(15)
+        std::cout << "   " << std::left << std::setw(7) << labelObjects[l]->GetLabel() << std::left << std::setw(15)
                   << meanFAandMD(l, 0) / meanFAandMD(l, 4) << std::left << std::setw(15)
                   << meanFAandMD(l, 2) / meanFAandMD(l, 4) << std::left << std::setw(15)
                   << (meanFAandMD(l, 2) - meanFAandMD(l, 0)) / meanFAandMD(l, 0) << std::left << std::setw(15)
