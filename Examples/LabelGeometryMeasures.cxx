@@ -8,16 +8,15 @@
 #include "itkCSVArray2DFileReader.h"
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkImage.h"
-#include "itkLabelGeometryImageFilter.h"
-#include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkResampleImageFilter.h"
-#include "itkTransformFileWriter.h"
-
-#include "itkLabelPerimeterEstimationCalculator.h"
-#include "itkLabelMap.h"
 #include "itkLabelImageToShapeLabelMapFilter.h"
+#include "itkLabelMap.h"
+#include "itkLabelStatisticsImageFilter.h"
+#include "itkResampleImageFilter.h"
 #include "itkShapeLabelMapFilter.h"
 #include "itkShapeLabelObject.h"
+#include "itkStatisticsImageFilter.h"
+#include "itkStatisticsLabelMapFilter.h"
+#include "itkTransformFileWriter.h"
 
 #include <iostream>
 #include <vector>
@@ -30,13 +29,64 @@
 
 namespace ants
 {
+
+template <unsigned int Dimension, typename CentroidType>
+std::string formatCentroid(const CentroidType& centroid)
+{
+  std::ostringstream oss;
+  oss << "[";
+  for (unsigned int i = 0; i < Dimension; ++i) {
+    oss << std::fixed << std::setprecision(4) << centroid[i];
+    if (i < Dimension - 1) oss << ", ";
+  }
+  oss << "]";
+  return oss.str();
+}
+
+template <unsigned int Dimension>
+std::string formatAxesLengths(const std::vector<double>& axesLengths)
+{
+  std::ostringstream oss;
+  oss << "[";
+  for (unsigned int i = 0; i < Dimension; ++i)
+  {
+    oss << std::fixed << std::setprecision(4) << axesLengths[i];
+    if (i < Dimension - 1) oss << ", ";
+  }
+  oss << "]";
+  return oss.str();
+}
+
+template <unsigned int Dimension>
+std::string formatBoundingBox(const itk::ImageRegion<Dimension>& region)
+{
+  std::ostringstream oss;
+  auto index = region.GetIndex();
+  auto size = region.GetSize();
+
+  // Append the starting index and size of each dimension to the stream
+  oss << "[";
+  for (unsigned int i = 0; i < Dimension; ++i)
+  {
+      oss << index[i];
+      if (i < Dimension - 1) oss << ", ";
+  }
+  oss << ", ";
+  for (unsigned int i = 0; i < Dimension; ++i)
+  {
+    oss << index[i] + size[i] - 1;
+    if (i < Dimension - 1) oss << ", ";
+  }
+  oss << "]";
+  return oss.str();
+}
+
 template <unsigned int ImageDimension>
 int
 LabelGeometryMeasures(int argc, char * argv[])
 {
   using LabelType = unsigned int;
   using LabelImageType = itk::Image<LabelType, ImageDimension>;
-
   using RealType = float;
   using RealImageType = itk::Image<RealType, ImageDimension>;
 
@@ -44,264 +94,245 @@ LabelGeometryMeasures(int argc, char * argv[])
   ReadImage<LabelImageType>(labelImage, argv[2]);
 
   typename RealImageType::Pointer intensityImage = RealImageType::New();
-  bool                            intensityImageUsed = false;
-  if (argc > 3)
+  bool intensityImageUsed = false;
+  if (argc > 3 && std::string(argv[3]) != "none" && std::string(argv[3]) != "na")
   {
-    std::string intensityImageFile = argv[3];
-    ConvertToLowerCase(intensityImageFile);
-    if ( intensityImageFile.compare("na") != 0 && intensityImageFile.compare("none") != 0 )
-    {
-      if (!ReadImage<RealImageType>(intensityImage, intensityImageFile.c_str()))
-      {
-        std::cout << "Input intensity image " << intensityImageFile << " could not be read." << std::endl;
-        return EXIT_FAILURE;
-      }
-      intensityImageUsed = true;
-    }
+    ReadImage<RealImageType>(intensityImage, argv[3]);
+    intensityImageUsed = true;
   }
 
-  bool outputCSVFormat = false;
-  if (argc > 4)
+  bool writeCSV = false;
+
+  if (argc > 4 && std::string(argv[4]) != "none" && std::string(argv[4]) != "na")
   {
-    outputCSVFormat = true;
+    writeCSV = true;
   }
-  using FilterType = itk::LabelGeometryImageFilter<LabelImageType, RealImageType>;
+
+  using FilterType = itk::LabelImageToShapeLabelMapFilter<LabelImageType>;
   typename FilterType::Pointer filter = FilterType::New();
+  filter->SetComputeOrientedBoundingBox(false);
+  filter->SetComputePerimeter(true);
+  filter->SetComputeFeretDiameter(false); // slow for large labels eg brain mask
   filter->SetInput(labelImage);
-  if (intensityImageUsed)
-  {
-    filter->SetIntensityInput(intensityImage);
-  }
-  filter->CalculatePixelIndicesOff();
-  filter->CalculateOrientedBoundingBoxOff();
-  filter->CalculateOrientedLabelRegionsOff();
-  // These generate optional outputs.
-  //   filter->CalculatePixelIndicesOn();
-  //   filter->CalculateOrientedBoundingBoxOn();;
-  //   filter->CalculateOrientedLabelRegionsOn();
-
   filter->Update();
 
-  using LabelObjectType = itk::ShapeLabelObject<LabelType, ImageDimension>;
-  using LabelMapType = itk::LabelMap<LabelObjectType>;
+  using LabelMapType = typename FilterType::OutputImageType;
+  typename LabelMapType::Pointer labelMap = filter->GetOutput();
 
-  // convert the image in a collection of objects
-  using ConverterType = itk::LabelImageToShapeLabelMapFilter<LabelImageType, LabelMapType>;
-  typename ConverterType::Pointer converter = ConverterType::New();
-  converter->SetInput(labelImage);
-
-  using ValuatorType = itk::ShapeLabelMapFilter<LabelMapType>;
-  typename ValuatorType::Pointer valuator = ValuatorType::New();
-  valuator->SetInput(converter->GetOutput());
-
-  valuator->Update();
-
-  typename LabelMapType::Pointer labelMap = valuator->GetOutput();
-
-  //   typedef itk::LabelPerimeterEstimationCalculator<LabelImageType> AreaFilterType;
-  //   typename AreaFilterType::Pointer areafilter = AreaFilterType::New();
-  //   areafilter->SetImage( labelImage );
-  //   areafilter->SetFullyConnected( false );
-  //   areafilter->Compute();
-
-  typename FilterType::LabelsType allLabels = filter->GetLabels();
-  std::sort(allLabels.begin(), allLabels.end());
-
-  if (outputCSVFormat)
+  using StatisticsFilterType = itk::LabelStatisticsImageFilter<RealImageType, LabelImageType>;
+  typename StatisticsFilterType::Pointer statisticsFilter = StatisticsFilterType::New();
+  if (intensityImageUsed)
   {
-    typename FilterType::LabelsType::iterator allLabelsIt;
+    using VoxelStatisticsFilterType = itk::StatisticsImageFilter<RealImageType>;
+    auto voxelStatisticsFilter = VoxelStatisticsFilterType::New();
+    voxelStatisticsFilter->SetInput(intensityImage);
+    voxelStatisticsFilter->Update();
 
-    std::vector<std::string> columnHeaders;
+    auto lowerBound = voxelStatisticsFilter->GetMinimum();
+    auto upperBound = voxelStatisticsFilter->GetMaximum();
 
-    columnHeaders.emplace_back("Label");
-    columnHeaders.emplace_back("VolumeInVoxels");
-    columnHeaders.emplace_back("SurfaceAreaInMillimetersSquared");
-    columnHeaders.emplace_back("Eccentricity");
-    columnHeaders.emplace_back("Elongation");
-    columnHeaders.emplace_back("Orientation");
-    columnHeaders.emplace_back("Centroid_x");
-    columnHeaders.emplace_back("Centroid_y");
-    if (ImageDimension == 3)
+    statisticsFilter->SetInput(intensityImage);
+    statisticsFilter->SetLabelInput(labelImage);
+    statisticsFilter->SetUseHistograms(true);
+    statisticsFilter->SetHistogramParameters(255, lowerBound, upperBound);
+    statisticsFilter->Update();
+  }
+
+  std::vector<std::string> columnHeaders = {"Label", "VolumeInVoxels", "VolumeInMillimeters", "SurfaceAreaInMillimetersSquared",
+                                            "Eccentricity", "Elongation", "Roundness", "Flatness"};
+
+  if (writeCSV)
+  {
+    if (ImageDimension == 2)
     {
-      columnHeaders.emplace_back("Centroid_z");
+      columnHeaders.push_back("Centroid_x");
+      columnHeaders.push_back("Centroid_y");
+      columnHeaders.push_back("AxesLength_x");
+      columnHeaders.push_back("AxesLength_y");
+      columnHeaders.push_back("BoundingBoxLower_x");
+      columnHeaders.push_back("BoundingBoxLower_y");
+      columnHeaders.push_back("BoundingBoxUpper_x");
+      columnHeaders.push_back("BoundingBoxUpper_y");
     }
-    columnHeaders.emplace_back("AxesLength_x");
-    columnHeaders.emplace_back("AxesLength_y");
-    if (ImageDimension == 3)
+    else if (ImageDimension == 3)
     {
-      columnHeaders.emplace_back("AxesLength_z");
-    }
-    columnHeaders.emplace_back("BoundingBoxLower_x");
-    columnHeaders.emplace_back("BoundingBoxUpper_x");
-    columnHeaders.emplace_back("BoundingBoxLower_y");
-    columnHeaders.emplace_back("BoundingBoxUpper_y");
-    if (ImageDimension == 3)
-    {
-      columnHeaders.emplace_back("BoundingBoxLower_z");
-      columnHeaders.emplace_back("BoundingBoxUpper_z");
-    }
-
-    if (filter->GetIntensityInput())
-    {
-      columnHeaders.emplace_back("IntegratedIntensity");
-      columnHeaders.emplace_back("WeightedCentroid_x");
-      columnHeaders.emplace_back("WeightedCentroid_y");
-      if (ImageDimension == 3)
-      {
-        columnHeaders.emplace_back("WeightedCentroid_z");
-      }
-    }
-
-    std::vector<std::string> rowHeaders;
-    for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
-    {
-      if (*allLabelsIt == 0)
-      {
-        continue;
-      }
-      std::ostringstream convert; // stream used for the conversion
-      convert << *allLabelsIt;    // insert the textual representation of 'Number' in the characters in the stream
-      rowHeaders.push_back(convert.str()); // set 'Result' to the contents of the stream
-    }
-
-    vnl_matrix<double> measures(allLabels.size() - 1, columnHeaders.size() - 1);
-
-    unsigned int rowIndex = 0;
-    for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
-    {
-      if (*allLabelsIt == 0)
-      {
-        continue;
-      }
-
-      unsigned int columnIndex = 0;
-      //      measures( rowIndex, columnIndex ) = static_cast< double >( *allLabelsIt );
-      measures(rowIndex, columnIndex++) = filter->GetVolume(*allLabelsIt);
-
-      const LabelObjectType * labelObject = labelMap->GetLabelObject(*allLabelsIt);
-
-      measures(rowIndex, columnIndex++) = labelObject->GetPerimeter();
-      measures(rowIndex, columnIndex++) = filter->GetEccentricity(*allLabelsIt);
-      measures(rowIndex, columnIndex++) = filter->GetElongation(*allLabelsIt);
-      measures(rowIndex, columnIndex++) = filter->GetOrientation(*allLabelsIt);
-      measures(rowIndex, columnIndex++) = filter->GetCentroid(*allLabelsIt)[0];
-      measures(rowIndex, columnIndex++) = filter->GetCentroid(*allLabelsIt)[1];
-      if (ImageDimension == 3)
-      {
-        measures(rowIndex, columnIndex++) = filter->GetCentroid(*allLabelsIt)[2];
-      }
-      measures(rowIndex, columnIndex++) = filter->GetAxesLength(*allLabelsIt)[0];
-      measures(rowIndex, columnIndex++) = filter->GetAxesLength(*allLabelsIt)[1];
-      if (ImageDimension == 3)
-      {
-        measures(rowIndex, columnIndex++) = filter->GetAxesLength(*allLabelsIt)[2];
-      }
-
-      unsigned int arrayIndex = 0;
-
-      measures(rowIndex, columnIndex++) = filter->GetBoundingBox(*allLabelsIt)[arrayIndex++];
-      measures(rowIndex, columnIndex++) = filter->GetBoundingBox(*allLabelsIt)[arrayIndex++];
-      if (ImageDimension == 3)
-      {
-        measures(rowIndex, columnIndex++) = filter->GetBoundingBox(*allLabelsIt)[arrayIndex++];
-      }
-      measures(rowIndex, columnIndex++) = filter->GetBoundingBox(*allLabelsIt)[arrayIndex++];
-      measures(rowIndex, columnIndex++) = filter->GetBoundingBox(*allLabelsIt)[arrayIndex++];
-      if (ImageDimension == 3)
-      {
-        measures(rowIndex, columnIndex++) = filter->GetBoundingBox(*allLabelsIt)[arrayIndex++];
-      }
-
-      if (filter->GetIntensityInput())
-      {
-        measures(rowIndex, columnIndex++) = filter->GetIntegratedIntensity(*allLabelsIt);
-        measures(rowIndex, columnIndex++) = filter->GetWeightedCentroid(*allLabelsIt)[0];
-        measures(rowIndex, columnIndex++) = filter->GetWeightedCentroid(*allLabelsIt)[1];
-        if (ImageDimension == 3)
-        {
-          measures(rowIndex, columnIndex++) = filter->GetWeightedCentroid(*allLabelsIt)[2];
-        }
-      }
-      rowIndex++;
-    }
-
-    using WriterType = itk::CSVNumericObjectFileWriter<double, 1, 1>;
-    WriterType::Pointer writer = WriterType::New();
-    writer->SetFileName(argv[4]);
-    writer->SetColumnHeaders(columnHeaders);
-    writer->SetRowHeaders(rowHeaders);
-    writer->SetInput(&measures);
-    try
-    {
-      writer->Write();
-    }
-    catch (const itk::ExceptionObject & exp)
-    {
-      std::cerr << "Exception caught!" << std::endl;
-      std::cerr << exp << std::endl;
-      return EXIT_FAILURE;
+      columnHeaders.push_back("Centroid_x");
+      columnHeaders.push_back("Centroid_y");
+      columnHeaders.push_back("Centroid_z");
+      columnHeaders.push_back("AxesLength_x");
+      columnHeaders.push_back("AxesLength_y");
+      columnHeaders.push_back("AxesLength_z");
+      columnHeaders.push_back("BoundingBoxLower_x");
+      columnHeaders.push_back("BoundingBoxLower_y");
+      columnHeaders.push_back("BoundingBoxLower_z");
+      columnHeaders.push_back("BoundingBoxUpper_x");
+      columnHeaders.push_back("BoundingBoxUpper_y");
+      columnHeaders.push_back("BoundingBoxUpper_z");
     }
   }
   else
   {
-    typename FilterType::LabelsType::iterator allLabelsIt;
-    //   std::cout << "Number of labels: " << labelGeometryFilter->GetNumberOfLabels() << std::endl;
-    //   std::cout << "Label geometry measures." << std::endl;
-    std::cout << std::left << std::setw(7) << "Label" << std::left << std::setw(10) << "Volume(voxels)" << std::left
-              << std::setw(15) << "SurfArea(mm^2)" << std::left << std::setw(15) << "Eccentricity" << std::left
-              << std::setw(15) << "Elongation" << std::left << std::setw(15) << "Orientation" << std::left
-              << std::setw(30) << "Centroid" << std::left << std::setw(30) << "Axes Length" << std::left
-              << std::setw(30) << "Bounding Box";
-    if (filter->GetIntensityInput())
-    {
-      std::cout << std::left << std::setw(20) << "Integrated Int." << std::left << std::setw(30) << "Weighted Centroid";
-    }
-    std::cout << std::endl;
-    for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
-    {
-      if (*allLabelsIt == 0)
-      {
-        continue;
-      }
-      std::cout << std::setw(7) << *allLabelsIt;
-      std::cout << std::setw(10) << filter->GetVolume(*allLabelsIt);
-
-      const LabelObjectType * labelObject = labelMap->GetLabelObject(*allLabelsIt);
-
-      std::cout << std::setw(15) << labelObject->GetPerimeter();
-      std::cout << std::setw(15) << filter->GetEccentricity(*allLabelsIt);
-      std::cout << std::setw(15) << filter->GetElongation(*allLabelsIt);
-      std::cout << std::setw(15) << filter->GetOrientation(*allLabelsIt);
-
-      std::stringstream oss;
-      oss << filter->GetCentroid(*allLabelsIt);
-      std::cout << std::setw(30) << (oss.str()).c_str();
-      oss.str("");
-
-      oss << filter->GetAxesLength(*allLabelsIt);
-      std::cout << std::setw(30) << (oss.str()).c_str();
-      oss.str("");
-
-      oss << filter->GetBoundingBox(*allLabelsIt);
-      std::cout << std::setw(30) << (oss.str()).c_str();
-      oss.str("");
-
-      //     std::cout << filter->GetMajorAxisLength( *allLabelsIt ) << "\t";
-      //     std::cout << filter->GetMinorAxisLength( *allLabelsIt ) << "\t";
-      if (filter->GetIntensityInput())
-      {
-        oss << filter->GetIntegratedIntensity(*allLabelsIt);
-        std::cout << std::setw(20) << (oss.str()).c_str();
-        oss.str("");
-
-        oss << filter->GetWeightedCentroid(*allLabelsIt);
-        std::cout << std::setw(30) << (oss.str()).c_str();
-        oss.str("");
-      }
-      std::cout << std::endl;
-    }
+    columnHeaders.push_back("Centroid");
+    columnHeaders.push_back("AxesLengths");
+    columnHeaders.push_back("BoundingBox");
   }
 
+  if (intensityImageUsed)
+  {
+    columnHeaders.push_back("MeanIntensity");
+    columnHeaders.push_back("SigmaIntensity");
+    columnHeaders.push_back("MedianIntensity");
+    columnHeaders.push_back("MinIntensity");
+    columnHeaders.push_back("MaxIntensity");
+    columnHeaders.push_back("IntegratedIntensity");
+  }
+
+  std::vector<std::vector<std::string>> data;
+  for (unsigned int i = 0; i < labelMap->GetNumberOfLabelObjects(); ++i)
+  {
+    auto labelObject = labelMap->GetNthLabelObject(i);
+    if (labelObject->GetLabel() == 0)
+    {
+      continue;  // Skip background
+    }
+
+    // Get principal moments and use them to calculate eccentricity and axes lengths
+    auto principalMoments = labelObject->GetPrincipalMoments();
+
+    double lambda1 = principalMoments[0];
+    double lambdaN = principalMoments[ImageDimension - 1];
+    double eccentricity = 0.0;
+
+    if (!itk::Math::FloatAlmostEqual(lambda1, 0.0))
+    {
+      eccentricity = std::sqrt(1.0 - (lambda1 * lambda1) / (lambdaN * lambdaN));
+    }
+
+    // calculate axes lengths
+    std::vector<double> axesLengths(ImageDimension, 0.0);
+
+    for (unsigned int idx = 0; idx < ImageDimension; ++idx)
+    {
+      if (principalMoments[idx] > 0)
+        axesLengths[idx] = 4.0 * std::sqrt(principalMoments[idx]);
+      else
+        axesLengths[idx] = 0.0;
+    }
+    // row is a vector of str
+    std::vector<std::string> row = {
+      std::to_string(labelObject->GetLabel()),
+      std::to_string(labelObject->GetNumberOfPixels()),
+      std::to_string(labelObject->GetPhysicalSize()),
+      std::to_string(labelObject->GetPerimeter()),
+      std::to_string(eccentricity),
+      std::to_string(labelObject->GetElongation()),
+      std::to_string(labelObject->GetRoundness()),
+      std::to_string(labelObject->GetFlatness())
+    };
+
+    if (writeCSV)
+    {
+      if (ImageDimension == 2)
+      {
+       auto bbLowerX = labelObject->GetBoundingBox().GetIndex()[0];
+       auto bbLowerY = labelObject->GetBoundingBox().GetIndex()[1];
+
+       auto bbUpperX = bbLowerX + labelObject->GetBoundingBox().GetSize()[0] - 1;
+       auto bbUpperY = bbLowerY + labelObject->GetBoundingBox().GetSize()[1] - 1;
+
+       row.push_back(std::to_string(labelObject->GetCentroid()[0]));
+       row.push_back(std::to_string(labelObject->GetCentroid()[1]));
+       row.push_back(std::to_string(axesLengths[0]));
+       row.push_back(std::to_string(axesLengths[1]));
+       row.push_back(std::to_string(bbLowerX));
+       row.push_back(std::to_string(bbLowerY));
+       row.push_back(std::to_string(bbUpperX));
+       row.push_back(std::to_string(bbUpperY));
+      }
+      else if (ImageDimension == 3)
+      {
+       auto bbLowerX = labelObject->GetBoundingBox().GetIndex()[0];
+       auto bbLowerY = labelObject->GetBoundingBox().GetIndex()[1];
+       auto bbLowerZ = labelObject->GetBoundingBox().GetIndex()[2];
+
+       auto bbUpperX = bbLowerX + labelObject->GetBoundingBox().GetSize()[0] - 1;
+       auto bbUpperY = bbLowerY + labelObject->GetBoundingBox().GetSize()[1] - 1;
+       auto bbUpperZ = bbLowerZ + labelObject->GetBoundingBox().GetSize()[2] - 1;
+
+       row.push_back(std::to_string(labelObject->GetCentroid()[0]));
+       row.push_back(std::to_string(labelObject->GetCentroid()[1]));
+       row.push_back(std::to_string(labelObject->GetCentroid()[2]));
+       row.push_back(std::to_string(axesLengths[0]));
+       row.push_back(std::to_string(axesLengths[1]));
+       row.push_back(std::to_string(axesLengths[2]));
+       row.push_back(std::to_string(bbLowerX));
+       row.push_back(std::to_string(bbLowerY));
+       row.push_back(std::to_string(bbLowerZ));
+       row.push_back(std::to_string(bbUpperX));
+       row.push_back(std::to_string(bbUpperY));
+       row.push_back(std::to_string(bbUpperZ));
+      }
+    }
+    else
+    {
+      row.push_back(formatCentroid<ImageDimension>(labelObject->GetCentroid()));
+      row.push_back(formatAxesLengths<ImageDimension>(axesLengths));
+      row.push_back(formatBoundingBox<ImageDimension>(labelObject->GetBoundingBox()));
+    }
+
+    if (intensityImageUsed)
+    {
+      row.push_back(std::to_string(statisticsFilter->GetMean(labelObject->GetLabel())));
+      row.push_back(std::to_string(statisticsFilter->GetSigma(labelObject->GetLabel())));
+      row.push_back(std::to_string(statisticsFilter->GetMedian(labelObject->GetLabel())));
+      row.push_back(std::to_string(statisticsFilter->GetMinimum(labelObject->GetLabel())));
+      row.push_back(std::to_string(statisticsFilter->GetMaximum(labelObject->GetLabel())));
+      row.push_back(std::to_string(statisticsFilter->GetSum(labelObject->GetLabel())));
+    }
+
+    data.push_back(row);
+  }
+
+  std::ostream* outStream = &std::cout; // Default to std::cout
+  std::string delimiter = "\t"; // Default to tab delimiter
+
+  if (argc > 4 && std::string(argv[4]) != "none" && std::string(argv[4]) != "na")
+  {
+    static std::ofstream outFile(argv[4]);
+    if (!outFile)
+    {
+      std::cerr << "Error opening output file" << std::endl;
+      return EXIT_FAILURE;
+    }
+    outStream = &outFile; // Point to the file stream
+    delimiter = ","; // Use comma for files
+  }
+
+  // Write column headers
+  for (size_t i = 0; i < columnHeaders.size(); ++i)
+  {
+    *outStream << columnHeaders[i];
+    if (i < columnHeaders.size() - 1)
+      *outStream << delimiter;
+  }
+  *outStream << "\n";
+
+  // Write data
+  for (const auto& row : data)
+  {
+    for (size_t j = 0; j < row.size(); ++j)
+    {
+      *outStream << row[j];
+      if (j < row.size() - 1)
+        *outStream << delimiter;
+    }
+    *outStream << "\n";
+  }
+
+  if (outStream != &std::cout)
+  {
+    static_cast<std::ofstream*>(outStream)->close(); // Close file if not cout
+  }
   return EXIT_SUCCESS;
 }
 
@@ -382,4 +413,6 @@ LabelGeometryMeasures(std::vector<std::string> args, std::ostream * itkNotUsed(o
   }
   return EXIT_SUCCESS;
 }
+
+
 } // namespace ants
