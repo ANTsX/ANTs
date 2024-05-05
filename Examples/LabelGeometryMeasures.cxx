@@ -31,36 +31,54 @@ namespace ants
 {
 
 template <unsigned int Dimension, typename CentroidType>
-std::string formatCentroid(const CentroidType& centroid) {
-    std::ostringstream oss;
-    oss << "[";
-    for (unsigned int i = 0; i < Dimension; ++i) {
-        oss << centroid[i];
-        if (i < Dimension - 1) oss << ", ";
-    }
-    oss << "]";
-    return oss.str();
+std::string formatCentroid(const CentroidType& centroid)
+{
+  std::ostringstream oss;
+  oss << "[";
+  for (unsigned int i = 0; i < Dimension; ++i) {
+    oss << std::fixed << std::setprecision(4) << centroid[i];
+    if (i < Dimension - 1) oss << ", ";
+  }
+  oss << "]";
+  return oss.str();
 }
 
 template <unsigned int Dimension>
-std::string formatBoundingBox(const itk::ImageRegion<Dimension>& region) {
-    std::ostringstream oss;
-    auto index = region.GetIndex();
-    auto size = region.GetSize();
+std::string formatAxesLengths(const std::vector<double>& axesLengths)
+{
+  std::ostringstream oss;
+  oss << "[";
+  for (unsigned int i = 0; i < Dimension; ++i)
+  {
+    oss << std::fixed << std::setprecision(4) << axesLengths[i];
+    if (i < Dimension - 1) oss << ", ";
+  }
+  oss << "]";
+  return oss.str();
+}
 
-    // Append the starting index and size of each dimension to the stream
-    oss << "[";
-    for (unsigned int i = 0; i < Dimension; ++i) {
-        oss << index[i];
-        if (i < Dimension - 1) oss << ", ";
-    }
-    oss << ", ";
-    for (unsigned int i = 0; i < Dimension; ++i) {
-        oss << index[i] + size[i] - 1;
-        if (i < Dimension - 1) oss << ", ";
-    }
-    oss << "]";
-    return oss.str();
+template <unsigned int Dimension>
+std::string formatBoundingBox(const itk::ImageRegion<Dimension>& region)
+{
+  std::ostringstream oss;
+  auto index = region.GetIndex();
+  auto size = region.GetSize();
+
+  // Append the starting index and size of each dimension to the stream
+  oss << "[";
+  for (unsigned int i = 0; i < Dimension; ++i)
+  {
+      oss << index[i];
+      if (i < Dimension - 1) oss << ", ";
+  }
+  oss << ", ";
+  for (unsigned int i = 0; i < Dimension; ++i)
+  {
+    oss << index[i] + size[i] - 1;
+    if (i < Dimension - 1) oss << ", ";
+  }
+  oss << "]";
+  return oss.str();
 }
 
 template <unsigned int ImageDimension>
@@ -92,7 +110,7 @@ LabelGeometryMeasures(int argc, char * argv[])
 
   using FilterType = itk::LabelImageToShapeLabelMapFilter<LabelImageType>;
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetComputeOrientedBoundingBox(false);
+  filter->SetComputeOrientedBoundingBox(true);
   filter->SetComputePerimeter(true);
   filter->SetComputeFeretDiameter(false); // slow for large labels eg brain mask
   filter->SetInput(labelImage);
@@ -121,7 +139,7 @@ LabelGeometryMeasures(int argc, char * argv[])
   }
 
   std::vector<std::string> columnHeaders = {"Label", "VolumeInVoxels", "VolumeInMillimeters", "SurfaceAreaInMillimetersSquared",
-                                            "Elongation", "Roundness", "Flatness"};
+                                            "Eccentricity", "Elongation", "Roundness", "Flatness"};
 
   if (writeCSV)
   {
@@ -129,6 +147,8 @@ LabelGeometryMeasures(int argc, char * argv[])
     {
       columnHeaders.push_back("Centroid_x");
       columnHeaders.push_back("Centroid_y");
+      columnHeaders.push_back("AxesLength_x");
+      columnHeaders.push_back("AxesLength_y");
       columnHeaders.push_back("BoundingBoxLower_x");
       columnHeaders.push_back("BoundingBoxLower_y");
       columnHeaders.push_back("BoundingBoxUpper_x");
@@ -139,6 +159,9 @@ LabelGeometryMeasures(int argc, char * argv[])
       columnHeaders.push_back("Centroid_x");
       columnHeaders.push_back("Centroid_y");
       columnHeaders.push_back("Centroid_z");
+      columnHeaders.push_back("AxesLength_x");
+      columnHeaders.push_back("AxesLength_y");
+      columnHeaders.push_back("AxesLength_z");
       columnHeaders.push_back("BoundingBoxLower_x");
       columnHeaders.push_back("BoundingBoxLower_y");
       columnHeaders.push_back("BoundingBoxLower_z");
@@ -150,6 +173,7 @@ LabelGeometryMeasures(int argc, char * argv[])
   else
   {
     columnHeaders.push_back("Centroid");
+    columnHeaders.push_back("AxesLengths");
     columnHeaders.push_back("BoundingBox");
   }
 
@@ -167,14 +191,40 @@ LabelGeometryMeasures(int argc, char * argv[])
   for (unsigned int i = 0; i < labelMap->GetNumberOfLabelObjects(); ++i)
   {
     auto labelObject = labelMap->GetNthLabelObject(i);
-    if (labelObject->GetLabel() == 0) continue;  // Skip background
+    if (labelObject->GetLabel() == 0)
+    {
+      continue;  // Skip background
+    }
 
+    // Get principal moments and use them to calculate eccentricity and axes lengths
+    auto principalMoments = labelObject->GetPrincipalMoments();
+
+    double lambda1 = principalMoments[0];
+    double lambdaN = principalMoments[ImageDimension - 1];
+    double eccentricity = 0.0;
+
+    if (!itk::Math::FloatAlmostEqual(lambda1, 0.0))
+    {
+      eccentricity = std::sqrt(1.0 - (lambda1 * lambda1) / (lambdaN * lambdaN));
+    }
+
+    // calculate axes lengths
+    std::vector<double> axesLengths(ImageDimension, 0.0);
+
+    for (unsigned int idx = 0; idx < ImageDimension; ++idx)
+    {
+      if (principalMoments[idx] > 0)
+        axesLengths[idx] = 2.0 * std::sqrt(principalMoments[idx]);
+      else
+        axesLengths[idx] = 0.0;
+    }
     // row is a vector of str
     std::vector<std::string> row = {
       std::to_string(labelObject->GetLabel()),
       std::to_string(labelObject->GetNumberOfPixels()),
       std::to_string(labelObject->GetPhysicalSize()),
       std::to_string(labelObject->GetPerimeter()),
+      std::to_string(eccentricity),
       std::to_string(labelObject->GetElongation()),
       std::to_string(labelObject->GetRoundness()),
       std::to_string(labelObject->GetFlatness())
@@ -192,6 +242,8 @@ LabelGeometryMeasures(int argc, char * argv[])
 
        row.push_back(std::to_string(labelObject->GetCentroid()[0]));
        row.push_back(std::to_string(labelObject->GetCentroid()[1]));
+       row.push_back(std::to_string(axesLengths[0]));
+       row.push_back(std::to_string(axesLengths[1]));
        row.push_back(std::to_string(bbLowerX));
        row.push_back(std::to_string(bbLowerY));
        row.push_back(std::to_string(bbUpperX));
@@ -210,6 +262,9 @@ LabelGeometryMeasures(int argc, char * argv[])
        row.push_back(std::to_string(labelObject->GetCentroid()[0]));
        row.push_back(std::to_string(labelObject->GetCentroid()[1]));
        row.push_back(std::to_string(labelObject->GetCentroid()[2]));
+       row.push_back(std::to_string(axesLengths[0]));
+       row.push_back(std::to_string(axesLengths[1]));
+       row.push_back(std::to_string(axesLengths[2]));
        row.push_back(std::to_string(bbLowerX));
        row.push_back(std::to_string(bbLowerY));
        row.push_back(std::to_string(bbLowerZ));
@@ -221,6 +276,7 @@ LabelGeometryMeasures(int argc, char * argv[])
     else
     {
       row.push_back(formatCentroid<ImageDimension>(labelObject->GetCentroid()));
+      row.push_back(formatAxesLengths<ImageDimension>(axesLengths));
       row.push_back(formatBoundingBox<ImageDimension>(labelObject->GetBoundingBox()));
     }
 
