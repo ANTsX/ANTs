@@ -227,10 +227,9 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
   labelMapper->SetInput(maskImage);
   labelMapper->ComputeOrientedBoundingBoxOff();
   labelMapper->ComputePerimeterOff();
+  labelMapper->SetBackgroundValue(-1); // include 0 in output
   labelMapper->Update();
-
   auto labelObjects = labelMapper->GetOutput()->GetLabelObjects();
-  std::sort(labelObjects.begin(), labelObjects.end());
 
   unsigned int totalMaskVolume = 0;
   for (unsigned int n = 0; n < labelObjects.size(); n++)
