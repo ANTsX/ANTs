@@ -67,7 +67,6 @@
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
-#include "itkLabelPerimeterEstimationCalculator.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelContourImageFilter.h"
