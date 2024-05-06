@@ -279,6 +279,8 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
         if (percentage > itk::NumericTraits<RealType>::OneValue())
         {
           percentage /= static_cast<RealType>(labelObjects[n]->GetNumberOfPixels());
+          std::cout << "WARNING:  Percentage of affected voxels must be less than or equal to 1." << std::endl;
+          std::cout << "          Dividing by size of region, percentage = " << percentage << std::endl;
         }
 
         pathologyParameters(n, 0) = pathologyDeltaEig1;
@@ -328,6 +330,8 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
         if (percentage > itk::NumericTraits<RealType>::OneValue())
         {
           percentage /= static_cast<RealType>((*it)->GetNumberOfPixels());
+          std::cout << "WARNING:  Percentage of affected voxels must be less than or equal to 1." << std::endl;
+          std::cout << "          Dividing by size of region, percentage = " << percentage << std::endl;
         }
         pathologyParameters(it - labelObjects.begin(), 0) = pathologyDeltaEig1;
         pathologyParameters(it - labelObjects.begin(), 1) = pathologyDeltaEig2_Eig3;
@@ -742,9 +746,9 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
     if (n == 0)
     {
       std::cout << "   " << std::left << std::setw(7) << "Region" << std::left << std::setw(15) << "FA (original)"
-                << std::left << std::setw(15) << "FA (path+isv)" << std::left << std::setw(15) << "FA (% change)"
+                << std::left << std::setw(15) << "FA (path+isv)" << std::left << std::setw(15) << "FA (prop. change)"
                 << std::left << std::setw(15) << "MD (original)" << std::left << std::setw(15) << "MD (path+isv)"
-                << std::left << std::setw(15) << "MD (% change)" << std::endl;
+                << std::left << std::setw(15) << "MD (prop. change)" << std::endl;
       for (unsigned int l = 1; l < labelObjects.size(); l++)
       {
         std::cout << "   " << std::left << std::setw(7) << labelObjects[l]->GetLabel() << std::left << std::setw(15)
@@ -920,13 +924,13 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
                               std::string("Pathology is simulated by changing the eigenvalues. Typically ") +
                               std::string("this involves a decrease in the largest eigenvalue and an ") +
                               std::string("increase in the average of the remaining eigenvalues. ") +
-                              std::string("Change is specified as a percentage of the current eigenvalues. ") +
+                              std::string("Change is specified as a proportion of the current eigenvalues. ") +
                               std::string("However, care is taken ") +
                               std::string("to ensure that diffusion direction does not change. ") +
                               std::string("Additionally, one can specify the number of voxels affected ") +
-                              std::string("in each region or one can specify the percentage of voxels ") +
+                              std::string("in each region or one can specify the proportion of voxels ") +
                               std::string("affected.  Default is to change all voxels.  Note that the ") +
-                              std::string("percentages must be specified in the range [0,1]. For ") +
+                              std::string("proportions must be specified in the range [0,1]. For ") +
                               std::string("dimension=3 where the average transverse diffusion eigenvalues ") +
                               std::string("are altered, this change is propagated to the distinct eigenvalues ") +
                               std::string("by forcing the ratio to be the same before the change. ");
@@ -934,8 +938,8 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("pathology");
     option->SetUsageOption(0,
-                           "label[<percentageChangeEig1=-0.05>,<percentageChangeAvgEig2andEig3=0.05>,<numberOfVoxels="
-                           "all or percentageOfvoxels>]");
+                           "label[<propChangeEig1=-0.05>,<propChangeAvgEig2andEig3=0.05>,<numberOfVoxels="
+                           "all or propOfVoxels>]");
     option->SetShortName('p');
     option->SetDescription(description);
     parser->AddOption(option);
