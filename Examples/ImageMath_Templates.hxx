@@ -66,9 +66,7 @@
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include "itkLabelGeometryImageFilter.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
-#include "itkLabelPerimeterEstimationCalculator.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelContourImageFilter.h"
@@ -10779,93 +10777,6 @@ LabelThickness(int argc, char * argv[])
   return EXIT_SUCCESS;
 }
 
-template <unsigned int ImageDimension>
-int
-LabelThickness2(int argc, char * argv[])
-{
-  typedef unsigned int                          LabelType;
-  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
-  typedef float                                 RealType;
-  typedef itk::Image<RealType, ImageDimension>  RealImageType;
-
-  if (argc < 5)
-  {
-    // std::cout << " Not enough inputs " << std::endl;
-    return EXIT_FAILURE;
-  }
-  int               argct = 2;
-  const std::string outname = std::string(argv[argct]);
-  argct += 2;
-
-  std::string fn = std::string(argv[argct++]);
-
-  typename LabelImageType::Pointer labelImage = nullptr;
-  ReadImage<LabelImageType>(labelImage, fn.c_str());
-
-  typename LabelImageType::SpacingType spacing = labelImage->GetSpacing();
-  float                                volumeElement = 1.0;
-  for (unsigned int i = 0; i < spacing.Size(); i++)
-  {
-    volumeElement *= static_cast<float>(spacing[i]);
-  }
-
-  typedef itk::LabelGeometryImageFilter<LabelImageType, RealImageType> GeometryFilterType;
-  typename GeometryFilterType::Pointer                                 geometryFilter = GeometryFilterType::New();
-  geometryFilter->SetInput(labelImage);
-  geometryFilter->CalculatePixelIndicesOff();
-  geometryFilter->CalculateOrientedBoundingBoxOff();
-  geometryFilter->CalculateOrientedLabelRegionsOff();
-  geometryFilter->Update();
-
-  typedef itk::LabelPerimeterEstimationCalculator<LabelImageType> AreaFilterType;
-  typename AreaFilterType::Pointer                                areaFilter = AreaFilterType::New();
-  areaFilter->SetImage(labelImage);
-  areaFilter->SetFullyConnected(true);
-  areaFilter->Compute();
-
-  typename GeometryFilterType::LabelsType           allLabels = geometryFilter->GetLabels();
-  typename GeometryFilterType::LabelsType::iterator allLabelsIt;
-
-  std::sort(allLabels.begin(), allLabels.end());
-  for (allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++)
-  {
-    if (*allLabelsIt == 0)
-    {
-      continue;
-    }
-    //    RealType volume = geometryFilter->GetVolume( *allLabelsIt ) * volumeElement;
-    // RealType perimeter = areaFilter->GetPerimeter( *allLabelsIt );
-    // RealType thicknessPrior = volume / perimeter;
-    // std::cout << "Label "  << *allLabelsIt << ": ";
-    // std::cout << "volume = " << volume << ", ";
-    // std::cout << "area = " << perimeter << ", ";
-    // std::cout << "thickness = " << thicknessPrior << std::endl;
-  }
-
-  typename RealImageType::Pointer thicknessPriorImage = RealImageType::New();
-  thicknessPriorImage->CopyInformation(labelImage);
-  thicknessPriorImage->SetRegions(labelImage->GetLargestPossibleRegion());
-  thicknessPriorImage->AllocateInitialized();
-
-  itk::ImageRegionIteratorWithIndex<LabelImageType> It(labelImage, labelImage->GetLargestPossibleRegion());
-  for (It.GoToBegin(); !It.IsAtEnd(); ++It)
-  {
-    LabelType label = It.Get();
-    if (label == 0)
-    {
-      continue;
-    }
-    RealType volume = geometryFilter->GetVolume(label) * volumeElement;
-    RealType perimeter = areaFilter->GetPerimeter(label);
-
-    RealType thicknessPrior = volume / perimeter;
-    thicknessPriorImage->SetPixel(It.GetIndex(), thicknessPrior);
-  }
-
-  ANTs::WriteImage<RealImageType>(thicknessPriorImage, outname.c_str());
-  return EXIT_SUCCESS;
-}
-
 // now words can be accessed like this WordList[n]; where 'n' is the index
 template <unsigned int ImageDimension>
 int
@@ -14934,11 +14845,6 @@ ImageMathHelperAll(int argc, char ** argv)
   if (operation == "LabelThickness")
   {
     LabelThickness<DIM>(argc, argv);
-    return EXIT_SUCCESS;
-  }
-  if (operation == "LabelThickness2")
-  {
-    LabelThickness2<DIM>(argc, argv);
     return EXIT_SUCCESS;
   }
   if (operation == "DiceAndMinDistSum")

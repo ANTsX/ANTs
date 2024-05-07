@@ -12,7 +12,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
-#include "itkLabelGeometryImageFilter.h"
+#include "itkLabelImageToShapeLabelMapFilter.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkNumericSeriesFileNames.h"
 #include "itkTimeProbe.h"
@@ -222,29 +222,27 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
   //
   // Get label information for pathology option
   //
-  using LabelGeometryFilterType = itk::LabelGeometryImageFilter<MaskImageType, ImageType>;
-  typename LabelGeometryFilterType::Pointer labelGeometry = LabelGeometryFilterType::New();
-  labelGeometry->SetInput(maskImage);
-  labelGeometry->CalculatePixelIndicesOff();
-  labelGeometry->CalculateOrientedBoundingBoxOff();
-  labelGeometry->CalculateOrientedLabelRegionsOff();
-  labelGeometry->Update();
-
-  typename LabelGeometryFilterType::LabelsType labels = labelGeometry->GetLabels();
-  std::sort(labels.begin(), labels.end());
+  using LabelMapFilterType = itk::LabelImageToShapeLabelMapFilter<MaskImageType>;
+  typename LabelMapFilterType::Pointer labelMapper = LabelMapFilterType::New();
+  labelMapper->SetInput(maskImage);
+  labelMapper->ComputeOrientedBoundingBoxOff();
+  labelMapper->ComputePerimeterOff();
+  labelMapper->SetBackgroundValue(-1); // include 0 in output
+  labelMapper->Update();
+  auto labelObjects = labelMapper->GetOutput()->GetLabelObjects();
 
   unsigned int totalMaskVolume = 0;
-  for (unsigned int n = 0; n < labels.size(); n++)
+  for (unsigned int n = 0; n < labelObjects.size(); n++)
   {
-    totalMaskVolume += static_cast<unsigned int>(labelGeometry->GetVolume(labels[n]));
+    totalMaskVolume += static_cast<unsigned int>(labelObjects[n]->GetNumberOfPixels());
   }
 
   // Fill in default values per label:
   //    column 1:  percentage change in longitudinal eigenvalue
   //    column 2:  percentage change in average of transverse eigenvalue(s)
   //    column 3:  percentage of affected voxels
-  itk::Array2D<RealType> pathologyParameters(labels.size(), 3);
-  for (unsigned int i = 0; i < labels.size(); i++)
+  itk::Array2D<RealType> pathologyParameters(labelObjects.size(), 3);
+  for (unsigned int i = 0; i < labelObjects.size(); i++)
   {
     pathologyParameters(i, 0) = 0.0;
     pathologyParameters(i, 1) = 0.0;
@@ -275,12 +273,14 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
       {
         percentageVoxels = parser->Convert<float>(pathologyOption->GetFunction(0)->GetParameter(2));
       }
-      for (unsigned int n = 0; n < labels.size(); n++)
+      for (unsigned int n = 0; n < labelObjects.size(); n++)
       {
         RealType percentage = percentageVoxels;
         if (percentage > itk::NumericTraits<RealType>::OneValue())
         {
-          percentage /= static_cast<RealType>(labelGeometry->GetVolume(labels[n]));
+          percentage /= static_cast<RealType>(labelObjects[n]->GetNumberOfPixels());
+          std::cout << "WARNING:  Percentage of affected voxels must be less than or equal to 1." << std::endl;
+          std::cout << "          Dividing by size of region, percentage = " << percentage << std::endl;
         }
 
         pathologyParameters(n, 0) = pathologyDeltaEig1;
@@ -294,9 +294,17 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
       {
         auto whichClass = parser->Convert<LabelType>(pathologyOption->GetFunction(n)->GetName());
 
-        auto it = std::find(labels.begin(), labels.end(), whichClass);
+        auto it = labelObjects.begin();
 
-        if (it == labels.end())
+        for (it = labelObjects.begin(); it != labelObjects.end(); ++it)
+        {
+          if ((*it)->GetLabel() == whichClass)
+          {
+            break;
+          }
+        }
+
+        if (it == labelObjects.end())
         {
           continue;
         }
@@ -321,11 +329,13 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
         RealType percentage = percentageVoxels;
         if (percentage > itk::NumericTraits<RealType>::OneValue())
         {
-          percentage /= static_cast<RealType>(labelGeometry->GetVolume(*it));
+          percentage /= static_cast<RealType>((*it)->GetNumberOfPixels());
+          std::cout << "WARNING:  Percentage of affected voxels must be less than or equal to 1." << std::endl;
+          std::cout << "          Dividing by size of region, percentage = " << percentage << std::endl;
         }
-        pathologyParameters(it - labels.begin(), 0) = pathologyDeltaEig1;
-        pathologyParameters(it - labels.begin(), 1) = pathologyDeltaEig2_Eig3;
-        pathologyParameters(it - labels.begin(), 2) = percentage;
+        pathologyParameters(it - labelObjects.begin(), 0) = pathologyDeltaEig1;
+        pathologyParameters(it - labelObjects.begin(), 1) = pathologyDeltaEig2_Eig3;
+        pathologyParameters(it - labelObjects.begin(), 2) = percentage;
       }
     }
   }
@@ -539,7 +549,7 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
   //
   itksys::SystemTools::MakeDirectory(outputDirectory.c_str());
 
-  itk::Array2D<RealType> meanFAandMD(labels.size(), 5);
+  itk::Array2D<RealType> meanFAandMD(labelObjects.size(), 5);
   meanFAandMD.Fill(0.0);
   for (unsigned n = 0; n <= numberOfControls + numberOfExperimentals; n++)
   {
@@ -609,12 +619,22 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
         eigenvalues[2] = eigenvalues[1];
       }
 
-      auto it = std::find(labels.begin(), labels.end(), label);
-      if (it == labels.end())
+      auto it = labelObjects.begin();
+
+      for (it = labelObjects.begin(); it != labelObjects.end(); ++it)
+      {
+        if ((*it)->GetLabel() == label)
+        {
+          break;
+        }
+      }
+
+      if (it == labelObjects.end())
       {
         std::cout << "ERROR:  unknown label." << std::endl;
       }
-      unsigned int labelIndex = it - labels.begin();
+
+      unsigned int labelIndex = it - labelObjects.begin();
 
       typename TensorType::EigenValuesArrayType newEigenvalues;
 
@@ -726,12 +746,12 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
     if (n == 0)
     {
       std::cout << "   " << std::left << std::setw(7) << "Region" << std::left << std::setw(15) << "FA (original)"
-                << std::left << std::setw(15) << "FA (path+isv)" << std::left << std::setw(15) << "FA (% change)"
+                << std::left << std::setw(15) << "FA (path+isv)" << std::left << std::setw(15) << "FA (prop. change)"
                 << std::left << std::setw(15) << "MD (original)" << std::left << std::setw(15) << "MD (path+isv)"
-                << std::left << std::setw(15) << "MD (% change)" << std::endl;
-      for (unsigned int l = 1; l < labels.size(); l++)
+                << std::left << std::setw(15) << "MD (prop. change)" << std::endl;
+      for (unsigned int l = 1; l < labelObjects.size(); l++)
       {
-        std::cout << "   " << std::left << std::setw(7) << labels[l] << std::left << std::setw(15)
+        std::cout << "   " << std::left << std::setw(7) << labelObjects[l]->GetLabel() << std::left << std::setw(15)
                   << meanFAandMD(l, 0) / meanFAandMD(l, 4) << std::left << std::setw(15)
                   << meanFAandMD(l, 2) / meanFAandMD(l, 4) << std::left << std::setw(15)
                   << (meanFAandMD(l, 2) - meanFAandMD(l, 0)) / meanFAandMD(l, 0) << std::left << std::setw(15)
@@ -904,13 +924,13 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
                               std::string("Pathology is simulated by changing the eigenvalues. Typically ") +
                               std::string("this involves a decrease in the largest eigenvalue and an ") +
                               std::string("increase in the average of the remaining eigenvalues. ") +
-                              std::string("Change is specified as a percentage of the current eigenvalues. ") +
+                              std::string("Change is specified as a proportion of the current eigenvalues. ") +
                               std::string("However, care is taken ") +
                               std::string("to ensure that diffusion direction does not change. ") +
                               std::string("Additionally, one can specify the number of voxels affected ") +
-                              std::string("in each region or one can specify the percentage of voxels ") +
+                              std::string("in each region or one can specify the proportion of voxels ") +
                               std::string("affected.  Default is to change all voxels.  Note that the ") +
-                              std::string("percentages must be specified in the range [0,1]. For ") +
+                              std::string("proportions must be specified in the range [0,1]. For ") +
                               std::string("dimension=3 where the average transverse diffusion eigenvalues ") +
                               std::string("are altered, this change is propagated to the distinct eigenvalues ") +
                               std::string("by forcing the ratio to be the same before the change. ");
@@ -918,8 +938,8 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("pathology");
     option->SetUsageOption(0,
-                           "label[<percentageChangeEig1=-0.05>,<percentageChangeAvgEig2andEig3=0.05>,<numberOfVoxels="
-                           "all or percentageOfvoxels>]");
+                           "label[<propChangeEig1=-0.05>,<propChangeAvgEig2andEig3=0.05>,<numberOfVoxels="
+                           "all or propOfVoxels>]");
     option->SetShortName('p');
     option->SetDescription(description);
     parser->AddOption(option);
