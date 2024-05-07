@@ -199,7 +199,13 @@ LabelGeometryMeasures(int argc, char * argv[])
     // Get principal moments and use them to calculate eccentricity and axes lengths
     auto principalMoments = labelObject->GetPrincipalMoments();
 
-    double lambda1 = principalMoments[0];
+    // define in 3D such that it describes the ellipse with axes propotional to the
+    // two largest principal moments. This is useful eg for cortex, where the thickness
+    // is much smaller than the other two dimensions.
+    //
+    // Roundness gives a more general measure of deviation from a sphere, including all three dimensions.
+    //
+    double lambda1 = principalMoments[ImageDimension - 2];
     double lambdaN = principalMoments[ImageDimension - 1];
     double eccentricity = 0.0;
 
