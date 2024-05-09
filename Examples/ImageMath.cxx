@@ -64,7 +64,6 @@
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include "itkLabelGeometryImageFilter.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
