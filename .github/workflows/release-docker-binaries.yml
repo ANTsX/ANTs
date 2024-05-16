@@ -1,5 +1,4 @@
 name: Cross-platform release binaries
-# Use Docker to build on platforms other than Ubuntu
 on:
   release:
     types: [created]
@@ -8,21 +7,15 @@ env:
 jobs:
   build:
     name: ${{ matrix.config.name }}
-    runs-on: ubuntu-latest
-    container:
-      image: ${{ matrix.config.image }}
-      options: ${{ matrix.config.container_options }}
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         config:
         - {
             name: "Centos7-GCC",
-            # os_desc used to name output
             os_desc: centos7,
-            # Use image that already has gcc installed
             image: "centos/devtoolset-7-toolchain-centos7:7",
-            container_options: "--user root",
             build_type: "Release",
             cc: "gcc",
             cxx: "g++",
@@ -30,11 +23,8 @@ jobs:
           }
         - {
             name: "Ubuntu-18.04-GCC",
-            # os_desc used to name output
             os_desc: ubuntu-18.04,
-            # This is a minimal image, need to add many dependencies
             image: "ubuntu:18.04",
-            container_options: "--user root",
             build_type: "Release",
             cc: "gcc",
             cxx: "g++",
@@ -44,35 +34,34 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+
       - name: Get ANTs version
-        run:
+        run: |
           echo "ANTS_VERSION=${ANTS_TAG#v}" >> $GITHUB_ENV
         env:
           ANTS_TAG: ${{ github.ref_name }}
-      - name: Define env
+
+      - name: Set up build container
         run: |
-          echo github.event.action: ${{ github.event.action }}
-          echo github.event_name: ${{ github.event_name }}
-          echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
-          echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
-          echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
+          docker pull ${{ matrix.config.image }}
+          docker create --name build_container -v ${{ github.workspace }}:/workspace ${{ matrix.config.image }} sleep infinity
+          docker start build_container
       - name: Install dependencies on Centos
         if: startsWith(matrix.config.name, 'Centos7')
         run: |
-          yum -y update && yum clean all
-          # Need devtoolset-7 to get zip and other goodies, though GCC is installed by default
-          # Also need to add python3 if that ever becomes necessary
-          yum -y install devtoolset-7 git zlib-devel
-          curl -OL https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
-          chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh
-          mkdir -p /opt/cmake/bin
-          ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix="/opt/cmake"
-          echo "/opt/cmake/bin" >> $GITHUB_PATH
-      - name: Install dependencies on ubuntu
+          docker exec --user root build_container bash -c "
+            yum -y update && yum clean all
+            yum -y install devtoolset-7 git zlib-devel
+            curl -OL https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
+            chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh
+            ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix=/usr/local
+          "
+      - name: Install dependencies on Ubuntu
         if: startsWith(matrix.config.name, 'Ubuntu-18.04')
         run: |
-          apt-get update
-          apt-get install -y --no-install-recommends \
+          docker exec --user root build_container bash -c "
+            apt-get update
+            apt-get install -y --no-install-recommends \
               apt-transport-https \
               bc \
               build-essential \
@@ -83,48 +72,52 @@ jobs:
               software-properties-common \
               wget \
               zip
-          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
-            | apt-key add -
-          apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main'
-          apt-get update
-          apt-get -y install cmake=${CMAKE_VERSION}-0kitware1ubuntu18.04.1 cmake-data=${CMAKE_VERSION}-0kitware1ubuntu18.04.1
-          ninja --version
-          cmake --version
-          gcc --version
+            wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -
+            apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ bionic main'
+            apt-get update
+            apt-get -y install cmake=${CMAKE_VERSION}-0kitware1ubuntu18.04.1 cmake-data=${CMAKE_VERSION}-0kitware1ubuntu18.04.1
+            ninja --version
+            cmake --version
+            gcc --version
+          "
       - name: Configure
-        shell: bash
         run: |
-          mkdir -p /opt/build
-          cd /opt/build
-          cmake \
-            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
-            -G "${{ matrix.config.generators }}" \
-            -DBUILD_TESTING=ON \
-            -DRUN_SHORT_TESTS=ON \
-            -DRUN_LONG_TESTS=OFF \
-            -DCMAKE_INSTALL_PREFIX:PATH=/opt/install/ants-${{ env.ANTS_VERSION }} \
-            ${GITHUB_WORKSPACE}
+          docker exec --user root build_container bash -c "
+            mkdir -p /workspace/build
+            cd /workspace/build
+            cmake \
+              -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+              -G '${{ matrix.config.generators }}' \
+              -DBUILD_TESTING=ON \
+              -DRUN_SHORT_TESTS=ON \
+              -DRUN_LONG_TESTS=OFF \
+              -DCMAKE_INSTALL_PREFIX:PATH=/workspace/install/ants-${{ env.ANTS_VERSION }} \
+              /workspace
+          "
       - name: Build
-        shell: bash
         run: |
-          cd /opt/build
-          cmake --build . --config ${{ matrix.config.build_type }} --parallel 1
+          docker exec --user root build_container bash -c "
+            cd /workspace/build
+            cmake --build . --config ${{ matrix.config.build_type }} --parallel 1
+          "
       - name: Test
-        shell: bash
-        working-directory: ${{ runner.temp }}
         run: |
-          cd /opt/build/ANTS-build
-          ctest
+          docker exec --user root build_container bash -c "
+            cd /workspace/build/ANTS-build
+            ctest
+          "
       - name: Install
-        shell: bash
         run: |
-          cd /opt/build/ANTS-build
-          cmake --install .
+          docker exec --user root build_container bash -c "
+            cd /workspace/build/ANTS-build
+            cmake --install .
+          "
       - name: Pack
-        shell: bash
         run: |
-          cd /opt/install
-          zip -r ${ARTIFACT} .
+          docker exec --user root build_container bash -c "
+            cd /workspace/install
+            zip -r /workspace/${{ env.ARTIFACT }} .
+          "
       - name: Upload release asset
         uses: ncipollo/release-action@v1.14.0
         with:
@@ -134,3 +127,8 @@ jobs:
           artifacts: "${{ env.ARTIFACT }}"
           artifactContentType: application/zip
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up
+        run: |
+          docker stop build_container
+          docker rm build_container
