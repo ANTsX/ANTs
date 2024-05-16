@@ -42,6 +42,7 @@ body:
     id: cpu-architecture
     attributes:
       label: CPU architecture
+      description: Output of `uname -m`
       options:
         - Please select
         - x86_64 (PC, Intel Mac, other Intel/AMD)
@@ -97,8 +98,8 @@ body:
          A self-contained script that someone else can download and run, ideally with the data
          provided. Please make a minimal example and test it reproduces the problem. If your command
          takes a long time, please try to produce a faster example that still shows the problem (eg,
-         by running fewer iterations). You can enclose code blocks in your post by using triple
-         backticks.
+         by running fewer iterations). Please enclose commands in triple backticks, so that it doesn't
+         get formatted as markdown.
     validations:
       required: true
   - type: textarea
@@ -111,7 +112,8 @@ body:
         ```
          <your command or script> 2>&1 | tee my_log.txt
         ```
-        which will print output to the terminal and also save to a text file.
+        which will print output to the terminal and also save to a text file. If pasting output, please
+        enclose the pasted output in triple backticks, so that it doesn't get formatted as markdown.
     validations:
       required: true
   - type: textarea
