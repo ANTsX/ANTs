@@ -1,8 +1,4 @@
-<!--
-![ants registration artillery](http://i.imgur.com/FCLrXV1.jpg)
-![ants multivar](http://i.imgur.com/YqWtunL.png)
-![ants faces](http://i.imgur.com/wBOFGwg.png)
-![ants goat](http://i.imgur.com/SEKf1mo.jpg) -->
+![ants template](http://i.imgur.com/mLZ71Ai.png)
 [Advanced Normalization Tools](https://imgur.com/a/kySGi)
 =========================================================
 [![ci-docker](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml/badge.svg)](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml)
