@@ -35,16 +35,17 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Get ANTs version
+      - name: Get ANTs version and set artifact name
         run: |
           echo "ANTS_VERSION=${ANTS_TAG#v}" >> $GITHUB_ENV
+          echo "ARTIFACT=ants-${ANTS_TAG}-${{ matrix.config.os }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
         env:
           ANTS_TAG: ${{ github.ref_name }}
 
       - name: Set up build container
         run: |
           docker pull ${{ matrix.config.image }}
-          docker create --name build_container -v ${{ github.workspace }}:/workspace ${{ matrix.config.image }} sleep infinity
+          docker create --name build_container -v ${{ github.workspace }}:/workspace -v ${{ runner.temp }}/artifact:/artifact ${{ matrix.config.image }} sleep infinity
           docker start build_container
       - name: Install dependencies on Centos
         if: startsWith(matrix.config.name, 'Centos7')
@@ -116,7 +117,7 @@ jobs:
         run: |
           docker exec --user root build_container bash -c "
             cd /workspace/install
-            zip -r /workspace/${{ env.ARTIFACT }} .
+            zip -r /artifact/${{ env.ARTIFACT }} .
           "
       - name: Upload release asset
         uses: ncipollo/release-action@v1.14.0
@@ -124,7 +125,7 @@ jobs:
           allowUpdates: true
           omitBodyDuringUpdate: true
           omitNameDuringUpdate: true
-          artifacts: "${{ env.ARTIFACT }}"
+          artifacts: "${{ runner.temp }}/artifact/${{ env.ARTIFACT }}"
           artifactContentType: application/zip
           token: ${{ secrets.GITHUB_TOKEN }}
 
