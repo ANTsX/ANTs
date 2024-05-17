@@ -12,6 +12,28 @@
 [![PubMed](https://img.shields.io/badge/ANTsX_paper-Open_Access-8DABFF?logo=pubmed)](https://pubmed.ncbi.nlm.nih.gov/33907199/)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
+## Overview
+
+ANTs computes high-dimensional mappings to capture the statistics of brain structure and function. ANTs allows one to organize, visualize and statistically explore large biomedical image sets. ANTs integrates imaging modalities and related information in space and time. ANTs works across species or organ systems with minimal customization. ANTs and related tools have won several international and unbiased competitions.
+
+
+## Installation
+
+## Getting Started
+
+## Examples
+
+## Resources
+
+## Contributing
+
+## Team
+
+## References
+
+## License
+
+
 ANTs computes high-dimensional mappings to capture the statistics of brain
 structure and function.  See the [collection of examples at this page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd).
 
