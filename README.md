@@ -17,6 +17,8 @@ You can also use ANTs in R ([ANTsR](https://github.com/antsx/antsr)) and Python 
 
 ## Installation
 
+### Pre-compiled binaries
+
 The easiest way to install ANTs is by downloading the latest binaries on the [Releases](https://github.com/ANTsX/ANTs/releases) page. Download the latest release under the "Assets" section, then unzip the archive. Next, add the ANTs library to your PATH:
 
 ```
@@ -28,6 +30,8 @@ Check that this worked by running the following:
 ```
 which antsRegistration
 ```
+
+### Build from source
 
 When necessary, you can also build ANTs from source on [Linux or MacOS](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or on [Windows](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). Alternatively, it is also possible to install ANTs via [docker](https://hub.docker.com/r/antsx/ants) or [conda](https://anaconda.org/aramislab/ants).
 
