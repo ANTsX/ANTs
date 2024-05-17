@@ -15,7 +15,7 @@ You can also use ANTs in R ([ANTsR](https://github.com/antsx/antsr)) and Python 
 
 ## Installation
 
-The easiest way to install ANTs is by downloading the latest binaries on the [Releases](https://github.com/ANTsX/ANTs/releases) page. When necessary, you can also [build from source](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) on Linux or MacOS. 
+The easiest way to install ANTs is by downloading the latest binaries on the [Releases](https://github.com/ANTsX/ANTs/releases) page. Download the latest release under the "Assets" section, ,  When necessary, you can also build ANTs from source on [Linux or MacOS](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or on [Windows](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). 
 
 It is also possible to install ANTs via [docker](https://hub.docker.com/r/antsx/ants) or [conda](https://anaconda.org/aramislab/ants).
 
