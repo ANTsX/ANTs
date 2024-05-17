@@ -11,7 +11,7 @@ Advanced Normalization Tools (ANTs) is a C++ and command-line library that compu
 
 The ANTs library is considered a state-of-the-art medical image registration and segmentation toolkit which depends on the Insight ToolKit [(ITK)](http://www.itk.org), a widely used medical image processing library to which ANTs developers contribute. ANTs and related tools have won several international and unbiased competitions.
 
-You can also use ANTs in R (ANTsR) and Python (ANTsPy), with additional functionality for deep learning in R (ANTsRNet) and Python (ANTsPyNet). These libraries also include additional functionality for interacting with the broader R and Python ecosystem.
+You can also use ANTs in R ([ANTsR](https://github.com/antsx/antsr) and Python ([ANTsPy](https://github.com/antsx/antsr))), with additional functionality for deep learning in R ([ANTsRNet](https://github.com/antsx/antsrnet)) and Python ([ANTsPyNet](https://github.com/antsx/antspynet)). These libraries also include additional functionality for interacting with the broader R and Python ecosystem.
 
 
 ## Installation
