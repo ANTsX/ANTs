@@ -65,13 +65,15 @@ A large collection of journal articles have been published using ANTs software. 
 
 ### Image Registration
 
-Brian B. Avants et al, Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling of elderly and neurodegenerative brain. Med Image Anal (2008). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/17659998)]
+Brian B. Avants, et al. Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling of elderly and neurodegenerative brain. Med Image Anal (2008). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/17659998)]
 
-Arno Klein et al, Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration. Neuroimage (2009). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/19195496)]
+Arno Klein, et al. Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration. Neuroimage (2009). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/19195496)]
+
+Murphy, et al. Evaluation of registration methods on thoracic CT: the EMPIRE10 challenge. IEEE Trans Med Imaging (2011) [[Link](http://www.ncbi.nlm.nih.gov/pubmed/21632295)]
+
 
 Independent Evaluation:
-[Klein](http://www.ncbi.nlm.nih.gov/pubmed/19195496),
-[Murphy](http://www.ncbi.nlm.nih.gov/pubmed/21632295), Template
+Template
 Construction
 [(2004)](http://www.ncbi.nlm.nih.gov/pubmed/15501083)[(2010)](http://www.ncbi.nlm.nih.gov/pubmed/19818860),
 [Similarity Metrics](http://www.ncbi.nlm.nih.gov/pubmed/20851191),
