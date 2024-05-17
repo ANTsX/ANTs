@@ -61,87 +61,9 @@ The core development team consists of Gang Song (Originator), Philip A. Cook, Je
 
 ## References
 
-## Funding
+A large collection of journal articles have been published using ANTs software. The following is a curated list of relevant articles that can be used as a guide for selecting the right methods when using ANTs.
 
-Current support comes from R01-EB031722. Previous support includes R01-EB006266-01 and K01-ES025432-01.
-
-ANTs computes high-dimensional mappings to capture the statistics of brain
-structure and function.  See the [collection of examples at this page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd).
-
-Installation options: [download binaries](https://github.com/ANTsX/ANTs/releases) | [build from source](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) | [docker](https://hub.docker.com/r/antsx/ants) | [conda](https://anaconda.org/aramislab/ants).
-
-![ants template](http://i.imgur.com/mLZ71Ai.png)
-
-ANTs allows one to organize, visualize and statistically explore large biomedical image sets.
-
-![ants render](http://i.imgur.com/hMW6fjB.png)
-
-ANTs integrates imaging modalities and related information in space and time.
-
-![ants render](http://i.imgur.com/oIMrnpY.png)
-
-ANTs works across species or organ systems with minimal customization.
-
-![ants primate](http://i.imgur.com/Dfrifgg.png)
-
-ANTs and related tools have won several international and unbiased competitions.
-
-![ants competes](http://i.imgur.com/HE0j7IC.png)
-
-[ANTsR](https://github.com/ANTsX/ANTsR) is the underlying statistical workhorse.  ANTsR examples [here](https://rpubs.com/antsr).
-
-[ANTsPy](https://github.com/ANTsX/ANTsPy) is pythonic ANTs/ANTsR. See [this content too](https://github.com/stnava/ANTsRPy).
-
-Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2) ... also read our [guide to evaluation strategies and addressing new problems with ANTs or other software](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3766821/).
-
-The [ANTs handout](https://github.com/stnava/ANTsTutorial/raw/master/handout/antsHandout.pdf), part of forthcoming [ANTs tutorial](https://github.com/stnava/ANTsTutorial) material [here](https://github.com/stnava/ANTsTutorial) and [here](https://rpubs.com/antsr/).
-
-[ANTsTalk - subject to change at any moment](http://stnava.github.io/ANTsTalk/)
-
-[ANTsRegistrationTalk - subject to change at any moment](http://stnava.github.io/ANTsRegistrationTalk/)
-
-Install ANTs via pre-built:
-[Packages @ github](https://github.com/ANTsX/ANTs/releases) or
-build [ANTs](https://github.com/stnava/ANTs) from:
-Source-Code on [Linux / Mac OS](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or [Windows](https://github.com/stnava/ANTs/wiki/Compiling-ANTs-on-Windows-10).
-
-conda-forge install for linux: `conda install -c conda-forge ants `
-
-ANTs extracts information from complex datasets that include imaging
-([Word Cloud](http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg)).
-Paired with [ANTsR](http://stnava.github.io/software/2014/01/08/antsr/) (answer), ANTs is
-useful for managing, interpreting and visualizing multidimensional data.
-ANTs is
-[popularly](https://sourceforge.net/projects/advants/files/ANTS/stats/timeline?dates=2010-07-19+to+2099-05-25)
-considered a state-of-the-art medical image registration and
-segmentation toolkit. ANTsR is an emerging tool supporting standardized
-multimodality image analysis. ANTs depends on the Insight ToolKit
-[(ITK)](http://www.itk.org), a widely used medical image processing
-library to which ANTs developers contribute.  A summary of some ANTs findings and tutorial material (most of which is on this page) is [here](http://rpubs.com/stnava/ANTsTut).
-
-Authors
--------
-
-### Brian B. Avants - UPENN
-
-**Role:** Creator, Algorithm Design, Implementation,
-[more](http://stnava.github.io/Resume/)
-
-### Nicholas J. Tustison - UVA
-
-**Role:** Compeller, Algorithm Design, Implementation Guru,
-[more](http://ntustison.github.io/CV/)
-
-### Hans J. Johnson - UIowa
-
-**Role:** Large-Scale Application, Testing, Software design
-
-### Team Members
-
-**Core:** Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis)
-
-Image Registration
-------------------
+### Image Registration
 
 Diffeomorphisms: [SyN](http://www.ncbi.nlm.nih.gov/pubmed/17659998),
 Independent Evaluation:
@@ -155,8 +77,7 @@ registration](http://www.ncbi.nlm.nih.gov/pubmed/18995188), [Multiple
 modality analysis and statistical
 bias](http://www.ncbi.nlm.nih.gov/pubmed/23151955)
 
-Image Segmentation
-------------------
+### Image Segmentation
 
 Atropos Multivar-EM Segmentation
 [(link)](http://www.ncbi.nlm.nih.gov/pubmed/21373993), Multi-atlas
@@ -166,14 +87,33 @@ cortical thickness
 [(link)](http://www.ncbi.nlm.nih.gov/pubmed/19150502), DiReCT in
 [chimpanzees](http://www.ncbi.nlm.nih.gov/pubmed/23516289)
 
-Multivariate Analysis Eigenanatomy [(1)](http://www.ncbi.nlm.nih.gov/pubmed/23286132) [(2)](http://www.ncbi.nlm.nih.gov/pubmed/23475817)
-----------------------------------------------------------------------------------------------------------------------------------------
+### Multivariate Analysis Eigenanatomy 
 
-Prior-Based Eigenanatomy [(in
+[(1)](http://www.ncbi.nlm.nih.gov/pubmed/23286132) [(2)](http://www.ncbi.nlm.nih.gov/pubmed/23475817)
+
+### Prior-Based Eigenanatomy 
+[(in
 prep)](http://www.ncbi.nlm.nih.gov/pubmed/?), Sparse CCA
 [(1)](http://www.ncbi.nlm.nih.gov/pubmed/20083207),
 [(2)](http://www.ncbi.nlm.nih.gov/pubmed/20879247), Sparse Regression
 [(link)](http://link.springer.com/chapter/10.1007%2F978-3-642-38868-2_8)
+
+
+## Funding
+
+Current support comes from R01-EB031722. Previous support includes R01-EB006266-01 and K01-ES025432-01.
+
+
+
+
+The [ANTs handout](https://github.com/stnava/ANTsTutorial/raw/master/handout/antsHandout.pdf), part of forthcoming [ANTs tutorial](https://github.com/stnava/ANTsTutorial) material [here](https://github.com/stnava/ANTsTutorial) and [here](https://rpubs.com/antsr/).
+
+[ANTsTalk - subject to change at any moment](http://stnava.github.io/ANTsTalk/)
+
+[ANTsRegistrationTalk - subject to change at any moment](http://stnava.github.io/ANTsRegistrationTalk/)
+
+
+
 
 ImageMath Useful!
 -----------------
