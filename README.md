@@ -51,7 +51,7 @@ There are many different resources for learning about how to use ANTs functions 
 
 ## Team
 
-The ANTs library was created and is led by Brian B. Avants - UPENN (Creator, Algorithm Design, Implementation, [CV](http://stnava.github.io/Resume/)), Nicholas J. Tustison - UVA (Compeller, Algorithm Design, Implementation Guru, [CV](http://ntustison.github.io/CV/)), and Hans J. Johnson - UIowa (Large-Scale Application, Testing, Software design). 
+The ANTs library was created and is led by [Brian B. Avants](http://stnava.github.io/Resume/) - UPENN (Creator, Algorithm Design, Implementation), [Nicholas J. Tustison](http://ntustison.github.io/CV/) - UVA (Compeller, Algorithm Design, Implementation Guru), and Hans J. Johnson - UIowa (Large-Scale Application, Testing, Software design). 
 
 The core development team consists of Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis).
 
