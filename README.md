@@ -63,6 +63,7 @@ The core development team consists of Gang Song (Originator), Philip A. Cook, Je
 
 ## Funding
 
+Current support comes from R01-EB031722. Previous support includes R01-EB006266-01 and K01-ES025432-01.
 
 ANTs computes high-dimensional mappings to capture the statistics of brain
 structure and function.  See the [collection of examples at this page](https://github.com/stnava/ANTsTutorial/blob/master/handout/antsGithubExamples.Rmd).
