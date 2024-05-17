@@ -31,6 +31,8 @@ Check that this worked by running the following:
 which antsRegistration
 ```
 
+Now you should be able to use ANTs as normal.
+
 ### Build from source
 
 When necessary, you can also build ANTs from source on [Linux or MacOS](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or on [Windows](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). Alternatively, it is also possible to install ANTs via [docker](https://hub.docker.com/r/antsx/ants) or [conda](https://anaconda.org/aramislab/ants).
@@ -43,9 +45,15 @@ When necessary, you can also build ANTs from source on [Linux or MacOS](https://
 
 ## Resources
 
+There are many different resources for learning about how to use ANTs functions and the methodology behind them. 
+
 ## Contributing
 
 ## Team
+
+The ANTs library was created and is led by Brian B. Avants - UPENN (Creator, Algorithm Design, Implementation, [CV](http://stnava.github.io/Resume/)), Nicholas J. Tustison - UVA (Compeller, Algorithm Design, Implementation Guru, [CV](http://ntustison.github.io/CV/)), and Hans J. Johnson - UIowa (Large-Scale Application, Testing, Software design). 
+
+The core development team consists of Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis).
 
 ## References
 
