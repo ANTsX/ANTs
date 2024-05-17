@@ -65,9 +65,8 @@ A large collection of journal articles have been published using ANTs software. 
 
 ### Image Registration
 
-Brian B. Avants et al, Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling of elderly and neurodegenerative brain. (2008). 
+Brian B. Avants et al, [Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling of elderly and neurodegenerative brain](http://www.ncbi.nlm.nih.gov/pubmed/17659998). (2008). 
 
-Diffeomorphisms: [SyN](http://www.ncbi.nlm.nih.gov/pubmed/17659998),
 Independent Evaluation:
 [Klein](http://www.ncbi.nlm.nih.gov/pubmed/19195496),
 [Murphy](http://www.ncbi.nlm.nih.gov/pubmed/21632295), Template
