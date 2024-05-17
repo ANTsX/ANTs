@@ -12,9 +12,11 @@
 [![PubMed](https://img.shields.io/badge/ANTsX_paper-Open_Access-8DABFF?logo=pubmed)](https://pubmed.ncbi.nlm.nih.gov/33907199/)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
-## Overview
+ANTs computes high-dimensional mappings to capture the statistics of brain structure and function. It allows one to organize, visualize and statistically explore large biomedical image sets. Additionally, it integrates imaging modalities and related information in space and time, as well as works across species or organ systems with minimal customization. 
 
-ANTs computes high-dimensional mappings to capture the statistics of brain structure and function. ANTs allows one to organize, visualize and statistically explore large biomedical image sets. ANTs integrates imaging modalities and related information in space and time. ANTs works across species or organ systems with minimal customization. ANTs and related tools have won several international and unbiased competitions.
+ANTs is considered a state-of-the-art medical image registration and segmentation toolkit which depends on the Insight ToolKit [(ITK)](http://www.itk.org), a widely used medical image processing library to which ANTs developers contribute. ANTs and related tools have won several international and unbiased competitions.
+
+The library is also available in R (ANTsR) and Python (ANTsPy), with additional functionality for deep learning in R (ANTsRNet) and Python (ANTsPyNet).
 
 
 ## Installation
