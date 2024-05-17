@@ -15,9 +15,19 @@ You can also use ANTs in R ([ANTsR](https://github.com/antsx/antsr)) and Python 
 
 ## Installation
 
-The easiest way to install ANTs is by downloading the latest binaries on the [Releases](https://github.com/ANTsX/ANTs/releases) page. Download the latest release under the "Assets" section, ,  When necessary, you can also build ANTs from source on [Linux or MacOS](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or on [Windows](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). 
+The easiest way to install ANTs is by downloading the latest binaries on the [Releases](https://github.com/ANTsX/ANTs/releases) page. Download the latest release under the "Assets" section, then unzip the archive. Next, add the ANTs library to your PATH:
 
-It is also possible to install ANTs via [docker](https://hub.docker.com/r/antsx/ants) or [conda](https://anaconda.org/aramislab/ants).
+```
+export PATH=/path/to/ants/bin:$PATH
+```
+
+Check that this worked by running the following:
+
+```
+which antsRegistration
+```
+
+When necessary, you can also build ANTs from source on [Linux or MacOS](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or on [Windows](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). Alternatively, it is also possible to install ANTs via [docker](https://hub.docker.com/r/antsx/ants) or [conda](https://anaconda.org/aramislab/ants).
 
 ## Getting Started
 
@@ -31,7 +41,7 @@ It is also possible to install ANTs via [docker](https://hub.docker.com/r/antsx/
 
 ## References
 
-## License
+## Funding
 
 
 ANTs computes high-dimensional mappings to capture the statistics of brain
