@@ -1,5 +1,4 @@
 ![ants template](http://i.imgur.com/mLZ71Ai.png)
-[Advanced Normalization Tools](https://imgur.com/a/kySGi)
 =========================================================
 [![ci-docker](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml/badge.svg)](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/antsx/ants.svg)](https://hub.docker.com/repository/docker/antsx/ants)
