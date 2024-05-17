@@ -59,6 +59,8 @@ The ANTs library was created and is led by the following people:
 
 The core development team consists of Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis).
 
+<br />
+
 ## References
 
 A large collection of journal articles have been published using ANTs software. The following is a curated list of relevant articles that can be used as a guide for selecting the right methods when using ANTs.
