@@ -72,24 +72,27 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 
 - Brain template [[Link](http://ntustison.github.io/TemplateBuildingExample/)]
 - Single subject template [[Link](https://github.com/ntustison/SingleSubjectTemplateExample)]
+- "Cooking" tissue priors for templates [[Link](https://github.com/ntustison/antsCookTemplatePriorsExample)]
   
 ### Cortical thickness
 
-### Joint label fusion
+- Basic example [[Link](https://github.com/ntustison/antsCorticalThicknessExample)]
 
 ### Segmentation
+- N4 bias correction + Atropos [[Link](https://github.com/ntustison/antsAtroposN4Example)]
 
 ### General
 
 - Patch-based super-resolution [[Link](https://github.com/ntustison/NonLocalSuperResolutionExample)]
 - Image denoising [[Link](https://github.com/ntustison/DenoiseImageExample)]
 - Morphing [[Link](http://stnava.github.io/Morpheus/)]
-  
+
 ### Neuroimages
 
 - Basic Brain Mapping [[Link](http://stnava.github.io/BasicBrainMapping/)]
 - Brain extraction [[Link](https://github.com/ntustison/antsBrainExtractionExample)]
-
+- Multi-atlas joint label/intensity fusion examples by @chsasank [[Link-1](https://github.com/ntustison/MalfLabelingExample), [Link-2](https://github.com/qureai/Multi-Atlas-Segmentation)]
+ 
 See also our pre-built ANTs templates with spatial priors available for [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436) including an [MNI version](https://figshare.com/articles/ANTs_files_for_mni_icbm152_nlin_sym_09a/8061914).
   
 ### Lung
@@ -100,16 +103,6 @@ See also our pre-built ANTs templates with spatial priors available for [downloa
 
 ### Neuro
 
-* **Basic Brain Mapping** [(bash and ANTsR examples)](http://stnava.github.io/BasicBrainMapping/)
-* **Template construction** [(bash, ANTsR and ANTsPy examples)](http://ntustison.github.io/TemplateBuildingExample/)
-* **Single subject template construction** [example](https://github.com/ntustison/SingleSubjectTemplateExample)
-* **Pre-built ANTs templates with spatial priors** [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436) including an [MNI version](https://figshare.com/articles/ANTs_files_for_mni_icbm152_nlin_sym_09a/8061914).
-* **Brain extraction** [(bash and ANTsR examples)](https://github.com/ntustison/antsBrainExtractionExample)
-* **N4 bias correction <-> segmentation** [(bash, ANTsR and ANTsPy examples)](https://github.com/ntustison/antsAtroposN4Example)
-* **Cortical thickness** [example](https://github.com/ntustison/antsCorticalThicknessExample)
-* **"Cooking" tissue priors for templates**
-  [example](https://github.com/ntustison/antsCookTemplatePriorsExample)
-  (after you build your template)
 * **Multi-atlas joint label/intensity fusion examples** [(bash and ANTsR examples 1)](https://github.com/ntustison/MalfLabelingExample) [example 2](https://github.com/qureai/Multi-Atlas-Segmentation) (thanks to @chsasank)
 * **Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
 * **Brain tumor segmentation** [example](https://github.com/ntustison/BRATS2013/tree/master/SimpleExample)
