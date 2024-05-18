@@ -66,7 +66,7 @@ There are many different resources for learning about how to use ANTs functions 
 
 ## Contributing
 
-If you have a question, feature request, or bug report the best way to get help is by posting an issue on the GitHub page. Please remember to give as much detail as possible to reproduce your environment. It is difficult to provide any help without being to reproduce your issue.
+If you have a question, feature request, or bug report the best way to get help is by posting an issue on the GitHub page. Please remember to give as much detail as possible to reproduce your environment - including code, OS, ANTs version, and example images where possible. It is difficult to provide any help without being to reproduce your issue.
 
 We welcome any new contributions and ideas to improve ANTs. If you want to contribute code, the best way to get started is by reading through the [Wiki](https://github.com/ANTsX/ANTs/wiki) to get an understanding of the project. ANTs relies heavily on ITK, so learning more about that project is also a good place to start.
 
