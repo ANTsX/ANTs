@@ -60,8 +60,8 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 
 ### Registration
 
-- Basic example [[Link](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)]
-- Basic example with mask [[Link](https://github.com/ntustison/antsRegistrationWithMaskExample)]
+- Basic registration [[Link](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)]
+- Basic registration with mask [[Link](https://github.com/ntustison/antsRegistrationWithMaskExample)]
 - Large deformation [[Link](http://stnava.github.io/C/)]
 - Asymmetry [[Link](http://stnava.github.io/asymmetry/)]
 - Automobile registration [[Link](http://stnava.github.io/cars/)]
@@ -76,7 +76,7 @@ ANTs is a flexible library that can be used for a variety of applications and ar
   
 ### Cortical thickness
 
-- Basic example [[Link](https://github.com/ntustison/antsCorticalThicknessExample)]
+- Basic cortical thickness [[Link](https://github.com/ntustison/antsCorticalThicknessExample)]
 - Chimpanzee example [[Link](https://github.com/stnava/WHopkinsNHP/)]
 
 ### Segmentation
@@ -85,7 +85,7 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 
 ### Neuroimages
 
-- Basic Brain Mapping [[Link](http://stnava.github.io/BasicBrainMapping/)]
+- Basic brain mapping [[Link](http://stnava.github.io/BasicBrainMapping/)]
 - Brain extraction [[Link](https://github.com/ntustison/antsBrainExtractionExample)]
 - Multi-atlas joint label/intensity fusion [[Link](https://github.com/ntustison/MalfLabelingExample), [Link](https://github.com/qureai/Multi-Atlas-Segmentation)] (credit: @chsasank)
 - fMRI or Motion Correction [[Link](http://stnava.github.io/fMRIANTs/)]
