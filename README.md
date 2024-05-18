@@ -56,7 +56,11 @@ More details and a full downloadable installation script can be found in the [Li
 
 ## Overview
 
+<br />
+
 ## Examples
+
+<br />
 
 ## Resources
 
@@ -90,315 +94,46 @@ A large collection of journal articles have been published using ANTs software. 
 
 ### Image Registration
 
-- Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling of elderly and neurodegenerative brain. Brian B. Avants, et al. Med Image Anal (2008). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/17659998)]
+<i>Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling of elderly and neurodegenerative brain.</i>  Med Image Anal (2008). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/17659998)]
 
-- Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration. Arno Klein, et al.  Neuroimage (2009). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/19195496)]
+<i>Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration.</i> Neuroimage (2009). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/19195496)]
 
-- Evaluation of registration methods on thoracic CT: the EMPIRE10 challenge. Murphy, et al. IEEE Trans Med Imaging (2011) [[Link](http://www.ncbi.nlm.nih.gov/pubmed/21632295)]
+<i>Evaluation of registration methods on thoracic CT: the EMPIRE10 challenge.</i> IEEE Trans Med Imaging (2011) [[Link](http://www.ncbi.nlm.nih.gov/pubmed/21632295)]
 
-- The optimal template effect in hippocampus studies of diseased populations. Brian B. Avants, et al. Neuroimage (2010). [[Link]](https://pubmed.ncbi.nlm.nih.gov/19818860/)
+<i>A reproducible evaluation of ANTs similarity metric performance in brain image registration.</i> Neuroimage (2011). [[Link]](https://pubmed.ncbi.nlm.nih.gov/20851191/)
 
-- A reproducible evaluation of ANTs similarity metric performance in brain image registration. Brian B. Avants, et al. Neuroimage (2011). [[Link]](https://pubmed.ncbi.nlm.nih.gov/20851191/)
+<i>Multivariate analysis of structural and diffusion imaging in traumatic brain injury.</i> Acad Radiol (2008). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/18995188)
 
-- Multivariate analysis of structural and diffusion imaging in traumatic brain injury. Brian B. Avants, et al. Acad Radiol (2008). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/18995188)
+### Templates
 
-- Logical circularity in voxel-based analysis: normalization strategy may induce statistical bias. Nicholas J. Tustison, et al. Hum Brain Mapp (2014). [[Link]](https://pubmed.ncbi.nlm.nih.gov/23151955/)
+<i>The optimal template effect in hippocampus studies of diseased populations.</i> Neuroimage (2010). [[Link]](https://pubmed.ncbi.nlm.nih.gov/19818860/)
 
 ### Image Segmentation
 
-Atropos Multivar-EM Segmentation
-[(link)](http://www.ncbi.nlm.nih.gov/pubmed/21373993), Multi-atlas
-methods [(link)](https://scholar.google.com/scholar?q=joint+label+fusion+yushkevich&btnG=&hl=en&as_sdt=0%2C31) and [JLF](http://journal.frontiersin.org/article/10.3389/fninf.2013.00027/full), Bias
-Correction [(link)](http://www.ncbi.nlm.nih.gov/pubmed/20378467), DiReCT
-cortical thickness
-[(link)](http://www.ncbi.nlm.nih.gov/pubmed/19150502), DiReCT in
-[chimpanzees](http://www.ncbi.nlm.nih.gov/pubmed/23516289)
+<i>An open source multivariate framework for n-tissue segmentation with evaluation on public data</i> Neuroinformatics (2011). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/21373993)
+
+<i>Multi-atlas segmentation with joint label fusion and corrective learning—an open source implementation</i> Front Neuroinform (2013). [[Link]](https://www.frontiersin.org/articles/10.3389/fninf.2013.00027/full)
+
+### Bias Correction
+
+<i>N4ITK: improved N3 bias correction</i> IEEE Trans Med Imaging (2010). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/20378467)
 
 ### Cortical Thickness
 
-### Multivariate Analysis Eigenanatomy 
+<i>Registration based cortical thickness measurement</i> Neuroimage (2009). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/19150502)
 
-[(1)](http://www.ncbi.nlm.nih.gov/pubmed/23286132) [(2)](http://www.ncbi.nlm.nih.gov/pubmed/23475817)
+<i>Regional and hemispheric variation in cortical thickness in chimpanzees</i> J Neurosci (2013). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/23516289)
 
-### Prior-Based Eigenanatomy 
-[(in
-prep)](http://www.ncbi.nlm.nih.gov/pubmed/?), Sparse CCA
-[(1)](http://www.ncbi.nlm.nih.gov/pubmed/20083207),
-[(2)](http://www.ncbi.nlm.nih.gov/pubmed/20879247), Sparse Regression
-[(link)](http://link.springer.com/chapter/10.1007%2F978-3-642-38868-2_8)
+### Eigenanatomy 
 
+<i>Eigenanatomy improves detection power for longitudinal cortical change</i> Med Image Comput Comput Assist Interv (2012) [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/23286132)
+
+<i>White matter imaging helps dissociate tau from TDP-43 in frontotemporal lobar degeneration</i> J Neurol Neurosurg Psychiatry (2013). [[Link]](https://pubmed.ncbi.nlm.nih.gov/23475817/)
+
+<i>Dementia induces correlated reductions in white matter integrity and cortical thickness: a multivariate neuroimaging study with sparse canonical correlation analysis</i> Neuroimage (2010). [[Link]](https://pubmed.ncbi.nlm.nih.gov/20083207/)
+
+<br />
 
 ## Funding
 
 Current support comes from R01-EB031722. Previous support includes R01-EB006266-01 and K01-ES025432-01.
-
-
-
-
-The [ANTs handout](https://github.com/stnava/ANTsTutorial/raw/master/handout/antsHandout.pdf), part of forthcoming [ANTs tutorial](https://github.com/stnava/ANTsTutorial) material [here](https://github.com/stnava/ANTsTutorial) and [here](https://rpubs.com/antsr/).
-
-[ANTsTalk - subject to change at any moment](http://stnava.github.io/ANTsTalk/)
-
-[ANTsRegistrationTalk - subject to change at any moment](http://stnava.github.io/ANTsRegistrationTalk/)
-
-
-
-
-ImageMath Useful!
------------------
-
-morphology, GetLargestComponent, CCA, FillHoles ... much more!
-
-Application Domains
--------------------
-
-### Frontotemporal degeneration [PENN FTD center](http://ftd.med.upenn.edu)
-
-### Multimodality Neuroimaging
-
--   [Structural MRI](http://jeffduda.github.io/NeuroBattery/)
--   Functional MRI
--   Network Analysis
-
-### Lung Imaging
-
--   Structure
--   Perfusion MRI
--   Branching
-
-### Multiple sclerosis (lesion filling) [example](https://github.com/armaneshaghi/LesionFilling_example)
-
-Background & Theory
-----------------------------------------------------------
-
--   The
-    [SyN](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22SyN%22+AND+%22Avants+B%22)
-    and [N4 bias
-    correction](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22N4%22+AND+%22Tustison+N4ITK%22)
-    papers and other relevant references in
-    [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22Tustison+N%22+AND+%22Avants+B%22)
-
--   Visualization: e.g. [a gource of ANTs
-    development](http://vimeo.com/66781467)
-
--   [DiReCT](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22DIRECT%22+AND+%22Avants%22+AND+DAS)
-    cortical thickness
-    [papers](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22Cortical+Thickness%22+AND+%22Avants%22)
-
--   A
-    [folder](https://sourceforge.net/projects/advants/files/Documentation/)
-    of relevant docs:
-    [segmentation](http://sourceforge.net/projects/advants/files/Documentation/atropos.pdf/download),
-    [registration](http://sourceforge.net/projects/advants/files/Documentation/antstheory.pdf/download),
-    [usage(old)](http://sourceforge.net/projects/advants/files/Documentation/ants.pdf/download),
-    [for clinical
-    apps](http://sourceforge.net/projects/advants/files/Documentation/ANTSMethodologySummary.docx/download)
-
--   ANTs redesigned for generality, automation, multi-core computation
-    with ITKv4
-
--   Dev'd ITKv4 with Kitware, GE, Natl. Lib of Medicine & Academia
-
-
-ANTs has won several unbiased & international competitions
-----------------------------------------------------------
-
--   ANTs finished in 1st rank in [Klein 2009 intl. brain mapping
-    competition](http://www.ncbi.nlm.nih.gov/pubmed/19195496)
-
--   ANTs finished 1st overall in [EMPIRE10 intl. lung mapping
-    competition](http://www.ncbi.nlm.nih.gov/pubmed/21632295)
-
--   ANTs is the standard registration for
-    [MICCAI-2013](http://www.miccai2013.org/) segmentation competitions
-
--   Conducting ANTs-based R tutorial @ MICCAI-2013
-
--   ITK-focused Frontiers in Neuroinformatics research topic
-    [here](http://www.frontiersin.org/neuroinformatics/researchtopics/neuroinformatics_with_the_insi/1580)
-
--   Won the [BRATS 2013 challenge](http://martinos.org/qtim/miccai2013/) with [ANTsR](http://stnava.github.io/ANTsR/)
-
--   Won the best paper award at the [STACOM 2014 challenge](http://www.cardiacatlas.org/web/stacom2014/home)
-
-Learning about ANTs (examples, etc.)
-----------------------------------------------------------
-
-### General
-
-* **antsRegistration** [bash example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
-
-* **antsRegistration with mask** [(bash, ANTsR and ANTsPy examples)](https://github.com/ntustison/antsRegistrationWithMaskExample)
-
-* **ANTs and ITK** [paper](http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4009425/)
-
-* **Large deformation** [(bash, ANTsR and ANTsPy examples)](http://stnava.github.io/C/)
-
-* **Automobile** [(bash and ANTsR examples)](http://stnava.github.io/cars/)
-
-* **Asymmetry** [example](http://stnava.github.io/asymmetry/)
-
-* **Point-set** [mapping](http://stnava.github.io/chicken/) which includes the PSE metric and affine and deformable registration with (labeled) pointsets or iterative closest point
-
-* **Feature matching** [example](http://stnava.github.io/featureMatching/) ... not up to date ...
-
-* **Global optimization** [example](http://stnava.github.io/butterfly/)
-
-* **Patch-based super resolution** [example](https://github.com/ntustison/NonLocalSuperResolutionExample)
-
-* **Image denoising** [(bash, ANTsR and ANTsPy examples)](https://github.com/ntustison/DenoiseImageExample)
-
-* **Visualization** [example](https://github.com/ntustison/antsVisualizationExamples)
-
-* **Morphing** [example](http://stnava.github.io/Morpheus/)
-
-* **Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
-
-* **ANTs** [google scholar page](http://scholar.google.com/citations?user=ox-mhOkAAAAJ&hl=en)
-
-### Neuro
-
-* **Basic Brain Mapping** [(bash and ANTsR examples)](http://stnava.github.io/BasicBrainMapping/)
-
-* **Template construction** [(bash, ANTsR and ANTsPy examples)](http://ntustison.github.io/TemplateBuildingExample/)
-
-* **Single subject template construction** [example](https://github.com/ntustison/SingleSubjectTemplateExample)
-
-* **Pre-built ANTs templates with spatial priors** [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436) including an [MNI version](https://figshare.com/articles/ANTs_files_for_mni_icbm152_nlin_sym_09a/8061914).
-
-* **Brain extraction** [(bash and ANTsR examples)](https://github.com/ntustison/antsBrainExtractionExample)
-
-* **N4 bias correction <-> segmentation** [(bash, ANTsR and ANTsPy examples)](https://github.com/ntustison/antsAtroposN4Example)
-
-* **Cortical thickness** [example](https://github.com/ntustison/antsCorticalThicknessExample)
-
-* **"Cooking" tissue priors for templates**
-  [example](https://github.com/ntustison/antsCookTemplatePriorsExample)
-  (after you build your template)
-
-* **Multi-atlas joint label/intensity fusion examples** [(bash and ANTsR examples 1)](https://github.com/ntustison/MalfLabelingExample) [example 2](https://github.com/qureai/Multi-Atlas-Segmentation) (thanks to @chsasank)
-
-* **The ANTs Cortical Thickness Pipeline** [example](https://github.com/ntustison/KapowskiChronicles/blob/master/paper2.pdf?raw=true)
-
-* **Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
-
-* **Brain tumor segmentation** [example](https://github.com/ntustison/BRATS2013/tree/master/SimpleExample)
-
-* **Eigenanatomy** for [multivariate neuroimage analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
-    [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
-    [CCA](http://www.ncbi.nlm.nih.gov/pubmed/20083207)
-
-* **fMRI or Motion Correction** [example](http://stnava.github.io/fMRIANTs/)
-
-* **fMRI reproducibility** [example](http://stnava.github.io/RfMRI/)
-
-* **fMRI prediction** [example](http://stnava.github.io/Haxby2001/) ... WIP ...
-
-* **Partial EPI slab to T1 image registration** [example](https://github.com/ntustison/PartialSlabEpiT1ImageRegistration)
-
-### Lung
-
-* **CT lung registration** [(bash and ANTsR examples)](https://github.com/ntustison/antsCtLungRegistrationExample)
-
-* **Lung mask registration** [example](https://github.com/ntustison/ProtonCtLungMaskRegistration)
-
-* **Lung and lobe estimation** [example](https://github.com/ntustison/LungAndLobeEstimationExample)
-
-* **Lung ventilation-based segmentation** [example](https://github.com/ntustison/LungVentilationSegmentationExample)
-
-### Cardiac
-
-* **Cardiac** [example](http://stnava.github.io/LabelMyHeart)
-
-### Misc.
-
-Presentations: e.g. [a Prezi about
-ANTs](http://prezi.com/mwrmcm-h9-w4/ants/?kw=view-mwrmcm-h9-w4&rc=ref-40024395)
-(WIP)
-
-Reproducible science as a teaching tool: e.g. [compilable ANTs
-tutorial](https://github.com/stnava/ANTS_MultiModality) (WIP)
-
-Other examples [slideshow](http://brianavants.wordpress.com)
-
-Landmark-based mapping for e.g. hippocampus [discussed
-here](https://sourceforge.net/p/advants/discussion/840261/thread/1cb7b165/?limit=50)
-
-Brief ANTs segmentation [video](http://vimeo.com/67814201)
-
-**Benchmarks** for expected memory and computation time: [results](https://github.com/gdevenyi/antsRegistration-benchmarking).  These
-results are, of course, system and data dependent.
-
-References
-----------------------------------------------------------
-
-[Google
-Scholar](http://scholar.google.com/scholar?q=Advanced+Normalization+Tools+%22ANTs%22+-ant&hl=en&as_sdt=1%2C39&as_ylo=2008&as_yhi=)
-
-[Pubmed](http://www.ncbi.nlm.nih.gov/pubmed?term=%22Avants%20B%22%20OR%20%22Tustison%20N%22)
-
-Boilerplate ANTs
-------------------
-
-Here is some boilerplate regarding ants image processing:
-
-We will analyze multiple modality neuroimaging data with Advanced
-Normalization Tools (ANTs) version >= 2.1 [1]
-(http://stnava.github.io/ANTs/).  ANTs has proven performance in
-lifespan analyses of brain morphology [1] and function [2] in both
-adult [1] and pediatric brain data [2,5,6] including infants [7].
-ANTs employs both probabilistic tissue segmentation (via Atropos [3])
-and machine learning methods based on expert labeled data (via joint
-label fusion [4]) in order to maximize reliability and consistency of
-multiple modality image segmentation.  These methods allow detailed
-extraction of critical image-based biomarkers such as volumes
-(e.g. hippocampus and amygdala), cortical thickness and area and
-connectivity metrics derived from structural white matter [13] or
-functional connectivity [12]. Critically, all ANTs components are
-capable of leveraging multivariate image features as well as expert
-knowledge in order to learn the best segmentation strategy available
-for each individual image [3,4].  This flexibility in segmentation and
-the underlying high-performance normalization methods have been
-validated by winning several internationally recognized medical image
-processing challenges conducted within the premier conferences within
-the field and published in several accompanying articles
-[8][9][10][11].
-
-References
-
-[1] http://www.ncbi.nlm.nih.gov/pubmed/24879923
-
-[2] http://www.ncbi.nlm.nih.gov/pubmed/24817849
-
-[3] http://www.ncbi.nlm.nih.gov/pubmed/21373993
-
-[4] http://www.ncbi.nlm.nih.gov/pubmed/21237273
-
-[5] http://www.ncbi.nlm.nih.gov/pubmed/22517961
-
-[6] http://www.ncbi.nlm.nih.gov/pubmed/24033570
-
-[7] http://www.ncbi.nlm.nih.gov/pubmed/24139564
-
-[8]  http://www.ncbi.nlm.nih.gov/pubmed/21632295
-
-[9] http://www.ncbi.nlm.nih.gov/pubmed/19195496
-
-[10] http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3837555/
-
-[11] http://nmr.mgh.harvard.edu/~koen/MenzeTMI2014.pdf
-
-[12] http://www.ncbi.nlm.nih.gov/pubmed/23813017
-
-[13] http://www.ncbi.nlm.nih.gov/pubmed/24830834
-
-
-Current support:  
-* R01-EB031722
-
-Previous support: 
-* R01-EB006266-01
-* K01-ES025432-01
-
-
-![ants chimp](http://i.imgur.com/4tPvy05.png)
