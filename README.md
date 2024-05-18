@@ -108,8 +108,6 @@ A large collection of journal articles have been published using ANTs software a
 
 <i>A reproducible evaluation of ANTs similarity metric performance in brain image registration.</i> Neuroimage (2011). [[Link](https://pubmed.ncbi.nlm.nih.gov/20851191/)]
 
-<i>Multivariate analysis of structural and diffusion imaging in traumatic brain injury.</i> Acad Radiol (2008). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/18995188)]
-
 ### Templates
 
 <i>The optimal template effect in hippocampus studies of diseased populations.</i> Neuroimage (2010). [[Link](https://pubmed.ncbi.nlm.nih.gov/19818860/)]
