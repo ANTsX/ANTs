@@ -58,6 +58,16 @@ More details and a full downloadable installation script can be found in the [Li
 
 ANTs is a flexible library that can be used for a variety of applications and areas. Below is a collection of example scripts that can be easily adapted to fit your needs.
 
+### General
+
+
+### Brain
+
+
+### Lung
+
+
+### Cardiac
 
 
 <br />
@@ -126,6 +136,8 @@ A large collection of journal articles have been published using ANTs software a
 ### Cortical Thickness
 
 <i>Registration based cortical thickness measurement</i>. Neuroimage (2009). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/19150502)]
+
+<i>Large-scale evaluation of ANTs and FreeSurfer cortical thickness measurements</i>. Neuroimage (2014). [[Link](https://pubmed.ncbi.nlm.nih.gov/24879923/)]
 
 <i>Regional and hemispheric variation in cortical thickness in chimpanzees</i>. J Neurosci (2013). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/23516289)]
 
