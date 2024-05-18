@@ -31,7 +31,7 @@ You can check that this worked by running a command to find the path to any ANTs
 which antsRegistration
 ```
 
-Now you should be able to use ANTs as normal.
+If that works, you should be able to use the full functionality of ANTs.
 
 ### Build from source
 
