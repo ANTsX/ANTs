@@ -83,12 +83,6 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 - N4 bias correction + Atropos [[Link](https://github.com/ntustison/antsAtroposN4Example)]
 - Brain tumor segmentation [[Link](https://github.com/ntustison/BRATS2013/tree/master/SimpleExample)]
 
-### General
-
-- Patch-based super-resolution [[Link](https://github.com/ntustison/NonLocalSuperResolutionExample)]
-- Image denoising [[Link](https://github.com/ntustison/DenoiseImageExample)]
-- Morphing [[Link](http://stnava.github.io/Morpheus/)]
-
 ### Neuroimages
 
 - Basic Brain Mapping [[Link](http://stnava.github.io/BasicBrainMapping/)]
@@ -102,30 +96,20 @@ See also our pre-built ANTs templates with spatial priors available for [downloa
   
 ### Lung
 
-### Cardiac
-
-
-
-### Neuro
-
-* **Multi-atlas joint label/intensity fusion examples** [(bash and ANTsR examples 1)](https://github.com/ntustison/MalfLabelingExample) [example 2](https://github.com/qureai/Multi-Atlas-Segmentation) (thanks to @chsasank)
-* **Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
-* **Brain tumor segmentation** [example](https://github.com/ntustison/BRATS2013/tree/master/SimpleExample)
-* **fMRI or Motion Correction** [example](http://stnava.github.io/fMRIANTs/)
-* **fMRI reproducibility** [example](http://stnava.github.io/RfMRI/)
-* **fMRI prediction** [example](http://stnava.github.io/Haxby2001/) ... WIP ...
-* **Partial EPI slab to T1 image registration** [example](https://github.com/ntustison/PartialSlabEpiT1ImageRegistration)
-
-### Lung
-
-* **CT lung registration** [(bash and ANTsR examples)](https://github.com/ntustison/antsCtLungRegistrationExample)
-* **Lung mask registration** [example](https://github.com/ntustison/ProtonCtLungMaskRegistration)
-* **Lung and lobe estimation** [example](https://github.com/ntustison/LungAndLobeEstimationExample)
-* **Lung ventilation-based segmentation** [example](https://github.com/ntustison/LungVentilationSegmentationExample)
+- CT lung registration [[Link](https://github.com/ntustison/antsCtLungRegistrationExample)]
+- Lung mask registration [[Link](https://github.com/ntustison/ProtonCtLungMaskRegistration)]
+- Lung and lobe estimation [[Link](https://github.com/ntustison/LungAndLobeEstimationExample)]
+- Lung ventilation-based segmentation [[Link](https://github.com/ntustison/LungVentilationSegmentationExample)]
 
 ### Cardiac
 
-* **Cardiac** [example](http://stnava.github.io/LabelMyHeart)
+- Basic example [example](http://stnava.github.io/LabelMyHeart)
+  
+### Other
+
+- Patch-based super-resolution [[Link](https://github.com/ntustison/NonLocalSuperResolutionExample)]
+- Image denoising [[Link](https://github.com/ntustison/DenoiseImageExample)]
+- Morphing [[Link](http://stnava.github.io/Morpheus/)]
 
 <br />
 
