@@ -91,17 +91,11 @@ A large collection of journal articles have been published using ANTs software. 
 ### Image Registration
 
 Brian B. Avants, et al. Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling of elderly and neurodegenerative brain. Med Image Anal (2008). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/17659998)]
-
 Arno Klein, et al. Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration. Neuroimage (2009). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/19195496)]
-
 Murphy, et al. Evaluation of registration methods on thoracic CT: the EMPIRE10 challenge. IEEE Trans Med Imaging (2011) [[Link](http://www.ncbi.nlm.nih.gov/pubmed/21632295)]
-
 Brian B. Avants, et al. The optimal template effect in hippocampus studies of diseased populations. Neuroimage (2010). [[Link]](https://pubmed.ncbi.nlm.nih.gov/19818860/)
-
 Brian B. Avants, et al. A reproducible evaluation of ANTs similarity metric performance in brain image registration. Neuroimage (2011). [[Link]](https://pubmed.ncbi.nlm.nih.gov/20851191/)
-
 Brian B. Avants, et al. Multivariate analysis of structural and diffusion imaging in traumatic brain injury. Acad Radiol (2008). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/18995188)
-
 Nicholas J. Tustison, et al. Logical circularity in voxel-based analysis: normalization strategy may induce statistical bias. Hum Brain Mapp (2014). [[Link]](https://pubmed.ncbi.nlm.nih.gov/23151955/)
 
 ### Image Segmentation
