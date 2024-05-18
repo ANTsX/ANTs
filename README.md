@@ -87,7 +87,7 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 
 - Basic Brain Mapping [[Link](http://stnava.github.io/BasicBrainMapping/)]
 - Brain extraction [[Link](https://github.com/ntustison/antsBrainExtractionExample)]
-- Multi-atlas joint label/intensity fusion examples [[Link](https://github.com/ntustison/MalfLabelingExample), [Link](https://github.com/qureai/Multi-Atlas-Segmentation)] (credit: @chsasank)
+- Multi-atlas joint label/intensity fusion [[Link](https://github.com/ntustison/MalfLabelingExample), [Link](https://github.com/qureai/Multi-Atlas-Segmentation)] (credit: @chsasank)
 - fMRI or Motion Correction [[Link](http://stnava.github.io/fMRIANTs/)]
 - fMRI reproducibility [[Link](http://stnava.github.io/RfMRI/)]
 - Partial EPI slab to T1 image registration [[Link](https://github.com/ntustison/PartialSlabEpiT1ImageRegistration)]
