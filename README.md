@@ -148,7 +148,7 @@ The core development team also consists of Gang Song (Originator), Philip A. Coo
 
 ## References
 
-A large collection of journal articles have been published using ANTs software and can be found by searching Google Scholar or PubMed. Below, we also provide a curated list of the most relevant articles to be used as a guide or for citing ANTs methods.
+A large collection of journal articles have been published using ANTs software and can be found by searching Google Scholar or PubMed. Below, we provide a curated list of the most relevant articles to be used as a guide for better understanding or citing ANTs.
 
 ### Image Registration
 
