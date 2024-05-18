@@ -9,7 +9,7 @@
 
 Advanced Normalization Tools (ANTs) is a C++ and command-line library that computes high-dimensional mappings to capture the statistics of brain structure and function. It allows one to organize, visualize and statistically explore large biomedical image sets. Additionally, it integrates imaging modalities and related information in space and time, as well as works across species or organ systems with minimal customization. 
 
-The ANTs library is considered a state-of-the-art medical image registration and segmentation toolkit which depends on the Insight ToolKit, a widely used medical image processing library to which ANTs developers contribute. ANTs and related tools have also won several international, unbiased challenges and competitions such as MICCAI, BRATS, and STACOM.
+The ANTs library is considered a state-of-the-art medical image registration and segmentation toolkit which depends on the Insight ToolKit, a widely used medical image processing library to which ANTs developers contribute. ANTs-related tools have also won several international, unbiased challenges and competitions such as MICCAI, BRATS, and STACOM.
 
 You can also use ANTs in R ([ANTsR](https://github.com/antsx/antsr)) and Python ([ANTsPy](https://github.com/antsx/antsr)), with additional functionality for deep learning in R ([ANTsRNet](https://github.com/antsx/antsrnet)) and Python ([ANTsPyNet](https://github.com/antsx/antspynet)). These libraries also include additional functionality for interacting with the broader R and Python ecosystem.
 
