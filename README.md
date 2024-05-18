@@ -96,16 +96,13 @@ Arno Klein, et al. Evaluation of 14 nonlinear deformation algorithms applied to 
 
 Murphy, et al. Evaluation of registration methods on thoracic CT: the EMPIRE10 challenge. IEEE Trans Med Imaging (2011) [[Link](http://www.ncbi.nlm.nih.gov/pubmed/21632295)]
 
+Brian B. Avants, et al. The optimal template effect in hippocampus studies of diseased populations. Neuroimage (2010). [[Link]](https://pubmed.ncbi.nlm.nih.gov/19818860/)
 
-Independent Evaluation:
-Template
-Construction
-[(2004)](http://www.ncbi.nlm.nih.gov/pubmed/15501083)[(2010)](http://www.ncbi.nlm.nih.gov/pubmed/19818860),
-[Similarity Metrics](http://www.ncbi.nlm.nih.gov/pubmed/20851191),
-[Multivariate
-registration](http://www.ncbi.nlm.nih.gov/pubmed/18995188), [Multiple
-modality analysis and statistical
-bias](http://www.ncbi.nlm.nih.gov/pubmed/23151955)
+Brian B. Avants, et al. A reproducible evaluation of ANTs similarity metric performance in brain image registration. Neuroimage (2011). [[Link]](https://pubmed.ncbi.nlm.nih.gov/20851191/)
+
+Brian B. Avants, et al. Multivariate analysis of structural and diffusion imaging in traumatic brain injury. Acad Radiol (2008). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/18995188)
+
+Nicholas J. Tustison, et al. Logical circularity in voxel-based analysis: normalization strategy may induce statistical bias. Hum Brain Mapp (2014). [[Link]](https://pubmed.ncbi.nlm.nih.gov/23151955/)
 
 ### Image Segmentation
 
@@ -116,6 +113,8 @@ Correction [(link)](http://www.ncbi.nlm.nih.gov/pubmed/20378467), DiReCT
 cortical thickness
 [(link)](http://www.ncbi.nlm.nih.gov/pubmed/19150502), DiReCT in
 [chimpanzees](http://www.ncbi.nlm.nih.gov/pubmed/23516289)
+
+### Cortical Thickness
 
 ### Multivariate Analysis Eigenanatomy 
 
