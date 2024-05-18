@@ -70,6 +70,9 @@ ANTs is a flexible library that can be used for a variety of applications and ar
   
 ### Template construction
 
+- Brain template [[Link](http://ntustison.github.io/TemplateBuildingExample/)]
+- Single subject template [[Link](https://github.com/ntustison/SingleSubjectTemplateExample)]
+  
 ### Cortical thickness
 
 ### Joint label fusion
@@ -85,26 +88,15 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 ### Neuroimages
 
 - Basic Brain Mapping [[Link](http://stnava.github.io/BasicBrainMapping/)]
+- Brain extraction [[Link](https://github.com/ntustison/antsBrainExtractionExample)]
 
+See also our pre-built ANTs templates with spatial priors available for [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436) including an [MNI version](https://figshare.com/articles/ANTs_files_for_mni_icbm152_nlin_sym_09a/8061914).
+  
 ### Lung
 
 ### Cardiac
 
 
-### General
-
-* **antsRegistration** [bash example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
-* **antsRegistration with mask** [(bash, ANTsR and ANTsPy examples)](https://github.com/ntustison/antsRegistrationWithMaskExample)
-* **Large deformation** [(bash, ANTsR and ANTsPy examples)](http://stnava.github.io/C/)
-* **Automobile** [(bash and ANTsR examples)](http://stnava.github.io/cars/)
-* **Asymmetry** [example](http://stnava.github.io/asymmetry/)
-* **Point-set** [mapping](http://stnava.github.io/chicken/) which includes the PSE metric and affine and deformable registration with (labeled) pointsets or iterative closest point
-* **Feature matching** [example](http://stnava.github.io/featureMatching/) ... not up to date ...
-* **Global optimization** [example](http://stnava.github.io/butterfly/)
-* **Patch-based super resolution** [example](https://github.com/ntustison/NonLocalSuperResolutionExample)
-* **Image denoising** [(bash, ANTsR and ANTsPy examples)](https://github.com/ntustison/DenoiseImageExample)
-* **Visualization** [example](https://github.com/ntustison/antsVisualizationExamples)
-* **Morphing** [example](http://stnava.github.io/Morpheus/)
 
 ### Neuro
 
