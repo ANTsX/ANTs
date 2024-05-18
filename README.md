@@ -56,14 +56,18 @@ More details and a full downloadable installation script can be found in the [Li
 
 ## Examples
 
-ANTs is a flexible library that can be used for a variety of applications and areas. Below is a collection of example scripts that - with a little effort - can be adapted to fit your specific needs.
+ANTs is a flexible library that can be used for a variety of applications and areas. Below is a collection of example scripts that - with a little effort - can be adapted to fit your specific needs. Some of these examples also include code for performing the same operations with ANTsR or ANTsPy.
 
 ### Registration
 
 - Basic example [[Link](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)]
-- Basic with mask [Link](https://github.com/ntustison/antsRegistrationWithMaskExample)]
+- Basic example with mask [[Link](https://github.com/ntustison/antsRegistrationWithMaskExample)]
 - Large deformation [[Link](http://stnava.github.io/C/)]
-
+- Asymmetry [[Link](http://stnava.github.io/asymmetry/)]
+- Automobile registration [[Link](http://stnava.github.io/cars/)]
+- Point-set mapping [[Link](http://stnava.github.io/chicken/)]
+- Global optimization [[Link](http://stnava.github.io/butterfly/)]
+  
 ### Template construction
 
 ### Cortical thickness
@@ -72,7 +76,15 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 
 ### Segmentation
 
-### fMRI
+### General
+
+- Patch-based super-resolution [[Link](https://github.com/ntustison/NonLocalSuperResolutionExample)]
+- Image denoising [[Link](https://github.com/ntustison/DenoiseImageExample)]
+- Morphing [[Link](http://stnava.github.io/Morpheus/)]
+  
+### Neuroimages
+
+- Basic Brain Mapping [[Link](http://stnava.github.io/BasicBrainMapping/)]
 
 ### Lung
 
