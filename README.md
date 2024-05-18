@@ -77,9 +77,11 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 ### Cortical thickness
 
 - Basic example [[Link](https://github.com/ntustison/antsCorticalThicknessExample)]
+- Chimpanzee example [[Link](https://github.com/stnava/WHopkinsNHP/)]
 
 ### Segmentation
 - N4 bias correction + Atropos [[Link](https://github.com/ntustison/antsAtroposN4Example)]
+- Brain tumor segmentation [[Link](https://github.com/ntustison/BRATS2013/tree/master/SimpleExample)]
 
 ### General
 
@@ -91,8 +93,11 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 
 - Basic Brain Mapping [[Link](http://stnava.github.io/BasicBrainMapping/)]
 - Brain extraction [[Link](https://github.com/ntustison/antsBrainExtractionExample)]
-- Multi-atlas joint label/intensity fusion examples by @chsasank [[Link-1](https://github.com/ntustison/MalfLabelingExample), [Link-2](https://github.com/qureai/Multi-Atlas-Segmentation)]
- 
+- Multi-atlas joint label/intensity fusion examples by @chsasank [[Link](https://github.com/ntustison/MalfLabelingExample), [Link](https://github.com/qureai/Multi-Atlas-Segmentation)]
+- fMRI or Motion Correction [[Link](http://stnava.github.io/fMRIANTs/)]
+- fMRI reproducibility [[Link](http://stnava.github.io/RfMRI/)]
+- Partial EPI slab to T1 image registration [[Link](https://github.com/ntustison/PartialSlabEpiT1ImageRegistration)]
+  
 See also our pre-built ANTs templates with spatial priors available for [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436) including an [MNI version](https://figshare.com/articles/ANTs_files_for_mni_icbm152_nlin_sym_09a/8061914).
   
 ### Lung
