@@ -66,13 +66,13 @@ There are many different resources for learning about how to use ANTs functions 
 
 ## Contributing
 
-If you have a question, feature request, or bug report the best way to get help is by posting an issue on the GitHub page. We welcome new contributions and ideas to improve ANTs. If you want to contribute code, the best way to get started is by reading through the [Wiki](https://github.com/ANTsX/ANTs/wiki) to get an understanding of th project. ANTs relies heavily on ITK, so learning more about that project is also a good place to start.
+If you have a question, feature request, or bug report the best way to get help is by posting an issue on the GitHub page. We welcome any new contributions and ideas to improve ANTs. If you want to contribute code, the best way to get started is by reading through the [Wiki](https://github.com/ANTsX/ANTs/wiki) to get an understanding of the project. ANTs relies heavily on ITK, so learning more about that project is also a good place to start.
 
 <br />
 
 ## Team
 
-The ANTs library was created and is led by the following people:
+Development of ANTs is led by the following people:
 
 - [Brian B. Avants](http://stnava.github.io/Resume/) - UPENN (Creator, Algorithm Design, Implementation)
 - [Nicholas J. Tustison](http://ntustison.github.io/CV/) - UVA (Compeller, Algorithm Design, Implementation Guru)
