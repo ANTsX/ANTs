@@ -35,7 +35,7 @@ If that works, you should be able to use the full functionality of ANTs.
 
 ### Building from source
 
-When necessary, you can also build ANTs from the latest source code. A minimal example on Linux or Mac looks like this:
+When necessary, you can also build ANTs from the latest source code. A minimal example on Linux / Mac looks like this:
 
 ```bash
 workingDir=${PWD}
