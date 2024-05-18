@@ -62,7 +62,13 @@ More details and a full downloadable installation script can be found in the [Li
 
 There are many different resources for learning about how to use ANTs functions and the methodology behind them. 
 
+<br />
+
 ## Contributing
+
+If you have a question, feature request, or bug report the best way to get help is by posting an issue on the GitHub page. We welcome new contributions and ideas to improve ANTs. If you want to contribute code, the best way to get started is by reading through the [Wiki](https://github.com/ANTsX/ANTs/wiki) to get an understanding of th project. ANTs relies heavily on ITK, so learning more about that project is also a good place to start.
+
+<br />
 
 ## Team
 
