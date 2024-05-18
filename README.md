@@ -104,39 +104,41 @@ A large collection of journal articles have been published using ANTs software a
 
 <i>Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration.</i> Neuroimage (2009). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/19195496)]
 
-<i>Evaluation of registration methods on thoracic CT: the EMPIRE10 challenge.</i> IEEE Trans Med Imaging (2011) [[Link](http://www.ncbi.nlm.nih.gov/pubmed/21632295)]
+<i>Evaluation of registration methods on thoracic CT: the EMPIRE10 challenge.</i> IEEE Trans Med Imaging (2011). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/21632295)]
 
-<i>A reproducible evaluation of ANTs similarity metric performance in brain image registration.</i> Neuroimage (2011). [[Link]](https://pubmed.ncbi.nlm.nih.gov/20851191/)
+<i>A reproducible evaluation of ANTs similarity metric performance in brain image registration.</i> Neuroimage (2011). [[Link](https://pubmed.ncbi.nlm.nih.gov/20851191/)]
 
-<i>Multivariate analysis of structural and diffusion imaging in traumatic brain injury.</i> Acad Radiol (2008). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/18995188)
+<i>Multivariate analysis of structural and diffusion imaging in traumatic brain injury.</i> Acad Radiol (2008). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/18995188)]
 
 ### Templates
 
-<i>The optimal template effect in hippocampus studies of diseased populations.</i> Neuroimage (2010). [[Link]](https://pubmed.ncbi.nlm.nih.gov/19818860/)
+<i>The optimal template effect in hippocampus studies of diseased populations.</i> Neuroimage (2010). [[Link](https://pubmed.ncbi.nlm.nih.gov/19818860/)]
 
 ### Image Segmentation
 
-<i>An open source multivariate framework for n-tissue segmentation with evaluation on public data</i> Neuroinformatics (2011). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/21373993)
+<i>An open source multivariate framework for n-tissue segmentation with evaluation on public data</i> Neuroinformatics (2011). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/21373993)]
 
-<i>Multi-atlas segmentation with joint label fusion and corrective learning—an open source implementation</i> Front Neuroinform (2013). [[Link]](https://www.frontiersin.org/articles/10.3389/fninf.2013.00027/full)
+<i>Multi-atlas segmentation with joint label fusion and corrective learning—an open source implementation</i> Front Neuroinform (2013). [[Link](https://www.frontiersin.org/articles/10.3389/fninf.2013.00027/full)]
 
 ### Bias Correction
 
-<i>N4ITK: improved N3 bias correction</i> IEEE Trans Med Imaging (2010). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/20378467)
+<i>N4ITK: improved N3 bias correction</i> IEEE Trans Med Imaging (2010). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/20378467)]
 
 ### Cortical Thickness
 
-<i>Registration based cortical thickness measurement</i> Neuroimage (2009). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/19150502)
+<i>Registration based cortical thickness measurement</i> Neuroimage (2009). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/19150502)]
 
-<i>Regional and hemispheric variation in cortical thickness in chimpanzees</i> J Neurosci (2013). [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/23516289)
+<i>Regional and hemispheric variation in cortical thickness in chimpanzees</i> J Neurosci (2013). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/23516289)]
 
 ### Eigenanatomy 
 
-<i>Eigenanatomy improves detection power for longitudinal cortical change</i> Med Image Comput Comput Assist Interv (2012) [[Link]](http://www.ncbi.nlm.nih.gov/pubmed/23286132)
+<i>Eigenanatomy improves detection power for longitudinal cortical change</i> Med Image Comput Comput Assist Interv (2012). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/23286132)]
 
-<i>White matter imaging helps dissociate tau from TDP-43 in frontotemporal lobar degeneration</i> J Neurol Neurosurg Psychiatry (2013). [[Link]](https://pubmed.ncbi.nlm.nih.gov/23475817/)
+<i>White matter imaging helps dissociate tau from TDP-43 in frontotemporal lobar degeneration</i> J Neurol Neurosurg Psychiatry (2013). [[Link](https://pubmed.ncbi.nlm.nih.gov/23475817/)]
 
-<i>Dementia induces correlated reductions in white matter integrity and cortical thickness: a multivariate neuroimaging study with sparse canonical correlation analysis</i> Neuroimage (2010). [[Link]](https://pubmed.ncbi.nlm.nih.gov/20083207/)
+### Software
+
+<i>The ANTsX ecosystem for quantitative biological and medical imaging</i> Scientific Reports (2021). [[Link](https://www.nature.com/articles/s41598-021-87564-6)]
 
 <br />
 
