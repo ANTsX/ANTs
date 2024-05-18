@@ -103,7 +103,7 @@ See also our pre-built ANTs templates with spatial priors available for [downloa
 
 ### Cardiac
 
-- Basic example [example](http://stnava.github.io/LabelMyHeart)
+- Basic example [[Link](http://stnava.github.io/LabelMyHeart)]
   
 ### Other
 
