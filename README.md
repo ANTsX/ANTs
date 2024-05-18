@@ -33,9 +33,9 @@ which antsRegistration
 
 If that works, you should be able to use the full functionality of ANTs.
 
-### Build from source
+### Building from source
 
-When necessary, you can also build ANTs from source. A minimal example on Linux or Mac looks like this:
+When necessary, you can also build ANTs from the latest source code. A minimal example on Linux or Mac looks like this:
 
 ```bash
 workingDir=${PWD}
