@@ -58,6 +58,27 @@ More details and a full downloadable installation script can be found in the [Li
 
 ANTs is a flexible library that can be used for a variety of applications and areas. Below is a collection of example scripts that - with a little effort - can be adapted to fit your specific needs.
 
+### Registration
+
+- Basic example [[Link](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)]
+- Basic with mask [Link](https://github.com/ntustison/antsRegistrationWithMaskExample)]
+- Large deformation [[Link](http://stnava.github.io/C/)]
+
+### Template construction
+
+### Cortical thickness
+
+### Joint label fusion
+
+### Segmentation
+
+### fMRI
+
+### Lung
+
+### Cardiac
+
+
 ### General
 
 * **antsRegistration** [bash example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
