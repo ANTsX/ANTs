@@ -120,6 +120,9 @@ There are many different resources for learning about how to use ANTs functions 
 * ANTs Wiki [[Link](https://github.com/ANTsX/ANTs/wiki)]
 * ANTs Documentation [[Link](https://github.com/stnava/ANTsDoc/blob/master/ants2.pdf)]
 * ANTs Tutorials [[Link](https://github.com/stnava/ANTsTutorial)]
+
+Some commonly visited tutorials for specific ANTs functions is also presented below.
+
 * Using antsRegistration [[Link](https://github.com/ANTsX/ANTs/wiki/ANTS-and-antsRegistration)]
 * Using antsCorticalThickness [[Link](https://github.com/ANTsX/ANTs/wiki/antsCorticalThickness-and-antsLongitudinalCorticalThickness-output)]
 * Using N4BiasFieldCorrection [[Link](https://github.com/ANTsX/ANTs/wiki/N4BiasFieldCorrection)]
