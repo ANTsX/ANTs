@@ -95,9 +95,7 @@ The core development team consists of Gang Song (Originator), Philip A. Cook, Je
 
 ## References
 
-A large collection of journal articles have been published using ANTs software. The best way to find up-to-date articles is by searching on [Google
-Scholar](http://scholar.google.com/scholar?q=Advanced+Normalization+Tools+%22ANTs%22+-ant&hl=en&as_sdt=1%2C39&as_ylo=2008&as_yhi=) or
-[Pubmed](http://www.ncbi.nlm.nih.gov/pubmed?term=%22Avants%20B%22%20OR%20%22Tustison%20N%22). Below, we also provide a curated list of the most relevant articles to be used as a guide or for citing ANTs methods.
+A large collection of journal articles have been published using ANTs software and can be found by searching Google Scholar or PubMed. Below, we also provide a curated list of the most relevant articles to be used as a guide or for citing ANTs methods.
 
 ### Image Registration
 
