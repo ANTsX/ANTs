@@ -66,7 +66,7 @@ More details and a full downloadable installation script can be found in the [Li
 
 There are many different resources for learning about how to use ANTs functions and the methodology behind them. The [Wiki](https://github.com/ANTsX/ANTs/wiki) is a good place to start. A selected list of tutorials is also provided here.
 
-- ANTs Documentation [[PDF]](https://github.com/stnava/ANTsDoc/blob/master/ants2.pdf)
+- ANTs Documentation [[PDF](https://github.com/stnava/ANTsDoc/blob/master/ants2.pdf)]
 
 <br />
 
