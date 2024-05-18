@@ -92,7 +92,7 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 - fMRI reproducibility [[Link](http://stnava.github.io/RfMRI/)]
 - Partial EPI slab to T1 image registration [[Link](https://github.com/ntustison/PartialSlabEpiT1ImageRegistration)]
   
-See also our pre-built ANTs templates with spatial priors available for [download](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436) including an [MNI version](https://figshare.com/articles/ANTs_files_for_mni_icbm152_nlin_sym_09a/8061914).
+See also our pre-built ANTs templates with spatial priors available for download [[General](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436), [MNI](https://figshare.com/articles/ANTs_files_for_mni_icbm152_nlin_sym_09a/8061914)].
   
 ### Lung
 
