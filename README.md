@@ -83,7 +83,7 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 - N4 bias correction + Atropos [[Link](https://github.com/ntustison/antsAtroposN4Example)]
 - Brain tumor segmentation [[Link](https://github.com/ntustison/BRATS2013/tree/master/SimpleExample)]
 
-### Neuroimages
+### Brain
 
 - Basic brain mapping [[Link](http://stnava.github.io/BasicBrainMapping/)]
 - Brain extraction [[Link](https://github.com/ntustison/antsBrainExtractionExample)]
