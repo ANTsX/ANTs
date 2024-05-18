@@ -31,7 +31,7 @@ You can check that this worked by running a command to find the path to any ANTs
 which antsRegistration
 ```
 
-If that works, you should be able to use the full functionality of ANTs from the command line.
+If that works, you should be able to use the full functionality of ANTs from the command line or bash.
 
 ### Building from source
 
