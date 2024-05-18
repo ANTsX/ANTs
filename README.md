@@ -25,7 +25,7 @@ The easiest way to install ANTs is by downloading the latest binaries on the [Re
 export PATH=/path/to/ants/bin:$PATH
 ```
 
-Check that this worked by running the following:
+You can check that this worked by running a command to find the path to any ANTs function:
 
 ```
 which antsRegistration
