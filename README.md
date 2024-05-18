@@ -142,7 +142,7 @@ Development of ANTs is led by the following people:
 - [Nicholas J. Tustison](http://ntustison.github.io/CV/) - UVA (Compeller, Algorithm Design, Implementation Guru)
 - Hans J. Johnson - UIowa (Large-Scale Application, Testing, Software design). 
 
-The core development team consists of Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis).
+The core development team also consists of Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis).
 
 <br />
 
