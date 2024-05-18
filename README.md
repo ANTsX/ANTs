@@ -56,7 +56,7 @@ More details and a full downloadable installation script can be found in the [Li
 
 ## Examples
 
-ANTs is a flexible library that can be used for a variety of applications and areas. Below is a collection of example scripts that - with a little effort - can be adapted to fit your specific needs. Some of these examples also include code for performing the same operations with ANTsR or ANTsPy.
+ANTs is a flexible library that can be used for a variety of applications and areas. Below is a collection of example scripts that - with a little effort - can be adapted to fit your specific needs. Some examples also include code for ANTsR or ANTsPy.
 
 ### Registration
 
