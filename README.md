@@ -35,7 +35,22 @@ Now you should be able to use ANTs as normal.
 
 ### Build from source
 
-When necessary, you can also build ANTs from source on [Linux or MacOS](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) or on [Windows](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). Alternatively, it is also possible to install ANTs via [docker](https://hub.docker.com/r/antsx/ants) or [conda](https://anaconda.org/aramislab/ants).
+When necessary, you can also build ANTs from source. A minimal example on Linux or Mac looks like this:
+
+```bash
+workingDir=${PWD}
+git clone https://github.com/ANTsX/ANTs.git
+mkdir build install
+cd build
+cmake \
+    -DCMAKE_INSTALL_PREFIX=${workingDir}/install \
+    ../ANTs 2>&1 | tee cmake.log
+make -j 4 2>&1 | tee build.log
+cd ANTS-build
+make install 2>&1 | tee install.log
+```
+
+More details can be foud in the [Linux/MacOS Guide](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS). Building from source will generally work on Windows as well with some additional steps explained in the [Windows Guide](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). Alternatively, it is also possible to install ANTs via [docker](https://hub.docker.com/r/antsx/ants) or [conda](https://anaconda.org/aramislab/ants).
 
 <br />
 
