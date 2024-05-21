@@ -141,7 +141,7 @@ We welcome any new contributions and ideas to improve ANTs. If you want to contr
 
 ## Team
 
-Development of ANTs is led by [Brian B. Avants](http://stnava.github.io/Resume/) (Creator, Algorithm Design, Implementation), [Nicholas J. Tustison](http://ntustison.github.io/CV/)(Compeller, Algorithm Design, Implementation Guru), Hans J. Johnson (Large-Scale Application, Testing, Software design), Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis), and Nick Cullen (Python, R). 
+Development of ANTs is led by [Brian B. Avants](http://stnava.github.io/Resume/) (Creator, Algorithm Design, Implementation), [Nicholas J. Tustison](http://ntustison.github.io/CV/) (Compeller, Algorithm Design, Implementation Guru), Hans J. Johnson (Large-Scale Application, Testing, Software design), Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis), and Nick Cullen (Python, R). 
 
 <br />
 
