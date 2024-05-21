@@ -16,6 +16,14 @@ jobs:
       matrix:
         config:
         - {
+            name: "Ubuntu-24.04-GCC",
+            os: ubuntu-24.04,
+            cc: "gcc",
+            cxx: "g++",
+            build_type: "Release",
+            generators: "Ninja"
+          }
+        - {
             name: "Ubuntu-22.04-GCC",
             os: ubuntu-22.04,
             cc: "gcc",
