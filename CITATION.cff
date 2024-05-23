@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite this paper and see the project README for potentially relevant methdological citations"
+authors:
+  - family-names: Tustison
+    given-names: Nicholas J
+  - family-names: Yassa
+    given-names: Michael A
+  - family-names: Rizvi
+    given-names: Batool
+  - family-names: Cook
+    given-names: Philip A
+  - family-names: Holbrook
+    given-names: Andrew J
+  - family-names: Sathishkumar
+    given-names: Mithra T
+  - family-names: Tustison
+    given-names: Mia G
+  - family-names: Gee
+    given-names: James C
+  - family-names: Stone
+    given-names: James R
+  - family-names: Avants
+    given-names: Brian B
+title: "ANTsX neuroimaging-derived structural phenotypes of UK Biobank"
+journal: "Scientific Reports"
+volume: "14"
+issue: "1"
+pages: "8848"
+date-published: "2024"
+publisher: "Nature Publishing Group UK London"
