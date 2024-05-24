@@ -1,11 +1,11 @@
-![ants template](http://i.imgur.com/mLZ71Ai.png)
-=========================================================
 [![ci-docker](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml/badge.svg)](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/antsx/ants.svg)](https://hub.docker.com/repository/docker/antsx/ants)
 ![Downloads](https://img.shields.io/github/downloads/antsx/ants/total)
 [![Anaconda-Server Badge](https://anaconda.org/aramislab/ants/badges/version.svg)](https://anaconda.org/aramislab/ants)
 [![PubMed](https://img.shields.io/badge/ANTsX_paper-Open_Access-8DABFF?logo=pubmed)](https://pubmed.ncbi.nlm.nih.gov/33907199/)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
+
+![ants template](http://i.imgur.com/mLZ71Ai.png)
 
 **Advanced Normalization Tools (ANTs)** is a C++ library available through the command line that computes high-dimensional mappings to capture the statistics of brain structure and function. It allows one to organize, visualize and statistically explore large biomedical image sets. Additionally, it integrates imaging modalities in space + time and works across species or organ systems with minimal customization. 
 
@@ -16,6 +16,8 @@ It is possible to use ANTs in R ([ANTsR](https://github.com/antsx/antsr)) and Py
 <br />
 
 ## Installation
+
+Quick links:[download binaries](https://github.com/ANTsX/ANTs/releases) | [build from source](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) | [docker](https://hub.docker.com/r/antsx/ants) | [conda](https://anaconda.org/aramislab/ants).
 
 ### Pre-compiled binaries
 
@@ -31,7 +33,8 @@ You can check that this worked by running a command to find the path to any ANTs
 which antsRegistration
 ```
 
-If that works, you should be able to use the full functionality of ANTs from the command line or bash.
+
+If that works, you should be able to use the full functionality of ANTs from the command line or bash. You may wish to control multi-threading by setting the environment variable `ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS`.
 
 ### Building from source
 
