@@ -1,7 +1,7 @@
 # This is a CITATION.cff file for citing the following work
 cff-version: 1.2.0
 message: "Please cite this reference to ANTs, and see the README for methodology papers that may be relevant to specific tools"
-
+title: "ANTs"
 preferred-citation:
   type: article
   authors:
