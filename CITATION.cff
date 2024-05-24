@@ -2,7 +2,8 @@
 cff-version: 1.2.0
 message: "Please cite this reference to ANTs, and see the README for methodology papers that may be relevant to specific tools"
 
-# List of authors
+type: article
+
 authors:
   - family-names: Tustison
     given-names: Nicholas J.
