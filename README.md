@@ -17,7 +17,7 @@ It is possible to use ANTs in R ([ANTsR](https://github.com/antsx/antsr)) and Py
 
 ## Installation
 
-Quick links:[download binaries](https://github.com/ANTsX/ANTs/releases) | [build from source](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) | [docker](https://hub.docker.com/r/antsx/ants) | [conda](https://anaconda.org/aramislab/ants).
+Quick links: [download binaries](https://github.com/ANTsX/ANTs/releases) | [build from source](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) | [docker](https://hub.docker.com/r/antsx/ants) | [conda](https://anaconda.org/aramislab/ants).
 
 ### Pre-compiled binaries
 
