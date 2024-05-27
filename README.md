@@ -194,6 +194,7 @@ A large collection of journal articles have been published using ANTs software a
 
 <i>The ANTsX ecosystem for quantitative biological and medical imaging</i>. Scientific Reports (2021). [[Link](https://www.nature.com/articles/s41598-021-87564-6)]
 
+<i>ANTsX neuroimaging-derived structural phenotypes of UK Biobank</i>.  Scientific Reports (2024). [[Link](https://pubmed.ncbi.nlm.nih.gov/38632390/)
 <br />
 
 ## Funding
