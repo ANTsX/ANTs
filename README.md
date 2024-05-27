@@ -184,6 +184,9 @@ A large collection of journal articles have been published using ANTs software a
 
 <i>Regional and hemispheric variation in cortical thickness in chimpanzees</i>. J Neurosci (2013). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/23516289)]
 
+<i>Longitudinal Mapping of Cortical Thickness Measurements: An Alzheimer's Disease Neuroimaging Initiative-Based Evaluation Study</i>.  J Alzheimers Dis
+ (2019). [[Link](https://pubmed.ncbi.nlm.nih.gov/31356207/)]
+ 
 ### Eigenanatomy 
 
 <i>Eigenanatomy improves detection power for longitudinal cortical change</i>. Med Image Comput Comput Assist Interv (2012). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/23286132)]
