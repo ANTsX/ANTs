@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/ANTsX/ANTs,1252,652
+/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS,579,278
+/ANTsX/ANTs/releases,314,180
+/ANTsX/ANTs/blob/master/Scripts/antsRegistrationSyN.sh,285,78
+/ANTsX/ANTs/wiki/Anatomy-of-an-antsRegistration-call,242,162
+"/ANTsX/ANTs/wiki/Forward-and-inverse-warps-for-warping-images,-pointsets-and-Jacobians",191,115
+/ANTsX/ANTs/wiki/ANTS-and-antsRegistration,189,138
+/ANTsX/ANTs/blob/master/Scripts/antsMultivariateTemplateConstruction2.sh,159,50
+/ANTsX/ANTs/blob/master/Scripts/newAntsExample.sh,157,56
+/ANTsX/ANTs/issues,157,45
