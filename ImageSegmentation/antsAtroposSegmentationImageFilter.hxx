@@ -615,7 +615,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Gener
     {
       this->m_MixtureModelComponents[n]->SetListSampleWeights(&weights[n]);
       this->m_MixtureModelComponents[n]->SetInputListSample(samples[n]);
-      this->m_MixtureModelComponents[n]->ClearInputListSample();
+      // this->m_MixtureModelComponents[n]->ClearInputListSample();
 
       if (this->m_UseMixtureModelProportions)
       {
@@ -635,7 +635,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Gener
       {
         this->m_MixtureModelComponents[n]->SetListSampleWeights(d, &weights[labelSet[d] - 1]);
         this->m_MixtureModelComponents[n]->SetIndexedInputListSample(d, samples[labelSet[d] - 1]);
-        this->m_MixtureModelComponents[n]->ClearInputListSample(d);
+        // this->m_MixtureModelComponents[n]->ClearInputListSample(d);
       }
 
       this->m_MixtureModelProportions[n] = 0.0;
@@ -1279,7 +1279,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
     {
       this->m_MixtureModelComponents[n]->SetListSampleWeights(&weights);
       this->m_MixtureModelComponents[n]->SetInputListSample(sample);
-      this->m_MixtureModelComponents[n]->ClearInputListSample();
+      // this->m_MixtureModelComponents[n]->ClearInputListSample();
     }
     else
     {
@@ -1290,7 +1290,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
         {
           this->m_MixtureModelComponents[n]->SetListSampleWeights(d, &weights);
           this->m_MixtureModelComponents[n]->SetIndexedInputListSample(d, sample);
-          this->m_MixtureModelComponents[n]->ClearInputListSample(d);
+          // this->m_MixtureModelComponents[n]->ClearInputListSample(d);
         }
       }
       this->m_MixtureModelProportions[n] = 0.0;
