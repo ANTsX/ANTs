@@ -150,7 +150,7 @@ Optional arguments:
             MSQ = mean square difference
             DEMONS = demon's metric
           A similarity metric per modality can be specified.  If the CC metric is chosen,
-          one can also specify the radius in brackets, e.g. "-m CC[ 4 ]". This option controls
+          one can also specify the radius in brackets, e.g. '-m "CC[4]"'. This option controls
           the metric for the transformation specified with "-t", so "-m CC -t SyN" means the SyN
           stage is run with the CC metric; preceding linear stages use MI.
 
@@ -160,6 +160,8 @@ Optional arguments:
             BSplineSyN = Greedy B-spline SyN
             TimeVaryingVelocityField = Time-varying velocity field
             TimeVaryingBSplineVelocityField = Time-varying B-spline velocity field
+
+          Transformation parameters may be specified with brackets, eg '-t "SyN[0.1,3,0]"'.
 
           The transformations above are used after Rigid + Affine linear registration, unless linear
           registration is disabled with "-l". To use linear registration only, options are:
@@ -791,6 +793,7 @@ if [[ $TRANSFORMATIONTYPE == "BSplineSyN"* ]];
     if [[ $TRANSFORMATIONTYPE == "BSplineSyN["*"]" ]]
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
+        TRANSFORMATIONTYPE="BSplineSyN"
       else
         TRANSFORMATION="BSplineSyN[ 0.1,26,0,3 ]"
     fi
@@ -799,6 +802,7 @@ elif [[ $TRANSFORMATIONTYPE == "SyN"* ]];
     if [[ $TRANSFORMATIONTYPE == "SyN["*"]" ]]
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
+        TRANSFORMATIONTYPE="SyN"
       else
         TRANSFORMATION="SyN[ 0.1,3,0 ]"
     fi
@@ -807,6 +811,7 @@ elif [[ $TRANSFORMATIONTYPE == "TimeVaryingVelocityField"* ]];
     if [[ $TRANSFORMATIONTYPE == "TimeVaryingVelocityField["*"]" ]]
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
+        TRANSFORMATIONTYPE="TimeVaryingVelocityField"
       else
         TRANSFORMATION="TimeVaryingVelocityField[ 0.5,4,3,0,0,0 ]"
     fi
@@ -815,6 +820,7 @@ elif [[ $TRANSFORMATIONTYPE == "TimeVaryingBSplineVelocityField"* ]];
     if [[ $TRANSFORMATIONTYPE == "TimeVaryingBSplineVelocityField["*"]" ]]
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
+        TRANSFORMATIONTYPE="TimeVaryingBSplineVelocityField"
       else
         TRANSFORMATION="TimeVaryingVelocityField[ 0.5,12x12x12x2,4,3 ]"
     fi
@@ -825,6 +831,7 @@ elif [[ $TRANSFORMATIONTYPE == "Affine"* ]];
     if [[ $TRANSFORMATIONTYPE == "Affine["*"]" ]]
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
+        TRANSFORMATIONTYPE="Affine"
       else
         TRANSFORMATION="Affine[ 0.1 ]"
     fi
@@ -835,6 +842,7 @@ elif [[ $TRANSFORMATIONTYPE == "Rigid"* ]];
     if [[ $TRANSFORMATIONTYPE == "Rigid["*"]" ]]
       then
         TRANSFORMATION=${TRANSFORMATIONTYPE}
+        TRANSFORMATIONTYPE="Rigid"
       else
         TRANSFORMATION="Rigid[ 0.1 ]"
     fi
