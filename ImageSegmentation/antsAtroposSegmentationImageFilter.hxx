@@ -41,6 +41,7 @@
 #include "itkOtsuMultipleThresholdsCalculator.h"
 #include "itkSampleClassifierFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
+#include "itkStatisticsImageFilter.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
@@ -1306,6 +1307,18 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
         NumericTraits<RealType>::OneValue() / static_cast<RealType>(totalNumberOfClasses);
     }
   }
+  // Check to see if the resulting number of classes is equal to the total number of classes.
+  using StatisticsImageFilterType = itk::StatisticsImageFilter<ClassifiedImageType>;
+  auto statisticsImageFilter = StatisticsImageFilterType::New();
+  statisticsImageFilter->SetInput(maxLabels);
+  statisticsImageFilter->Update();
+
+  if (statisticsImageFilter->GetMaximum() != totalNumberOfClasses)
+  {
+    itkExceptionMacro("Updating the class labeling resulted in " << statisticsImageFilter->GetMaximum() <<
+                      " non-zero label sets but " << totalNumberOfClasses << " is requested.");
+  }
+
   auto labelMapFilter = itk::LabelImageToShapeLabelMapFilter<ClassifiedImageType>::New();
   labelMapFilter->SetInput(maxLabels);
   labelMapFilter->SetComputeOrientedBoundingBox(false);
