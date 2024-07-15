@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 shopt -s extglob
 
@@ -389,19 +389,19 @@ function shapeupdatetotemplate() {
     #echo "    ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
 
-    imagelist=(`ls ${outputname}template-modality${whichtemplate}-*WarpedToTemplate.nii.gz`)
+    imagelist=(`ls ${outputname}*-modality${whichtemplate}-*-WarpedToTemplate.nii.gz`)
     if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]]
       then
-        echo "ERROR shapeupdatedtotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
+        echo "ERROR shapeupdatetotemplate - imagelist length is ${#imagelist[@]}, expected ${IMAGESPERMODALITY}"
         exit 1
       fi
 
     summarizeimageset $dim $template $statsmethod $sharpenmethod ${imagelist[@]}
 
-    WARPLIST=( `ls ${outputname}*[0-9]Warp.nii.gz 2> /dev/null` )
-    NWARPS=${#WARPLIST[*]}
+    WARPLIST=( `ls ${outputname}input*-[0-9]Warp.nii.gz 2> /dev/null` ) || true
+    NWARPS=${#WARPLIST[@]}
     echo "number of warps = $NWARPS"
-    echo "$WARPLIST"
+    echo "${WARPLIST[@]}"
 
     if [[ $whichtemplate -eq 0 ]];
       then
@@ -411,10 +411,10 @@ function shapeupdatetotemplate() {
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
-          echo "   AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
+          echo "   AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 ${WARPLIST[@]}"
           date
           echo "--------------------------------------------------------------------------------------"
-          AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
+          AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 ${WARPLIST[@]}
 
           echo
           echo "--------------------------------------------------------------------------------------"
@@ -429,11 +429,11 @@ function shapeupdatetotemplate() {
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
-        echo "   ${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
+        echo "   ${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*-input*GenericAffine.mat"
         echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template} --verbose 1"
         echo "--------------------------------------------------------------------------------------"
 
-        ${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
+        ${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}input*GenericAffine.mat
 
         if [[ $NWARPS -ne 0 ]];
           then
@@ -442,15 +442,19 @@ function shapeupdatetotemplate() {
           fi
       fi
 
-    echo "--------------------------------------------------------------------------------------"
-    echo " shapeupdatetotemplate---warp each template by the resulting transforms"
-    echo "   ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [ ${templatename}0GenericAffine.mat,1 ] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
-    echo "--------------------------------------------------------------------------------------"
 
     if [[ -f "${templatename}0warp.nii.gz" ]];
       then
+        echo "--------------------------------------------------------------------------------------"
+        echo " shapeupdatetotemplate---warp each template by the resulting transforms"
+        echo "   ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [ ${templatename}0GenericAffine.mat,1 ] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
+        echo "--------------------------------------------------------------------------------------"
         ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [ ${templatename}0GenericAffine.mat,1 ] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
       else
+        echo "--------------------------------------------------------------------------------------"
+        echo " shapeupdatetotemplate---warp each template by the resulting transform"
+        echo "   ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template}"
+        echo "--------------------------------------------------------------------------------------"
         ${WARP} -d ${dim} --float $USEFLOAT --verbose 1 -i ${template} -o ${template} -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template}
       fi
 
@@ -965,10 +969,10 @@ elif [[ ${NINFILES} -eq 1 ]];
                         number=$RANDOM
                         if [[ $i -lt 15 ]];
                             then
-                            let "number %= $BINrange"  # Scales $number down within $range.
+                            number=$((number %= $BINrange))  # Scales $number down within $range.
                         elif [[ $i -eq 15 ]];
                             then
-                            let "number %= $range"  # Scales $number down within $range.
+                            number=$((number %= $range))  # Scales $number down within $range.
                         fi
                     done
                     #debug only
@@ -989,7 +993,7 @@ elif [[ ${NINFILES} -eq 1 ]];
                         ImageMath $TDIM selection/vol0${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                         #   cp vol0${number}.nii.gz selection/
                     fi
-                    let j++
+                    ((j++))
                 done
             fi
         elif [[ ${range} -gt ${nfmribins} && ${range} -lt 32 ]];
@@ -997,7 +1001,7 @@ elif [[ ${NINFILES} -eq 1 ]];
             for ((i = 0; i < ${nfmribins} ; i++))
                 do
                 number=$RANDOM
-                let "number %= $range"
+                number=$((number %= $range))
                 if [[ ${number} -lt 10 ]];
                     then
                     ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
@@ -1043,7 +1047,7 @@ if [[ $NUMBEROFMODALITIES -gt 1 ]];
         for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
           do
             k=0
-            let k=$i+$j
+            k=$((i+j))
             IMAGEMETRICSET="$IMAGEMETRICSET ${IMAGESETARRAY[$k]}"
           done
         echo $IMAGEMETRICSET
@@ -1140,7 +1144,7 @@ if [[ "$RIGID" -eq 1 ]];
         for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
           do
             k=0
-            let k=$i+$j
+            k=$((i+j))
             IMAGEMETRICSET="$IMAGEMETRICSET -m MI[ ${TEMPLATES[$j]},${IMAGESETARRAY[$k]},${MODALITYWEIGHTS[$j]},32,Regular,0.25 ]"
           done
 
@@ -1171,7 +1175,7 @@ if [[ "$RIGID" -eq 1 ]];
         for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
           do
             k=0
-            let k=$i+$j
+            k=$((i+j))
             IMGbase=`basename ${IMAGESETARRAY[$k]}`
             BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
             RIGID="${outdir}/rigid${i}_${j}_${IMGbase}"
@@ -1299,7 +1303,7 @@ if [[ "$RIGID" -eq 1 ]];
         for (( i = $j; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
           do
             k=0
-            let k=$i-$j
+            k=$((i-j))
             IMGbase=`basename ${IMAGESETARRAY[$i]}`
             BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
             RIGID="${outdir}/rigid${k}_${j}_${IMGbase}"
@@ -1399,7 +1403,9 @@ i=0
 while [[ $i -lt ${ITERATIONLIMIT} ]];
   do
     itdisplay=$((i+1))
+    rm -f ${OUTPUTNAME}*WarpedToTemplate.nii.gz
     rm -f ${OUTPUTNAME}*Warp.nii*
+    rm -f ${OUTPUTNAME}*warp.nii*
     rm -f ${OUTPUTNAME}*GenericAffine.mat
     rm -f ${outdir}/job*.sh
     # Used to save time by only running coarse registration for the first couple of iterations
@@ -1439,7 +1445,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         for (( k = 0; k < $NUMBEROFMODALITIES; k++ ))
           do
             l=0
-            let l=$j+$k
+            l=$((j+k))
 
             if [[ "${METRICTYPE[$k]}" == "DEMONS" ]];
               then
@@ -1477,15 +1483,13 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 indir=`pwd`
               fi
             IMGbase=`basename ${IMAGESETARRAY[$l]}`
-            OUTFN=${OUTPUTNAME}template-modality${k}-${IMGbase/%?(.nii.gz|.nii)}
+            OUTFN=${OUTPUTNAME}input$(printf "%04d" $l)-modality${k}-${IMGbase/%?(.nii.gz|.nii)}
             OUTFN=`basename ${OUTFN}`
-            OUTFN="${OUTFN}${l}"
-            DEFORMED="${outdir}/${OUTFN}${l}WarpedToTemplate.nii.gz"
+            DEFORMED="${outdir}/${OUTFN}-WarpedToTemplate.nii.gz"
 
             IMGbase=`basename ${IMAGESETARRAY[$j]}`
-            OUTWARPFN=${OUTPUTNAME}${IMGbase/%?(.nii.gz|.nii)}
+            OUTWARPFN=${OUTPUTNAME}input$(printf "%04d" $j)-${IMGbase/%?(.nii.gz|.nii)}-
             OUTWARPFN=`basename ${OUTWARPFN}`
-            OUTWARPFN="${OUTWARPFN}${j}"
 
             if [[ $NOWARP -eq 0 ]];
               then
@@ -1516,9 +1520,11 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
         done
 
-        IMGbase=`basename ${IMAGESETARRAY[$j]}`
-        OUTWARPFN=${OUTPUTNAME}${IMGbase/%?(.nii.gz|.nii)}
-        OUTWARPFN=`basename ${OUTWARPFN}${j}`
+
+      #  Already defined above
+      #  IMGbase=`basename ${IMAGESETARRAY[$j]}`
+      #  OUTWARPFN=${OUTPUTNAME}${IMGbase/%?(.nii.gz|.nii)}
+      #  OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
         stage0="-r [ ${TEMPLATES[0]},${IMAGESETARRAY[$j]},1 ]"
         stage1="-t Rigid[ 0.1 ] ${IMAGEMETRICLINEARSET} -c [ 1000x500x250x0,1e-6,10 ] -f 6x4x2x1 -s 4x2x1x0"
@@ -1674,21 +1680,48 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
           fi
       fi
 
-    WARPFILES=`ls ${OUTPUTNAME}*Warp.nii.gz | grep -v "InverseWarp"`
-    AFFINEFILES=`ls ${OUTPUTNAME}*GenericAffine.mat`
+    WARPFILES=(`ls ${OUTPUTNAME}*Warp.nii.gz | grep -v "InverseWarp"`)
+    AFFINEFILES=(`ls ${OUTPUTNAME}*GenericAffine.mat`)
 
-    if [[ ${#WARPFILES[@]} -eq 0 || ${#AFFINEFILES[@]} -eq 0 ]];
+    if [[ ${#WARPFILES[@]} -eq 0 ]];
       then
-        echo "The registrations did not terminate properly.  There are no warp files"
-        echo "or affine files."
-        exit 1
+        if [[ ${#AFFINEFILES[@]} -eq 0 ]];
+          then
+            echo "The registrations did not terminate properly.  There are no warp files"
+            echo "or affine files."
+            exit 1
+        fi
+
+        if [[ $NOWARP -eq 0 ]];
+          then
+            echo "The registrations did not terminate properly.  "
+            echo "A nonlinear transform was requested, but there are no warp files."
+            exit 1
+        fi
+
+        if [[ ${#AFFINEFILES[@]} -ne $IMAGESPERMODALITY ]];
+          then
+            echo "The registrations did not terminate properly.  The number of affine transform files"
+            echo "does not match the number of input images."
+            exit 1
+        fi
     fi
 
-    if [[ ${#WARPFILES[@]} -ne ${#AFFINEFILES[@]} ]];
+    if [[ ${#WARPFILES[@]} -gt 0 ]];
       then
-        echo "The registrations did not terminate properly.  The number of warp files"
-        echo "does not match the number of affine files."
-        exit 1
+        if [[ ${#WARPFILES[@]} -ne ${#AFFINEFILES[@]} ]];
+          then
+            echo "The registrations did not terminate properly.  The number of warp files"
+            echo "does not match the number of affine files."
+            exit 1
+        fi
+
+        if [[ ${#WARPFILES[@]} -ne $IMAGESPERMODALITY ]];
+          then
+            echo "The registrations did not terminate properly.  The number of warp files"
+           echo "does not match the number of input images."
+            exit 1
+        fi
     fi
 
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
@@ -1733,6 +1766,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
       else
         rm -f ${outdir}/job*.txt ${outdir}/slurm-*.out
     fi
+    echo "Iteration $itdisplay completed"
     ((i++))
 done
 
@@ -1753,6 +1787,11 @@ echo "--------------------------------------------------------------------------
 echo " Done creating: ${TEMPLATES[@]}"
 echo " Script executed in $time_elapsed seconds"
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
+echo " Intermediate templates and warps stored in: ${intermediateTemplateDir}/"
+echo "--------------------------------------------------------------------------------------"
+echo " Note: The template has been updated after the final iteration."
+echo " Pairwise warps from the final iteration are left in ${outdir}."
+echo " They register input to the penultimate template(s), stored in ${intermediateTemplateDir}/"
 echo "--------------------------------------------------------------------------------------"
 
 exit 0
