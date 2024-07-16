@@ -1,4 +1,7 @@
-#!/bin/bash -e
+#!/bin/bash
+
+set -euo pipefail
+IFS=$'\n\t'
 
 shopt -s extglob
 
@@ -1063,7 +1066,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
   do
     setCurrentImageSet $i
 
-    if [[ -n "${REGTEMPLATES[$i]}" ]];
+    if [[ ${#REGTEMPLATES[@]} -gt 0 && -n "${REGTEMPLATES[$i]}" ]];
       then
         if [[ ! -r "${REGTEMPLATES[$i]}" ]];
           then
