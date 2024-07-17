@@ -404,7 +404,10 @@ function shapeupdatetotemplate() {
     WARPLIST=( `ls ${outputname}input*-[0-9]Warp.nii.gz 2> /dev/null` ) || true
     NWARPS=${#WARPLIST[@]}
     echo "number of warps = $NWARPS"
-    echo "${WARPLIST[@]}"
+    if [[ $NWARPS -ne 0 ]];
+      then
+        echo "${WARPLIST[@]}"
+      fi
 
     if [[ $whichtemplate -eq 0 ]];
       then
@@ -1683,49 +1686,32 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
           fi
       fi
 
-    WARPFILES=(`ls ${OUTPUTNAME}*Warp.nii.gz | grep -v "InverseWarp"`)
-    AFFINEFILES=(`ls ${OUTPUTNAME}*GenericAffine.mat`)
+    NUM_AFFINEFILES=0
+    NUM_AFFINEFILES=$(ls ${OUTPUTNAME}*GenericAffine.mat | wc -l) || true
 
-    if [[ ${#WARPFILES[@]} -eq 0 ]];
+    if [[ $NOWARP -eq 1 ]];
       then
-        if [[ ${#AFFINEFILES[@]} -eq 0 ]];
+        if [[ ${NUM_AFFINEFILES} -eq 0 ]];
           then
-            echo "The registrations did not terminate properly.  There are no warp files"
-            echo "or affine files."
+            echo "The registrations did not terminate properly.  There are no warp files or affine files."
             exit 1
+          fi
+      if [[ ${NUM_AFFINEFILES} -ne $IMAGESPERMODALITY ]];
+        then
+          echo "The registrations did not terminate properly.  The number of affine transform files"
+          echo "does not match the number of input images."
+          exit 1
         fi
-
-        if [[ $NOWARP -eq 0 ]];
+      else
+        NUM_WARPFILES=0
+        NUM_WARPFILES=$(ls ${OUTPUTNAME}*Warp.nii.gz | grep -v InverseWarp | wc -l) || true
+        if [[ ${NUM_WARPFILES} -ne $IMAGESPERMODALITY ]];
           then
-            echo "The registrations did not terminate properly.  "
-            echo "A nonlinear transform was requested, but there are no warp files."
-            exit 1
-        fi
-
-        if [[ ${#AFFINEFILES[@]} -ne $IMAGESPERMODALITY ]];
-          then
-            echo "The registrations did not terminate properly.  The number of affine transform files"
+            echo "The registrations did not terminate properly.  The number of warp files"
             echo "does not match the number of input images."
             exit 1
-        fi
-    fi
-
-    if [[ ${#WARPFILES[@]} -gt 0 ]];
-      then
-        if [[ ${#WARPFILES[@]} -ne ${#AFFINEFILES[@]} ]];
-          then
-            echo "The registrations did not terminate properly.  The number of warp files"
-            echo "does not match the number of affine files."
-            exit 1
-        fi
-
-        if [[ ${#WARPFILES[@]} -ne $IMAGESPERMODALITY ]];
-          then
-            echo "The registrations did not terminate properly.  The number of warp files"
-           echo "does not match the number of input images."
-            exit 1
-        fi
-    fi
+          fi
+      fi
 
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
       do
