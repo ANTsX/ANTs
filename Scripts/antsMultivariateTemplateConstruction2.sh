@@ -904,7 +904,7 @@ elif [[ ${NINFILES} -eq 1 ]];
         IMAGECOUNT=0
         while read line
             do
-            files=(`echo $line | tr ',' ' '`)
+            files=(`echo $line | tr "," "\n"`)
             if [[ ${#files[@]} -ne $NUMBEROFMODALITIES ]];
                 then
                 echo "The number of files in the csv file does not match the specified number of modalities."
@@ -1366,13 +1366,13 @@ fi # endif RIGID
 #
 ##########################################################################
 
-ITERATLEVEL=( $(echo $MAXITERATIONS | tr 'x' ' ') )
+ITERATLEVEL=( $(echo $MAXITERATIONS | tr 'x' '\n') )
 NUMLEVELS=${#ITERATLEVEL[@]}
 
-SHRINKLEVEL=( $(echo $SHRINKFACTORS | tr 'x' ' ') )
+SHRINKLEVEL=( $(echo $SHRINKFACTORS | tr 'x' '\n') )
 NUMSHRINK=${#SHRINKLEVEL[@]}
 
-SMOOTHLEVEL=( $(echo $SMOOTHINGFACTORS | tr 'x' ' ') )
+SMOOTHLEVEL=( $(echo $SMOOTHINGFACTORS | tr 'x' '\n') )
 NUMSMOOTH=${#SMOOTHLEVEL[@]}
 
 if [[ $NUMLEVELS -ne $NUMSHRINK ]]
