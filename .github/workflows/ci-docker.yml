@@ -42,8 +42,8 @@ jobs:
       -
         name: Edit tag for releases
         run: |
-          META_TAG=${{ steps.meta.outputs.tags }}
-          STRIPPED_TAG=$( echo "${META_TAG#v}" )
+          GIT_TAG="${{ github.ref }}"
+          STRIPPED_TAG="${GIT_TAG#refs/tags/v}"
           echo "DOCKER_TAG=${STRIPPED_TAG}" >> $GITHUB_ENV
       -
         name: Build and load (PR) or push (commit/tag)
