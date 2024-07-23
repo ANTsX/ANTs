@@ -41,10 +41,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: Edit tag for releases
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           GIT_TAG="${{ github.ref }}"
           STRIPPED_TAG="${GIT_TAG#refs/tags/v}"
-          echo "DOCKER_TAG=${STRIPPED_TAG}" >> $GITHUB_ENV
+          echo "DOCKER_TAG=antsx/ants:${STRIPPED_TAG}" >> $GITHUB_ENV
       -
         name: Build and load (PR) or push (commit/tag)
         uses: docker/build-push-action@v5
