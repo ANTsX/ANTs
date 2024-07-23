@@ -508,7 +508,7 @@ COUNT=0
 for (( g = $WHICHMODALITY; g < ${#IMAGESETARRAY[@]}; g+=$NUMBEROFMODALITIES ))
   do
     CURRENTIMAGESET[$COUNT]=${IMAGESETARRAY[$g]}
-    (( COUNT++ ))
+    COUNT=$(( COUNT + 1 ))
   done
 }
 
@@ -917,7 +917,7 @@ elif [[ ${NINFILES} -eq 1 ]];
             for (( i = 0; i < ${#files[@]}; i++ ));
                 do
                 IMAGESETARRAY[$IMAGECOUNT]=${files[$i]}
-                ((IMAGECOUNT++))
+                IMAGECOUNT=$(( IMAGECOUNT + 1 ))
             done
          done < $IMAGESFILE
     else
@@ -999,7 +999,7 @@ elif [[ ${NINFILES} -eq 1 ]];
                         ImageMath $TDIM selection/vol0${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
                         #   cp vol0${number}.nii.gz selection/
                     fi
-                    ((j++))
+                    j=$(( j + 1 ))
                 done
             fi
         elif [[ ${range} -gt ${nfmribins} && ${range} -lt 32 ]];
@@ -1224,7 +1224,7 @@ if [[ "$RIGID" -eq 1 ]];
              # execute jobs in series
             bash $qscript
           fi
-        ((count++))
+        count=$(( count + 1 ))
     done
     if [[ $DOQSUB -eq 1 ]];
       then
@@ -1756,7 +1756,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         rm -f ${outdir}/job*.txt ${outdir}/slurm-*.out
     fi
     echo "Iteration $itdisplay completed"
-    ((i++))
+    i=$(( i + 1 ))
 done
 
 # end main loop
