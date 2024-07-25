@@ -11,7 +11,7 @@
 
 The ANTs library is considered a state-of-the-art medical image registration and segmentation toolkit which depends on the Insight ToolKit, a widely used medical image processing library to which ANTs developers contribute. ANTs-related tools have also won several international, unbiased competitions such as MICCAI, BRATS, and STACOM.
 
-It is possible to use ANTs in R ([ANTsR](https://github.com/antsx/antsr)) and Python ([ANTsPy](https://github.com/antsx/antsr)), with additional functionality for deep learning in R ([ANTsRNet](https://github.com/antsx/antsrnet)) and Python ([ANTsPyNet](https://github.com/antsx/antspynet)). These libraries help integrate ANTs with the broader R / Python ecosystem.
+It is possible to use ANTs in R ([ANTsR](https://github.com/antsx/antsr)) and Python ([ANTsPy](https://github.com/antsx/antspy)), with additional functionality for deep learning in R ([ANTsRNet](https://github.com/antsx/antsrnet)) and Python ([ANTsPyNet](https://github.com/antsx/antspynet)). These libraries help integrate ANTs with the broader R / Python ecosystem.
 
 <br />
 
