@@ -3,7 +3,7 @@ on:
   release:
     types: [created]
 env:
-  CMAKE_VERSION: 3.23.1
+  CMAKE_VERSION: 3.23.1 # for ubuntu
 jobs:
   build:
     name: ${{ matrix.config.name }}
@@ -13,9 +13,9 @@ jobs:
       matrix:
         config:
         - {
-            name: "Centos7-GCC",
-            os_desc: centos7,
-            image: "centos/devtoolset-7-toolchain-centos7:7",
+            name: "almalinux-8-GCC",
+            os_desc: almalinux8,
+            image: "almalinux:8",
             build_type: "Release",
             cc: "gcc",
             cxx: "g++",
@@ -23,7 +23,7 @@ jobs:
           }
         - {
             name: "Ubuntu-18.04-GCC",
-            os_desc: ubuntu-18.04,
+            os_desc: ubuntu18.04,
             image: "ubuntu:18.04",
             build_type: "Release",
             cc: "gcc",
@@ -38,7 +38,7 @@ jobs:
       - name: Get ANTs version and set artifact name
         run: |
           echo "ANTS_VERSION=${ANTS_TAG#v}" >> $GITHUB_ENV
-          echo "ARTIFACT=ants-${ANTS_TAG}-${{ matrix.config.os }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
+          echo "ARTIFACT=ants-${ANTS_TAG}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
         env:
           ANTS_TAG: ${{ github.ref_name }}
 
@@ -47,15 +47,15 @@ jobs:
           docker pull ${{ matrix.config.image }}
           docker create --name build_container -v ${{ github.workspace }}:/workspace -v ${{ runner.temp }}/artifact:/artifact ${{ matrix.config.image }} sleep infinity
           docker start build_container
-      - name: Install dependencies on Centos
-        if: startsWith(matrix.config.name, 'Centos7')
+      - name: Install dependencies on Alma
+        if: startsWith(matrix.config.name, 'almalinux')
         run: |
           docker exec --user root build_container bash -c "
             yum -y update && yum clean all
-            yum -y install devtoolset-7 git zlib-devel
-            curl -OL https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
-            chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh
-            ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix=/usr/local
+            yum groupinstall -y 'Development Tools'
+            yum install -y cmake
+            cmake --version
+            gcc --version
           "
       - name: Install dependencies on Ubuntu
         if: startsWith(matrix.config.name, 'Ubuntu-18.04')

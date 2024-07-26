@@ -55,14 +55,6 @@ jobs:
             build_type: "Release",
             generators: "Ninja"
           }
-        - {
-            name: "Macos-11-clang",
-            os: macos-11,
-            cc: "clang",
-            cxx: "clang++",
-            build_type: "Release",
-            generators: "Ninja"
-          }
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
