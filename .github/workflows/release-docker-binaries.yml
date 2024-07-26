@@ -38,7 +38,7 @@ jobs:
       - name: Get ANTs version and set artifact name
         run: |
           echo "ANTS_VERSION=${ANTS_TAG#v}" >> $GITHUB_ENV
-          echo "ARTIFACT=ants-${ANTS_TAG}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
+          echo "ARTIFACT=ants-${ANTS_VERSION}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
         env:
           ANTS_TAG: ${{ github.ref_name }}
 
