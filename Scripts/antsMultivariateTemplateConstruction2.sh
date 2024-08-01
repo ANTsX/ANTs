@@ -56,7 +56,7 @@ Compulsory arguments (minimal command line requires SGE/PBS cluster, otherwise u
           line is the location of the input image.  One can also specify more than
           one file for each image for multi-modal template construction (e.g. t1 and t2).
           For the multi-modal case, the templates will be consecutively numbered (e.g.
-          ${OutputPrefix}template0.nii.gz, ${OutputPrefix}template1.nii.gz, ...).
+          {OutputPrefix}template0.nii.gz, {OutputPrefix}template1.nii.gz, ...).
 
 NB: All images to be added to the template should be in the same directory, and this
     script should be invoked from that directory.
@@ -589,7 +589,7 @@ if [[ ${OSTYPE:0:6} == 'darwin' ]];
   fi
 
 # Provide output for Help
-if [[ "$1" == "-h" ]];
+if [[ $# -eq 0 || "$1" == "-h" ]];
   then
     Usage >&2
   fi
