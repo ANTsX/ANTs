@@ -1149,7 +1149,7 @@ template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::RealType
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::UpdateClassLabeling()
 {
-  RealType maxPosteriorSum = 0.0;
+  double maxPosteriorSum = 0.0;
 
   if (this->m_UseAsynchronousUpdating)
   {
@@ -1166,7 +1166,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
     NeighborhoodIterator<ClassifiedImageType> ItO(radius, this->GetOutput(), this->GetOutput()->GetRequestedRegion());
 
     maxPosteriorSum = 0.0;
-    RealType     oldMaxPosteriorSum = -1.0;
+    double     oldMaxPosteriorSum = -1.0;
     unsigned int numberOfIterations = 0;
     while (maxPosteriorSum > oldMaxPosteriorSum && numberOfIterations++ < this->m_MaximumNumberOfICMIterations)
     {
@@ -1214,7 +1214,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
 
   unsigned int totalNumberOfClasses = this->m_NumberOfTissueClasses + this->m_NumberOfPartialVolumeClasses;
 
-  Array<RealType> sumPosteriors(totalNumberOfClasses);
+  Array<double> sumPosteriors(totalNumberOfClasses);
   sumPosteriors.Fill(0.0);
 
   typename SampleType::Pointer sample = SampleType::New();
@@ -1269,7 +1269,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
             ItO.Set(static_cast<LabelType>(n + 1));
           }
         }
-        sumPosteriors[n] += posteriorProbability;
+        sumPosteriors[n] += static_cast<double>(posteriorProbability);
       }
       ++ItP;
       ++ItM;
@@ -1299,7 +1299,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
 
     if (this->m_UseMixtureModelProportions)
     {
-      this->m_MixtureModelProportions[n] = sumPosteriors[n] / static_cast<RealType>(totalSampleSize);
+      this->m_MixtureModelProportions[n] = static_cast<RealType>(sumPosteriors[n] / static_cast<double>(totalSampleSize));
     }
     else
     {
@@ -1482,12 +1482,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
       if (!this->GetMaskImage() ||
           this->GetMaskImage()->GetPixel(ItM.GetIndex()) != NumericTraits<MaskLabelType>::ZeroValue())
       {
-        maxPosteriorSum += ItM.Get();
+        maxPosteriorSum += static_cast<double>(ItM.Get());
       }
     }
   }
 
-  return maxPosteriorSum / static_cast<RealType>(totalSampleSize);
+  return static_cast<RealType>(maxPosteriorSum / static_cast<double>(totalSampleSize));
 }
 
 template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
