@@ -1961,7 +1961,7 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
   }
 
   {
-    std::string         description = std::string("Average the input time series image.");
+    std::string description = std::string("Average the input time series image.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("average-image");
     option->SetShortName('a');
@@ -1974,6 +1974,7 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("write-displacement");
     option->SetShortName('w');
+    option->SetUsageOption(0, "(0)/1");
     option->SetDescription(description);
     parser->AddOption(option);
   }
