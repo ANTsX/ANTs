@@ -1965,6 +1965,7 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("average-image");
     option->SetShortName('a');
+    option->SetUsageOption(0, "<timeseries>");
     option->SetDescription(description);
     parser->AddOption(option);
   }
@@ -2107,10 +2108,11 @@ antsMotionCorr(std::vector<std::string> args, std::ostream * /*out_stream = null
     std::string("antsMotionCorr = motion correction.  This program is a user-level ") +
     std::string("registration application meant to utilize classes in ITK v4.0 or greater. The user can specify ") +
     std::string("any number of \"stages\" where a stage consists of a transform; an image metric; ") +
-    std::string(" and iterations, shrink factors, and smoothing sigmas for each level. ") +
+    std::string("and iterations, shrink factors, and smoothing sigmas for each level. ") +
     std::string(
-      " Specialized for 4D time series data: fixed image is 3D, moving image should be the 4D time series. ") +
-    std::string(" Fixed image is a reference space or time slice.");
+      "Specialized for 4D time series data: fixed image is 3D, moving image should be the 4D time series. ") +
+    std::string("Fixed image is a reference space or time slice. ") +
+    std::string("To create a reference image from the time series, use the -a option.");
   parser->SetCommandDescription(commandDescription);
   antsMotionCorrInitializeCommandLineOptions(parser);
 
