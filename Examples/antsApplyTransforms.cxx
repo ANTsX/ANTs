@@ -210,6 +210,18 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption("input");
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption("output");
 
+  // Time-index to extract from time-series image
+  unsigned long extractTimeIndex = 0;
+
+  bool extractTimeIndexSet = false;
+
+  typename itk::ants::CommandLineParser::OptionType::Pointer timeIndexOption = parser->GetOption("time-index");
+  if (timeIndexOption && timeIndexOption->GetNumberOfFunctions())
+  {
+    extractTimeIndexSet = true;
+    extractTimeIndex = parser->Convert<unsigned int>(timeIndexOption->GetFunction(0)->GetName());
+  }
+
   if (inputImageType == 5 && inputOption && inputOption->GetNumberOfFunctions())
   {
     if (verbose)
@@ -235,8 +247,48 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     if (verbose)
     {
       std::cout << "Input time-series image: " << inputOption->GetFunction(0)->GetName() << std::endl;
+      if (extractTimeIndexSet)
+      {
+        std::cout << "Extracting time index: " << extractTimeIndex << std::endl;
+      }
     }
-    ReadImage<TimeSeriesImageType>(timeSeriesImage, (inputOption->GetFunction(0)->GetName()).c_str());
+    if (!extractTimeIndexSet)
+    {
+      ReadImage<TimeSeriesImageType>(timeSeriesImage, (inputOption->GetFunction(0)->GetName()).c_str());
+    }
+    else
+    {
+      // Modifying inputImageType, because we're going to extract a single time point
+      // if we don't do this, the code will try to read from timeSeriesImage below and output a time series
+      inputImageType = 0;
+
+      // Set up the image reader with streaming support
+      using ReaderType = itk::ImageFileReader<TimeSeriesImageType>;
+      typename ReaderType::Pointer reader = ReaderType::New();
+      reader->SetFileName((inputOption->GetFunction(0)->GetName()).c_str());
+
+      // Update the reader's output information without loading the entire image into memory
+      reader->UpdateOutputInformation();
+      typename TimeSeriesImageType::RegionType extractRegion = reader->GetOutput()->GetLargestPossibleRegion();
+      typename TimeSeriesImageType::SizeType size = extractRegion.GetSize();
+
+      // Check if the extractTimeIndex is within range
+      if (extractTimeIndex >= size[3])
+      {
+        std::cerr << "Error: time index to extract is out of range [0, " << (size[3] - 1) << "]" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+      extractRegion.SetIndex(Dimension, extractTimeIndex);
+      extractRegion.SetSize(Dimension, 0);
+      using ExtracterType = itk::ExtractImageFilter<TimeSeriesImageType, ImageType>;
+      typename ExtracterType::Pointer extracter = ExtracterType::New();
+      extracter->SetInput(reader->GetOutput());
+      extracter->SetExtractionRegion(extractRegion);
+      extracter->SetDirectionCollapseToSubmatrix();
+      extracter->Update();
+      inputImages.push_back(extracter->GetOutput());
+    }
   }
   else if (inputImageType == 2 && inputOption && inputOption->GetNumberOfFunctions())
   {
@@ -892,6 +944,18 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
     option->SetUsageOption(0, "0/1/2/3/4/5");
     option->SetUsageOption(1, "scalar/vector/tensor/time-series/multichannel/five-dimensional");
     option->AddFunction(std::string("0"));
+    option->SetDescription(description);
+    parser->AddOption(option);
+  }
+
+  {
+    std::string description = std::string("Time index to extract from time series input (-e 3). ") +
+                              std::string("This selects a single slice from time series input without reading ") +
+                              std::string("the entire dataset into memory.");
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("time-index");
+    option->SetUsageOption(0, "<timeIndex>");
     option->SetDescription(description);
     parser->AddOption(option);
   }
