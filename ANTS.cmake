@@ -165,3 +165,18 @@ if(BUILD_SHARED_LIBS AND ((NOT USE_SYSTEM_ITK) OR ((NOT USE_SYSTEM_VTK) AND USE_
   install(DIRECTORY ${CMAKE_BINARY_DIR}/../staging/${CMAKE_INSTALL_LIBDIR}/
           DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
+
+export(TARGETS ${ANTSTargets} FILE "${CMAKE_CURRENT_BINARY_DIR}/ANTS-targets.cmake")
+
+install(EXPORT antsTargets
+    FILE antsTargets.cmake
+    DESTINATION lib/cmake/ANTS)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "ANTSConfigVersion.cmake"
+    VERSION ${CPACK_PACKAGE_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+
+install(FILES "ANTSConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/ANTSConfigVersion.cmake"
+    DESTINATION lib/cmake/ANTS)
