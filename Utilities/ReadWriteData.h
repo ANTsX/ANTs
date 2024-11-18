@@ -31,6 +31,9 @@
 extern bool
 ANTSFileExists(const std::string & strFilename);
 
+extern bool
+ANTSFileIsImage(const std::string & filename);
+
 // Nifti stores DTI values in lower tri format but itk uses upper tri
 // currently, nifti io does nothing to deal with this. if this changes
 // the function below should be modified/eliminated.
@@ -153,6 +156,14 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
   if (!ANTSFileExists(std::string(file)))
   {
     std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
+    target = nullptr;
+    return;
+  }
+
+  if (!ANTSFileIsImage(file))
+  {
+    std::cerr << " file " << std::string(file) << " is not recognized as a supported image format . " << std::endl;
+    target = nullptr;
     return;
   }
 
@@ -286,6 +297,14 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
       target = nullptr;
       return false;
     }
+
+    if (!ANTSFileIsImage(file))
+    {
+      std::cerr << " file " << std::string(file) << " is not recognized as a supported image format . " << std::endl;
+      target = nullptr;
+      return false;
+    }
+
     typedef TImageType                      ImageType;
     typedef itk::ImageFileReader<ImageType> FileSourceType;
 
@@ -391,6 +410,7 @@ ReadLabeledPointSet(itk::SmartPointer<TPointSet> & target,
 {
   if (std::string(file).length() < 3)
   {
+    std::cerr << " bad file name " << std::string(file) << std::endl;
     target = nullptr;
     return false;
   }
@@ -398,6 +418,7 @@ ReadLabeledPointSet(itk::SmartPointer<TPointSet> & target,
   if (!ANTSFileExists(std::string(file)))
   {
     std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
+    target = nullptr;
     return false;
   }
 
@@ -415,6 +436,7 @@ ReadLabeledPointSet(itk::SmartPointer<TPointSet> & target,
   {
     std::cerr << "Exception caught during point set reference file reading " << std::endl;
     std::cerr << e << std::endl;
+    target = nullptr;
     return false;
   }
 
@@ -445,6 +467,13 @@ ReadImageIntensityPointSet(itk::SmartPointer<TPointSet> & target,
     return false;
   }
 
+  if (!ANTSFileIsImage(imageFile))
+  {
+    std::cerr << " file " << std::string(imageFile) << " is not recognized as a supported image format . " << std::endl;
+    target = nullptr;
+    return false;
+  }
+
   if (std::string(maskFile).length() < 3)
   {
     std::cerr << " bad mask file name " << std::string(maskFile) << std::endl;
@@ -455,6 +484,13 @@ ReadImageIntensityPointSet(itk::SmartPointer<TPointSet> & target,
   if (!ANTSFileExists(std::string(maskFile)))
   {
     std::cerr << " mask file " << std::string(maskFile) << " does not exist . " << std::endl;
+    target = nullptr;
+    return false;
+  }
+
+  if (!ANTSFileIsImage(maskFile))
+  {
+    std::cerr << " file " << std::string(maskFile) << " is not recognized as a supported image format . " << std::endl;
     target = nullptr;
     return false;
   }
