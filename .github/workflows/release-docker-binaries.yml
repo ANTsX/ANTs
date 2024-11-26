@@ -35,13 +35,19 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Get ANTs version and set artifact name
+      - name: Get ANTs version
         run: |
           echo "ANTS_VERSION=${ANTS_TAG#v}" >> $GITHUB_ENV
-          echo "ARTIFACT=ants-${ANTS_VERSION}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
         env:
           ANTS_TAG: ${{ github.ref_name }}
-
+      - name: Define env
+        run: |
+          echo github.event.action: ${{ github.event.action }}
+          echo github.event_name: ${{ github.event_name }}
+          echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
+          echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
+          # ARTIFACT here is just the file name, no path because we're referencing it from inside containers
+          echo "ARTIFACT=ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
       - name: Set up build container
         run: |
           docker pull ${{ matrix.config.image }}
