@@ -34,7 +34,11 @@ Optional arguments:
 
      -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
 
-     -i:  initial transform(s) --- order specified on the command line matters
+     -i:  initial transform(s) --- order specified on the command line matters. If not specified, a
+          default initialization is used, based on the transform type.
+
+          For "syn only" and "b-spline syn only" transforms, the initial transform is the identity
+          matrix. For other transforms, it is a translation that aligns the input centers of mass.
 
      -t:  transform type (default = 's')
         t: translation (1 stage)
@@ -131,7 +135,11 @@ Optional arguments:
 
      -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
 
-     -i:  initial transform(s) --- order specified on the command line matters
+     -i:  initial transform(s) --- order specified on the command line matters. If not specified, a
+          default initialization is used, based on the transform type.
+
+          For "syn only" and "b-spline syn only" transforms, the initial transform is the identity
+          matrix. For other transforms, it is a translation that aligns the input centers of mass.
 
      -t:  transform type (default = 's')
         t: translation (1 stage)
@@ -505,6 +513,15 @@ if [[ $REPRO -eq 1 ]];
   fi
 
 INITIALSTAGE="--initial-moving-transform [ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1 ]"
+
+if [[ ${TRANSFORMTYPE} == 'so' ]] || [[ ${TRANSFORMTYPE} == 'bo' ]];
+  then
+    # Could just set to an empty string but this is more explicit and also keeps transform
+    # numbering consistent with other use cases
+    #
+    # Default to identity if we are doing "syn only" or "b-spline syn only"
+    INITIALSTAGE="--initial-moving-transform Identity"
+  fi
 
 if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
   then
