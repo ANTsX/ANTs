@@ -135,6 +135,9 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
             }
           }
         }
+        else if (!strcmp((*it)->GetNameOfClass(), "TranslationTransform")) {
+          it->Print(std::cout);
+        }
         else
         {
           using TransformType3D = itk::MatrixOffsetTransformBase<double, 3, 3>;
@@ -170,6 +173,9 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
               it2->Print(std::cout);
             }
           }
+        }
+        else if (!strcmp((*it)->GetNameOfClass(), "TranslationTransform")) {
+          it->Print(std::cout);
         }
         else
         {
