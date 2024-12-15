@@ -1098,10 +1098,12 @@ antsAI(itk::ants::CommandLineParser * parser)
       }
       else if (initialTransformInitializedWithImages == true)
       {
-        using TranslationTransformType = itk::TranslationTransform<RealType, ImageDimension>;
-        typename TranslationTransformType::Pointer bestTranslationTransform = TranslationTransformType::New();
-        bestTranslationTransform->SetOffset(initialTransform->GetOffset());
-        transformWriter->SetInput(bestTranslationTransform);
+        // write the translation transform as a rigid transform, to be consistent with antsRegistration
+        typename RigidTransformType::Pointer bestRigidTransform = RigidTransformType::New();
+        bestRigidTransform->SetCenter(initialTransform->GetCenter());
+        bestRigidTransform->SetMatrix(initialTransform->GetMatrix());
+        bestRigidTransform->SetOffset(initialTransform->GetOffset());
+        transformWriter->SetInput(bestRigidTransform);
       }
 
       transformWriter->SetFileName(outputName.c_str());
