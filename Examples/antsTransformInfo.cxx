@@ -139,8 +139,15 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
         {
           using TransformType3D = itk::MatrixOffsetTransformBase<double, 3, 3>;
           TransformType3D * itktx3d = dynamic_cast<TransformType3D *>((*it).GetPointer());
-          itktx3d->Print(std::cout);
-          std::cout << "Determinant: " << vnl_determinant(itktx3d->GetMatrix().GetVnlMatrix()) << std::endl;
+          if (itktx3d)
+          {
+              itktx3d->Print(std::cout);
+              std::cout << "Determinant: " << vnl_determinant(itktx3d->GetMatrix().GetVnlMatrix()) << std::endl;
+          }
+          else
+          {
+              (*it)->Print(std::cout);
+          }
         }
       }
       else if (Dimension == 2)
@@ -175,8 +182,15 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
         {
           using TransformType2D = itk::MatrixOffsetTransformBase<double, 2, 2>;
           TransformType2D * itktx2d = dynamic_cast<TransformType2D *>((*it).GetPointer());
-          itktx2d->Print(std::cout);
-          std::cout << "Determinant: " << vnl_determinant(itktx2d->GetMatrix().GetVnlMatrix()) << std::endl;
+          if (itktx2d)
+          {
+            itktx2d->Print(std::cout);
+            std::cout << "Determinant: " << vnl_determinant(itktx2d->GetMatrix().GetVnlMatrix()) << std::endl;
+          }
+          else
+          {
+            (*it)->Print(std::cout);
+          }
         }
       }
     }
