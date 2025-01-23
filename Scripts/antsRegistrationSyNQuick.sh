@@ -233,6 +233,7 @@ function reportMappingParameters {
  Initial transforms:       ${INITIALTRANSFORMS[@]}
  Number of threads:        $NUMBEROFTHREADS
  Spline distance:          $SPLINEDISTANCE
+ Linear gradient step:     $LINEARGRADIENTSTEP
  SyN gradient step:        $SYNGRADIENTSTEP
  Transform type:           $TRANSFORMTYPE
  MI histogram bins:        $NUMBEROFBINS
@@ -286,7 +287,8 @@ INITIALTRANSFORMS=()
 OUTPUTNAME=output
 NUMBEROFTHREADS=0
 SPLINEDISTANCE=26
-SYNGRADIENTSTEP=0.1
+LINEARGRADIENTSTEP=0.1
+SYNGRADIENTSTEP=0.2
 TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
 NUMBEROFBINS=32
@@ -541,13 +543,13 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
   tx=Translation
 fi
 
-RIGIDSTAGE="--transform ${tx}[ 0.1 ] \
+RIGIDSTAGE="--transform ${tx}[ ${LINEARGRADIENTSTEP} ] \
             --metric ${LINEARMETRIC}[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,${LINEARMETRICPARAMETER},Regular,0.25 ] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
             --smoothing-sigmas $RIGIDSMOOTHINGSIGMAS"
 
-AFFINESTAGE="--transform Affine[ 0.1 ] \
+AFFINESTAGE="--transform Affine[ ${LINEARGRADIENTSTEP} ] \
              --metric ${LINEARMETRIC}[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,${LINEARMETRICPARAMETER},Regular,0.25 ] \
              --convergence $AFFINECONVERGENCE \
              --shrink-factors $AFFINESHRINKFACTORS \
