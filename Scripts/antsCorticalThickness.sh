@@ -381,7 +381,7 @@ ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.25
 
 ANTS=antsRegistration
 ANTS_MAX_ITERATIONS="100x100x70x20"
-ANTS_TRANSFORMATION="SyN[ 0.1,3,0 ]"
+ANTS_TRANSFORMATION="SyN[ 0.2,3,0 ]"
 ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
 ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x100,1e-8,10 ]"
 ANTS_METRIC="CC"
@@ -520,7 +520,7 @@ fi
 
 if [[ $USE_BSPLINE_SMOOTHING -ne 0 ]];
   then
-    ANTS_TRANSFORMATION="BSplineSyN[ 0.1,26,0,3 ]"
+    ANTS_TRANSFORMATION="BSplineSyN[ 0.2,26,0,3 ]"
     DIRECT_SMOOTHING_PARAMETER="5.75"
   fi
 
@@ -898,7 +898,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
                     basecall="${basecall} -p f"
                   fi
             else
-              basecall="${ANTS} -d ${DIMENSION} -u 1 -w [ 0.0,0.999 ] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
+              basecall="${ANTS} -d ${DIMENSION} -u 0 -w [ 0.0,0.999 ] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
               IMAGES="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
               if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
                 then
@@ -1136,7 +1136,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
           fi
       else
         IMAGES="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE}"
-        basecall="${ANTS} -d ${DIMENSION} -v 1 -u 1 -w [ 0.0,0.999 ] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [ ${IMAGES},1 ] --float ${USE_FLOAT_PRECISION}"
+        basecall="${ANTS} -d ${DIMENSION} -v 1 -u 0 -w [ 0.0,0.999 ] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [ ${IMAGES},1 ] --float ${USE_FLOAT_PRECISION}"
         stage1="-m MI[ ${IMAGES},${ANTS_LINEAR_METRIC_PARAMS} ] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[ 0.1 ] -f 8x4x2x1 -s 3x2x1x0"
         stage2="-m MI[ ${IMAGES},${ANTS_LINEAR_METRIC_PARAMS} ] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[ 0.1 ] -f 8x4x2x1 -s 3x2x1x0"
         stage3="-m CC[ ${IMAGES},1,4 ] -c [ ${ANTS_MAX_ITERATIONS},1e-9,15 ] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"

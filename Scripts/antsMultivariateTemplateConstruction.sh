@@ -991,7 +991,7 @@ if [[ "$RIGID" -eq 1 ]];
         BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
         RIGID="${outdir}/rigid${i}_0_${IMGbase}"
 
-        exe="$ANTS $DIM $IMAGEMETRICSET -o $RIGID -i 0 --use-Histogram-Matching $LINEARTRANSFORMPARAMS $RIGIDTYPE"
+        exe="$ANTS $DIM $IMAGEMETRICSET -o $RIGID -i 0 $LINEARTRANSFORMPARAMS $RIGIDTYPE"
 
         echo "$exe" >> $qscript
 
@@ -1383,10 +1383,10 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
         LINEARTRANSFORMPARAMS="--number-of-affine-iterations 10000x10000x1000 --MI-option 32x16000"
 
-        exe="$exe $ANTS ${DIM} $IMAGEMETRICSET -i ${MAXITERATIONS} -t ${TRANSFORMATION} -r $REGULARIZATION -o ${outdir}/${OUTWARPFN} --use-Histogram-Matching  $LINEARTRANSFORMPARAMS\n"
+        exe="$exe $ANTS ${DIM} $IMAGEMETRICSET -i ${MAXITERATIONS} -t ${TRANSFORMATION} -r $REGULARIZATION -o ${outdir}/${OUTWARPFN} $LINEARTRANSFORMPARAMS\n"
         exe="$exe $warpexe"
 
-        pexe="$pexe $ANTS ${DIM} $IMAGEMETRICSET -i ${MAXITERATIONS} -t ${TRANSFORMATION} -r $REGULARIZATION -o ${outdir}/${OUTWARPFN} --use-Histogram-Matching  $LINEARTRANSFORMPARAMS >> ${outdir}/job_${count}_metriclog.txt\n"
+        pexe="$pexe $ANTS ${DIM} $IMAGEMETRICSET -i ${MAXITERATIONS} -t ${TRANSFORMATION} -r $REGULARIZATION -o ${outdir}/${OUTWARPFN} $LINEARTRANSFORMPARAMS >> ${outdir}/job_${count}_metriclog.txt\n"
         pexe="$pexe $warppexe"
 
         qscript="${outdir}/job_${count}_${i}.sh"
