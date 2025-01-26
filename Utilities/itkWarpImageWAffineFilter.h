@@ -111,9 +111,9 @@ public:
   typedef typename OutputImageType::SpacingType       SpacingType;
 
   /** Determine the image dimension. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
-  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
-  itkStaticConstMacro(DisplacementFieldDimension, unsigned int, TDisplacementField::ImageDimension);
+  static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
+  static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
+  static constexpr unsigned int DisplacementFieldDimension = TDisplacementField::ImageDimension;
 
   /** Deformation field typedef support. */
   typedef TDisplacementField                        DisplacementFieldType;
@@ -131,7 +131,7 @@ public:
   typedef LinearInterpolateImageFunction<InputImageType, CoordRepType> DefaultInterpolatorType;
 
   /** Point type */
-  typedef Point<CoordRepType, itkGetStaticConstMacro(ImageDimension)> PointType;
+  typedef Point<CoordRepType, Self::ImageDimension> PointType;
 
   /** Set the deformation field. */
   void

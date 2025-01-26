@@ -38,7 +38,7 @@ public:
   itkOverrideGetNameOfClassMacro(antsMatrixUtilities);
 
   /** Dimension of the images. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   static constexpr unsigned int MatrixDimension = 2;
 
@@ -50,7 +50,7 @@ public:
 
   /** Some convenient typedefs. */
   typedef TRealType                                               RealType;
-  typedef Image<RealType, itkGetStaticConstMacro(ImageDimension)> RealImageType;
+  typedef Image<RealType, Self::ImageDimension> RealImageType;
 
   /** note, eigen for pseudo-eigenvals  */
   typedef vnl_matrix<RealType>      MatrixType;

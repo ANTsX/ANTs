@@ -61,7 +61,7 @@ public:
   // typedef Vector<RealType, 3> VectorType;
   typedef VariableSizeMatrix<RealType> VariableMatrixType;
 
-  itkStaticConstMacro(ImageDimension, unsigned int, TTensorImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TTensorImage::ImageDimension;
 
   typedef itk::Image<RealType, ImageDimension> RealTypeImageType;
 

@@ -52,7 +52,7 @@ public:
   {
     ImageDimension = TSurface::ImageDimension
   };
-  typedef Image<PixelType, itkGetStaticConstMacro(ImageDimension)> ImageType;
+  typedef Image<PixelType, Self::ImageDimension> ImageType;
   typedef typename ImageType::IndexType                            IndexType;
   typedef typename ImageType::SpacingType                          SpacingType;
   typedef typename ImageType::SizeType                             SizeType;
@@ -67,16 +67,16 @@ public:
   typedef typename Superclass::MatrixType MatrixType;
   typedef typename ImageType::PointType   ImagePointType;
 
-  typedef Image<PixelType, itkGetStaticConstMacro(ImageDimension)> OutputImageType;
+  typedef Image<PixelType, Self::ImageDimension> OutputImageType;
   typedef ImageRegionIteratorWithIndex<OutputImageType>            OutputImageIteratorType;
 
   typedef typename OutputImageType::Pointer OutputImagePointer;
 
-  typedef Image<MatrixType, itkGetStaticConstMacro(ImageDimension)> FrameImageType;
+  typedef Image<MatrixType, Self::ImageDimension> FrameImageType;
 
   /** Gradient filtering */
-  typedef CovariantVector<RealType, itkGetStaticConstMacro(ImageDimension)>        GradientPixelType;
-  typedef Image<GradientPixelType, itkGetStaticConstMacro(ImageDimension)>         GradientImageType;
+  typedef CovariantVector<RealType, Self::ImageDimension>        GradientPixelType;
+  typedef Image<GradientPixelType, Self::ImageDimension>         GradientImageType;
   typedef itk::VectorLinearInterpolateImageFunction<GradientImageType, RealType>   VectorInterpolatorType;
   typedef SmartPointer<GradientImageType>                                          GradientImagePointer;
   typedef GradientRecursiveGaussianImageFilter<OutputImageType, GradientImageType> GradientImageFilterType;

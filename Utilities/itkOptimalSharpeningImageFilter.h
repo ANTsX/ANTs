@@ -56,7 +56,7 @@ public:
   typedef typename NumericTraits<OutputPixelType>::RealType RealType;
   typedef typename TInputImage::PixelType                   InputPixelType;
   typedef typename TInputImage::InternalPixelType           InputInternalPixelType;
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
 
   /** Image typedef support. */
   typedef TInputImage                      InputImageType;

@@ -60,7 +60,7 @@ public:
   itkNewMacro(Self);
 
   /** Extract dimension from input and output image. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Convenient typedefs for simplifying declarations. */
   using InputImageType = TInputImage;

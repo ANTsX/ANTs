@@ -106,7 +106,7 @@ public:
 
   typedef double                                                             RealType;
   typedef vnl_vector<RealType>                                               VectorType;
-  typedef vnl_vector_fixed<RealType, itkGetStaticConstMacro(ImageDimension)> FixedVectorType;
+  typedef vnl_vector_fixed<RealType, Self::ImageDimension> FixedVectorType;
   typedef vnl_matrix<double>                                                 MatrixType;
 
   /** FEM types */

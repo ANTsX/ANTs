@@ -50,10 +50,10 @@ public:
   typedef typename Superclass::ContinuousIndexType ContinuousIndexType;
 
   /** The dimensionality of the input and output images. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Length of the vector pixel type of the input image. */
-  itkStaticConstMacro(VectorDimension, unsigned int, VectorType::Dimension);
+  static constexpr unsigned int VectorDimension = VectorType::Dimension;
 
   /** Define the data type and the vector of data type used in calculations. */
   typedef TRealType RealType;

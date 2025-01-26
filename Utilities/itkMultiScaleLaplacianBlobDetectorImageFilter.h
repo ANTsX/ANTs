@@ -53,7 +53,7 @@ public:
   typedef Image<RealPixelType, TDimension>  RealImageType;
   typedef typename RealImageType::IndexType CenterType;
 
-  itkStaticConstMacro(NumberOfDimensions, unsigned int, TDimension);
+  static constexpr unsigned int NumberOfDimensions = TDimension;
 
   itkNewMacro(Self);
   itkOverrideGetNameOfClassMacro(ScaleSpaceBlobSpatialObject);

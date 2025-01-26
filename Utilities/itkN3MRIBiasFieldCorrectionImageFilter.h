@@ -153,7 +153,7 @@ public:
   itkNewMacro(Self);
 
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Some convenient typedefs. */
   typedef TInputImage                       InputImageType;
@@ -166,8 +166,8 @@ public:
 
   /** B-spline smoothing filter typedefs */
   typedef Vector<RealType, 1>                                                      ScalarType;
-  typedef PointSet<ScalarType, itkGetStaticConstMacro(ImageDimension)>             PointSetType;
-  typedef Image<ScalarType, itkGetStaticConstMacro(ImageDimension)>                ScalarImageType;
+  typedef PointSet<ScalarType, Self::ImageDimension>             PointSetType;
+  typedef Image<ScalarType, Self::ImageDimension>                ScalarImageType;
   typedef BSplineScatteredDataPointSetToImageFilter<PointSetType, ScalarImageType> BSplineFilterType;
   typedef typename BSplineFilterType::PointDataImageType                           BiasFieldControlPointLatticeType;
   typedef typename BSplineFilterType::ArrayType                                    ArrayType;

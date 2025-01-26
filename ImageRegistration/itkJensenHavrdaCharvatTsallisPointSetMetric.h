@@ -42,7 +42,7 @@ public:
   /** Run-time type information (and related methods) */
   itkOverrideGetNameOfClassMacro(JensenHavrdaCharvatTsallisPointSetMetric);
 
-  itkStaticConstMacro(PointDimension, unsigned int, TPointSet::PointDimension);
+  static constexpr unsigned int PointDimension = TPointSet::PointDimension;
 
   /** Types transferred from the base class */
   typedef typename Superclass::TransformType           TransformType;

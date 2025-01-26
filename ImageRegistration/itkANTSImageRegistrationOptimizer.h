@@ -73,7 +73,7 @@ public:
   typedef double TComp;
   typedef TReal  RealType;
 
-  typedef Image<RealType, itkGetStaticConstMacro(Dimension)> ImageType;
+  typedef Image<RealType, Self::Dimension> ImageType;
   typedef typename ImageType::Pointer                        ImagePointer;
 
   typedef itk::MatrixOffsetTransformBase<TComp, ImageDimension, ImageDimension> TransformType;
@@ -106,10 +106,10 @@ public:
   typedef typename ParserType::OptionType OptionType;
 
   typedef GeneralToBSplineDisplacementFieldFilter<DisplacementFieldType> BSplineFilterType;
-  typedef FixedArray<RealType, itkGetStaticConstMacro(ImageDimension)>   ArrayType;
+  typedef FixedArray<RealType, Self::ImageDimension>   ArrayType;
 
   /** Typedefs for similarity metrics */
-  typedef ANTSSimilarityMetric<itkGetStaticConstMacro(Dimension), TReal> SimilarityMetricType;
+  typedef ANTSSimilarityMetric<Self::Dimension, TReal> SimilarityMetricType;
   typedef typename SimilarityMetricType::Pointer                         SimilarityMetricPointer;
   typedef std::vector<SimilarityMetricPointer>                           SimilarityMetricListType;
 

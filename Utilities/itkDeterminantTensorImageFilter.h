@@ -53,7 +53,7 @@ public:
   typedef typename OutputImageType::RegionType OutputImageRegionType;
 
   /** The dimensionality of the input and output images. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
 
   /** Define the data type and the vector of data type used in calculations. */
   typedef TRealType RealType;
