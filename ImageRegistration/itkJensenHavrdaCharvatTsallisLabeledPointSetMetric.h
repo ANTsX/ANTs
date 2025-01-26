@@ -41,7 +41,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(JensenHavrdaCharvatTsallisLabeledPointSetMetric, PointSetToLabelPointSetMetric);
+  itkOverrideGetNameOfClassMacro(JensenHavrdaCharvatTsallisLabeledPointSetMetric);
 
   itkStaticConstMacro(PointDimension, unsigned int, TPointSet::PointDimension);
 

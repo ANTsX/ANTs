@@ -93,7 +93,7 @@ public:
   typedef SmartPointer<const Self>     ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(N3BiasFieldScaleCostFunction, SingleValuedCostFunction);
+  itkOverrideGetNameOfClassMacro(N3BiasFieldScaleCostFunction);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -147,7 +147,7 @@ public:
   typedef SmartPointer<const Self>                      ConstPointer;
 
   /** Runtime information support. */
-  itkTypeMacro(N3MRIBiasFieldCorrectionImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(N3MRIBiasFieldCorrectionImageFilter);
 
   /** Standard New method. */
   itkNewMacro(Self);

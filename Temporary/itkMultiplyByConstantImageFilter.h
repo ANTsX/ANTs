@@ -49,7 +49,7 @@ public:
   /** method for creation through object factory */
   itkNewMacro(Self);
   /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiplyByConstantImageFilter, MultiplyImageFilter);
+  itkOverrideGetNameOfClassMacro(MultiplyByConstantImageFilter);
 
 protected:
   MultiplyByConstantImageFilter() = default;

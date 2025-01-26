@@ -41,7 +41,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(PICSLAdvancedNormalizationToolKit, Object);
+  itkOverrideGetNameOfClassMacro(PICSLAdvancedNormalizationToolKit);
   static constexpr unsigned int                              Dimension = TDimension;
   typedef double                                             TComp;
   typedef TReal                                              RealType;

@@ -41,7 +41,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(DeformationFieldGradientTensorImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(DeformationFieldGradientTensorImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */

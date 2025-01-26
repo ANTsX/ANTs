@@ -61,7 +61,7 @@ public:
   typedef SmartPointer<const Self>                                  ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(PointSetFunction, FunctionBase);
+  itkOverrideGetNameOfClassMacro(PointSetFunction);
 
   /** InputPointSetType typedef support. */
   typedef TInputPointSet InputPointSetType;

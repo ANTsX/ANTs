@@ -38,7 +38,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ANTSSimilarityMetric, Object);
+  itkOverrideGetNameOfClassMacro(ANTSSimilarityMetric);
   static constexpr unsigned int Dimension = TDimension;
 
   typedef TReal                                                RealType;

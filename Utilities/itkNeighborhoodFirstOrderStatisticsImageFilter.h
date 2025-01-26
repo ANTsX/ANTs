@@ -54,7 +54,7 @@ public:
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(NeighborhoodFirstOrderStatisticsImageFilter, MovingHistogramImageFilter);
+  itkOverrideGetNameOfClassMacro(NeighborhoodFirstOrderStatisticsImageFilter);
 
   /** Image related typedefs. */
   typedef TInputImage                                InputImageType;

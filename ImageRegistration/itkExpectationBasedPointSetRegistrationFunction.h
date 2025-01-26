@@ -71,7 +71,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ExpectationBasedPointSetRegistrationFunction, PDEDeformableRegistrationFunction);
+  itkOverrideGetNameOfClassMacro(ExpectationBasedPointSetRegistrationFunction);
 
   /** MovingImage image type. */
   using MovingImageType = typename Superclass::MovingImageType;

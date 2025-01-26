@@ -45,7 +45,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(antsSCCANObject, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(antsSCCANObject);
 
   /** Dimension of the images. */
   itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);

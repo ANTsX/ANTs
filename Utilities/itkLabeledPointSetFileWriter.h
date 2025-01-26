@@ -52,7 +52,7 @@ public:
   itkStaticConstMacro(Dimension, unsigned int, TInputMesh::PointType::Dimension);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(LabeledPointSetFileWriter, Object);
+  itkOverrideGetNameOfClassMacro(LabeledPointSetFileWriter);
 
   /** Hold on to the type information specified by the template parameters. */
   typedef TInputMesh                                          InputMeshType;

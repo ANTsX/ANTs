@@ -45,7 +45,7 @@ public:
   typedef SmartPointer<const Self>                                                         ConstPointer;
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(AvantsPDEDeformableRegistrationFunction, PDEDeformableRegistrationFunction);
+  itkOverrideGetNameOfClassMacro(AvantsPDEDeformableRegistrationFunction);
 
   /** MovingImage image type. */
   typedef TMovingImage                           MovingImageType;

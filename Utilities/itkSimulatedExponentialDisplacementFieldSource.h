@@ -53,7 +53,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(SimulatedExponentialDisplacementFieldSource, SimulatedDisplacementFieldSource);
+  itkOverrideGetNameOfClassMacro(SimulatedExponentialDisplacementFieldSource);
 
   /** Number of dimensions */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;

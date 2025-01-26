@@ -125,7 +125,7 @@ public:
   /**
    * Run-time type information (and related methods).
    */
-  itkTypeMacro(antsCommandIterationUpdate, itk::Command);
+  itkOverrideGetNameOfClassMacro(antsCommandIterationUpdate);
 
 
   /**

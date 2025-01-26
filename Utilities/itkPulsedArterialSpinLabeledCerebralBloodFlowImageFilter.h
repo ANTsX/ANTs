@@ -60,7 +60,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(PulsedArterialSpinLabeledCerebralBloodFlowImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(PulsedArterialSpinLabeledCerebralBloodFlowImageFilter);
 
   /** Compiler can't inherit typedef? */
   typedef TInputImage                             InputImageType;
