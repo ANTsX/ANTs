@@ -65,8 +65,8 @@ public:
   /** OutputType typedef support. */
   typedef TOutput OutputType;
 
-  /** CoordRepType typedef support. */
-  typedef TCoordRep CoordRepType;
+  /** CoordinateType typedef support. */
+  typedef TCoordRep CoordinateType;
 
   /** Set the input point set.
    * \warning this method caches BufferedRegion information.

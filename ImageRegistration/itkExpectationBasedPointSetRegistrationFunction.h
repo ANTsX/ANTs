@@ -111,7 +111,7 @@ public:
   using PointDataType = typename PointSetType::PixelType;
   using LabelSetType = std::vector<PointDataType>;
   //  typedef long PointDataType;
-  using MeasurementVectorType = Vector<typename PointSetType::CoordRepType, MeasurementDimension>;
+  using MeasurementVectorType = Vector<typename PointSetType::CoordinateType, MeasurementDimension>;
   using SampleType = typename Statistics::ListSample<MeasurementVectorType>;
   using TreeGeneratorType = typename Statistics::WeightedCentroidKdTreeGenerator<SampleType>;
   using NeighborhoodIdentifierType = typename TreeGeneratorType::KdTreeType::InstanceIdentifierVectorType;

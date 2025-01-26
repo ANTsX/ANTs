@@ -86,7 +86,7 @@ LabeledPointSetFileWriter<TInputMesh>::GenerateData()
   {
     typedef BoundingBox<unsigned long,
                         Dimension,
-                        typename TInputMesh::CoordRepType,
+                        typename TInputMesh::CoordinateType,
                         typename TInputMesh::PointsContainer>
                                       BoundingBoxType;
     typename BoundingBoxType::Pointer bbox = BoundingBoxType::New();

@@ -724,8 +724,8 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
           {
             for (unsigned int j = 0; j < ImageDimension; j++)
             {
-              mpt[j] += static_cast<typename ImagePointType::CoordRepType>(pp) *
-                        static_cast<typename ImagePointType::CoordRepType>(npt[j]);
+              mpt[j] += static_cast<typename ImagePointType::CoordinateType>(pp) *
+                        static_cast<typename ImagePointType::CoordinateType>(npt[j]);
             }
           }
           //

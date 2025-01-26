@@ -364,7 +364,7 @@ WarpImageMultiTransform(char *           moving_image_filename,
   if (misc_opt.use_NN_interpolator)
   {
     using NNInterpolateType =
-      typename itk::NearestNeighborInterpolateImageFunction<ImageType, typename WarperType::CoordRepType>;
+      typename itk::NearestNeighborInterpolateImageFunction<ImageType, typename WarperType::CoordinateType>;
     typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
     std::cout << "User nearest neighbor interpolation (was Haha) " << std::endl;
     warper->SetInterpolator(interpolator_NN);
@@ -374,7 +374,7 @@ WarpImageMultiTransform(char *           moving_image_filename,
     std::cout << " Need to fix in main itk repository " << std::endl;
     //      typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
     //      typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType,
-    //                                                                       typename WarperType::CoordRepType,
+    //                                                                       typename WarperType::CoordinateType,
     //                                                                       CompareType> MLInterpolateType;
     //      typename MLInterpolateType::Pointer interpolator_ML = MLInterpolateType::New();
     //
@@ -400,7 +400,7 @@ WarpImageMultiTransform(char *           moving_image_filename,
   {
     std::cout << " Not currently supported because of a lack of vector support " << std::endl;
     /*
-      typedef typename itk::BSplineInterpolateImageFunction<ImageType, typename WarperType::CoordRepType>
+      typedef typename itk::BSplineInterpolateImageFunction<ImageType, typename WarperType::CoordinateType>
       BSInterpolateType; typename BSInterpolateType::Pointer interpolator_BS = BSInterpolateType::New();
       interpolator_BS->SetSplineOrder(3);
       std::cout << "User B-spline interpolation " << std::endl;
@@ -410,7 +410,7 @@ WarpImageMultiTransform(char *           moving_image_filename,
   else
   {
     using LinInterpolateType =
-      typename itk::LinearInterpolateImageFunction<ImageType, typename WarperType::CoordRepType>;
+      typename itk::LinearInterpolateImageFunction<ImageType, typename WarperType::CoordinateType>;
     typename LinInterpolateType::Pointer interpolator_LN = LinInterpolateType::New();
     std::cout << "User Linear interpolation " << std::endl;
     warper->SetInterpolator(interpolator_LN);
