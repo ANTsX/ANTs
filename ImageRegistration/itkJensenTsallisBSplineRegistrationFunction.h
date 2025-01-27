@@ -50,8 +50,8 @@ public:
   /**
    * Inherit some enums from the superclass.
    */
-  itkStaticConstMacro(ImageDimension, unsigned int, Superclass::ImageDimension);
-  itkStaticConstMacro(PointDimension, unsigned int, TFixedPointSet::PointDimension);
+  static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
+  static constexpr unsigned int PointDimension = TFixedPointSet::PointDimension;
 
   typedef typename Superclass::NeighborhoodType NeighborhoodType;
   typedef typename Superclass::FloatOffsetType  FloatOffsetType;
@@ -87,7 +87,7 @@ public:
    * BSpline typedefs
    */
   /** Typedefs for B-spline filter */
-  typedef PointSet<VectorType, itkGetStaticConstMacro(ImageDimension)>                          BSplinePointSetType;
+  typedef PointSet<VectorType, Self::ImageDimension>                          BSplinePointSetType;
   typedef BSplineScatteredDataPointSetToImageFilter<BSplinePointSetType, DisplacementFieldType> BSplineFilterType;
   typedef typename BSplineFilterType::WeightsContainerType                                      BSplineWeightsType;
   typedef typename BSplineFilterType::PointDataImageType                                        ControlPointLatticeType;

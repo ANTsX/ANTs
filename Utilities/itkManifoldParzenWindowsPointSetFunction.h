@@ -47,7 +47,7 @@ public:
   itkNewMacro(Self);
 
   /** Extract dimension from output image. */
-  itkStaticConstMacro(Dimension, unsigned int, TPointSet::PointDimension);
+  static constexpr unsigned int Dimension = TPointSet::PointDimension;
 
   typedef typename Superclass::InputPointSetType InputPointSetType;
   typedef typename Superclass::InputPointType    InputPointType;
@@ -57,7 +57,7 @@ public:
   typedef typename PointSetType::PointType                     PointType;
   typedef typename PointSetType ::PointsContainerConstIterator PointsContainerConstIterator;
 
-  typedef Vector<typename PointSetType::CoordRepType, itkGetStaticConstMacro(Dimension)> MeasurementVectorType;
+  typedef Vector<typename PointSetType::CoordRepType, Self::Dimension> MeasurementVectorType;
   typedef typename Statistics::ListSample<MeasurementVectorType>                         SampleType;
   typedef typename Statistics ::WeightedCentroidKdTreeGenerator<SampleType>              TreeGeneratorType;
   typedef typename TreeGeneratorType::KdTreeType                                         KdTreeType;

@@ -449,7 +449,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComposeDiffs(DisplacementFiel
                                                                 DisplacementFieldPointer fieldout,
                                                                 TReal                    timesign)
 {
-  typedef Point<TReal, itkGetStaticConstMacro(ImageDimension)> VPointType;
+  typedef Point<TReal, Self::ImageDimension> VPointType;
 
   //  field->SetSpacing( fieldtowarpby->GetSpacing() );
   //  field->SetOrigin( fieldtowarpby->GetOrigin() );
@@ -2597,7 +2597,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
                                                                           TReal     finishtimein,
                                                                           IndexType velind)
 {
-  typedef Point<TReal, itkGetStaticConstMacro(ImageDimension + 1)> xPointType;
+  typedef Point<TReal, Self::ImageDimension + 1> xPointType;
   this->m_Debug = false;
 
 

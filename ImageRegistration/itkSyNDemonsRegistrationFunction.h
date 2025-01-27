@@ -79,7 +79,7 @@ public:
   typedef typename Superclass::DisplacementFieldTypePointer DisplacementFieldTypePointer;
 
   /** Inherit some enums from the superclass. */
-  itkStaticConstMacro(ImageDimension, unsigned int, Superclass::ImageDimension);
+  static constexpr unsigned int ImageDimension = Superclass::ImageDimension;
 
   /** Inherit some enums from the superclass. */
   typedef typename Superclass::PixelType        PixelType;
@@ -96,7 +96,7 @@ public:
   typedef LinearInterpolateImageFunction<MovingImageType, CoordRepType> DefaultInterpolatorType;
 
   /** Covariant vector type. */
-  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> CovariantVectorType;
+  typedef CovariantVector<double, Self::ImageDimension> CovariantVectorType;
 
   /** Fixed image gradient calculator type. */
   typedef CentralDifferenceImageFunction<FixedImageType> GradientCalculatorType;

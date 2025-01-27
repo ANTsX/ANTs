@@ -81,7 +81,7 @@ public:
   typedef typename TParamImage::PixelType          ParameterImageTypePixelType;
 
   /** Determine image dimension. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
 
   /** Image typedef support */
   typedef TInputImage  InputImageType;
@@ -93,8 +93,8 @@ public:
   /** Superclass typedefs. */
   typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-  typedef itk::GaussianOperator<ScalarValueType, itkGetStaticConstMacro(ImageDimension)> OperatorType;
-  //  Neighborhood<ScalarValueType, itkGetStaticConstMacro(ImageDimension)>
+  typedef itk::GaussianOperator<ScalarValueType, Self::ImageDimension> OperatorType;
+  //  Neighborhood<ScalarValueType, Self::ImageDimension>
 
   /** Sets the operator that is used to filter the image. Note
    * that the operator is stored as an internal COPY (it

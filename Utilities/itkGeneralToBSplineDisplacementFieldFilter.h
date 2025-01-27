@@ -36,7 +36,7 @@ public:
   itkNewMacro(Self);
 
   /** Extract dimension from input and output image. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Convenient typedefs for simplifying declarations. */
   typedef TInputImage  InputImageType;
@@ -51,7 +51,7 @@ public:
   typedef InputPixelComponentType         RealType;
   typedef Image<RealType, ImageDimension> RealImageType;
 
-  typedef PointSet<InputPixelType, itkGetStaticConstMacro(ImageDimension)>         PointSetType;
+  typedef PointSet<InputPixelType, Self::ImageDimension>         PointSetType;
   typedef BSplineScatteredDataPointSetToImageFilter<PointSetType, OutputImageType> BSplineFilterType;
   typedef typename BSplineFilterType::ArrayType                                    ArrayType;
 

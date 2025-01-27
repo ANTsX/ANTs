@@ -41,7 +41,7 @@ public:
   itkNewMacro(Self);
 
   /** Extract dimension from the input image. */
-  itkStaticConstMacro(Dimension, unsigned int, TInputImage::ImageDimension);
+  static constexpr unsigned int Dimension = TInputImage::ImageDimension;
 
   /** Run-time type information (and related methods). */
   itkOverrideGetNameOfClassMacro(ImageIntensityAndGradientToPointSetFilter);

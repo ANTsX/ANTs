@@ -116,9 +116,9 @@ public:
   typedef typename OutputImageType::DirectionType     DirectionType;
 
   /** Determine the image dimension. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
-  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
-  itkStaticConstMacro(DisplacementFieldDimension, unsigned int, TDisplacementField::ImageDimension);
+  static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
+  static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
+  static constexpr unsigned int DisplacementFieldDimension = TDisplacementField::ImageDimension;
 
   /** Deformation field typedef support. */
   typedef TDisplacementField                        DisplacementFieldType;
@@ -139,7 +139,7 @@ public:
   typedef typename DefaultVectorInterpolatorType::Pointer                           VectorInterpolatorPointer;
 
   /** Point type */
-  typedef Point<CoordRepType, itkGetStaticConstMacro(ImageDimension)> PointType;
+  typedef Point<CoordRepType, Self::ImageDimension> PointType;
 
   typedef struct _DeformationTypeEx
   {

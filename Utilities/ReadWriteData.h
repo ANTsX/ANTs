@@ -669,8 +669,8 @@ ReadWarpFromFile(std::string warpfn, std::string ext)
   typedef itk::Image<float, ImageDimension> RealImageType;
   typedef RealImageType                     ImageType;
 
-  //  typedef itk::Vector<float,itkGetStaticConstMacro(ImageDimension)>         VectorType;
-  //  typedef itk::Image<VectorType,itkGetStaticConstMacro(ImageDimension)>     FieldType;
+  //  typedef itk::Vector<float,Self::ImageDimension>         VectorType;
+  //  typedef itk::Image<VectorType,Self::ImageDimension>     FieldType;
   // std::cout << " warp file name " << warpfn + ext << std::endl;
 
   // First - read the vector fields

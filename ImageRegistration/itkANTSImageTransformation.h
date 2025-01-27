@@ -51,7 +51,7 @@ public:
   static constexpr unsigned int ImageDimension = TDimension;
 
   typedef TReal                                              RealType;
-  typedef Image<RealType, itkGetStaticConstMacro(Dimension)> ImageType;
+  typedef Image<RealType, Self::Dimension> ImageType;
   /** declare transformation types */
 
   typedef itk::MatrixOffsetTransformBase<TComp, TDimension, TDimension> AffineTransformType;

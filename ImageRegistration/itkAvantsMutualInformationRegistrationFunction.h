@@ -172,7 +172,7 @@ public:
   // DefaultInterpolatorType;
 
   /** Covariant vector type. */
-  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> CovariantVectorType;
+  typedef CovariantVector<double, Self::ImageDimension> CovariantVectorType;
 
   /** Gradient calculator type. */
   typedef CentralDifferenceImageFunction<FixedImageType> GradientCalculatorType;
@@ -227,8 +227,8 @@ public:
 
   /** Types inherited from Superclass. */
   typedef TranslationTransform<CoordinateRepresentationType,
-                               //                    itkGetStaticConstMacro(ImageDimension),
-                               itkGetStaticConstMacro(ImageDimension)>
+                               //                    Self::ImageDimension,
+                               Self::ImageDimension>
     TransformType;
 
   typedef ImageToImageMetric<TFixedImage, TMovingImage> Metricclass;
@@ -738,7 +738,7 @@ private:
    * image derivatives from the BSpline interpolator. Otherwise,
    * image derivatives are computed using central differencing.
    */
-  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> ImageDerivativesType;
+  typedef CovariantVector<double, Self::ImageDimension> ImageDerivativesType;
 
   /** Boolean to indicate if the interpolator BSpline. */
   bool m_InterpolatorIsBSpline;

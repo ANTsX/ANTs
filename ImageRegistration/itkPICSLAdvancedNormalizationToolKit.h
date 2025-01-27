@@ -45,7 +45,7 @@ public:
   static constexpr unsigned int                              Dimension = TDimension;
   typedef double                                             TComp;
   typedef TReal                                              RealType;
-  typedef Image<RealType, itkGetStaticConstMacro(Dimension)> ImageType;
+  typedef Image<RealType, Self::Dimension> ImageType;
   typedef typename ImageType::Pointer                        ImagePointer;
   typedef typename ImageType::PixelType                      PixelType;
 
@@ -63,7 +63,7 @@ public:
   typedef typename LabeledPointSetType::PointSetType PointSetType;
 
   /** Typedefs for similarity metrics */
-  typedef ANTSSimilarityMetric<itkGetStaticConstMacro(Dimension), TReal> SimilarityMetricType;
+  typedef ANTSSimilarityMetric<Self::Dimension, TReal> SimilarityMetricType;
   typedef typename SimilarityMetricType::Pointer                         SimilarityMetricPointer;
   typedef std::vector<SimilarityMetricPointer>                           SimilarityMetricListType;
   typedef typename SimilarityMetricType::MetricType                      MetricBaseType;
