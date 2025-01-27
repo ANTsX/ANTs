@@ -805,7 +805,7 @@ if [[ $TRANSFORMATIONTYPE == "BSplineSyN"* ]];
         TRANSFORMATION=${TRANSFORMATIONTYPE}
         TRANSFORMATIONTYPE="BSplineSyN"
       else
-        TRANSFORMATION="BSplineSyN[ 0.1,26,0,3 ]"
+        TRANSFORMATION="BSplineSyN[ 0.2,26,0,3 ]"
     fi
 elif [[ $TRANSFORMATIONTYPE == "SyN"* ]];
   then
@@ -814,7 +814,7 @@ elif [[ $TRANSFORMATIONTYPE == "SyN"* ]];
         TRANSFORMATION=${TRANSFORMATIONTYPE}
         TRANSFORMATIONTYPE="SyN"
       else
-        TRANSFORMATION="SyN[ 0.1,3,0 ]"
+        TRANSFORMATION="SyN[ 0.2,3,0 ]"
     fi
 elif [[ $TRANSFORMATIONTYPE == "TimeVaryingVelocityField"* ]];
   then
@@ -1144,7 +1144,7 @@ if [[ "$RIGID" -eq 1 ]];
     for (( i = 0; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
       do
 
-        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1 -u 1 -w [ 0.01,0.99 ] -z 1 -r [ ${TEMPLATES[0]},${IMAGESETARRAY[$i]},1 ]"
+        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1 -u 0 -w [ 0.01,0.99 ] -z 1 -r [ ${TEMPLATES[0]},${IMAGESETARRAY[$i]},1 ]"
 
         IMAGEMETRICSET=""
         for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
@@ -1439,7 +1439,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
     for (( j = 0; j < ${#IMAGESETARRAY[@]}; j+=$NUMBEROFMODALITIES ))
       do
-        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1 -u 1 -w [ 0.01,0.99 ] -z 1"
+        basecall="${ANTS} -d ${DIM} --float $USEFLOAT --verbose 1  -u 0 -w [ 0.01,0.99 ] -z 1"
 
         IMAGEMETRICLINEARSET=''
         IMAGEMETRICSET=''
