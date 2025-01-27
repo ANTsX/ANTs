@@ -1,16 +1,14 @@
-#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include "antsUtilities.h"
-#include <algorithm>
-
 #include "itkTransform.h"
 #include "itkCompositeTransform.h"
 #include "itkDisplacementFieldTransform.h"
-#include "antsCommandLineParser.h"
 #include "itkantsReadWriteTransform.h"
 #include "itkTransformFactory.h"
+#include "itkImageIOBase.h"
+#include "itkImageIOFactory.h"
 
 namespace ants
 {
@@ -28,6 +26,40 @@ RegisterMatOff()
     using MatrixOffsetTransformType = itk::MatrixOffsetTransformBase<double, VImageDimension, VImageDimension>;
     itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
   }
+}
+
+/**
+ * Infer dimensionality from the first input transform.
+ */
+static unsigned int
+InferDimensionalityFromTransform(const std::string & transformFileName)
+{
+  // Check for a displacement field first, because we need to know dimensionality before attempting to read
+  itk::ImageIOBase::Pointer imageIO =
+    itk::ImageIOFactory::CreateImageIO(transformFileName.c_str(), itk::IOFileModeEnum::ReadMode);
+
+  if (imageIO)
+  {
+    imageIO->SetFileName(transformFileName);
+    imageIO->ReadImageInformation();
+    return imageIO->GetNumberOfDimensions();
+  }
+
+  // Try reading as 2D transform
+  auto transform2D = itk::ants::ReadTransform<double, 2>(transformFileName);
+  if (transform2D.IsNotNull())
+  {
+    return 2;
+  }
+
+  // Try reading as 3D transform
+  auto transform3D = itk::ants::ReadTransform<double, 3>(transformFileName);
+  if (transform3D.IsNotNull())
+  {
+    return 3;
+  }
+
+  throw itk::ExceptionObject(__FILE__, __LINE__, "Unable to determine dimensionality of the transform.");
 }
 
 /**
@@ -87,38 +119,27 @@ Disassemble(itk::TransformBaseTemplate<double> * transform,
 static int
 Disassemble(const std::string & CompositeName, const std::string & Prefix)
 {
-  itk::TransformBaseTemplate<double>::Pointer transform =
-    itk::ants::ReadTransform<double, 2>(CompositeName).GetPointer();
-
-  if (transform.IsNull())
+  unsigned int dimensionality;
+  try
   {
-    transform = itk::ants::ReadTransform<double, 3>(CompositeName).GetPointer();
-    if (transform.IsNull())
-    {
-      return EXIT_FAILURE; // ReadTransform prints error messages on
-                           // failure.
-    }
+    dimensionality = InferDimensionalityFromTransform(CompositeName);
   }
-  const unsigned int inDim(transform->GetInputSpaceDimension());
-  const unsigned int outDim(transform->GetOutputSpaceDimension());
-  if (inDim != outDim)
+  catch (const std::exception & ex)
   {
-    std::cout << "Can't handle mixed input & output dimension: input(" << inDim << ") output (" << outDim << ")"
-              << std::endl;
+    std::cerr << ex.what() << std::endl;
     return EXIT_FAILURE;
   }
 
-  switch (inDim)
+  switch (dimensionality)
   {
     case 2:
-      return Disassemble<2>(transform, CompositeName, Prefix);
+      return Disassemble<2>(itk::ants::ReadTransform<double, 2>(CompositeName).GetPointer(), CompositeName, Prefix);
     case 3:
-      return Disassemble<3>(transform, CompositeName, Prefix);
+      return Disassemble<3>(itk::ants::ReadTransform<double, 3>(CompositeName).GetPointer(), CompositeName, Prefix);
     default:
-      std::cout << "Unknown dimension " << inDim << std::endl;
+      std::cout << "Unknown dimension " << dimensionality << std::endl;
       return EXIT_FAILURE;
   }
-  return EXIT_SUCCESS;
 }
 
 template <unsigned int VImageDimension>
@@ -147,21 +168,27 @@ Assemble(const std::string &                                                    
 static int
 Assemble(const std::string & CompositeName, const std::vector<std::string> & transformNames)
 {
+  unsigned int dimensionality;
+  try
   {
-    itk::Transform<double, 2, 2>::Pointer FirstTransform = itk::ants::ReadTransform<double, 2>(transformNames[0]);
-    if (FirstTransform.IsNotNull())
-    {
-      return Assemble<2>(CompositeName, transformNames, FirstTransform);
-    }
+    dimensionality = InferDimensionalityFromTransform(transformNames[0]);
   }
+  catch (const std::exception & ex)
   {
-    itk::Transform<double, 3, 3>::Pointer FirstTransform = itk::ants::ReadTransform<double, 3>(transformNames[0]);
-    if (FirstTransform.IsNotNull())
-    {
-      return Assemble<3>(CompositeName, transformNames, FirstTransform);
-    }
+    std::cerr << ex.what() << std::endl;
+    return EXIT_FAILURE;
   }
-  return EXIT_FAILURE;
+
+  switch (dimensionality)
+  {
+    case 2:
+      return Assemble<2>(CompositeName, transformNames, itk::ants::ReadTransform<double, 2>(transformNames[0]));
+    case 3:
+      return Assemble<3>(CompositeName, transformNames, itk::ants::ReadTransform<double, 3>(transformNames[0]));
+    default:
+      std::cout << "Unknown dimension " << dimensionality << std::endl;
+      return EXIT_FAILURE;
+  }
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -169,23 +196,16 @@ Assemble(const std::string & CompositeName, const std::vector<std::string> & tra
 int
 CompositeTransformUtil(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
 {
-  // put the arguments coming in as 'args' into standard (argc,argv) format;
-  // 'args' doesn't have the command name as first, argument, so add it manually;
-  // 'args' may have adjacent arguments concatenated into one argument,
-  // which the parser should handle
   args.insert(args.begin(), "CompositeTransformUtil");
   unsigned int argc = args.size();
   char **      argv = new char *[argc + 1];
   for (unsigned int i = 0; i < argc; ++i)
   {
-    // allocate space for the string plus a null character
     argv[i] = new char[args[i].length() + 1];
     std::strncpy(argv[i], args[i].c_str(), args[i].length());
-    // place the null character in the end
     argv[i][args[i].length()] = '\0';
   }
   argv[argc] = nullptr;
-  // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
   public:
@@ -209,7 +229,6 @@ CompositeTransformUtil(std::vector<std::string> args, std::ostream * /*out_strea
   };
   Cleanup_argv cleanup_argv(argv, argc + 1);
 
-  // antscout->set_stream( out_stream );
   if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
   {
     PrintGenericUsageStatement();
