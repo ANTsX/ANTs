@@ -29,7 +29,7 @@ class VectorImageFileWriterException : public ExceptionObject
 {
 public:
   /** Run-time information. */
-  itkTypeMacro(VectorImageFileWriterException, ExceptionObject);
+  itkOverrideGetNameOfClassMacro(VectorImageFileWriterException);
 
   /** Constructor. */
   VectorImageFileWriterException(const char * file,
@@ -71,7 +71,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(VectorImageFileWriter, VectorImageFileWriter);
+  itkOverrideGetNameOfClassMacro(VectorImageFileWriter);
 
   /** Some convenient typedefs. */
   typedef TVectorImage                         VectorImageType;

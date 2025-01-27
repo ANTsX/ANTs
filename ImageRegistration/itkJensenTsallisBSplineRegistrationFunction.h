@@ -45,7 +45,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(JensenTsallisBSplineRegistrationFunction, AvantsPDEDeformableRegistrationFunction);
+  itkOverrideGetNameOfClassMacro(JensenTsallisBSplineRegistrationFunction);
 
   /**
    * Inherit some enums from the superclass.

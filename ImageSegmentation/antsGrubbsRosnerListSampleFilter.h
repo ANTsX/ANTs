@@ -46,7 +46,7 @@ public:
   /**
    * Standard macros
    */
-  itkTypeMacro(GrubbsRosnerListSampleFilter, ListSampleToScalarListSampleFilter);
+  itkOverrideGetNameOfClassMacro(GrubbsRosnerListSampleFilter);
 
   /**
    * Method for creation through the object factory.

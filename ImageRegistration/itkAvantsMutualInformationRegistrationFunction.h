@@ -132,7 +132,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(AvantsMutualInformationRegistrationFunction, AvantsPDEDeformableRegistrationFunction);
+  itkOverrideGetNameOfClassMacro(AvantsMutualInformationRegistrationFunction);
 
   /** MovingImage image type. */
   typedef typename Superclass::MovingImageType    MovingImageType;

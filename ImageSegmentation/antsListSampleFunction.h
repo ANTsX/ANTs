@@ -50,7 +50,7 @@ public:
   typedef SmartPointer<const Self>                ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ListSampleFunction, FunctionBase);
+  itkOverrideGetNameOfClassMacro(ListSampleFunction);
 
   /** InputListSampleType typedef support. */
   typedef TInputListSample InputListSampleType;

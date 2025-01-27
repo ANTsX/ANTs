@@ -65,7 +65,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(CrossCorrelationRegistrationFunction, AvantsPDEDeformableRegistrationFunction);
+  itkOverrideGetNameOfClassMacro(CrossCorrelationRegistrationFunction);
 
   /** MovingImage image type. */
   typedef typename Superclass::MovingImageType    MovingImageType;

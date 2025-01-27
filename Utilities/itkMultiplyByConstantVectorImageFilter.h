@@ -110,7 +110,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiplyByConstantVectorImageFilter, UnaryFunctorImageFilter);
+  itkOverrideGetNameOfClassMacro(MultiplyByConstantVectorImageFilter);
 
   /** Set the constant that will be used to multiply all the image pixels */
   void

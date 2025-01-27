@@ -35,7 +35,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(antsMatrixUtilities, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(antsMatrixUtilities);
 
   /** Dimension of the images. */
   itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);

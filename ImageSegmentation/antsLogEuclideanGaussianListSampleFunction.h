@@ -42,7 +42,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(LogEuclideanGaussianListSampleFunction, ListSampleFunction);
+  itkOverrideGetNameOfClassMacro(LogEuclideanGaussianListSampleFunction);
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;

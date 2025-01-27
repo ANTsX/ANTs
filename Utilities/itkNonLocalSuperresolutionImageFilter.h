@@ -58,7 +58,7 @@ public:
   typedef SmartPointer<const Self>                                 ConstPointer;
 
   /** Runtime information support. */
-  itkTypeMacro(NonLocalSuperresolutionImageFilter, NonLocalPatchBasedImageFilter);
+  itkOverrideGetNameOfClassMacro(NonLocalSuperresolutionImageFilter);
 
   /** Standard New method. */
   itkNewMacro(Self);

@@ -75,7 +75,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(AtroposSegmentationImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(AtroposSegmentationImageFilter);
 
   /** Dimension of the images. */
   itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);

@@ -54,7 +54,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(SimulatedBSplineDisplacementFieldSource, SimulatedDisplacementFieldSource);
+  itkOverrideGetNameOfClassMacro(SimulatedBSplineDisplacementFieldSource);
 
   /** Number of dimensions */
   static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;

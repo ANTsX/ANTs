@@ -28,7 +28,7 @@ class VectorImageFileReaderException : public ExceptionObject
 {
 public:
   /** Run-time information. */
-  itkTypeMacro(VectorImageFileReaderException, ExceptionObject);
+  itkOverrideGetNameOfClassMacro(VectorImageFileReaderException);
 
   /** Constructor. */
   VectorImageFileReaderException(const char * file,
@@ -92,7 +92,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(VectorImageFileReader, ImageSource);
+  itkOverrideGetNameOfClassMacro(VectorImageFileReader);
 
   /** Image types */
   typedef typename TImage::RegionType        ImageRegionType;

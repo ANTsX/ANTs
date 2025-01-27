@@ -42,7 +42,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(JointHistogramParzenWindowsListSampleFunction, ListSampleFunction);
+  itkOverrideGetNameOfClassMacro(JointHistogramParzenWindowsListSampleFunction);
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;

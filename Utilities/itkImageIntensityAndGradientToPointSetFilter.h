@@ -44,7 +44,7 @@ public:
   itkStaticConstMacro(Dimension, unsigned int, TInputImage::ImageDimension);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageIntensityAndGradientToPointSetFilter, MeshSource);
+  itkOverrideGetNameOfClassMacro(ImageIntensityAndGradientToPointSetFilter);
 
   /** Hold on to the type information specified by the template parameters. */
   typedef TInputImage                        InputImageType;

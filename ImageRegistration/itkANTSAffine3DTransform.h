@@ -30,8 +30,8 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods).   */
-  // itkTypeMacro( ANTSAffine3DTransform, Rigid3DTransform );
-  itkTypeMacro(ANTSAffine3DTransform, MatrixOffsetTransformBase);
+  // itkOverrideGetNameOfClassMacro( ANTSAffine3DTransform);
+  itkOverrideGetNameOfClassMacro(ANTSAffine3DTransform);
 
   /** Dimension of parameters   */
   static constexpr unsigned int InputSpaceDimension = 3;

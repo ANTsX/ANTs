@@ -37,7 +37,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ANTSLabeledPointSet, Object);
+  itkOverrideGetNameOfClassMacro(ANTSLabeledPointSet);
   static constexpr unsigned int Dimension = TDimension;
 
   typedef float                                                RealType;

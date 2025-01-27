@@ -461,7 +461,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(RegistrationHelper, Object);
+  itkOverrideGetNameOfClassMacro(RegistrationHelper);
 
   /** Dimension of the image.  This constant is used by functions that are
    * templated over image type (as opposed to being templated over pixel type

@@ -113,7 +113,7 @@ public:
   itkGetMacro(UseImageDirection, bool);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(PreservationOfPrincipalDirectionTensorReorientationImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(PreservationOfPrincipalDirectionTensorReorientationImageFilter);
 
   /** Image typedef support. */
   typedef typename InputImageType::ConstPointer InputImagePointer;

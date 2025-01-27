@@ -111,7 +111,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(FMarchingImageFilter, ImageSource);
+  itkOverrideGetNameOfClassMacro(FMarchingImageFilter);
 
   /** Typedef support of level set method types. */
   typedef LevelSetTypeDefault<TLevelSet>              LevelSetType;

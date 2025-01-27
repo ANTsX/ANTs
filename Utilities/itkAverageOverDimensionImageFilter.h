@@ -100,7 +100,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(AverageOverDimensionImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(AverageOverDimensionImageFilter);
 
   /** Image type information. */
   typedef TInputImage  InputImageType;

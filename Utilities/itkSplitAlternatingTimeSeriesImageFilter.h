@@ -60,7 +60,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(SplitAlternatingTimeSeriesImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(SplitAlternatingTimeSeriesImageFilter);
 
   /** Compiler can't inherit typedef? */
   typedef typename Superclass::InputImageType  InputImageType;

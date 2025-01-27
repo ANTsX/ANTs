@@ -58,7 +58,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ExpTensorImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(ExpTensorImageFilter);
 
   /** Image typedef support. */
   typedef typename InputImageType::ConstPointer InputImagePointer;

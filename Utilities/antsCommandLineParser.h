@@ -62,7 +62,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(CommandLineParser, DataObject);
+  itkOverrideGetNameOfClassMacro(CommandLineParser);
 
   typedef CommandLineOption              OptionType;
   typedef std::list<OptionType::Pointer> OptionListType;

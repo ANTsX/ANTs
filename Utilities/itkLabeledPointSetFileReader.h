@@ -47,7 +47,7 @@ public:
   itkStaticConstMacro(Dimension, unsigned int, TOutputMesh::PointType::Dimension);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(LabeledPointSetFileReader, MeshSource);
+  itkOverrideGetNameOfClassMacro(LabeledPointSetFileReader);
 
   /** Hold on to the type information specified by the template parameters. */
   typedef TOutputMesh                                     OutputMeshType;

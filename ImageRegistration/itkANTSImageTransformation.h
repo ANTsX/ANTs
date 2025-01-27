@@ -46,7 +46,7 @@ public:
 
   typedef double TComp;
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ANTSImageTransformation, Object);
+  itkOverrideGetNameOfClassMacro(ANTSImageTransformation);
   static constexpr unsigned int Dimension = TDimension;
   static constexpr unsigned int ImageDimension = TDimension;
 

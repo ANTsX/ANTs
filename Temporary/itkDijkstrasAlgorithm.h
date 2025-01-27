@@ -77,7 +77,7 @@ public:
   typedef LightObject              Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
-  itkTypeMacro(GraphSearchNode, LightObject);
+  itkOverrideGetNameOfClassMacro(GraphSearchNode);
   itkNewMacro(Self); /** Method for creation through the object factory.   */
 
   enum StateType
@@ -315,7 +315,7 @@ typedef DijkstrasAlgorithmQueue  Self;
 typedef LightObject              Superclass;
 typedef SmartPointer<Self>       Pointer;
 typedef SmartPointer<const Self> ConstPointer;
-itkTypeMacro(DijkstrasAlgorithmQueue, LightObject);
+itkOverrideGetNameOfClassMacro(DijkstrasAlgorithmQueue);
 itkNewMacro(Self); /** Method for creation through the object factory.   */
 
 typedef typename TGraphSearchNode::Pointer   TGraphSearchNodePointer;
@@ -440,7 +440,7 @@ public:
   typedef LightObject              Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
-  itkTypeMacro(DijkstrasAlgorithm, LightObject);
+  itkOverrideGetNameOfClassMacro(DijkstrasAlgorithm);
   itkNewMacro(Self);
 
   // Computation Data
