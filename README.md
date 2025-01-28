@@ -1,7 +1,7 @@
 [![ci-docker](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml/badge.svg)](https://github.com/ANTsX/ANTs/actions/workflows/ci-docker.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/antsx/ants.svg)](https://hub.docker.com/repository/docker/antsx/ants)
 ![Downloads](https://img.shields.io/github/downloads/antsx/ants/total)
-[![Anaconda-Server Badge](https://anaconda.org/aramislab/ants/badges/version.svg)](https://anaconda.org/aramislab/ants)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/ants/badges/version.svg)](https://anaconda.org/conda-forge/ants)
 [![PubMed](https://img.shields.io/badge/ANTsX_paper-Open_Access-8DABFF?logo=pubmed)](https://pubmed.ncbi.nlm.nih.gov/33907199/)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 
@@ -17,7 +17,7 @@ It is possible to use ANTs in R ([ANTsR](https://github.com/antsx/antsr)) and Py
 
 ## Installation
 
-Quick links: [download binaries](https://github.com/ANTsX/ANTs/releases) | [build from source](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) | [docker](https://hub.docker.com/r/antsx/ants) | [conda](https://anaconda.org/aramislab/ants).
+Quick links: [download binaries](https://github.com/ANTsX/ANTs/releases) | [build from source](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS) | [docker](https://hub.docker.com/r/antsx/ants) | [conda]((https://anaconda.org/conda-forge/ants).
 
 ### Pre-compiled binaries
 
@@ -53,7 +53,7 @@ cd ANTS-build
 make install 2>&1 | tee install.log
 ```
 
-More details and a full downloadable installation script can be found in the [Linux/MacOS Guide](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS). Building from source will generally work on Windows as well with some additional steps explained in the [Windows Guide](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). Alternatively, it is also possible to install ANTs via [Docker](https://hub.docker.com/r/antsx/ants) or [Conda](https://anaconda.org/aramislab/ants).
+More details and a full downloadable installation script can be found in the [Linux/MacOS Guide](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS). Building from source will generally work on Windows as well with some additional steps explained in the [Windows Guide](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). Alternatively, it is also possible to install ANTs via [Docker](https://hub.docker.com/r/antsx/ants) or [Conda](https://anaconda.org/conda-forge/ants).
 
 <br />
 
