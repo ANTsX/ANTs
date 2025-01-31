@@ -632,6 +632,11 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     ConvertToLowerCase(outputOptionName);
     if (!std::strcmp(outputOptionName.c_str(), "linear"))
     {
+      if (verbose)
+      {
+        std::cout << "Output collapsed affine transform: " << outputOption->GetFunction(0)->GetParameter(0) << std::endl;
+      }
+
       if (!compositeTransform->IsLinear())
       {
         if (verbose)
@@ -670,7 +675,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     }
     else if (!std::strcmp(outputOptionName.c_str(), "compositetransform"))
     {
-      // above should match -o [ compositeTransform.ext, 0 ] or the preferred -o CompositeTransform[output.ext]
+      // above should match -o CompositeTransform[output.ext]
       if (verbose)
       {
         std::cout << "Output composite transform: " << outputOption->GetFunction(0)->GetParameter(0) << std::endl;
@@ -683,14 +688,14 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       transformWriter->SetUseCompression(true);
       transformWriter->Update();
     }
-    else if ((!std::strcmp(outputOptionName.c_str(), "compositedisplacementfield") ||
-                (outputOption->GetFunction(0)->GetNumberOfParameters() > 1 &&
+    else if ((!std::strcmp(outputOptionName.c_str(), "displacementfield") ||
+                (!std::strcmp(outputOptionName.c_str(), "") && outputOption->GetFunction(0)->GetNumberOfParameters() > 1 &&
                     parser->Convert<unsigned int>(outputOption->GetFunction(0)->GetParameter(1)) != 0)))
     {
-      // above should match -o [ compositeDisplacement.ext, 1 ] or the preferred -o CompositeDisplacementField[output.ext]
+      // above should match -o [ compositeDisplacement.ext, 1 ] or the preferred -o DisplacementField[output.ext]
       if (verbose)
       {
-        std::cout << "Output composite transform displacement field: " << outputOption->GetFunction(0)->GetParameter(0)
+        std::cout << "Output collapsed transform displacement field: " << outputOption->GetFunction(0)->GetParameter(0)
                   << std::endl;
       }
 
@@ -734,6 +739,17 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     }
     else
     {
+
+      // if we get here, we are applying the transform to an image, input is required
+      if (!(inputOption && inputOption->GetNumberOfFunctions()))
+      {
+        if (verbose)
+        {
+          std::cerr << "Output is not a transform, and there is no input image. Exiting" << std::endl;
+        }
+       return EXIT_FAILURE;
+      }
+
       std::string outputFileName = "";
       if (outputOption->GetFunction(0)->GetNumberOfParameters() > 1 &&
           parser->Convert<unsigned int>(outputOption->GetFunction(0)->GetParameter(1)) == 0)
@@ -1031,7 +1047,7 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
         "If all input transforms are linear, they can be collapsed and (if boolean is set) inverted, then written to "
         "an ITK transform file. "
         "If the input transforms contain displacement fields, they can be collapsed into a single displacement field with "
-        "CompositeDisplacementField[compositeDFFileName]. This replaces the usage '-o [compositeDFFileName, 1]', which is "
+        "DisplacementField[collapsedDFFileName]. This replaces the usage '-o [collapsedDFFileName, 1]', which is "
         "deprecated but still allowed for backwards compatibility. "
         "To write a non-collapsed composite transform, use CompositeTransform[compositeTransform.h5].  The output file will "
         "contain all the individual transforms.";
@@ -1040,10 +1056,10 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
     option->SetLongName("output");
     option->SetShortName('o');
     option->SetUsageOption(0, "warpedOutputFileName");
-    option->SetUsageOption(1, "CompositeDisplacementField[compositeDFFileName]");
+    option->SetUsageOption(1, "DisplacementField[compositeDFFileName]");
     option->SetUsageOption(2, "CompositeTransform[compositeTransformFileName]");
-    option->SetUsageOption(3, "Linear[compositeAffine.mat, invert=0]");
-    option->SetUsageOption(4, "[compositeDisplacementField,1]");
+    option->SetUsageOption(3, "Linear[collapsedAffine.mat, invert=0]");
+    option->SetUsageOption(4, "[collapsedDisplacementField,1]");
 
     option->SetDescription(description);
     parser->AddOption(option);
