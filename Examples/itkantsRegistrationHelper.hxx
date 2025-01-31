@@ -47,6 +47,7 @@ RegistrationHelper<TComputeType, VImageDimension>::RegistrationHelper()
   , m_NumberOfStages(0)
   , m_Metrics()
   , m_TransformMethods()
+  , m_OutputPrefix()
   , m_Iterations()
   , m_SmoothingSigmas()
   , m_RestrictDeformationOptimizerWeights()
@@ -524,6 +525,14 @@ RegistrationHelper<TComputeType, VImageDimension>::AddBSplineExponentialTransfor
   init.m_NumberOfTimeIndices = NumberOfIntegrationSteps;
 
   this->m_TransformMethods.push_back(init);
+}
+
+template <typename TComputeType, unsigned VImageDimension>
+void
+RegistrationHelper<TComputeType, VImageDimension>::SetOutputPrefix(
+  const std::string & OutputPrefix)
+{
+  this->m_OutputPrefix = OutputPrefix;
 }
 
 template <typename TComputeType, unsigned VImageDimension>
@@ -1373,6 +1382,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
     optimizerObserver->SetLogStream(*this->m_LogStream);
     optimizerObserver->SetNumberOfIterations(currentStageIterations);
     optimizerObserver->SetOptimizer(optimizer);
+    optimizerObserver->SetOutputPrefix(this->m_OutputPrefix);
 
     if (!this->IsPointSetMetric(this->m_Metrics[0].m_MetricType))
     {

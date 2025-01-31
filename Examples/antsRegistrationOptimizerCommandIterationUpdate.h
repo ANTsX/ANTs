@@ -173,6 +173,12 @@ public:
   itkSetMacro(CurrentStageNumber, unsigned int);
 
   void
+  SetOutputPrefix(const std::string & outputPrefix)
+  {
+    this->m_OutputPrefix = outputPrefix;
+  }
+
+  void
   SetNumberOfIterations(const std::vector<unsigned int> & iterations)
   {
     this->m_NumberOfIterations = iterations;
@@ -382,7 +388,7 @@ public:
 
     // write the results to the disk
     std::stringstream currentFileName;
-    currentFileName << "Stage" << this->m_CurrentStageNumber + 1 << "_level" << this->m_CurrentLevel;
+    currentFileName << this->m_OutputPrefix << "Stage" << this->m_CurrentStageNumber + 1 << "_level" << this->m_CurrentLevel;
     /*
     The name arrangement of written files are important to us.
     To prevent: "Iter1 Iter10 Iter2 Iter20" we use the following style.
@@ -439,6 +445,7 @@ private:
    */
   itk::WeakPointer<OptimizerType> m_Optimizer;
 
+  std::string                       m_OutputPrefix;
   std::vector<unsigned int>         m_NumberOfIterations;
   std::ostream *                    m_LogStream;
   itk::TimeProbe                    m_clock;
