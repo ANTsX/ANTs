@@ -931,6 +931,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   }
 
   // set the vector-vector parameters accumulated
+  regHelper->SetOutputPrefix(outputPrefix);
   regHelper->SetIterations(iterationList);
   regHelper->SetRestrictDeformationOptimizerWeights(restrictDeformationWeightsList);
   regHelper->SetConvergenceWindowSizes(convergenceWindowSizeList);
