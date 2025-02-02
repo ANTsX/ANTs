@@ -677,6 +677,11 @@ public:
                                  std::vector<unsigned int> & VelocityFieldMeshSizeAtBaseLevel,
                                  unsigned int                NumberOfIntegrationSteps,
                                  unsigned int                SplineOrder);
+  /**
+   * Add the collected output prefix
+   */
+  void
+  SetOutputPrefix(const std::string & outputPrefix);
 
   /**
    * Add the collected iterations list
@@ -1102,6 +1107,7 @@ private:
   unsigned int                           m_NumberOfStages;
   MetricListType                         m_Metrics;
   TransformMethodListType                m_TransformMethods;
+  std::string                            m_OutputPrefix;
   std::vector<std::vector<unsigned int>> m_Iterations;
   std::vector<RealType>                  m_ConvergenceThresholds;
   std::vector<unsigned int>              m_ConvergenceWindowSizes;
