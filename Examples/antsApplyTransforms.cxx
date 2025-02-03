@@ -1042,15 +1042,15 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
 
   {
     std::string description =
-        "One can either output a warped image, or the composite transform containing all input transforms, or a collapsed "
-        "affine or displacement field created from the input transforms. "
+        "The default output is the warped input image, resliced into the space of the reference image. Alternatively, one "
+        "can output the composite transform containing all input transforms, or a collapsed affine or displacement field "
+        "created from the input transforms. "
         "If all input transforms are linear, they can be collapsed and (if boolean is set) inverted, then written to "
         "an ITK transform file. "
         "If the input transforms contain displacement fields, they can be collapsed into a single displacement field with "
         "DisplacementField[collapsedDFFileName]. This replaces the usage '-o [collapsedDFFileName, 1]', which is "
         "deprecated but still allowed for backwards compatibility. "
-        "To write a non-collapsed composite transform, use CompositeTransform[compositeTransform.h5].  The output file will "
-        "contain all the individual transforms.";
+        "To write a non-collapsed composite transform, use CompositeTransform[compositeTransform.h5].";
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("output");
