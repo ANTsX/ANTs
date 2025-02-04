@@ -2165,6 +2165,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         displacementFieldRegistrationObserver2->SetNumberOfIterations(currentStageIterations);
         displacementFieldRegistrationObserver2->SetOrigFixedImage(this->m_Metrics[0].m_FixedImage);
         displacementFieldRegistrationObserver2->SetOrigMovingImage(this->m_Metrics[0].m_MovingImage);
+        displacementFieldRegistrationObserver2->SetOutputPrefix(this->m_OutputPrefix);
         if (this->m_PrintSimilarityMeasureInterval != 0)
         {
           displacementFieldRegistrationObserver2->SetComputeFullScaleCCInterval(this->m_PrintSimilarityMeasureInterval);
