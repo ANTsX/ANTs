@@ -32,6 +32,8 @@
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
 #include "itkLabelImageGenericInterpolateImageFunction.h"
 
+#include "itksys/SystemTools.hxx"
+
 namespace ants
 {
 template <typename TensorImageType, typename ImageType>
@@ -318,7 +320,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       // can only check files, so skip checks if using a pointer in ANTsR / ANTsPy
       if (verbose)
       {
-        std::cout << "Could not create ImageIO for the input file, assuming dimension = " << Dimension <<
+        std::cout << "Input is not a file, assuming dimension = " << Dimension <<
             " and scalar pixel type" << std::endl;
       }
     }
@@ -406,13 +408,28 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
    * Reference image option
    */
   bool needReferenceImage = true;
+
   if (outputOption && outputOption->GetNumberOfFunctions())
   {
     std::string outputOptionName = outputOption->GetFunction(0)->GetName();
     ConvertToLowerCase(outputOptionName);
-    if (!std::strcmp(outputOptionName.c_str(), "linear"))
+
+    // Check if the function name matches keywords requiring no reference image
+    if (outputOptionName == "linear" || outputOptionName == "compositetransform")
     {
-      needReferenceImage = false;
+        if (outputOption->GetFunction(0)->GetNumberOfParameters() > 0)
+        {
+            needReferenceImage = false;
+        }
+        else
+        {
+          // no output parameter where we need one
+          if (verbose)
+          {
+            std::cerr << "An output parameter is required with -o Linear or -o CompositeTransform, see usage" << std::endl;
+          }
+          return EXIT_FAILURE;
+        }
     }
   }
 
@@ -615,6 +632,11 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     ConvertToLowerCase(outputOptionName);
     if (!std::strcmp(outputOptionName.c_str(), "linear"))
     {
+      if (verbose)
+      {
+        std::cout << "Output collapsed affine transform: " << outputOption->GetFunction(0)->GetParameter(0) << std::endl;
+      }
+
       if (!compositeTransform->IsLinear())
       {
         if (verbose)
@@ -646,18 +668,34 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
         {
           transformWriter->SetInput(transform);
         }
-#if ITK_VERSION_MAJOR >= 5
+        // Use compression just to be consistent
         transformWriter->SetUseCompression(true);
-#endif
         transformWriter->Update();
       }
     }
-    else if (outputOption->GetFunction(0)->GetNumberOfParameters() > 1 &&
-             parser->Convert<unsigned int>(outputOption->GetFunction(0)->GetParameter(1)) != 0)
+    else if (!std::strcmp(outputOptionName.c_str(), "compositetransform"))
     {
+      // above should match -o CompositeTransform[output.ext]
       if (verbose)
       {
-        std::cout << "Output composite transform displacement field: " << outputOption->GetFunction(0)->GetParameter(0)
+        std::cout << "Output composite transform: " << outputOption->GetFunction(0)->GetParameter(0) << std::endl;
+      }
+
+      using TransformWriterType = itk::TransformFileWriterTemplate<T>;
+      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+      transformWriter->SetFileName((outputOption->GetFunction(0)->GetParameter(0)).c_str());
+      transformWriter->SetInput(compositeTransform);
+      transformWriter->SetUseCompression(true);
+      transformWriter->Update();
+    }
+    else if ((!std::strcmp(outputOptionName.c_str(), "displacementfield") ||
+                (!std::strcmp(outputOptionName.c_str(), "") && outputOption->GetFunction(0)->GetNumberOfParameters() > 1 &&
+                    parser->Convert<unsigned int>(outputOption->GetFunction(0)->GetParameter(1)) != 0)))
+    {
+      // above should match -o [ compositeDisplacement.ext, 1 ] or the preferred -o DisplacementField[output.ext]
+      if (verbose)
+      {
+        std::cout << "Output collapsed transform displacement field: " << outputOption->GetFunction(0)->GetParameter(0)
                   << std::endl;
       }
 
@@ -672,9 +710,12 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       converter->Update();
 
       if ((itksys::SystemTools::GetFilenameLastExtension(outputOption->GetFunction(0)->GetParameter(0)) == ".h5") ||
-          (itksys::SystemTools::GetFilenameLastExtension(outputOption->GetFunction(0)->GetParameter(0)) == ".hdf5"))
+          (itksys::SystemTools::GetFilenameLastExtension(outputOption->GetFunction(0)->GetParameter(0)) == ".hdf5") ||
+          (itksys::SystemTools::GetFilenameLastExtension(outputOption->GetFunction(0)->GetParameter(0)) == ".xfm"))
       {
-        // HDF5 transforms must be written by a TransformFileWriter to be valid ITK transforms
+        // unlike NIFTI images, xfm or hdf5 files must be written with a transform writer
+        // Note here we are just outputing a single combined displacement field as an hdf5 file, not the full composite
+        // transform with its components stored separately
         using DisplacementFieldTransformType = itk::DisplacementFieldTransform<RealType, Dimension>;
         typename DisplacementFieldTransformType::Pointer compositeDisplacementTransform = DisplacementFieldTransformType::New();
         compositeDisplacementTransform->SetDisplacementField(converter->GetOutput());
@@ -682,11 +723,13 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
         using TransformWriterType = itk::TransformFileWriterTemplate<RealType>;
         typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
         transformWriter->SetFileName((outputOption->GetFunction(0)->GetParameter(0)).c_str());
+        transformWriter->SetUseCompression(true);
         transformWriter->SetInput(compositeDisplacementTransform);
         transformWriter->Update();
       }
       else
       {
+        // write as a vector image
         using DisplacementFieldWriterType = itk::ImageFileWriter<DisplacementFieldType>;
         typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
         displacementFieldWriter->SetInput(converter->GetOutput());
@@ -696,6 +739,17 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     }
     else
     {
+
+      // if we get here, we are applying the transform to an image, input is required
+      if (!(inputOption && inputOption->GetNumberOfFunctions()))
+      {
+        if (verbose)
+        {
+          std::cerr << "Output is not a transform, and there is no input image. Exiting" << std::endl;
+        }
+       return EXIT_FAILURE;
+      }
+
       std::string outputFileName = "";
       if (outputOption->GetFunction(0)->GetNumberOfParameters() > 1 &&
           parser->Convert<unsigned int>(outputOption->GetFunction(0)->GetParameter(1)) == 0)
@@ -987,18 +1041,26 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
   }
 
   {
-    std::string description = std::string("One can either output the warped image or, if the boolean ") +
-                              std::string("is set, one can print out the displacement field based on the ") +
-                              std::string("composite transform and the reference image.  A third option ") +
-                              std::string("is to compose all affine transforms and (if boolean is set) ") +
-                              std::string("calculate its inverse which is then written to an ITK file. ");
+    std::string description =
+        "The default output is the warped input image, resliced into the space of the reference image. Alternatively, one "
+        "can output the composite transform containing all input transforms, or a collapsed affine or displacement field "
+        "created from the input transforms. "
+        "If all input transforms are linear, they can be collapsed and (if boolean is set) inverted, then written to "
+        "an ITK transform file. "
+        "If the input transforms contain displacement fields, they can be collapsed into a single displacement field with "
+        "DisplacementField[collapsedDFFileName]. This replaces the usage '-o [collapsedDFFileName, 1]', which is "
+        "deprecated but still allowed for backwards compatibility. "
+        "To write a non-collapsed composite transform, use CompositeTransform[compositeTransform.h5].";
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("output");
     option->SetShortName('o');
     option->SetUsageOption(0, "warpedOutputFileName");
-    option->SetUsageOption(1, "[warpedOutputFileName or compositeDisplacementField,<printOutCompositeWarpFile=0>]");
-    option->SetUsageOption(2, "Linear[genericAffineTransformFile,<calculateInverse=0>]");
+    option->SetUsageOption(1, "DisplacementField[compositeDFFileName]");
+    option->SetUsageOption(2, "CompositeTransform[compositeTransformFileName]");
+    option->SetUsageOption(3, "Linear[collapsedAffine.mat, invert=0]");
+    option->SetUsageOption(4, "[collapsedDisplacementField,1]");
+
     option->SetDescription(description);
     parser->AddOption(option);
   }
@@ -1237,12 +1299,6 @@ antsApplyTransforms(std::vector<std::string> args, std::ostream * /*out_stream =
   }
 
   unsigned int dimension = 3;
-
-  // BA - code below creates problems in ANTsR
-  //  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-  //                                                            filename.c_str(),
-  //                                                            itk::ImageIOFactory::FileModeType::ReadMode );
-  //  dimension = imageIO->GetNumberOfDimensions();
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption = parser->GetOption("dimensionality");
   if (dimOption && dimOption->GetNumberOfFunctions())

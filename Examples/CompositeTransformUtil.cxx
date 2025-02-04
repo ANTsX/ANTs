@@ -72,7 +72,12 @@ PrintGenericUsageStatement()
             << " <transform name prefix>" << std::endl
             << "or" << std::endl
             << "CompositeTransformUtil  --assemble <CompositeTransform> "
-            << "<transform 1> <transform 2 > ... <transform N>" << std::endl;
+            << "<transform 1> <transform 2 > ... <transform N>" << std::endl
+            << std::endl
+            << "Note: correct ordering of transforms differs from the command line order" << std::endl
+            << "in calls to antsApplyTransforms. You can now use antsApplyTransforms to produce" << std::endl
+            << "composite transforms directly, see its usage for the '--output' option."
+            << std::endl;
 }
 
 /**
