@@ -362,17 +362,61 @@ ConvertScalarImageToRGB(std::vector<std::string> args, std::ostream * /*out_stre
 
   // antscout->set_stream( out_stream );
 
+  std::string usage =
+    "  Usage: ConvertScalarImageToRGB imageDimension inputImage outputImage mask colormap [customColormapFile] [minimumInput=min] [maximumInput=max] [minimumRGBOutput=0] [maximumRGBOutput=255] [vtkLookupTable]\n"
+    "\n"
+    "  Arguments:\n"
+    "    imageDimension\n"
+    "        The dimension of the input image. Allowed values:\n"
+    "           2   — for a 2D image\n"
+    "           3   — for a 3D image\n"
+    "\n"
+    "    inputImage\n"
+    "        Path to the input scalar image.\n"
+    "\n"
+    "    outputImage\n"
+    "        Path to the output RGB image that will be generated.\n"
+    "\n"
+    "    mask\n"
+    "        Path to a mask image. This sets pixels outside the mask to zero. Use 'none' for no mask.\n"
+    "\n"
+    "    colormap\n"
+    "        A string specifying which colormap to use. Allowed values include:\n"
+    "           grey, red, green, blue, copper, jet, hsv, spring, summer, autumn, winter, hot, cool, overunder, custom\n"
+    "        If \"custom\" is chosen, the next argument (customColormapFile) must be provided.\n"
+    "\n"
+    "    customColormapFile\n"
+    "        (Required if colormap is 'custom'.)\n"
+    "        A text file defining the custom colormap. The colormap is a 3xN matrix, columns separated by spaces, where each\n"
+    "        column defines an (R,G,B) color triplet in the range (0,1). The limits of the colormap are defined by the\n"
+    "        minimumInput and maximumInput arguments. Intermediate values are interpolated linearly.\n"
+    "\n"
+    "    minimumInput (default = min)\n"
+    "        Specifies the minimum scalar value for colormap scaling.\n"
+    "        If this argument is not provided or is set to 'min' or 'minimum', the minimum from the input image is used\n"
+    "        (considering only pixels within the mask if one is provided).\n"
+    "\n"
+    "    maximumInput (default = max)\n"
+    "        Specifies the minimum scalar value for colormap scaling.\n"
+    "        If this argument is not provided or is set to 'min' or 'minimum', the minimum from the input image is used\n"
+    "        (considering only pixels within the mask if one is provided).\n"
+    "\n"
+    "    minimumRGBOutput (default = 0.0)\n"
+    "        The minimum value for the RGB output components.\n"
+    "\n"
+    "    maximumRGBOutput (default = 255)\n"
+    "        The maximum value for the RGB output components.\n"
+    "\n"
+    "    vtkLookupTable (Optional)\n"
+    "        If provided, the program exports the color mapping to a VTK lookup table with 256 entries.\n"
+    "        Each entry is formatted as:\n"
+    "           scalarValue, red, green, blue, alpha\n"
+    "        This maps scalar values between minimumInput and maximumInput to colors, as specified by the color map. This\n"
+    "        is useful to export the mapping for use with programs that support VTK lookup tables.\n";
+
   if (argc < 6)
   {
-    std::cout << "Usage: " << argv[0] << " imageDimension inputImage outputImage "
-              << "mask colormap [customColormapFile] [minimumInput] [maximumInput] "
-              << "[minimumRGBOutput=0] [maximumRGBOutput=255] <vtkLookupTable>" << std::endl;
-    std::cout << "  Possible colormaps: grey, red, green, blue, copper, jet, hsv, ";
-    std::cout << "spring, summer, autumn, winter, hot, cool, overunder, custom" << std::endl;
-    if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
-    {
-      return EXIT_SUCCESS;
-    }
+    std::cout << usage << std::endl;
     return EXIT_FAILURE;
   }
 
