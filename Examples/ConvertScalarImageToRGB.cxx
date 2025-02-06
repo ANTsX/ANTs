@@ -417,6 +417,12 @@ ConvertScalarImageToRGB(std::vector<std::string> args, std::ostream * /*out_stre
   if (argc < 6)
   {
     std::cout << usage << std::endl;
+
+    if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
+    {
+      return EXIT_SUCCESS;
+    }
+
     return EXIT_FAILURE;
   }
 
