@@ -907,6 +907,7 @@ elif [[ ${NINFILES} -eq 1 ]];
         IMAGECOUNT=0
         while read line
             do
+            line=$(echo "$line" | tr -d '\r') # remove carriage return from python / windows line-endings
             files=(`echo $line | tr "," "\n"`)
             if [[ ${#files[@]} -ne $NUMBEROFMODALITIES ]];
                 then
