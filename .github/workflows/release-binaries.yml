@@ -32,14 +32,6 @@ jobs:
             generators: "Ninja"
           }
         - {
-            name: "Ubuntu-20.04-GCC",
-            os: ubuntu-20.04,
-            cc: "gcc",
-            cxx: "g++",
-            build_type: "Release",
-            generators: "Ninja"
-          }
-        - {
             name: "Macos-14-clang",
             os: macos-14,
             cc: "clang",
