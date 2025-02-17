@@ -13,6 +13,7 @@
 #include "itkFlipImageFilter.h"
 #include "itkImageDuplicator.h"
 #include "itkImageRegionIterator.h"
+#include "itkIntensityWindowingImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkPermuteAxesImageFilter.h"
@@ -30,10 +31,11 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
 
   using PixelType = RealType;
   using RgbComponentType = unsigned char;
+  using ScalarComponentType = unsigned char;
   using RgbPixelType = itk::RGBPixel<RgbComponentType>;
 
   using ImageType = itk::Image<PixelType, ImageDimension>;
-  using SliceType = itk::Image<PixelType, ImageDimension - 1>;
+  using SliceType = itk::Image<ScalarComponentType, ImageDimension - 1>;
   using RgbSliceType = itk::Image<RgbPixelType, ImageDimension - 1>;
 
   using RgbImageType = itk::Image<RgbPixelType, ImageDimension>;
@@ -94,16 +96,27 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
 
   RealType minIntensityValue = 0.0;
   RealType maxIntensityValue = 1.0;
-  if (inputImage)
-  {
-    using StatisticsImageFilterType = itk::StatisticsImageFilter<ImageType>;
-    StatisticsImageFilterType::Pointer statisticsImageFilter = StatisticsImageFilterType::New();
-    statisticsImageFilter->SetInput(inputImage);
-    statisticsImageFilter->Update();
 
-    minIntensityValue = statisticsImageFilter->GetMinimum();
-    maxIntensityValue = statisticsImageFilter->GetMaximum();
-  }
+  using StatisticsImageFilterType = itk::StatisticsImageFilter<ImageType>;
+  StatisticsImageFilterType::Pointer statisticsImageFilter = StatisticsImageFilterType::New();
+  statisticsImageFilter->SetInput(inputImage);
+  statisticsImageFilter->Update();
+
+  minIntensityValue = statisticsImageFilter->GetMinimum();
+  maxIntensityValue = statisticsImageFilter->GetMaximum();
+
+  // Rescale the input image to the range 0-255. Without an overlay, we write these values directly
+  // as unsigned char for compatibility with different image formats.
+  // With overlay(s), we need the scalar to be in the range 0-255 for the combined RGB pixel computation
+  using IntensityWindowingImageFilterType = itk::IntensityWindowingImageFilter<ImageType, ImageType>;
+
+  auto windowingFilter = IntensityWindowingImageFilterType::New();
+  windowingFilter->SetInput(inputImage);
+  windowingFilter->SetWindowMinimum(minIntensityValue);
+  windowingFilter->SetWindowMaximum(maxIntensityValue);
+  windowingFilter->SetOutputMinimum(0.0);
+  windowingFilter->SetOutputMaximum(255.0);
+  windowingFilter->Update();
 
   RealType alpha = 1.0;
 
@@ -674,7 +687,7 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
 
     using ExtracterType = itk::ExtractImageFilter<ImageType, SliceType>;
     ExtracterType::Pointer extracter = ExtracterType::New();
-    extracter->SetInput(inputImage);
+    extracter->SetInput(windowingFilter->GetOutput());
     extracter->SetExtractionRegion(region);
     extracter->SetDirectionCollapseToIdentity();
 
@@ -882,10 +895,11 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
 
           if (n == 0)
           {
-            PixelType pixel = 255 * (It.Get() - minIntensityValue) / (maxIntensityValue - minIntensityValue);
+            RealType pixel = static_cast<RealType>(It.Get());
 
-            if (outputMaskSlice2 && !itk::Math::FloatAlmostEqual(outputMaskSlice2->GetPixel(It.GetIndex()),
-                                                                 itk::NumericTraits<PixelType>::ZeroValue()))
+            if (outputMaskSlice2 && !itk::Math::FloatAlmostEqual(
+                static_cast<RealType>(outputMaskSlice2->GetPixel(It.GetIndex())),
+                itk::NumericTraits<PixelType>::ZeroValue()))
             {
               rgbPixel.SetRed(
                 static_cast<RgbComponentType>((itk::NumericTraits<RealType>::OneValue() - functionalAlpha) * pixel +
@@ -911,8 +925,9 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
             // or
             // http://en.wikipedia.org/wiki/Alpha_compositing
 
-            if (outputMaskSlice2 && !itk::Math::FloatAlmostEqual(outputMaskSlice2->GetPixel(It.GetIndex()),
-                                                                 itk::NumericTraits<RealType>::ZeroValue()))
+            if (outputMaskSlice2 && !itk::Math::FloatAlmostEqual(
+                static_cast<RealType>(outputMaskSlice2->GetPixel(It.GetIndex())),
+                itk::NumericTraits<RealType>::ZeroValue()))
             {
               RealType functionalRed = rgbPixel.GetRed() / static_cast<RealType>(255.0);
               RealType functionalGreen = rgbPixel.GetGreen() / static_cast<RealType>(255.0);
