@@ -339,6 +339,7 @@ LabelGeometryMeasures(int argc, char * argv[])
 
   if (outFile.is_open())
   {
+    outFile.flush();
     outFile.close();
   }
   return EXIT_SUCCESS;
