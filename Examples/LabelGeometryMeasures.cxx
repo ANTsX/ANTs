@@ -302,10 +302,12 @@ LabelGeometryMeasures(int argc, char * argv[])
   std::ostream* outStream = &std::cout; // Default to std::cout
   std::string delimiter = "\t"; // Default to tab delimiter
 
+  std::ofstream outFile;
+
   if (argc > 4 && std::string(argv[4]) != "none" && std::string(argv[4]) != "na")
   {
-    static std::ofstream outFile(argv[4]);
-    if (!outFile)
+    outFile.open(argv[4]);
+    if (!outFile.is_open())
     {
       std::cerr << "Error opening output file" << std::endl;
       return EXIT_FAILURE;
@@ -335,9 +337,9 @@ LabelGeometryMeasures(int argc, char * argv[])
     *outStream << "\n";
   }
 
-  if (outStream != &std::cout)
+  if (outFile.is_open())
   {
-    static_cast<std::ofstream*>(outStream)->close(); // Close file if not cout
+    outFile.close();
   }
   return EXIT_SUCCESS;
 }
