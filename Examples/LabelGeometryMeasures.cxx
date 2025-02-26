@@ -4,19 +4,12 @@
 #include "ReadWriteData.h"
 
 #include "itkAffineTransform.h"
-#include "itkBinaryThresholdImageFilter.h"
-#include "itkCSVArray2DDataObject.h"
-#include "itkCSVArray2DFileReader.h"
-#include "itkCSVNumericObjectFileWriter.h"
 #include "itkImage.h"
 #include "itkLabelImageToShapeLabelMapFilter.h"
 #include "itkLabelMap.h"
 #include "itkLabelStatisticsImageFilter.h"
-#include "itkMaskImageFilter.h"
-#include "itkResampleImageFilter.h"
 #include "itkShapeLabelMapFilter.h"
 #include "itkShapeLabelObject.h"
-#include "itkStatisticsImageFilter.h"
 #include "itkStatisticsLabelMapFilter.h"
 #include "itkTransformFileWriter.h"
 
@@ -129,50 +122,9 @@ LabelGeometryMeasures(int argc, char * argv[])
   typename StatisticsFilterType::Pointer statisticsFilter = StatisticsFilterType::New();
   if (intensityImageUsed)
   {
-
-    // Threshold label image to create a binary mask
-    auto thresholdFilter = itk::BinaryThresholdImageFilter<LabelImageType, MaskImageType>::New();
-    thresholdFilter->SetInput(labelImage);
-    thresholdFilter->SetLowerThreshold(1);
-    thresholdFilter->SetUpperThreshold(itk::NumericTraits<LabelType>::max());
-    thresholdFilter->SetInsideValue(1);
-    thresholdFilter->SetOutsideValue(0);
-    thresholdFilter->Update();
-    auto binaryMask = thresholdFilter->GetOutput();
-
-    // mask the intensity image with the binary mask
-    auto maskFilter = itk::MaskImageFilter<RealImageType, MaskImageType>::New();
-    maskFilter->SetInput(intensityImage);
-    maskFilter->SetMaskImage(binaryMask);
-    maskFilter->SetOutsideValue(0);
-    maskFilter->Update();
-    auto maskedScalarImage = maskFilter->GetOutput();
-
-    // Iterate through the scalar image and mask
-    itk::ImageRegionConstIterator<RealImageType> scalarIt(maskedScalarImage, maskedScalarImage->GetLargestPossibleRegion());
-    itk::ImageRegionConstIterator<MaskImageType> maskIt(binaryMask, binaryMask->GetLargestPossibleRegion());
-
-    float minValue = itk::NumericTraits<float>::max();
-    float maxValue = itk::NumericTraits<float>::NonpositiveMin();
-
-    while (!scalarIt.IsAtEnd())
-    {
-      if (maskIt.Get() > 0)  // Only consider voxels inside the mask
-      {
-        float value = scalarIt.Get();
-        if (value < minValue)
-          minValue = value;
-        if (value > maxValue)
-          maxValue = value;
-      }
-      ++scalarIt;
-      ++maskIt;
-   }
-
     statisticsFilter->SetInput(intensityImage);
     statisticsFilter->SetLabelInput(labelImage);
-    statisticsFilter->SetUseHistograms(true);
-    statisticsFilter->SetHistogramParameters(4096, minValue, maxValue);
+    statisticsFilter->SetUseHistograms(false);
     statisticsFilter->Update();
   }
 
@@ -219,7 +171,6 @@ LabelGeometryMeasures(int argc, char * argv[])
   {
     columnHeaders.push_back("MeanIntensity");
     columnHeaders.push_back("SigmaIntensity");
-    columnHeaders.push_back("MedianIntensity");
     columnHeaders.push_back("MinIntensity");
     columnHeaders.push_back("MaxIntensity");
     columnHeaders.push_back("IntegratedIntensity");
@@ -328,7 +279,6 @@ LabelGeometryMeasures(int argc, char * argv[])
     {
       row.push_back(std::to_string(statisticsFilter->GetMean(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetSigma(labelObject->GetLabel())));
-      row.push_back(std::to_string(statisticsFilter->GetMedian(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetMinimum(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetMaximum(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetSum(labelObject->GetLabel())));
@@ -461,9 +411,6 @@ LabelGeometryMeasures(std::vector<std::string> args, std::ostream * itkNotUsed(o
     "      - Principal moments and axes of shape\n"
     "      - Ellipsoid parameters\n"
     "      - Intensity statistics (if an intensity image is provided)\n"
-    "\n"
-    "  Note: Intensity median measurements are approximated from the image histogram. This is faster than sorting all\n"
-    "        pixel values, but has limited precision.\n"
     "\n"
     "  Note: use 'none' or 'na' as a placeholder to output a CSV file without using an intensity image.\n"
     "\n";
