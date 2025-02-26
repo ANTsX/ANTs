@@ -4,17 +4,12 @@
 #include "ReadWriteData.h"
 
 #include "itkAffineTransform.h"
-#include "itkCSVArray2DDataObject.h"
-#include "itkCSVArray2DFileReader.h"
-#include "itkCSVNumericObjectFileWriter.h"
 #include "itkImage.h"
 #include "itkLabelImageToShapeLabelMapFilter.h"
 #include "itkLabelMap.h"
 #include "itkLabelStatisticsImageFilter.h"
-#include "itkResampleImageFilter.h"
 #include "itkShapeLabelMapFilter.h"
 #include "itkShapeLabelObject.h"
-#include "itkStatisticsImageFilter.h"
 #include "itkStatisticsLabelMapFilter.h"
 #include "itkTransformFileWriter.h"
 
@@ -87,6 +82,10 @@ LabelGeometryMeasures(int argc, char * argv[])
 {
   using LabelType = unsigned int;
   using LabelImageType = itk::Image<LabelType, ImageDimension>;
+  // mask image is used to binarize the labels, used to mask the intensity image
+  // to better initialize the histogram for stats
+  using MaskType = unsigned char;
+  using MaskImageType = itk::Image<MaskType, ImageDimension>;
   using RealType = float;
   using RealImageType = itk::Image<RealType, ImageDimension>;
 
@@ -123,18 +122,9 @@ LabelGeometryMeasures(int argc, char * argv[])
   typename StatisticsFilterType::Pointer statisticsFilter = StatisticsFilterType::New();
   if (intensityImageUsed)
   {
-    using VoxelStatisticsFilterType = itk::StatisticsImageFilter<RealImageType>;
-    auto voxelStatisticsFilter = VoxelStatisticsFilterType::New();
-    voxelStatisticsFilter->SetInput(intensityImage);
-    voxelStatisticsFilter->Update();
-
-    auto lowerBound = voxelStatisticsFilter->GetMinimum();
-    auto upperBound = voxelStatisticsFilter->GetMaximum();
-
     statisticsFilter->SetInput(intensityImage);
     statisticsFilter->SetLabelInput(labelImage);
-    statisticsFilter->SetUseHistograms(true);
-    statisticsFilter->SetHistogramParameters(255, lowerBound, upperBound);
+    statisticsFilter->SetUseHistograms(false);
     statisticsFilter->Update();
   }
 
@@ -181,7 +171,6 @@ LabelGeometryMeasures(int argc, char * argv[])
   {
     columnHeaders.push_back("MeanIntensity");
     columnHeaders.push_back("SigmaIntensity");
-    columnHeaders.push_back("MedianIntensity");
     columnHeaders.push_back("MinIntensity");
     columnHeaders.push_back("MaxIntensity");
     columnHeaders.push_back("IntegratedIntensity");
@@ -290,7 +279,6 @@ LabelGeometryMeasures(int argc, char * argv[])
     {
       row.push_back(std::to_string(statisticsFilter->GetMean(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetSigma(labelObject->GetLabel())));
-      row.push_back(std::to_string(statisticsFilter->GetMedian(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetMinimum(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetMaximum(labelObject->GetLabel())));
       row.push_back(std::to_string(statisticsFilter->GetSum(labelObject->GetLabel())));
@@ -304,7 +292,7 @@ LabelGeometryMeasures(int argc, char * argv[])
 
   std::ofstream outFile;
 
-  if (argc > 4 && std::string(argv[4]) != "none" && std::string(argv[4]) != "na")
+  if (writeCSV)
   {
     outFile.open(argv[4]);
     if (!outFile.is_open())
@@ -390,12 +378,46 @@ LabelGeometryMeasures(std::vector<std::string> args, std::ostream * itkNotUsed(o
   };
   Cleanup_argv cleanup_argv(argv, argc + 1);
 
-  // antscout->set_stream( out_stream );
+  std::string usage =
+    "  Usage: LabelGeometryMeasures imageDimension labelImage [intensityImage] [outputCSV]\n"
+    "\n"
+    "  Arguments:\n"
+    "    imageDimension\n"
+    "        The dimension of the input images. Allowed values: 2, 3\n"
+    "\n"
+    "    labelImage\n"
+    "        Path to the input label image.\n"
+    "        This image should contain 0 for background and positive integer labels in the range of uint32.\n"
+    "\n"
+    "    intensityImage\n"
+    "        (Optional.)\n"
+    "        The filename of an intensity image (scalar type) that corresponds to the label image.\n"
+    "        If provided, intensity statistics will be computed for each labeled region. This can be set to\n"
+    "         'none' or 'na' if no intensity image is available.\n"
+    "\n"
+    "    outputCSV\n"
+    "        (Optional.)\n"
+    "        The filename for the output CSV file containing computed shape and intensity measures.\n"
+    "        If not specified, the output will be tab-separated printed to stdout.\n"
+    "\n"
+    "  Output:\n"
+    "    The program computes geometric and statistical properties for each labeled region in the label image.\n"
+    "    The output includes:\n"
+    "      - Label index\n"
+    "      - Number of pixels/voxels\n"
+    "      - Centroid coordinates\n"
+    "      - Physical size of each label\n"
+    "      - Bounding box coordinates\n"
+    "      - Principal moments and axes of shape\n"
+    "      - Ellipsoid parameters\n"
+    "      - Intensity statistics (if an intensity image is provided)\n"
+    "\n"
+    "  Note: use 'none' or 'na' as a placeholder to output a CSV file without using an intensity image.\n"
+    "\n";
 
   if (argc < 3)
   {
-    std::cout << "Usage 1: " << argv[0] << " imageDimension labelImage [intensityImage] [csvFile]" << std::endl;
-    std::cout << "To output to csvFile without an intensity image, use \"none\" or \"na\" as the third arg" << std::endl;
+    std::cout << usage << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
