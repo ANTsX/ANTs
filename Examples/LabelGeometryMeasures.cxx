@@ -428,12 +428,49 @@ LabelGeometryMeasures(std::vector<std::string> args, std::ostream * itkNotUsed(o
   };
   Cleanup_argv cleanup_argv(argv, argc + 1);
 
-  // antscout->set_stream( out_stream );
+  std::string usage =
+    "  Usage: LabelGeometryMeasures imageDimension labelImage [intensityImage] [outputCSV]\n"
+    "\n"
+    "  Arguments:\n"
+    "    imageDimension\n"
+    "        The dimension of the input images. Allowed values: 2, 3\n"
+    "\n"
+    "    labelImage\n"
+    "        Path to the input label image.\n"
+    "        This image should contain 0 for background and positive integer labels in the range of uint32.\n"
+    "\n"
+    "    intensityImage\n"
+    "        (Optional.)\n"
+    "        The filename of an intensity image (scalar type) that corresponds to the label image.\n"
+    "        If provided, intensity statistics will be computed for each labeled region. This can be set to\n"
+    "         'none' or 'na' if no intensity image is available.\n"
+    "\n"
+    "    outputCSV\n"
+    "        (Optional.)\n"
+    "        The filename for the output CSV file containing computed shape and intensity measures.\n"
+    "        If not specified, the output will be tab-separated printed to stdout.\n"
+    "\n"
+    "  Output:\n"
+    "    The program computes geometric and statistical properties for each labeled region in the label image.\n"
+    "    The output includes:\n"
+    "      - Label index\n"
+    "      - Number of pixels/voxels\n"
+    "      - Centroid coordinates\n"
+    "      - Physical size of each label\n"
+    "      - Bounding box coordinates\n"
+    "      - Principal moments and axes of shape\n"
+    "      - Ellipsoid parameters\n"
+    "      - Intensity statistics (if an intensity image is provided)\n"
+    "\n"
+    "  Note: Intensity median measurements are approximated from the image histogram. This is faster than sorting all\n"
+    "        pixel values, but has limited precision.\n"
+    "\n"
+    "  Note: use 'none' or 'na' as a placeholder to output a CSV file without using an intensity image.\n"
+    "\n";
 
   if (argc < 3)
   {
-    std::cout << "Usage 1: " << argv[0] << " imageDimension labelImage [intensityImage] [csvFile]" << std::endl;
-    std::cout << "To output to csvFile without an intensity image, use \"none\" or \"na\" as the third arg" << std::endl;
+    std::cout << usage << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
