@@ -4,6 +4,7 @@
 #include "ReadWriteData.h"
 
 #include "itkAffineTransform.h"
+#include "itkBinaryThresholdImageFilter.h"
 #include "itkCSVArray2DDataObject.h"
 #include "itkCSVArray2DFileReader.h"
 #include "itkCSVNumericObjectFileWriter.h"
@@ -11,6 +12,7 @@
 #include "itkLabelImageToShapeLabelMapFilter.h"
 #include "itkLabelMap.h"
 #include "itkLabelStatisticsImageFilter.h"
+#include "itkMaskImageFilter.h"
 #include "itkResampleImageFilter.h"
 #include "itkShapeLabelMapFilter.h"
 #include "itkShapeLabelObject.h"
@@ -87,6 +89,10 @@ LabelGeometryMeasures(int argc, char * argv[])
 {
   using LabelType = unsigned int;
   using LabelImageType = itk::Image<LabelType, ImageDimension>;
+  // mask image is used to binarize the labels, used to mask the intensity image
+  // to better initialize the histogram for stats
+  using MaskType = unsigned char;
+  using MaskImageType = itk::Image<MaskType, ImageDimension>;
   using RealType = float;
   using RealImageType = itk::Image<RealType, ImageDimension>;
 
@@ -123,18 +129,50 @@ LabelGeometryMeasures(int argc, char * argv[])
   typename StatisticsFilterType::Pointer statisticsFilter = StatisticsFilterType::New();
   if (intensityImageUsed)
   {
-    using VoxelStatisticsFilterType = itk::StatisticsImageFilter<RealImageType>;
-    auto voxelStatisticsFilter = VoxelStatisticsFilterType::New();
-    voxelStatisticsFilter->SetInput(intensityImage);
-    voxelStatisticsFilter->Update();
 
-    auto lowerBound = voxelStatisticsFilter->GetMinimum();
-    auto upperBound = voxelStatisticsFilter->GetMaximum();
+    // Threshold label image to create a binary mask
+    auto thresholdFilter = itk::BinaryThresholdImageFilter<LabelImageType, MaskImageType>::New();
+    thresholdFilter->SetInput(labelImage);
+    thresholdFilter->SetLowerThreshold(1);
+    thresholdFilter->SetUpperThreshold(itk::NumericTraits<LabelType>::max());
+    thresholdFilter->SetInsideValue(1);
+    thresholdFilter->SetOutsideValue(0);
+    thresholdFilter->Update();
+    auto binaryMask = thresholdFilter->GetOutput();
+
+    // mask the intensity image with the binary mask
+    auto maskFilter = itk::MaskImageFilter<RealImageType, MaskImageType>::New();
+    maskFilter->SetInput(intensityImage);
+    maskFilter->SetMaskImage(binaryMask);
+    maskFilter->SetOutsideValue(0);
+    maskFilter->Update();
+    auto maskedScalarImage = maskFilter->GetOutput();
+
+    // Iterate through the scalar image and mask
+    itk::ImageRegionConstIterator<RealImageType> scalarIt(maskedScalarImage, maskedScalarImage->GetLargestPossibleRegion());
+    itk::ImageRegionConstIterator<MaskImageType> maskIt(binaryMask, binaryMask->GetLargestPossibleRegion());
+
+    float minValue = itk::NumericTraits<float>::max();
+    float maxValue = itk::NumericTraits<float>::NonpositiveMin();
+
+    while (!scalarIt.IsAtEnd())
+    {
+      if (maskIt.Get() > 0)  // Only consider voxels inside the mask
+      {
+        float value = scalarIt.Get();
+        if (value < minValue)
+          minValue = value;
+        if (value > maxValue)
+          maxValue = value;
+      }
+      ++scalarIt;
+      ++maskIt;
+   }
 
     statisticsFilter->SetInput(intensityImage);
     statisticsFilter->SetLabelInput(labelImage);
     statisticsFilter->SetUseHistograms(true);
-    statisticsFilter->SetHistogramParameters(255, lowerBound, upperBound);
+    statisticsFilter->SetHistogramParameters(4096, minValue, maxValue);
     statisticsFilter->Update();
   }
 
@@ -304,7 +342,7 @@ LabelGeometryMeasures(int argc, char * argv[])
 
   std::ofstream outFile;
 
-  if (argc > 4 && std::string(argv[4]) != "none" && std::string(argv[4]) != "na")
+  if (writeCSV)
   {
     outFile.open(argv[4]);
     if (!outFile.is_open())
