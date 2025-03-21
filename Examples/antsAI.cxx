@@ -1376,13 +1376,13 @@ antsAI(itk::ants::CommandLineParser * parser)
   localOptimizer->SetNumberOfIterations(numberOfIterations);
   localOptimizer->SetMinimumConvergenceValue(convergenceThreshold);
   localOptimizer->SetConvergenceWindowSize(convergenceWindowSize);
-  localOptimizer->SetDoEstimateLearningRateOnce(true);
-  localOptimizer->SetScales(movingScales);
+  localOptimizer->SetScalesEstimator(scalesEstimator);
+  localOptimizer->SetDoEstimateLearningRateOnce(true); // this is always true for conjugate gradient optimizer
   localOptimizer->SetMetric(imageMetric);
 
   using MultiStartOptimizerType = itk::MultiStartOptimizerv4;
   typename MultiStartOptimizerType::Pointer multiStartOptimizer = MultiStartOptimizerType::New();
-  multiStartOptimizer->SetScales(movingScales);
+  multiStartOptimizer->SetDoEstimateScales(false); // multi-start optimizer doesn't use the scales
   multiStartOptimizer->SetMetric(imageMetric);
 
   unsigned int trialCounter = 0;
