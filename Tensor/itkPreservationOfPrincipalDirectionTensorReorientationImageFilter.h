@@ -15,12 +15,10 @@
 #define __itkPreservationOfPrincipalDirectionTensorReorientationImageFilter_h
 
 #include "itkImageToImageFilter.h"
-#include "itkVectorInterpolateImageFunction.h"
 #include "itkImage.h"
 #include "itkMatrix.h"
 #include "itkNumericTraits.h"
 #include "itkVector.h"
-#include "itkSymmetricSecondRankTensor.h"
 #include "itkDisplacementFieldTransform.h"
 
 namespace itk
@@ -69,20 +67,9 @@ public:
 
   typedef typename AffineTransformType::Pointer AffineTransformPointer;
 
-  typedef typename AffineTransformType::InputVectorType TransformInputVectorType;
-
-  typedef typename AffineTransformType::OutputVectorType TransformOutputVectorType;
-
   typedef typename AffineTransformType::InverseTransformBaseType InverseTransformType;
 
   typedef typename InverseTransformType::Pointer InverseTransformPointer;
-
-  //  typedef Vector<RealType, 6> TensorType;
-  // typedef itk::SymmetricSecondRankTensor< RealType, 3 >  TensorType;
-  // typedef Image<TensorType, ImageDimension> TensorImageType;
-  // typedef typename TensorImageType::Pointer TensorImagePointer;
-  typedef typename InputImageType::PixelType InputImagePixelType;
-  typedef InputImagePixelType                TensorType;
 
   typedef vnl_matrix<RealType> VnlMatrixType;
   typedef vnl_vector<RealType> VnlVectorType;
@@ -108,9 +95,6 @@ public:
   }
 
   itkGetMacro(AffineTransform, AffineTransformPointer);
-
-  itkSetMacro(UseImageDirection, bool);
-  itkGetMacro(UseImageDirection, bool);
 
   /** Run-time type information (and related methods). */
   itkOverrideGetNameOfClassMacro(PreservationOfPrincipalDirectionTensorReorientationImageFilter);
@@ -150,36 +134,11 @@ protected:
   void
   GenerateData() override;
 
-  typename DisplacementFieldType::PixelType
-  TransformVectorByDirection(typename DisplacementFieldType::PixelType cpix)
-  {
-    typedef itk::Vector<double, ImageDimension> locVectorType;
-    if (this->m_UseImageDirection)
-    {
-      locVectorType outpix;
-      for (unsigned int d = 0; d < ImageDimension; d++)
-      {
-        outpix[d] = cpix[d];
-      }
-      outpix = m_DirectionTransform->TransformVector(outpix);
-      for (unsigned int d = 0; d < ImageDimension; d++)
-      {
-        cpix[d] = outpix[d];
-      }
-    }
-    return cpix;
-  }
 
 private:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &) = delete;
   void
   operator=(const Self &) = delete;
-
-  AffineTransformPointer GetLocalDeformation(DisplacementFieldPointer, typename DisplacementFieldType::IndexType);
-
-  TensorType ApplyReorientation(InverseTransformPointer, TensorType);
-
-  void DirectionCorrectTransform(AffineTransformPointer, AffineTransformPointer);
 
   DisplacementFieldPointer m_DisplacementField;
 
@@ -189,11 +148,8 @@ private:
 
   AffineTransformPointer m_AffineTransform;
 
-  InverseTransformPointer m_InverseAffineTransform;
-
   bool m_UseAffine;
 
-  bool m_UseImageDirection;
 };
 } // end namespace itk
 
