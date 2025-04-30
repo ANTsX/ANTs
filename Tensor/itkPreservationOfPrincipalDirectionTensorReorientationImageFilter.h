@@ -144,8 +144,6 @@ private:
 
   DisplacementFieldTransformPointer m_DisplacementTransform;
 
-  AffineTransformPointer m_DirectionTransform;
-
   AffineTransformPointer m_AffineTransform;
 
   bool m_UseAffine;

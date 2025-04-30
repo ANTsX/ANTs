@@ -33,7 +33,6 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   PreservationOfPrincipalDirectionTensorReorientationImageFilter()
 {
   m_DisplacementField = nullptr;
-  m_DirectionTransform = nullptr;
   m_AffineTransform = nullptr;
   m_UseAffine = false;
 }
@@ -47,9 +46,6 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   // FIXME - use buffered region, etc
   InputImagePointer  input = this->GetInput();
   OutputImagePointer output = this->GetOutput();
-
-  this->m_DirectionTransform = AffineTransformType::New();
-  this->m_DirectionTransform->SetMatrix(input->GetDirection());
 
   if (this->m_UseAffine)
   {
