@@ -328,6 +328,14 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
               << std::endl;
     std::cout << "    Usage        : ComponentTo3DTensor component_image_prefix[xx,xy,xz,yy,yz,zz] extension"
               << std::endl;
+    std::cout << "  FSLTensorToITK    : Converts a tensor image from FSL 4D format. Will flip the x-axis if the image "
+                 "is in neurological orientation."
+              << std::endl;
+    std::cout << "    Usage        : FSLTensorToITK 4D_DTImage.ext" << std::endl;
+    std::cout << "  ITKTensorToFSL    : Converts a tensor image to FSL 4D format. Will flip the x-axis if the "
+                 "image is in neurological orientation."
+              << std::endl;
+    std::cout << "    Usage        : ITKTensorToFSL 3D_DTImage.ext" << std::endl;
     std::cout << "  ExtractComponentFrom3DTensor    : Outputs a component images. " << std::endl;
     std::cout << "    Usage        : ExtractComponentFrom3DTensor dtImage.ext which={xx,xy,xz,yy,yz,zz}" << std::endl;
     std::cout << "  ExtractVectorComponent: Produces the WhichVec component of the vector " << std::endl;
