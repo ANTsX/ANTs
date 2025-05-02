@@ -122,7 +122,6 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 
       if (this->m_UseAffine)
       {
-        Vector2Matrix<TensorType, TensorMatrixType>(inTensor, tmpMat);
         inTensorReoriented = this->m_AffineTransform->TransformDiffusionTensor3D(inTensorPhysical);
       }
       else
