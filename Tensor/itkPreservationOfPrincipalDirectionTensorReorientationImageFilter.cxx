@@ -13,6 +13,7 @@
 =========================================================================*/
 #ifndef _itkPreservationOfPrincipalDirectionTensorReorientationImageFilter_cxx
 #define _itkPreservationOfPrincipalDirectionTensorReorientationImageFilter_cxx
+
 #include "antsAllocImage.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkNeighborhoodInnerProduct.h"
@@ -30,13 +31,12 @@ namespace itk
 {
 template <typename TTensorImage, typename TVectorImage>
 PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>::
-  PreservationOfPrincipalDirectionTensorReorientationImageFilter()
+PreservationOfPrincipalDirectionTensorReorientationImageFilter()
 {
   m_DisplacementField = nullptr;
   m_AffineTransform = nullptr;
   m_UseAffine = false;
 }
-
 
 template <typename TTensorImage, typename TVectorImage>
 void
@@ -44,25 +44,17 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 {
   // get input and output images
   // FIXME - use buffered region, etc
-  InputImagePointer  input = this->GetInput();
-  OutputImagePointer output = this->GetOutput();
+  auto input = this->GetInput();
+  auto output = this->GetOutput();
 
-  if (this->m_UseAffine)
-  {
-    output->SetRegions(input->GetLargestPossibleRegion());
-    output->SetSpacing(input->GetSpacing());
-    output->SetOrigin(input->GetOrigin());
-    output->SetDirection(input->GetDirection());
-    output->AllocateInitialized();
-  }
-  else
-  {
-    output->SetRegions(input->GetLargestPossibleRegion());
-    output->SetSpacing(input->GetSpacing());
-    output->SetOrigin(input->GetOrigin());
-    output->SetDirection(input->GetDirection());
-    output->AllocateInitialized();
+  output->SetRegions(input->GetLargestPossibleRegion());
+  output->SetSpacing(input->GetSpacing());
+  output->SetOrigin(input->GetOrigin());
+  output->SetDirection(input->GetDirection());
+  output->AllocateInitialized();
 
+  if (!this->m_UseAffine)
+  {
     this->m_DisplacementTransform = DisplacementFieldTransformType::New();
     this->m_DisplacementTransform->SetDisplacementField(m_DisplacementField);
   }
@@ -72,9 +64,8 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   std::cout << "Iterating over image" << std::endl;
 
   using DirectionType = typename TTensorImage::DirectionType;
-
-  auto directionTransformMatrix = input->GetDirection().GetVnlMatrix();
-  auto directionTransformMatrixTranspose = input->GetDirection().GetTranspose();
+  const auto directionTransformMatrix = input->GetDirection().GetVnlMatrix();
+  const auto directionTransformMatrixTranspose = input->GetDirection().GetTranspose();
 
   using TensorType = typename TTensorImage::PixelType;
   using TensorMatrixType = typename DirectionType::InternalMatrixType;
@@ -82,11 +73,10 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   // for all voxels
   for (outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt)
   {
-
-    TensorType inTensor = input->GetPixel(outputIt.GetIndex());
+    const auto & index = outputIt.GetIndex();
+    const TensorType inTensor = input->GetPixel(index);
 
     TensorMatrixType tmpMat; // matrix to hold values for rebasing
-
     TensorType inTensorPhysical; // inTensor in physical space
     TensorType inTensorReoriented; // inTensor reoriented by transform
     TensorType outTensor; // reoriented tensor rebased to voxel space
@@ -98,10 +88,11 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       if (std::isnan(inTensor[jj]) || std::isinf(inTensor[jj]))
       {
         hasNans = true;
+        break;
       }
     }
 
-    bool     isNull = false;
+    bool isNull = false;
     RealType trace = inTensor[0] + inTensor[3] + inTensor[5];
     if (trace <= 0.0)
     {
@@ -114,7 +105,6 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     }
     else
     {
-
       // rebase tensor to physical space using directionTransformMatrix and directionTransformMatrixTranspose;
       tmpMat = Vector2Matrix<TensorType, TensorMatrixType>(inTensor);
       tmpMat = directionTransformMatrix * tmpMat * directionTransformMatrixTranspose;
@@ -127,10 +117,11 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       else
       {
         typename DisplacementFieldType::PointType pt;
-        this->m_DisplacementField->TransformIndexToPhysicalPoint(outputIt.GetIndex(), pt);
+        this->m_DisplacementField->TransformIndexToPhysicalPoint(index, pt);
         inTensorReoriented = this->m_DisplacementTransform->TransformDiffusionTensor3D(inTensorPhysical, pt);
       }
     }
+
     // valid values?
     for (unsigned int jj = 0; jj < 6; jj++)
     {
@@ -144,6 +135,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     tmpMat = Vector2Matrix<TensorType, TensorMatrixType>(inTensorReoriented);
     tmpMat = directionTransformMatrixTranspose * tmpMat * directionTransformMatrix;
     outTensor = Matrix2Vector<TensorType, TensorMatrixType>(tmpMat);
+
     outputIt.Set(outTensor);
   }
 }
@@ -155,10 +147,11 @@ template <typename TTensorImage, typename TVectorImage>
 void
 PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>::PrintSelf(
   std::ostream & os,
-  Indent         indent) const
+  Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 }
+
 } // end namespace itk
 
 #endif

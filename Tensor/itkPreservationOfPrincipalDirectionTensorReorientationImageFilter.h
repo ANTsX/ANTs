@@ -43,52 +43,60 @@ class PreservationOfPrincipalDirectionTensorReorientationImageFilter final
   : public ImageToImageFilter<TTensorImage, TTensorImage>
 {
 public:
-  typedef TTensorImage InputImageType;
-  typedef TTensorImage OutputImageType;
-  typedef TVectorImage DisplacementFieldType;
-
-  typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
-  typedef typename DisplacementFieldType::PixelType VectorType;
-  typedef typename VectorType::RealValueType        RealType;
-
-  typedef itk::DisplacementFieldTransform<double, 3> DisplacementFieldTransformType;
-
-  typedef typename DisplacementFieldTransformType::Pointer DisplacementFieldTransformPointer;
-
-  typedef Matrix<RealType, 3, 3> MatrixType;
-  // typedef Vector<RealType, 3> VectorType;
-  typedef VariableSizeMatrix<RealType> VariableMatrixType;
-
-  static constexpr unsigned int ImageDimension = TTensorImage::ImageDimension;
-
-  typedef itk::Image<RealType, ImageDimension> RealTypeImageType;
-
-  typedef itk::MatrixOffsetTransformBase<RealType, ImageDimension, ImageDimension> AffineTransformType;
-
-  typedef typename AffineTransformType::Pointer AffineTransformPointer;
-
-  typedef typename AffineTransformType::InverseTransformBaseType InverseTransformType;
-
-  typedef typename InverseTransformType::Pointer InverseTransformPointer;
-
-  typedef vnl_matrix<RealType> VnlMatrixType;
-  typedef vnl_vector<RealType> VnlVectorType;
-  typedef vnl_vector<RealType> vvec;
-
-  /** Standard class typedefs. */
-  typedef PreservationOfPrincipalDirectionTensorReorientationImageFilter Self;
-  typedef ImageToImageFilter<InputImageType, OutputImageType>            Superclass;
-  typedef SmartPointer<Self>                                             Pointer;
-  typedef SmartPointer<const Self>                                       ConstPointer;
+  using Self = PreservationOfPrincipalDirectionTensorReorientationImageFilter;
+  using Superclass = ImageToImageFilter<TTensorImage, TTensorImage>;
+  using Pointer = SmartPointer<Self>;
+  using ConstPointer = SmartPointer<const Self>;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
+  /** Run-time type information (and related methods). */
+  itkOverrideGetNameOfClassMacro(PreservationOfPrincipalDirectionTensorReorientationImageFilter);
+
+  using InputImageType = TTensorImage;
+  using OutputImageType = TTensorImage;
+  using DisplacementFieldType = TVectorImage;
+
+  using DisplacementFieldPointer = typename DisplacementFieldType::Pointer;
+  using VectorType = typename DisplacementFieldType::PixelType;
+  using RealType = typename VectorType::RealValueType;
+
+  using DisplacementFieldTransformType = DisplacementFieldTransform<double, 3>;
+  using DisplacementFieldTransformPointer = typename DisplacementFieldTransformType::Pointer;
+
+  using MatrixType = Matrix<RealType, 3, 3>;
+  using VariableMatrixType = VariableSizeMatrix<RealType>;
+
+  static constexpr unsigned int ImageDimension = TTensorImage::ImageDimension;
+
+  using RealTypeImageType = Image<RealType, ImageDimension>;
+  using AffineTransformType = MatrixOffsetTransformBase<RealType, ImageDimension, ImageDimension>;
+  using AffineTransformPointer = typename AffineTransformType::Pointer;
+  using InverseTransformType = typename AffineTransformType::InverseTransformBaseType;
+  using InverseTransformPointer = typename InverseTransformType::Pointer;
+
+  using VnlMatrixType = vnl_matrix<RealType>;
+  using VnlVectorType = vnl_vector<RealType>;
+
+  using InputImagePointer = typename InputImageType::ConstPointer;
+  using OutputImagePointer = typename OutputImageType::Pointer;
+  using InputPixelType = typename InputImageType::PixelType;
+  using OutputPixelType = typename OutputImageType::PixelType;
+  using InputRealType = typename InputPixelType::ValueType;
+
+  using InputImageRegionType = typename InputImageType::RegionType;
+  using OutputImageRegionType = typename OutputImageType::RegionType;
+
+  using InputSizeType = typename InputImageType::SizeType;
+  using OutputSizeType = typename OutputImageType::SizeType;
+  using InputIndexType = typename InputImageType::IndexType;
+  using OutputIndexType = typename OutputImageType::IndexType;
+
   itkSetMacro(DisplacementField, DisplacementFieldPointer);
   itkGetMacro(DisplacementField, DisplacementFieldPointer);
 
-  void
-  SetAffineTransform(AffineTransformPointer aff)
+  void SetAffineTransform(AffineTransformPointer aff)
   {
     this->m_AffineTransform = aff;
     this->m_UseAffine = true;
@@ -96,58 +104,21 @@ public:
 
   itkGetMacro(AffineTransform, AffineTransformPointer);
 
-  /** Run-time type information (and related methods). */
-  itkOverrideGetNameOfClassMacro(PreservationOfPrincipalDirectionTensorReorientationImageFilter);
-
-  /** Image typedef support. */
-  typedef typename InputImageType::ConstPointer InputImagePointer;
-  typedef typename OutputImageType::Pointer     OutputImagePointer;
-  typedef typename InputImageType::PixelType    InputPixelType;
-  typedef typename OutputImageType::PixelType   OutputPixelType;
-  typedef typename InputPixelType::ValueType    InputRealType;
-
-  typedef typename InputImageType::RegionType  InputImageRegionType;
-  typedef typename OutputImageType::RegionType OutputImageRegionType;
-
-  typedef typename InputImageType::SizeType   InputSizeType;
-  typedef typename OutputImageType::SizeType  OutputSizeType;
-  typedef typename InputImageType::IndexType  InputIndexType;
-  typedef typename OutputImageType::IndexType OutputIndexType;
-
 protected:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter();
   ~PreservationOfPrincipalDirectionTensorReorientationImageFilter() override = default;
 
-  void
-  PrintSelf(std::ostream & os, Indent indent) const override;
-
-  /** PreservationOfPrincipalDirectionTensorReorientationImageFilter can be implemented as a multithreaded filter.
-   * Therefore, this implementation provides a ThreadedGenerateData()
-   * routine which is called for each processing thread. The output
-   * image data is allocated automatically by the superclass prior to
-   * calling ThreadedGenerateData().  ThreadedGenerateData can only
-   * write to the portion of the output image specified by the
-   * parameter "outputRegionForThread"
-   *
-   * \sa ImageToImageFilter::ThreadedGenerateData(),
-   *     ImageToImageFilter::GenerateData() */
-  void
-  GenerateData() override;
-
+  void PrintSelf(std::ostream & os, Indent indent) const override;
+  void GenerateData() override;
 
 private:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &) = delete;
-  void
-  operator=(const Self &) = delete;
+  void operator=(const Self &) = delete;
 
   DisplacementFieldPointer m_DisplacementField;
-
   DisplacementFieldTransformPointer m_DisplacementTransform;
-
   AffineTransformPointer m_AffineTransform;
-
-  bool m_UseAffine;
-
+  bool m_UseAffine = false;
 };
 } // end namespace itk
 
