@@ -6040,12 +6040,9 @@ TensorFunctions(int argc, char * argv[])
       unsigned int d4size = d4img->GetLargestPossibleRegion().GetSize()[3];
       if (d4size != 6 && d4size != 7)
       {
-        std::cout << " you should not be using this function if the input data is not a tensor. " << std::endl;
-        std::cout << " there is no way for us to really check if your use of this function is correct right now except "
-                     "checking the size of the 4th dimension which should be 6 or 7 (the latter if you store b0 in the "
-                     "first component) --- you should really store tensors not as 4D images but as 3D images with "
-                     "tensor voxel types. "
-                  << std::endl;
+        std::cout << " This function is only for tensor data. " << std::endl;
+        std::cout << " Input data should either have six tensor components or seven for b0 followed by the six tensor "
+                     "components. " << std::endl;
         throw std::exception();
       }
       typename TensorImageType::SizeType      size;
@@ -6082,24 +6079,9 @@ TensorFunctions(int argc, char * argv[])
           for (unsigned int ee = 0; ee < d4size; ee++)
           {
             ind2[3] = ee;
-            if (ee == 2)
-            {
-              pix6[2] = d4img->GetPixel(ind2);
-            }
-            else if (ee == 3)
-            {
-              pix6[3] = d4img->GetPixel(ind2);
-            }
-            else
-            {
-              pix6[ee] = d4img->GetPixel(ind2);
-            }
+            pix6[ee] = d4img->GetPixel(ind2);
           }
         }
-        // ITK-way
-        //  xx, xy, yy, xz , yz, zz
-        // VTK/other-way
-        //  xx, xy, xz, yy , yz, zz
         else if (d4size == 7)
         {
           for (unsigned int ee = 1; ee < d4size; ee++)
@@ -6113,7 +6095,228 @@ TensorFunctions(int argc, char * argv[])
       WriteTensorImage<TensorImageType>(timage, outname.c_str(), false);
       return 0;
     }
-    // std::cout << " cannot convert --- input image not 4D --- " << fn1 << std::endl;
+    return 0;
+  }
+
+  if (strcmp(operation.c_str(), "FSLTensorToITK") == 0)
+  {
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::IOFileModeEnum::ReadMode);
+    imageIO->SetFileName(fn1.c_str());
+    imageIO->ReadImageInformation();
+    unsigned int dim = imageIO->GetNumberOfDimensions();
+    if (dim != 4)
+    {
+      std::cout << " cannot convert --- input image not 4D --- " << fn1 << std::endl;
+      throw std::exception();
+    }
+
+    typename D4TensorImageType::Pointer d4img = nullptr;
+    ReadImage<D4TensorImageType>(d4img, fn1.c_str());
+    unsigned int d4size = d4img->GetLargestPossibleRegion().GetSize()[3];
+    if (d4size != 6)
+    {
+      std::cout << " Input data does not have six components. This function is only for 4D FSL tensors. " << std::endl;
+      throw std::exception();
+    }
+
+    typename TensorImageType::SizeType      size;
+    typename TensorImageType::RegionType    tensorregion;
+    typename TensorImageType::SpacingType   spacing;
+    typename TensorImageType::PointType     origin;
+    typename TensorImageType::DirectionType direction;
+    for (unsigned int dd = 0; dd < ImageDimension; dd++)
+    {
+      size[dd] = d4img->GetLargestPossibleRegion().GetSize()[dd];
+      origin[dd] = d4img->GetOrigin()[dd];
+      spacing[dd] = d4img->GetSpacing()[dd];
+      for (unsigned int ee = 0; ee < ImageDimension; ee++)
+      {
+        direction[dd][ee] = d4img->GetDirection()[dd][ee];
+      }
+    }
+    tensorregion.SetSize(size);
+    timage = AllocImage<TensorImageType>(tensorregion, spacing, origin, direction);
+    bool reflectX = false;
+
+    typedef vnl_matrix<D4TensorType> MatrixType;
+
+    if ( vnl_determinant(direction.GetVnlMatrix()) > 0 )
+    {
+      reflectX = true;
+      std::cout << " image direction has positive determinant, reflecting tensor coordinate system along x-axis " << std::endl;
+    }
+
+    MatrixType reflectMat(3, 3);
+    reflectMat.set_identity();
+    if ( reflectX )
+      reflectMat[0][0] = -1.0;
+
+    Iterator tIter(timage, timage->GetLargestPossibleRegion());
+    for (tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter)
+    {
+        typename TensorImageType::IndexType   ind = tIter.GetIndex();
+        typename D4TensorImageType::IndexType ind2;
+        for (unsigned int dd = 0; dd < ImageDimension; dd++)
+        {
+          ind2[dd] = ind[dd];
+        }
+        TensorType pix6 = tIter.Get();
+
+        // FSL components are [dxx, dxy, dxz, dyy, dyz, dzz]
+
+        // Define 3x3 matrix
+        MatrixType fslTensor(3, 3);
+
+        for (unsigned int ee = 0; ee < d4size; ee++)
+        {
+          ind2[3] = ee;
+          pix6[ee] = d4img->GetPixel(ind2);
+        }
+
+        fslTensor[0][0] = pix6[0];
+        fslTensor[0][1] = pix6[1];
+        fslTensor[0][2] = pix6[2];
+        fslTensor[1][0] = fslTensor[0][1];
+        fslTensor[1][1] = pix6[3];
+        fslTensor[1][2] = pix6[4];
+        fslTensor[2][0] = fslTensor[0][2];
+        fslTensor[2][1] = fslTensor[1][2];
+        fslTensor[2][2] = pix6[5];
+
+        // Reflect tensor in x-axis if necessary
+        if ( reflectX )
+        {
+          fslTensor = reflectMat * fslTensor * reflectMat.transpose();
+        }
+
+        // maintain upper-triangular order - ITK I/O will swap if needed
+        pix6[0] = fslTensor[0][0];
+        pix6[1] = fslTensor[0][1];
+        pix6[2] = fslTensor[0][2];
+        pix6[3] = fslTensor[1][1];
+        pix6[4] = fslTensor[1][2];
+        pix6[5] = fslTensor[2][2];
+
+        timage->SetPixel(ind, pix6);
+    }
+    WriteTensorImage<TensorImageType>(timage, outname.c_str(), false);
+    return 0;
+  }
+
+
+  if (strcmp(operation.c_str(), "ITKTensorToFSL") == 0)
+  {
+
+    ReadImage<TensorImageType>(timage, fn1.c_str());
+
+    // output image is 4D
+
+    typename D4TensorImageType::SizeType      size;
+    typename D4TensorImageType::RegionType    tensorregion;
+    typename D4TensorImageType::SpacingType   spacing;
+    typename D4TensorImageType::PointType     origin;
+    typename D4TensorImageType::DirectionType direction;
+
+    direction.SetIdentity();
+
+    for (unsigned int dd = 0; dd < ImageDimension; dd++)
+    {
+      size[dd] = timage->GetLargestPossibleRegion().GetSize()[dd];
+      origin[dd] = timage->GetOrigin()[dd];
+      spacing[dd] = timage->GetSpacing()[dd];
+      for (unsigned int ee = 0; ee < ImageDimension; ee++)
+      {
+        direction[dd][ee] = timage->GetDirection()[dd][ee];
+      }
+    }
+    size[3] = 6;
+    spacing[3] = 1.0;
+
+    tensorregion.SetSize(size);
+
+    typename D4TensorImageType::Pointer d4img = D4TensorImageType::New();
+    d4img->SetRegions(tensorregion);
+    d4img->SetSpacing(spacing);
+    d4img->SetOrigin(origin);
+    d4img->SetDirection(direction);
+    d4img->AllocateInitialized();
+
+    bool reflectX = false;
+
+    if ( vnl_determinant(direction.GetVnlMatrix()) > 0 )
+    {
+      reflectX = true;
+      std::cout << " image direction has positive determinant, reflecting tensor coordinate system along x-axis " << std::endl;
+    }
+
+    typedef vnl_matrix<D4TensorType> MatrixType;
+    MatrixType reflectMat(3, 3);
+    reflectMat.set_identity();
+    if ( reflectX )
+      reflectMat[0][0] = -1.0;
+
+    // now iterate through & set the values of the tensors
+    Iterator tIter(timage, timage->GetLargestPossibleRegion());
+    for (tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter)
+    {
+      typename TensorImageType::IndexType   ind = tIter.GetIndex();
+      typename D4TensorImageType::IndexType ind2;
+      for (unsigned int dd = 0; dd < ImageDimension; dd++)
+      {
+        ind2[dd] = ind[dd];
+      }
+      TensorType pix6 = tIter.Get();
+
+      // Define 3x3 matrix
+      MatrixType itkTensor(3, 3);
+
+      // ITK components are [dxx, dxy, dxz, dyy, dyz, dzz]
+      itkTensor[0][0] = pix6[0];
+      itkTensor[0][1] = pix6[1];
+      itkTensor[0][2] = pix6[2];
+      itkTensor[1][0] = itkTensor[0][1];
+      itkTensor[1][1] = pix6[3];
+      itkTensor[1][2] = pix6[4];
+      itkTensor[2][0] = itkTensor[0][2];
+      itkTensor[2][1] = itkTensor[1][2];
+      itkTensor[2][2] = pix6[5];
+
+      // Reflect tensor in x-axis if necessary
+      if ( reflectX )
+        itkTensor = reflectMat * itkTensor * reflectMat.transpose();
+
+      // copy itkTensor elements into a vector for d4img
+      // FSL components are upper triangular, [dxx, dxy, dxz, dyy, dyz, dzz]
+
+      for (unsigned int ee = 0; ee < 6; ee++)
+      {
+        ind2[3] = ee;
+        switch (ee)
+        {
+          case 0:
+            d4img->SetPixel(ind2, itkTensor[0][0]);
+            break;
+          case 1:
+            d4img->SetPixel(ind2, itkTensor[0][1]);
+            break;
+          case 2:
+            d4img->SetPixel(ind2, itkTensor[0][2]);
+            break;
+          case 3:
+            d4img->SetPixel(ind2, itkTensor[1][1]);
+            break;
+          case 4:
+            d4img->SetPixel(ind2, itkTensor[1][2]);
+            break;
+          case 5:
+            d4img->SetPixel(ind2, itkTensor[2][2]);
+            break;
+        }
+      }
+    }
+
+    // write
+    ANTs::WriteImage<D4TensorImageType>(d4img, outname.c_str());
     return 0;
   }
 
@@ -14447,6 +14650,16 @@ ImageMathHelper3DOnly(int argc, char ** argv)
     return EXIT_SUCCESS;
   }
   if (operation == "ExtractComponentFrom3DTensor")
+  {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+  }
+  if (operation == "FSLTensorToITK")
+  {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+  }
+  if (operation == "ITKTensorToFSL")
   {
     TensorFunctions<DIM>(argc, argv);
     return EXIT_SUCCESS;
