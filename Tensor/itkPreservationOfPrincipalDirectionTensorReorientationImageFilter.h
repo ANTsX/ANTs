@@ -19,26 +19,20 @@
 #include "itkMatrix.h"
 #include "itkNumericTraits.h"
 #include "itkVector.h"
-#include "itkDisplacementFieldTransform.h"
+#include "itkCompositeTransform.h"
 
 namespace itk
 {
-/** \class PreservationOfPrincipalDirectionImageFilter
- * \brief Applies an averaging filter to an image
+/** PreservationOfPrincipalDirectionImageFilter
  *
- * Computes an image where a given pixel is the mean value of the
- * the pixels in a neighborhood about the corresponding input pixel.
+ * Reorients tensor images to preserve the principal directions of diffusion.
  *
- * A mean filter is one of the family of linear filters.
+ * This filter rebases tensors into physical space using the image direction
+ * transform, and then applies the reorientation computed by the composite
+ * transform.
  *
- * \sa Image
- * \sa Neighborhood
- * \sa NeighborhoodOperator
- * \sa NeighborhoodIterator
- *
- * \ingroup IntensityImageFilters
  */
-template <typename TTensorImage, typename TVectorImage>
+template <typename TTensorImage>
 class PreservationOfPrincipalDirectionTensorReorientationImageFilter final
   : public ImageToImageFilter<TTensorImage, TTensorImage>
 {
@@ -56,14 +50,9 @@ public:
 
   using InputImageType = TTensorImage;
   using OutputImageType = TTensorImage;
-  using DisplacementFieldType = TVectorImage;
 
-  using DisplacementFieldPointer = typename DisplacementFieldType::Pointer;
-  using VectorType = typename DisplacementFieldType::PixelType;
-  using RealType = typename VectorType::RealValueType;
-
-  using DisplacementFieldTransformType = DisplacementFieldTransform<double, 3>;
-  using DisplacementFieldTransformPointer = typename DisplacementFieldTransformType::Pointer;
+  using InputPixelType = typename InputImageType::PixelType;
+  using RealType = typename InputPixelType::ValueType;
 
   using MatrixType = Matrix<RealType, 3, 3>;
   using VariableMatrixType = VariableSizeMatrix<RealType>;
@@ -71,19 +60,16 @@ public:
   static constexpr unsigned int ImageDimension = TTensorImage::ImageDimension;
 
   using RealTypeImageType = Image<RealType, ImageDimension>;
-  using AffineTransformType = MatrixOffsetTransformBase<RealType, ImageDimension, ImageDimension>;
-  using AffineTransformPointer = typename AffineTransformType::Pointer;
-  using InverseTransformType = typename AffineTransformType::InverseTransformBaseType;
-  using InverseTransformPointer = typename InverseTransformType::Pointer;
+
+  using CompositeTransformType = CompositeTransform<RealType, ImageDimension>;
+  using CompositeTransformPointer = typename CompositeTransformType::Pointer;
 
   using VnlMatrixType = vnl_matrix<RealType>;
   using VnlVectorType = vnl_vector<RealType>;
 
   using InputImagePointer = typename InputImageType::ConstPointer;
   using OutputImagePointer = typename OutputImageType::Pointer;
-  using InputPixelType = typename InputImageType::PixelType;
   using OutputPixelType = typename OutputImageType::PixelType;
-  using InputRealType = typename InputPixelType::ValueType;
 
   using InputImageRegionType = typename InputImageType::RegionType;
   using OutputImageRegionType = typename OutputImageType::RegionType;
@@ -93,16 +79,8 @@ public:
   using InputIndexType = typename InputImageType::IndexType;
   using OutputIndexType = typename OutputImageType::IndexType;
 
-  itkSetMacro(DisplacementField, DisplacementFieldPointer);
-  itkGetMacro(DisplacementField, DisplacementFieldPointer);
-
-  void SetAffineTransform(AffineTransformPointer aff)
-  {
-    this->m_AffineTransform = aff;
-    this->m_UseAffine = true;
-  }
-
-  itkGetMacro(AffineTransform, AffineTransformPointer);
+  itkSetMacro(CompositeTransform, CompositeTransformPointer);
+  itkGetMacro(CompositeTransform, CompositeTransformPointer);
 
 protected:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter();
@@ -115,10 +93,7 @@ private:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &) = delete;
   void operator=(const Self &) = delete;
 
-  DisplacementFieldPointer m_DisplacementField;
-  DisplacementFieldTransformPointer m_DisplacementTransform;
-  AffineTransformPointer m_AffineTransform;
-  bool m_UseAffine = false;
+  CompositeTransformPointer m_CompositeTransform;
 };
 } // end namespace itk
 

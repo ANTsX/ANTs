@@ -16,6 +16,7 @@
 #include "antsUtilities.h"
 
 #include "ReadWriteData.h"
+#include "itkantsReadWriteTransform.h"
 #include "itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkWarpTensorImageMultiTransformFilter.h"
@@ -24,67 +25,22 @@
 
 namespace ants
 {
-static bool
-ReorientTensorImage_ParseInput(int              argc,
-                               char **          argv,
-                               char *&          moving_image_filename,
-                               char *&          output_image_filename,
-                               TRAN_OPT_QUEUE & opt_queue)
-{
-  opt_queue.clear();
-  opt_queue.reserve(argc - 2);
-
-  moving_image_filename = argv[0];
-  output_image_filename = argv[1];
-
-  int ind = 2;
-
-  while (ind < argc)
-  {
-    TRAN_OPT opt;
-    opt.filename = argv[ind];
-    opt.file_type = CheckFileType(opt.filename.c_str());
-    opt.do_affine_inv = false;
-
-    if (strcmp(argv[ind], "-i") == 0)
-    {
-      std::cout << "ERROR - inverse transforms not yet supported\n" << std::endl;
-      return false;
-    }
-    else
-    {
-      bool set_current_affine_inv = false;
-      if (opt.file_type == AFFINE_FILE)
-      {
-        SetAffineInvFlag(opt, set_current_affine_inv);
-      }
-      else
-      {
-        if (opt.file_type == DEFORMATION_FILE && set_current_affine_inv)
-        {
-          std::cout << "Ignore inversion of non-affine file type! " << std::endl;
-          std::cout << "opt.do_affine_inv:" << opt.do_affine_inv << std::endl;
-        }
-      }
-
-      opt_queue.push_back(opt);
-      DisplayOpt(opt);
-    }
-    ++ind;
-  }
-
-  return true;
-}
 
 template <int ImageDimension>
 void
-ReorientTensorImage(char * moving_image_filename, char * output_image_filename, TRAN_OPT_QUEUE & opt_queue)
+ReorientTensorImage(char * moving_image_filename, char * output_image_filename, char * transform_filename)
 {
-  using PixelType = itk::DiffusionTensor3D<double>;
-  using TensorImageType = itk::Image<PixelType, ImageDimension>;
+  if (ImageDimension != 3)
+  {
+    std::cout << "ReorientTensorImage only supports 3D image volumes" << std::endl;
+    return;
+  }
+
+  using RealType = double;
+  using TensorPixelType = itk::DiffusionTensor3D<RealType>;
+  using TensorImageType = itk::Image<TensorPixelType, ImageDimension>;
   using ImageType = itk::Image<float, ImageDimension>;
-  using VectorType = itk::Vector<double, ImageDimension>;
-  using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
+
   using AffineTransformType = itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>;
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
@@ -98,53 +54,40 @@ ReorientTensorImage(char * moving_image_filename, char * output_image_filename, 
 
   typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
 
-  using TranReaderType = itk::TransformFileReader;
-  using FieldReaderType = itk::ImageFileReader<DisplacementFieldType>;
-  typename DisplacementFieldType::Pointer field = nullptr;
-  typename AffineTransformType::Pointer   aff = nullptr;
-
-  const int kOptQueueSize = opt_queue.size();
-
-  if (kOptQueueSize > 1)
-  {
-    std::cout << "ERROR: Only 1 input transform is permitted" << std::endl;
-    return;
-  }
-
   using PPDReorientType =
-    itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType, DisplacementFieldType>;
+    itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType>;
   typename PPDReorientType::Pointer reo = PPDReorientType::New();
   reo->SetInput(img_mov);
 
-  const TRAN_OPT & opt = opt_queue[0];
+  using TransformType = itk::Transform<RealType, ImageDimension, ImageDimension>;
+  using CompositeTransformType = itk::CompositeTransform<RealType, ImageDimension>;
 
-  switch (opt.file_type)
+  // Read the transform from the file
+  typename TransformType::Pointer transform = itk::ants::ReadTransform<RealType, ImageDimension>(transform_filename, false);
+
+  // Check if the transform is a composite transform
+  if (transform->GetNameOfClass() == "CompositeTransform")
   {
-    case AFFINE_FILE:
+    typename CompositeTransformType::Pointer composite_transform =
+        dynamic_cast<CompositeTransformType *>(transform.GetPointer());
+    if (composite_transform)
     {
-      typename TranReaderType::Pointer tran_reader = TranReaderType::New();
-      tran_reader->SetFileName(opt.filename);
-      tran_reader->Update();
-      aff = dynamic_cast<AffineTransformType *>((tran_reader->GetTransformList())->front().GetPointer());
-      reo->SetAffineTransform(aff);
-      std::cout << "Affine transform" << std::endl;
+        reo->SetCompositeTransform(composite_transform);
     }
-    break;
-    case DEFORMATION_FILE:
+    else
     {
-      typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
-      field_reader->SetFileName(opt.filename);
-      field_reader->Update();
-      // field = field_reader->GetOutput();
-      reo->SetDisplacementField(field_reader->GetOutput());
-      std::cout << "Warp transform" << std::endl;
-    }
-    break;
-    default:
-    {
-      std::cout << "Unknown file type!" << std::endl;
+        std::cerr << "Error: Failed to cast to CompositeTransformType." << std::endl;
+        return;
     }
   }
+  else
+  {
+    // Create a new composite transform and add the individual transform we just read
+    typename CompositeTransformType::Pointer composite_transform = CompositeTransformType::New();
+    composite_transform->AddTransform(transform);
+    reo->SetCompositeTransform(composite_transform);
+  }
+
   reo->Update();
 
   typename TensorImageType::Pointer img_output = reo->GetOutput();
@@ -199,9 +142,10 @@ ReorientTensorImage(std::vector<std::string> args, std::ostream * /*out_stream =
   Cleanup_argv cleanup_argv(argv, argc + 1);
   // antscout->set_stream( out_stream );
 
-  if (argc < 4)
+  if (argc != 5)
   {
-    std::cout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <warp.nii/affine.txt> " << std::endl;
+    std::cout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <composite.h5/warp.nii.gz/affine.mat/affine.txt> "
+        << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
@@ -209,12 +153,15 @@ ReorientTensorImage(std::vector<std::string> args, std::ostream * /*out_stream =
     return EXIT_FAILURE;
   }
 
-  TRAN_OPT_QUEUE opt_queue;
   char *         moving_image_filename = nullptr;
   char *         output_image_filename = nullptr;
+  char *         transform_filename = nullptr;
 
-  bool is_parsing_ok = false;
-  int  dim = std::stoi(argv[1]);
+  int dim = std::stoi(argv[1]);
+
+  moving_image_filename = argv[2];
+  output_image_filename = argv[3];
+  transform_filename = argv[4];
 
   if (dim != 3)
   {
@@ -222,24 +169,8 @@ ReorientTensorImage(std::vector<std::string> args, std::ostream * /*out_stream =
     return EXIT_FAILURE;
   }
 
-  is_parsing_ok =
-    ReorientTensorImage_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename, opt_queue);
+  ReorientTensorImage<3>(moving_image_filename, output_image_filename, transform_filename);
 
-  if (is_parsing_ok)
-  {
-    std::cout << "moving_image_filename: " << moving_image_filename << std::endl;
-    std::cout << "output_image_filename: " << output_image_filename << std::endl;
-    DisplayOptQueue(opt_queue);
-
-    ReorientTensorImage<3>(moving_image_filename, output_image_filename, opt_queue);
-  }
-  else
-  {
-    std::cout << "Input error!" << std::endl;
-    return EXIT_FAILURE;
-  }
-  // ReorientTensorImage<3>(argc,argv);
-  // WarpImageForward(argc,argv);
   return EXIT_SUCCESS;
 }
 } // namespace ants
