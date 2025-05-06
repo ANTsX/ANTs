@@ -82,10 +82,6 @@ LabelGeometryMeasures(int argc, char * argv[])
 {
   using LabelType = unsigned int;
   using LabelImageType = itk::Image<LabelType, ImageDimension>;
-  // mask image is used to binarize the labels, used to mask the intensity image
-  // to better initialize the histogram for stats
-  using MaskType = unsigned char;
-  using MaskImageType = itk::Image<MaskType, ImageDimension>;
   using RealType = float;
   using RealImageType = itk::Image<RealType, ImageDimension>;
 
