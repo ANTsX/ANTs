@@ -1145,7 +1145,7 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
                               std::string("Specifies the voxel value when the input point maps outside ") +
                               std::string("the output domain. With tensor input images, specifies the ") +
                               std::string("default voxel eigenvalues. Default tensor eigenvalues are ") +
-                              std::string("also are used in voxels where the tensor data is all zero.") +
+                              std::string("also are used in voxels where the tensor data is all zero.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("default-value");
