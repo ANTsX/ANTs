@@ -215,6 +215,25 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
   // Time-index to extract from time-series image
   unsigned long extractTimeIndex = 0;
 
+  /**
+   * Default voxel value or default MD for tensor images. This is used in pixels outside the domain of the
+   * input image. The default value is also used for tensor images that are all-zero, because otherwise the
+   * zero tensors cause huge interpolation artifacts in the log domain.
+   */
+  PixelType                                                  defaultValue = 0;
+  typename itk::ants::CommandLineParser::OptionType::Pointer defaultOption = parser->GetOption("default-value");
+  if (defaultOption && defaultOption->GetNumberOfFunctions())
+  {
+    defaultValue = parser->Convert<PixelType>(defaultOption->GetFunction(0)->GetName());
+  }
+  if (verbose)
+  {
+    if (inputImageType == 2)
+      std::cout << "Default pixel mean diffusivity: " << defaultValue << std::endl;
+    else
+      std::cout << "Default pixel value: " << defaultValue << std::endl;
+  }
+
   bool extractTimeIndexSet = false;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer timeIndexOption = parser->GetOption("time-index");
@@ -298,7 +317,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     {
       std::cout << "Input tensor image: " << inputOption->GetFunction(0)->GetName() << std::endl;
     }
-    ReadTensorImage<TensorImageType>(tensorImage, (inputOption->GetFunction(0)->GetName()).c_str(), true);
+    ReadTensorImage<TensorImageType>(tensorImage, (inputOption->GetFunction(0)->GetName()).c_str(), true, defaultValue);
   }
   else if (inputImageType == 0 && inputOption && inputOption->GetNumberOfFunctions())
   {
@@ -560,22 +579,6 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
 
 #include "make_interpolator_snip.tmpl"
 
-  /**
-   * Default voxel value
-   */
-  PixelType                                                  defaultValue = 0;
-  typename itk::ants::CommandLineParser::OptionType::Pointer defaultOption = parser->GetOption("default-value");
-  if (defaultOption && defaultOption->GetNumberOfFunctions())
-  {
-    defaultValue = parser->Convert<PixelType>(defaultOption->GetFunction(0)->GetName());
-  }
-  if (verbose)
-  {
-    if (inputImageType == 2)
-      std::cout << "Default pixel mean diffusivity: " << defaultValue << std::endl;
-    else
-      std::cout << "Default pixel value: " << defaultValue << std::endl;
-  }
   for (unsigned int n = 0; n < inputImages.size(); n++)
   {
     using ResamplerType = itk::ResampleImageFilter<ImageType, ImageType, RealType>;

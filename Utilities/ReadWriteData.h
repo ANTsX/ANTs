@@ -149,23 +149,39 @@ NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char * file, bool ma
 
 #endif
 
+// Replace zero-valued pixels with backgroundMD
+// This sets the eigenvalues of background pixels to a constant value
+// The idea is to reduce interpolation artifacts when resampling
 template <typename TImageType>
 void
-ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool takelog = true)
+SetBackgroundMD(TImageType * image, double backgroundMD)
 {
-  if (!ANTSFileExists(std::string(file)))
+  // Read the tensor components
+  itk::ImageRegionIterator<TImageType> iter(image, image->GetLargestPossibleRegion());
+  while (!iter.IsAtEnd())
   {
-    std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
-    target = nullptr;
-    return;
-  }
 
-  if (!ANTSFileIsImage(file))
-  {
-    std::cerr << " file " << std::string(file) << " is not recognized as a supported image format . " << std::endl;
-    target = nullptr;
-    return;
+    using tensorRealType = typename TImageType::PixelType::ValueType;
+
+    tensorRealType value = static_cast<tensorRealType>(backgroundMD);
+
+    typename TImageType::PixelType pix = iter.Get();
+    if (pix[0] == 0 && pix[1] == 0 && pix[2] == 0 && pix[3] == 0 && pix[4] == 0 && pix[5] == 0)
+    {
+      // cast back to the pixel type
+      pix[0] = value;
+      pix[3] = value;
+      pix[5] = value;
+      iter.Set(pix);
+    }
+    ++iter;
   }
+}
+
+template <typename TImageType>
+void
+ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool takelog = true, double backgroundMD = 0)
+{
 
   typedef TImageType                      ImageType;
   typedef itk::ImageFileReader<ImageType> FileSourceType;
@@ -181,6 +197,18 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
   else
   {
     // Read the image files begin
+    if (!ANTSFileExists(std::string(file)))
+    {
+      std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
+      target = nullptr;
+      return;
+    }
+    if (!ANTSFileIsImage(file))
+    {
+      std::cerr << " file " << std::string(file) << " is not recognized as a supported image format . " << std::endl;
+      target = nullptr;
+      return;
+    }
 
     reffilter = FileSourceType::New();
     reffilter->SetFileName(file);
@@ -201,10 +229,15 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
 
   // NiftiDTICheck<ImageType>(target, file, false);
 
+  if (backgroundMD > 0.0)
+  {
+    SetBackgroundMD<ImageType>(target, backgroundMD);
+  }
+
   if (takelog)
   {
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
-    logFilter->SetInput(reffilter->GetOutput());
+    logFilter->SetInput(target);
     try
     {
       logFilter->Update();
@@ -366,8 +399,20 @@ ReadImage(char * fn)
 
 template <typename ImageType>
 typename ImageType::Pointer
-ReadTensorImage(char * fn, bool takelog = true)
+ReadTensorImage(char * fn, bool takelog = true, double backgroundMD = 0.0)
 {
+  if (!ANTSFileExists(std::string(fn)))
+  {
+    std::cerr << " file " << std::string(fn) << " does not exist . " << std::endl;
+    return nullptr;
+  }
+
+  if (!ANTSFileIsImage(fn))
+  {
+    std::cerr << " file " << std::string(fn) << " is not recognized as a supported image format . " << std::endl;
+    return nullptr;
+  }
+
   // Read the image files begin
   typedef itk::ImageFileReader<ImageType>                 FileSourceType;
   typedef itk::LogTensorImageFilter<ImageType, ImageType> LogFilterType;
@@ -387,12 +432,15 @@ ReadTensorImage(char * fn, bool takelog = true)
 
   typename ImageType::Pointer target = reffilter->GetOutput();
 
-  NiftiDTICheck<ImageType>(target, fn, false);
+  if (backgroundMD > 0.0)
+  {
+    SetBackgroundMD<ImageType>(target, backgroundMD);
+  }
 
   if (takelog)
   {
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
-    logFilter->SetInput(target->GetOutput());
+    logFilter->SetInput(target);
     logFilter->Update();
     target = logFilter->GetOutput();
   }
