@@ -1,4 +1,4 @@
-/*=========================================================================
+/*==========================================================================
 
   Program:   Advanced Normalization Tools
 
@@ -29,18 +29,16 @@
 
 namespace itk
 {
-template <typename TTensorImage, typename TVectorImage>
-PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>::
+template <typename TTensorImage>
+PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage>::
 PreservationOfPrincipalDirectionTensorReorientationImageFilter()
 {
-  m_DisplacementField = nullptr;
-  m_AffineTransform = nullptr;
-  m_UseAffine = false;
+  m_CompositeTransform = nullptr;
 }
 
-template <typename TTensorImage, typename TVectorImage>
+template <typename TTensorImage>
 void
-PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>::GenerateData()
+PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage>::GenerateData()
 {
   // get input and output images
   // FIXME - use buffered region, etc
@@ -53,15 +51,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   output->SetDirection(input->GetDirection());
   output->AllocateInitialized();
 
-  if (!this->m_UseAffine)
-  {
-    this->m_DisplacementTransform = DisplacementFieldTransformType::New();
-    this->m_DisplacementTransform->SetDisplacementField(m_DisplacementField);
-  }
-
   ImageRegionIteratorWithIndex<OutputImageType> outputIt(output, output->GetLargestPossibleRegion());
-
-  std::cout << "Iterating over image" << std::endl;
 
   using DirectionType = typename TTensorImage::DirectionType;
   const auto directionTransformMatrix = input->GetDirection().GetVnlMatrix();
@@ -110,16 +100,9 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       tmpMat = directionTransformMatrix * tmpMat * directionTransformMatrixTranspose;
       inTensorPhysical = Matrix2Vector<TensorType, TensorMatrixType>(tmpMat);
 
-      if (this->m_UseAffine)
-      {
-        inTensorReoriented = this->m_AffineTransform->TransformDiffusionTensor3D(inTensorPhysical);
-      }
-      else
-      {
-        typename DisplacementFieldType::PointType pt;
-        this->m_DisplacementField->TransformIndexToPhysicalPoint(index, pt);
-        inTensorReoriented = this->m_DisplacementTransform->TransformDiffusionTensor3D(inTensorPhysical, pt);
-      }
+      typename InputImageType::PointType pt;
+      input->TransformIndexToPhysicalPoint(index, pt);
+      inTensorReoriented = this->m_CompositeTransform->TransformDiffusionTensor3D(inTensorPhysical, pt);
     }
 
     // valid values?
@@ -143,9 +126,9 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 /**
  * Standard "PrintSelf" method
  */
-template <typename TTensorImage, typename TVectorImage>
+template <typename TTensorImage>
 void
-PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>::PrintSelf(
+PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage>::PrintSelf(
   std::ostream & os,
   Indent indent) const
 {
