@@ -1,6 +1,7 @@
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
 #include "itkantsRegistrationHelper.h"
+#include "itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.h"
 #include "ReadWriteData.h"
 #include "TensorFunctions.h"
 #include "itkImageFileReader.h"
@@ -157,7 +158,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
   using PixelType = T;
   using VectorType = itk::Vector<RealType, Dimension>;
 
-  using TensorPixelType = itk::SymmetricSecondRankTensor<RealType, Dimension>;
+  using TensorPixelType = itk::DiffusionTensor3D<RealType>;
 
   // typedef unsigned int                     LabelPixelType;
   // typedef itk::Image<PixelType, Dimension> LabelImageType;
@@ -836,7 +837,17 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
           }
           It.Set(tensor);
         }
-        WriteTensorImage<TensorImageType>(outputTensorImage, (outputFileName).c_str(), true);
+        // Reorient the tensors
+        if (verbose)
+        {
+          std::cout << "Applying tensor reorientation: preservation of principal direction" << std::endl;
+        }
+        using PPDReorientType = itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType>;
+        typename PPDReorientType::Pointer reo = PPDReorientType::New();
+        reo->SetInput(outputTensorImage);
+        reo->SetCompositeTransform(compositeTransform);
+        reo->Update();
+        WriteTensorImage<TensorImageType>(reo->GetOutput(), (outputFileName).c_str(), true);
       }
       else if (inputImageType == 3 || inputImageType == 4 || inputImageType == 5)
       {
