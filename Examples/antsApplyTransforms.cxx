@@ -1269,8 +1269,13 @@ antsApplyTransforms(std::vector<std::string> args, std::ostream * /*out_stream =
   parser->SetCommand(argv[0]);
 
   std::string commandDescription = std::string("antsApplyTransforms, applied to an input image, transforms it ") +
-                                   std::string("according to a reference image and a transform ") +
-                                   std::string("(or a set of transforms).");
+                                   std::string("according to a reference image and a transform (or a set of transforms). ") +
+                                   std::string("The output image is resliced into the space of the reference image. Tensor ") +
+                                   std::string("images are reoriented to preserve the principal directions. Vector input ") +
+                                   std::string("is not currently reoriented (this may be added later). ") +
+                                   std::string("As well as applying warps to images, antsApplyTransforms can also compose ") +
+                                   std::string("multiple transforms into a composite transform file, or collapse them into ") +
+                                   std::string("a single affine transform or displacement field.");
 
   parser->SetCommandDescription(commandDescription);
   antsApplyTransformsInitializeCommandLineOptions(parser);

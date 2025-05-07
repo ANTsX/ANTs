@@ -322,7 +322,8 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
               << std::endl;
 
     std::cout << "\nTensor Operations:" << std::endl;
-    std::cout << "  4DTensorTo3DTensor    : Outputs a 3D_DT_Image with the same information. " << std::endl;
+    std::cout << "  4DTensorTo3DTensor    : Outputs a 3D tensor image from a 4D image containing upper-triangular components "
+              << "(dxx, dxy, dxz, dyy, dyz, dzz)" << std::endl;
     std::cout << "    Usage        : 4DTensorTo3DTensor 4D_DTImage.ext" << std::endl;
     std::cout << "  ComponentTo3DTensor    : Outputs a 3D_DT_Image with the same information as component images. "
               << std::endl;

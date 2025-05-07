@@ -145,7 +145,10 @@ ReorientTensorImage(std::vector<std::string> args, std::ostream * /*out_stream =
   if (argc != 5)
   {
     std::cout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <composite.h5/warp.nii.gz/affine.mat/affine.txt> "
-        << std::endl;
+              << std::endl
+              << "antsApplyTransforms now applies reorientation automatically. If resampled your tensors into fixed space "
+              << "with antsApplyTransforms -e 2, the reorientation is already done."
+              << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
