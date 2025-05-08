@@ -1000,9 +1000,9 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
 
   {
     std::string description = std::string("Option specifying the input image type of scalar (default), ") +
-                              std::string("vector, tensor, time series, or multi-channel.  A time series ") +
-                              std::string("image is a scalar image defined by an additional dimension ") +
-                              std::string("for the time component whereas a multi-channel image is a ") +
+                              std::string("vector, tensor (3D diffusion tensor), time series, or multi-channel.  ") +
+                              std::string("A time series image is a scalar image defined by an additional ") +
+                              std::string("dimension for the time component whereas a multi-channel image is a ") +
                               std::string("vector image with only spatial dimensions.  Five-dimensional") +
                               std::string("images are e.g., AFNI stats image.");
 
