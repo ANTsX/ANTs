@@ -1,6 +1,7 @@
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
 #include "itkantsRegistrationHelper.h"
+#include "itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.h"
 #include "ReadWriteData.h"
 #include "TensorFunctions.h"
 #include "itkImageFileReader.h"
@@ -157,7 +158,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
   using PixelType = T;
   using VectorType = itk::Vector<RealType, Dimension>;
 
-  using TensorPixelType = itk::SymmetricSecondRankTensor<RealType, Dimension>;
+  using TensorPixelType = itk::DiffusionTensor3D<RealType>;
 
   // typedef unsigned int                     LabelPixelType;
   // typedef itk::Image<PixelType, Dimension> LabelImageType;
@@ -836,7 +837,17 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
           }
           It.Set(tensor);
         }
-        WriteTensorImage<TensorImageType>(outputTensorImage, (outputFileName).c_str(), true);
+        // Reorient the tensors
+        if (verbose)
+        {
+          std::cout << "Applying tensor reorientation: preservation of principal direction" << std::endl;
+        }
+        using PPDReorientType = itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType>;
+        typename PPDReorientType::Pointer reo = PPDReorientType::New();
+        reo->SetInput(outputTensorImage);
+        reo->SetCompositeTransform(compositeTransform);
+        reo->Update();
+        WriteTensorImage<TensorImageType>(reo->GetOutput(), (outputFileName).c_str(), true);
       }
       else if (inputImageType == 3 || inputImageType == 4 || inputImageType == 5)
       {
@@ -989,9 +1000,9 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
 
   {
     std::string description = std::string("Option specifying the input image type of scalar (default), ") +
-                              std::string("vector, tensor, time series, or multi-channel.  A time series ") +
-                              std::string("image is a scalar image defined by an additional dimension ") +
-                              std::string("for the time component whereas a multi-channel image is a ") +
+                              std::string("vector, tensor (3D diffusion tensor), time series, or multi-channel.  ") +
+                              std::string("A time series image is a scalar image defined by an additional ") +
+                              std::string("dimension for the time component whereas a multi-channel image is a ") +
                               std::string("vector image with only spatial dimensions.  Five-dimensional") +
                               std::string("images are e.g., AFNI stats image.");
 
@@ -1258,8 +1269,13 @@ antsApplyTransforms(std::vector<std::string> args, std::ostream * /*out_stream =
   parser->SetCommand(argv[0]);
 
   std::string commandDescription = std::string("antsApplyTransforms, applied to an input image, transforms it ") +
-                                   std::string("according to a reference image and a transform ") +
-                                   std::string("(or a set of transforms).");
+                                   std::string("according to a reference image and a transform (or a set of transforms). ") +
+                                   std::string("The output image is resliced into the space of the reference image. Tensor ") +
+                                   std::string("images are reoriented to preserve the principal directions. Vector input ") +
+                                   std::string("is not currently reoriented (this may be added later). ") +
+                                   std::string("As well as applying warps to images, antsApplyTransforms can also compose ") +
+                                   std::string("multiple transforms into a composite transform file, or collapse them into ") +
+                                   std::string("a single affine transform or displacement field.");
 
   parser->SetCommandDescription(commandDescription);
   antsApplyTransformsInitializeCommandLineOptions(parser);
