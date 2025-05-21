@@ -175,19 +175,14 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>:
   unsigned       i, j;
   RealMatrixType F;
 
-  RealVectorType physicalVectorCenter;
-  this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(it.GetCenterPixel(), physicalVectorCenter);
+  RealVectorType physicalVectorCenter = it.GetCenterPixel();
 
   for (i = 0; i < ImageDimension; ++i)
   {
-    RealVectorType physicalVectorNext1;
-    this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(it.GetNext(i, 1), physicalVectorNext1);
-    RealVectorType physicalVectorNext2;
-    this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(it.GetNext(i, 2), physicalVectorNext2);
-    RealVectorType physicalVectorPrevious1;
-    this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(it.GetPrevious(i, 1), physicalVectorPrevious1);
-    RealVectorType physicalVectorPrevious2;
-    this->m_RealValuedInputImage->TransformLocalVectorToPhysicalVector(it.GetPrevious(i, 2), physicalVectorPrevious2);
+    RealVectorType physicalVectorNext1 = it.GetNext(i, 1);
+    RealVectorType physicalVectorNext2 = it.GetNext(i, 2);
+    RealVectorType physicalVectorPrevious1 = it.GetPrevious(i, 1);
+    RealVectorType physicalVectorPrevious2 = it.GetPrevious(i, 2);
 
     RealType weight = this->m_DerivativeWeights[i];
     for (j = 0; j < VectorDimension; ++j)
