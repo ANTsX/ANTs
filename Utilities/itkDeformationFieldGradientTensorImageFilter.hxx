@@ -142,7 +142,7 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>:
   ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
 
   const typename InputImageType::DirectionType R = this->m_RealValuedInputImage->GetDirection();
-  const typename InputImageType::DirectionType RI = this->m_RealValuedInputImage->GetInverseDirection();
+  // const typename InputImageType::DirectionType RI = this->m_RealValuedInputImage->GetInverseDirection();
 
   // Process each of the data set faces.  The iterator is reinitialized on each
   // face so that it can determine whether or not to check for boundary
@@ -159,7 +159,33 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>:
     {
       RealMatrixType F = this->EvaluateAtNeighborhood(bit);
 
-      it.Set(R * F * RI);
+      // (PAC 2025-05-22): F is the gradient of the deformation field. The displacements are in physical space,
+      // but the gradient is estimated in the index coordinates (ie, using a neighborhood on the voxel grid)
+      // This next step is from itkDisplacementFieldTransform and transforms the rows from index to physical space.
+      // I think this is correct because it produces more accurate volume change estimation in my tests.
+      for (unsigned int i = 0; i < ImageDimension; ++i)
+      {
+        itk::Vector<TRealType, ImageDimension> row_i;
+        for (unsigned int j = 0; j < ImageDimension; ++j)
+        {
+          row_i[j] = F[i][j];
+        }
+        itk::Vector<TRealType, ImageDimension> rotated_row = R * row_i;
+        for (unsigned int j = 0; j < ImageDimension; ++j)
+        {
+          F[i][j] = rotated_row[j];
+        }
+      }
+
+      if (this->m_CalculateJacobian)
+      {
+        for (unsigned int i = 0; i < ImageDimension; i++)
+        {
+          F[i][i] += 1.0;
+        }
+      }
+
+      it.Set(F);
       ++bit;
       ++it;
       progress.CompletedPixel();
@@ -177,15 +203,15 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>:
 
   RealVectorType physicalVectorCenter = it.GetCenterPixel();
 
-  for (i = 0; i < ImageDimension; ++i)
+  for (j = 0; j < ImageDimension; ++j)
   {
-    RealVectorType physicalVectorNext1 = it.GetNext(i, 1);
-    RealVectorType physicalVectorNext2 = it.GetNext(i, 2);
-    RealVectorType physicalVectorPrevious1 = it.GetPrevious(i, 1);
-    RealVectorType physicalVectorPrevious2 = it.GetPrevious(i, 2);
+    RealVectorType physicalVectorNext1 = it.GetNext(j, 1);
+    RealVectorType physicalVectorNext2 = it.GetNext(j, 2);
+    RealVectorType physicalVectorPrevious1 = it.GetPrevious(j, 1);
+    RealVectorType physicalVectorPrevious2 = it.GetPrevious(j, 2);
 
-    RealType weight = this->m_DerivativeWeights[i];
-    for (j = 0; j < VectorDimension; ++j)
+    RealType weight = this->m_DerivativeWeights[j];
+    for (i = 0; i < ImageDimension; ++i)
     {
       if (this->m_UseCenteredDifference)
       {
@@ -197,8 +223,8 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>:
             break;
           case 2:
             F[i][j] = weight *
-                      (-physicalVectorNext2[j] + 8.0 * physicalVectorNext1[j] - 8.0 * physicalVectorPrevious1[j] +
-                       physicalVectorPrevious2[j]) /
+                      (-physicalVectorNext2[i] + 8.0 * physicalVectorNext1[i] - 8.0 * physicalVectorPrevious1[i] +
+                       physicalVectorPrevious2[i]) /
                       12.0;
             break;
         }
@@ -216,18 +242,6 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>:
     }
   }
 
-  if (this->m_CalculateJacobian)
-  {
-    unsigned int minDimension = ImageDimension;
-    if (static_cast<unsigned int>(VectorDimension) < static_cast<unsigned int>(ImageDimension))
-    {
-      minDimension = VectorDimension;
-    }
-    for (i = 0; i < minDimension; i++)
-    {
-      F[i][i] += 1.0;
-    }
-  }
   return F;
 }
 
