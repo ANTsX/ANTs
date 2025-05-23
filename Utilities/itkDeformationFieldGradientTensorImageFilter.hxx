@@ -29,10 +29,9 @@ template <typename TInputImage, typename TRealType, typename TOutputImage>
 DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>::
   DeformationFieldGradientTensorImageFilter()
 {
-  this->m_UseImageSpacing = true;
-  this->m_UseCenteredDifference = true;
   this->m_CalculateJacobian = false;
-  this->m_Order = 1;
+  this->m_UseImageSpacing = true;
+  this->m_Order = 2;
   this->m_DerivativeWeights.Fill(1.0);
   this->DynamicMultiThreadingOff();
 }
@@ -201,8 +200,6 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>:
   unsigned       i, j;
   RealMatrixType F;
 
-  RealVectorType physicalVectorCenter = it.GetCenterPixel();
-
   for (j = 0; j < ImageDimension; ++j)
   {
     RealVectorType physicalVectorNext1 = it.GetNext(j, 1);
@@ -213,35 +210,12 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>:
     RealType weight = this->m_DerivativeWeights[j];
     for (i = 0; i < ImageDimension; ++i)
     {
-      if (this->m_UseCenteredDifference)
-      {
-        switch (this->m_Order)
-        {
-          case 1:
-          default:
-            F[i][j] = weight * 0.5 * (physicalVectorNext1[j] - physicalVectorPrevious1[j]);
-            break;
-          case 2:
-            F[i][j] = weight *
+       F[i][j] = weight *
                       (-physicalVectorNext2[i] + 8.0 * physicalVectorNext1[i] - 8.0 * physicalVectorPrevious1[i] +
                        physicalVectorPrevious2[i]) /
                       12.0;
-            break;
-        }
-      }
-      else // Forward difference schema
-      {
-        switch (this->m_Order)
-        {
-          case 1:
-          default:
-            F[i][j] = weight * (physicalVectorNext1[j] - physicalVectorCenter[j]);
-            break;
-        }
-      }
     }
   }
-
   return F;
 }
 
@@ -254,7 +228,6 @@ DeformationFieldGradientTensorImageFilter<TInputImage, TRealType, TOutputImage>:
 
   os << indent << "m_CalculateJacobian = " << this->m_CalculateJacobian << std::endl;
   os << indent << "m_UseImageSpacing = " << this->m_UseImageSpacing << std::endl;
-  os << indent << "m_UseCenteredDifference = " << this->m_UseCenteredDifference << std::endl;
   os << indent << "m_Order = " << this->m_Order << std::endl;
   os << indent << "m_NeighborhoodRadius = " << this->m_NeighborhoodRadius << std::endl;
   os << indent << "m_RealValuedInputImage = " << m_RealValuedInputImage.GetPointer() << std::endl;

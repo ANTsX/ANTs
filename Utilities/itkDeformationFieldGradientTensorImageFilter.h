@@ -87,13 +87,6 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-  itkSetClampMacro(Order, unsigned int, 1, 2);
-  itkGetConstReferenceMacro(Order, unsigned int);
-
-  itkSetMacro(UseCenteredDifference, bool);
-  itkGetConstReferenceMacro(UseCenteredDifference, bool);
-  itkBooleanMacro(UseCenteredDifference);
-
   itkSetMacro(UseImageSpacing, bool);
   itkGetConstReferenceMacro(UseImageSpacing, bool);
   itkBooleanMacro(UseImageSpacing);
@@ -135,7 +128,6 @@ protected:
 
 private:
   bool                                       m_UseImageSpacing;
-  bool                                       m_UseCenteredDifference;
   bool                                       m_CalculateJacobian;
   unsigned int                               m_Order;
   RadiusType                                 m_NeighborhoodRadius;
