@@ -70,8 +70,6 @@ CreateJacobianDeterminantImage(int argc, char * argv[])
     jacobianFilter->SetInput(reader->GetOutput());
     jacobianFilter->SetCalculateJacobian(true);
     jacobianFilter->SetUseImageSpacing(true);
-    jacobianFilter->SetOrder(2);
-    jacobianFilter->SetUseCenteredDifference(true);
 
     if ( returnDeformationGradient )
     {
