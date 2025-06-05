@@ -1734,7 +1734,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         echo " Backing up results from iteration $itdisplay"
         echo "--------------------------------------------------------------------------------------"
         mkdir ${outdir}/ANTs_iteration_${i}
-        cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${OUTPUTNAME}*.nii.gz ${OUTPUTNAME}*.mat ${outdir}/ANTs_iteration_${i}/
+        cp -f ${TEMPLATENAME}*warplog.txt ${OUTPUTNAME}*.nii.gz ${OUTPUTNAME}*.mat ${outdir}/ANTs_iteration_${i}/
         # backup logs
         if [[ $DOQSUB -eq 1 ]];
             then
