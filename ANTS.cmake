@@ -52,7 +52,6 @@ find_package(ITK ${ITK_VERSION_ID} REQUIRED
     ITKConvolution
     ITKDisplacementField
     ITKDistanceMap
-    ITKFEM
     ITKFastMarching
     ITKFiniteDifference
     ITKIOCSV
@@ -91,8 +90,6 @@ find_package(ITK ${ITK_VERSION_ID} REQUIRED
     ITKThresholding
     ITKTransform
     ITKTransformFactory
-    ITKVTK
-    ITKVtkGlue
     ITKImageIO
     ITKTransformIO
     )
@@ -189,7 +186,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ANTsVersionConfig.h.in"
 
 add_subdirectory(Examples)
 
-if (NOT ANTS_INSTALL_LIBS_ONLY) 
+if (NOT ANTS_INSTALL_LIBS_ONLY)
   install(PROGRAMS Scripts/ANTSpexec.sh
      Scripts/antsASLProcessing.sh
      Scripts/antsAtroposN4.sh

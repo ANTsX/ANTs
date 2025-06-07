@@ -81,7 +81,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
        )
   endif()
   if(${extProjName}_BUILD_VKFFT_SUPPORT)
-    set(${proj}_MINC_ARGS
+    set(${proj}_VKFFT_ARGS
         -DModule_VkFFTBackend:BOOL=ON
        )
   endif()
