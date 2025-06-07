@@ -13,6 +13,7 @@
 #include "itkRigid2DTransform.h"
 #include "itkVersorRigid3DTransform.h"
 #include "itkTransformFileWriter.h"
+#include "itkFloatTypes.h"
 
 #include <string>
 #include <vector>
@@ -183,7 +184,7 @@ InitializeLinearTransform(int itkNotUsed(argc), char * argv[])
   {
     transformWriter->Update();
   }
-  catch (itk::ExceptionObject & itkNotUsed(err))
+  catch (const itk::ExceptionObject & itkNotUsed(err))
   {
     std::cerr << "Exception in writing transform file: " << argv[5] << std::endl;
     return EXIT_FAILURE;
@@ -372,10 +373,12 @@ InitializeBSplineTransform(int argc, char * argv[])
         }
 
         itk::ContinuousIndex<double, ImageDimension> fixedCidx;
-        fixedImage->TransformPhysicalPointToContinuousIndex(fixedPhysicalPoint, fixedCidx);
+        fixedCidx = fixedImage->
+                template TransformPhysicalPointToContinuousIndex<double, itk::SpacePrecisionType>(fixedPhysicalPoint);
 
         typename DisplacementFieldType::PointType fieldPoint;
-        parametricInputImage->TransformContinuousIndexToPhysicalPoint(fixedCidx, fieldPoint);
+        fieldPoint = parametricInputImage->
+                template TransformContinuousIndexToPhysicalPoint<double, itk::SpacePrecisionType>(fixedCidx);
 
         fieldPoints->SetPoint(count, fieldPoint);
         fieldPoints->SetPointData(count, vector);

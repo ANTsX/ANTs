@@ -31,6 +31,9 @@
 extern bool
 ANTSFileExists(const std::string & strFilename);
 
+extern bool
+ANTSFileIsImage(const std::string & filename);
+
 // Nifti stores DTI values in lower tri format but itk uses upper tri
 // currently, nifti io does nothing to deal with this. if this changes
 // the function below should be modified/eliminated.
@@ -146,15 +149,39 @@ NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char * file, bool ma
 
 #endif
 
+// Replace zero-valued pixels with backgroundMD
+// This sets the eigenvalues of background pixels to a constant value
+// The idea is to reduce interpolation artifacts when resampling
 template <typename TImageType>
 void
-ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool takelog = true)
+SetBackgroundMD(TImageType * image, double backgroundMD)
 {
-  if (!ANTSFileExists(std::string(file)))
+  // Read the tensor components
+  itk::ImageRegionIterator<TImageType> iter(image, image->GetLargestPossibleRegion());
+  while (!iter.IsAtEnd())
   {
-    std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
-    return;
+
+    using tensorRealType = typename TImageType::PixelType::ValueType;
+
+    tensorRealType value = static_cast<tensorRealType>(backgroundMD);
+
+    typename TImageType::PixelType pix = iter.Get();
+    if (pix[0] == 0 && pix[1] == 0 && pix[2] == 0 && pix[3] == 0 && pix[4] == 0 && pix[5] == 0)
+    {
+      // cast back to the pixel type
+      pix[0] = value;
+      pix[3] = value;
+      pix[5] = value;
+      iter.Set(pix);
+    }
+    ++iter;
   }
+}
+
+template <typename TImageType>
+void
+ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool takelog = true, double backgroundMD = 0)
+{
 
   typedef TImageType                      ImageType;
   typedef itk::ImageFileReader<ImageType> FileSourceType;
@@ -170,6 +197,18 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
   else
   {
     // Read the image files begin
+    if (!ANTSFileExists(std::string(file)))
+    {
+      std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
+      target = nullptr;
+      return;
+    }
+    if (!ANTSFileIsImage(file))
+    {
+      std::cerr << " file " << std::string(file) << " is not recognized as a supported image format . " << std::endl;
+      target = nullptr;
+      return;
+    }
 
     reffilter = FileSourceType::New();
     reffilter->SetFileName(file);
@@ -177,7 +216,7 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
     {
       reffilter->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       std::cerr << "Exception caught during reference file reading " << std::endl;
       std::cerr << e << " file " << file << std::endl;
@@ -190,15 +229,20 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
 
   // NiftiDTICheck<ImageType>(target, file, false);
 
+  if (backgroundMD > 0.0)
+  {
+    SetBackgroundMD<ImageType>(target, backgroundMD);
+  }
+
   if (takelog)
   {
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
-    logFilter->SetInput(reffilter->GetOutput());
+    logFilter->SetInput(target);
     try
     {
       logFilter->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       std::cerr << "Exception caught during log tensor filter " << std::endl;
       std::cerr << e << " file " << file << std::endl;
@@ -208,6 +252,46 @@ ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool 
     target = logFilter->GetOutput();
     std::cout << "Returning Log(D) for log-euclidean math ops" << std::endl;
   }
+}
+
+// function to determine if a file name is a memory address rather than a file
+inline bool
+FileIsPointer(const char *file)
+{
+  bool fileIsPointer = false;
+
+  std::string comparetype1 = std::string("0x");
+  std::string comparetype2 = std::string(file);
+  comparetype2 = comparetype2.substr(0, 2);
+
+  if (comparetype1 == comparetype2)
+  {
+    fileIsPointer = true;
+  }
+  else
+  {
+    std::string fileString = std::string(file);
+    // Also treat file as a pointer if it is composed entirely of hex characters, and has
+    // appropriate length
+    // Windows pointers are just hex numbers without the leading 0x
+    bool fileIsHexChars = true;
+
+    std::string::iterator fileIt;
+
+    for (fileIt = fileString.begin(); fileIt < fileString.end(); ++fileIt)
+    {
+      if (!std::isxdigit(*fileIt))
+      {
+        fileIsHexChars = false;
+      }
+    }
+
+    if (fileIsHexChars && fileString.length() == (sizeof(int*) * 2))
+    {
+      fileIsPointer = true;
+    }
+  }
+  return fileIsPointer;
 }
 
 template <typename TImageType>
@@ -225,11 +309,7 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
     return false;
   }
 
-  std::string comparetype1 = std::string("0x");
-  std::string comparetype2 = std::string(file);
-  comparetype2 = comparetype2.substr(0, 2);
-  // Read the image files begin
-  if (comparetype1 == comparetype2)
+  if (FileIsPointer(file))
   {
     typedef TImageType RImageType;
     void *             ptr;
@@ -250,6 +330,14 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
       target = nullptr;
       return false;
     }
+
+    if (!ANTSFileIsImage(file))
+    {
+      std::cerr << " file " << std::string(file) << " is not recognized as a supported image format . " << std::endl;
+      target = nullptr;
+      return false;
+    }
+
     typedef TImageType                      ImageType;
     typedef itk::ImageFileReader<ImageType> FileSourceType;
 
@@ -259,7 +347,7 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
     {
       reffilter->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       std::cerr << "Exception caught during reference file reading " << std::endl;
       std::cerr << e << " file " << file << std::endl;
@@ -291,7 +379,7 @@ ReadImage(char * fn)
   {
     reffilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cerr << "Exception caught during image reference file reading " << std::endl;
     std::cerr << e << std::endl;
@@ -311,8 +399,20 @@ ReadImage(char * fn)
 
 template <typename ImageType>
 typename ImageType::Pointer
-ReadTensorImage(char * fn, bool takelog = true)
+ReadTensorImage(char * fn, bool takelog = true, double backgroundMD = 0.0)
 {
+  if (!ANTSFileExists(std::string(fn)))
+  {
+    std::cerr << " file " << std::string(fn) << " does not exist . " << std::endl;
+    return nullptr;
+  }
+
+  if (!ANTSFileIsImage(fn))
+  {
+    std::cerr << " file " << std::string(fn) << " is not recognized as a supported image format . " << std::endl;
+    return nullptr;
+  }
+
   // Read the image files begin
   typedef itk::ImageFileReader<ImageType>                 FileSourceType;
   typedef itk::LogTensorImageFilter<ImageType, ImageType> LogFilterType;
@@ -323,7 +423,7 @@ ReadTensorImage(char * fn, bool takelog = true)
   {
     reffilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cerr << "Exception caught during tensor image reference file reading " << std::endl;
     std::cerr << e << std::endl;
@@ -332,12 +432,15 @@ ReadTensorImage(char * fn, bool takelog = true)
 
   typename ImageType::Pointer target = reffilter->GetOutput();
 
-  NiftiDTICheck<ImageType>(target, fn, false);
+  if (backgroundMD > 0.0)
+  {
+    SetBackgroundMD<ImageType>(target, backgroundMD);
+  }
 
   if (takelog)
   {
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
-    logFilter->SetInput(target->GetOutput());
+    logFilter->SetInput(target);
     logFilter->Update();
     target = logFilter->GetOutput();
   }
@@ -355,6 +458,7 @@ ReadLabeledPointSet(itk::SmartPointer<TPointSet> & target,
 {
   if (std::string(file).length() < 3)
   {
+    std::cerr << " bad file name " << std::string(file) << std::endl;
     target = nullptr;
     return false;
   }
@@ -362,6 +466,7 @@ ReadLabeledPointSet(itk::SmartPointer<TPointSet> & target,
   if (!ANTSFileExists(std::string(file)))
   {
     std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
+    target = nullptr;
     return false;
   }
 
@@ -375,10 +480,11 @@ ReadLabeledPointSet(itk::SmartPointer<TPointSet> & target,
   {
     reffilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cerr << "Exception caught during point set reference file reading " << std::endl;
     std::cerr << e << std::endl;
+    target = nullptr;
     return false;
   }
 
@@ -409,6 +515,13 @@ ReadImageIntensityPointSet(itk::SmartPointer<TPointSet> & target,
     return false;
   }
 
+  if (!ANTSFileIsImage(imageFile))
+  {
+    std::cerr << " file " << std::string(imageFile) << " is not recognized as a supported image format . " << std::endl;
+    target = nullptr;
+    return false;
+  }
+
   if (std::string(maskFile).length() < 3)
   {
     std::cerr << " bad mask file name " << std::string(maskFile) << std::endl;
@@ -419,6 +532,13 @@ ReadImageIntensityPointSet(itk::SmartPointer<TPointSet> & target,
   if (!ANTSFileExists(std::string(maskFile)))
   {
     std::cerr << " mask file " << std::string(maskFile) << " does not exist . " << std::endl;
+    target = nullptr;
+    return false;
+  }
+
+  if (!ANTSFileIsImage(maskFile))
+  {
+    std::cerr << " file " << std::string(maskFile) << " is not recognized as a supported image format . " << std::endl;
     target = nullptr;
     return false;
   }
@@ -471,7 +591,7 @@ ReadLabeledPointSet(char * fn)
   {
     reffilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cerr << "Exception caught during point set reference file reading " << std::endl;
     std::cerr << e << std::endl;
@@ -524,7 +644,7 @@ WriteImage(const itk::SmartPointer<TImageType> image, const char * file)
   // if (writer->GetImageIO->GetNumberOfComponents() == 6)
   // NiftiDTICheck<TImageType>(image,file);
 
-  if (file[0] == '0' && file[1] == 'x')
+  if (FileIsPointer(file))
   {
     void * ptr;
     sscanf(file, "%p", (void **)&ptr);
@@ -597,8 +717,8 @@ ReadWarpFromFile(std::string warpfn, std::string ext)
   typedef itk::Image<float, ImageDimension> RealImageType;
   typedef RealImageType                     ImageType;
 
-  //  typedef itk::Vector<float,itkGetStaticConstMacro(ImageDimension)>         VectorType;
-  //  typedef itk::Image<VectorType,itkGetStaticConstMacro(ImageDimension)>     FieldType;
+  //  typedef itk::Vector<float,Self::ImageDimension>         VectorType;
+  //  typedef itk::Image<VectorType,Self::ImageDimension>     FieldType;
   // std::cout << " warp file name " << warpfn + ext << std::endl;
 
   // First - read the vector fields
@@ -625,10 +745,8 @@ ReadWarpFromFile(std::string warpfn, std::string ext)
   //  std::cout << " spacing xv " << xvec->GetSpacing()[0]
   // << " field " << field->GetSpacing()[0] << std::endl;
 
-  unsigned int ct = 0;
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
   {
-    ct++;
     typename ImageType::IndexType index = it.GetIndex();
 
     VectorType disp;
@@ -777,7 +895,7 @@ ConvertTimeSeriesImageToMultiChannelImage(TTimeSeriesImageType * timeSeriesImage
   multiChannelImage->SetOrigin(origin);
   multiChannelImage->SetDirection(direction);
   multiChannelImage->SetVectorLength(timeSeriesSize[ImageDimension]);
-  multiChannelImage->Allocate();
+  multiChannelImage->AllocateInitialized();
 
   itk::ImageRegionIteratorWithIndex<MultiChannelImageType> It(multiChannelImage,
                                                               multiChannelImage->GetRequestedRegion());
@@ -873,7 +991,7 @@ ConvertTimeSeriesImageToFiveDimensionalImage(TTimeSeriesImageType * timeSeriesIm
 {
   enum
   {
-    ImageDimension = 3
+    ImageDimension = TTimeSeriesImageType::ImageDimension - 1
   };
 
   typename FiveDimensionalImageType::SpacingType          spacing;
@@ -908,7 +1026,7 @@ ConvertTimeSeriesImageToFiveDimensionalImage(TTimeSeriesImageType * timeSeriesIm
   FiveDimensionalImage->SetSpacing(spacing);
   FiveDimensionalImage->SetOrigin(origin);
   FiveDimensionalImage->SetDirection(direction);
-  FiveDimensionalImage->Allocate();
+  FiveDimensionalImage->AllocateInitialized();
 
   itk::ImageRegionIteratorWithIndex<FiveDimensionalImageType> It(FiveDimensionalImage,
                                                                  FiveDimensionalImage->GetRequestedRegion());
@@ -934,7 +1052,7 @@ ConvertFiveDimensionalImageToTimeSeriesImage(FiveDimensionalImageType * FiveDime
 {
   enum
   {
-    ImageDimension = 3
+    ImageDimension = TimeSeriesImageType::ImageDimension - 1
   };
 
   typename FiveDimensionalImageType::SpacingType          spacing = FiveDimensionalImage->GetSpacing();
@@ -961,7 +1079,7 @@ ConvertFiveDimensionalImageToTimeSeriesImage(FiveDimensionalImageType * FiveDime
       timeSeriesDirection(d, e) = direction(d, e);
     }
   }
-  timeSeriesSize[3] = size[4];
+  timeSeriesSize[ImageDimension] = size[4];
 
   typename TimeSeriesImageType::Pointer timeSeriesImage =
     AllocImage<TimeSeriesImageType>(timeSeriesSize, timeSeriesSpacing, timeSeriesOrigin, timeSeriesDirection);

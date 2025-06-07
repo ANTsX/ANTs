@@ -13,6 +13,7 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include <sstream>
 #include <iostream>
+#include <random>
 #include <string>
 #include <algorithm>
 #include <vector>
@@ -29,12 +30,6 @@
 #include "itkCSVArray2DFileReader.h"
 #include "itkExtractImageFilter.h"
 #include "ReadWriteData.h"
-
-// For random number generation.
-#if __cplusplus >= 201402L
-#  include <random>
-#endif
-
 
 namespace ants
 {
@@ -157,7 +152,7 @@ WriteSortedVariatesToSpatialImage(std::string              filename,
   {
     writer1->Write();
   }
-  catch (itk::ExceptionObject & exp)
+  catch (const itk::ExceptionObject & exp)
   {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -199,7 +194,7 @@ WriteSortedVariatesToSpatialImage(std::string              filename,
   {
     writerROI->Write();
   }
-  catch (itk::ExceptionObject & exp)
+  catch (const itk::ExceptionObject & exp)
   {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -235,7 +230,7 @@ WriteSortedVariatesToSpatialImage(std::string              filename,
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & exp)
+    catch (const itk::ExceptionObject & exp)
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -286,7 +281,7 @@ WriteVariatesToSpatialImage(std::string              filename,
   {
     writer->Write();
   }
-  catch (itk::ExceptionObject & itkNotUsed(exp))
+  catch (const itk::ExceptionObject & itkNotUsed(exp))
   {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -320,7 +315,7 @@ WriteVariatesToSpatialImage(std::string              filename,
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -346,7 +341,7 @@ WriteVariatesToSpatialImage(std::string              filename,
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -419,11 +414,15 @@ PermuteMatrix(vnl_matrix<TComp> q, bool doperm = true)
   }
 // std::random_shuffle is deprecated since C++14,
 // see: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4190.htm
-#if __cplusplus >= 201402L
-  std::shuffle(permvec.begin(), permvec.end(), std::random_device());
-#else
-  std::random_shuffle(permvec.begin(), permvec.end(), sccanRandom);
-#endif
+// 2023-08-30: MSVC 2019 on Github Actions runners having problems detecting C++ version,
+// so use new std::shuffle
+// #if __cplusplus >= 201402L
+//  std::shuffle(permvec.begin(), permvec.end(), std::random_device());
+// #else
+//   std::random_shuffle(permvec.begin(), permvec.end(), sccanRandom);
+// #endif
+std::shuffle(permvec.begin(), permvec.end(), std::random_device());
+
   //    for (unsigned long i=0; i < q.rows(); i++)
   //  // std::cout << " permv " << i << " is " << permvec[i] << std::endl;
   // for (unsigned long i=0; i < q.rows(); i++)
@@ -508,7 +507,7 @@ ReadMatrixFromCSVorImageSet(std::string matname, vnl_matrix<PixelType> & p)
     {
       reader->Update();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -628,7 +627,7 @@ ConvertImageListToMatrix(std::string imagelist, std::string maskfn, std::string 
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -863,7 +862,7 @@ ConvertTimeSeriesImageToMatrix(std::string imagefn,
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & itkNotUsed(exp))
+    catch (const itk::ExceptionObject & itkNotUsed(exp))
     {
       // std::cerr << "Exception caught!" << std::endl;
       // std::cerr << exp << std::endl;
@@ -909,7 +908,7 @@ ConvertTimeSeriesImageToMatrix(std::string imagefn,
   {
     writer->Write();
   }
-  catch (itk::ExceptionObject & itkNotUsed(exp))
+  catch (const itk::ExceptionObject & itkNotUsed(exp))
   {
     // std::cerr << "Exception caught!" << std::endl;
     // std::cerr << exp << std::endl;
@@ -2591,7 +2590,7 @@ sccan(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   // which the sccanparser should handle
   args.insert(args.begin(), "sccan");
 
-  std::remove(args.begin(), args.end(), std::string(""));
+  std::ignore = std::remove(args.begin(), args.end(), std::string(""));
   int     argc = args.size();
   char ** argv = new char *[args.size() + 1];
   for (unsigned int i = 0; i < args.size(); ++i)

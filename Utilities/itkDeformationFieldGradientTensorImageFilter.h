@@ -41,7 +41,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(DeformationFieldGradientTensorImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(DeformationFieldGradientTensorImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -55,10 +55,10 @@ public:
   typedef typename OutputImageType::Pointer OutputImagePointer;
 
   /** The dimensionality of the input and output images. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
 
   /** Length of the vector pixel type of the input image. */
-  itkStaticConstMacro(VectorDimension, unsigned int, InputPixelType::Dimension);
+  static constexpr unsigned int VectorDimension = InputPixelType::Dimension;
 
   /** Define the data type and the vector of data type used in calculations. */
   typedef TRealType                                         RealType;
@@ -86,13 +86,6 @@ public:
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
   void
   GenerateInputRequestedRegion() override;
-
-  itkSetClampMacro(Order, unsigned int, 1, 2);
-  itkGetConstReferenceMacro(Order, unsigned int);
-
-  itkSetMacro(UseCenteredDifference, bool);
-  itkGetConstReferenceMacro(UseCenteredDifference, bool);
-  itkBooleanMacro(UseCenteredDifference);
 
   itkSetMacro(UseImageSpacing, bool);
   itkGetConstReferenceMacro(UseImageSpacing, bool);
@@ -135,7 +128,6 @@ protected:
 
 private:
   bool                                       m_UseImageSpacing;
-  bool                                       m_UseCenteredDifference;
   bool                                       m_CalculateJacobian;
   unsigned int                               m_Order;
   RadiusType                                 m_NeighborhoodRadius;

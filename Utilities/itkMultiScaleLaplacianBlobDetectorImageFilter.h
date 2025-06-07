@@ -53,10 +53,10 @@ public:
   typedef Image<RealPixelType, TDimension>  RealImageType;
   typedef typename RealImageType::IndexType CenterType;
 
-  itkStaticConstMacro(NumberOfDimensions, unsigned int, TDimension);
+  static constexpr unsigned int NumberOfDimensions = TDimension;
 
   itkNewMacro(Self);
-  itkTypeMacro(ScaleSpaceBlobSpatialObject, GaussianSpatialObject);
+  itkOverrideGetNameOfClassMacro(ScaleSpaceBlobSpatialObject);
 
   /** Set/Get the normalized laplacian value of the extrema */
   itkGetMacro(ScaleSpaceValue, double);
@@ -129,7 +129,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(MultiScaleLaplacianBlobDetectorImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(MultiScaleLaplacianBlobDetectorImageFilter);
 
   /** Typedef to images */
   typedef TInputImage                           InputImageType;

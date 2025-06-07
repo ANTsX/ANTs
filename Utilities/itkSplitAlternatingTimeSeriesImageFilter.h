@@ -60,7 +60,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(SplitAlternatingTimeSeriesImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(SplitAlternatingTimeSeriesImageFilter);
 
   /** Compiler can't inherit typedef? */
   typedef typename Superclass::InputImageType  InputImageType;
@@ -71,8 +71,8 @@ public:
   typedef typename OutputImageType::RegionType OutputImageRegionType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
-  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+  static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
+  static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */

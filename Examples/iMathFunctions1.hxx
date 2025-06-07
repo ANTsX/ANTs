@@ -463,8 +463,7 @@ iMathPropagateLabelsThroughMask(typename ImageType::Pointer speedimage, /*1*/
   outlabimage->SetSpacing( speedimage->GetSpacing() );
   outlabimage->SetOrigin( speedimage->GetOrigin() );
   outlabimage->SetDirection( speedimage->GetDirection() );
-  outlabimage->Allocate();
-  outlabimage->FillBuffer(0);
+  outlabimage->AllocateInitialized();
   */
 
   typename CastFilterType::Pointer caster = CastFilterType::New();
@@ -623,7 +622,7 @@ iMathTruncateIntensity(typename ImageType::Pointer                              
     typedef itk::BinaryThresholdImageFilter<ImageType, MaskType> ThresholdFilterType;
     typename ThresholdFilterType::Pointer                        thresh = ThresholdFilterType::New();
     thresh->SetInput(image);
-    thresh->SetLowerThreshold(1e-6);
+    thresh->SetLowerThreshold(itk::NumericTraits<PixelType>::NonpositiveMin());
     thresh->SetUpperThreshold(itk::NumericTraits<PixelType>::max());
     thresh->SetInsideValue(1);
     thresh->SetOutsideValue(0);

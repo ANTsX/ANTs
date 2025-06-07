@@ -1,0 +1,170 @@
+name: Cross-platform release binaries
+on:
+  release:
+    types: [created]
+env:
+  CMAKE_VERSION: 3.23.1 # for ubuntu
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "almalinux-8-GCC",
+            os_desc: almalinux8,
+            image: "almalinux:8",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            generators: "Unix Makefiles"
+          }
+        - {
+            name: "almalinux-9-GCC",
+            os_desc: almalinux9,
+            image: "almalinux:9",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            generators: "Unix Makefiles"
+          }
+        - { name: "CentOS-7-GCC",
+            os_desc: centos7,
+            image: "cookpa/antscentos7base",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            generators: "Unix Makefiles"
+          }
+        - {
+            name: "Ubuntu-18.04-GCC",
+            os_desc: ubuntu18.04,
+            ubuntu_repo_label: "bionic",
+            image: "ubuntu:18.04",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            generators: "Ninja"
+          }
+        - {
+            name: "Ubuntu-20.04-GCC",
+            os_desc: ubuntu20.04,
+            image: "ubuntu:20.04",
+            ubuntu_repo_label: "focal",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+            generators: "Ninja"
+          }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Get ANTs version
+        run: |
+          echo "ANTS_VERSION=${ANTS_TAG#v}" >> $GITHUB_ENV
+        env:
+          ANTS_TAG: ${{ github.ref_name }}
+      - name: Define env
+        run: |
+          echo github.event.action: ${{ github.event.action }}
+          echo github.event_name: ${{ github.event_name }}
+          echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
+          echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
+          # ARTIFACT here is just the file name, no path because we're referencing it from inside containers
+          echo "ARTIFACT=ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
+      - name: Set up build container
+        run: |
+          docker pull ${{ matrix.config.image }}
+          docker create --name build_container -v ${{ github.workspace }}:/workspace -v ${{ runner.temp }}/artifact:/artifact ${{ matrix.config.image }} sleep infinity
+          docker start build_container
+      - name: Install dependencies on Alma
+        if: startsWith(matrix.config.name, 'almalinux')
+        run: |
+          docker exec --user root build_container bash -c "
+            yum -y update && yum clean all
+            yum groupinstall -y 'Development Tools'
+            yum install -y cmake
+            cmake --version
+            gcc --version
+          "
+      - name: Install dependencies on Ubuntu
+        if: startsWith(matrix.config.name, 'Ubuntu')
+        run: |
+          docker exec --user root build_container bash -c "
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y --no-install-recommends \
+              apt-transport-https \
+              bc \
+              build-essential \
+              ca-certificates \
+              gnupg \
+              ninja-build \
+              git \
+              software-properties-common \
+              wget \
+              zip
+            wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add -
+            apt-add-repository -y 'deb https://apt.kitware.com/ubuntu/ ${{ matrix.config.ubuntu_repo_label }} main'
+            apt-get update
+            apt-get -y install cmake=${CMAKE_VERSION}-0kitware1${{ matrix.config.os_desc }}.1 cmake-data=${CMAKE_VERSION}-0kitware1${{ matrix.config.os_desc }}.1
+            ninja --version
+            cmake --version
+            gcc --version
+          "
+      - name: Configure # Run with login shell to source bashrc, needed for centos
+        run: |
+          docker exec --user root build_container bash --login -c "
+            mkdir -p /workspace/build
+            cd /workspace/build
+            cmake \
+              -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+              -G '${{ matrix.config.generators }}' \
+              -DBUILD_TESTING=ON \
+              -DRUN_SHORT_TESTS=ON \
+              -DRUN_LONG_TESTS=OFF \
+              -DCMAKE_INSTALL_PREFIX:PATH=/workspace/install/ants-${{ env.ANTS_VERSION }} \
+              /workspace
+          "
+      - name: Build
+        run: |
+          docker exec --user root build_container bash --login -c "
+            cd /workspace/build
+            cmake --build . --config ${{ matrix.config.build_type }} --parallel 1
+          "
+      - name: Test
+        run: |
+          docker exec --user root build_container bash --login -c "
+            cd /workspace/build/ANTS-build
+            ctest
+          "
+      - name: Install
+        run: |
+          docker exec --user root build_container bash --login -c "
+            cd /workspace/build/ANTS-build
+            cmake --install .
+          "
+      - name: Pack
+        run: |
+          docker exec --user root build_container bash --login -c "
+            cd /workspace/install
+            zip -r /artifact/${{ env.ARTIFACT }} .
+          "
+      - name: Upload release asset
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          allowUpdates: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          artifacts: "${{ runner.temp }}/artifact/${{ env.ARTIFACT }}"
+          artifactContentType: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean up
+        run: |
+          docker stop build_container
+          docker rm build_container

@@ -61,10 +61,14 @@ AverageImages1(unsigned int argc, char * argv[])
   unsigned int bigimage = 0;
   for (unsigned int j = 4; j < argc; j++)
   {
-    // Get the image dimension
     const std::string                  fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::IOFileModeEnum::ReadMode);
+    if (imageIO.IsNull())
+    {
+      std::cerr << " Cannot read input file: " << fn.c_str() << std::endl;
+      return EXIT_FAILURE;
+    }
     imageIO->SetFileName(fn.c_str());
     imageIO->ReadImageInformation();
 
@@ -184,11 +188,15 @@ AverageImages(unsigned int argc, char * argv[])
   unsigned int bigimage = 4;
   for (unsigned int j = 4; j < argc; j++)
   {
-    // Get the image dimension
     std::string fn = std::string(argv[j]);
     std::cout << " fn " << fn << " " << ImageDimension << " " << NVectorComponents << std::endl;
     typename itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::IOFileModeEnum::ReadMode);
+    if (imageIO.IsNull())
+    {
+      std::cerr << " Cannot read input file: " << fn.c_str() << std::endl;
+      return EXIT_FAILURE;
+    }
     imageIO->SetFileName(fn.c_str());
     imageIO->ReadImageInformation();
 
@@ -306,12 +314,13 @@ AverageImages(std::vector<std::string> args, std::ostream * /*out_stream = nullp
     std::cout << " Compulsory arguments: \n" << std::endl;
     std::cout << " ImageDimension: 2 or 3 (for 2 or 3 dimensional input).\n " << std::endl;
     std::cout << " Outputfname.nii.gz: the name of the resulting image.\n" << std::endl;
-    std::cout << " Normalize: 0 - no normalization\n"
+    std::cout << " Normalize: 0 - no normalization (this is the only option for multi-component images)\n"
               << "            1 - input images are divided by their mean before averaging; Laplacian sharpening is "
                  "applied to the average\n"
               << "            2 - input images are divided by their mean before averaging; no sharpening\n"
               << std::endl;
-    std::cout << " Images are resampled into the space of the largest input image.\n" << std::endl;
+    std::cout << " Images are resampled into the space of the largest input image.\n Normalization options only apply "
+                 "to single-component input.\n" << std::endl;
     std::cout << " Example Usage:\n" << std::endl;
     std::cout << argv[0] << " 3 average.nii.gz  1  *.nii.gz \n" << std::endl;
     std::cout << " \n" << std::endl;
@@ -324,6 +333,11 @@ AverageImages(std::vector<std::string> args, std::ostream * /*out_stream = nullp
 
   const int                 dim = std::stoi(argv[1]);
   itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(argv[4], itk::IOFileModeEnum::ReadMode);
+  if (imageIO.IsNull())
+    {
+      std::cerr << " Cannot read input file: " << argv[4] << std::endl;
+      return EXIT_FAILURE;
+    }
   imageIO->SetFileName(argv[4]);
   imageIO->ReadImageInformation();
   unsigned int ncomponents = imageIO->GetNumberOfComponents();

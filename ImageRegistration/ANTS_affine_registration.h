@@ -111,7 +111,7 @@ write_transform_file(TransformPointerType & transform, StringType filename)
   {
     transform_writer->Update();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
               << "Exception in writing transform file: " << std::endl
@@ -141,7 +141,7 @@ read_transform_file(StringType filename, CastTransformPointerType & transform)
   {
     tran_reader->Update();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << err << std::endl;
     std::cout << "Exception caught in reading tran para file: " << filename << std::endl;
@@ -623,7 +623,7 @@ get_cost_value_mmi(ImagePointerType     fixedImage,
   {
     rval = mattesMutualInfo->GetValue(para);
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
               << "Exception caught in computing mattesMutualInfo after registration" << std::endl
@@ -643,7 +643,7 @@ get_cost_value_mmi(ImagePointerType     fixedImage,
   {
     rval0 = mattesMutualInfo->GetValue(para0);
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
               << "Exception caught in computing mattesMutualInfo before registration" << std::endl
@@ -682,7 +682,7 @@ register_image_cxy(ImagePointerType fixed_image, ImagePointerType moving_image, 
     initializer->InitializeTransform();
     transform->SetAngle(0.0);
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl << "Exception in InitializeTransform" << std::endl;
     return false;
@@ -720,7 +720,7 @@ register_image_cxyz(ImagePointerType fixed_image, ImagePointerType moving_image,
     initializer->MomentsOn();
     initializer->InitializeTransform();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl << "Exception in InitializeTransform" << std::endl;
     return false;
@@ -854,7 +854,7 @@ register_image_affine3d_mres_mask(ImagePointerType                  fixed_image,
   {
     registration->Update();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << "ExceptionObject caught !" << std::endl;
     std::cout << err << std::endl;
@@ -1006,7 +1006,7 @@ register_image_affine2d_mres_mask(ImagePointerType                  fixed_image,
   {
     registration->Update();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cout << "ExceptionObject caught !" << std::endl;
     std::cout << err << std::endl;
@@ -1339,7 +1339,7 @@ create_deformation_field_byref(const DisplacementFieldPointerType & ref, Displac
   field->SetRegions(region);
   field->SetSpacing(ref->GetSpacing());
   field->SetOrigin(ref->GetOrigin());
-  field->Allocate();
+  field->AllocateInitialized();
 }
 
 // compose affine transform (in a matrix format A: (Ax+b)) with a deformation field F:

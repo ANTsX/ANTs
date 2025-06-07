@@ -1,0 +1,86 @@
+# Build for Windows using visual studio
+name: Native Windows release binaries
+
+# Controls when the action will run. Triggers the workflow on push
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Windows-22",
+            os: "windows-2022",
+            vs: "2019",
+            build_type: "Release"
+          }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      # Set up vs studio. Use default windows shell (powershell) not bash,
+      # to avoid conflicts with link executable
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ runner.arch }}
+          vsversion: ${{ matrix.vs }}
+      - name: Get ANTs version
+        run: |
+         $antsVersion="${{ env.ANTS_TAG }}"
+         $antsVersion=$antsVersion.Substring(1)
+         echo "ANTS_VERSION=$antsVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
+        env:
+          ANTS_TAG: ${{ github.ref_name }}
+      - name: Define env
+        run: |
+          echo github.event.action: ${{ github.event.action }}
+          echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os }}-${{ runner.arch }}-VS${{ matrix.config.vs }}.zip" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Configure
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir build
+          cd build
+          cmake `
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} `
+            -DBUILD_TESTING=ON `
+            -DRUN_SHORT_TESTS=ON `
+            -DRUN_LONG_TESTS=OFF `
+            -DCMAKE_INSTALL_PREFIX:PATH=${{ runner.temp }}/install/ants-${{ env.ANTS_VERSION }} `
+            ${{ github.workspace }}
+      - name: Build
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd build
+          cmake --build . --config ${{ matrix.config.build_type }} --parallel
+      - name: Test
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd build/ANTS-build
+          ctest -C release
+      - name: Install
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd build/ANTS-build
+          cmake --install .
+      - name: Pack
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd install
+          7z a ${{ env.ARTIFACT }} .
+      - name: Upload release asset
+        # Previously was using actions/upload-release-asset@v1 , but this had some
+        # errors with large files
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          allowUpdates: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          artifacts: "${{ env.ARTIFACT }}"
+          artifactContentType: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}

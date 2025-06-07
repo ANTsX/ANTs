@@ -51,7 +51,7 @@ public:
   typedef LightObject                  Superclass;
   typedef SmartPointer<Self>           Pointer;
   typedef SmartPointer<const Self>     ConstPointer;
-  itkTypeMacro(ManifoldIntegrationAlgorithm, LightObject);
+  itkOverrideGetNameOfClassMacro(ManifoldIntegrationAlgorithm);
   itkNewMacro(Self);
 
   // Computation Data

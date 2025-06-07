@@ -19,7 +19,6 @@
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
-#include "vtkSampleFunction.h"
 #include "vtkSmartPointer.h"
 #include "vtkSmartVolumeMapper.h"
 #include "vtkSphere.h"
@@ -178,7 +177,7 @@ antsVolumetricRendering(itk::ants::CommandLineParser * parser)
   RgbaImageType::Pointer rgbaImage = RgbaImageType::New();
   rgbaImage->CopyInformation(inputImage);
   rgbaImage->SetRegions(inputImage->GetRequestedRegion());
-  rgbaImage->Allocate();
+  rgbaImage->AllocateInitialized();
 
   itk::ImageRegionConstIteratorWithIndex<ImageType> It(inputImage, inputImage->GetRequestedRegion());
 

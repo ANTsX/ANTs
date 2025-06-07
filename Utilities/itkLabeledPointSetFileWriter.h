@@ -49,10 +49,10 @@ public:
   Write();
 
   /** Extract dimension from the output mesh. */
-  itkStaticConstMacro(Dimension, unsigned int, TInputMesh::PointType::Dimension);
+  static constexpr unsigned int Dimension = TInputMesh::PointType::Dimension;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(LabeledPointSetFileWriter, Object);
+  itkOverrideGetNameOfClassMacro(LabeledPointSetFileWriter);
 
   /** Hold on to the type information specified by the template parameters. */
   typedef TInputMesh                                          InputMeshType;
@@ -65,7 +65,7 @@ public:
   typedef Array<unsigned long>                                LineType;
   typedef VectorContainer<long, MultiComponentScalarType>     MultiComponentScalarSetType;
   typedef VectorContainer<long, LineType>                     LineSetType;
-  typedef Image<PixelType, itkGetStaticConstMacro(Dimension)> LabeledPointSetImageType;
+  typedef Image<PixelType, Self::Dimension> LabeledPointSetImageType;
   typedef typename LabeledPointSetImageType::SizeType         ImageSizeType;
   typedef typename LabeledPointSetImageType::PointType        ImageOriginType;
   typedef typename LabeledPointSetImageType::SpacingType      ImageSpacingType;

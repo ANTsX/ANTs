@@ -44,10 +44,10 @@ public:
   itkNewMacro(Self);
 
   /** Extract dimension from the output mesh. */
-  itkStaticConstMacro(Dimension, unsigned int, TOutputMesh::PointType::Dimension);
+  static constexpr unsigned int Dimension = TOutputMesh::PointType::Dimension;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(LabeledPointSetFileReader, MeshSource);
+  itkOverrideGetNameOfClassMacro(LabeledPointSetFileReader);
 
   /** Hold on to the type information specified by the template parameters. */
   typedef TOutputMesh                                     OutputMeshType;
@@ -60,7 +60,7 @@ public:
   typedef VectorContainer<long, MultiComponentScalarType> MultiComponentScalarSetType;
   typedef VectorContainer<long, LineType>                 LineSetType;
 
-  typedef Image<PixelType, itkGetStaticConstMacro(Dimension)> LabeledPointSetImageType;
+  typedef Image<PixelType, Self::Dimension> LabeledPointSetImageType;
 
   typedef std::vector<PixelType> LabelSetType;
 

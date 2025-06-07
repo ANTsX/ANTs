@@ -111,7 +111,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(FMarchingImageFilter, ImageSource);
+  itkOverrideGetNameOfClassMacro(FMarchingImageFilter);
 
   /** Typedef support of level set method types. */
   typedef LevelSetTypeDefault<TLevelSet>              LevelSetType;
@@ -163,11 +163,11 @@ public:
   typedef typename SpeedImageType::ConstPointer SpeedImageConstPointer;
 
   /** Dimension of the level set and the speed image. */
-  itkStaticConstMacro(SetDimension, unsigned int, LevelSetType::SetDimension);
-  itkStaticConstMacro(SpeedImageDimension, unsigned int, SpeedImageType::ImageDimension);
+  static constexpr unsigned int SetDimension = LevelSetType::SetDimension;
+  static constexpr unsigned int SpeedImageDimension = SpeedImageType::ImageDimension;
 
   /** Index typedef support. */
-  typedef Index<itkGetStaticConstMacro(SetDimension)> IndexType;
+  typedef Index<Self::SetDimension> IndexType;
 
   /** Enum of Fast Marching algorithm point types. FarPoints represent far
    * away points; TrialPoints represent points within a narrowband of the
@@ -185,14 +185,14 @@ public:
   };
 
   /** LabelImage typedef support. */
-  typedef Image<unsigned char, itkGetStaticConstMacro(SetDimension)> LabelImageType;
+  typedef Image<unsigned char, Self::SetDimension> LabelImageType;
   typedef NeighborhoodIterator<LabelImageType>                       NeighborhoodIteratorType;
 
   /** LabelImagePointer typedef support. */
   typedef typename LabelImageType::Pointer LabelImagePointer;
 
   /** ConnectedComponentImage typedef support. */
-  typedef Image<unsigned int, itkGetStaticConstMacro(SetDimension)> ConnectedComponentImageType;
+  typedef Image<unsigned int, Self::SetDimension> ConnectedComponentImageType;
 
   /** ConnectedComponentImagePointer typedef support. */
   typedef typename ConnectedComponentImageType::Pointer ConnectedComponentImagePointer;

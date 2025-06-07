@@ -64,9 +64,7 @@
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include "itkLabelGeometryImageFilter.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
-#include "itkLabelPerimeterEstimationCalculator.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelContourImageFilter.h"
@@ -324,12 +322,21 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
               << std::endl;
 
     std::cout << "\nTensor Operations:" << std::endl;
-    std::cout << "  4DTensorTo3DTensor    : Outputs a 3D_DT_Image with the same information. " << std::endl;
+    std::cout << "  4DTensorTo3DTensor    : Outputs a 3D tensor image from a 4D image containing upper-triangular components "
+              << "(dxx, dxy, dxz, dyy, dyz, dzz)" << std::endl;
     std::cout << "    Usage        : 4DTensorTo3DTensor 4D_DTImage.ext" << std::endl;
     std::cout << "  ComponentTo3DTensor    : Outputs a 3D_DT_Image with the same information as component images. "
               << std::endl;
     std::cout << "    Usage        : ComponentTo3DTensor component_image_prefix[xx,xy,xz,yy,yz,zz] extension"
               << std::endl;
+    std::cout << "  FSLTensorToITK    : Converts a tensor image from FSL 4D format. Will flip the x-axis if the image "
+                 "is in neurological orientation."
+              << std::endl;
+    std::cout << "    Usage        : FSLTensorToITK 4D_DTImage.ext" << std::endl;
+    std::cout << "  ITKTensorToFSL    : Converts a tensor image to FSL 4D format. Will flip the x-axis if the "
+                 "image is in neurological orientation."
+              << std::endl;
+    std::cout << "    Usage        : ITKTensorToFSL 3D_DTImage.ext" << std::endl;
     std::cout << "  ExtractComponentFrom3DTensor    : Outputs a component images. " << std::endl;
     std::cout << "    Usage        : ExtractComponentFrom3DTensor dtImage.ext which={xx,xy,xz,yy,yz,zz}" << std::endl;
     std::cout << "  ExtractVectorComponent: Produces the WhichVec component of the vector " << std::endl;
@@ -593,7 +600,7 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
     std::cout << "      Usage        : SigmoidImage ImageIn [alpha=1.0] [beta=0.0]" << std::endl;
 
     std::cout << "\n  Sharpen        : Apply a Laplacian sharpening filter" << std::endl;
-    std::cout << "      Usage        : Sharpen ImageIn" << std::endl;
+    std::cout << "      Usage        : Sharpen ImageIn [useImageSpacing=(1)/0]" << std::endl;
 
     std::cout << "\n  UnsharpMask     Apply an Unsharp Mask filter" << std::endl;
     std::cout

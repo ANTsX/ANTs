@@ -120,7 +120,7 @@ LabelOverlapMeasures(int argc, char * argv[])
     {
       writer->Write();
     }
-    catch (itk::ExceptionObject & exp)
+    catch (const itk::ExceptionObject & exp)
     {
       std::cerr << "Exception caught!" << std::endl;
       std::cerr << exp << std::endl;
@@ -233,6 +233,11 @@ LabelOverlapMeasures(std::vector<std::string> args, std::ostream * /*out_stream 
     case 3:
     {
       return LabelOverlapMeasures<3>(argc, argv);
+    }
+    break;
+    case 4:
+    {
+      return LabelOverlapMeasures<4>(argc, argv);
     }
     break;
     default:

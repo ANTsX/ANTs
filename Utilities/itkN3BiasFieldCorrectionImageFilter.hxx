@@ -28,14 +28,11 @@
 #include "itkSubtractImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
-CLANG_PRAGMA_PUSH
-CLANG_SUPPRESS_Wfloat_equal
 #include "vnl/algo/vnl_fft_1d.h"
 #include "vnl/vnl_complex_traits.h"
 #include "complex"
-  CLANG_PRAGMA_POP
 
-  namespace itk
+namespace itk
 {
 
   template <typename TInputImage, typename TMaskImage, typename TOutputImage>

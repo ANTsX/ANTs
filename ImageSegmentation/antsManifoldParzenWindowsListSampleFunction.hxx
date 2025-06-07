@@ -191,7 +191,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>::Evalua
     }
     else
     {
-      typename TreeGeneratorType::KdTreeType ::InstanceIdentifierVectorType neighbors;
+      typename TreeGeneratorType::KdTreeType::InstanceIdentifierVectorType neighbors;
       this->m_KdTreeGenerator->GetOutput()->Search(measurement, numberOfNeighbors, neighbors);
       for (unsigned int j = 0; j < numberOfNeighbors; j++)
       {

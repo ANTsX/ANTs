@@ -690,16 +690,16 @@ ants_motion(itk::ants::CommandLineParser * parser)
   }
 
   bool                doEstimateLearningRateOnce(false);
-  OptionType::Pointer rateOption = parser->GetOption("use-estimate-learning-rate-once");
-  if (rateOption && rateOption->GetNumberOfFunctions())
-  {
-    std::string rateFunction = rateOption->GetFunction(0)->GetName();
-    ConvertToLowerCase(rateFunction);
-    if (rateFunction.compare("1") == 0 || rateFunction.compare("true") == 0)
-    {
-      doEstimateLearningRateOnce = true;
-    }
-  }
+  // OptionType::Pointer rateOption = parser->GetOption("use-estimate-learning-rate-once");
+  // if (rateOption && rateOption->GetNumberOfFunctions())
+  // {
+  //   std::string rateFunction = rateOption->GetFunction(0)->GetName();
+  //   ConvertToLowerCase(rateFunction);
+  //   if (rateFunction.compare("1") == 0 || rateFunction.compare("true") == 0)
+  //   {
+  //     doEstimateLearningRateOnce = true;
+  //   }
+  // }
 
   bool                doHistogramMatch(true);
   OptionType::Pointer histogramMatchOption = parser->GetOption("use-histogram-matching");
@@ -807,8 +807,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
     outputImage->SetSpacing(outSpacing);
     outputImage->SetOrigin(outOrigin);
     outputImage->SetDirection(outDirection);
-    outputImage->Allocate();
-    outputImage->FillBuffer(0);
+    outputImage->AllocateInitialized();
 
 
     if (writeDisplacementField > 0)
@@ -872,8 +871,30 @@ ants_motion(itk::ants::CommandLineParser * parser)
 
     // Get smoothing sigmas
 
-    std::vector<float> sigmas =
-      parser->ConvertVector<float>(smoothingSigmasOption->GetFunction(currentStage)->GetName());
+    std::string smoothingSigmasString = smoothingSigmasOption->GetFunction(currentStage)->GetName();
+
+    bool smoothingSigmasAreInPhysicalUnits = false;
+
+    const size_t mmPosition = smoothingSigmasString.find("mm");
+    const size_t voxPosition = smoothingSigmasString.find("vox");
+
+    if (mmPosition != std::string::npos)
+    {
+      smoothingSigmasString.replace(mmPosition, 2, "");
+      smoothingSigmasAreInPhysicalUnits = true;
+    }
+    else if (voxPosition != std::string::npos)
+    {
+      smoothingSigmasString.replace(voxPosition, 3, "");
+      smoothingSigmasAreInPhysicalUnits = false;
+    }
+    else
+    {
+      smoothingSigmasAreInPhysicalUnits = false;
+    }
+
+    std::vector<float> sigmas = parser->ConvertVector<float>(smoothingSigmasString);
+
     typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
     smoothingSigmasPerLevel.SetSize(sigmas.size());
 
@@ -889,7 +910,10 @@ ants_motion(itk::ants::CommandLineParser * parser)
         smoothingSigmasPerLevel[n] = sigmas[n];
       }
       if (verbose)
+      {
         std::cout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
+        std::cout << "  smoothing sigmas in physical space units: " << smoothingSigmasAreInPhysicalUnits << std::endl;
+      }
     }
 
     // the fixed image is a reference image in 3D while the moving is a 4D image
@@ -1033,6 +1057,12 @@ ants_motion(itk::ants::CommandLineParser * parser)
         metricSamplingStrategy = AffineRegistrationType::MetricSamplingStrategyEnum::REGULAR;
       }
 
+      bool useGradientFilter = false;
+      if (metricOption->GetFunction(0)->GetNumberOfParameters() > 6)
+      {
+        useGradientFilter = parser->Convert<bool>(metricOption->GetFunction(currentStage)->GetParameter(6));
+      }
+
       if (std::strcmp(whichMetric.c_str(), "cc") == 0)
       {
         auto radiusOption = parser->Convert<unsigned int>(metricOption->GetFunction(currentStage)->GetParameter(3));
@@ -1048,8 +1078,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         typename CorrelationMetricType::RadiusType radius;
         radius.Fill(radiusOption);
         correlationMetric->SetRadius(radius);
-        correlationMetric->SetUseMovingImageGradientFilter(false);
-        correlationMetric->SetUseFixedImageGradientFilter(false);
+        correlationMetric->SetUseMovingImageGradientFilter(useGradientFilter);
+        correlationMetric->SetUseFixedImageGradientFilter(useGradientFilter);
 
         metric = correlationMetric;
       }
@@ -1067,8 +1097,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
         // mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins(binOption);
-        mutualInformationMetric->SetUseMovingImageGradientFilter(false);
-        mutualInformationMetric->SetUseFixedImageGradientFilter(false);
+        mutualInformationMetric->SetUseMovingImageGradientFilter(useGradientFilter);
+        mutualInformationMetric->SetUseFixedImageGradientFilter(useGradientFilter);
         metric = mutualInformationMetric;
       }
       else if (std::strcmp(whichMetric.c_str(), "demons") == 0)
@@ -1080,6 +1110,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         }
         using DemonsMetricType = itk::MeanSquaresImageToImageMetricv4<FixedImageType, FixedImageType>;
         typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
+        demonsMetric->SetUseMovingImageGradientFilter(useGradientFilter);
+        demonsMetric->SetUseFixedImageGradientFilter(useGradientFilter);
         // demonsMetric = demonsMetric;
         metric = demonsMetric;
       }
@@ -1092,6 +1124,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         }
         using corrMetricType = itk::CorrelationImageToImageMetricv4<FixedImageType, FixedImageType>;
         typename corrMetricType::Pointer corrMetric = corrMetricType::New();
+        corrMetric->SetUseMovingImageGradientFilter(useGradientFilter);
+        corrMetric->SetUseFixedImageGradientFilter(useGradientFilter);
         metric = corrMetric;
         if (verbose)
           std::cout << "  global corr metric set " << std::endl;
@@ -1218,6 +1252,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         affineRegistration->SetNumberOfLevels(numberOfLevels);
         affineRegistration->SetShrinkFactorsPerLevel(shrinkFactorsPerLevel);
         affineRegistration->SetSmoothingSigmasPerLevel(smoothingSigmasPerLevel);
+        affineRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(smoothingSigmasAreInPhysicalUnits);
         affineRegistration->SetMetricSamplingStrategy(metricSamplingStrategy);
         affineRegistration->SetMetricSamplingPercentage(samplingPercentage);
         affineRegistration->SetMetric(metric);
@@ -1235,7 +1270,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
             std::cout << std::endl << "*** Running affine registration ***" << timedim << std::endl << std::endl;
           affineRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -1292,6 +1327,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         rigidRegistration->SetNumberOfLevels(numberOfLevels);
         rigidRegistration->SetShrinkFactorsPerLevel(shrinkFactorsPerLevel);
         rigidRegistration->SetSmoothingSigmasPerLevel(smoothingSigmasPerLevel);
+        rigidRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(smoothingSigmasAreInPhysicalUnits);
         rigidRegistration->SetMetric(metric);
         rigidRegistration->SetMetricSamplingStrategy(
           static_cast<typename RigidRegistrationType::MetricSamplingStrategyEnum>(metricSamplingStrategy));
@@ -1312,7 +1348,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
             std::cout << std::endl << "*** Running rigid registration ***" << timedim << std::endl << std::endl;
           rigidRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -1397,7 +1433,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         displacementFieldRegistration->SetNumberOfLevels(numberOfLevels);
         displacementFieldRegistration->SetShrinkFactorsPerLevel(shrinkFactorsPerLevel);
         displacementFieldRegistration->SetSmoothingSigmasPerLevel(smoothingSigmasPerLevel);
-        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(false);
+        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(smoothingSigmasAreInPhysicalUnits);
         displacementFieldRegistration->SetMetricSamplingStrategy(
           static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyEnum>(metricSamplingStrategy));
         displacementFieldRegistration->SetMetricSamplingPercentage(samplingPercentage);
@@ -1411,7 +1447,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         {
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -1518,7 +1554,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         displacementFieldRegistration->SetNumberOfLevels(numberOfLevels);
         displacementFieldRegistration->SetShrinkFactorsPerLevel(shrinkFactorsPerLevel);
         displacementFieldRegistration->SetSmoothingSigmasPerLevel(smoothingSigmasPerLevel);
-        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(false);
+        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(smoothingSigmasAreInPhysicalUnits);
         displacementFieldRegistration->SetLearningRate(learningRate);
         displacementFieldRegistration->SetConvergenceThreshold(1.e-8);
         displacementFieldRegistration->SetConvergenceWindowSize(10);
@@ -1532,7 +1568,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         {
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -1776,17 +1812,17 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
     parser->AddOption(option);
   }
 
-  {
-    std::string description =
-      std::string("turn on the option that lets you estimate the learning rate step size only at the beginning of each "
-                  "level.  * useful as a second stage of fine-scale registration.");
+  // {
+  //   std::string description =
+  //     std::string("turn on the option that lets you estimate the learning rate step size only at the beginning of each "
+  //                 "level.  * useful as a second stage of fine-scale registration.");
 
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName("use-estimate-learning-rate-once");
-    option->SetShortName('l');
-    option->SetDescription(description);
-    parser->AddOption(option);
-  }
+  //   OptionType::Pointer option = OptionType::New();
+  //   option->SetLongName("use-estimate-learning-rate-once");
+  //   option->SetShortName('l');
+  //   option->SetDescription(description);
+  //   parser->AddOption(option);
+  // }
 
   {
     std::string description =
@@ -1810,24 +1846,26 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
       std::string("The fixed image should be a single time point (eg the average of the time series). ") +
       std::string(
         "By default, this image is not used, the fixed image for correction of each volume is the preceding volume ") +
-      std::string("in the time series. See below for the option to use a fixed reference image for all volumes. ");
+      std::string("in the time series. See below for the option to use a fixed reference image for all volumes. ") +
+      std::string("useGradientFilter specifies whether a smoothing") +
+      std::string("filter is applied when estimating the metric gradient.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("metric");
     option->SetShortName('m');
     option->SetUsageOption(
       0,
-      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]");
+      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(1,
                            "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
+                           "samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(2,
 
                            "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
+                           "samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(
       3,
-      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]");
+      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetDescription(description);
     parser->AddOption(option);
   }
@@ -1884,7 +1922,9 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
   }
 
   {
-    std::string description = std::string("Specify the amount of smoothing at each level.");
+    std::string description =
+      std::string("Specify the sigma for smoothing at each level. Smoothing may be specified ") +
+      std::string("in mm units or voxels with \"AxBxCmm\" or \"AxBxCvox\". No units implies voxels.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("smoothingSigmas");
@@ -1921,10 +1961,11 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
   }
 
   {
-    std::string         description = std::string("Average the input time series image.");
+    std::string description = std::string("Average the input time series image.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("average-image");
     option->SetShortName('a');
+    option->SetUsageOption(0, "<timeseries>");
     option->SetDescription(description);
     parser->AddOption(option);
   }
@@ -1934,6 +1975,7 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("write-displacement");
     option->SetShortName('w');
+    option->SetUsageOption(0, "(0)/1");
     option->SetDescription(description);
     parser->AddOption(option);
   }
@@ -2066,10 +2108,11 @@ antsMotionCorr(std::vector<std::string> args, std::ostream * /*out_stream = null
     std::string("antsMotionCorr = motion correction.  This program is a user-level ") +
     std::string("registration application meant to utilize classes in ITK v4.0 or greater. The user can specify ") +
     std::string("any number of \"stages\" where a stage consists of a transform; an image metric; ") +
-    std::string(" and iterations, shrink factors, and smoothing sigmas for each level. ") +
+    std::string("and iterations, shrink factors, and smoothing sigmas for each level. ") +
     std::string(
-      " Specialized for 4D time series data: fixed image is 3D, moving image should be the 4D time series. ") +
-    std::string(" Fixed image is a reference space or time slice.");
+      "Specialized for 4D time series data: fixed image is 3D, moving image should be the 4D time series. ") +
+    std::string("Fixed image is a reference space or time slice. ") +
+    std::string("To create a reference image from the time series, use the -a option.");
   parser->SetCommandDescription(commandDescription);
   antsMotionCorrInitializeCommandLineOptions(parser);
 

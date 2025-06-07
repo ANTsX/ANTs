@@ -51,6 +51,7 @@ RegistrationHelper<TComputeType, VImageDimension>::RegistrationHelper()
   , m_NumberOfStages(0)
   , m_Metrics()
   , m_TransformMethods()
+  , m_OutputPrefix()
   , m_Iterations()
   , m_SmoothingSigmas()
   , m_RestrictDeformationOptimizerWeights()
@@ -272,6 +273,7 @@ RegistrationHelper<TComputeType, VImageDimension>::AddMetric(MetricEnumeration  
                                                              SamplingStrategy        samplingStrategy,
                                                              int                     numberOfBins,
                                                              unsigned int            radius,
+                                                             bool                    useGradientFilter,
                                                              bool                    useBoundaryPointsOnly,
                                                              RealType                pointSetSigma,
                                                              unsigned int            evaluationKNeighborhood,
@@ -293,6 +295,7 @@ RegistrationHelper<TComputeType, VImageDimension>::AddMetric(MetricEnumeration  
               samplingStrategy,
               numberOfBins,
               radius,
+              useGradientFilter,
               useBoundaryPointsOnly,
               pointSetSigma,
               evaluationKNeighborhood,
@@ -536,6 +539,14 @@ RegistrationHelper<TComputeType, VImageDimension>::AddBSplineExponentialTransfor
   init.m_NumberOfTimeIndices = NumberOfIntegrationSteps;
 
   this->m_TransformMethods.push_back(init);
+}
+
+template <typename TComputeType, unsigned VImageDimension>
+void
+RegistrationHelper<TComputeType, VImageDimension>::SetOutputPrefix(
+  const std::string & OutputPrefix)
+{
+  this->m_OutputPrefix = OutputPrefix;
 }
 
 template <typename TComputeType, unsigned VImageDimension>
@@ -797,8 +808,6 @@ template <typename TComputeType, unsigned VImageDimension>
 int
 RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
 {
-  /** Can really impact performance */
-  const bool     gradientfilter = false;
   itk::TimeProbe totalTimer;
 
   totalTimer.Start();
@@ -937,7 +946,9 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         {
           const unsigned int radiusOption = stageMetricList[currentMetricNumber].m_Radius;
           this->Logger() << "  using the CC metric (radius = " << radiusOption
-                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
           typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>
                                                   CorrelationMetricType;
           typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
@@ -946,8 +957,6 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             radius.Fill(radiusOption);
             correlationMetric->SetRadius(radius);
           }
-          correlationMetric->SetUseMovingImageGradientFilter(gradientfilter);
-          correlationMetric->SetUseFixedImageGradientFilter(gradientfilter);
 
           imageMetric = correlationMetric;
         }
@@ -956,14 +965,14 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         {
           const unsigned int binOption = stageMetricList[currentMetricNumber].m_NumberOfBins;
           this->Logger() << "  using the Mattes MI metric (number of bins = " << binOption
-                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
           typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>
                                                         MutualInformationMetricType;
           typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
           // mutualInformationMetric = mutualInformationMetric;
           mutualInformationMetric->SetNumberOfHistogramBins(binOption);
-          mutualInformationMetric->SetUseMovingImageGradientFilter(gradientfilter);
-          mutualInformationMetric->SetUseFixedImageGradientFilter(gradientfilter);
           mutualInformationMetric->SetUseSampledPointSet(false);
 
           imageMetric = mutualInformationMetric;
@@ -973,15 +982,15 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         {
           const unsigned int binOption = stageMetricList[currentMetricNumber].m_NumberOfBins;
           this->Logger() << "  using the joint histogram MI metric (number of bins = " << binOption
-                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+                         << ", weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
           typedef itk::
             JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>
                                                         MutualInformationMetricType;
           typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
           // mutualInformationMetric = mutualInformationMetric;
           mutualInformationMetric->SetNumberOfHistogramBins(binOption);
-          mutualInformationMetric->SetUseMovingImageGradientFilter(gradientfilter);
-          mutualInformationMetric->SetUseFixedImageGradientFilter(gradientfilter);
           mutualInformationMetric->SetUseSampledPointSet(false);
           mutualInformationMetric->SetVarianceForJointPDFSmoothing(1.0);
 
@@ -990,8 +999,10 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         break;
         case MeanSquares:
         {
-          this->Logger() << "  using the MeanSquares metric (weight = "
-                         << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+          this->Logger() << "  using the MeanSquares metric "
+                         << "( weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
 
           typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>
                                                   MeanSquaresMetricType;
@@ -1003,7 +1014,9 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         break;
         case Demons:
         {
-          this->Logger() << "  using the Demons metric (weight = " << stageMetricList[currentMetricNumber].m_Weighting
+          this->Logger() << "  using the Demons metric "
+                         << "( weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
                          << ")" << std::endl;
 
           typedef itk::DemonsImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> DemonsMetricType;
@@ -1014,8 +1027,10 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         break;
         case GC:
         {
-          this->Logger() << "  using the global correlation metric (weight = "
-                         << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
+          this->Logger() << "  using the global correlation metric "
+                         << "( weight = " << stageMetricList[currentMetricNumber].m_Weighting
+                         << ", use gradient filter = " << stageMetricList[currentMetricNumber].m_UseGradientFilter
+                         << ")" << std::endl;
           typedef itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> corrMetricType;
           typename corrMetricType::Pointer corrMetric = corrMetricType::New();
 
@@ -1151,8 +1166,9 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         // Set up the image metric and scales estimator
 
         imageMetric->SetVirtualDomainFromImage(fixedImage);
-        imageMetric->SetUseMovingImageGradientFilter(gradientfilter);
-        imageMetric->SetUseFixedImageGradientFilter(gradientfilter);
+        imageMetric->SetUseMovingImageGradientFilter(stageMetricList[currentMetricNumber].m_UseGradientFilter);
+        imageMetric->SetUseFixedImageGradientFilter(stageMetricList[currentMetricNumber].m_UseGradientFilter);
+
         metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
         if (useFixedImageMaskForThisStage)
         {
@@ -1380,6 +1396,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
     optimizerObserver->SetLogStream(*this->m_LogStream);
     optimizerObserver->SetNumberOfIterations(currentStageIterations);
     optimizerObserver->SetOptimizer(optimizer);
+    optimizerObserver->SetOutputPrefix(this->m_OutputPrefix);
 
     if (!this->IsPointSetMetric(this->m_Metrics[0].m_MetricType))
     {
@@ -1401,7 +1418,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
     //    optimizer2->SetLowerLimit( 0 );
     //    optimizer2->SetUpperLimit( 2 );
     //    optimizer2->SetEpsilon( 0.2 );
-    //    optimizer->SetMaximumLineSearchIterations( 20 );
+    //    optimizer2->SetMaximumLineSearchIterations( 20 );
     optimizer2->SetLearningRate(learningRate);
     optimizer2->SetMaximumStepSizeInPhysicalUnits(learningRate);
     optimizer2->SetNumberOfIterations(currentStageIterations[0]);
@@ -1824,7 +1841,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver->Execute(registrationMethod, itk::StartEvent());
           registrationMethod->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -1957,7 +1974,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver->Execute(registrationMethod, itk::StartEvent());
           registrationMethod->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -2138,6 +2155,10 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber]);
 
+        displacementFieldRegistration->SetMetricSamplingStrategy(
+          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyEnum>(metricSamplingStrategy));
+        displacementFieldRegistration->SetMetricSamplingPercentage(samplingPercentage);
+
         displacementFieldRegistration->SetLearningRate(learningRate);
         displacementFieldRegistration->SetConvergenceThreshold(convergenceThreshold);
         displacementFieldRegistration->SetConvergenceWindowSize(convergenceWindowSize);
@@ -2158,6 +2179,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         displacementFieldRegistrationObserver2->SetNumberOfIterations(currentStageIterations);
         displacementFieldRegistrationObserver2->SetOrigFixedImage(this->m_Metrics[0].m_FixedImage);
         displacementFieldRegistrationObserver2->SetOrigMovingImage(this->m_Metrics[0].m_MovingImage);
+        displacementFieldRegistrationObserver2->SetOutputPrefix(this->m_OutputPrefix);
         if (this->m_PrintSimilarityMeasureInterval != 0)
         {
           displacementFieldRegistrationObserver2->SetComputeFullScaleCCInterval(this->m_PrintSimilarityMeasureInterval);
@@ -2179,7 +2201,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver2->Execute(displacementFieldRegistration, itk::StartEvent());
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -2339,7 +2361,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             displacementFieldRegistrationObserver->Execute(registrationMethod, itk::StartEvent());
             registrationMethod->Update();
           }
-          catch (itk::ExceptionObject & e)
+          catch (const itk::ExceptionObject & e)
           {
             this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
@@ -2454,7 +2476,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             displacementFieldRegistrationObserver->Execute(registrationMethod, itk::StartEvent());
             registrationMethod->Update();
           }
-          catch (itk::ExceptionObject & e)
+          catch (const itk::ExceptionObject & e)
           {
             this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
@@ -2690,7 +2712,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           velocityFieldRegistrationObserver->Execute(velocityFieldRegistration, itk::StartEvent());
           velocityFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -2910,7 +2932,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             velocityFieldRegistrationObserver->Execute(velocityFieldRegistration, itk::StartEvent());
             velocityFieldRegistration->Update();
           }
-          catch (itk::ExceptionObject & e)
+          catch (const itk::ExceptionObject & e)
           {
             this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
@@ -3069,7 +3091,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             velocityFieldRegistrationObserver->Execute(velocityFieldRegistration, itk::StartEvent());
             velocityFieldRegistration->Update();
           }
-          catch (itk::ExceptionObject & e)
+          catch (const itk::ExceptionObject & e)
           {
             this->Logger() << "Exception caught: " << e << std::endl;
             return EXIT_FAILURE;
@@ -3233,7 +3255,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver->Execute(displacementFieldRegistration, itk::StartEvent());
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -3415,7 +3437,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           displacementFieldRegistrationObserver->Execute(displacementFieldRegistration, itk::StartEvent());
           displacementFieldRegistration->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -3520,7 +3542,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           bsplineObserver->Execute(registrationMethod, itk::StartEvent());
           registrationMethod->Update();
         }
-        catch (itk::ExceptionObject & e)
+        catch (const itk::ExceptionObject & e)
         {
           this->Logger() << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
@@ -3715,9 +3737,16 @@ RegistrationHelper<TComputeType, VImageDimension>::CalculateMeshSizeForSpecified
 
   for (unsigned int d = 0; d < ImageDimension; d++)
   {
+    if (itk::Math::FloatAlmostEqual(knotSpacing, itk::NumericTraits<PixelType>::ZeroValue()))
+    {
+    meshSize.push_back(itk::NumericTraits<unsigned int>::ZeroValue());
+    }
+    else
+    {
     RealType domain = static_cast<RealType>(inputImage->GetLargestPossibleRegion().GetSize()[d] - 1) *
                       static_cast<RealType>(inputImage->GetSpacing()[d]);
     meshSize.push_back(static_cast<unsigned int>(std::ceil(domain / knotSpacing)));
+    }
     //     unsigned long extraPadding = static_cast<unsigned long>(
     //       ( numberOfSpans * splineDistance - domain ) / inputImage->GetSpacing()[d] + 0.5 );
     //     lowerBound[d] = static_cast<unsigned long>( 0.5 * extraPadding );
@@ -4198,7 +4227,7 @@ RegistrationHelper<TComputeType, VImageDimension>::InitializeWithPreviousLinearT
     return false;
   }
   /////
-  return true; // This function only returns flase or true (NOT FAILURE or SUCCESS).
+  return true; // This function only returns false or true (NOT FAILURE or SUCCESS).
                // If direct intialization fails, the program should NOT be stopped,
                // because the initial transform will be kept in the composite transform,
                // and the final results will be still correct.
@@ -4210,11 +4239,13 @@ RegistrationHelper<TComputeType, VImageDimension>::PrintState() const
 {
   this->Logger() << "Dimension = " << Self::ImageDimension << std::endl
                  << "Number of stages = " << this->m_NumberOfStages << std::endl
-                 << "Use Histogram Matching " << (this->m_UseHistogramMatching ? "true" : "false") << std::endl
-                 << "Winsorize image intensities " << (this->m_WinsorizeImageIntensities ? "true" : "false")
+                 << "Use histogram matching = " << (this->m_UseHistogramMatching ? "true" : "false") << std::endl
+                 << "Winsorize image intensities = " << (this->m_WinsorizeImageIntensities ? "true" : "false")
                  << std::endl
-                 << "Lower quantile = " << this->m_LowerQuantile << std::endl
-                 << "Upper quantile = " << this->m_UpperQuantile << std::endl;
+                 << "  Lower quantile = " << this->m_LowerQuantile << std::endl
+                 << "  Upper quantile = " << this->m_UpperQuantile << std::endl
+                 << std::endl
+                 << std::endl;
 
   for (unsigned i = 0; i < this->m_NumberOfStages; i++)
   {

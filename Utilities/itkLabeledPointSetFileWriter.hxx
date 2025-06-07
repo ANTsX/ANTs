@@ -348,8 +348,7 @@ LabeledPointSetFileWriter<TInputMesh>::WritePointsToImageFile()
   outputImage->SetRegions(this->m_ImageSize);
   outputImage->SetOrigin(this->m_ImageOrigin);
   outputImage->SetSpacing(this->m_ImageSpacing);
-  outputImage->Allocate();
-  outputImage->FillBuffer(NumericTraits<PixelType>::ZeroValue());
+  outputImage->AllocateInitialized();
 
   if (this->m_Input->GetNumberOfPoints() > 0)
   {

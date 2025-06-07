@@ -248,11 +248,11 @@ antsJointTensorFusion(itk::ants::CommandLineParser * parser)
     ConvertToLowerCase(metricString);
     if (metricString.compare("pc") == 0)
     {
-      fusionFilter->SetSimilarityMetric(FusionFilterType::PEARSON_CORRELATION);
+      fusionFilter->SetSimilarityMetric(itk::NonLocalPatchBasedImageFilterEnums::SimilarityMetric::PEARSON_CORRELATION);
     }
     else if (metricString.compare("msq") == 0)
     {
-      fusionFilter->SetSimilarityMetric(FusionFilterType::MEAN_SQUARES);
+      fusionFilter->SetSimilarityMetric(itk::NonLocalPatchBasedImageFilterEnums::SimilarityMetric::MEAN_SQUARES);
     }
     else
     {
@@ -441,7 +441,7 @@ antsJointTensorFusion(itk::ants::CommandLineParser * parser)
   {
     fusionFilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     if (verbose)
     {
@@ -517,10 +517,7 @@ antsJointTensorFusion(itk::ants::CommandLineParser * parser)
       jointTensorImage->SetSpacing(fusionFilter->GetJointIntensityFusionImage(0)->GetSpacing());
       jointTensorImage->SetOrigin(fusionFilter->GetJointIntensityFusionImage(0)->GetOrigin());
       jointTensorImage->SetDirection(fusionFilter->GetJointIntensityFusionImage(0)->GetDirection());
-      jointTensorImage->Allocate();
-      TensorType nullDT;
-      nullDT.Fill(0.0);
-      jointTensorImage->FillBuffer(nullDT);
+      jointTensorImage->AllocateInitialized();
 
       for (unsigned int i = 0; i < 6; i++)
       {

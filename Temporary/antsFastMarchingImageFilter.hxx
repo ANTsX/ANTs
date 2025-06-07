@@ -149,7 +149,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * out
 {
   // allocate memory for the output buffer
   output->SetBufferedRegion(output->GetRequestedRegion());
-  output->Allocate();
+  output->AllocateInitialized();
 
   // cache some buffered region information
   this->m_BufferedRegion = output->GetBufferedRegion();
@@ -162,7 +162,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * out
   // allocate memory for the LabelImage
   this->m_LabelImage->CopyInformation(output);
   this->m_LabelImage->SetBufferedRegion(output->GetBufferedRegion());
-  this->m_LabelImage->Allocate();
+  this->m_LabelImage->AllocateInitialized();
 
   // Checking for handles only requires an image to keep track of
   // connected components.

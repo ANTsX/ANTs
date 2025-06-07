@@ -129,7 +129,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(SpatialMutualInformationRegistrationFunction, AvantsPDEDeformableRegistrationFunction);
+  itkOverrideGetNameOfClassMacro(SpatialMutualInformationRegistrationFunction);
 
   /** MovingImage image type. */
   typedef typename Superclass::MovingImageType    MovingImageType;
@@ -169,7 +169,7 @@ public:
   // DefaultInterpolatorType;
 
   /** Covariant vector type. */
-  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> CovariantVectorType;
+  typedef CovariantVector<double, Self::ImageDimension> CovariantVectorType;
 
   /** Gradient calculator type. */
   typedef CentralDifferenceImageFunction<FixedImageType> GradientCalculatorType;
@@ -224,8 +224,8 @@ public:
 
   /** Types inherited from Superclass. */
   typedef TranslationTransform<CoordinateRepresentationType,
-                               //                    itkGetStaticConstMacro(ImageDimension),
-                               itkGetStaticConstMacro(ImageDimension)>
+                               //                    Self::ImageDimension,
+                               Self::ImageDimension>
     TransformType;
 
   typedef ImageToImageMetric<TFixedImage, TMovingImage> Metricclass;
@@ -335,7 +335,7 @@ public:
     float         px, py, pxy;
     double        mival = 0;
     double        mi;
-    unsigned long ct = 0;
+    // unsigned long ct = 0;
 
     typename JointPDFType::IndexType index;
     //    for (unsigned int ii=this->m_Padding+1; ii<m_NumberOfHistogramBins-this->m_Padding-2; ii++)
@@ -369,7 +369,7 @@ public:
             mi = static_cast<double>(pxy * std::log(pxy / denom));
             // test mi
             // mi = 1.0 + log(pxy/denom);
-            ct++;
+            // ct++;
           }
         }
 
@@ -742,7 +742,7 @@ private:
    * image derivatives from the BSpline interpolator. Otherwise,
    * image derivatives are computed using central differencing.
    */
-  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> ImageDerivativesType;
+  typedef CovariantVector<double, Self::ImageDimension> ImageDerivativesType;
 
   /** Boolean to indicate if the interpolator BSpline. */
   bool m_InterpolatorIsBSpline;

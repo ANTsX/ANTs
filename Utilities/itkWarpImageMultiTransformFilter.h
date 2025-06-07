@@ -99,7 +99,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(WarpImageMultiTransformFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(WarpImageMultiTransformFilter);
 
   /** Typedef to describe the output image region type. */
   typedef typename TOutputImage::RegionType OutputImageRegionType;
@@ -117,12 +117,12 @@ public:
   typedef typename OutputImageType::DirectionType     DirectionType;
 
   /** Determine the image dimension. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
-  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
-  itkStaticConstMacro(DisplacementFieldDimension, unsigned int, TDisplacementField::ImageDimension);
+  static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
+  static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
+  static constexpr unsigned int DisplacementFieldDimension = TDisplacementField::ImageDimension;
 
   /** base type for images of the current ImageDimension */
-  typedef ImageBase<itkGetStaticConstMacro(ImageDimension)> ImageBaseType;
+  typedef ImageBase<Self::ImageDimension> ImageBaseType;
 
   /** Deformation field typedef support. */
   typedef TDisplacementField                        DisplacementFieldType;
@@ -144,7 +144,7 @@ public:
   typedef typename DefaultVectorInterpolatorType::Pointer                             VectorInterpolatorPointer;
 
   /** Point type */
-  typedef Point<CoordRepType, itkGetStaticConstMacro(ImageDimension)> PointType;
+  typedef Point<CoordRepType, Self::ImageDimension> PointType;
 
   typedef struct _DeformationTypeEx
   {

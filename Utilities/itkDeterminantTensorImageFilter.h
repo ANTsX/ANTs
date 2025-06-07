@@ -38,7 +38,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(DeterminantTensorImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(DeterminantTensorImageFilter);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -53,7 +53,7 @@ public:
   typedef typename OutputImageType::RegionType OutputImageRegionType;
 
   /** The dimensionality of the input and output images. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
 
   /** Define the data type and the vector of data type used in calculations. */
   typedef TRealType RealType;

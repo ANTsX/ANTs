@@ -53,8 +53,7 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>::GenerateData()
   randomField->SetDirection(this->GetOutputDirection());
   randomField->SetOrigin(this->GetOutputOrigin());
   randomField->SetSpacing(this->GetOutputSpacing());
-  randomField->Allocate(true);
-  randomField->FillBuffer(zeroVector);
+  randomField->AllocateInitialized();
 
   SizeType outputSize = this->GetOutputSize();
 
@@ -68,14 +67,12 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>::GenerateData()
     typename RealImageType::Pointer componentImagePositive = RealImageType::New();
     componentImagePositive->SetRegions(this->GetOutputSize());
     componentImagePositive->CopyInformation(randomField);
-    componentImagePositive->Allocate(true);
-    componentImagePositive->FillBuffer(0.0);
+    componentImagePositive->AllocateInitialized();
 
     typename RealImageType::Pointer componentImageNegative = RealImageType::New();
     componentImageNegative->SetRegions(this->GetOutputSize());
     componentImageNegative->CopyInformation(randomField);
-    componentImageNegative->Allocate(true);
-    componentImageNegative->FillBuffer(0.0);
+    componentImageNegative->AllocateInitialized();
 
     for (SizeValueType n = 0; n < this->GetNumberOfRandomPoints(); n++)
     {
@@ -164,7 +161,7 @@ SimulatedExponentialDisplacementFieldSource<TOutputImage>::GenerateData()
       {
         smoother->Update();
       }
-      catch (ExceptionObject & exc)
+      catch (const ExceptionObject & exc)
       {
         std::string msg("Caught exception: ");
         msg += exc.what();

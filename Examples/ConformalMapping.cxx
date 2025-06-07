@@ -190,7 +190,7 @@ MapToSphere(typename TImage::Pointer image, int fixdir, float e)
   {
     meshSource->Update();
   }
-  catch (itk::ExceptionObject & exp)
+  catch (const itk::ExceptionObject & exp)
   {
     std::cout << "Exception thrown during Update() " << std::endl;
     std::cout << exp << std::endl;
@@ -835,7 +835,7 @@ typename ImageType::Pointer outimage = ImageType::New();
 outimage->SetSpacing( bspliner->GetOutput()->GetSpacing() );
 outimage->SetOrigin( bspliner->GetOutput()->GetOrigin() );
 outimage->SetRegions( bspliner->GetOutput()->GetLargestPossibleRegion() );
-outimage->Allocate();
+outimage->AllocateInitialized();
 
 */
 /*
@@ -981,7 +981,7 @@ ConformalMapping(std::vector<std::string> args, std::ostream * out_stream = null
     {
       readfilter->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       std::cout << "Exception caught during reference file reading " << std::endl;
       std::cout << e << std::endl;
@@ -1006,7 +1006,7 @@ ConformalMapping(std::vector<std::string> args, std::ostream * out_stream = null
     {
       readfilter->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       std::cout << "Exception caught during reference file reading " << std::endl;
       std::cout << e << std::endl;

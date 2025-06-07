@@ -2,22 +2,98 @@
 
 VERSION="0.0"
 
-if [[ ! -s ${ANTSPATH}/N4BiasFieldCorrection ]]; then
-  echo we cant find the N4 program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v N4BiasFieldCorrection &> /dev/null
+then
+  echo we cant find the N4 program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
-if [[ ! -s ${ANTSPATH}/Atropos ]]; then
-  echo we cant find the Atropos program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v Atropos &> /dev/null
+then
+  echo we cant find the Atropos program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
-if [[ ! -s ${ANTSPATH}/antsRegistration ]]; then
-  echo we cant find the antsRegistration program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v antsRegistration &> /dev/null
+then
+  echo we cant find the antsRegistration program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
-if [[ ! -s ${ANTSPATH}/antsApplyTransforms ]]; then
-  echo we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v antsApplyTransforms &> /dev/null
+then
+  echo we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
+if ! command -v bc &> /dev/null
+then
+  echo we cant find the bc program -- does not seem to exist. Please install gnu coreutils.
+  exit
+fi
+
+################################################################################
+#
+# General parameters
+#
+################################################################################
+
+HOSTNAME=`hostname`
+DATE=`date`
+
+CURRENT_DIR=`pwd`/
+OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
+OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
+OUTPUT_SUFFIX="nii.gz"
+
+KEEP_TMP_IMAGES=0
+
+USE_RANDOM_SEEDING=1
+
+DIMENSION=3
+
+ANATOMICAL_IMAGES=()
+
+USE_FLOAT_PRECISION=0
+
+# Intial affine supplied on command line
+USER_INITIAL_AFFINE=""
+
+################################################################################
+#
+# Programs and their parameters
+#
+################################################################################
+
+
+ATROPOS=Atropos
+ATROPOS_NUM_CLASSES=3
+ATROPOS_CSF_CLASS_LABEL=1
+ATROPOS_GM_CLASS_LABEL=2
+ATROPOS_WM_CLASS_LABEL=3
+ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[ ${ATROPOS_NUM_CLASSES} ]"
+ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD="Gaussian"
+ATROPOS_BRAIN_EXTRACTION_CONVERGENCE="[ 3,0.0 ]"
+
+ANTS=antsRegistration
+ANTS_MAX_ITERATIONS="100x100x70x20"
+ANTS_TRANSFORMATION="SyN[ 0.1,3,0 ]"
+ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
+ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x100,1e-8,10 ]"
+ANTS_METRIC="CC"
+ANTS_METRIC_PARAMS="1,4"
+
+# Default to search an arc fraction of 0.12 in 20 degree intervals
+# In other words, roughly +/- 20 degrees from the initial angle
+ANTS_AI_ROTATION_SEARCH_PARAMS="20,0.12"
+
+# Default to search a translation of 40mm in the y and z direction
+ANTS_AI_TRANSLATION_SEARCH_PARAMS="40,0x40x40"
+
+WARP=antsApplyTransforms
+
+N4=N4BiasFieldCorrection
+N4_CONVERGENCE_1="[ 50x50x50x50,0.0000001 ]"
+N4_CONVERGENCE_2="[ 50x50x50x50,0.0000001 ]"
+N4_SHRINK_FACTOR_1=4
+N4_SHRINK_FACTOR_2=2
+
 
 function Usage {
     cat <<USAGE
@@ -39,18 +115,16 @@ Example:
 
 Required arguments:
 
-     -d:  Image dimension                       2 or 3 (for 2- or 3-dimensional image)
+     -d:  Image dimension                       2 or 3 for 2- or 3-dimensional image (default = $DIMENSION)
      -a:  Anatomical image                      Structural image, typically T1.  If more than one
                                                 anatomical image is specified, subsequently specified
                                                 images are used during the segmentation process.  However,
                                                 only the first image is used in the registration of priors.
                                                 Our suggestion would be to specify the T1 as the first image.
-     -e:  Brain extraction template             Anatomical template created using e.g. LPBA40 data set with
-                                                buildtemplateparallel.sh in ANTs.
-     -m:  Brain extraction probability mask     Brain probability mask created using e.g. LPBA40 data set which
-                                                have brain masks defined, and warped to anatomical template and
-                                                averaged resulting in a probability image.
-     -o:  Output prefix                         Output directory + file prefix
+     -e:  Brain extraction template             Anatomical template.
+     -m:  Brain extraction probability mask     Brain probability mask, with intensity range 1 (definitely brain)
+                                                to 0 (definitely background).
+     -o:  Output prefix                         Output directory + file prefix.
 
 Optional arguments:
 
@@ -59,7 +133,7 @@ Optional arguments:
                                                 This produces a segmentation image with K classes, ordered by mean
                                                 intensity in increasing order. With this option, you can control
                                                 K and tell the script which classes represent CSF, gray and white matter.
-                                                Format (\"KxcsfLabelxgmLabelxwmLabel\")
+                                                Format (\"KxcsfLabelxgmLabelxwmLabel\").
                                                 Examples:
                                                          -c 3x1x2x3 for T1 with K=3, CSF=1, GM=2, WM=3 (default)
                                                          -c 3x3x2x1 for T2 with K=3, CSF=3, GM=2, WM=1
@@ -68,13 +142,31 @@ Optional arguments:
 
      -f:  Brain extraction registration mask    Mask used for registration to limit the metric computation to
                                                 a specific region.
+
+     -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = $KEEP_TMP_IMAGES).
+
+     -q:  Use single floating point precision   Use antsRegistration with single (1) or double (0) floating point precision (default = $USE_FLOAT_PRECISION).
+
      -r:  Initial moving transform              An ITK affine transform (eg, from antsAI or ITK-SNAP) for the moving image.
                                                 Without this option, this script calls antsAI to search for a good initial moving
                                                 transform.
-     -s:  Image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -u:  Use random seeding                    Use random number generated from system clock in Atropos (default = 1)
-     -k:  Keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
-     -q:  Use floating point precision          Use antsRegistration with floating point precision.
+
+     -R:  Rotation search parameters            Rotation search parameters for antsAI in format step,arcFraction. The step is in
+                                                degrees, the arc fraction goes from 0 (no search) to 1 (search -180 to 180
+                                                degree rotations in increements of step). The search begins at -(180*arcFraction)
+                                                in each dimension - users should choose parameters so that there is a search point
+                                                near zero rotation. Default = $ANTS_AI_ROTATION_SEARCH_PARAMS.
+
+     -s:  Image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz, mhd (default = $OUTPUT_SUFFIX)
+
+     -T:  Translation search parameters         Translation search parameters for antsAI in format step,range. The step is in
+                                                mm, -range to range will be tested in each dimension. The default does not search
+                                                left-right translations because the brain is usually well-centered along this
+                                                dimension in human images. Default = $ANTS_AI_TRANSLATION_SEARCH_PARAMS.
+
+     -u:  Use random seeding                    Use random number generated from system clock (1) or a fixed seed (0). To produce identical
+                                                results, multi-threading must also be disabled by setting the environment variable
+                                                ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1. Default = $USE_RANDOM_SEEDING.
 
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for debugging, results will not be good.
 
@@ -93,6 +185,10 @@ echoParameters() {
       extraction prior        = ${EXTRACTION_PRIOR}
       output prefix           = ${OUTPUT_PREFIX}
       output image suffix     = ${OUTPUT_SUFFIX}
+
+    antsAI parameters (initial alignment):
+      rotation search params  = ${ANTS_AI_ROTATION_SEARCH_PARAMS}
+      translation search params = ${ANTS_AI_TRANSLATION_SEARCH_PARAMS}
 
     N4 parameters (pre brain extraction):
       convergence             = ${N4_CONVERGENCE_1}
@@ -151,67 +247,12 @@ function logCmd() {
 #
 ################################################################################
 
-HOSTNAME=`hostname`
-DATE=`date`
-
-CURRENT_DIR=`pwd`/
-OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
-OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
-OUTPUT_SUFFIX="nii.gz"
-
-KEEP_TMP_IMAGES=0
-
-USE_RANDOM_SEEDING=1
-
-DIMENSION=3
-
-ANATOMICAL_IMAGES=()
-
-################################################################################
-#
-# Programs and their parameters
-#
-################################################################################
-
-ATROPOS=${ANTSPATH}/Atropos
-
-ATROPOS_NUM_CLASSES=3
-
-ATROPOS_CSF_CLASS_LABEL=1
-ATROPOS_GM_CLASS_LABEL=2
-ATROPOS_WM_CLASS_LABEL=3
-
-ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[ ${ATROPOS_NUM_CLASSES} ]"
-ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD="Gaussian"
-ATROPOS_BRAIN_EXTRACTION_CONVERGENCE="[ 3,0.0 ]"
-
-ANTS=${ANTSPATH}/antsRegistration
-ANTS_MAX_ITERATIONS="100x100x70x20"
-ANTS_TRANSFORMATION="SyN[ 0.1,3,0 ]"
-ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
-ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x100,1e-8,10 ]"
-ANTS_METRIC="CC"
-ANTS_METRIC_PARAMS="1,4"
-
-WARP=${ANTSPATH}/antsApplyTransforms
-
-N4=${ANTSPATH}/N4BiasFieldCorrection
-N4_CONVERGENCE_1="[ 50x50x50x50,0.0000001 ]"
-N4_CONVERGENCE_2="[ 50x50x50x50,0.0000001 ]"
-N4_SHRINK_FACTOR_1=4
-N4_SHRINK_FACTOR_2=2
-N4_BSPLINE_PARAMS="[ 200 ]"
-
-USE_FLOAT_PRECISION=0
-
-# Intial affine supplied on command line
-USER_INITIAL_AFFINE=""
 
 if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:c:d:e:f:h:k:m:o:q:r:s:u:z:" OPT
+  while getopts "a:c:d:e:f:h:k:m:o:q:r:R:s:T:u:z:" OPT
     do
       case $OPT in
           d) #dimensions
@@ -269,8 +310,14 @@ else
           r)
        USER_INITIAL_AFFINE=$OPTARG
        ;;
+          R)
+       ANTS_AI_ROTATION_SEARCH_PARAMS=$OPTARG
+       ;;
           s) #output suffix
        OUTPUT_SUFFIX=$OPTARG
+       ;;
+          T)
+       ANTS_AI_TRANSLATION_SEARCH_PARAMS=$OPTARG
        ;;
           u) #use random seeding
        USE_RANDOM_SEEDING=$OPTARG
@@ -284,6 +331,13 @@ else
        ;;
       esac
   done
+fi
+
+if [[ ${USE_RANDOM_SEEDING} -eq 0 ]]; then
+  # Use random seed from Atropos unless one is already defined
+  if [[ -z $ANTS_RANDOM_SEED ]] ; then
+    export ANTS_RANDOM_SEED=19650218
+  fi
 fi
 
 ATROPOS_BRAIN_EXTRACTION_MRF="[ 0.1,1x1x1 ]"
@@ -300,6 +354,15 @@ if [[ -z "$ATROPOS_SEGMENTATION_MRF" ]];
         ATROPOS_SEGMENTATION_MRF="[ 0.1,1x1 ]"
       fi
   fi
+
+
+N4_BSPLINE_PARAMS="[ 1x1x1, 3 ]"
+
+if [[ $DIMENSION -eq 2 ]];
+  then
+    N4_BSPLINE_PARAMS="[ 1x1, 3 ]"
+  fi
+
 
 echo "
 Will run Atropos segmentation with K=${ATROPOS_NUM_CLASSES}. Classes labeled in order of mean intensity. Assuming CSF=${ATROPOS_CSF_CLASS_LABEL}, GM=${ATROPOS_GM_CLASS_LABEL}, WM=${ATROPOS_WM_CLASS_LABEL}
@@ -322,7 +385,13 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
     fi
   done
 
-OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
+if [[ ${OUTPUT_PREFIX} == */ ]];
+  then
+    OUTPUT_DIR=${OUTPUT_PREFIX%/}
+  else
+    OUTPUT_DIR=$(dirname $OUTPUT_PREFIX)
+  fi
+
 if [[ ! -d $OUTPUT_DIR ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
@@ -419,7 +488,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
         if [[ ! -f ${N4_CORRECTED_IMAGE} ]];
           then
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${N4_TRUNCATED_IMAGE} TruncateImageIntensity ${ANATOMICAL_IMAGES[$i]} 0.01 0.999 256
+            logCmd ImageMath ${DIMENSION} ${N4_TRUNCATED_IMAGE} TruncateImageIntensity ${ANATOMICAL_IMAGES[$i]} 0.01 0.999 256
 
             exe_n4_correction="${N4} -d ${DIMENSION} -i ${N4_TRUNCATED_IMAGE} -s ${N4_SHRINK_FACTOR_1} -c ${N4_CONVERGENCE_1} -b ${N4_BSPLINE_PARAMS} -o ${N4_CORRECTED_IMAGE} --verbose 1"
             logCmd $exe_n4_correction
@@ -463,20 +532,38 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
         echo
 
         ## Step 1 ##
-          logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_LAPLACIAN} Laplacian ${N4_CORRECTED_IMAGES[0]} 1.5 1
-          logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_TEMPLATE_LAPLACIAN} Laplacian ${EXTRACTION_TEMPLATE} 1.5 1
+          logCmd ImageMath ${DIMENSION} ${EXTRACTION_LAPLACIAN} Laplacian ${N4_CORRECTED_IMAGES[0]} 1.5 1
+          logCmd ImageMath ${DIMENSION} ${EXTRACTION_TEMPLATE_LAPLACIAN} Laplacian ${EXTRACTION_TEMPLATE} 1.5 1
 
           if [[ ! -f "${USER_INITIAL_AFFINE}" ]]
             then
 
-              logCmd ${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_TEMPLATE} ${EXTRACTION_INITIAL_AFFINE_FIXED} 4 4 4 1
-              logCmd ${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_INITIAL_AFFINE_MOVING} 4 4 4 1
+              # Smooth by 4 voxels
+              antomical_spacing=($(PrintHeader ${N4_CORRECTED_IMAGES[0]} 1 | tr 'x' '\n'))
+              template_spacing=($(PrintHeader ${EXTRACTION_TEMPLATE} 1 | tr 'x' '\n'))
 
-              exe_initial_align="${ANTSPATH}/antsAI -d ${DIMENSION} -v 1"
+              logCmd SmoothImage ${DIMENSION} ${EXTRACTION_TEMPLATE} 4 ${EXTRACTION_INITIAL_AFFINE_FIXED}
+              logCmd SmoothImage ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} 4 ${EXTRACTION_INITIAL_AFFINE_MOVING}
+
+              # Downsample the template by a factor of 5, and resample both images to that resolution
+              downsample_template_spacing=()
+
+              for (( i = 0; i < ${DIMENSION}; i++ ))
+                do
+                  downsample_template_spacing[$i]=$(echo "${template_spacing[$i]} * 5" | bc -l)
+                done
+
+              logCmd ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} \
+                ${EXTRACTION_INITIAL_AFFINE_FIXED} ${downsample_template_spacing[@]} 0
+
+              logCmd ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_MOVING} \
+                ${EXTRACTION_INITIAL_AFFINE_MOVING} ${downsample_template_spacing[@]} 0
+
+              exe_initial_align="antsAI -d ${DIMENSION} -v 1"
               exe_initial_align="${exe_initial_align} -m Mattes[ ${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2 ]"
               exe_initial_align="${exe_initial_align} -t Affine[ 0.1 ]"
-              exe_initial_align="${exe_initial_align} -s [ 20,0.12 ]"
-              exe_initial_align="${exe_initial_align} -g [ 40,0x40x40 ]"
+              exe_initial_align="${exe_initial_align} -s [ ${ANTS_AI_ROTATION_SEARCH_PARAMS} ]"
+              exe_initial_align="${exe_initial_align} -g [ ${ANTS_AI_TRANSLATION_SEARCH_PARAMS} ]"
               exe_initial_align="${exe_initial_align} -p 0"
               exe_initial_align="${exe_initial_align} -c 10"
               exe_initial_align="${exe_initial_align} -o ${EXTRACTION_INITIAL_AFFINE}"
@@ -488,7 +575,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
               logCmd $exe_initial_align
             else
-              ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -t ${USER_INITIAL_AFFINE} -o Linear[ ${EXTRACTION_INITIAL_AFFINE}, 0 ]
+              logCmd antsApplyTransforms -d ${DIMENSION} -t ${USER_INITIAL_AFFINE} -o Linear[ ${EXTRACTION_INITIAL_AFFINE}, 0 ]
             fi
 
           basecall="${ANTS} -d ${DIMENSION} -u 1 -w [ 0.025,0.975 ] -o ${EXTRACTION_WARP_OUTPUT_PREFIX} -r ${EXTRACTION_INITIAL_AFFINE} -z 1 --float ${USE_FLOAT_PRECISION} --verbose 1"
@@ -530,9 +617,9 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
         logCmd $exe_brain_extraction_2
 
         ## superstep 1b ##
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_MASK_PRIOR_WARPED} ${EXTRACTION_MASK_PRIOR_WARPED} 0.5 1 1 0
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK_PRIOR_WARPED} 2
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} GetLargestComponent ${EXTRACTION_MASK}
+        logCmd ThresholdImage ${DIMENSION} ${EXTRACTION_MASK_PRIOR_WARPED} ${EXTRACTION_MASK_PRIOR_WARPED} 0.5 1 1 0
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK_PRIOR_WARPED} 2
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} GetLargestComponent ${EXTRACTION_MASK}
 
         ## superstep 6 ##
         ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
@@ -548,50 +635,50 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
        # Pad image here to avoid errors from dilating into the edge of the image
         padVoxels=10
 
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_SEGMENTATION} PadImage ${EXTRACTION_SEGMENTATION} $padVoxels
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK_PRIOR_WARPED} PadImage ${EXTRACTION_MASK_PRIOR_WARPED} $padVoxels
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_SEGMENTATION} PadImage ${EXTRACTION_SEGMENTATION} $padVoxels
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK_PRIOR_WARPED} PadImage ${EXTRACTION_MASK_PRIOR_WARPED} $padVoxels
 
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_WM} ${ATROPOS_WM_CLASS_LABEL} ${ATROPOS_WM_CLASS_LABEL} 1 0
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_GM} ${ATROPOS_GM_CLASS_LABEL} ${ATROPOS_GM_CLASS_LABEL} 1 0
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_CSF} ${ATROPOS_CSF_CLASS_LABEL} ${ATROPOS_CSF_CLASS_LABEL} 1 0
+        logCmd ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_WM} ${ATROPOS_WM_CLASS_LABEL} ${ATROPOS_WM_CLASS_LABEL} 1 0
+        logCmd ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_GM} ${ATROPOS_GM_CLASS_LABEL} ${ATROPOS_GM_CLASS_LABEL} 1 0
+        logCmd ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_CSF} ${ATROPOS_CSF_CLASS_LABEL} ${ATROPOS_CSF_CLASS_LABEL} 1 0
 
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_WM} GetLargestComponent ${EXTRACTION_WM}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_GM} GetLargestComponent ${EXTRACTION_GM}
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_WM} GetLargestComponent ${EXTRACTION_WM}
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_GM} GetLargestComponent ${EXTRACTION_GM}
 
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_TMP} FillHoles ${EXTRACTION_GM} 2
-        logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${EXTRACTION_GM} ${EXTRACTION_TMP} ${EXTRACTION_GM}
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_TMP} FillHoles ${EXTRACTION_GM} 2
+        logCmd MultiplyImages ${DIMENSION} ${EXTRACTION_GM} ${EXTRACTION_TMP} ${EXTRACTION_GM}
 
-        logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${EXTRACTION_WM} ${ATROPOS_WM_CLASS_LABEL} ${EXTRACTION_WM}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_TMP} ME ${EXTRACTION_CSF} 10
+        logCmd MultiplyImages ${DIMENSION} ${EXTRACTION_WM} ${ATROPOS_WM_CLASS_LABEL} ${EXTRACTION_WM}
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_TMP} ME ${EXTRACTION_CSF} 10
 
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_GM} addtozero ${EXTRACTION_GM} ${EXTRACTION_TMP}
-        logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${EXTRACTION_GM} ${ATROPOS_GM_CLASS_LABEL} ${EXTRACTION_GM}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_SEGMENTATION} addtozero ${EXTRACTION_WM} ${EXTRACTION_GM}
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_GM} addtozero ${EXTRACTION_GM} ${EXTRACTION_TMP}
+        logCmd MultiplyImages ${DIMENSION} ${EXTRACTION_GM} ${ATROPOS_GM_CLASS_LABEL} ${EXTRACTION_GM}
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_SEGMENTATION} addtozero ${EXTRACTION_WM} ${EXTRACTION_GM}
 
         ## superstep 7 ##
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_MASK} ${ATROPOS_WM_CLASS_LABEL} ${ATROPOS_WM_CLASS_LABEL} 1 0
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_TMP} ${ATROPOS_GM_CLASS_LABEL} ${ATROPOS_GM_CLASS_LABEL} 1 0
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} addtozero ${EXTRACTION_MASK} ${EXTRACTION_TMP}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} ME ${EXTRACTION_MASK} 2
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} GetLargestComponent ${EXTRACTION_MASK}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK} 4
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} FillHoles ${EXTRACTION_MASK} 2
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} addtozero ${EXTRACTION_MASK} ${EXTRACTION_MASK_PRIOR_WARPED}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK} 5
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK} ME ${EXTRACTION_MASK} 5
+        logCmd ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_MASK} ${ATROPOS_WM_CLASS_LABEL} ${ATROPOS_WM_CLASS_LABEL} 1 0
+        logCmd ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_TMP} ${ATROPOS_GM_CLASS_LABEL} ${ATROPOS_GM_CLASS_LABEL} 1 0
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} addtozero ${EXTRACTION_MASK} ${EXTRACTION_TMP}
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} ME ${EXTRACTION_MASK} 2
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} GetLargestComponent ${EXTRACTION_MASK}
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK} 4
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} FillHoles ${EXTRACTION_MASK} 2
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} addtozero ${EXTRACTION_MASK} ${EXTRACTION_MASK_PRIOR_WARPED}
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK} 5
+        logCmd ImageMath ${DIMENSION} ${EXTRACTION_MASK} ME ${EXTRACTION_MASK} 5
 
         # De-pad
         for img in ${EXTRACTION_SEGMENTATION} ${EXTRACTION_MASK} ${EXTRACTION_WM} ${EXTRACTION_GM} ${EXTRACTION_CSF} ${EXTRACTION_MASK_PRIOR_WARPED}
           do
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${img} PadImage ${img} -$padVoxels
+            logCmd ImageMath ${DIMENSION} ${img} PadImage ${img} -$padVoxels
           done
 
 
-        logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_BRAIN}
+        logCmd MultiplyImages ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_BRAIN}
 
         # Copy header information from original image into output
-        logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_BRAIN} ${EXTRACTION_BRAIN} 1 1 1 0
-        logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_MASK} 1 1 1 0
+        logCmd CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_BRAIN} ${EXTRACTION_BRAIN} 1 1 1 0
+        logCmd CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_MASK} 1 1 1 0
 
 
     if [[ ! -f ${EXTRACTION_MASK} ]];

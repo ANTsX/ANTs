@@ -36,7 +36,7 @@ DijkstrasAlgorithm<TGraphSearchNode>::InitializeGraph()
   m_Graph->SetLargestPossibleRegion(m_GraphRegion);
   m_Graph->SetRequestedRegion(m_GraphRegion);
   m_Graph->SetBufferedRegion(m_GraphRegion);
-  m_Graph->Allocate();
+  m_Graph->AllocateInitialized();
   GraphIteratorType GraphIterator(m_Graph, m_GraphRegion);
   GraphIterator.GoToBegin();
   NodeLocationType loc;

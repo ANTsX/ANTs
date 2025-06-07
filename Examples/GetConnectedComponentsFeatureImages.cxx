@@ -7,8 +7,7 @@
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
-#include "itkLabelGeometryImageFilter.h"
-#include "itkLabelPerimeterEstimationCalculator.h"
+#include "itkLabelImageToShapeLabelMapFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkMultiplyImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
@@ -41,18 +40,12 @@ GetConnectedComponentsFeatureImages(int itkNotUsed(argc), char * argv[])
     typename RealImageType::Pointer output = RealImageType::New();
     output->CopyInformation(inputImage);
     output->SetRegions(inputImage->GetRequestedRegion());
-    output->Allocate();
-    output->FillBuffer(0.0);
+    output->AllocateInitialized();
 
     outputImages.push_back(output);
   }
 
   typename ImageType::SpacingType spacing = inputImage->GetSpacing();
-  float                           prefactor = 1.0;
-  for (unsigned int d = 0; d < ImageDimension; d++)
-  {
-    prefactor *= static_cast<float>(spacing[d]);
-  }
 
   using RelabelerType = itk::RelabelComponentImageFilter<ImageType, ImageType>;
   typename RelabelerType::Pointer relabeler = RelabelerType::New();
@@ -79,18 +72,13 @@ GetConnectedComponentsFeatureImages(int itkNotUsed(argc), char * argv[])
     relabeler2->SetInput(filter->GetOutput());
     relabeler2->Update();
 
-    using GeometryFilterType = itk::LabelGeometryImageFilter<ImageType, RealImageType>;
+    using GeometryFilterType = itk::LabelImageToShapeLabelMapFilter<ImageType>;
     typename GeometryFilterType::Pointer geometry = GeometryFilterType::New();
     geometry->SetInput(relabeler2->GetOutput());
-    geometry->CalculatePixelIndicesOff();
-    geometry->CalculateOrientedBoundingBoxOff();
-    geometry->CalculateOrientedLabelRegionsOff();
-    geometry->Update();
+    geometry->ComputeOrientedBoundingBoxOff();
+    geometry->ComputePerimeterOn();
 
-    using AreaFilterType = itk::LabelPerimeterEstimationCalculator<ImageType>;
-    typename AreaFilterType::Pointer area = AreaFilterType::New();
-    area->SetImage(relabeler2->GetOutput());
-    area->Compute();
+    geometry->Update();
 
     itk::ImageRegionIteratorWithIndex<ImageType> It(relabeler->GetOutput(),
                                                     relabeler->GetOutput()->GetRequestedRegion());
@@ -109,12 +97,32 @@ GetConnectedComponentsFeatureImages(int itkNotUsed(argc), char * argv[])
         // [2] = eccentricity
         // [3] = elongation
 
-        float volume = prefactor * static_cast<float>(geometry->GetVolume(label));
+        try
+        {
+          auto labelObject = geometry->GetOutput()->GetLabelObject(label);
+          float volume = labelObject->GetPhysicalSize();
 
-        outputImages[0]->SetPixel(index, volume);
-        outputImages[1]->SetPixel(index, static_cast<float>(area->GetPerimeter(label)) / volume);
-        outputImages[2]->SetPixel(index, geometry->GetEccentricity(label));
-        outputImages[3]->SetPixel(index, geometry->GetElongation(label));
+          outputImages[0]->SetPixel(index, volume);
+          outputImages[1]->SetPixel(index, volume / static_cast<float>(labelObject->GetPerimeter()));
+
+          auto principalMoments = labelObject->GetPrincipalMoments();
+
+          float lambda1 = principalMoments[0];
+          float lambdaN = principalMoments[ImageDimension - 1];
+          float eccentricity = 0.0;
+
+          if (!itk::Math::FloatAlmostEqual(lambda1, 0.0f))
+          {
+            eccentricity = std::sqrt(1.0 - (lambda1 * lambda1) / (lambdaN * lambdaN));
+          }
+
+          outputImages[2]->SetPixel(index, eccentricity);
+          outputImages[3]->SetPixel(index, labelObject->GetElongation());
+        }
+        catch (itk::ExceptionObject & e)
+        {
+          std::cerr << "Could not find label " << label << std::endl;
+        }
       }
     }
   }

@@ -294,7 +294,7 @@ Denoise(itk::ants::CommandLineParser * parser)
     // denoiser->DebugOn();
     denoiser->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     if (verbose)
     {

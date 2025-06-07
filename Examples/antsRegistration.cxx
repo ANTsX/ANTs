@@ -309,7 +309,8 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
       std::string("one sample per voxel), otherwise it defines a point set over which to optimize the metric. ") +
       std::string("The point set can be on a regular lattice or a random lattice of points slightly ") +
       std::string("perturbed to minimize aliasing artifacts. samplingPercentage defines the ") +
-      std::string("fraction of points to select from the domain. ") +
+      std::string("fraction of points to select from the domain. useGradientFilter specifies whether a smoothing") +
+      std::string("filter is applied when estimating the metric gradient.") +
       std::string("In addition, three point set metrics are available:  Euclidean ") +
       std::string("(ICP), Point-set expectation (PSE), and Jensen-Havrda-Charvet-Tsallis (JHCT).");
 
@@ -318,22 +319,22 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
     option->SetShortName('m');
     option->SetUsageOption(0,
                            "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={None,Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
+                           "samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(1,
                            "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}"
-                           ">,<samplingPercentage=[0,1]>]");
+                           ">,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(2,
                            "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,"
-                           "Random}>,<samplingPercentage=[0,1]>]");
+                           "Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(3,
                            "MeanSquares[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,"
-                           "Random}>,<samplingPercentage=[0,1]>]");
+                           "Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(4,
                            "Demons[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,"
-                           "Random}>,<samplingPercentage=[0,1]>]");
+                           "Random}>,<samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(5,
                            "GC[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
+                           "samplingPercentage=[0,1]>,<useGradientFilter=false>]");
     option->SetUsageOption(
       6, "ICP[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>]");
     option->SetUsageOption(7,
@@ -444,17 +445,16 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
     parser->AddOption(option);
   }
 
-  {
-    std::string description =
-      std::string("turn on the option that lets you estimate the learning rate step size only at the beginning of each "
-                  "level.  * useful as a second stage of fine-scale registration.");
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName("use-estimate-learning-rate-once");
-    option->SetShortName('l');
-    option->SetDescription(description);
-    parser->AddOption(option);
-  }
+  // {
+  //   std::string description =
+  //     std::string("Turn on the option that lets you estimate the learning rate step size only at the beginning of each "
+  //                 "level.  This is useful as a second stage of fine-scale registration.");
+  //   OptionType::Pointer option = OptionType::New();
+  //   option->SetLongName("use-estimate-learning-rate-once");
+  //   option->SetShortName('l');
+  //   option->SetDescription(description);
+  //   parser->AddOption(option);
+  // }
 
   {
     std::string description = std::string("Winsorize data based on specified quantiles.");
@@ -490,7 +490,6 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("float");
     option->SetDescription(description);
-    option->AddFunction(std::string("0"));
     parser->AddOption(option);
   }
 
@@ -704,15 +703,15 @@ antsRegistration(std::vector<std::string> args, std::ostream * /*out_stream = nu
       return EXIT_FAILURE;
     }
 
-    std::string         precisionType;
-    OptionType::Pointer typeOption = parser->GetOption("float");
-    if (typeOption && parser->Convert<bool>(typeOption->GetFunction(0)->GetName()))
+    std::string precisionType;
+    ParserType::OptionType::Pointer typeOption = parser->GetOption("float");
+    if (typeOption && typeOption->GetNumberOfFunctions() && parser->Convert<bool>(typeOption->GetFunction(0)->GetName()))
     {
       if (verbose)
       {
         std::cout << "Using single precision for computations." << std::endl;
       }
-      precisionType = "float";
+      precisionType = std::string("float");
     }
     else
     {
@@ -720,7 +719,7 @@ antsRegistration(std::vector<std::string> args, std::ostream * /*out_stream = nu
       {
         std::cout << "Using double precision for computations." << std::endl;
       }
-      precisionType = "double";
+      precisionType = std::string("double");
     }
 
     switch (dimension)
@@ -768,7 +767,7 @@ antsRegistration(std::vector<std::string> args, std::ostream * /*out_stream = nu
       }
     }
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cerr << "Exception Object caught: " << std::endl;
     std::cerr << err << std::endl;

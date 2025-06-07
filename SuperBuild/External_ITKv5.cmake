@@ -114,17 +114,17 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   string(REPLACE "-fopenmp" "" ITK_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   string(REPLACE "-fopenmp" "" ITK_CMAKE_CXX_FLAGS "${CMAKE_CX_FLAGS}")
 
-  find_package(ZLIB REQUIRED)
-
   set(${proj}_CMAKE_OPTIONS
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
       -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/staging
-      -DITK_LEGACY_REMOVE:BOOL=OFF # <--- NEEDED TEMPORARILY until fixes for enum-class and ITK 5.1 release are required
-      -DITK_FUTURE_LEGACY_REMOVE:BOOL=ON
+      -DITK_LEGACY_REMOVE:BOOL=ON
+      -DITK_FUTURE_LEGACY_REMOVE:BOOL=OFF
       -DITKV3_COMPATIBILITY:BOOL=OFF
       -DITK_BUILD_DEFAULT_MODULES:BOOL=ON
       -DITK_USE_SYSTEM_PNG=${ITK_USE_SYSTEM_PNG}
+      -DITK_C_OPTIMIZATION_FLAGS:STRING=${ITK_C_OPTIMIZATION_FLAGS}
+      -DITK_CXX_OPTIMIZATION_FLAGS:STRING=${ITK_CXX_OPTIMIZATION_FLAGS}
 #      -DITK_MODULE_Core:BOOL=ON
 #      -DITK_MODULE_IO:BOOL=ON
 #      -DITK_MODULE_Filtering:BOOL=ON
@@ -157,11 +157,9 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
 
   ### --- End Project specific additions
-  # set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
-  set(${proj}_REPOSITORY ${git_protocol}://github.com/thewtex/ITK.git)
-  # set(${proj}_REPOSITORY ${git_protocol}://github.com/stnava/ITK.git)
-  set(${proj}_GIT_TAG d5abe809e26043e888a887d4dafc39fabb0fb2b3)  # Official ITK release version 5.3.0 rc 03 # Many modern code updates for performance
-  set(ITK_VERSION_ID ITK-5.3) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID
+  set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
+  set(${proj}_GIT_TAG 0913f2a962d28eb5725a50a17304c4652ca6cfdc) # v5.4.3, 2025-04-02
+  set(ITK_VERSION_ID ITK-5.4) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID if ITK version has changed
 
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
@@ -185,7 +183,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
     DEPENDS
       ${${proj}_DEPENDENCIES}
   )
-  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/staging/lib/cmake/${ITK_VERSION_ID})
+  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/staging/${CMAKE_INSTALL_LIBDIR}/cmake/${ITK_VERSION_ID})
 else()
   if(${USE_SYSTEM_${extProjName}})
     find_package(${extProjName} ${ITK_VERSION_MAJOR} REQUIRED)

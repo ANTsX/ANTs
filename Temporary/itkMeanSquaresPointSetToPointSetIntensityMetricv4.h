@@ -59,7 +59,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(MeanSquaresPointSetToPointSetIntensityMetricv4, PointSetToPointSetMetricv4);
+  itkOverrideGetNameOfClassMacro(MeanSquaresPointSetToPointSetIntensityMetricv4);
 
   /**  Type of the fixed point set. */
   typedef TFixedPointSet                              FixedPointSetType;

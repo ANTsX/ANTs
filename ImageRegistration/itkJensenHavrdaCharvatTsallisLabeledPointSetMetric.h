@@ -41,9 +41,9 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(JensenHavrdaCharvatTsallisLabeledPointSetMetric, PointSetToLabelPointSetMetric);
+  itkOverrideGetNameOfClassMacro(JensenHavrdaCharvatTsallisLabeledPointSetMetric);
 
-  itkStaticConstMacro(PointDimension, unsigned int, TPointSet::PointDimension);
+  static constexpr unsigned int PointDimension = TPointSet::PointDimension;
 
   /** Types transferred from the base class */
   typedef typename Superclass::TransformType           TransformType;

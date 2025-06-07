@@ -46,7 +46,7 @@ public:
   /**
    * Standard macros
    */
-  itkTypeMacro(BoxPlotQuantileListSampleFilter, ListSampleToScalarListSampleFilter);
+  itkOverrideGetNameOfClassMacro(BoxPlotQuantileListSampleFilter);
 
   /**
    * Method for creation through the object factory.

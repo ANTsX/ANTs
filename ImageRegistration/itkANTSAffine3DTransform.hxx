@@ -708,14 +708,17 @@ ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
     r = static_cast<double>(Q(0, 1) - Q(1, 0)) / s;
   }
 
-  std::cout << "A=" << A << std::endl;
-  std::cout << "rotation R" << Q << std::endl;
-  std::cout << "upper R" << R << std::endl;
-  std::cout << "s=" << s << " u=" << u << " v=" << v << " w" << w << " r=" << r << std::endl;
-
   m_Rotation = VnlQuaternionType(u, v, w, r);
 
-  std::cout << "m_Rotation from vnl" << VnlQuaternionType(u, v, w, r) << std::endl;
+  if (this->GetDebug())
+  {
+    std::cout << "A=\n" << A << std::endl;
+    std::cout << "rotation R\n" << Q << std::endl;
+    std::cout << "upper R\n" << R << std::endl;
+    std::cout << "s=" << s << " u=" << u << " v=" << v << " w" << w << " r=" << r << std::endl;
+
+    std::cout << "m_Rotation from vnl: " << VnlQuaternionType(u, v, w, r) << std::endl;
+  }
 
   m_S1 = R(0, 0);
   m_S2 = R(1, 1);

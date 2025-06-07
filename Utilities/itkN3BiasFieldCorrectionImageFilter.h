@@ -91,7 +91,7 @@ public:
   using ConstPointer = SmartPointer<const Self>;
 
   /** Runtime information support. */
-  itkTypeMacro(N3BiasFieldCorrectionImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(N3BiasFieldCorrectionImageFilter);
 
   /** Standard New method. */
   itkNewMacro(Self);

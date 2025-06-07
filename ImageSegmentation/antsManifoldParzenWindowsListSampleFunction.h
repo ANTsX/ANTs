@@ -45,7 +45,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ManifoldParzenWindowsListSampleFunction, ListSampleFunction);
+  itkOverrideGetNameOfClassMacro(ManifoldParzenWindowsListSampleFunction);
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;

@@ -151,7 +151,7 @@ template <typename TImage, typename TMaskImage>
 typename TImage::Pointer
 OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename TMaskImage::Pointer maskImage)
 {
-  std::cout << " Otsu Thresh with " << NumberOfThresholds << " thresholds" << std::endl;
+  // std::cout << " Otsu Thresh with " << NumberOfThresholds << " thresholds" << std::endl;
 
   if (maskImage.IsNull())
   {
@@ -219,8 +219,7 @@ OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename T
     typename ImageType::Pointer output = ImageType::New();
     output->CopyInformation(maskImage);
     output->SetRegions(maskImage->GetLargestPossibleRegion());
-    output->Allocate();
-    output->FillBuffer(0);
+    output->AllocateInitialized();
 
     itk::ImageRegionIterator<ImageType> ItO(output, output->GetLargestPossibleRegion());
     for (unsigned int i = 0; i < thresholds.size(); i++)

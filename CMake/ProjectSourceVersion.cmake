@@ -37,7 +37,7 @@ if(_GIT_VERSION_HASH STREQUAL "GITDIR-NOTFOUND")
   return()
 endif()
 
-if(_GIT_VERSION_HASH MATCHES "[a-fA-F0-9]+")
+if(_GIT_VERSION_HASH MATCHES "^[a-fA-F0-9]+$")
   # Get first seven chars of hash (git default for short hash)
   # https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection
   string(SUBSTRING "${_GIT_VERSION_HASH}" 0 7 _GIT_VERSION_HASH)
@@ -53,7 +53,8 @@ set(VERSION_REGEX "^v([0-9]+)\\.([0-9]+)+(\\.([0-9]+))?(\\.([0-9]+))?((a|b|c|rc)
 string(REGEX MATCH "${VERSION_REGEX}" _out "${_GIT_TAG}")
 
 if("${_out}" STREQUAL "")
-  message(WARNING "git tag: \"${_GIT_TAG}\" does not match expected version format!")
+  message(NOTICE "Could not parse most recent version from git tag: \"${_GIT_TAG}\"")
+  set(_GIT_VERSION "GITVERSION-NOTFOUND")
   return()
 endif()
 

@@ -35,7 +35,7 @@ ImageIntensityStatistics(int argc, char * argv[])
     labelImage->CopyInformation(intensityImage);
     labelImage->SetRegions(intensityImage->GetLargestPossibleRegion());
     labelImage->Allocate();
-    labelImage->FillBuffer(1);
+    labelImage->FillBuffer(itk::NumericTraits<LabelType>::One);
   }
 
   std::vector<LabelType>                   labels;

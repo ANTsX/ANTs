@@ -81,8 +81,7 @@ ExtractSliceFromImage(int argc, char * argv[])
     typename ImageType::Pointer outImage = ImageType::New();
     outImage->CopyInformation(inputImage);
     outImage->SetRegions(inputImage->GetLargestPossibleRegion());
-    outImage->Allocate();
-    outImage->FillBuffer(0);
+    outImage->AllocateInitialized();
 
     // paste image slice to higher dimensionl image
     using PasteFilterType = itk::PasteImageFilter<ImageType>;

@@ -163,10 +163,10 @@ SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood(
   tempp[0] = rootpoint[0];
   tempp[1] = rootpoint[1];
   tempp[2] = rootpoint[2];
-  this->m_FunctionImage->TransformPhysicalPointToIndex(tempp, oindex);
+  oindex = this->m_FunctionImage->TransformPhysicalPointToIndex(tempp);
   for (unsigned int i = 0; i < ImageDimension; i++)
   {
-    rad[i] = (long)(m_NeighborhoodRadius);
+    rad[i] = (long)(m_NeighborhoodRadius/this->m_Spacing[i]+0.5);
   }
   m_ti.SetLocation(oindex);
   unsigned int temp = 0;
@@ -190,7 +190,8 @@ SurfaceImageCurvature<TSurface>::FindEuclideanNeighborhood(
             isorigin = false;
           }
           p[k] = ipt[k];
-          RealType delt = static_cast<RealType>(oindex[k]) - static_cast<RealType>(index[k]);
+          RealType delt = rootpoint[k] - ipt[k];
+//          RealType delt = static_cast<RealType>(oindex[k]) - static_cast<RealType>(index[k]);
           dist += delt * delt;
         }
         dist = sqrt(dist);
@@ -419,6 +420,7 @@ void
 SurfaceImageCurvature<TSurface>::EstimateNormalsFromGradient()
 {
   typename ImageType::Pointer image = GetInput();
+  this->m_Spacing = image->GetSpacing();
 
   if (!image)
   {
@@ -748,9 +750,9 @@ SurfaceImageCurvature<TSurface>::ComputeSurfaceArea()
 
   RealType area = 0.0;
   this->m_TotalArea = 0.0;
+  unsigned long ct = 0;
 
   ti.GoToBegin();
-  unsigned int ct = 0;
   while (!ti.IsAtEnd())
   {
     index = ti.GetIndex();
@@ -835,7 +837,7 @@ SurfaceImageCurvature<TSurface>::IntegrateFunctionOverSurface(bool norm)
   typename OutputImageType::Pointer tempimage = OutputImageType::New();
   tempimage->SetLargestPossibleRegion(image->GetLargestPossibleRegion());
   tempimage->SetBufferedRegion(image->GetLargestPossibleRegion());
-  tempimage->Allocate();
+  tempimage->AllocateInitialized();
 
   typename ImageType::SizeType rad;
   typename ImageType::SizeType rad2;
@@ -847,6 +849,7 @@ SurfaceImageCurvature<TSurface>::IntegrateFunctionOverSurface(bool norm)
 
   this->m_ti.Initialize(rad, this->GetInput(), image->GetLargestPossibleRegion());
   this->m_ti2.Initialize(rad2, this->GetInput(), image->GetLargestPossibleRegion());
+  // unsigned long ct = 0;
 
   IndexType index;
 
@@ -855,8 +858,6 @@ SurfaceImageCurvature<TSurface>::IntegrateFunctionOverSurface(bool norm)
   //  std::cout << " begin integrate ";
 
   ti.GoToBegin();
-  unsigned int ct = 0;
-  //  std::cout << " begin while " << std::endl;
   while (!ti.IsAtEnd())
   {
     index = ti.GetIndex();
@@ -868,7 +869,7 @@ SurfaceImageCurvature<TSurface>::IntegrateFunctionOverSurface(bool norm)
       index[2] > this->m_NeighborhoodRadius)
     {
       PointType p;
-      ct++;
+      // ct++;
       for (unsigned int k = 0; k < ImageDimension; k++)
       {
         p[k] = (RealType)index[k];
@@ -1036,11 +1037,11 @@ SurfaceImageCurvature<TSurface>::ComputeFrameOverDomain(unsigned int which)
   // Get Normals First!
   this->EstimateNormalsFromGradient();
 
-  unsigned int  ct = 1;
-  unsigned long ct2 = 0;
+  // unsigned int  ct = 1;
+  // unsigned long ct2 = 0;
   RealType      kpix = 0;
+  // double thresh = 0.0;
 
-  double thresh = 0.0;
 
   ti.GoToBegin();
   while (!ti.IsAtEnd())
@@ -1148,10 +1149,10 @@ SurfaceImageCurvature<TSurface>::ComputeFrameOverDomain(unsigned int which)
       {
         kpix = this->m_Area;
       }
-      ct++;
+      // ct++;
       this->m_PointList.clear();
     }
-    thresh += static_cast<double>(kpix);
+    // thresh += static_cast<double>(kpix);
     float offset = 0;
     if (which == 5)
     {
@@ -1159,7 +1160,7 @@ SurfaceImageCurvature<TSurface>::ComputeFrameOverDomain(unsigned int which)
     }
     //    if (  ()  && ( )  ) kpix=0;
     this->m_FunctionImage->SetPixel(index, offset + kpix);
-    ct2++;
+    // ct2++;
     ++ti;
   }
 }
@@ -1198,8 +1199,7 @@ SurfaceImageCurvature<TSurface>::SetInputImage(typename ImageType::Pointer & inp
     this->m_FunctionImage = OutputImageType::New();
     this->m_FunctionImage->CopyInformation(input);
     this->m_FunctionImage->SetRegions(region);
-    this->m_FunctionImage->Allocate();
-    this->m_FunctionImage->FillBuffer(0);
+    this->m_FunctionImage->AllocateInitialized();
   }
 }
 } // namespace itk

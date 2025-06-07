@@ -153,9 +153,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     this->m_MetricImage->SetBufferedRegion(img->GetLargestPossibleRegion());
     this->m_MetricImage->SetSpacing(img->GetSpacing());
     this->m_MetricImage->SetOrigin(img->GetOrigin());
-    this->m_MetricImage->Allocate();
-    ittype it(this->m_MetricImage,this->m_MetricImage->GetLargestPossibleRegion().GetSize());
-    for( it.GoToBegin(); !it.IsAtEnd(); ++it ) it.Set(0);
+    this->m_MetricImage->AllocateInitialized();
   }
   */
   m_FixedImageGradientCalculator->SetInputImage(this->m_FixedImage);
@@ -393,7 +391,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_JointPDFXuYr->FillBuffer(0.0);
   m_JointHist->FillBuffer(0.0);
 
-  unsigned long  nSamples = 0;
+  // unsigned long  nSamples = 0;
   RandomIterator iter(this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion());
   for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
   {
@@ -524,7 +522,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         pdfPtr += pdfMovingIndex;
         *(pdfPtr) += static_cast<PDFValueType>(1);
 
-        ++nSamples;
+        // ++nSamples;
       }
     }
   }

@@ -100,7 +100,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(AverageOverDimensionImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(AverageOverDimensionImageFilter);
 
   /** Image type information. */
   typedef TInputImage  InputImageType;
@@ -208,11 +208,11 @@ public:
 
 
   /** ImageDimension enumeration */
-  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+  static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
+  static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-  typedef ImageToImageFilterDetail::ExtractImageFilterRegionCopier<itkGetStaticConstMacro(InputImageDimension),
-                                                                   itkGetStaticConstMacro(OutputImageDimension)>
+  typedef ImageToImageFilterDetail::ExtractImageFilterRegionCopier<Self::InputImageDimension,
+                                                                   Self::OutputImageDimension>
     ExtractImageFilterRegionCopierType;
 
   /** Set/Get the output image region.

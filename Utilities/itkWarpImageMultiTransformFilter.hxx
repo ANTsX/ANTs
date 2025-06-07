@@ -391,6 +391,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
   PointType &       point2)
 {
   IndexType null_index;
+  null_index.Fill(0);
 
   bool isinside = MultiTransformPoint(point1, point2, false, null_index);
 
@@ -540,9 +541,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
           // use continous coordinates
           typename DefaultVectorInterpolatorType::ContinuousIndexType contind;
           // use ITK implementation to use orientation header
-          fieldPtr->TransformPhysicalPointToContinuousIndex(point1, contind);
-
-          isinside = fieldPtr->GetLargestPossibleRegion().IsInside(contind);
+          isinside = fieldPtr->TransformPhysicalPointToContinuousIndex(point1, contind);
 
           VectorInterpolatorPointer                          vinterp = it->second.dex.vinterp;
           typename DefaultVectorInterpolatorType::OutputType disp2;
@@ -586,8 +585,8 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
     {
       DisplacementFieldPointer field = m_TransformList.front().second.dex.field;
 
-      m_bFirstDeformNoInterp = (this->GetOutputSize() == field->GetLargestPossibleRegion().GetSize()) &
-                               (this->GetOutputSpacing() == field->GetSpacing()) &
+      m_bFirstDeformNoInterp = (this->GetOutputSize() == field->GetLargestPossibleRegion().GetSize()) &&
+                               (this->GetOutputSpacing() == field->GetSpacing()) &&
                                (this->GetOutputOrigin() == field->GetOrigin());
 
       //            std::cout << "in set: field size: " << field->GetLargestPossibleRegion().GetSize()

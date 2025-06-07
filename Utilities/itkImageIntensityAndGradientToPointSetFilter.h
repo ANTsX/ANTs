@@ -41,10 +41,10 @@ public:
   itkNewMacro(Self);
 
   /** Extract dimension from the input image. */
-  itkStaticConstMacro(Dimension, unsigned int, TInputImage::ImageDimension);
+  static constexpr unsigned int Dimension = TInputImage::ImageDimension;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageIntensityAndGradientToPointSetFilter, MeshSource);
+  itkOverrideGetNameOfClassMacro(ImageIntensityAndGradientToPointSetFilter);
 
   /** Hold on to the type information specified by the template parameters. */
   typedef TInputImage                        InputImageType;

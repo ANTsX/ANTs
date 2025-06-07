@@ -9,20 +9,20 @@ SCRIPTS_DEPENDENCIES=( 'antsBrainExtraction.sh' 'antsAtroposN4.sh' )
 
 for D in ${PROGRAM_DEPENDENCIES[@]};
   do
-    if [[ ! -s ${ANTSPATH}/${D} ]];
+    if ! command -v ${D} &> /dev/null
       then
         echo "Error:  we can't find the $D program."
-        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment."
+        echo "Perhaps you need to \(re\)define \$PATH in your environment."
         exit
       fi
   done
 
 for D in ${SCRIPT_DEPENDENCIES[@]};
   do
-    if [[ ! -s ${ANTSPATH}/${D} ]];
+    if ! command -v ${D} &> /dev/null
       then
         echo "We can't find the $D script."
-        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment."
+        echo "Perhaps you need to \(re\)define \$PATH in your environment."
         exit
       fi
   done
@@ -76,27 +76,36 @@ We use *label* to denote a label image with values in range 0 to N.
                                                     * Registration metric mask (-f)
                                                     * Thickness prior image (-r).
 
-     -m:  Brain extraction probability mask     Brain *probability* mask in the segmentation template space. A binary mask 
+     -m:  Brain extraction probability mask     Brain *probability* mask in the segmentation template space. A binary mask
                                                 is an acceptable probability image.
 
-     -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
-                                                with the -e option.  Specified using c-style formatting, e.g.
-                                                -p labelsPriors%02d.nii.gz.  We assume that the first four priors
-                                                are ordered as follows
-                                                  1:  csf
-                                                  2:  cortical gm
-                                                  3:  wm
-                                                  4:  deep gm
+     -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the template image specified
+                                                with the -e option.  Specified using c-style formatting, either with numeric indices
+                                                e.g.
+                                                  -p template/priors/Priors%02d.nii.gz
+                                                or BIDS style, eg
+                                                  -p tpl-templateName/tpl-templateName_res-01_label-%s_probseg.nii.gz
+
+                                                At least four priors must exist, corresponding to CSF, Cortical GM, WM, Subcortical GM.
+                                                If priors are numbered numerically, the classes must be ordered in the same way, ie
+                                                  1:  CSF
+                                                  2:  Cortical GM
+                                                  3:  WM
+                                                  4:  Subcortical GM
+
+                                                In BIDS format, the labels must include CSF, CGM, WM, SGM, and may optionally include BS, CBM.
+                                                Other labels will not be used. Templateflow labels use "SCGM" instead of "SGM", if "SGM" is not
+                                                found, "SCGM" will be used instead.
 
      -o:  Output prefix                         A partial list of output images:
                                                   * ${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}BrainSegmentation*N4.${OUTPUT_SUFFIX} One for each anatomical input
                                                   * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*1.${OUTPUT_SUFFIX}  CSF
-                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*2.${OUTPUT_SUFFIX}  GM
+                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*2.${OUTPUT_SUFFIX}  Cortical GM
                                                   * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*3.${OUTPUT_SUFFIX}  WM
-                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*4.${OUTPUT_SUFFIX}  DEEP GM
-                                                  * ...
+                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*4.${OUTPUT_SUFFIX}  Subcortical GM
+                                                  * ... and so on for additional segmentation classes
                                                   * ${OUTPUT_PREFIX}BrainSegmentationPosteriors*N.${OUTPUT_SUFFIX} where there are N priors
                                                   *                              Number formatting of posteriors matches that of the priors.
                                                   * ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
@@ -127,7 +136,7 @@ Optional arguments:
                                                 https://github.com/ANTsX/ANTs/wiki.
 
      -f:  extraction registration mask          Binary metric mask defined in the segmentation template space (-e). During the
-                                                registration for brain extraction, the similarity metric is only computed within 
+                                                registration for brain extraction, the similarity metric is only computed within
                                                 this mask.
 
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = 0).
@@ -147,7 +156,10 @@ Optional arguments:
 
      -j:  use floating-point precision          Use single float precision in registrations (default = 0).
 
-     -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1).
+     -u:  use random seeding                    Use random number generated from system clock (default = 1). If 0, a fixed
+                                                random seed is used. To set your own seed, set this option to 0 and export the
+                                                environment variable ANTS_RANDOM_SEED. To achieve exactly identical results, you must
+                                                also set ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS to 1.
 
      -v:  use b-spline smoothing                Use B-spline SyN for registrations and B-spline exponential mapping in DiReCT (default = 0).
 
@@ -173,7 +185,7 @@ Optional arguments:
                                                 Another example would be computing cortical thickness in the presence
                                                 of white matter lesions. We can accommodate this by specifying a lesion mask
                                                 posterior as an additional posterior (suppose label '7'), combining this with
-                                                normal white matter in the thickness estimation by specifying '-c "WM[ 7 ]"' 
+                                                normal white matter in the thickness estimation by specifying '-c "WM[ 7 ]"'
                                                 or '-c "3[ 7 ]"'.
 
      -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
@@ -231,12 +243,9 @@ function checkOutputExists() {
         fi
     done
 
-  # Segmentation output depends on the number of priors and the numbering format
-  segNumWidth=${#GRAY_MATTER_LABEL_FORMAT}
-
   for (( j = 1; j <= ${NUMBER_OF_PRIOR_IMAGES}; j++ ));
     do
-      num=$(printf "%0${segNumWidth}d" $j)
+      num=$(printf "${WARPED_PRIOR_FORMAT}" $j)
 
       if [[ ! -f ${OUTPUT_PREFIX}BrainSegmentationPosteriors${num}.${OUTPUT_SUFFIX} ]];
         then
@@ -370,24 +379,24 @@ ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.25
 #
 ################################################################################
 
-ANTS=${ANTSPATH}/antsRegistration
+ANTS=antsRegistration
 ANTS_MAX_ITERATIONS="100x100x70x20"
-ANTS_TRANSFORMATION="SyN[ 0.1,3,0 ]"
+ANTS_TRANSFORMATION="SyN[ 0.2,3,0 ]"
 ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
 ANTS_LINEAR_CONVERGENCE="[ 1000x500x250x100,1e-8,10 ]"
 ANTS_METRIC="CC"
 ANTS_METRIC_PARAMS="1,4"
 
-WARP=${ANTSPATH}/antsApplyTransforms
+WARP=antsApplyTransforms
 
-N4=${ANTSPATH}/N4BiasFieldCorrection
+N4=N4BiasFieldCorrection
 N4_CONVERGENCE_1="[ 50x50x50x50,0.0000001 ]"
 N4_CONVERGENCE_2="[ 50x50x50x50,0.0000001 ]"
 N4_SHRINK_FACTOR_1=4
 N4_SHRINK_FACTOR_2=2
 N4_BSPLINE_PARAMS="[ 200 ]"
 
-ATROPOS=${ANTSPATH}/Atropos
+ATROPOS=Atropos
 
 ATROPOS_SEGMENTATION_INITIALIZATION="PriorProbabilityImages"
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
@@ -397,7 +406,7 @@ ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=3
 ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS=5 # to be backward compatible but i like 25
 ATROPOS_SEGMENTATION_LABEL_PROPAGATION=()
 
-DIRECT=${ANTSPATH}/KellyKapowski
+DIRECT=KellyKapowski
 DIRECT_CONVERGENCE="[ 45,0.0,10 ]"
 DIRECT_THICKNESS_PRIOR="10"
 DIRECT_GRAD_STEP_SIZE="0.025"
@@ -511,7 +520,7 @@ fi
 
 if [[ $USE_BSPLINE_SMOOTHING -ne 0 ]];
   then
-    ANTS_TRANSFORMATION="BSplineSyN[ 0.1,26,0,3 ]"
+    ANTS_TRANSFORMATION="BSplineSyN[ 0.2,26,0,3 ]"
     DIRECT_SMOOTHING_PARAMETER="5.75"
   fi
 
@@ -540,11 +549,19 @@ if [[ $DEBUG_MODE -gt 0 ]];
 
   fi
 
+if [[ ${USE_RANDOM_SEEDING} -eq 0 ]]; then
+  # Use fixed random seed unless one is already defined
+  if [[ -z $ANTS_RANDOM_SEED ]] ; then
+    export ANTS_RANDOM_SEED=19650218
+  fi
+fi
+
 ################################################################################
 #
 # Preliminaries:
 #  1. Check existence of inputs
 #  2. Figure out output directory and mkdir if necessary
+#  3. Check template priors and define numbering for warped priors
 #
 ################################################################################
 
@@ -557,96 +574,99 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
     fi
   done
 
-FORMAT=${SEGMENTATION_PRIOR}
-PREFORMAT=${FORMAT%%\%*}
-POSTFORMAT=${FORMAT##*d}
-FORMAT=${FORMAT#*\%}
-FORMAT=${FORMAT%%d*}
+# SEGMENTATION_PRIOR is a c-style string containing the path to priors, eg /path/to/priors%d.nii.gz
+# Allow either numeric formatting eg priors%02d.nii.gz or BIDS string formatting using BIDS common
+# derived labels eg tpl-templateName_res-01_label-%s_probseg.nii.gz or templateflow labels (same
+# except for SGM).
+#
+# Warped priors and posteriors are always formatted numerically, eg warpedPriors%02d.nii.gz.
+#
+# If the template priors use a different format, eg %0d or %03d, the warped priors and posteriors
+# will be formatted accordingly.
 
-REPCHARACTER=''
-TOTAL_LENGTH=0
-if [[ ${#FORMAT} -eq 2 ]]
-  then
-    REPCHARACTER=${FORMAT:0:1}
-    TOTAL_LENGTH=${FORMAT:1:1}
-  fi
 
-# MAXNUMBER=$(( 10 ** $TOTAL_LENGTH ))
-MAXNUMBER=1000
-
+# List of file names in template space, in order: CSF, GM, WM, deep GM[, BS, CBM, others]
 PRIOR_IMAGE_FILENAMES=()
+
+# Default, overwrite with input numeric format if used
+WARPED_PRIOR_FORMAT="%02d"
+
+# Test if the pattern contains "%d" or "%s"
+if [[ "$SEGMENTATION_PRIOR" =~ %([0-9]*)d ]]; then
+  # Numeric formatting - normally 1 through 6, though only the first four are mandatory
+  WARPED_PRIOR_FORMAT="%${BASH_REMATCH[1]}d"
+
+  PRIOR_COUNTER=1
+  FOUND_PRIOR=1
+  while [[ $FOUND_PRIOR -gt 0 ]]; do
+    PRIOR_FILE=$(printf "$SEGMENTATION_PRIOR" "$PRIOR_COUNTER")
+    if [[ -f "$PRIOR_FILE" ]]; then
+      PRIOR_IMAGE_FILENAMES+=("$PRIOR_FILE")
+    else
+        FOUND_PRIOR=0
+    fi
+    PRIOR_COUNTER=$((PRIOR_COUNTER+1))
+  done
+elif [[ "$SEGMENTATION_PRIOR" =~ label-%s ]]; then
+
+  # BIDS label-%s formatting
+  # Order matters here - they will be added to an array in order, required labels first and then
+  # optional. Order must match ants expectations, ie CSF, GM, WM, deep GM [, BS, CBM]
+  REQUIRED_LABELS=("CSF" "CGM" "WM" "SGM")
+  OPTIONAL_LABELS=("BS" "CBM")
+
+  # Check for the existence of required labels
+  for BIDS_LABEL in "${REQUIRED_LABELS[@]}"; do
+    PRIOR_FILE=$(printf "$SEGMENTATION_PRIOR" "$BIDS_LABEL")
+    if [[ -f "$PRIOR_FILE" ]]; then
+      PRIOR_IMAGE_FILENAMES+=("$PRIOR_FILE")
+    elif [[ "$BIDS_LABEL" == "SGM" ]]; then
+      # Hack for templateflow - try SCGM instead of SGM
+      # Unfortunately templateflow does not use BIDS standard labels for SGM
+      PRIOR_FILE=$(printf "$SEGMENTATION_PRIOR" "SCGM")
+        if [[ -f "$PRIOR_FILE" ]]; then
+          PRIOR_IMAGE_FILENAMES+=("$PRIOR_FILE")
+        else
+          echo "Error: Required segmentation label "SGM" not found (also tried templateflow "SCGM")"
+          exit 1
+        fi
+    else
+      echo "Error: Required segmentation label $BIDS_LABEL not found."
+      exit 1
+    fi
+  done
+
+  # Check for the existence of optional labels
+  for BIDS_LABEL in "${OPTIONAL_LABELS[@]}"; do
+    PRIOR_FILE=$(printf "$SEGMENTATION_PRIOR" "$BIDS_LABEL")
+    if [[ -f "$PRIOR_FILE" ]]; then
+      PRIOR_IMAGE_FILENAMES+=("$PRIOR_FILE")
+    fi
+  done
+else
+  echo "Error: Invalid prior specification $SEGMENTATION_PRIOR"
+  exit 1
+fi
+
+NUMBER_OF_PRIOR_IMAGES=${#PRIOR_IMAGE_FILENAMES[*]}
+
+if [[ ${NUMBER_OF_PRIOR_IMAGES} -lt 4 ]]; then
+  echo "Expected at least 4 prior images (${NUMBER_OF_PRIOR_IMAGES} are specified).  Check the command line specification."
+  exit 1
+fi
+
+BRAIN_SEGMENTATION_OUTPUT_PREFIX=${OUTPUT_PREFIX}BrainSegmentation
+SEGMENTATION_WARP_OUTPUT_PREFIX=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Prior
+SEGMENTATION_PRIOR_WARPED_PREFIX=${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped
+
+SEGMENTATION_PRIOR_WARPED_FORMAT=${SEGMENTATION_PRIOR_WARPED_PREFIX}${WARPED_PRIOR_FORMAT}.${OUTPUT_SUFFIX}
+
+# Whatever the input spec for priors, we always number warped priors sequentially as required by Atropos
 WARPED_PRIOR_IMAGE_FILENAMES=()
-BRAIN_SEGMENTATION_OUTPUT=${OUTPUT_PREFIX}BrainSegmentation
-SEGMENTATION_WARP_OUTPUT_PREFIX=${BRAIN_SEGMENTATION_OUTPUT}Prior
-SEGMENTATION_PRIOR_WARPED=${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped
-for (( i = 1; i < $MAXNUMBER; i++ ))
-  do
-    NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#i} ))
-    ROOT='';
-    for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-      do
-        ROOT=${ROOT}${REPCHARACTER}
-      done
-    FILENAME=${PREFORMAT}${ROOT}${i}${POSTFORMAT}
-    WARPED_FILENAME=${SEGMENTATION_PRIOR_WARPED}${ROOT}${i}.${OUTPUT_SUFFIX}
-    if [[ -f $FILENAME ]];
-      then
-        PRIOR_IMAGE_FILENAMES=( ${PRIOR_IMAGE_FILENAMES[@]} $FILENAME )
-        WARPED_PRIOR_IMAGE_FILENAMES=( ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $WARPED_FILENAME )
-      else
-        break 1
-      fi
-  done
 
-NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#DEEP_GRAY_MATTER_LABEL} ))
-ROOT='';
-for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-  do
-    ROOT=${ROOT}${REPCHARACTER}
-  done
-DEEP_GRAY_MATTER_LABEL_FORMAT=${ROOT}${DEEP_GRAY_MATTER_LABEL}
-
-NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#WHITE_MATTER_LABEL} ))
-ROOT='';
-for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-  do
-    ROOT=${ROOT}${REPCHARACTER}
-  done
-WHITE_MATTER_LABEL_FORMAT=${ROOT}${WHITE_MATTER_LABEL}
-
-NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#GRAY_MATTER_LABEL} ))
-ROOT='';
-for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-  do
-    ROOT=${ROOT}${REPCHARACTER}
-  done
-GRAY_MATTER_LABEL_FORMAT=${ROOT}${GRAY_MATTER_LABEL}
-
-NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#CSF_MATTER_LABEL} ))
-ROOT='';
-for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-  do
-    ROOT=${ROOT}${REPCHARACTER}
-  done
-CSF_MATTER_LABEL_FORMAT=${ROOT}${CSF_MATTER_LABEL}
-
-SEGMENTATION_PRIOR_WARPED=${SEGMENTATION_PRIOR_WARPED}\%${FORMAT}d.${OUTPUT_SUFFIX}
-NUMBER_OF_PRIOR_IMAGES=${#WARPED_PRIOR_IMAGE_FILENAMES[*]}
-
-if [[ ${NUMBER_OF_PRIOR_IMAGES} -lt 4 ]];
-  then
-    echo "Expected at least 4 prior images (${NUMBER_OF_PRIOR_IMAGES} are specified).  Check the command line specification."
-    exit 1
-  fi
-
-for(( j=0; j < $NUMBER_OF_PRIOR_IMAGES; j++ ))
-  do
-    if [[ ! -f ${PRIOR_IMAGE_FILENAMES[$j]} ]];
-      then
-        echo "Prior image $j ${PRIOR_IMAGE_FILENAMES[$j]} does not exist."
-        exit 1
-      fi
-  done
+for (( i = 0; i < ${NUMBER_OF_PRIOR_IMAGES}; i++ )); do
+    WARPED_PRIOR_IMAGE_FILENAMES[${#WARPED_PRIOR_IMAGE_FILENAMES[@]}]=$( printf ${SEGMENTATION_PRIOR_WARPED_FORMAT} $((i+1)) )
+done
 
 # These arrays contain the formatted labels that will be used to combine with the white
 # and gray matter posteriors for the cortical thickness section.
@@ -681,8 +701,6 @@ for(( j=0; j < ${#PRIOR_COMBINATIONS[@]}; j++ ))
         exit 1
       fi
   done
-CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS_FORMAT=( $( echo "${CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS_FORMAT[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ' ) )
-CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS_FORMAT=( $( echo "${CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS_FORMAT[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ' ) )
 
 if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
   then
@@ -693,7 +711,13 @@ if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
       fi
   fi
 
-OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
+if [[ ${OUTPUT_PREFIX} == */ ]];
+  then
+    OUTPUT_DIR=${OUTPUT_PREFIX%/}
+  else
+    OUTPUT_DIR=$(dirname $OUTPUT_PREFIX)
+  fi
+
 if [[ ! -d $OUTPUT_DIR ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
@@ -746,7 +770,7 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
 
     if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]]
       then
-        logCmd ${ANTSPATH}/antsBrainExtraction.sh \
+        logCmd antsBrainExtraction.sh \
           -d ${DIMENSION} \
           -a ${ANATOMICAL_IMAGES[0]} \
           -e ${BRAIN_TEMPLATE} \
@@ -759,7 +783,7 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
           -u ${USE_RANDOM_SEEDING} \
           -z ${DEBUG_MODE}
       else
-        logCmd ${ANTSPATH}/antsBrainExtraction.sh \
+        logCmd antsBrainExtraction.sh \
           -d ${DIMENSION} \
           -a ${ANATOMICAL_IMAGES[0]} \
           -e ${BRAIN_TEMPLATE} \
@@ -776,7 +800,7 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
 
 if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
   then
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN} m ${ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK}
+    logCmd ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN} m ${ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK}
 
     # Do a quick N4 on the brain before registration
     logCmd $N4 -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN} -s ${N4_SHRINK_FACTOR_1} -c ${N4_CONVERGENCE_1} -o ${EXTRACTED_SEGMENTATION_BRAIN} -x ${BRAIN_EXTRACTION_MASK} -b ${N4_BSPLINE_PARAMS}
@@ -785,8 +809,8 @@ if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
 
 if [[ -f ${BRAIN_TEMPLATE} ]] && [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
   then
-    logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_PRIOR} ${EXTRACTED_BRAIN_TEMPLATE} 0.1 1.01 1 0
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_BRAIN_TEMPLATE} m ${BRAIN_TEMPLATE} ${EXTRACTED_BRAIN_TEMPLATE}
+    logCmd ThresholdImage ${DIMENSION} ${EXTRACTION_PRIOR} ${EXTRACTED_BRAIN_TEMPLATE} 0.1 1.01 1 0
+    logCmd ImageMath ${DIMENSION} ${EXTRACTED_BRAIN_TEMPLATE} m ${BRAIN_TEMPLATE} ${EXTRACTED_BRAIN_TEMPLATE}
   fi
 echo ${OUTPUT_PREFIX}ACTStage1Complete.txt > ${OUTPUT_PREFIX}ACTStage1Complete.txt
 fi # BAStages
@@ -800,8 +824,8 @@ fi # check completion
 SEGMENTATION_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1Warp.nii.gz
 SEGMENTATION_INVERSE_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1InverseWarp.nii.gz
 SEGMENTATION_GENERIC_AFFINE=${SEGMENTATION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
-SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.${OUTPUT_SUFFIX}
-SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
+SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}MaskDilated.${OUTPUT_SUFFIX}
+SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Convergence.txt
 
 if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
    [[   -s ${OUTPUT_PREFIX}ACTStage1Complete.txt ]]; then
@@ -860,21 +884,21 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
 
         if [[ ! -f ${SEGMENTATION_WARP} ]];
           then
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
+            logCmd ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
 
             basecall=''
             if [[ ${RUN_QUICK} -ne 0 ]];
               then
                 TMP_FILES=( ${TMP_FILES[@]} "${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped.nii.gz" "${SEGMENTATION_WARP_OUTPUT_PREFIX}InverseWarped.nii.gz" )
 
-                basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${EXTRACTED_SEGMENTATION_BRAIN}"
+                basecall="antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${EXTRACTED_SEGMENTATION_BRAIN}"
                 basecall="${basecall} -m ${EXTRACTED_BRAIN_TEMPLATE} -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -j 1"
                 if [[ ${USE_FLOAT_PRECISION} -ne 0 ]];
                   then
                     basecall="${basecall} -p f"
                   fi
             else
-              basecall="${ANTS} -d ${DIMENSION} -u 1 -w [ 0.0,0.999 ] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
+              basecall="${ANTS} -d ${DIMENSION} -u 0 -w [ 0.0,0.999 ] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION} --verbose 1"
               IMAGES="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
               if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
                 then
@@ -897,7 +921,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
             # a perfect copy. But hopefully close enough
             for img in ${BRAIN_EXTRACTION_MASK} ${EXTRACTED_SEGMENTATION_BRAIN} ${SEGMENTATION_MASK_DILATED};
               do
-                logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${img} ${img} 1 1 1
+                logCmd CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${img} ${img} 1 1 1
               done
 
             logCmd $exe_brain_segmentation_1
@@ -940,7 +964,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
       time_elapsed_brain_registration=$((time_end_brain_registration - time_start_brain_registration))
       echo
       echo "--------------------------------------------------------------------------------------"
-      echo " Done with brain registration:  $(( time_elapsed_brain_segmentation / 3600 ))h $(( time_elapsed_brain_registration %3600 / 60 ))m $(( time_elapsed_brain_registration % 60 ))s"
+      echo " Done with brain registration:  $(( time_elapsed_brain_registration / 3600 ))h $(( time_elapsed_brain_registration %3600 / 60 ))m $(( time_elapsed_brain_registration % 60 ))s"
       echo "--------------------------------------------------------------------------------------"
       echo
     fi # BAStages check reg
@@ -974,7 +998,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
         N4_INCLUDE_PRIORS_COMMAND_LINE="${N4_INCLUDE_PRIORS_COMMAND_LINE} -y $j";
       done
 
-    logCmd ${ANTSPATH}/antsAtroposN4.sh \
+    logCmd antsAtroposN4.sh \
       -d ${DIMENSION} \
       -b "${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}" \
       ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
@@ -984,7 +1008,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
       -n ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
       -c ${NUMBER_OF_PRIOR_IMAGES} \
       ${N4_INCLUDE_PRIORS_COMMAND_LINE} \
-      -p ${SEGMENTATION_PRIOR_WARPED} \
+      -p ${SEGMENTATION_PRIOR_WARPED_FORMAT} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
       -u ${USE_RANDOM_SEEDING} \
@@ -1000,7 +1024,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
       done
 
     ## Don't de-noise a second time
-    logCmd ${ANTSPATH}/antsAtroposN4.sh \
+    logCmd antsAtroposN4.sh \
       -d ${DIMENSION} \
       -b "${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}" \
       ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
@@ -1010,7 +1034,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
       -n ${ATROPOS_SEGMENTATION_INTERNAL_ITERATIONS} \
       -c ${NUMBER_OF_PRIOR_IMAGES} \
       ${N4_INCLUDE_PRIORS_COMMAND_LINE} \
-      -p ${SEGMENTATION_PRIOR_WARPED} \
+      -p ${SEGMENTATION_PRIOR_WARPED_FORMAT} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
       -u ${USE_RANDOM_SEEDING} \
@@ -1093,7 +1117,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
     echo "--------------------------------------------------------------------------------------"
     echo
 
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} m ${HEAD_N4_IMAGE} ${BRAIN_EXTRACTION_MASK}
+    logCmd ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} m ${HEAD_N4_IMAGE} ${BRAIN_EXTRACTION_MASK}
 
     TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} )
 
@@ -1104,7 +1128,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
       then
         TMP_FILES=( ${TMP_FILES[@]} "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.nii.gz" "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}InverseWarped.nii.gz" )
 
-        basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${REGISTRATION_TEMPLATE}"
+        basecall="antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${REGISTRATION_TEMPLATE}"
         basecall="${basecall} -m ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -j 1"
         if [[ ${USE_FLOAT_PRECISION} -ne 0 ]];
           then
@@ -1112,7 +1136,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
           fi
       else
         IMAGES="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE}"
-        basecall="${ANTS} -d ${DIMENSION} -v 1 -u 1 -w [ 0.0,0.999 ] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [ ${IMAGES},1 ] --float ${USE_FLOAT_PRECISION}"
+        basecall="${ANTS} -d ${DIMENSION} -v 1 -u 0 -w [ 0.0,0.999 ] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [ ${IMAGES},1 ] --float ${USE_FLOAT_PRECISION}"
         stage1="-m MI[ ${IMAGES},${ANTS_LINEAR_METRIC_PARAMS} ] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[ 0.1 ] -f 8x4x2x1 -s 3x2x1x0"
         stage2="-m MI[ ${IMAGES},${ANTS_LINEAR_METRIC_PARAMS} ] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[ 0.1 ] -f 8x4x2x1 -s 3x2x1x0"
         stage3="-m CC[ ${IMAGES},1,4 ] -c [ ${ANTS_MAX_ITERATIONS},1e-9,15 ] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
@@ -1148,7 +1172,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
       echo "The transform file ${REGISTRATION_SUBJECT_WARP} does not exist."
       exit 1
     fi
-    logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -o Linear[ $REGISTRATION_SUBJECT_GENERIC_AFFINE,1 ] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE --verbose 1
+    logCmd antsApplyTransforms -d ${DIMENSION} -o Linear[ $REGISTRATION_SUBJECT_GENERIC_AFFINE,1 ] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE --verbose 1
 
     time_end_template_registration=`date +%s`
     time_elapsed_template_registration=$((time_end_template_registration - time_start_template_registration))
@@ -1171,7 +1195,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
               fi
           done
       fi
-  logCmd ${ANTSPATH}/CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
+  logCmd CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
   fi # if registration template & jacobian check
   if [[ -s ${REGISTRATION_LOG_JACOBIAN} ]] ; then
     echo ${OUTPUT_PREFIX}ACTStage4Complete.txt > ${OUTPUT_PREFIX}ACTStage4Complete.txt
@@ -1185,12 +1209,16 @@ fi # check completion
 #
 ################################################################################
 
-BRAIN_SEGMENTATION_GM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-BRAIN_SEGMENTATION_WM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${WHITE_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-BRAIN_SEGMENTATION_DEEP_GM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${DEEP_GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+WARPED_GRAY_MATTER_LABEL=$( printf "${WARPED_PRIOR_FORMAT}" ${GRAY_MATTER_LABEL} )
+WARPED_WHITE_MATTER_LABEL=$( printf "${WARPED_PRIOR_FORMAT}" ${WHITE_MATTER_LABEL} )
+WARPED_DEEP_GRAY_MATTER_LABEL=$( printf "${WARPED_PRIOR_FORMAT}" ${DEEP_GRAY_MATTER_LABEL} )
 
-CORTICAL_THICKNESS_GM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-CORTICAL_THICKNESS_WM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${WHITE_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+BRAIN_SEGMENTATION_GM=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${WARPED_GRAY_MATTER_LABEL}.${OUTPUT_SUFFIX}
+BRAIN_SEGMENTATION_WM=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${WARPED_WHITE_MATTER_LABEL}.${OUTPUT_SUFFIX}
+BRAIN_SEGMENTATION_DEEP_GM=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${WARPED_DEEP_GRAY_MATTER_LABEL}.${OUTPUT_SUFFIX}
+
+CORTICAL_THICKNESS_GM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${WARPED_GRAY_MATTER_LABEL}.${OUTPUT_SUFFIX}
+CORTICAL_THICKNESS_WM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${WARPED_WHITE_MATTER_LABEL}.${OUTPUT_SUFFIX}
 CORTICAL_THICKNESS_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_THICKNESS_GM_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessGMSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_LABEL_THICKNESS_PRIOR=${OUTPUT_PREFIX}CorticalLabelThicknessPrior.${OUTPUT_SUFFIX}
@@ -1215,34 +1243,22 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     for(( i=0; i < ${#CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS[@]}; i++ ))
       do
         OTHER_LABEL=${CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS[$i]}
-        NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#OTHER_LABEL} ))
-        ROOT='';
-        for(( l=0; l < $NUMBER_OF_REPS; l++ ))
-          do
-            ROOT=${ROOT}${REPCHARACTER}
-          done
-        OTHER_LABEL_FORMAT=${ROOT}${OTHER_LABEL}
-        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${OTHER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+        OTHER_LABEL_FORMATTED=$( printf "${WARPED_PRIOR_FORMAT}" ${OTHER_LABEL} )
+        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${OTHER_LABEL_FORMATTED}.${OUTPUT_SUFFIX}
 
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_GM} + ${CORTICAL_THICKNESS_GM} ${BRAIN_SEGMENTATION_OTHER_LABEL}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${OTHER_LABEL} ${OTHER_LABEL} ${GRAY_MATTER_LABEL}
+        logCmd ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_GM} + ${CORTICAL_THICKNESS_GM} ${BRAIN_SEGMENTATION_OTHER_LABEL}
+        logCmd ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${OTHER_LABEL} ${OTHER_LABEL} ${GRAY_MATTER_LABEL}
       done
 
     logCmd cp ${BRAIN_SEGMENTATION_WM} ${CORTICAL_THICKNESS_WM}
     for(( i=0; i < ${#CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS[@]}; i++ ))
       do
         OTHER_LABEL=${CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS[$i]}
-        NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#OTHER_LABEL} ))
-        ROOT='';
-        for(( l=0; l < $NUMBER_OF_REPS; l++ ))
-          do
-            ROOT=${ROOT}${REPCHARACTER}
-          done
-        OTHER_LABEL_FORMAT=${ROOT}${OTHER_LABEL}
-        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${OTHER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+        OTHER_LABEL_FORMATTED=$( printf "${WARPED_PRIOR_FORMAT}" ${OTHER_LABEL} )
+        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT_PREFIX}Posteriors${OTHER_LABEL_FORMATTED}.${OUTPUT_SUFFIX}
 
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_WM} + ${CORTICAL_THICKNESS_WM} ${BRAIN_SEGMENTATION_OTHER_LABEL}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${OTHER_LABEL} ${OTHER_LABEL} ${WHITE_MATTER_LABEL}
+        logCmd ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_WM} + ${CORTICAL_THICKNESS_WM} ${BRAIN_SEGMENTATION_OTHER_LABEL}
+        logCmd ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${OTHER_LABEL} ${OTHER_LABEL} ${WHITE_MATTER_LABEL}
       done
 
     # Check inputs
@@ -1276,12 +1292,12 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     if [[ -f ${CORTICAL_LABEL_IMAGE} ]] && [[ -f $REGISTRATION_SUBJECT_WARP ]] && [[ -f $REGISTRATION_SUBJECT_GENERIC_AFFINE ]] ;
       then
         # Calculate ATITH and multiply by a heuristically derived scalar factor
-#        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} LabelThickness2 ${CORTICAL_LABEL_IMAGE}
-#        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ${CORTICAL_THICKNESS_GM_SEGMENTATION} 2 2 1 0
-#        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} ${CORTICAL_THICKNESS_GM_SEGMENTATION}
-#        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} 2.0
+#        logCmd ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} LabelThickness2 ${CORTICAL_LABEL_IMAGE}
+#        logCmd ThresholdImage ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ${CORTICAL_THICKNESS_GM_SEGMENTATION} 2 2 1 0
+#        logCmd ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} ${CORTICAL_THICKNESS_GM_SEGMENTATION}
+#        logCmd ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} 2.0
 
-    	   logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -i ${CORTICAL_LABEL_IMAGE} -o ${CORTICAL_LABEL_THICKNESS_PRIOR} \
+    	   logCmd antsApplyTransforms -d ${DIMENSION} -i ${CORTICAL_LABEL_IMAGE} -o ${CORTICAL_LABEL_THICKNESS_PRIOR} \
 	         -t $REGISTRATION_SUBJECT_GENERIC_AFFINE -t $REGISTRATION_SUBJECT_WARP -r ${ANATOMICAL_IMAGES[0]} --verbose 1
 
         exe_direct="${exe_direct} -a ${CORTICAL_LABEL_THICKNESS_PRIOR}"
@@ -1350,31 +1366,31 @@ if [[ -f ${REGISTRATION_TEMPLATE_WARP} ]];
 
     REGISTRATION_TEMPLATE_BRAIN_MASK=${OUTPUT_PREFIX}RegistrationTemplateBrainMask.${OUTPUT_SUFFIX}
 
-    logCmd ${ANTSPATH}/ThresholdImage 3 ${REGISTRATION_TEMPLATE} ${REGISTRATION_TEMPLATE_BRAIN_MASK} 1E-6 Inf
+    logCmd ThresholdImage 3 ${REGISTRATION_TEMPLATE} ${REGISTRATION_TEMPLATE_BRAIN_MASK} 1E-6 Inf
 
     EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.${OUTPUT_SUFFIX}
 
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} m ${HEAD_N4_IMAGE} ${BRAIN_EXTRACTION_MASK}
+    logCmd ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} m ${HEAD_N4_IMAGE} ${BRAIN_EXTRACTION_MASK}
 
     TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK} )
 
     logCmd ${WARP} -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} -r ${REGISTRATION_TEMPLATE} -n Linear -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1
   fi
 
-ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK}`
-bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 3 | cut -d ' ' -f 2 `
-gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_GM}  | cut -d ':' -f 3 | cut -d ' ' -f 2 `
-wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_WM}  | cut -d ':' -f 3 | cut -d ' ' -f 2 `
-thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_IMAGE} | cut -d ':' -f 3 | cut -d ' ' -f 2 `
+ccmetric=`ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK}`
+bvol=`ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 3 | cut -d ' ' -f 2 `
+gvol=`ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_GM}  | cut -d ':' -f 3 | cut -d ' ' -f 2 `
+wvol=`ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_WM}  | cut -d ':' -f 3 | cut -d ' ' -f 2 `
+thks=`ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_IMAGE} | cut -d ':' -f 3 | cut -d ' ' -f 2 `
 echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}brainvols.csv
 echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}brainvols.csv
-if [[ -f ${ANTSPATH}/GetMeshAndTopology ]] && [[ ${DIMENSION} -eq 3 ]] ; then
-  ${ANTSPATH}/ThresholdImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 3 3
-  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} ME ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 1
-  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} GetLargestComponent ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 1
-  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} MD ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 2
-  ${ANTSPATH}/SmoothImage 3 ${CORTICAL_THICKNESS_IMAGE} 1 ${OUTPUT_PREFIX}temp2.${OUTPUT_SUFFIX}
-  #          ${ANTSPATH}/GetMeshAndTopology ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}temp2.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
+if [[ -f GetMeshAndTopology ]] && [[ ${DIMENSION} -eq 3 ]] ; then
+  ThresholdImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 3 3
+  ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} ME ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 1
+  ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} GetLargestComponent ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 1
+  ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} MD ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} 2
+  SmoothImage 3 ${CORTICAL_THICKNESS_IMAGE} 1 ${OUTPUT_PREFIX}temp2.${OUTPUT_SUFFIX}
+  #          GetMeshAndTopology ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}temp2.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
   rm -f ${OUTPUT_PREFIX}temp.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}temp2.${OUTPUT_SUFFIX}
 fi
 echo "--------------------------------------------------------------------------------------"
@@ -1407,10 +1423,10 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
 
     # Resample images
 
-    resample0="${ANTSPATH}/ResampleImage ${DIMENSION} ${BRAIN_EXTRACTION_MASK} ${BRAIN_EXTRACTION_MASK_RESAMPLED}"
-    resample1="${ANTSPATH}/ResampleImage ${DIMENSION} ${HEAD_N4_IMAGE} ${HEAD_N4_IMAGE_RESAMPLED}"
-    resample2="${ANTSPATH}/ResampleImage ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE} ${CORTICAL_THICKNESS_IMAGE_RESAMPLED}"
-    resample3="${ANTSPATH}/ResampleImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${BRAIN_SEGMENTATION_IMAGE_RESAMPLED}"
+    resample0="ResampleImage ${DIMENSION} ${BRAIN_EXTRACTION_MASK} ${BRAIN_EXTRACTION_MASK_RESAMPLED}"
+    resample1="ResampleImage ${DIMENSION} ${HEAD_N4_IMAGE} ${HEAD_N4_IMAGE_RESAMPLED}"
+    resample2="ResampleImage ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE} ${CORTICAL_THICKNESS_IMAGE_RESAMPLED}"
+    resample3="ResampleImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${BRAIN_SEGMENTATION_IMAGE_RESAMPLED}"
 
     if [[ ${DIMENSION} -eq 3 ]];
       then
@@ -1431,14 +1447,14 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
 
     # Cortical thickness
 
-    mask="${ANTSPATH}/ThresholdImage ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE_RESAMPLED} ${CORTICAL_THICKNESS_MASK} 0 0 0 1"
+    mask="ThresholdImage ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE_RESAMPLED} ${CORTICAL_THICKNESS_MASK} 0 0 0 1"
     logCmd $mask
 
-    conversion="${ANTSPATH}/ConvertScalarImageToRGB ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE_RESAMPLED}"
+    conversion="ConvertScalarImageToRGB ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE_RESAMPLED}"
     conversion="${conversion} ${CORTICAL_THICKNESS_IMAGE_RGB} none hot none 0 ${DIRECT_THICKNESS_PRIOR}"
     logCmd $conversion
 
-    mosaic="${ANTSPATH}/CreateTiledMosaic -i ${HEAD_N4_IMAGE_RESAMPLED} -r ${CORTICAL_THICKNESS_IMAGE_RGB}"
+    mosaic="CreateTiledMosaic -i ${HEAD_N4_IMAGE_RESAMPLED} -r ${CORTICAL_THICKNESS_IMAGE_RGB}"
     mosaic="${mosaic} -o ${CORTICAL_THICKNESS_MOSAIC} -a 1.0 -t -1x-1 -d z -p mask"
     mosaic="${mosaic} -s [ 2,mask,mask ] -x ${CORTICAL_THICKNESS_MASK}"
     logCmd $mosaic
@@ -1449,11 +1465,11 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
     echo "0 0 1 0 1 1 0" >> $ITKSNAP_COLORMAP
     echo "0 0 0 1 0 1 1" >> $ITKSNAP_COLORMAP
 
-    conversion="${ANTSPATH}/ConvertScalarImageToRGB ${DIMENSION} ${BRAIN_SEGMENTATION_IMAGE_RESAMPLED}"
+    conversion="ConvertScalarImageToRGB ${DIMENSION} ${BRAIN_SEGMENTATION_IMAGE_RESAMPLED}"
     conversion="${conversion} ${BRAIN_SEGMENTATION_IMAGE_RGB} none custom $ITKSNAP_COLORMAP 0 6"
     logCmd $conversion
 
-    mosaic="${ANTSPATH}/CreateTiledMosaic -i ${HEAD_N4_IMAGE_RESAMPLED} -r ${BRAIN_SEGMENTATION_IMAGE_RGB}"
+    mosaic="CreateTiledMosaic -i ${HEAD_N4_IMAGE_RESAMPLED} -r ${BRAIN_SEGMENTATION_IMAGE_RGB}"
     mosaic="${mosaic} -o ${BRAIN_SEGMENTATION_MOSAIC} -a 0.3 -t -1x-1 -d 2 -p mask"
     mosaic="${mosaic} -s [ 2,mask,mask ] -x ${BRAIN_EXTRACTION_MASK_RESAMPLED}"
     logCmd $mosaic

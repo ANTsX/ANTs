@@ -41,7 +41,7 @@ public:
   typedef SmartPointer<const Self>       ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(SurfaceImageCurvature, SurfaceCurvatureBase);
+  itkOverrideGetNameOfClassMacro(SurfaceImageCurvature);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -52,8 +52,9 @@ public:
   {
     ImageDimension = TSurface::ImageDimension
   };
-  typedef Image<PixelType, itkGetStaticConstMacro(ImageDimension)> ImageType;
+  typedef Image<PixelType, Self::ImageDimension> ImageType;
   typedef typename ImageType::IndexType                            IndexType;
+  typedef typename ImageType::SpacingType                          SpacingType;
   typedef typename ImageType::SizeType                             SizeType;
   typedef ImageRegionIteratorWithIndex<ImageType>                  ImageIteratorType;
   /** Image dimension. */
@@ -66,16 +67,16 @@ public:
   typedef typename Superclass::MatrixType MatrixType;
   typedef typename ImageType::PointType   ImagePointType;
 
-  typedef Image<PixelType, itkGetStaticConstMacro(ImageDimension)> OutputImageType;
+  typedef Image<PixelType, Self::ImageDimension> OutputImageType;
   typedef ImageRegionIteratorWithIndex<OutputImageType>            OutputImageIteratorType;
 
   typedef typename OutputImageType::Pointer OutputImagePointer;
 
-  typedef Image<MatrixType, itkGetStaticConstMacro(ImageDimension)> FrameImageType;
+  typedef Image<MatrixType, Self::ImageDimension> FrameImageType;
 
   /** Gradient filtering */
-  typedef CovariantVector<RealType, itkGetStaticConstMacro(ImageDimension)>        GradientPixelType;
-  typedef Image<GradientPixelType, itkGetStaticConstMacro(ImageDimension)>         GradientImageType;
+  typedef CovariantVector<RealType, Self::ImageDimension>        GradientPixelType;
+  typedef Image<GradientPixelType, Self::ImageDimension>         GradientImageType;
   typedef itk::VectorLinearInterpolateImageFunction<GradientImageType, RealType>   VectorInterpolatorType;
   typedef SmartPointer<GradientImageType>                                          GradientImagePointer;
   typedef GradientRecursiveGaussianImageFilter<OutputImageType, GradientImageType> GradientImageFilterType;
@@ -173,11 +174,10 @@ public:
   CurvatureAtIndex(IndexType index)
   {
     PointType p;
-
-    for (unsigned int k = 0; k < ImageDimension; k++)
-    {
-      p[k] = (RealType)index[k];
-    }
+    this->m_FunctionImage->TransformIndexToPhysicalPoint(index, p);
+//    for (unsigned int k = 0; k < ImageDimension; k++) {
+//      p[k] = (RealType)index[k];
+//    }
     this->SetOrigin(p);
     this->EstimateFrameFromGradient(index);
     this->FindNeighborhood();
@@ -272,6 +272,7 @@ private:
   float                                    m_Area;
   RealType                                 m_MinSpacing;
   typename VectorInterpolatorType::Pointer m_Vinterp;
+  SpacingType                              m_Spacing;
 };
 } // namespace itk
 

@@ -1,4 +1,5 @@
 #include "antsAllocImage.h"
+#include "antsCommandIterationUpdate.h"
 #include "antsCommandLineParser.h"
 #include "antsUtilities.h"
 #include "ReadWriteData.h"
@@ -1097,10 +1098,12 @@ antsAI(itk::ants::CommandLineParser * parser)
       }
       else if (initialTransformInitializedWithImages == true)
       {
-        using TranslationTransformType = itk::TranslationTransform<RealType, ImageDimension>;
-        typename TranslationTransformType::Pointer bestTranslationTransform = TranslationTransformType::New();
-        bestTranslationTransform->SetOffset(initialTransform->GetOffset());
-        transformWriter->SetInput(bestTranslationTransform);
+        // write the translation transform as a rigid transform, to be consistent with antsRegistration
+        typename RigidTransformType::Pointer bestRigidTransform = RigidTransformType::New();
+        bestRigidTransform->SetCenter(initialTransform->GetCenter());
+        bestRigidTransform->SetMatrix(initialTransform->GetMatrix());
+        bestRigidTransform->SetOffset(initialTransform->GetOffset());
+        transformWriter->SetInput(bestRigidTransform);
       }
 
       transformWriter->SetFileName(outputName.c_str());
@@ -1373,13 +1376,13 @@ antsAI(itk::ants::CommandLineParser * parser)
   localOptimizer->SetNumberOfIterations(numberOfIterations);
   localOptimizer->SetMinimumConvergenceValue(convergenceThreshold);
   localOptimizer->SetConvergenceWindowSize(convergenceWindowSize);
-  localOptimizer->SetDoEstimateLearningRateOnce(true);
-  localOptimizer->SetScales(movingScales);
+  localOptimizer->SetScalesEstimator(scalesEstimator);
+  localOptimizer->SetDoEstimateLearningRateOnce(true); // this is always true for conjugate gradient optimizer
   localOptimizer->SetMetric(imageMetric);
 
   using MultiStartOptimizerType = itk::MultiStartOptimizerv4;
   typename MultiStartOptimizerType::Pointer multiStartOptimizer = MultiStartOptimizerType::New();
-  multiStartOptimizer->SetScales(movingScales);
+  multiStartOptimizer->SetDoEstimateScales(false); // multi-start optimizer doesn't use the scales
   multiStartOptimizer->SetMetric(imageMetric);
 
   unsigned int trialCounter = 0;
@@ -1505,14 +1508,21 @@ antsAI(itk::ants::CommandLineParser * parser)
     }
   }
 
+  multiStartOptimizer->SetParametersList(parametersList);
+  multiStartOptimizer->SetLocalOptimizer(localOptimizer);
+
   if (verbose)
   {
     std::cout << "Starting optimizer with " << trialCounter << " starting points" << std::endl;
+
+    using MultiStartObserverType = antsCommandIterationUpdate<MultiStartOptimizerType>;
+
+    auto multiStartObserver = MultiStartObserverType::New();
+
+    multiStartObserver->SetOptimizer(multiStartOptimizer);
   }
 
-  multiStartOptimizer->SetParametersList(parametersList);
-  multiStartOptimizer->SetLocalOptimizer(localOptimizer);
-  multiStartOptimizer->StartOptimization();
+   multiStartOptimizer->StartOptimization();
 
 
   /////////////////////////////////////////////////////////////////
@@ -1587,19 +1597,20 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   {
     std::string description =
       std::string("These image metrics are available:  ") +
-      std::string("MI:  joint histogram and Mattes: mutual information  and  GC:  global correlation.");
+      std::string("Mattes: Mattes mutual information (recommended), GC:  global correlation,  MI:  joint histogram mutual information");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("metric");
     option->SetShortName('m');
-    option->SetUsageOption(0,
-                           "MI[fixedImage,movingImage,<numberOfBins=32>,<samplingStrategy={None,Regular,Random}>,<"
-                           "samplingPercentage=[0,1]>]");
     option->SetUsageOption(1,
                            "Mattes[fixedImage,movingImage,<numberOfBins=32>,<samplingStrategy={None,Regular,Random}>,<"
                            "samplingPercentage=[0,1]>]");
     option->SetUsageOption(
       2, "GC[fixedImage,movingImage,<radius=NA>,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]");
+    option->SetUsageOption(3,
+                           "MI[fixedImage,movingImage,<numberOfBins=32>,<samplingStrategy={None,Regular,Random}>,<"
+                           "samplingPercentage=[0,1]>]");
+
     option->SetDescription(description);
     parser->AddOption(option);
   }

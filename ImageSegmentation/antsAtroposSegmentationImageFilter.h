@@ -75,12 +75,12 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(AtroposSegmentationImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(AtroposSegmentationImageFilter);
 
   /** Dimension of the images. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
-  itkStaticConstMacro(ClassifiedImageDimension, unsigned int, TClassifiedImage::ImageDimension);
-  itkStaticConstMacro(MaskImageDimension, unsigned int, TMaskImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
+  static constexpr unsigned int ClassifiedImageDimension = TClassifiedImage::ImageDimension;
+  static constexpr unsigned int MaskImageDimension = TMaskImage::ImageDimension;
 
   /** Typedef support of input types. */
   typedef TInputImage                   ImageType;

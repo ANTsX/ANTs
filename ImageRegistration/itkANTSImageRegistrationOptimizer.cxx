@@ -449,7 +449,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComposeDiffs(DisplacementFiel
                                                                 DisplacementFieldPointer fieldout,
                                                                 TReal                    timesign)
 {
-  typedef Point<TReal, itkGetStaticConstMacro(ImageDimension)> VPointType;
+  typedef Point<TReal, Self::ImageDimension> VPointType;
 
   //  field->SetSpacing( fieldtowarpby->GetSpacing() );
   //  field->SetOrigin( fieldtowarpby->GetOrigin() );
@@ -476,7 +476,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComposeDiffs(DisplacementFiel
   VPointType   pointIn1;
   VPointType   pointIn2;
   VPointType   pointIn3;
-  unsigned int ct = 0;
+  // unsigned int ct = 0;
   // iterate through fieldtowarpby finding the points that it maps to via field.
   // then take the difference from the original point and put it in the output field.
   //      std::cout << " begin iteration " << std::endl;
@@ -517,7 +517,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComposeDiffs(DisplacementFiel
       }
 
       fieldout->SetPixel(m_FieldIter.GetIndex(), out);
-      ct++;
+      // ct++;
     } // endif
   }   // end iteration
 }
@@ -888,7 +888,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateField(Displaceme
     Iterator      dIter(totalUpdateField, totalUpdateField->GetLargestPossibleRegion());
     TReal         mag = 0.0;
     TReal         max = 0.0;
-    unsigned long ct = 0;
+    // unsigned long ct = 0;
     TReal         total = 0;
     for (dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter)
     {
@@ -905,7 +905,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateField(Displaceme
       {
         max = mag;
       }
-      ct++;
+      // ct++;
       total += mag;
       //    std::cout << " mag " << mag << std::endl;
     }
@@ -977,7 +977,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateField(Displaceme
       Iterator invDIter(totalUpdateInvField, totalUpdateInvField->GetLargestPossibleRegion());
       mag = 0.0;
       max = 0.0;
-      ct = 0;
+      // ct = 0;
       total = 0;
       for (invDIter.GoToBegin(); !invDIter.IsAtEnd(); ++invDIter)
       {
@@ -995,7 +995,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateField(Displaceme
         {
           max = mag;
         }
-        ct++;
+        // ct++;
         total += mag;
         //    std::cout << " mag " << mag << std::endl;
       }
@@ -1368,7 +1368,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateFieldAlternating
     Iterator      dIter(totalUpdateField, totalUpdateField->GetLargestPossibleRegion());
     TReal         mag = 0.0;
     TReal         max = 0.0;
-    unsigned long ct = 0;
+    // unsigned long ct = 0;
     TReal         total = 0;
     for (dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter)
     {
@@ -1385,7 +1385,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateFieldAlternating
       {
         max = mag;
       }
-      ct++;
+      // ct++;
       total += mag;
       //    std::cout << " mag " << mag << std::endl;
     }
@@ -1444,7 +1444,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateFieldAlternating
       Iterator invDIter(totalUpdateInvField, totalUpdateInvField->GetLargestPossibleRegion());
       mag = 0.0;
       max = 0.0;
-      ct = 0;
+      // ct = 0;
       total = 0;
       for (invDIter.GoToBegin(); !invDIter.IsAtEnd(); ++invDIter)
       {
@@ -1461,7 +1461,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateFieldAlternating
         {
           max = mag;
         }
-        ct++;
+        // ct++;
         total += mag;
         //    std::cout << " mag " << mag << std::endl;
       }
@@ -2181,8 +2181,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
   velocityUpdate->SetLargestPossibleRegion(gregion);
   velocityUpdate->SetRequestedRegion(gregion);
   velocityUpdate->SetBufferedRegion(gregion);
-  velocityUpdate->Allocate();
-  velocityUpdate->FillBuffer(zero);
+  velocityUpdate->AllocateInitialized();
 
   if (generatetvfield)
   {
@@ -2193,8 +2192,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_TimeVaryingVelocity->SetLargestPossibleRegion(gregion);
     this->m_TimeVaryingVelocity->SetRequestedRegion(gregion);
     this->m_TimeVaryingVelocity->SetBufferedRegion(gregion);
-    this->m_TimeVaryingVelocity->Allocate();
-    this->m_TimeVaryingVelocity->FillBuffer(zero);
+    this->m_TimeVaryingVelocity->AllocateInitialized();
     /*    this->m_LastTimeVaryingVelocity=tvt::New();
     this->m_LastTimeVaryingVelocity->SetSpacing( gspace );
     this->m_LastTimeVaryingVelocity->SetOrigin( gorigin );
@@ -2202,8 +2200,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_LastTimeVaryingVelocity->SetLargestPossibleRegion(gregion);
     this->m_LastTimeVaryingVelocity->SetRequestedRegion( gregion);
     this->m_LastTimeVaryingVelocity->SetBufferedRegion( gregion  );
-    this->m_LastTimeVaryingVelocity->Allocate();
-    this->m_LastTimeVaryingVelocity->FillBuffer(zero); */
+    this->m_LastTimeVaryingVelocity->AllocateInitialized(); */
     this->m_LastTimeVaryingUpdate = tvt::New();
     this->m_LastTimeVaryingUpdate->SetSpacing(gspace);
     this->m_LastTimeVaryingUpdate->SetOrigin(gorigin);
@@ -2211,8 +2208,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_LastTimeVaryingUpdate->SetLargestPossibleRegion(gregion);
     this->m_LastTimeVaryingUpdate->SetRequestedRegion(gregion);
     this->m_LastTimeVaryingUpdate->SetBufferedRegion(gregion);
-    this->m_LastTimeVaryingUpdate->Allocate();
-    this->m_LastTimeVaryingUpdate->FillBuffer(zero);
+    this->m_LastTimeVaryingUpdate->AllocateInitialized();
   }
   else if (enlargefield)
   {
@@ -2226,8 +2222,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_LastTimeVaryingVelocity->SetLargestPossibleRegion(gregion);
     this->m_LastTimeVaryingVelocity->SetRequestedRegion( gregion);
     this->m_LastTimeVaryingVelocity->SetBufferedRegion( gregion  );
-    this->m_LastTimeVaryingVelocity->Allocate();
-    this->m_LastTimeVaryingVelocity->FillBuffer(zero);*/
+    this->m_LastTimeVaryingVelocity->AllocateInitialized(); */
     this->m_LastTimeVaryingUpdate = tvt::New();
     this->m_LastTimeVaryingUpdate->SetSpacing(gspace);
     this->m_LastTimeVaryingUpdate->SetOrigin(gorigin);
@@ -2235,8 +2230,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
     this->m_LastTimeVaryingUpdate->SetLargestPossibleRegion(gregion);
     this->m_LastTimeVaryingUpdate->SetRequestedRegion(gregion);
     this->m_LastTimeVaryingUpdate->SetBufferedRegion(gregion);
-    this->m_LastTimeVaryingUpdate->Allocate();
-    this->m_LastTimeVaryingUpdate->FillBuffer(zero);
+    this->m_LastTimeVaryingUpdate->AllocateInitialized();
   }
   if (!this->m_SyNF)
   {
@@ -2603,7 +2597,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
                                                                           TReal     finishtimein,
                                                                           IndexType velind)
 {
-  typedef Point<TReal, itkGetStaticConstMacro(ImageDimension + 1)> xPointType;
+  typedef Point<TReal, Self::ImageDimension + 1> xPointType;
   this->m_Debug = false;
 
 
@@ -2647,7 +2641,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
   velo.Fill(0);
 
   TReal                           itime = starttimein;
-  unsigned long                   ct = 0;
+  // unsigned long                   ct = 0;
   TReal                           thislength = 0, euclideandist = 0;
   bool                            timedone = false;
   VectorType                      disp;
@@ -2681,7 +2675,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
   disp.Fill(0.0);
   timedone = false;
   itime = starttimein;
-  ct = 0;
+  // ct = 0;
   while (!timedone)
   {
     TReal itimetn1 = itime - timesign * deltaTime;
@@ -2788,7 +2782,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
     //      std::cout << " p3 " << pointIn3 << std::endl;
     dmag = std::sqrt(dmag);
     totalmag += static_cast<TReal>(std::sqrt(mag));
-    ct++;
+    // ct++;
     thislength += totalmag;
     euclideandist = dmag;
     itime = itime + deltaTime * timesign;
@@ -2832,7 +2826,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
     disp.Fill(0.0);
     timedone = false;
     itime = starttimein;
-    ct = 0;
+    // ct = 0;
     while (!timedone)
     {
       TReal itimetn1 = itime - timesign * deltaTime;

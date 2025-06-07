@@ -1,6 +1,8 @@
 #ifndef antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate__h_
 #define antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate__h_
 
+#include "itkImageDuplicator.h"
+
 namespace ants
 {
 /*
@@ -195,6 +197,12 @@ public:
   itkSetMacro(CurrentStageNumber, unsigned int);
 
   void
+  SetOutputPrefix(const std::string & outputPrefix)
+  {
+    this->m_OutputPrefix = outputPrefix;
+  }
+
+  void
   SetNumberOfIterations(const std::vector<unsigned int> & iterations)
   {
     this->m_NumberOfIterations = iterations;
@@ -335,12 +343,10 @@ public:
         typedef typename itk::IdentityTransform<RealType, VImageDimension> IdentityTransformType;
         typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
 
-        const DisplacementVectorType            zeroVector(0.0);
         typename DisplacementFieldType::Pointer identityField = DisplacementFieldType::New();
         identityField->CopyInformation(this->m_origFixedImage);
         identityField->SetRegions(this->m_origFixedImage->GetRequestedRegion());
-        identityField->Allocate();
-        identityField->FillBuffer(zeroVector);
+        identityField->AllocateInitialized();
 
         typename DisplacementFieldTransformType::Pointer identityDisplacementFieldTransform =
           DisplacementFieldTransformType::New();
@@ -446,7 +452,7 @@ public:
     const unsigned int curLevel = filter->GetCurrentLevel();
     const unsigned int curIter = filter->GetCurrentIteration();
     std::stringstream  currentFileName;
-    currentFileName << "Stage" << this->m_CurrentStageNumber + 1 << "_level" << curLevel + 1;
+    currentFileName << this->m_OutputPrefix << "Stage" << this->m_CurrentStageNumber + 1 << "_level" << curLevel + 1;
     /*
      The name arrangement of written files are important to us.
      To prevent: "Iter1 Iter10 Iter2 Iter20" we use the following style.
@@ -480,7 +486,7 @@ public:
     {
       writer->Update();
     }
-    catch (itk::ExceptionObject & err)
+    catch (const itk::ExceptionObject & err)
     {
       std::cout << "Can't write warped image " << currentFileName.str().c_str() << std::endl;
       std::cout << "Exception Object caught: " << std::endl;
@@ -500,6 +506,7 @@ private:
    */
   // itk::WeakPointer<OptimizerType>   m_Optimizer;
 
+  std::string                       m_OutputPrefix;
   std::vector<unsigned int>         m_NumberOfIterations;
   std::ostream *                    m_LogStream;
   itk::TimeProbe                    m_clock;

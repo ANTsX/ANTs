@@ -421,8 +421,7 @@ MeasureImageSimilarity(itk::ants::CommandLineParser * parser)
       typename DisplacementFieldType::Pointer identityField = DisplacementFieldType::New();
       identityField->CopyInformation(fixedImage);
       identityField->SetRegions(fixedImage->GetLargestPossibleRegion());
-      identityField->Allocate();
-      identityField->FillBuffer(zeroVector);
+      identityField->AllocateInitialized();
 
       typename DisplacementFieldTransformType::Pointer identityDisplacementFieldTransform =
         DisplacementFieldTransformType::New();
@@ -446,7 +445,7 @@ MeasureImageSimilarity(itk::ants::CommandLineParser * parser)
       typename DisplacementFieldType::Pointer gradientField = DisplacementFieldType::New();
       gradientField->CopyInformation(fixedImage);
       gradientField->SetRegions(fixedImage->GetLargestPossibleRegion());
-      gradientField->Allocate();
+      gradientField->AllocateInitialized();
 
       itk::ImageRegionIterator<DisplacementFieldType> ItG(gradientField, gradientField->GetRequestedRegion());
 

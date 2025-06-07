@@ -5,40 +5,11 @@ VERSION="0.0.0 test"
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
 
-function setPath {
-    cat <<SETPATH
+ANTS=antsRegistration
 
---------------------------------------------------------------------------------------
-Error locating ANTS
---------------------------------------------------------------------------------------
-It seems that the ANTSPATH environment variable is not set. Please add the ANTSPATH
-variable. This can be achieved by editing the .bash_profile in the home directory.
-Add:
-
-ANTSPATH=/home/yourname/bin/ants/
-
-Or the correct location of the ANTS binaries.
-
-Alternatively, edit this script ( `basename $0` ) to set up this parameter correctly.
-
-SETPATH
-    exit 1
-}
-
-# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-# export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
-
-#ANTSPATH=YOURANTSPATH
-if [[ ${#ANTSPATH} -le 3 ]];
+if ! command -v ${ANTS} &> /dev/null
   then
-    setPath >&2
-  fi
-
-ANTS=${ANTSPATH}/antsRegistration
-
-if [[ ! -s ${ANTS} ]];
-  then
-    echo "antsRegistration program can't be found. Please (re)define \$ANTSPATH in your environment."
+    echo "antsRegistration program can't be found. Please (re)define \$PATH in your environment."
     exit
   fi
 
@@ -63,7 +34,11 @@ Optional arguments:
 
      -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
 
-     -i:  initial transform(s) --- order specified on the command line matters
+     -i:  initial transform(s) --- order specified on the command line matters. If not specified, a
+          default initialization is used, based on the transform type.
+
+          For "syn only" and "b-spline syn only" transforms, the initial transform is the identity
+          matrix. For other transforms, it is a translation that aligns the input centers of mass.
 
      -t:  transform type (default = 's')
         t: translation (1 stage)
@@ -82,10 +57,10 @@ Optional arguments:
 
      -g:  gradient step size for SyN and B-spline SyN (default = 0.1)
 
-     -x:  mask(s) for the fixed image space.  Should specify either a single image to be used for
-          all stages or one should specify a mask image for each "stage" (cf -t option).  If
-          no mask is to be used for a particular stage, the keyword 'NULL' should be used
-          in place of a file name.
+     -x:  mask(s) for the fixed image space, or for the fixed and moving image space in the format
+          "fixedMask,MovingMask". Use -x once to specify mask(s) to be used for all stages or use
+          -x for each "stage" (cf -t option).  If no mask is to be used for a particular stage,
+          the keyword 'NULL' should be used in place of file names.
 
      -p:  precision type (default = 'd')
         f: float
@@ -113,6 +88,14 @@ Optional arguments:
 Example:
 
 `basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -o output
+
+Example with masks:
+
+`basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -x fixedMask.nii.gz -o output
+
+`basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -x fixedMask.nii.gz,movingMask.nii.gz -o output
+
+`basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -t sr -x NULL -x fixedMask.nii.gz  -t -o output
 
 --------------------------------------------------------------------------------------
 ANTs was created by:
@@ -152,7 +135,11 @@ Optional arguments:
 
      -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
 
-     -i:  initial transform(s) --- order specified on the command line matters
+     -i:  initial transform(s) --- order specified on the command line matters. If not specified, a
+          default initialization is used, based on the transform type.
+
+          For "syn only" and "b-spline syn only" transforms, the initial transform is the identity
+          matrix. For other transforms, it is a translation that aligns the input centers of mass.
 
      -t:  transform type (default = 's')
         t: translation (1 stage)
@@ -171,10 +158,10 @@ Optional arguments:
 
      -g:  gradient step size for SyN and B-spline SyN (default = 0.1)
 
-     -x:  mask(s) for the fixed image space.  Should specify either a single image to be used for
-          all stages or one should specify a mask image for each "stage" (cf -t option).  If
-          no mask is to be used for a particular stage, the keyword 'NULL' should be used
-          in place of a file name.
+     -x:  mask(s) for the fixed image space, or for the fixed and moving image space in the format
+          "fixedMask,MovingMask". Use -x once to specify mask(s) to be used for all stages or use
+          -x for each "stage" (cf -t option).  If no mask is to be used for a particular stage,
+          the keyword 'NULL' should be used in place of file names.
 
      -p:  precision type (default = 'd')
         f: float
@@ -235,8 +222,6 @@ function reportMappingParameters {
 --------------------------------------------------------------------------------------
  Mapping parameters
 --------------------------------------------------------------------------------------
- ANTSPATH is $ANTSPATH
-
  Dimensionality:           $DIM
  Output name prefix:       $OUTPUTNAME
  Fixed images:             ${FIXEDIMAGES[@]}
@@ -245,6 +230,7 @@ function reportMappingParameters {
  Initial transforms:       ${INITIALTRANSFORMS[@]}
  Number of threads:        $NUMBEROFTHREADS
  Spline distance:          $SPLINEDISTANCE
+ Linear gradient step:     $LINEARGRADIENTSTEP
  SyN gradient step:        $SYNGRADIENTSTEP
  Transform type:           $TRANSFORMTYPE
  CC radius:                $CCRADIUS
@@ -298,10 +284,11 @@ INITIALTRANSFORMS=()
 OUTPUTNAME=output
 NUMBEROFTHREADS=0
 SPLINEDISTANCE=26
-SYNGRADIENTSTEP=0.1
+LINEARGRADIENTSTEP=0.1
+SYNGRADIENTSTEP=0.2
 TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
-CCRADIUS=4
+CCRADIUS=2
 MASKIMAGES=()
 USEHISTOGRAMMATCHING=0
 COLLAPSEOUTPUTTRANSFORMS=1
@@ -322,7 +309,7 @@ while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:y:z:" OPT
       e)  # seed
    RANDOMSEED=$OPTARG
    ;;
-      x)  # inclusive mask
+      x)  # inclusive masks
    MASKIMAGES[${#MASKIMAGES[@]}]=$OPTARG
    ;;
       f)  # fixed image
@@ -402,14 +389,18 @@ for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
 #
 ##############################
 
-NUMBEROFMASKIMAGES=${#MASKIMAGES[@]}
+NUMBEROFMASKSTAGES=${#MASKIMAGES[@]}
 
 MASKCALL=""
 if [[ ${#MASKIMAGES[@]} -gt 0 ]];
   then
     for (( i = 0; i < ${#MASKIMAGES[@]}; i++ ))
       do
-        MASKCALL="${MASKCALL} -x [ ${MASKIMAGES[$i]}, NULL ]"
+        if [[ ${MASKIMAGES[$i]} =~ "," ]]; then
+            MASKCALL="${MASKCALL} -x [ ${MASKIMAGES[$i]} ]"
+        else
+            MASKCALL="${MASKCALL} -x [ ${MASKIMAGES[$i]}, NULL ]"
+        fi
       done
   fi
 
@@ -453,7 +444,7 @@ reportMappingParameters
 
 ISLARGEIMAGE=0
 
-SIZESTRING=$( ${ANTSPATH}/PrintHeader ${FIXEDIMAGES[0]} 2 )
+SIZESTRING=$( PrintHeader ${FIXEDIMAGES[0]} 2 )
 SIZESTRING="${SIZESTRING%\\n}"
 SIZE=( `echo $SIZESTRING | tr 'x' ' '` )
 
@@ -525,6 +516,15 @@ if [[ $REPRO -eq 1 ]];
 
 INITIALSTAGE="--initial-moving-transform [ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1 ]"
 
+if [[ ${TRANSFORMTYPE} == 'so' ]] || [[ ${TRANSFORMTYPE} == 'bo' ]];
+  then
+    # Could just set to an empty string but this is more explicit and also keeps transform
+    # numbering consistent with other use cases
+    #
+    # Default to identity if we are doing "syn only" or "b-spline syn only"
+    INITIALSTAGE="--initial-moving-transform Identity"
+  fi
+
 if [[ ${#INITIALTRANSFORMS[@]} -gt 0 ]];
   then
     INITIALSTAGE=""
@@ -539,13 +539,13 @@ if [[ $TRANSFORMTYPE == 't' ]] ; then
   tx=Translation
 fi
 
-RIGIDSTAGE="--transform ${tx}[ 0.1 ] \
+RIGIDSTAGE="--transform ${tx}[ ${LINEARGRADIENTSTEP} ] \
             --metric ${LINEARMETRIC}[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,${LINEARMETRICPARAMETER},Regular,0.25 ] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
             --smoothing-sigmas $RIGIDSMOOTHINGSIGMAS"
 
-AFFINESTAGE="--transform Affine[ 0.1 ] \
+AFFINESTAGE="--transform Affine[ ${LINEARGRADIENTSTEP} ] \
              --metric ${LINEARMETRIC}[ ${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,${LINEARMETRICPARAMETER},Regular,0.25 ] \
              --convergence $AFFINECONVERGENCE \
              --shrink-factors $AFFINESHRINKFACTORS \
@@ -614,7 +614,7 @@ case "$TRANSFORMTYPE" in
   ;;
 esac
 
-if [[ $NUMBEROFMASKIMAGES -ne 0 && $NUMBEROFMASKIMAGES -ne 1 && $NUMBEROFMASKIMAGES -ne $NUMBEROFREGISTRATIONSTAGES ]];
+if [[ $NUMBEROFMASKSTAGES -ne 0 && $NUMBEROFMASKSTAGES -ne 1 && $NUMBEROFMASKSTAGES -ne $NUMBEROFREGISTRATIONSTAGES ]];
   then
     echo "The specified number of mask images is not correct.  Please see help menu."
     exit
@@ -656,6 +656,14 @@ echo ${COMMAND}
 echo "--------------------------------------------------------------------------------------"
 
 $COMMAND
+
+echo " Registration finished. The antsRegistration call was:"
+echo "--------------------------------------------------------------------------------------"
+echo ${COMMAND}
+echo "--------------------------------------------------------------------------------------"
+echo "Moving image resampled into fixed space: ${OUTPUTNAME}Warped.nii.gz"
+echo "Fixed image resampled into moving space: ${OUTPUTNAME}InverseWarped.nii.gz"
+echo "--------------------------------------------------------------------------------------"
 
 ###############################
 #

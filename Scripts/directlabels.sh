@@ -8,13 +8,9 @@ VERSION="0.0"
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
 
-# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-if [ ${#ANTSPATH} -le 3 ] ; then
-  echo we guess at your ants path
-  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
-fi
-if [ ! -s ${ANTSPATH}/ANTS ] ; then
-  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+if ! command -v ANTS &> /dev/null
+then
+  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$PATH in your environment.
   exit
 fi
 
@@ -82,7 +78,7 @@ PARAMETERS
 
 getLabelsAndBoundingBoxes() {
 
-  OUTPUT=(`${ANTSPATH}/LabelGeometryMeasures $DIMENSION $LABEL_IMAGE`);
+  OUTPUT=(`LabelGeometryMeasures $DIMENSION $LABEL_IMAGE`);
 
   ## Get labels
 
@@ -178,21 +174,21 @@ writeSubimages() {
    #   3. Combine the result from 1) and 2) to have an image with only
    #      the white matter and the current label (as the grey matter).
    #
-   OUTPUT=(`${ANTSPATH}/ThresholdImage $DIMENSION $LABEL_IMAGE $grayMatterMask ${LABELS[$i]} ${LABELS[$i]} 1 0`)
-   OUTPUT=(`${ANTSPATH}/ThresholdImage $DIMENSION $SEG_IMAGE $whiteMatterMask 3 3 3 0`)
-   OUTPUT=(`${ANTSPATH}/ImageMath $DIMENSION $grayMatterMask m $grayMatterMask $SEG_IMAGE`)
-   OUTPUT=(`${ANTSPATH}/ImageMath $DIMENSION $gmWmMask + $grayMatterMask $whiteMatterMask`)
-   OUTPUT=(`${ANTSPATH}/ExtractRegionFromImage $DIMENSION $gmWmMask ${TMPDIR}seg_${LABELS[$i]}.nii.gz $minIndex $maxIndex`)
-   OUTPUT=(`${ANTSPATH}/ImageMath $DIMENSION ${TMPDIR}seg_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $PADDING`)
+   OUTPUT=(`ThresholdImage $DIMENSION $LABEL_IMAGE $grayMatterMask ${LABELS[$i]} ${LABELS[$i]} 1 0`)
+   OUTPUT=(`ThresholdImage $DIMENSION $SEG_IMAGE $whiteMatterMask 3 3 3 0`)
+   OUTPUT=(`ImageMath $DIMENSION $grayMatterMask m $grayMatterMask $SEG_IMAGE`)
+   OUTPUT=(`ImageMath $DIMENSION $gmWmMask + $grayMatterMask $whiteMatterMask`)
+   OUTPUT=(`ExtractRegionFromImage $DIMENSION $gmWmMask ${TMPDIR}seg_${LABELS[$i]}.nii.gz $minIndex $maxIndex`)
+   OUTPUT=(`ImageMath $DIMENSION ${TMPDIR}seg_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $PADDING`)
    if [ -f $WMPROB_IMAGE ]; then
-     OUTPUT=(`${ANTSPATH}/ImageMath $DIMENSION $whiteMatterMask m $whiteMatterMask $WMPROB_IMAGE`)
-     OUTPUT=(`${ANTSPATH}/ExtractRegionFromImage $DIMENSION $whiteMatterMask ${TMPDIR}wm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
-     OUTPUT=(`${ANTSPATH}/ImageMath $DIMENSION ${TMPDIR}wm_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}wm_${LABELS[$i]}.nii.gz $PADDING`);
+     OUTPUT=(`ImageMath $DIMENSION $whiteMatterMask m $whiteMatterMask $WMPROB_IMAGE`)
+     OUTPUT=(`ExtractRegionFromImage $DIMENSION $whiteMatterMask ${TMPDIR}wm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
+     OUTPUT=(`ImageMath $DIMENSION ${TMPDIR}wm_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}wm_${LABELS[$i]}.nii.gz $PADDING`);
    fi
    if [ -f $GMPROB_IMAGE ]; then
-     OUTPUT=(`${ANTSPATH}/ImageMath $DIMENSION $grayMatterMask m $grayMatterMask $GMPROB_IMAGE`)
-     OUTPUT=(`${ANTSPATH}/ExtractRegionFromImage $DIMENSION $grayMatterMask ${TMPDIR}gm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
-     OUTPUT=(`${ANTSPATH}/ImageMath $DIMENSION ${TMPDIR}gm_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}gm_${LABELS[$i]}.nii.gz $PADDING`);
+     OUTPUT=(`ImageMath $DIMENSION $grayMatterMask m $grayMatterMask $GMPROB_IMAGE`)
+     OUTPUT=(`ExtractRegionFromImage $DIMENSION $grayMatterMask ${TMPDIR}gm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
+     OUTPUT=(`ImageMath $DIMENSION ${TMPDIR}gm_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}gm_${LABELS[$i]}.nii.gz $PADDING`);
    fi
 
    rm -rf $grayMatterMask
@@ -230,7 +226,7 @@ function jobfnamepadding {
 
 function pasteImages {
 
-  output=( `${ANTSPATH}/CreateImage $DIMENSION $SEG_IMAGE $OUTPUT_IMAGE 0` );
+  output=( `CreateImage $DIMENSION $SEG_IMAGE $OUTPUT_IMAGE 0` );
 
   for (( i=0; i<${#BOUNDING_BOXES[@]}; i++ )); do
     bbox=$(echo ${BOUNDING_BOXES[$i]}|sed 's/,/ /g')
@@ -253,7 +249,7 @@ function pasteImages {
 
     minIndex=${minIndex:1};
 
-    output=(`${ANTSPATH}/PasteImageIntoImage $DIMENSION $OUTPUT_IMAGE $TMPDIR/direct_${LABELS[$i]}.nii.gz $OUTPUT_IMAGE $minIndex 0 2 -1`);
+    output=(`PasteImageIntoImage $DIMENSION $OUTPUT_IMAGE $TMPDIR/direct_${LABELS[$i]}.nii.gz $OUTPUT_IMAGE $minIndex 0 2 -1`);
   done
 
 }
@@ -272,7 +268,7 @@ time_start=`date +%s`
 CURRENTDIR=`pwd`/
 TMPDIR=${CURRENTDIR}/tmp$RANDOM/
 
-DIRECT=${ANTSPATH}/KellyKapowski
+DIRECT=KellyKapowski
 DIMENSION=3
 SEG_IMAGE=""
 GMPROB_IMAGE=""
@@ -296,8 +292,8 @@ CORES=2
 # It can be set to an empty string if you do not need any special cluster options
 QSUBOPTS="" # EDIT THIS
 
-PEXEC=${ANTSPATH}/ANTSpexec.sh
-SGE=${ANTSPATH}/waitForSGEQJobs.pl
+PEXEC=ANTSpexec.sh
+SGE=waitForSGEQJobs.pl
 
 for FLE in $PEXEC $SGE
   do
@@ -407,7 +403,7 @@ for LABEL in ${LABELS[@]}
 
   # 6 submit to SGE or else run locally
   if [ $DOQSUB -eq 1 ]; then
-    id=`qsub -cwd -N DiReCT_${LABEL} -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
+    id=`qsub -cwd -N DiReCT_${LABEL} -S /bin/bash $QSUBOPTS $exe | awk '{print $3}'`
     jobIDs="$jobIDs $id"
     sleep 0.5
   elif [ $DOQSUB -eq 2 ] ; then

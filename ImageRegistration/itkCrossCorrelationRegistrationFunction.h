@@ -65,7 +65,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(CrossCorrelationRegistrationFunction, AvantsPDEDeformableRegistrationFunction);
+  itkOverrideGetNameOfClassMacro(CrossCorrelationRegistrationFunction);
 
   /** MovingImage image type. */
   typedef typename Superclass::MovingImageType    MovingImageType;
@@ -84,12 +84,12 @@ public:
   typedef typename Superclass::DisplacementFieldTypePointer DisplacementFieldTypePointer;
   typedef typename TDisplacementField::PixelType            VectorType;
 
-  typedef CovariantVector<float, itkGetStaticConstMacro(ImageDimension)>           GradientPixelType;
-  typedef Image<GradientPixelType, itkGetStaticConstMacro(ImageDimension)>         GradientImageType;
+  typedef CovariantVector<float, Self::ImageDimension>           GradientPixelType;
+  typedef Image<GradientPixelType, Self::ImageDimension>         GradientImageType;
   typedef SmartPointer<GradientImageType>                                          GradientImagePointer;
   typedef GradientRecursiveGaussianImageFilter<MetricImageType, GradientImageType> GradientImageFilterType;
   typedef typename GradientImageFilterType::Pointer                                GradientImageFilterPointer;
-  typedef Image<float, itkGetStaticConstMacro(ImageDimension)>                     BinaryImageType;
+  typedef Image<float, Self::ImageDimension>                     BinaryImageType;
   typedef typename BinaryImageType::Pointer                                        BinaryImagePointer;
 
   /** Inherit some enums from the superclass. */
@@ -111,7 +111,7 @@ public:
   typedef LinearInterpolateImageFunction<MovingImageType, CoordRepType> DefaultInterpolatorType;
 
   /** Covariant vector type. */
-  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> CovariantVectorType;
+  typedef CovariantVector<double, Self::ImageDimension> CovariantVectorType;
 
   /** Gradient calculator type. */
   typedef CentralDifferenceImageFunction<FixedImageType> GradientCalculatorType;

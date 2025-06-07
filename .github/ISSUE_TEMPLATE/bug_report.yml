@@ -1,0 +1,141 @@
+name: ANTs command line tools - bugs, unexpected results or other run time problems
+description: Issues with ANTs command line tools. For ANTsPy, ANTsR, etc, please follow the link to ANTsX Issues below.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Support resources for ANTs
+
+        ANTs wiki: https://github.com/ANTsX/ANTs/wiki
+
+        The Github search function will allow you to search issues and the wiki simultaneously. Open
+        the search bar and type keywords after the text 'repo:ANTsX/ANTs'.
+
+        If you are not using the command line tools, please go to the main ANTsX page and open an
+        issue for the software you are using (ANTsPy, ANTsR, etc).
+
+        To submit a new issue, please fill out the template below. If your problem relates to an
+        existing issue, please reference it with a hash followed by the issue number, eg `#1234`.
+  - type: markdown
+    attributes:
+      value: |
+        ## System information
+  - type: input
+    id: os-type-and-version
+    attributes:
+      label: Operating system and version
+      description: |
+        Please provide the name and version of the operating system you are using.
+
+        If you need help finding this information, these terminal commands can help:
+         * MacOS: `sw_vers`
+         * Linux: `cat /etc/os-release`
+         * Windows: `ver`
+
+         If you're running inside a virtual machine, please also provide the host OS, eg Linux VM in
+         Windows host.
+      placeholder: |
+        Eg, Ubuntu 20.04, macOS 11.0.1, Windows 10.
+    validations:
+      required: true
+  - type: dropdown
+    id: cpu-architecture
+    attributes:
+      label: CPU architecture
+      description: Output of `uname -m`
+      options:
+        - Please select
+        - x86_64 (PC, Intel Mac, other Intel/AMD)
+        - arm64 (Apple M1/M2)
+        - ppc64le (IBM Power)
+        - Other (please specify in problem description)
+        - Unknown
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## ANTs version information
+  - type: input
+    id: ants-code-version
+    attributes:
+      label: ANTs code version
+      placeholder: Output of antsRegistration --version
+    validations:
+      required: true
+  - type: dropdown
+    id: ants-installation-type
+    attributes:
+      label: ANTs installation type
+      options:
+        - Please select
+        - Compiled from source
+        - Downloaded Github release binaries
+        - Conda (Please include output of `conda list --show-channel-urls | grep ants`)
+        - ANTsX docker image (from DockerHub user antsx)
+        - Other docker image (please provide URL below)
+        - Other (please specify below)
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## Issue details
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Summary of the problem
+      description: |
+        Please provide a brief summary of the problem you are experiencing. You can drag and drop
+        screen shots here if appropriate.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce-commands
+    attributes:
+      label: Commands to reproduce the problem.
+      description: |
+         A self-contained script that someone else can download and run, ideally with the data
+         provided. Please make a minimal example and test it reproduces the problem. If your command
+         takes a long time, please try to produce a faster example that still shows the problem (eg,
+         by running fewer iterations). Please enclose commands in triple backticks, so that it doesn't
+         get formatted as markdown.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce-output
+    attributes:
+      label: Output of the command with verbose output.
+      description: |
+        Paste the full verbose output printed to the terminal when you run the command, or if it is
+        too much to paste, save in a text file and upload as an attachment. You can run
+        ```
+         <your command or script> 2>&1 | tee my_log.txt
+        ```
+        which will print output to the terminal and also save to a text file. If pasting output, please
+        enclose the pasted output in triple backticks, so that it doesn't get formatted as markdown.
+    validations:
+      required: true
+  - type: textarea
+    id: data-description
+    attributes:
+      label: Data to reproduce the problem
+      description: |
+        Many issues are specific to individual images. You can attach data to the issue by dragging
+        and dropping (up to 25Mb) or by pasting a link here.
+
+        If you can't share the data, please try to reproduce the problem with any public or
+        shareable data, and post details here.
+
+        If your data is very large, please try to reduce the file size by compressing, downsampling
+        (see ResampleImageBySpacing) or otherwise creating smaller images that still reproduce the
+        problem.
+
+        If you can't share data, you can say so here and we will do our best to help if we can.
+        Please provide as much relevant detail as you can.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: Click outside the text box to enable the submit button

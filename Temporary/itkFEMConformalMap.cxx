@@ -286,7 +286,7 @@ FEMConformalMap<TSurface, TImage, TDimension>::MapImageToSphere(TImage * img, fl
   m_SphereImage = ImageType::New();
 
   m_SphereImage->SetRegions(region);
-  m_SphereImage->Allocate();
+  m_SphereImage->AllocateInitialized();
 
   int center = (int)WIDTH / 2;
 
@@ -1011,7 +1011,7 @@ FEMConformalMap<TSurface, TImage, TDimension>::ConformalMap()
     {
       m_Solver.Read(f);
     }
-    catch (::itk::fem::FEMException & e)
+    catch (const ::itk::fem::FEMException & e)
     {
       ::std::cout << "Error reading FEM problem: " << filename << "!\n";
       e.Print(::std::cout);

@@ -497,7 +497,7 @@ antsJointFusion(itk::ants::CommandLineParser * parser)
   {
     fusionFilter->Update();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     if (verbose)
     {

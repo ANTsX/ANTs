@@ -247,7 +247,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>::BeforeThreaded
   this->m_ControlImage->SetSpacing(spacing);
   this->m_ControlImage->SetOrigin(origin);
   this->m_ControlImage->SetDirection(this->GetInput()->GetDirection());
-  this->m_ControlImage->Allocate();
+  this->m_ControlImage->AllocateInitialized();
 
   origin[InputImageDimension - 1] = origin[InputImageDimension - 1] + spacing[InputImageDimension - 1];
 
@@ -256,7 +256,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>::BeforeThreaded
   this->m_LabelImage->SetSpacing(spacing);
   this->m_LabelImage->SetOrigin(origin);
   this->m_LabelImage->SetDirection(this->GetInput()->GetDirection());
-  this->m_LabelImage->Allocate();
+  this->m_LabelImage->AllocateInitialized();
 
 
   this->m_ControlOutputImage = InputImageType::New();
@@ -264,14 +264,14 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>::BeforeThreaded
   this->m_ControlOutputImage->SetSpacing(this->GetOutput()->GetSpacing());
   this->m_ControlOutputImage->SetOrigin(this->GetOutput()->GetOrigin());
   this->m_ControlOutputImage->SetDirection(this->GetOutput()->GetDirection());
-  this->m_ControlOutputImage->Allocate();
+  this->m_ControlOutputImage->AllocateInitialized();
 
   this->m_LabelOutputImage = InputImageType::New();
   this->m_LabelOutputImage->SetRegions(this->GetOutput()->GetLargestPossibleRegion());
   this->m_LabelOutputImage->SetSpacing(this->GetOutput()->GetSpacing());
   this->m_LabelOutputImage->SetOrigin(this->GetOutput()->GetOrigin());
   this->m_LabelOutputImage->SetDirection(this->GetOutput()->GetDirection());
-  this->m_LabelOutputImage->Allocate();
+  this->m_LabelOutputImage->AllocateInitialized();
 
   ImageRegionConstIterator<InputImageType> it(this->GetInput(), this->GetInput()->GetLargestPossibleRegion());
 

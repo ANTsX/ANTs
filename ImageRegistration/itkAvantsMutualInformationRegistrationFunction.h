@@ -132,7 +132,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(AvantsMutualInformationRegistrationFunction, AvantsPDEDeformableRegistrationFunction);
+  itkOverrideGetNameOfClassMacro(AvantsMutualInformationRegistrationFunction);
 
   /** MovingImage image type. */
   typedef typename Superclass::MovingImageType    MovingImageType;
@@ -172,7 +172,7 @@ public:
   // DefaultInterpolatorType;
 
   /** Covariant vector type. */
-  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> CovariantVectorType;
+  typedef CovariantVector<double, Self::ImageDimension> CovariantVectorType;
 
   /** Gradient calculator type. */
   typedef CentralDifferenceImageFunction<FixedImageType> GradientCalculatorType;
@@ -227,8 +227,8 @@ public:
 
   /** Types inherited from Superclass. */
   typedef TranslationTransform<CoordinateRepresentationType,
-                               //                    itkGetStaticConstMacro(ImageDimension),
-                               itkGetStaticConstMacro(ImageDimension)>
+                               //                    Self::ImageDimension,
+                               Self::ImageDimension>
     TransformType;
 
   typedef ImageToImageMetric<TFixedImage, TMovingImage> Metricclass;
@@ -464,7 +464,7 @@ modified to round. 6- The normalization is done based on NomberOfHistogramBins-1
     float         px, py, pxy;
     double        mival = 0;
     double        mi;
-    unsigned long ct = 0;
+    // unsigned long ct = 0;
 
     typename JointPDFType::IndexType index;
     for (unsigned int ii = 0; ii < m_NumberOfHistogramBins; ii++)
@@ -496,7 +496,7 @@ modified to round. 6- The normalization is done based on NomberOfHistogramBins-1
             mi = pxy * std::log(pxy / denom);
             // test mi
             // mi = 1.0 + log(pxy/denom);
-            ct++;
+            // ct++;
           }
         }
 
@@ -738,7 +738,7 @@ private:
    * image derivatives from the BSpline interpolator. Otherwise,
    * image derivatives are computed using central differencing.
    */
-  typedef CovariantVector<double, itkGetStaticConstMacro(ImageDimension)> ImageDerivativesType;
+  typedef CovariantVector<double, Self::ImageDimension> ImageDerivativesType;
 
   /** Boolean to indicate if the interpolator BSpline. */
   bool m_InterpolatorIsBSpline;

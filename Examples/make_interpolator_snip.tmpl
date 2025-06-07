@@ -74,7 +74,7 @@ typename InterpolatorType::Pointer interpolator = nullptr;
     gaussianInterpolator->SetParameters( sigma, alpha );
     interpolator = gaussianInterpolator;
     }
-  else if( !std::strcmp( whichInterpolator.c_str(), "CosineWindowedSinc" ) )
+  else if( !std::strcmp( whichInterpolator.c_str(), "cosinewindowedsinc" ) )
     {
     typedef itk::WindowedSincInterpolateImageFunction
                  <ImageType, 3, itk::Function::CosineWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType> CosineInterpolatorType;
@@ -117,10 +117,7 @@ typename InterpolatorType::Pointer interpolator = nullptr;
     }
   else if( !std::strcmp( whichInterpolator.c_str(), "multilabel" ) )
     {
-    constexpr unsigned int NVectorComponents = 1;
-    typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
-    typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, RealType,
-	    CompareType> MultiLabelInterpolatorType;
+    typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, RealType> MultiLabelInterpolatorType;
     typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator = MultiLabelInterpolatorType::New();
     double sigma[VImageDimension];
     for( unsigned int d = 0; d < VImageDimension; d++ )

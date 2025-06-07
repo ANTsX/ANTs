@@ -46,12 +46,12 @@ public:
 
   typedef double TComp;
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ANTSImageTransformation, Object);
+  itkOverrideGetNameOfClassMacro(ANTSImageTransformation);
   static constexpr unsigned int Dimension = TDimension;
   static constexpr unsigned int ImageDimension = TDimension;
 
   typedef TReal                                              RealType;
-  typedef Image<RealType, itkGetStaticConstMacro(Dimension)> ImageType;
+  typedef Image<RealType, Self::Dimension> ImageType;
   /** declare transformation types */
 
   typedef itk::MatrixOffsetTransformBase<TComp, TDimension, TDimension> AffineTransformType;
@@ -154,8 +154,7 @@ public:
             this->m_DisplacementField->SetLargestPossibleRegion( m_DeformationRegionOfInterest );
             this->m_DisplacementField->SetRequestedRegion( m_DeformationRegionOfInterest );
             this->m_DisplacementField->SetBufferedRegion( m_DeformationRegionOfInterest );
-            this->m_DisplacementField->Allocate();
-            this->m_DisplacementField->FillBuffer(zero);
+            this->m_DisplacementField->AllocateInitialized();
       */
     }
   }

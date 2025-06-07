@@ -90,8 +90,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertVariateToSpatialImage(
   weights->SetSpacing(mask->GetSpacing());
   weights->SetRegions(mask->GetLargestPossibleRegion());
   weights->SetDirection(mask->GetDirection());
-  weights->Allocate();
-  weights->FillBuffer(itk::NumericTraits<PixelType>::ZeroValue());
+  weights->AllocateInitialized();
 
   // overwrite weights with vector values;
   unsigned long                                          vecind = 0;
@@ -111,7 +110,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertVariateToSpatialImage(
   vecind = 0;
   for (unsigned int k = 0; k < this->m_VecToMaskSize; k++) // loop begin
   {
-    unsigned long maskct = 0;
+    // unsigned long maskct = 0;
     for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
     {
       if (mIter.Get() >= static_cast<typename TInputImage::PixelType>(0.5))
@@ -141,7 +140,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertVariateToSpatialImage(
         vecind++;
         // if ( maskct % 289  == 0 ) if ( ! this->m_Silent )  std::cout << "k "<< k << " mval " << val << " w " << w_p(
         // vecind ) << std::endl;
-        maskct++;
+        // maskct++;
       }
       else
       {
@@ -165,8 +164,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertVariateToSpatialImage4D(
   weights->SetSpacing(mask->GetSpacing());
   weights->SetRegions(mask->GetLargestPossibleRegion());
   weights->SetDirection(mask->GetDirection());
-  weights->Allocate();
-  weights->FillBuffer(itk::NumericTraits<PixelType>::ZeroValue());
+  weights->AllocateInitialized();
 
   typename RealImageTypeDminus1::Pointer                             maskdm1;
   typedef itk::ExtractImageFilter<TInputImage, RealImageTypeDminus1> ExtractFilterType;
@@ -258,7 +256,7 @@ antsSCCANObject<TInputImage, TRealType>::CurvatureSparseness(
   RealType     kappa = 20;
   RealType     lastkappa = 20;
   unsigned int kkk = 0;
-  unsigned int zct = 0;
+  // unsigned int zct = 0;
   RealType     dkappa = 1;
   RealType     sp = 0;
   bool         notdone = true;
@@ -275,7 +273,7 @@ antsSCCANObject<TInputImage, TRealType>::CurvatureSparseness(
       if (((x[kk] > 0) && (signvec[kk] < 0)) || ((x[kk] < 0) && (signvec[kk] > 0)))
       {
         x[kk] = 0;
-        zct++;
+        // zct++;
       }
       else if (itk::Math::abs(x[kk]) > 1.e-6)
       {
@@ -286,7 +284,7 @@ antsSCCANObject<TInputImage, TRealType>::CurvatureSparseness(
       else
       {
         x[kk] = 0;
-        zct++;
+        // zct++;
       }
     }
     if (nzct > 0)
@@ -354,7 +352,7 @@ antsSCCANObject<TInputImage, TRealType>::ClusterThresholdVariate(
   {
     relabel->Update();
   }
-  catch (itk::ExceptionObject & excep)
+  catch (const itk::ExceptionObject & excep)
   {
     if (!this->m_Silent)
       std::cout << "Relabel: exception caught !" << std::endl;
@@ -399,7 +397,7 @@ antsSCCANObject<TInputImage, TRealType>::ClusterThresholdVariate(
   // iterate through the image and set the voxels where  countinlabel[(unsigned
   // long)(labelimage->GetPixel(vfIter.GetIndex()) - min)]
   // is < MinClusterSize
-  unsigned long vecind = 0, keepct = 0;
+  unsigned long vecind = 0; // , keepct = 0;
   for (unsigned int k = 0; k < this->m_VecToMaskSize; k++)
   {
     fIterator mIter(mask, mask->GetLargestPossibleRegion());
@@ -414,7 +412,7 @@ antsSCCANObject<TInputImage, TRealType>::ClusterThresholdVariate(
           clustersize = histogram[(unsigned long)(relabel->GetOutput()->GetPixel(mIter.GetIndex()))];
           if (clustersize > minclust)
           {
-            keepct += 1;
+            // keepct += 1;
           } // get clusters > minclust
           //    if ( clustersize == largest_component_size ) { keepct++; } // get largest cluster
           else
@@ -480,7 +478,7 @@ antsSCCANObject<TInputImage, TRealType>::ClusterThresholdVariate4D(
   {
     relabel->Update();
   }
-  catch (itk::ExceptionObject & excep)
+  catch (const itk::ExceptionObject & excep)
   {
     if (!this->m_Silent)
       std::cout << "Relabel: exception caught !" << std::endl;
@@ -582,7 +580,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertImageToVariate(typename TInputIm
   ULPixelType maskct2 = 0;
   for (unsigned int k = 0; k < this->m_VecToMaskSize; k++) // loop begin
   {
-    ULPixelType maskctbase = 0;
+    // ULPixelType maskctbase = 0;
     for (vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter)
     {
       RealType maskval = vfIter.Get();
@@ -591,7 +589,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertImageToVariate(typename TInputIm
       {
         vec[maskct2] = imageval;
         maskct2++;
-        maskctbase++;
+        // maskctbase++;
       }
     }
   }
@@ -637,7 +635,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertImageToVariate4D(typename TInput
   ULPixelType maskct2 = 0;
   for (unsigned int k = 0; k < this->m_VecToMaskSize; k++) // loop begin
   {
-    ULPixelType maskctbase = 0;
+    // ULPixelType maskctbase = 0;
     for (vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter)
     {
       RealType maskval = vfIter.Get();
@@ -650,7 +648,7 @@ antsSCCANObject<TInputImage, TRealType>::ConvertImageToVariate4D(typename TInput
         ind4d[ImageDimension - 1] = k;
         vec[maskct2] = image->GetPixel(ind4d);
         maskct2++;
-        maskctbase++;
+        // maskctbase++;
       }
     }
   }
@@ -5282,12 +5280,12 @@ antsSCCANObject<TInputImage, TRealType>::CCAUpdate(unsigned int n_vecs,
       this->SparsifyOther(qveck); // zeromatch
     // get list of all zeroes
     std::vector<TRealType> zeromatch(qveck.size(), 0);
-    unsigned int           zct = 0;
+    // unsigned int           zct = 0;
     for (unsigned int zm = 0; zm < qveck.size(); zm++)
     {
       if ((this->Close2Zero(pveck(zm)) || this->Close2Zero(qveck(zm))) && (false))
       {
-        zct++;
+        // zct++;
         zeromatch[zm] = 1;
         pveck(zm) = 0;
         qveck(zm) = 0;
@@ -6638,13 +6636,11 @@ antsSCCANObject<TInputImage, TRealType>::MRFFilterVariateMatrix()
   typename LabelImageType::Pointer              labelimage = LabelImageType::New();
   labelimage->SetRegions(flabelimage->GetRequestedRegion());
   labelimage->CopyInformation(flabelimage);
-  labelimage->Allocate();
-  labelimage->FillBuffer(0);
+  labelimage->AllocateInitialized();
   typename LabelImageType::Pointer maskimage = LabelImageType::New();
   maskimage->SetRegions(flabelimage->GetRequestedRegion());
   maskimage->CopyInformation(flabelimage);
-  maskimage->Allocate();
-  maskimage->FillBuffer(0);
+  maskimage->AllocateInitialized();
   itk::ImageRegionConstIterator<TInputImage> Itf(flabelimage, flabelimage->GetLargestPossibleRegion());
   for (Itf.GoToBegin(); !Itf.IsAtEnd(); ++Itf)
   {

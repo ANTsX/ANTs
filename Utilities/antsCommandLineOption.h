@@ -59,7 +59,7 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(Option, DataObject);
+  itkOverrideGetNameOfClassMacro(OptionFunction);
 
   typedef std::deque<std::string> ParameterStackType;
 
@@ -122,7 +122,7 @@ public:
 
   itkNewMacro(Self);
 
-  itkTypeMacro(Option, DataObject);
+  itkOverrideGetNameOfClassMacro(CommandLineOption);
 
   typedef OptionFunction OptionFunctionType;
 

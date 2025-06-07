@@ -7,7 +7,7 @@
 #include "itkImageFileWriter.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
-
+#include "itksys/SystemTools.hxx"
 #include "itkCompositeTransform.h"
 
 namespace itk
@@ -38,7 +38,7 @@ ReadTransform(const std::string & filename,
   typedef typename itk::CompositeTransform<T, VImageDimension> CompositeTransformType;
 
   // There are known transform type extentions that should not be considered as imaging files
-  // That would be used as deformatino feilds
+  // That would be used as deformation fields
   // If file is an hdf5 file, assume it is a transform instead of an image.
   bool recognizedExtension = false;
   recognizedExtension |= (itksys::SystemTools::GetFilenameLastExtension(filename) == ".h5");
@@ -176,7 +176,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
 
       CompositeTransformType * comp_xfm = dynamic_cast<CompositeTransformType *>(xfrm.GetPointer());
       if (comp_xfm != nullptr)
-      { // this is a composite transform, make sure it doesn't contain wiered stuff
+      { // this is a composite transform, make sure it doesn't contain weird stuff
         CompositeTransformPointer tmp_comp_xfm = CompositeTransformType::New();
 
         size_t numTransforms = comp_xfm->GetNumberOfTransforms();
@@ -209,7 +209,7 @@ WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Poi
       transformWriter->Update();
     }
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cerr << "Can't write transform file " << filename << std::endl;
     std::cerr << "Exception Object caught: " << std::endl;
@@ -254,7 +254,7 @@ WriteInverseTransform(typename itk::DisplacementFieldTransform<T, VImageDimensio
       transformWriter->Update();
     }
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cerr << "Can't write transform file " << filename << std::endl;
     std::cerr << "Exception Object caught: " << std::endl;

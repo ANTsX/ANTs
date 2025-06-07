@@ -44,7 +44,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(HistogramParzenWindowsListSampleFunction, ListSampleFunction);
+  itkOverrideGetNameOfClassMacro(HistogramParzenWindowsListSampleFunction);
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;
@@ -93,7 +93,7 @@ private:
 
   unsigned int                                      m_NumberOfHistogramBins;
   RealType                                          m_Sigma;
-  InterpolatorPointer                               m_Interpolator;
+  std::vector<InterpolatorPointer>                  m_Interpolators;
   std::vector<typename HistogramImageType::Pointer> m_HistogramImages;
 };
 } // end of namespace Statistics

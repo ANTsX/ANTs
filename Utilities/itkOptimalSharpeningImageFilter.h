@@ -56,7 +56,7 @@ public:
   typedef typename NumericTraits<OutputPixelType>::RealType RealType;
   typedef typename TInputImage::PixelType                   InputPixelType;
   typedef typename TInputImage::InternalPixelType           InputInternalPixelType;
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TOutputImage::ImageDimension;
 
   /** Image typedef support. */
   typedef TInputImage                      InputImageType;
@@ -68,7 +68,7 @@ public:
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Run-time type information (and related methods)  */
-  itkTypeMacro(OptimalSharpeningImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(OptimalSharpeningImageFilter);
 
   /** Method for creation through the object factory.  */
   itkNewMacro(Self);

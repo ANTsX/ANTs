@@ -1,0 +1,130 @@
+# Workflow adapted from https://gist.github.com/NickNaso/0d478f1481686d5bcc868cac06620a60
+# build directly on supported runners: Ubuntu 18, Ubuntu 20, Mac OS 11
+name: Native release binaries
+
+# Controls when the action will run. Triggers the workflow on push
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Ubuntu-24.04-GCC",
+            os: ubuntu-24.04,
+            cc: "gcc",
+            cxx: "g++",
+            build_type: "Release",
+            generators: "Ninja"
+          }
+        - {
+            name: "Ubuntu-22.04-GCC",
+            os: ubuntu-22.04,
+            cc: "gcc",
+            cxx: "g++",
+            build_type: "Release",
+            generators: "Ninja"
+          }
+        - {
+            name: "Macos-14-clang",
+            os: macos-14,
+            cc: "clang",
+            cxx: "clang++",
+            build_type: "Release",
+            generators: "Ninja"
+        }
+        - {
+            name: "Macos-13-clang",
+            os: macos-13,
+            cc: "clang",
+            cxx: "clang++",
+            build_type: "Release",
+            generators: "Ninja"
+          }
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - name: Get ANTs version
+        run:
+          echo "ANTS_VERSION=${ANTS_TAG#v}" >> $GITHUB_ENV
+        env:
+          ANTS_TAG: ${{ github.ref_name }}
+      - name: Define env
+        run: |
+          echo github.event.action: ${{ github.event.action }}
+          echo github.event_name: ${{ github.event_name }}
+          echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
+          echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
+          echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
+      - name: Install dependencies on ubuntu
+        if: startsWith(matrix.config.name, 'Ubuntu-')
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build cmake
+          ninja --version
+          cmake --version
+          gcc --version
+      - name: Install dependencies on macos
+        if: startsWith(matrix.config.os, 'Macos')
+        run: |
+          brew update
+          brew install cmake ninja
+          ninja --version
+          cmake --version
+      - name: Configure
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          mkdir build
+          cd build
+          cmake \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+            -G "${{ matrix.config.generators }}" \
+            -DBUILD_TESTING=ON \
+            -DRUN_SHORT_TESTS=ON \
+            -DRUN_LONG_TESTS=OFF \
+            -DCMAKE_INSTALL_PREFIX:PATH=${{ runner.temp }}/install/ants-${{ env.ANTS_VERSION }} \
+            ${GITHUB_WORKSPACE}
+      - name: Build
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd build
+          cmake --build . --config ${{ matrix.config.build_type }} --parallel
+      - name: Test
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd build/ANTS-build
+          ctest
+      - name: Install
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd build/ANTS-build
+          cmake --install .
+      - name: Pack
+        shell: bash
+        working-directory: ${{ runner.temp }}
+        run: |
+          cd install
+          zip -r ${ARTIFACT} .
+      - name: Upload release asset
+        # Previously was using actions/upload-release-asset@v1 , but this had some
+        # errors with large files
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          allowUpdates: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          artifacts: "${{ env.ARTIFACT }}"
+          artifactContentType: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}

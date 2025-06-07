@@ -24,7 +24,7 @@ Given a tag "vX.Y.Z", the script will
 
 my $tag = $ARGV[0];
 
-if (!($tag =~ m/^v[0-9]\.[0-9]\.[0-9]/) ) {
+if (!($tag =~ m/^v[0-9]+\.[0-9]+\.[0-9]+/) ) {
     print "Tags for release should be in the format vX.Y.Z where X,Y,Z are integers\n";
     exit(1);
 }
@@ -53,12 +53,24 @@ if ($existingTag) {
     exit(1);
 }
 
+# Also don't allow a duplicate tag. git will stop this later, but less messy to check here
+my @allTags = `git tag`;
+
+chomp(@allTags);
+
+foreach my $repoTag (@allTags) {
+    if ($repoTag eq ${tag}) {
+        print "The tag $tag already exists. Exiting \n";
+        exit(1);
+    }
+}
+
 # Check tag matches Version.cmake
 open(my $inFH, "<", "Version.cmake");
 my $versionDotCmake = do { local $/; <$inFH> };
 close($inFH);
 
-my ($tagVersionMajor,$tagVersionMinor,$tagVersionPatch) = ($tag =~ m/^v([0-9])\.([0-9])\.([0-9])/);
+my ($tagVersionMajor,$tagVersionMinor,$tagVersionPatch) = ($tag =~ m/^v([0-9]+)\.([0-9]+)\.([0-9]+)/);
 
 $versionDotCmake =~ s/set\(\$\{PROJECT_NAME\}_VERSION_MAJOR "[0-9]+"\)/set\(\$\{PROJECT_NAME\}_VERSION_MAJOR "${tagVersionMajor}"\)/
     or die("Cannot find version information in Version.cmake");
@@ -105,6 +117,7 @@ print $outFH $versionDotCmake;
 close($outFH);
 
 system("git add Version.cmake");
-system("git commit -m \"Updating version for development post $tag\"");
+system("git commit -m \"[skip ci] Updating version for development post $tag\"");
 print("\nPushing changed Version.cmake\n");
-system("git push origin $masterBranchLabel") == 0
+system("git push origin $masterBranchLabel") == 0 
+    or die("Could not update Version.cmake post release");

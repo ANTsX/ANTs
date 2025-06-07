@@ -37,14 +37,14 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ANTSLabeledPointSet, Object);
+  itkOverrideGetNameOfClassMacro(ANTSLabeledPointSet);
   static constexpr unsigned int Dimension = TDimension;
 
   typedef float                                                RealType;
-  typedef Image<RealType, itkGetStaticConstMacro(Dimension)>   ImageType;
+  typedef Image<RealType, Self::Dimension>   ImageType;
   typedef typename ImageType::Pointer                          ImagePointer;
-  typedef Vector<RealType, itkGetStaticConstMacro(Dimension)>  VectorType;
-  typedef Image<VectorType, itkGetStaticConstMacro(Dimension)> DisplacementFieldType;
+  typedef Vector<RealType, Self::Dimension>  VectorType;
+  typedef Image<VectorType, Self::Dimension> DisplacementFieldType;
 
   /** Point Types  for landmarks and labeled point-sets */
   typedef long                                          PointDataVectorType;

@@ -43,7 +43,7 @@ public:
   /**
    * Standard macros
    */
-  itkTypeMacro(PassThroughListSampleFilter, ListSampleToScalarListSampleFilter);
+  itkOverrideGetNameOfClassMacro(PassThroughListSampleFilter);
 
   /**
    * Method for creation through the object factory.

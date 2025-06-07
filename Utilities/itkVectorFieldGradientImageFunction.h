@@ -36,7 +36,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(VectorFieldGradientImageFunction, ImageFunction);
+  itkOverrideGetNameOfClassMacro(VectorFieldGradientImageFunction);
 
   /** Extract some information from the image types.  Dimensionality
    * of the two images is assumed to be the same. */
@@ -50,10 +50,10 @@ public:
   typedef typename Superclass::ContinuousIndexType ContinuousIndexType;
 
   /** The dimensionality of the input and output images. */
-  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
+  static constexpr unsigned int ImageDimension = TInputImage::ImageDimension;
 
   /** Length of the vector pixel type of the input image. */
-  itkStaticConstMacro(VectorDimension, unsigned int, VectorType::Dimension);
+  static constexpr unsigned int VectorDimension = VectorType::Dimension;
 
   /** Define the data type and the vector of data type used in calculations. */
   typedef TRealType RealType;

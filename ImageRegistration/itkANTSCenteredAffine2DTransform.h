@@ -22,8 +22,8 @@ public:
   typedef SmartPointer<const Self>                     ConstPointer;
 
   /** Run-time type information (and related methods). */
-  // itkTypeMacro( Rigid2DTransform, MatrixOffsetTransformBase );
-  itkTypeMacro(ANTSCenteredAffine2DTransform, MatrixOffsetTransformBase);
+  // itkOverrideGetNameOfClassMacro( Rigid2DTransform);
+  itkOverrideGetNameOfClassMacro(ANTSCenteredAffine2DTransform);
 
   /** New macro for creation of through a Smart Pointer */
   itkNewMacro(Self);

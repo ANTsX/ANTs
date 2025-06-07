@@ -142,8 +142,7 @@ ants_motion_stats(itk::ants::CommandLineParser * parser)
   if (writeMap)
   {
     map->SetRegions(mask->GetLargestPossibleRegion());
-    map->Allocate();
-    map->FillBuffer(0);
+    map->AllocateInitialized();
 
     map->SetOrigin(mask->GetOrigin());
     map->SetSpacing(mask->GetSpacing());
@@ -157,11 +156,10 @@ ants_motion_stats(itk::ants::CommandLineParser * parser)
   {
     ReadImage<TimeSeriesImageType>(timeseriesImage, timeseriesDisplacementName.c_str());
     timeseriesDisplacementImage->SetRegions(timeseriesImage->GetLargestPossibleRegion());
-    timeseriesDisplacementImage->Allocate();
-    timeseriesDisplacementImage->FillBuffer(0.0);
     timeseriesDisplacementImage->SetOrigin(timeseriesImage->GetOrigin());
     timeseriesDisplacementImage->SetSpacing(timeseriesImage->GetSpacing());
     timeseriesDisplacementImage->SetDirection(timeseriesImage->GetDirection());
+    timeseriesDisplacementImage->AllocateInitialized();
   }
 
 

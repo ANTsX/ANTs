@@ -209,6 +209,7 @@ public:
            SamplingStrategy        samplingStrategy,
            int                     numberOfBins,
            unsigned int            radius,
+           bool                    useGradientFilter,
            bool                    useBoundaryPointsOnly,
            RealType                pointSetSigma,
            unsigned int            evaluationKNeighborhood,
@@ -216,7 +217,8 @@ public:
            bool                    useAnisotropicCovariances,
            RealType                samplingPercentage,
            RealType                intensityDistanceSigma,
-           RealType                euclideanDistanceSigma)
+           RealType                euclideanDistanceSigma
+           )
       : m_MetricType(metricType)
       , m_FixedImage(fixedImage)
       , m_MovingImage(movingImage)
@@ -225,6 +227,7 @@ public:
       , m_SamplingStrategy(samplingStrategy)
       , m_NumberOfBins(numberOfBins)
       , m_Radius(radius)
+      , m_UseGradientFilter(useGradientFilter)
       , m_FixedLabeledPointSet(fixedLabeledPointSet)
       , m_MovingLabeledPointSet(movingLabeledPointSet)
       , m_FixedIntensityPointSet(fixedIntensityPointSet)
@@ -250,11 +253,11 @@ public:
         }
         case MI:
         {
-          return std::string("MI");
+          return std::string("JointHistogramMI");
         }
         case Mattes:
         {
-          return std::string("Mattes");
+          return std::string("MattesMI");
         }
         case MeanSquares:
         {
@@ -303,6 +306,7 @@ public:
     SamplingStrategy m_SamplingStrategy;
     int              m_NumberOfBins;
     unsigned int     m_Radius; // Only for CC metric
+    bool             m_UseGradientFilter;
 
     // Variables for point-set metrics
 
@@ -458,7 +462,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(RegistrationHelper, Object);
+  itkOverrideGetNameOfClassMacro(RegistrationHelper);
 
   /** Dimension of the image.  This constant is used by functions that are
    * templated over image type (as opposed to being templated over pixel type
@@ -482,6 +486,7 @@ public:
             SamplingStrategy        samplingStrategy,
             int                     numberOfBins,
             unsigned int            radius,
+            bool                    useGradientFilter,
             bool                    useBoundaryPointsOnly,
             RealType                pointSetSigma,
             unsigned int            evaluationKNeighborhood,
@@ -501,6 +506,7 @@ public:
             SamplingStrategy  samplingStrategy,
             int               numberOfBins,
             unsigned int      radius,
+            bool              useGradientFilter,
             RealType          samplingPercentage)
   {
     this->AddMetric(metricType,
@@ -515,6 +521,7 @@ public:
                     samplingStrategy,
                     numberOfBins,
                     radius,
+                    useGradientFilter,
                     false,
                     1.0,
                     50,
@@ -671,6 +678,11 @@ public:
                                  std::vector<unsigned int> & VelocityFieldMeshSizeAtBaseLevel,
                                  unsigned int                NumberOfIntegrationSteps,
                                  unsigned int                SplineOrder);
+  /**
+   * Add the collected output prefix
+   */
+  void
+  SetOutputPrefix(const std::string & outputPrefix);
 
   /**
    * Add the collected iterations list
@@ -1071,7 +1083,7 @@ private:
       transformObserver->Execute(registrationMethod, itk::StartEvent());
       registrationMethod->Update();
     }
-    catch (itk::ExceptionObject & e)
+    catch (const itk::ExceptionObject & e)
     {
       this->Logger() << "Exception caught: " << e << std::endl;
       return EXIT_FAILURE;
@@ -1096,6 +1108,7 @@ private:
   unsigned int                           m_NumberOfStages;
   MetricListType                         m_Metrics;
   TransformMethodListType                m_TransformMethods;
+  std::string                            m_OutputPrefix;
   std::vector<std::vector<unsigned int>> m_Iterations;
   std::vector<RealType>                  m_ConvergenceThresholds;
   std::vector<unsigned int>              m_ConvergenceWindowSizes;

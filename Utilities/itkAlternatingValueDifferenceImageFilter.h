@@ -54,7 +54,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(AlternatingValueDifferenceImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(AlternatingValueDifferenceImageFilter);
 
   /** Compiler can't inherit typedef? */
   typedef typename Superclass::InputImageType  InputImageType;
@@ -71,8 +71,8 @@ public:
   typedef typename InterpolatorType::Pointer               InterpolatorPointerType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
-  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+  static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
+  static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
   itkGetMacro(SubtractionDimension, unsigned int);
   itkSetMacro(SubtractionDimension, unsigned int);

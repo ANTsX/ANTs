@@ -658,15 +658,15 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
           samplingStrategy = metricOption->GetFunction(currentStage)->GetParameter(4);
         }
         ConvertToLowerCase(samplingStrategy);
-        typename TranslationRegistrationType::MetricSamplingStrategyEnum metricSamplingStrategy =
-          TranslationRegistrationType::NONE;
+        itk::ImageRegistrationMethodv4Enums::MetricSamplingStrategy metricSamplingStrategy =
+		  itk::ImageRegistrationMethodv4Enums::MetricSamplingStrategy::NONE;
         if (std::strcmp(samplingStrategy.c_str(), "random") == 0)
         {
-          metricSamplingStrategy = TranslationRegistrationType::RANDOM;
+          metricSamplingStrategy = itk::ImageRegistrationMethodv4Enums::MetricSamplingStrategy::RANDOM;
         }
         if (std::strcmp(samplingStrategy.c_str(), "regular") == 0)
         {
-          metricSamplingStrategy = TranslationRegistrationType::REGULAR;
+          metricSamplingStrategy = itk::ImageRegistrationMethodv4Enums::MetricSamplingStrategy::REGULAR;
         }
 
         if (std::strcmp(whichMetric.c_str(), "cc") == 0)
@@ -746,8 +746,8 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
         std::string whichTransform = transformOption->GetFunction(currentStage)->GetName();
         ConvertToLowerCase(whichTransform);
         typename TranslationRegistrationType::Pointer translationRegistration = TranslationRegistrationType::New();
-        if ((std::strcmp(whichTransform.c_str(), "translation") == 0) |
-            (std::strcmp(whichTransform.c_str(), "rigid") == 0) |
+        if ((std::strcmp(whichTransform.c_str(), "translation") == 0) ||
+            (std::strcmp(whichTransform.c_str(), "rigid") == 0) ||
             (std::strcmp(whichTransform.c_str(), "similarity") == 0))
         {
           transformList[timedim]->GetNumberOfParameters();
@@ -781,7 +781,7 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
             {
               translationRegistration->Update();
             }
-            catch (itk::ExceptionObject & e)
+            catch (const itk::ExceptionObject & e)
             {
               std::cerr << "Exception caught: " << e << std::endl;
               return EXIT_FAILURE;
@@ -942,7 +942,7 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
     typename DisplacementIOFieldType::Pointer displacementinv = DisplacementIOFieldType::New();
     displacementinv->CopyInformation(displacementout);
     displacementinv->SetRegions(displacementout->GetRequestedRegion());
-    displacementinv->Allocate();
+    displacementinv->AllocateInitialized();
     typename DisplacementIOFieldType::IndexType dind;
     dind.Fill(0);
     displacementinv->FillBuffer(displacementout->GetPixel(dind));

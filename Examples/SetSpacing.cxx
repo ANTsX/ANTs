@@ -36,7 +36,7 @@ namespace ants
 {
 template <unsigned int ImageDimension>
 int
-SetSpacing(int argc, char * argv[])
+SetSpacing(int itkNotUsed(argc), char * argv[])
 {
   using outPixelType = float;
   using inPixelType = float;
@@ -53,17 +53,9 @@ SetSpacing(int argc, char * argv[])
   typename OutImageType::SpacingType spacing = outim->GetSpacing();
 
   std::cout << " Old Spacing " << outim->GetSpacing();
-  if (argc > 3)
+  for (unsigned int d = 0; d < ImageDimension; d++)
   {
-    spacing[0] = atof(argv[3]);
-  }
-  if (argc > 4)
-  {
-    spacing[1] = atof(argv[4]);
-  }
-  if (argc > 5)
-  {
-    spacing[2] = atof(argv[5]);
+    spacing[d] = atof(argv[d+3]);
   }
   std::cout << "  New Spacing " << spacing << std::endl;
 

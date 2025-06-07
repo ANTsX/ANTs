@@ -280,9 +280,7 @@ iMathFillHoles(typename ImageType::Pointer image, double holeParam) /*0*/
       GHood.GoToBegin();
 
       unsigned long objectedge = 0;
-      unsigned long backgroundedge = 0;
       unsigned long totaledge = 0;
-      unsigned long volume = 0;
 
       while (!GHood.IsAtEnd())
       {
@@ -290,7 +288,6 @@ iMathFillHoles(typename ImageType::Pointer image, double holeParam) /*0*/
         typename ImageType::IndexType ind2;
         if (itk::Math::FloatAlmostEqual(p, static_cast<typename ImageType::PixelType>(lab)))
         {
-          volume++;
           for (unsigned int i = 0; i < GHood.Size(); i++)
           {
             ind2 = GHood.GetIndex(i);
@@ -303,7 +300,6 @@ iMathFillHoles(typename ImageType::Pointer image, double holeParam) /*0*/
             else if (itk::Math::FloatAlmostEqual(val2, itk::NumericTraits<float>::OneValue()) &&
                      GHood.GetPixel(i) != lab)
             {
-              backgroundedge++;
               totaledge++;
             }
           }

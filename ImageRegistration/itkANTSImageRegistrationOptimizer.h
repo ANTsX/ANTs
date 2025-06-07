@@ -66,14 +66,14 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ANTSImageRegistrationOptimizer, Object);
+  itkOverrideGetNameOfClassMacro(ANTSImageRegistrationOptimizer);
   static constexpr unsigned int Dimension = TDimension;
   static constexpr unsigned int ImageDimension = TDimension;
 
   typedef double TComp;
   typedef TReal  RealType;
 
-  typedef Image<RealType, itkGetStaticConstMacro(Dimension)> ImageType;
+  typedef Image<RealType, Self::Dimension> ImageType;
   typedef typename ImageType::Pointer                        ImagePointer;
 
   typedef itk::MatrixOffsetTransformBase<TComp, ImageDimension, ImageDimension> TransformType;
@@ -106,10 +106,10 @@ public:
   typedef typename ParserType::OptionType OptionType;
 
   typedef GeneralToBSplineDisplacementFieldFilter<DisplacementFieldType> BSplineFilterType;
-  typedef FixedArray<RealType, itkGetStaticConstMacro(ImageDimension)>   ArrayType;
+  typedef FixedArray<RealType, Self::ImageDimension>   ArrayType;
 
   /** Typedefs for similarity metrics */
-  typedef ANTSSimilarityMetric<itkGetStaticConstMacro(Dimension), TReal> SimilarityMetricType;
+  typedef ANTSSimilarityMetric<Self::Dimension, TReal> SimilarityMetricType;
   typedef typename SimilarityMetricType::Pointer                         SimilarityMetricPointer;
   typedef std::vector<SimilarityMetricPointer>                           SimilarityMetricListType;
 
@@ -2069,7 +2069,7 @@ protected:
     // all we have to do here is add the local field to the global field.
     Iterator      vfIter(field, field->GetLargestPossibleRegion());
     SizeType      size = field->GetLargestPossibleRegion().GetSize();
-    unsigned long ct = 1;
+    // unsigned long ct = 1;
     TReal         totalmag = 0;
     TReal         maxstep = 0;
     //  this->m_EuclideanNorm=0;
@@ -2110,7 +2110,7 @@ protected:
       {
         maxstep = stepl;
       }
-      ct++;
+      // ct++;
       totalmag += mag;
       //    this->m_EuclideanNorm+=stepl;
     }

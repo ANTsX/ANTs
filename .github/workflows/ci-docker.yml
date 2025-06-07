@@ -1,0 +1,70 @@
+name: ci-docker
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - 'master'
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) }}
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: antsx/ants
+      -
+        name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Edit tag for releases
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          GIT_TAG="${{ github.ref }}"
+          STRIPPED_TAG="${GIT_TAG#refs/tags/v}"
+          echo "DOCKER_TAG=antsx/ants:${STRIPPED_TAG}" >> $GITHUB_ENV
+      -
+        name: Build and load (PR) or push (commit/tag)
+        uses: docker/build-push-action@v5
+        with:
+            context: .
+            push: ${{ github.event_name != 'pull_request' }}
+            load: ${{ github.event_name == 'pull_request' }}
+            tags: ${{ env.DOCKER_TAG }},${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
+      -
+        name: Export Docker image for PR
+        if: github.event_name == 'pull_request'
+        run: |
+          docker save antsx/ants:${{ steps.meta.outputs.version }} > ants_image.tar
+      -
+        name: Upload PR Docker image as artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+            name: ants-docker-image
+            path: ants_image.tar
+            retention-days: 7

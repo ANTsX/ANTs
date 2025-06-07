@@ -287,7 +287,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
   // this->m_FullWarp->SetSpacing( this->m_OutputSpacing );
   // this->m_FullWarp->SetOrigin( this->m_OutputOrigin );
   // this->m_FullWarp->SetDirection( this->m_OutputDirection  );
-  // this->m_FullWarp->Allocate();
+  // this->m_FullWarp->AllocateInitialized();
 
   // determine if the deformation field is the same dimension as the image
   // so that it does not need interpolation in the first step

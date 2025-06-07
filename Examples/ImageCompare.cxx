@@ -157,7 +157,7 @@ RegressionTestImage(const char * testImageFilename,
   {
     baselineReader->UpdateLargestPossibleRegion();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cout << "Exception detected while reading " << baselineImageFilename << " : " << e.GetDescription();
     return 1000;
@@ -170,7 +170,7 @@ RegressionTestImage(const char * testImageFilename,
   {
     testReader->UpdateLargestPossibleRegion();
   }
-  catch (itk::ExceptionObject & e)
+  catch (const itk::ExceptionObject & e)
   {
     std::cout << "Exception detected while reading " << testImageFilename << " : " << e.GetDescription() << std::endl;
     return 1000;

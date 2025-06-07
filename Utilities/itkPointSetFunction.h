@@ -52,7 +52,7 @@ class PointSetFunction : public FunctionBase<typename TInputPointSet::PointType,
 {
 public:
   /** Dimension underlying input point set. */
-  itkStaticConstMacro(Dimension, unsigned int, TInputPointSet::PointDimension);
+  static constexpr unsigned int Dimension = TInputPointSet::PointDimension;
 
   /** Standard class typedefs. */
   typedef PointSetFunction                                          Self;
@@ -61,7 +61,7 @@ public:
   typedef SmartPointer<const Self>                                  ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(PointSetFunction, FunctionBase);
+  itkOverrideGetNameOfClassMacro(PointSetFunction);
 
   /** InputPointSetType typedef support. */
   typedef TInputPointSet InputPointSetType;

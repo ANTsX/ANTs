@@ -104,7 +104,7 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>::GenerateOutputI
     m_ExceptionMessage = "";
     this->TestFileExistanceAndReadability();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     m_ExceptionMessage = err.GetDescription();
   }
@@ -419,10 +419,10 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>::GenerateData()
 
   // allocate the output buffer
   output->SetBufferedRegion(output->GetRequestedRegion());
-  output->Allocate();
+  output->AllocateInitialized();
 
   this->m_Image->SetBufferedRegion(output->GetRequestedRegion());
-  this->m_Image->Allocate();
+  this->m_Image->AllocateInitialized();
 
   // Test if the file exist and if it can be open.
   // and exception will be thrown otherwise.
@@ -431,7 +431,7 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>::GenerateData()
     m_ExceptionMessage = "";
     this->TestFileExistanceAndReadability();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     m_ExceptionMessage = err.GetDescription();
   }

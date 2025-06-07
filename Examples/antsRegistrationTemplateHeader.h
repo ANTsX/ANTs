@@ -439,19 +439,19 @@ DoRegistration(typename ParserType::Pointer & parser)
   }
   regHelper->SetUseHistogramMatching(doHistogramMatch);
 
-  bool doEstimateLearningRateAtEachIteration = true;
+  // bool doEstimateLearningRateAtEachIteration = true;
 
-  OptionType::Pointer rateOption = parser->GetOption("use-estimate-learning-rate-once");
-  if (rateOption && rateOption->GetNumberOfFunctions())
-  {
-    std::string rateFunction = rateOption->GetFunction(0)->GetName();
-    ConvertToLowerCase(rateFunction);
-    if (rateFunction.compare("1") == 0 || rateFunction.compare("true") == 0)
-    {
-      doEstimateLearningRateAtEachIteration = false;
-    }
-  }
-  regHelper->SetDoEstimateLearningRateAtEachIteration(doEstimateLearningRateAtEachIteration);
+  // OptionType::Pointer rateOption = parser->GetOption("use-estimate-learning-rate-once");
+  // if (rateOption && rateOption->GetNumberOfFunctions())
+  // {
+  //   std::string rateFunction = rateOption->GetFunction(0)->GetName();
+  //   ConvertToLowerCase(rateFunction);
+  //   if (rateFunction.compare("1") == 0 || rateFunction.compare("true") == 0)
+  //   {
+  //     doEstimateLearningRateAtEachIteration = false;
+  //   }
+  // }
+  // regHelper->SetDoEstimateLearningRateAtEachIteration(doEstimateLearningRateAtEachIteration);
 
   // We find both the number of transforms and the number of metrics
 
@@ -461,6 +461,24 @@ DoRegistration(typename ParserType::Pointer & parser)
     if (verbose)
     {
       std::cerr << "No transformations are specified." << std::endl;
+    }
+    return EXIT_FAILURE;
+  }
+
+  // Check that we have the same number of required args for each transform:
+  // smoothing sigmas, shrink factors, and convergence
+  unsigned int numSmoothingSigmaFunctions = smoothingSigmasOption->GetNumberOfFunctions();
+  unsigned int numShrinkFactorFunctions = shrinkFactorsOption->GetNumberOfFunctions();
+  unsigned int numConvergenceFunctions = convergenceOption->GetNumberOfFunctions();
+
+  if (numSmoothingSigmaFunctions != numShrinkFactorFunctions ||
+      numShrinkFactorFunctions != numConvergenceFunctions ||
+      numConvergenceFunctions != numberOfTransforms)
+  {
+    if (verbose)
+    {
+      std::cerr << "ERROR: smoothing sigmas, shrink factors, and convergence options must be set "
+                << "once for each transform." << std::endl;
     }
     return EXIT_FAILURE;
   }
@@ -913,6 +931,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   }
 
   // set the vector-vector parameters accumulated
+  regHelper->SetOutputPrefix(outputPrefix);
   regHelper->SetIterations(iterationList);
   regHelper->SetRestrictDeformationOptimizerWeights(restrictDeformationWeightsList);
   regHelper->SetConvergenceWindowSizes(convergenceWindowSizeList);
@@ -973,6 +992,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
     unsigned int                                      numberOfBins = 32;
     unsigned int                                      radius = 4;
+    bool                                              useGradientFilter = false;
 
     // assign default point-set variables
 
@@ -993,6 +1013,12 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
         samplingPercentage = parser->Convert<float>(metricOption->GetFunction(currentMetricNumber)->GetParameter(5));
       }
+
+      if (metricOption->GetFunction(currentMetricNumber)->GetNumberOfParameters() > 6)
+      {
+        useGradientFilter = parser->Convert<bool>(metricOption->GetFunction(currentMetricNumber)->GetParameter(6));
+      }
+
       std::string fixedFileName = metricOption->GetFunction(currentMetricNumber)->GetParameter(0);
       std::string movingFileName = metricOption->GetFunction(currentMetricNumber)->GetParameter(1);
 
@@ -1196,6 +1222,7 @@ DoRegistration(typename ParserType::Pointer & parser)
                          samplingStrategy,
                          numberOfBins,
                          radius,
+                         useGradientFilter,
                          useBoundaryPointsOnly,
                          pointSetSigma,
                          evaluationKNeighborhood,
@@ -1211,6 +1238,54 @@ DoRegistration(typename ParserType::Pointer & parser)
   if (regHelper->DoRegistration() == EXIT_FAILURE)
   {
     return EXIT_FAILURE;
+  }
+
+  std::string                                                whichInterpolator("linear");
+  typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption("interpolation");
+  if (interpolationOption && interpolationOption->GetNumberOfFunctions())
+  {
+    whichInterpolator = interpolationOption->GetFunction(0)->GetName();
+    ConvertToLowerCase(whichInterpolator);
+  }
+
+  typename ImageType::SpacingType cache_spacing_for_smoothing_sigmas(
+    itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
+  if (!std::strcmp(whichInterpolator.c_str(), "gaussian") || !std::strcmp(whichInterpolator.c_str(), "multilabel"))
+  {
+#if 1
+    // HACK:: This can just be cached when reading the fixedImage from above!!
+    //
+    std::string fixedImageFileName = metricOption->GetFunction(numberOfTransforms - 1)->GetParameter(0);
+
+    typedef itk::ImageFileReader<ImageType> ImageReaderType;
+    typename ImageReaderType::Pointer       fixedImageReader = ImageReaderType::New();
+
+    fixedImageReader->SetFileName(fixedImageFileName.c_str());
+    fixedImageReader->Update();
+    typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+#endif
+    cache_spacing_for_smoothing_sigmas = fixedImage->GetSpacing();
+  }
+
+#include "make_interpolator_snip.tmpl"
+  regHelper->SetInterpolator(interpolator);
+
+  if (!outputWarpedImageName.empty())
+  {
+    typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
+    if (warpedImage.IsNotNull())
+    {
+      ANTs::WriteImage<ImageType>(warpedImage, outputWarpedImageName.c_str());
+    }
+  }
+
+  if (!outputInverseWarpedImageName.empty())
+  {
+    typename ImageType::Pointer inverseWarpedImage = regHelper->GetInverseWarpedImage();
+    if (inverseWarpedImage.IsNotNull())
+    {
+      ANTs::WriteImage<ImageType>(inverseWarpedImage, outputInverseWarpedImageName.c_str());
+    }
   }
 
   // write out transforms stored in the composite
@@ -1271,6 +1346,8 @@ DoRegistration(typename ParserType::Pointer & parser)
   CompositeTransformPointer transformToWrite;
   if (shouldCollapseBeDone)
   {
+    // For some reason regHelper->m_CompositeTransform is getting mangled here.
+    // However, both resultTransform and transformToWrite appear to be correct.
     transformToWrite = regHelper->CollapseCompositeTransform(resultTransform);
 
     numTransforms = transformToWrite->GetNumberOfTransforms();
@@ -1312,6 +1389,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   {
     transformToWrite = resultTransform.GetPointer();
   }
+
   if (writeCompositeTransform)
   {
     std::string compositeTransformFileName = outputPrefix;
@@ -1437,7 +1515,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             velocityFieldWriter->Update();
           }
         }
-        catch (itk::ExceptionObject & err)
+        catch (const itk::ExceptionObject & err)
         {
           if (verbose)
           {
@@ -1448,54 +1526,6 @@ DoRegistration(typename ParserType::Pointer & parser)
           }
         }
       }
-    }
-  }
-
-  std::string                                                whichInterpolator("linear");
-  typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption("interpolation");
-  if (interpolationOption && interpolationOption->GetNumberOfFunctions())
-  {
-    whichInterpolator = interpolationOption->GetFunction(0)->GetName();
-    ConvertToLowerCase(whichInterpolator);
-  }
-
-  typename ImageType::SpacingType cache_spacing_for_smoothing_sigmas(
-    itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
-  if (!std::strcmp(whichInterpolator.c_str(), "gaussian") || !std::strcmp(whichInterpolator.c_str(), "multilabel"))
-  {
-#if 1
-    // HACK:: This can just be cached when reading the fixedImage from above!!
-    //
-    std::string fixedImageFileName = metricOption->GetFunction(numberOfTransforms - 1)->GetParameter(0);
-
-    typedef itk::ImageFileReader<ImageType> ImageReaderType;
-    typename ImageReaderType::Pointer       fixedImageReader = ImageReaderType::New();
-
-    fixedImageReader->SetFileName(fixedImageFileName.c_str());
-    fixedImageReader->Update();
-    typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
-#endif
-    cache_spacing_for_smoothing_sigmas = fixedImage->GetSpacing();
-  }
-
-#include "make_interpolator_snip.tmpl"
-  regHelper->SetInterpolator(interpolator);
-
-  if (!outputWarpedImageName.empty())
-  {
-    typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
-    if (warpedImage.IsNotNull())
-    {
-      ANTs::WriteImage<ImageType>(warpedImage, outputWarpedImageName.c_str());
-    }
-  }
-
-  if (!outputInverseWarpedImageName.empty())
-  {
-    typename ImageType::Pointer inverseWarpedImage = regHelper->GetInverseWarpedImage();
-    if (inverseWarpedImage.IsNotNull())
-    {
-      ANTs::WriteImage<ImageType>(inverseWarpedImage, outputInverseWarpedImageName.c_str());
     }
   }
 

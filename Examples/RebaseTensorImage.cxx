@@ -15,7 +15,6 @@
 #include <algorithm>
 
 #include "ReadWriteData.h"
-#include "itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkWarpTensorImageMultiTransformFilter.h"
 #include "itkTransformFileReader.h"

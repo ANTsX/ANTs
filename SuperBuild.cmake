@@ -92,7 +92,7 @@ CMAKE_DEPENDENT_OPTION(
   "BUILD_STYLE_UTILS" OFF
   )
 
-option(ITK_BUILD_MINC_SUPPORT "Build support for MINC2" OFF)
+option(ITK_BUILD_MINC_SUPPORT "Build support for MINC2" ON)
 
 option(ITK_BUILD_VKFFT_SUPPORT "Build support for VkFFT GPU accelerated FFTs" OFF)
 
@@ -147,6 +147,18 @@ set(${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS)
 # The macro '_expand_external_project_vars' can be used to expand the list of <EP_VAR>.
 set(${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_ARGS) # List of CMake args to configure BRAINS
 set(${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARNAMES) # List of CMake variable names
+
+# SuperBuild_ANTS_C[XX]_OPTIMIZATION_FLAGS is defined when Common.cmake is included above, and will
+# be set to default values. Export this variable to the ANTs-build config by adding it to the list
+# of SUPERBUILD_EP_ARGS
+set(${LOCAL_PROJECT_NAME}_C_OPTIMIZATION_FLAGS ${${CMAKE_PROJECT_NAME}_C_OPTIMIZATION_FLAGS})
+set(${LOCAL_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS ${${CMAKE_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS})
+# These are not explicitly added to the external project variable list, but they exist in the scope
+# of External_ITKv5.cmake. From there they are added to the ITK cmake call. Adding them to
+# ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_ARGS doesn't seem to work, so instead use these directly as is
+# done for ITK_BULD_MINC_SUPPORT
+set(ITK_C_OPTIMIZATION_FLAGS "${${CMAKE_PROJECT_NAME}_C_OPTIMIZATION_FLAGS}")
+set(ITK_CXX_OPTIMIZATION_FLAGS "${${CMAKE_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS}")
 
 # Convenient macro allowing to expand the list of EP_VAR listed in ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
 # The expanded arguments will be appended to the list ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_ARGS
@@ -252,6 +264,13 @@ list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
   RUN_LONG_TESTS:BOOL
   OLD_BASELINE_TESTS:BOOL
   ANTS_INSTALL_LIBS_ONLY:BOOL
+
+  # PAC - ANTS and ITK both include ITKSetStandardCompilerFlags.cmake, which will set optimization flags unless
+  # built with PROJECT_C[XX]_OPTIMIZATION_FLAGS, eg ANTS needs to be built with -DANTS_C_OPTIMIZATION_FLAGS and
+  # -DANTS_CXX_OPTIMIZATION_FLAGS
+  ${LOCAL_PROJECT_NAME}_C_OPTIMIZATION_FLAGS:STRING
+  ${LOCAL_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS:STRING
+
 
   ${LOCAL_PROJECT_NAME}_CLI_LIBRARY_OUTPUT_DIRECTORY:PATH
   ${LOCAL_PROJECT_NAME}_CLI_ARCHIVE_OUTPUT_DIRECTORY:PATH

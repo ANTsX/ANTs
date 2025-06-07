@@ -58,8 +58,7 @@ MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>::GenerateData(void)
   this->m_BlobRadiusImage = BlobRadiusImageType::New();
   this->m_BlobRadiusImage->CopyInformation(inputImage);
   this->m_BlobRadiusImage->SetRegions(inputImage->GetRequestedRegion());
-  this->m_BlobRadiusImage->Allocate();
-  this->m_BlobRadiusImage->FillBuffer(0);
+  this->m_BlobRadiusImage->AllocateInitialized();
 
   typedef itk::CastImageFilter<InputImageType, InputImageType> CasterFilterType;
   typename CasterFilterType::Pointer                           caster = CasterFilterType::New();

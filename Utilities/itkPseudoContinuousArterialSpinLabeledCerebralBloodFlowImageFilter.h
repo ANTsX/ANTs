@@ -61,7 +61,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter, ImageToImageFilter);
+  itkOverrideGetNameOfClassMacro(PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter);
 
   /** Compiler can't inherit typedef? */
   typedef TInputImage                             InputImageType;
@@ -75,9 +75,9 @@ public:
   typedef typename ReferenceImageType::RegionType ReferenceImageRegionType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
-  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
-  itkStaticConstMacro(ReferenceImageDimension, unsigned int, TReferenceImage::ImageDimension);
+  static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
+  static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
+  static constexpr unsigned int ReferenceImageDimension = TReferenceImage::ImageDimension;
 
   itkGetMacro(TI1, float);
   itkSetMacro(TI1, float);

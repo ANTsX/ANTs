@@ -46,6 +46,12 @@ CreateJacobianDeterminantImage(int argc, char * argv[])
     calculateGeometricJacobian = static_cast<bool>(std::stoi(argv[5]));
   }
 
+  bool returnDeformationGradient = false;
+  if (argc > 6)
+  {
+    returnDeformationGradient = static_cast<bool>(std::stoi(argv[6]));
+  }
+
   if (calculateGeometricJacobian)
   {
     using JacobianFilterType = itk::GeometricJacobianDeterminantImageFilter<VectorImageType, RealType, ImageType>;
@@ -59,15 +65,69 @@ CreateJacobianDeterminantImage(int argc, char * argv[])
   else
   {
     using JacobianFilterType = itk::DeformationFieldGradientTensorImageFilter<VectorImageType, RealType>;
+    using MatrixImageType = typename JacobianFilterType::OutputImageType;
     typename JacobianFilterType::Pointer jacobianFilter = JacobianFilterType::New();
     jacobianFilter->SetInput(reader->GetOutput());
     jacobianFilter->SetCalculateJacobian(true);
     jacobianFilter->SetUseImageSpacing(true);
-    jacobianFilter->SetOrder(2);
-    jacobianFilter->SetUseCenteredDifference(true);
 
-    using DeterminantFilterType =
-      itk::DeterminantTensorImageFilter<typename JacobianFilterType::OutputImageType, RealType>;
+    if ( returnDeformationGradient )
+    {
+      jacobianFilter->Update();
+      // ITK <=5.4.3 can't write NIFTI matrix pixels, so we need to convert to a vector image only if
+      // the output file is NIFTI .nii or .nii.gz
+      std::string outputFileName = argv[3];
+      bool isNifti = false;
+
+      if (outputFileName.size() >= 7 && outputFileName.compare(outputFileName.size() - 7, 7, ".nii.gz") == 0)
+      {
+        isNifti = true;
+      }
+      else if (outputFileName.size() >= 4 && outputFileName.compare(outputFileName.size() - 4, 4, ".nii") == 0)
+      {
+        isNifti = true;
+      }
+      if (!isNifti)
+      {
+        ANTs::WriteImage<MatrixImageType>(jacobianFilter->GetOutput(), argv[3]);
+        return EXIT_SUCCESS;
+      }
+      // Convert to a vector image in row-major order J[0][0], J[0][1], J[0][2], J[1][0], J[1][1], J[1][2], ...
+      using MatrixType = typename MatrixImageType::PixelType;
+      using FlatMatrixType = itk::Vector<RealType, ImageDimension * ImageDimension>;
+      using FlatMatrixImageType = itk::Image<FlatMatrixType, ImageDimension>;
+      typename MatrixImageType::Pointer matrixImage = jacobianFilter->GetOutput();
+      typename FlatMatrixImageType::Pointer matVectorImage = FlatMatrixImageType::New();
+
+      matVectorImage->SetRegions(matrixImage->GetLargestPossibleRegion());
+      matVectorImage->SetOrigin(matrixImage->GetOrigin());
+      matVectorImage->SetSpacing(matrixImage->GetSpacing());
+      matVectorImage->SetDirection(matrixImage->GetDirection());
+      matVectorImage->Allocate();
+
+      itk::ImageRegionConstIterator<MatrixImageType> inIt(matrixImage, matrixImage->GetLargestPossibleRegion());
+      itk::ImageRegionIterator<FlatMatrixImageType> outIt(matVectorImage, matVectorImage->GetLargestPossibleRegion());
+
+      for (inIt.GoToBegin(), outIt.GoToBegin(); !inIt.IsAtEnd(); ++inIt, ++outIt)
+      {
+        const MatrixType& m = inIt.Get();
+        FlatMatrixType fm;
+        for (unsigned int i = 0; i < ImageDimension; ++i)
+        {
+          for (unsigned int j = 0; j < ImageDimension; ++j)
+          {
+            fm[i * ImageDimension + j] = m[i][j];
+          }
+        }
+        outIt.Set(fm);
+      }
+
+      ANTs::WriteImage<FlatMatrixImageType>(matVectorImage, outputFileName.c_str());
+
+      return EXIT_SUCCESS;
+    }
+
+    using DeterminantFilterType = typename itk::DeterminantTensorImageFilter<MatrixImageType, RealType>;
     typename DeterminantFilterType::Pointer determinantFilter = DeterminantFilterType::New();
     determinantFilter->SetInput(jacobianFilter->GetOutput());
     determinantFilter->Update();
@@ -158,7 +218,8 @@ CreateJacobianDeterminantImage(std::vector<std::string> args, std::ostream * itk
   if (argc < 3)
   {
     std::cout << "Usage: " << argv[0]
-              << " imageDimension deformationField outputImage [doLogJacobian=0] [useGeometric=0]" << std::endl;
+              << " imageDimension deformationField outputImage [doLogJacobian=0] [useGeometric=0] [deformationGradient=0]" << std::endl;
+    std::cout << "deformationGradient=1 means write the full matrix J. Default (deformationGradient=0) is to write det(J)" << std::endl;
     return EXIT_FAILURE;
   }
 

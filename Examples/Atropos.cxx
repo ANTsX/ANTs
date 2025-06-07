@@ -121,6 +121,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
    * Initialization
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer initializationOption = parser->GetOption("initialization");
+  if (!initializationOption || !initializationOption->GetNumberOfFunctions())
+  {
+    std::cerr << "No initialization option specified." << std::endl;
+    return EXIT_FAILURE;
+  }
   if (initializationOption && initializationOption->GetNumberOfFunctions() &&
       initializationOption->GetFunction(0)->GetNumberOfParameters() < 1)
   {
@@ -206,7 +211,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
         for (unsigned int k = 0; k < imageNames.size(); k++)
         {
           typename InputImageType::Pointer image;
-          ReadImage<InputImageType>(image, imageNames[k].c_str());
+          if (!ReadImage<InputImageType>(image, imageNames[k].c_str()))
+          {
+            std::cout << "Input prior probability image could not be read: " << imageNames[k] << std::endl;
+            return EXIT_FAILURE;
+          }
           segmenter->SetPriorProbabilityImage(k + 1, image);
         }
       }
@@ -214,7 +223,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
       {
         using VectorImageType = itk::VectorImage<PixelType, ImageDimension>;
         typename VectorImageType::Pointer image;
-        ReadImage<VectorImageType>(image, filename.c_str());
+        if (!ReadImage<VectorImageType>(image, filename.c_str()))
+        {
+          std::cout << "Input prior probability image could not be read." << std::endl;
+          return EXIT_FAILURE;
+        }
 
         if (image->GetNumberOfComponentsPerPixel() != segmenter->GetNumberOfTissueClasses())
         {
@@ -260,7 +273,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
 
       std::string                      filename = initializationOption->GetFunction(0)->GetParameter(1);
       typename LabelImageType::Pointer image;
-      ReadImage<LabelImageType>(image, filename.c_str());
+      if (!ReadImage<LabelImageType>(image, filename.c_str()))
+      {
+        std::cout << "Input prior label image could not be read." << std::endl;
+        return EXIT_FAILURE;
+      }
       segmenter->SetPriorLabelImage(image);
     }
     else
@@ -373,7 +390,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
     try
     {
       typename LabelImageType::Pointer image;
-      ReadImage<LabelImageType>(image, maskOption->GetFunction(0)->GetName().c_str());
+      if (!ReadImage<LabelImageType>(image, maskOption->GetFunction(0)->GetName().c_str()))
+      {
+        std::cout << "Input mask image could not be read." << std::endl;
+        return EXIT_FAILURE;
+      }
       segmenter->SetMaskImage(image);
 
       // Check to see that the labels in the prior label image or the non-zero
@@ -600,7 +621,11 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
         imagename = imageOption->GetFunction(n)->GetName();
       }
       typename InputImageType::Pointer image;
-      ReadImage<InputImageType>(image, imagename.c_str());
+      if (!ReadImage<InputImageType>(image, imagename.c_str()))
+      {
+        std::cout << "Input intensity image could not be read." << std::endl;
+        return EXIT_FAILURE;
+      }
       segmenter->SetIntensityImage(count, image);
       if (imageOption->GetFunction(count)->GetNumberOfParameters() > 1)
       {
@@ -994,7 +1019,7 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
     //    segmenter->DebugOn();
     segmenter->Update();
   }
-  catch (itk::ExceptionObject & exp)
+  catch (const itk::ExceptionObject & exp)
   {
     if (verbose)
     {
@@ -1297,25 +1322,25 @@ AtroposInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Different posterior probability formulations are possible as ") +
-                              std::string("are different update options.  To guarantee theoretical ") +
-                              std::string("convergence properties, a proper formulation of the well-known ") +
-                              std::string("iterated conditional modes (ICM) uses an asynchronous update step ") +
-                              std::string("modulated by a specified annealing temperature.  If one sets ") +
-                              std::string("the AnnealingTemperature > 1 in the posterior formulation ") +
-                              std::string("a traditional code set for a proper ICM update will be created. ") +
-                              std::string("Otherwise, a synchronous update step will take place at each iteration. ") +
-                              std::string("The annealing temperature, T, converts the posteriorProbability ") +
-                              std::string("to posteriorProbability^(1/T) over the course of optimization. ");
-    std::string("Options include the following:  ") +
+    std::string description =
+      std::string("Different posterior probability formulations are possible as ") +
+      std::string("are different update options.  To guarantee theoretical ") +
+      std::string("convergence properties, a proper formulation of the well-known ") +
+      std::string("iterated conditional modes (ICM) uses an asynchronous update step ") +
+      std::string("modulated by a specified annealing temperature.  If one sets ") +
+      std::string("the AnnealingTemperature > 1 in the posterior formulation ") +
+      std::string("a traditional code set for a proper ICM update will be created. ") +
+      std::string("Otherwise, a synchronous update step will take place at each iteration. ") +
+      std::string("The annealing temperature, T, converts the posteriorProbability ") +
+      std::string("to posteriorProbability^(1/T) over the course of optimization. ") +
+      std::string("Options include the following:  ") +
       std::string(" Socrates: posteriorProbability = (spatialPrior)^priorWeight") +
       std::string("*(likelihood*mrfPrior)^(1-priorWeight), ") + std::string(" Plato: posteriorProbability = 1.0, ") +
-      std::string(" Aristotle: posteriorProbability = 1.0, ") +
-      std::string(" Sigmoid: posteriorProbability = 1.0, ") /* +
-   std::string( " Zeno: posteriorProbability = 1.0\n" ) +
-   std::string( " Diogenes: posteriorProbability = 1.0\n" ) +
-   std::string( " Thales: posteriorProbability = 1.0\n" ) +
-   std::string( " Democritus: posteriorProbability = 1.0.\n" ) */
+      std::string(" Aristotle: posteriorProbability = 1.0, ") + std::string(" Sigmoid: posteriorProbability = 1.0, ")
+      // std::string( " Zeno: posteriorProbability = 1.0\n" ) +
+      // std::string( " Diogenes: posteriorProbability = 1.0\n" ) +
+      // std::string( " Thales: posteriorProbability = 1.0\n" ) +
+      // std::string( " Democritus: posteriorProbability = 1.0.\n" )
       ;
 
     OptionType::Pointer option = OptionType::New();
@@ -1501,7 +1526,7 @@ AtroposInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
                               std::string("Alternatively, propagation of the labels with the ") +
                               std::string("fast marching filter respects the distance along the ") +
                               std::string("shape of the mask (e.g. the sinuous sulci and gyri ") +
-                              std::string("of the cortex.");
+                              std::string("of the cortex).");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("use-euclidean-distance");

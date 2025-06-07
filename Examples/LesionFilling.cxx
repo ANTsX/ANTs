@@ -44,7 +44,7 @@ LesionFilling(int argc, char * argv[])
     throw;
   }
   using T1ImageType = itk::Image<double, ImageDimension>;
-  using LesionImageType = itk::Image<unsigned char, ImageDimension>;
+  using LesionImageType = itk::Image<unsigned short, ImageDimension>;
   using T1ImageReaderType = itk::ImageFileReader<T1ImageType>;
   using LesionImageReaderType = itk::ImageFileReader<LesionImageType>;
   typename LesionImageReaderType::Pointer LesionReader = LesionImageReaderType::New();
@@ -53,7 +53,7 @@ LesionFilling(int argc, char * argv[])
   {
     LesionReader->Update();
   }
-  catch (itk::ExceptionObject & itkNotUsed(excp))
+  catch (const itk::ExceptionObject & itkNotUsed(excp))
   {
     std::cout << "no lesion mask that can be read" << std::endl;
     return 0;
@@ -64,7 +64,7 @@ LesionFilling(int argc, char * argv[])
   {
     T1Reader->Update();
   }
-  catch (itk::ExceptionObject & itkNotUsed(excp))
+  catch (const itk::ExceptionObject & itkNotUsed(excp))
   {
     std::cout << "no T1 image that can be read" << std::endl;
     return 0;
@@ -222,7 +222,7 @@ LesionFilling(int argc, char * argv[])
   {
     writer->Update();
   }
-  catch (itk::ExceptionObject & err)
+  catch (const itk::ExceptionObject & err)
   {
     std::cerr << "ExceptionObject caught !" << std::endl;
     std::cerr << err << std::endl;

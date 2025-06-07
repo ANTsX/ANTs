@@ -152,7 +152,7 @@ ResampleImageBySpacing(std::vector<std::string> args, std::ostream * /*out_strea
           {
             smootherX->Update();
           }
-          catch (itk::ExceptionObject & excep)
+          catch (const itk::ExceptionObject & excep)
           {
             std::cout << "Exception catched !" << std::endl;
             std::cout << excep << std::endl;
@@ -285,7 +285,7 @@ ResampleImageBySpacing(std::vector<std::string> args, std::ostream * /*out_strea
           {
             smootherX->Update();
           }
-          catch (itk::ExceptionObject & excep)
+          catch (const itk::ExceptionObject & excep)
           {
             std::cout << "Exception catched !" << std::endl;
             std::cout << excep << std::endl;
@@ -414,7 +414,7 @@ ResampleImageBySpacing(std::vector<std::string> args, std::ostream * /*out_strea
           {
             smootherX->Update();
           }
-          catch (itk::ExceptionObject & excep)
+          catch (const itk::ExceptionObject & excep)
           {
             std::cout << "Exception catched !" << std::endl;
             std::cout << excep << std::endl;
