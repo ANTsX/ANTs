@@ -4,6 +4,7 @@
 #include "itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.h"
 #include "ReadWriteData.h"
 #include "TensorFunctions.h"
+#include "itkExpTensorImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkExtractImageFilter.h"
@@ -820,13 +821,13 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
           return EXIT_FAILURE;
         }
 
-        typename TensorImageType::Pointer outputTensorImage = TensorImageType::New();
-        outputTensorImage->CopyInformation(referenceImage);
-        outputTensorImage->SetRegions(referenceImage->GetRequestedRegion());
-        outputTensorImage->AllocateInitialized();
+        typename TensorImageType::Pointer resampledTensorImage = TensorImageType::New(); // but not reoriented
+        resampledTensorImage->CopyInformation(referenceImage);
+        resampledTensorImage->SetRegions(referenceImage->GetRequestedRegion());
+        resampledTensorImage->AllocateInitialized();
 
-        itk::ImageRegionIteratorWithIndex<TensorImageType> It(outputTensorImage,
-                                                              outputTensorImage->GetRequestedRegion());
+        itk::ImageRegionIteratorWithIndex<TensorImageType> It(resampledTensorImage,
+            resampledTensorImage->GetRequestedRegion());
         for (It.GoToBegin(); !It.IsAtEnd(); ++It)
         {
           TensorPixelType                     tensor = It.Get();
@@ -837,6 +838,15 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
           }
           It.Set(tensor);
         }
+        // Exponentiate the tensor image to get the diffusion tensor back in its original units
+        if (verbose)
+        {
+          std::cout << "Computing Exp(D) after resampling" << std::endl;
+        }
+        using TensorExponentiatorType = itk::ExpTensorImageFilter<TensorImageType, TensorImageType>;
+        typename TensorExponentiatorType::Pointer tensorExponentiator = TensorExponentiatorType::New();
+        tensorExponentiator->SetInput(resampledTensorImage);
+        tensorExponentiator->Update();
         // Reorient the tensors
         if (verbose)
         {
@@ -844,10 +854,10 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
         }
         using PPDReorientType = itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType>;
         typename PPDReorientType::Pointer reo = PPDReorientType::New();
-        reo->SetInput(outputTensorImage);
+        reo->SetInput(tensorExponentiator->GetOutput());
         reo->SetCompositeTransform(compositeTransform);
         reo->Update();
-        WriteTensorImage<TensorImageType>(reo->GetOutput(), (outputFileName).c_str(), true);
+        WriteTensorImage<TensorImageType>(reo->GetOutput(), (outputFileName).c_str(), false);
       }
       else if (inputImageType == 3 || inputImageType == 4 || inputImageType == 5)
       {
