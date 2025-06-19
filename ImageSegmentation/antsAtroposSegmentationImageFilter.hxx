@@ -102,7 +102,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Atrop
 
   this->m_RandomizerInitializationSeed = std::numeric_limits<RandomizerSeedType>::quiet_NaN();
   this->m_Randomizer = RandomizerType::New();
-  this->m_Randomizer->Initialize();
+  this->m_Randomizer->SetSeed();
 
   this->m_MaximumICMCode = 0;
   this->m_InitialAnnealingTemperature = 1.0;
@@ -124,7 +124,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::SetRa
   if (seed != this->m_RandomizerInitializationSeed)
   {
     this->m_RandomizerInitializationSeed = seed;
-    this->m_Randomizer->Initialize(this->m_RandomizerInitializationSeed);
+    this->m_Randomizer->SetSeed(this->m_RandomizerInitializationSeed);
     this->Modified();
   }
 }
