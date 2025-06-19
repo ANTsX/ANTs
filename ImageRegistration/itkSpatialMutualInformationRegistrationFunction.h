@@ -158,14 +158,14 @@ public:
   typedef typename Superclass::TimeStepType     TimeStepType;
 
   /** Interpolator type. */
-  typedef double CoordRepType;
-  typedef //       //    LinearInterpolateImageFunction<MovingImageType,CoordRepType>
-    BSplineInterpolateImageFunction<MovingImageType, CoordRepType>
+  typedef double CoordinateType;
+  typedef //       //    LinearInterpolateImageFunction<MovingImageType,CoordinateType>
+    BSplineInterpolateImageFunction<MovingImageType, CoordinateType>
                                                InterpolatorType;
   typedef typename InterpolatorType::Pointer   InterpolatorPointer;
   typedef typename InterpolatorType::PointType PointType;
   typedef InterpolatorType                     DefaultInterpolatorType;
-  //  typedef LinearInterpolateImageFunction<MovingImageType,CoordRepType>
+  //  typedef LinearInterpolateImageFunction<MovingImageType,CoordinateType>
   // DefaultInterpolatorType;
 
   /** Covariant vector type. */

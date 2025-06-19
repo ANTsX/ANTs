@@ -356,8 +356,8 @@ MeasureImageSimilarity(itk::ants::CommandLineParser * parser)
               // randomly perturb the point within a voxel (approximately)
               for (unsigned int d = 0; d < ImageDimension; d++)
               {
-                point[d] += static_cast<typename SamplePointType::CoordRepType>(randomizer->GetNormalVariate()) *
-                            static_cast<typename SamplePointType::CoordRepType>(oneThirdVirtualSpacing[d]);
+                point[d] += static_cast<typename SamplePointType::CoordinateType>(randomizer->GetNormalVariate()) *
+                            static_cast<typename SamplePointType::CoordinateType>(oneThirdVirtualSpacing[d]);
               }
               if (!fixedImageMask || fixedImageMask->IsInsideInWorldSpace(point))
               {
@@ -384,8 +384,8 @@ MeasureImageSimilarity(itk::ants::CommandLineParser * parser)
             // randomly perturb the point within a voxel (approximately)
             for (unsigned int d = 0; d < ImageDimension; d++)
             {
-              point[d] += static_cast<typename SamplePointType::CoordRepType>(randomizer->GetNormalVariate()) *
-                          static_cast<typename SamplePointType::CoordRepType>(oneThirdVirtualSpacing[d]);
+              point[d] += static_cast<typename SamplePointType::CoordinateType>(randomizer->GetNormalVariate()) *
+                          static_cast<typename SamplePointType::CoordinateType>(oneThirdVirtualSpacing[d]);
             }
             if (!fixedImageMask || fixedImageMask->IsInsideInWorldSpace(point))
             {

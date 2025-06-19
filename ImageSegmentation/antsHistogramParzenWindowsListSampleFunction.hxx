@@ -98,10 +98,10 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>::SetIn
 
     using HistogramPointType = typename HistogramImageType::PointType;
     HistogramPointType origin;
-    origin[0] = static_cast<typename HistogramPointType::CoordRepType>(minValues[d]) -
-                static_cast<typename HistogramPointType::CoordRepType>(3.0) *
-                  (static_cast<typename HistogramPointType::CoordRepType>(this->m_Sigma) *
-                   static_cast<typename HistogramPointType::CoordRepType>(spacing[0]));
+    origin[0] = static_cast<typename HistogramPointType::CoordinateType>(minValues[d]) -
+                static_cast<typename HistogramPointType::CoordinateType>(3.0) *
+                  (static_cast<typename HistogramPointType::CoordinateType>(this->m_Sigma) *
+                   static_cast<typename HistogramPointType::CoordinateType>(spacing[0]));
 
     typename HistogramImageType::SizeType size;
     size[0] = static_cast<unsigned int>(

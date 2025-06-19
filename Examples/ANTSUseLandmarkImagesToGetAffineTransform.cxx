@@ -316,7 +316,7 @@ LandmarkBasedTransformInitializerBA(int, char * argv[])
     }
     for (unsigned int i = 0; i < spacing.Size(); i++)
     {
-      myCenterOfMass[i] /= static_cast<typename LandmarkPointType::CoordRepType>(totalct);
+      myCenterOfMass[i] /= static_cast<typename LandmarkPointType::CoordinateType>(totalct);
     }
     //    std::cout << " pushing-mov " <<  myCenterOfMass << std::endl;
     movingLandmarks.push_back(myCenterOfMass);

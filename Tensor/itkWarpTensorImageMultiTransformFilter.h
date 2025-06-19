@@ -132,15 +132,15 @@ public:
   typedef typename TransformType::Pointer TransformTypePointer;
 
   /** Interpolator typedef support. */
-  typedef double                                                                    CoordRepType;
-  typedef VectorInterpolateImageFunction<InputImageType, CoordRepType>              InterpolatorType;
+  typedef double                                                                    CoordinateType;
+  typedef VectorInterpolateImageFunction<InputImageType, CoordinateType>              InterpolatorType;
   typedef typename InterpolatorType::Pointer                                        InterpolatorPointer;
-  typedef VectorLinearInterpolateImageFunction<InputImageType, CoordRepType>        DefaultInterpolatorType;
-  typedef VectorLinearInterpolateImageFunction<DisplacementFieldType, CoordRepType> DefaultVectorInterpolatorType;
+  typedef VectorLinearInterpolateImageFunction<InputImageType, CoordinateType>        DefaultInterpolatorType;
+  typedef VectorLinearInterpolateImageFunction<DisplacementFieldType, CoordinateType> DefaultVectorInterpolatorType;
   typedef typename DefaultVectorInterpolatorType::Pointer                           VectorInterpolatorPointer;
 
   /** Point type */
-  typedef Point<CoordRepType, Self::ImageDimension> PointType;
+  typedef Point<CoordinateType, Self::ImageDimension> PointType;
 
   typedef struct _DeformationTypeEx
   {

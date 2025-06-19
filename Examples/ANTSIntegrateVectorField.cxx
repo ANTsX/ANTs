@@ -183,7 +183,7 @@ IntegrateLength(typename TImage::Pointer gmsurf,
     ContinuousIndexType Y4;
     for (unsigned int jj = 0; jj < ImageDimension; jj++)
     {
-      pointIn2[jj] = static_cast<typename DPointType::CoordRepType>(disp[jj]) + pointIn1[jj];
+      pointIn2[jj] = static_cast<typename DPointType::CoordinateType>(disp[jj]) + pointIn1[jj];
       vcontind[jj] = pointIn2[jj] / lapgrad->GetSpacing()[jj];
       Y1[jj] = vcontind[jj];
       Y2[jj] = vcontind[jj];
@@ -198,7 +198,7 @@ IntegrateLength(typename TImage::Pointer gmsurf,
     f1 = vinterp->EvaluateAtContinuousIndex(Y1);
     for (unsigned int jj = 0; jj < ImageDimension; jj++)
     {
-      Y2[jj] += static_cast<typename ContinuousIndexType::CoordRepType>(static_cast<float>(f1[jj]) * deltaTime * 0.5f);
+      Y2[jj] += static_cast<typename ContinuousIndexType::CoordinateType>(static_cast<float>(f1[jj]) * deltaTime * 0.5f);
     }
     bool isinside = true;
     for (unsigned int jj = 0; jj < ImageDimension; jj++)
@@ -214,7 +214,7 @@ IntegrateLength(typename TImage::Pointer gmsurf,
     }
     for (unsigned int jj = 0; jj < ImageDimension; jj++)
     {
-      Y3[jj] += static_cast<typename ContinuousIndexType::CoordRepType>(static_cast<float>(f2[jj]) * deltaTime * 0.5f);
+      Y3[jj] += static_cast<typename ContinuousIndexType::CoordinateType>(static_cast<float>(f2[jj]) * deltaTime * 0.5f);
     }
     isinside = true;
     for (unsigned int jj = 0; jj < ImageDimension; jj++)
@@ -230,7 +230,7 @@ IntegrateLength(typename TImage::Pointer gmsurf,
     }
     for (unsigned int jj = 0; jj < ImageDimension; jj++)
     {
-      Y4[jj] += static_cast<typename ContinuousIndexType::CoordRepType>(static_cast<float>(f3[jj]) * deltaTime);
+      Y4[jj] += static_cast<typename ContinuousIndexType::CoordinateType>(static_cast<float>(f3[jj]) * deltaTime);
     }
     isinside = true;
     for (unsigned int jj = 0; jj < ImageDimension; jj++)
@@ -244,14 +244,14 @@ IntegrateLength(typename TImage::Pointer gmsurf,
     {
       f4 = vinterp->EvaluateAtContinuousIndex(Y4);
     }
-    using DPointCoordRepType = typename DPointType::CoordRepType;
-    auto twoValue = static_cast<DPointCoordRepType>(2.0);
+    using DPointCoordinateType = typename DPointType::CoordinateType;
+    auto twoValue = static_cast<DPointCoordinateType>(2.0);
     for (unsigned int jj = 0; jj < ImageDimension; jj++)
     {
       pointIn3[jj] =
-        pointIn2[jj] + static_cast<DPointCoordRepType>(gradsign * vecsign * deltaTime / 6.0f) *
-                         (static_cast<DPointCoordRepType>(f1[jj]) + twoValue * static_cast<DPointCoordRepType>(f2[jj]) +
-                          twoValue * static_cast<DPointCoordRepType>(f3[jj]) + static_cast<DPointCoordRepType>(f4[jj]));
+        pointIn2[jj] + static_cast<DPointCoordinateType>(gradsign * vecsign * deltaTime / 6.0f) *
+                         (static_cast<DPointCoordinateType>(f1[jj]) + twoValue * static_cast<DPointCoordinateType>(f2[jj]) +
+                          twoValue * static_cast<DPointCoordinateType>(f3[jj]) + static_cast<DPointCoordinateType>(f4[jj]));
     }
 
     VectorType out;

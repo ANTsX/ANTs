@@ -104,11 +104,11 @@ public:
   typedef typename Superclass::TimeStepType    TimeStepType;
 
   /** Interpolator type. */
-  typedef double                                                        CoordRepType;
-  typedef InterpolateImageFunction<MovingImageType, CoordRepType>       InterpolatorType;
+  typedef double                                                        CoordinateType;
+  typedef InterpolateImageFunction<MovingImageType, CoordinateType>       InterpolatorType;
   typedef typename InterpolatorType::Pointer                            InterpolatorPointer;
   typedef typename InterpolatorType::PointType                          PointType;
-  typedef LinearInterpolateImageFunction<MovingImageType, CoordRepType> DefaultInterpolatorType;
+  typedef LinearInterpolateImageFunction<MovingImageType, CoordinateType> DefaultInterpolatorType;
 
   /** Covariant vector type. */
   typedef CovariantVector<double, Self::ImageDimension> CovariantVectorType;

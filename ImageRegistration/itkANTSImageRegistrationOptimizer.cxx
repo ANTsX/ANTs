@@ -505,8 +505,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComposeDiffs(DisplacementFiel
       }
       for (unsigned int jj = 0; jj < ImageDimension; jj++)
       {
-        pointIn3[jj] = static_cast<typename VPointType::CoordRepType>(disp2[jj]) *
-                         static_cast<typename VPointType::CoordRepType>(timesign) +
+        pointIn3[jj] = static_cast<typename VPointType::CoordinateType>(disp2[jj]) *
+                         static_cast<typename VPointType::CoordinateType>(timesign) +
                        pointIn2[jj];
       }
 
@@ -2758,14 +2758,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
     {
       f4 = this->m_VelocityFieldInterpolator->Evaluate(Y4x);
     }
-    using xPointCoordRepType = typename xPointType::CoordRepType;
-    xPointCoordRepType twoValue = static_cast<xPointCoordRepType>(2.0);
+    using xPointCoordinateType = typename xPointType::CoordinateType;
+    xPointCoordinateType twoValue = static_cast<xPointCoordinateType>(2.0);
     for (unsigned int jj = 0; jj < TDimension; jj++)
     {
       pointIn3[jj] =
-        pointIn2[jj] + static_cast<xPointCoordRepType>(vecsign * deltaTime / 6.0f) *
-                         (static_cast<xPointCoordRepType>(f1[jj]) + twoValue * static_cast<xPointCoordRepType>(f2[jj]) +
-                          twoValue * static_cast<xPointCoordRepType>(f3[jj]) + static_cast<xPointCoordRepType>(f4[jj]));
+        pointIn2[jj] + static_cast<xPointCoordinateType>(vecsign * deltaTime / 6.0f) *
+                         (static_cast<xPointCoordinateType>(f1[jj]) + twoValue * static_cast<xPointCoordinateType>(f2[jj]) +
+                          twoValue * static_cast<xPointCoordinateType>(f3[jj]) + static_cast<xPointCoordinateType>(f4[jj]));
     }
     pointIn3[TDimension] = itime * static_cast<TReal>(m_NumberOfTimePoints - 1);
 
@@ -2908,14 +2908,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
       {
         f4 = this->m_VelocityFieldInterpolator->Evaluate(Y4x);
       }
-      using xPointCoordRepType = typename xPointType::CoordRepType;
-      xPointCoordRepType twoValue = static_cast<xPointCoordRepType>(2.0);
+      using xPointCoordinateType = typename xPointType::CoordinateType;
+      xPointCoordinateType twoValue = static_cast<xPointCoordinateType>(2.0);
       for (unsigned int jj = 0; jj < TDimension; jj++)
       {
         pointIn3[jj] = pointIn2[jj] +
-                       static_cast<xPointCoordRepType>(vecsign * deltaTime / 6.0f) *
-                         (static_cast<xPointCoordRepType>(f1[jj]) + twoValue * static_cast<xPointCoordRepType>(f2[jj]) +
-                          twoValue * static_cast<xPointCoordRepType>(f3[jj]) + static_cast<xPointCoordRepType>(f4[jj]));
+                       static_cast<xPointCoordinateType>(vecsign * deltaTime / 6.0f) *
+                         (static_cast<xPointCoordinateType>(f1[jj]) + twoValue * static_cast<xPointCoordinateType>(f2[jj]) +
+                          twoValue * static_cast<xPointCoordinateType>(f3[jj]) + static_cast<xPointCoordinateType>(f4[jj]));
       }
       pointIn3[TDimension] = itime * static_cast<TReal>(m_NumberOfTimePoints - 1);
 

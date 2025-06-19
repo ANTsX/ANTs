@@ -125,13 +125,13 @@ public:
   typedef typename TransformType::Pointer TransformTypePointer;
 
   /** Interpolator typedef support. */
-  typedef double                                                       CoordRepType;
-  typedef InterpolateImageFunction<InputImageType, CoordRepType>       InterpolatorType;
+  typedef double                                                       CoordinateType;
+  typedef InterpolateImageFunction<InputImageType, CoordinateType>       InterpolatorType;
   typedef typename InterpolatorType::Pointer                           InterpolatorPointer;
-  typedef LinearInterpolateImageFunction<InputImageType, CoordRepType> DefaultInterpolatorType;
+  typedef LinearInterpolateImageFunction<InputImageType, CoordinateType> DefaultInterpolatorType;
 
   /** Point type */
-  typedef Point<CoordRepType, Self::ImageDimension> PointType;
+  typedef Point<CoordinateType, Self::ImageDimension> PointType;
 
   /** Set the deformation field. */
   void
