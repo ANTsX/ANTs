@@ -311,7 +311,7 @@ WarpImageMultiTransformFourD(char *           moving_image_filename,
     if (misc_opt.use_NN_interpolator)
     {
       using NNInterpolateType =
-        typename itk::NearestNeighborInterpolateImageFunction<ImageType, typename WarperType::CoordRepType>;
+        typename itk::NearestNeighborInterpolateImageFunction<ImageType, typename WarperType::CoordinateType>;
       typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
       std::cout << " Use Nearest Neighbor interpolation " << std::endl;
       warper->SetInterpolator(interpolator_NN);
@@ -528,7 +528,7 @@ WarpImageMultiTransform(char *           moving_image_filename,
     if (misc_opt.use_NN_interpolator)
     {
       using NNInterpolateType =
-        typename itk::NearestNeighborInterpolateImageFunction<ImageType, typename WarperType::CoordRepType>;
+        typename itk::NearestNeighborInterpolateImageFunction<ImageType, typename WarperType::CoordinateType>;
       typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
       std::cout << "Haha" << std::endl;
       warper->SetInterpolator(interpolator_NN);

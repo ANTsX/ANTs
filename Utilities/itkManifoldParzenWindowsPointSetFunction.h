@@ -57,7 +57,7 @@ public:
   typedef typename PointSetType::PointType                     PointType;
   typedef typename PointSetType ::PointsContainerConstIterator PointsContainerConstIterator;
 
-  typedef Vector<typename PointSetType::CoordRepType, Self::Dimension> MeasurementVectorType;
+  typedef Vector<typename PointSetType::CoordinateType, Self::Dimension> MeasurementVectorType;
   typedef typename Statistics::ListSample<MeasurementVectorType>                         SampleType;
   typedef typename Statistics ::WeightedCentroidKdTreeGenerator<SampleType>              TreeGeneratorType;
   typedef typename TreeGeneratorType::KdTreeType                                         KdTreeType;

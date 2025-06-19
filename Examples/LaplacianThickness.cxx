@@ -505,7 +505,7 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
       typename DefaultInterpolatorType::ContinuousIndexType Y4;
       for (unsigned int jj = 0; jj < ImageDimension; jj++)
       {
-        pointIn2[jj] = static_cast<typename DPointType::CoordRepType>(disp[jj]) + pointIn1[jj];
+        pointIn2[jj] = static_cast<typename DPointType::CoordinateType>(disp[jj]) + pointIn1[jj];
         vcontind[jj] = pointIn2[jj] / lapgrad->GetSpacing()[jj];
         Y1[jj] = vcontind[jj];
         Y2[jj] = vcontind[jj];
@@ -518,13 +518,13 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
       //      Y4[ImageDimension]=itime;
 
       using ContinuousIndexType = typename DefaultInterpolatorType::ContinuousIndexType;
-      using CoordRepType = typename ContinuousIndexType::CoordRepType;
+      using CoordinateType = typename ContinuousIndexType::CoordinateType;
 
       f1 = vinterp->EvaluateAtContinuousIndex(Y1);
       for (unsigned int jj = 0; jj < ImageDimension; jj++)
       {
         Y2[jj] +=
-          static_cast<CoordRepType>(f1[jj]) * static_cast<CoordRepType>(deltaTime) * static_cast<CoordRepType>(0.5);
+          static_cast<CoordinateType>(f1[jj]) * static_cast<CoordinateType>(deltaTime) * static_cast<CoordinateType>(0.5);
       }
       bool isinside = true;
       for (unsigned int jj = 0; jj < ImageDimension; jj++)
@@ -541,7 +541,7 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
       for (unsigned int jj = 0; jj < ImageDimension; jj++)
       {
         Y3[jj] +=
-          static_cast<CoordRepType>(f2[jj]) * static_cast<CoordRepType>(deltaTime) * static_cast<CoordRepType>(0.5);
+          static_cast<CoordinateType>(f2[jj]) * static_cast<CoordinateType>(deltaTime) * static_cast<CoordinateType>(0.5);
       }
       isinside = true;
       for (unsigned int jj = 0; jj < ImageDimension; jj++)
@@ -557,7 +557,7 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
       }
       for (unsigned int jj = 0; jj < ImageDimension; jj++)
       {
-        Y4[jj] += static_cast<CoordRepType>(f3[jj]) * static_cast<CoordRepType>(deltaTime);
+        Y4[jj] += static_cast<CoordinateType>(f3[jj]) * static_cast<CoordinateType>(deltaTime);
       }
       isinside = true;
       for (unsigned int jj = 0; jj < ImageDimension; jj++)
@@ -571,14 +571,14 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
       {
         f4 = vinterp->EvaluateAtContinuousIndex(Y4);
       }
-      using DPointCoordRepType = typename DPointType::CoordRepType;
-      auto twoValue = static_cast<DPointCoordRepType>(2.0);
+      using DPointCoordinateType = typename DPointType::CoordinateType;
+      auto twoValue = static_cast<DPointCoordinateType>(2.0);
       for (unsigned int jj = 0; jj < ImageDimension; jj++)
       {
         pointIn3[jj] = pointIn2[jj] +
-                       static_cast<DPointCoordRepType>(gradsign * vecsign * deltaTime / 6.0f) *
-                         (static_cast<DPointCoordRepType>(f1[jj]) + twoValue * static_cast<DPointCoordRepType>(f2[jj]) +
-                          twoValue * static_cast<DPointCoordRepType>(f3[jj]) + static_cast<DPointCoordRepType>(f4[jj]));
+                       static_cast<DPointCoordinateType>(gradsign * vecsign * deltaTime / 6.0f) *
+                         (static_cast<DPointCoordinateType>(f1[jj]) + twoValue * static_cast<DPointCoordinateType>(f2[jj]) +
+                          twoValue * static_cast<DPointCoordinateType>(f3[jj]) + static_cast<DPointCoordinateType>(f4[jj]));
       }
 
       VectorType out;

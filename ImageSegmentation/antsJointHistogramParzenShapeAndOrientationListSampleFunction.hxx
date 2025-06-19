@@ -265,10 +265,10 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 
   // note, if a point maps to 0 or 2*pi then it should contribute to both bins -- pretty much only difference between
   // this function and matlab code is the next 15 or so lines, as far as we see
-  orientPoint[0] = static_cast<typename JointHistogramImagePointType::CoordRepType>(
+  orientPoint[0] = static_cast<typename JointHistogramImagePointType::CoordinateType>(
     psi / static_cast<RealType>(Math::pi) * static_cast<RealType>(this->m_NumberOfOrientationJointHistogramBins - 1) +
     NumericTraits<RealType>::OneValue());
-  orientPoint[1] = static_cast<typename JointHistogramImagePointType::CoordRepType>(
+  orientPoint[1] = static_cast<typename JointHistogramImagePointType::CoordinateType>(
     (theta + static_cast<RealType>(Math::pi_over_2)) / static_cast<RealType>(Math::pi) *
     static_cast<RealType>(this->m_NumberOfOrientationJointHistogramBins - 1));
 

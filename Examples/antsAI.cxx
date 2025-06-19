@@ -208,7 +208,7 @@ PatchCorrelation(itk::NeighborhoodIterator<TImage> fixedNeighborhood,
       movingGradientImage->TransformIndexToPhysicalPoint(movingIndex, movingPoint);
       for (unsigned int d = 0; d < ImageDimension; d++)
       {
-        movingPointCentroid[d] += movingPoint[d] * static_cast<typename PointType::CoordRepType>(weight);
+        movingPointCentroid[d] += movingPoint[d] * static_cast<typename PointType::CoordinateType>(weight);
       }
       movingImagePatchPoints.push_back(movingPoint);
     }
@@ -276,7 +276,7 @@ PatchCorrelation(itk::NeighborhoodIterator<TImage> fixedNeighborhood,
     for (unsigned int d = 0; d < ImageDimension; d++)
     {
       movingImagePoint[d] =
-        static_cast<typename PointType::CoordRepType>(movingImagePointRotated[d]) + movingPointCentroid[d];
+        static_cast<typename PointType::CoordinateType>(movingImagePointRotated[d]) + movingPointCentroid[d];
     }
     if (movingInterpolator->IsInsideBuffer(movingImagePoint))
     {
@@ -1287,8 +1287,8 @@ antsAI(itk::ants::CommandLineParser * parser)
             // randomly perturb the point within a voxel (approximately)
             for (unsigned int d = 0; d < ImageDimension; d++)
             {
-              point[d] += static_cast<typename SamplePointType::CoordRepType>(randomizer->GetNormalVariate()) *
-                          static_cast<typename SamplePointType::CoordRepType>(oneThirdVirtualSpacing[d]);
+              point[d] += static_cast<typename SamplePointType::CoordinateType>(randomizer->GetNormalVariate()) *
+                          static_cast<typename SamplePointType::CoordinateType>(oneThirdVirtualSpacing[d]);
             }
             if (!fixedMaskSpatialObject || fixedMaskSpatialObject->IsInsideInWorldSpace(point))
             {
@@ -1315,7 +1315,7 @@ antsAI(itk::ants::CommandLineParser * parser)
           // randomly perturb the point within a voxel (approximately)
           for (unsigned int d = 0; d < ImageDimension; d++)
           {
-            point[d] += static_cast<typename SamplePointType::CoordRepType>(randomizer->GetNormalVariate() *
+            point[d] += static_cast<typename SamplePointType::CoordinateType>(randomizer->GetNormalVariate() *
                                                                             oneThirdVirtualSpacing[d]);
           }
           if (!fixedMaskSpatialObject || fixedMaskSpatialObject->IsInsideInWorldSpace(point))
