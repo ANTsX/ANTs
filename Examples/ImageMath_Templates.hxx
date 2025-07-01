@@ -33,6 +33,7 @@
 #include "itkCannyEdgeDetectionImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkCompositeValleyFunction.h"
+#include "itkComposeImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkConvolutionImageFilter.h"
@@ -5953,6 +5954,57 @@ VImageMath(int argc, char * argv[])
 
   return 0;
 }
+
+template <unsigned int ImageDimension>
+int
+ComponentToVector(int argc, char * argv[])
+{
+  int numComponents = argc - 4;
+
+  if (numComponents < 1)
+  {
+    std::cerr << "Error: At least one vector component is required." << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  int argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct++;
+  std::string operation = std::string(argv[argct]);
+  argct++;
+
+  using PixelType = float;
+  using ScalarImageType = itk::Image<PixelType, ImageDimension>;
+  using VectorImageType = itk::VectorImage<PixelType, ImageDimension>;
+  using ComposeFilterType = itk::ComposeImageFilter<ScalarImageType, VectorImageType>;
+
+  auto composeFilter = ComposeFilterType::New();
+
+  // Read and add each component image
+  for (int i = 0; i < numComponents; ++i)
+  {
+    const std::string filename = std::string(argv[argct + i]);
+    typename ScalarImageType::Pointer componentImage = nullptr;
+    ReadImage<ScalarImageType>(componentImage, filename.c_str());
+
+    composeFilter->SetInput(i, componentImage);
+  }
+
+  try
+  {
+    composeFilter->Update();
+  }
+  catch (itk::ExceptionObject & ex)
+  {
+    std::cerr << "Failed to compose vector image: " << ex << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  ANTs::WriteImage<VectorImageType>(composeFilter->GetOutput(), outname.c_str());
+
+  return EXIT_SUCCESS;
+}
+
 
 template <unsigned int ImageDimension>
 int
@@ -15374,6 +15426,10 @@ ImageMathHelperAll(int argc, char ** argv)
   {
     Project<DIM>(argc, argv);
     return EXIT_SUCCESS;
+  }
+  if (operation == "ComponentToVector")
+  {
+    return ComponentToVector<DIM>(argc, argv);
   }
   return EXIT_FAILURE;
 }
