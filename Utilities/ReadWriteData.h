@@ -34,226 +34,6 @@ ANTSFileExists(const std::string & strFilename);
 extern bool
 ANTSFileIsImage(const std::string & filename);
 
-// Nifti stores DTI values in lower tri format but itk uses upper tri
-// currently, nifti io does nothing to deal with this. if this changes
-// the function below should be modified/eliminated.
-
-#if 1 // currrently unimplemented
-template <typename TImageType>
-void
-NiftiDTICheck(itk::SmartPointer<TImageType> &, const char *, bool)
-{}
-
-#else
-template <typename TImageType>
-void
-NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char * file, bool makeLower)
-{
-  typedef typename TImageType::PixelType PixType;
-
-  return;
-  // typedef itk::ImageFileWriter<TImageType> Writer;
-  // typename Writer::Pointer writer = Writer::New();
-  // writer->SetInput( target );
-  // writer->SetFileName( "testdt.nii" );
-  // writer->Update();
-
-  // Check for nifti file
-  std::string            filename = file;
-  std::string::size_type pos1 = filename.find(".nii");
-  std::string::size_type pos2 = filename.find(".nia");
-  if ((pos1 == std::string::npos) && (pos2 == std::string::npos))
-  {
-    return;
-  }
-
-  if (PixType::Length != 6)
-  {
-    return;
-  }
-
-  std::cout << "Performing lower/upper triangular format check for Nifti DTI" << std::endl;
-
-  // swap elements 2 and 3 for lower<->upper conversion
-  itk::ImageRegionIteratorWithIndex<TImageType> iter(target, target->GetLargestPossibleRegion());
-
-  unsigned int looksLikeLower = 0;
-  unsigned int looksLikeUpper = 0;
-  unsigned int nBadVoxels = 0;
-  unsigned int count = 0;
-
-  unsigned int el2Neg = 0;
-  unsigned int el3Neg = 0;
-
-  while (!iter.IsAtEnd())
-  {
-    bool isValid = true;
-    for (unsigned int i = 0; i < 6; i++)
-    {
-      if (iter.Get()[i] != iter.Get()[i])
-      {
-        ++nBadVoxels;
-        isValid = false;
-      }
-    }
-
-    double el2 = iter.Get()[2];
-    double el3 = iter.Get()[3];
-
-    if (el2 < 0)
-    {
-      ++el2Neg;
-    }
-    if (el3 < 0)
-    {
-      ++el3Neg;
-    }
-
-    if (isValid)
-    {
-      if (el2 > el3)
-      {
-        ++looksLikeLower;
-      }
-      else
-      {
-        ++looksLikeUpper;
-      }
-    }
-
-    ++count;
-    ++iter;
-  }
-
-  // std::cout << "Invalid: " << nBadVoxels << "/" << count << std::endl;
-  // std::cout << "Lower: " << looksLikeLower << ", Upper: " << looksLikeUpper << std::endl;
-  // std::cout << "el2Neg: " << el2Neg << ", el3Neg: " << el3Neg << std::endl;
-
-  if (((looksLikeUpper > looksLikeLower) && makeLower) || ((looksLikeLower > looksLikeUpper) && !makeLower))
-  {
-    std::cout << "Performing lower/upper triangular format swap for Nifti DTI" << std::endl;
-
-    iter.GoToBegin();
-    while (!iter.IsAtEnd())
-    {
-      PixType                     pix = iter.Get();
-      typename PixType::ValueType temp;
-      temp = pix[2];
-      pix[2] = pix[3];
-      pix[3] = temp;
-      iter.Set(pix);
-      ++iter;
-    }
-  }
-}
-
-#endif
-
-// Replace zero-valued pixels with backgroundMD
-// This sets the eigenvalues of background pixels to a constant value
-// The idea is to reduce interpolation artifacts when resampling
-template <typename TImageType>
-void
-SetBackgroundMD(TImageType * image, double backgroundMD)
-{
-  // Read the tensor components
-  itk::ImageRegionIterator<TImageType> iter(image, image->GetLargestPossibleRegion());
-  while (!iter.IsAtEnd())
-  {
-
-    using tensorRealType = typename TImageType::PixelType::ValueType;
-
-    tensorRealType value = static_cast<tensorRealType>(backgroundMD);
-
-    typename TImageType::PixelType pix = iter.Get();
-    if (pix[0] == 0 && pix[1] == 0 && pix[2] == 0 && pix[3] == 0 && pix[4] == 0 && pix[5] == 0)
-    {
-      // cast back to the pixel type
-      pix[0] = value;
-      pix[3] = value;
-      pix[5] = value;
-      iter.Set(pix);
-    }
-    ++iter;
-  }
-}
-
-template <typename TImageType>
-void
-ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool takelog = true, double backgroundMD = 0)
-{
-
-  typedef TImageType                      ImageType;
-  typedef itk::ImageFileReader<ImageType> FileSourceType;
-
-  typedef itk::LogTensorImageFilter<ImageType, ImageType> LogFilterType;
-  typename FileSourceType::Pointer                        reffilter = nullptr;
-  if (file[0] == '0' && file[1] == 'x')
-  {
-    void * ptr;
-    sscanf(file, "%p", (void **)&ptr);
-    target = *(static_cast<typename TImageType::Pointer *>(ptr));
-  }
-  else
-  {
-    // Read the image files begin
-    if (!ANTSFileExists(std::string(file)))
-    {
-      std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
-      target = nullptr;
-      return;
-    }
-    if (!ANTSFileIsImage(file))
-    {
-      std::cerr << " file " << std::string(file) << " is not recognized as a supported image format . " << std::endl;
-      target = nullptr;
-      return;
-    }
-
-    reffilter = FileSourceType::New();
-    reffilter->SetFileName(file);
-    try
-    {
-      reffilter->Update();
-    }
-    catch (const itk::ExceptionObject & e)
-    {
-      std::cerr << "Exception caught during reference file reading " << std::endl;
-      std::cerr << e << " file " << file << std::endl;
-      target = nullptr;
-      return;
-    }
-
-    target = reffilter->GetOutput();
-  }
-
-  // NiftiDTICheck<ImageType>(target, file, false);
-
-  if (backgroundMD > 0.0)
-  {
-    SetBackgroundMD<ImageType>(target, backgroundMD);
-  }
-
-  if (takelog)
-  {
-    typename LogFilterType::Pointer logFilter = LogFilterType::New();
-    logFilter->SetInput(target);
-    try
-    {
-      logFilter->Update();
-    }
-    catch (const itk::ExceptionObject & e)
-    {
-      std::cerr << "Exception caught during log tensor filter " << std::endl;
-      std::cerr << e << " file " << file << std::endl;
-      target = nullptr;
-      return;
-    }
-    target = logFilter->GetOutput();
-    std::cout << "Returning Log(D) for log-euclidean math ops" << std::endl;
-  }
-}
-
 // function to determine if a file name is a memory address rather than a file
 inline bool
 FileIsPointer(const char *file)
@@ -293,6 +73,124 @@ FileIsPointer(const char *file)
   }
   return fileIsPointer;
 }
+
+// Replace zero-valued pixels with backgroundMD
+// This sets the eigenvalues of background pixels to a constant value
+// The idea is to reduce interpolation artifacts when resampling
+template <typename TImageType>
+void
+SetBackgroundMD(TImageType * image, double backgroundMD)
+{
+  // Read the tensor components
+  itk::ImageRegionIterator<TImageType> iter(image, image->GetLargestPossibleRegion());
+  while (!iter.IsAtEnd())
+  {
+
+    using tensorRealType = typename TImageType::PixelType::ValueType;
+
+    tensorRealType value = static_cast<tensorRealType>(backgroundMD);
+
+    typename TImageType::PixelType pix = iter.Get();
+    if (pix[0] == 0 && pix[1] == 0 && pix[2] == 0 && pix[3] == 0 && pix[4] == 0 && pix[5] == 0)
+    {
+      // cast back to the pixel type
+      pix[0] = value;
+      pix[3] = value;
+      pix[5] = value;
+      iter.Set(pix);
+    }
+    ++iter;
+  }
+}
+
+template <typename TImageType>
+void
+ReadTensorImage(itk::SmartPointer<TImageType> & target, const char * file, bool takelog = true, double backgroundMD = 0)
+{
+  typedef TImageType                      ImageType;
+  typedef itk::ImageFileReader<ImageType> FileSourceType;
+
+  typedef itk::LogTensorImageFilter<ImageType, ImageType> LogFilterType;
+  typename FileSourceType::Pointer                        reffilter = nullptr;
+
+  if (FileIsPointer(file))
+  {
+    void * ptr;
+    sscanf(file, "%p", (void **)&ptr);
+    using Scalar = typename TImageType::PixelType::ComponentType;
+    using VecImageType = itk::VectorImage<Scalar, TImageType::ImageDimension>;
+    auto vecImagePtr = *(static_cast<typename VecImageType::Pointer *>(ptr));
+    if (!vecImagePtr || vecImagePtr->GetNumberOfComponentsPerPixel() != 6)
+    {
+      std::cerr << "Error: input must be a VectorImage with 6 components." << std::endl;
+      target = nullptr;
+      return;
+    }
+    using CastFilterType = itk::CastImageFilter<VecImageType, TImageType>;
+    typename CastFilterType::Pointer caster = CastFilterType::New();
+    caster->SetInput(vecImagePtr);
+    caster->Update();
+    target = caster->GetOutput();
+    target->DisconnectPipeline();
+  }
+  else
+  {
+    // Read the image files begin
+    if (!ANTSFileExists(std::string(file)))
+    {
+      std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
+      target = nullptr;
+      return;
+    }
+    if (!ANTSFileIsImage(file))
+    {
+      std::cerr << " file " << std::string(file) << " is not recognized as a supported image format . " << std::endl;
+      target = nullptr;
+      return;
+    }
+
+    reffilter = FileSourceType::New();
+    reffilter->SetFileName(file);
+    try
+    {
+      reffilter->Update();
+    }
+    catch (const itk::ExceptionObject & e)
+    {
+      std::cerr << "Exception caught during reference file reading " << std::endl;
+      std::cerr << e << " file " << file << std::endl;
+      target = nullptr;
+      return;
+    }
+
+    target = reffilter->GetOutput();
+  }
+
+  if (backgroundMD > 0.0)
+  {
+    SetBackgroundMD<ImageType>(target, backgroundMD);
+  }
+
+  if (takelog)
+  {
+    typename LogFilterType::Pointer logFilter = LogFilterType::New();
+    logFilter->SetInput(target);
+    try
+    {
+      logFilter->Update();
+    }
+    catch (const itk::ExceptionObject & e)
+    {
+      std::cerr << "Exception caught during log tensor filter " << std::endl;
+      std::cerr << e << " file " << file << std::endl;
+      target = nullptr;
+      return;
+    }
+    target = logFilter->GetOutput();
+    std::cout << "Returning Log(D) for log-euclidean math ops" << std::endl;
+  }
+}
+
 
 template <typename TImageType>
 // void ReadImage(typename TImageType::Pointer target, const char *file)
@@ -386,13 +284,7 @@ ReadImage(char * fn)
     return nullptr;
   }
 
-  // typename ImageType::DirectionType dir;
-  // dir.SetIdentity();
-  //  reffilter->GetOutput()->SetDirection(dir);
-
   typename ImageType::Pointer target = reffilter->GetOutput();
-  // if (reffilter->GetImageIO->GetNumberOfComponents() == 6)
-  // NiftiDTICheck<ImageType>(target,fn);
 
   return target;
 }
@@ -636,14 +528,6 @@ WriteImage(const itk::SmartPointer<TImageType> image, const char * file)
     return false;
   }
 
-  //  typename TImageType::DirectionType dir;
-  // dir.SetIdentity();
-  // image->SetDirection(dir);
-  //  std::cout << " now Write direction " << image->GetOrigin() << std::endl;
-
-  // if (writer->GetImageIO->GetNumberOfComponents() == 6)
-  // NiftiDTICheck<TImageType>(image,file);
-
   if (FileIsPointer(file))
   {
     void * ptr;
@@ -672,9 +556,6 @@ void
 WriteTensorImage(itk::SmartPointer<TImageType> image, const char * file, bool takeexp = true)
 {
   typedef itk::ExpTensorImageFilter<TImageType, TImageType> ExpFilterType;
-  typename itk::ImageFileWriter<TImageType>::Pointer        writer = itk::ImageFileWriter<TImageType>::New();
-  writer->SetFileName(file);
-
   typename TImageType::Pointer writeImage = image;
 
   if (takeexp)
@@ -686,17 +567,29 @@ WriteTensorImage(itk::SmartPointer<TImageType> image, const char * file, bool ta
     std::cout << "Taking Exp(D) before writing" << std::endl;
   }
 
-  // convert from upper tri to lower tri
-  NiftiDTICheck<TImageType>(writeImage, file, true); // BA May 30 2009 -- remove b/c ITK fixed NIFTI reader
-
-  if (file[0] == '0' && file[1] == 'x')
+  if (FileIsPointer(file))
   {
     void * ptr;
     sscanf(file, "%p", (void **)&ptr);
-    *(static_cast<typename TImageType::Pointer *>(ptr)) = writeImage;
+    using Scalar = typename TImageType::PixelType::ComponentType;
+    constexpr unsigned int Dimension = TImageType::ImageDimension;
+    using VectorImageType = itk::VectorImage<Scalar, Dimension>;
+    using CastFilterType = itk::CastImageFilter<TImageType, VectorImageType>;
+    typename CastFilterType::Pointer caster = CastFilterType::New();
+    caster->SetInput(image);
+    caster->Update();
+    typename VectorImageType::Pointer outVecImg = caster->GetOutput();
+    if (outVecImg->GetNumberOfComponentsPerPixel() != 6)
+    {
+      std::cerr << "Error: Tensor image did not convert to a 6-component vector image." << std::endl;
+      return;
+    }
+    *(static_cast<typename VectorImageType::Pointer *>(ptr)) = outVecImg;
   }
   else
   {
+    typename itk::ImageFileWriter<TImageType>::Pointer        writer = itk::ImageFileWriter<TImageType>::New();
+    writer->SetFileName(file);
     writer->SetInput(writeImage);
     writer->SetUseCompression(true);
     writer->Update();
