@@ -321,6 +321,12 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
                  "[Alpha=0.95] [SliceDelay-45] "
               << std::endl;
 
+    std::cout << "\nVector Operations:" << std::endl;
+    std::cout << "ComponentToVector    : Outputs a vector image from component images. "
+              << std::endl;
+    std::cout << "    Usage        : ComponentToVector *components.nii.gz"
+              << std::endl;
+
     std::cout << "\nTensor Operations:" << std::endl;
     std::cout << "  4DTensorTo3DTensor    : Outputs a 3D tensor image from a 4D image containing upper-triangular components "
               << "(dxx, dxy, dxz, dyy, dyz, dzz)" << std::endl;
