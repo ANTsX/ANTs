@@ -18,6 +18,7 @@
 #include "antsUtilities.h"
 
 #include "antsCommandLineParser.h"
+#include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkCompositeTransform.h"
@@ -82,6 +83,17 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
 
     std::cout << "Transform file: " << argv[i] << std::endl;
 
+    // some older programs write these classes, as does ITK-SNAP
+    typedef itk::MatrixOffsetTransformBase<double, 3, 3> MatrixOffsetTransformTypeD33;
+    typedef itk::MatrixOffsetTransformBase<float, 3, 3> MatrixOffsetTransformTypeF33;
+    typedef itk::MatrixOffsetTransformBase<double, 2, 2> MatrixOffsetTransformTypeD22;
+    typedef itk::MatrixOffsetTransformBase<float, 2, 2> MatrixOffsetTransformTypeF22;
+
+    itk::TransformFactory<MatrixOffsetTransformTypeD33>::RegisterTransform();
+    itk::TransformFactory<MatrixOffsetTransformTypeF33>::RegisterTransform();
+    itk::TransformFactory<MatrixOffsetTransformTypeD22>::RegisterTransform();
+    itk::TransformFactory<MatrixOffsetTransformTypeF22>::RegisterTransform();
+
     using TransformReaderType = itk::TransformFileReaderTemplate<ReadScalarType>;
     auto reader = TransformReaderType::New();
 
@@ -102,7 +114,6 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
     std::cout << "Number of transforms = " << transforms->size() << std::endl;
 
     unsigned int Dimension = transforms->front()->GetInputSpaceDimension();
-
 
     for (auto it = transforms->begin(); it != transforms->end(); ++it)
     {
