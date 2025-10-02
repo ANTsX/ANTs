@@ -4,7 +4,7 @@
 
   Copyright (c) ConsortiumOfANTS. All rights reserved.
   See accompanying COPYING.txt or
- https://github.com/stnava/ANTs/blob/master/ANTSCopyright.txt for details.
+  https://github.com/stnava/ANTs/blob/master/ANTSCopyright.txt for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -20,6 +20,8 @@
 
 #include <fstream>
 #include <cstdio>
+#include <cstring>
+
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
@@ -29,32 +31,146 @@
 #include "itkMetaDataDictionary.h"
 #include "itkMetaDataObject.h"
 #include "itkSpatialOrientation.h"
+#include "itkImageIOFactory.h"
+#include "itkImageIOBase.h"
+
+#include <map>
+#include <sstream>
+#include <type_traits>
+#include <cmath>
+#include <vector>
+
+#include <vnl/vnl_matrix.h>
+#include <vnl/vnl_matrix_fixed.h>
+#include <vnl/vnl_vector.h>
+#include <vnl/vnl_vector_fixed.h>
+#include <vnl/vnl_diag_matrix.h>
 
 namespace ants
 {
 using namespace std;
-/** below code from Paul Yushkevich's c3d */
-template <typename AnyType>
-bool
-try_print_metadata(itk::MetaDataDictionary & mdd, std::string key)
-{
-  AnyType value = 0;
 
-  if (itk::ExposeMetaData<AnyType>(mdd, key, value))
+// Aliases for metadata composite types commonly encountered
+// Matrices
+using Mat22d = itk::Matrix<double, 2, 2>;
+using Mat33d = itk::Matrix<double, 3, 3>;
+using Mat44d = itk::Matrix<double, 4, 4>;
+using Mat55d = itk::Matrix<double, 5, 5>;
+using Mat22f = itk::Matrix<float,  2, 2>;
+using Mat33f = itk::Matrix<float,  3, 3>;
+using Mat44f = itk::Matrix<float,  4, 4>;  // qto_xyz, sto_xyz, qto_ijk, sto_ijk
+
+// Fixed arrays (spacing/origin sometimes appear this way)
+using Fix1d  = itk::FixedArray<double, 1>;
+using Fix2d  = itk::FixedArray<double, 2>;
+using Fix3d  = itk::FixedArray<double, 3>;
+using Fix4d  = itk::FixedArray<double, 4>;
+using Fix5d  = itk::FixedArray<double, 5>;
+
+/** below code (metadata printing) inspired by Paul Yushkevich's c3d */
+
+// ---------- Helpers: metadata printers ----------
+
+// Generic helper to pretty-print a vnl_matrix
+template <typename TVnlMatrix>
+void
+print_vnl_matrix(const TVnlMatrix & mat,
+                 int precision = 5,
+                 int width = 11,
+                 int indent = 8)
+{
+  std::cout.setf(std::ios::fixed, std::ios::floatfield);
+  std::cout.precision(precision);
+
+  std::string spaces(indent, ' ');
+
+  for (unsigned int i = 0; i < mat.rows(); ++i)
   {
-    cout << "    " << key << " = " << value << endl;
-    return true;
-  }
-  else
-  {
-    return false;
+    std::cout << spaces;
+    for (unsigned int j = 0; j < mat.cols(); ++j)
+    {
+      std::cout << std::setw(width) << mat(i, j);
+    }
+    std::cout << std::endl;
   }
 }
 
-string
+template <typename AnyType>
+bool
+try_print_metadata(const itk::MetaDataDictionary & mdd, const std::string & key)
+{
+  AnyType value{};
+  if (itk::ExposeMetaData<AnyType>(mdd, key, value))
+  {
+    std::cout << "    " << key << " = " << value << std::endl;
+    return true;
+  }
+  return false;
+}
+
+template <typename T>
+bool
+try_print_metadata_std_vector(const itk::MetaDataDictionary & mdd, const std::string & key)
+{
+  std::vector<T> v;
+  if (itk::ExposeMetaData<std::vector<T>>(mdd, key, v))
+  {
+    std::cout << "    " << key << " = [";
+    for (size_t i = 0; i < v.size(); ++i)
+    {
+      std::cout << v[i] << (i + 1 < v.size() ? ", " : "");
+    }
+    std::cout << "]" << std::endl;
+    return true;
+  }
+  return false;
+}
+
+template <typename TFixedArray>
+bool try_print_metadata_fixed_array(const itk::MetaDataDictionary& mdd, const std::string& key)
+{
+  TFixedArray arr;
+  if (itk::ExposeMetaData<TFixedArray>(mdd, key, arr))
+  {
+    std::cout << "    " << key << " = [";
+    for (unsigned int i = 0; i < arr.Size(); ++i)
+    {
+      std::cout << arr[i];
+      if (i + 1 < arr.Size()) std::cout << ", ";
+    }
+    std::cout << "]" << std::endl;
+    return true;
+  }
+  return false;
+}
+
+
+template <typename TMatrix>
+bool
+try_print_metadata_matrix(const itk::MetaDataDictionary & mdd,
+                          const std::string & key,
+                          int precision = 5,
+                          int width = 11,
+                          int indent = 8)
+{
+  TMatrix mat;
+  if (itk::ExposeMetaData<TMatrix>(mdd, key, mat))
+  {
+    std::cout << "    " << key << " =" << std::endl;
+    auto vnl_mat = mat.GetVnlMatrix();
+    print_vnl_matrix(vnl_mat, precision, width, indent);
+    return true;
+  }
+  return false;
+}
+
+
+// ---------- Orientation enum -> string ----------
+
+std::string
 get_rai_code(itk::SpatialOrientationEnums::ValidCoordinateOrientations code)
 {
-  std::map<itk::SpatialOrientationEnums::ValidCoordinateOrientations, string> m_CodeToString;
+  std::map<itk::SpatialOrientationEnums::ValidCoordinateOrientations, std::string> m_CodeToString;
 
   m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_RIP] = "RIP";
   m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_LIP] = "LIP";
@@ -107,6 +223,138 @@ get_rai_code(itk::SpatialOrientationEnums::ValidCoordinateOrientations code)
   return m_CodeToString[code];
 }
 
+// ---------- Math helpers ----------
+
+// Copy top-left MxN block from a dynamic vnl_matrix into a fixed one
+template <unsigned int M, unsigned int N>
+vnl_matrix_fixed<double, M, N>
+TopLeftBlock(const vnl_matrix<double> & A)
+{
+  vnl_matrix_fixed<double, M, N> B;
+  B.fill(0.0);
+  const unsigned int mr = std::min<unsigned int>(M, A.rows());
+  const unsigned int nc = std::min<unsigned int>(N, A.cols());
+  for (unsigned int i = 0; i < mr; ++i)
+  {
+    for (unsigned int j = 0; j < nc; ++j)
+    {
+      B(i, j) = A(i, j);
+    }
+  }
+  return B;
+}
+
+// Dimension-agnostic Voxel(index)->RAS(world) 4×4 affine from ITK LPS geometry
+template <typename TImage>
+vnl_matrix_fixed<double, 4, 4>
+GetVoxelSpaceToRASPhysicalSpaceMatrix(const TImage * image)
+{
+  static_assert(TImage::ImageDimension >= 1, "ImageDimension must be >= 1");
+  constexpr unsigned int Dim = TImage::ImageDimension;
+  const unsigned int S = Dim >= 3 ? 3u : Dim; // spatial axes considered
+
+  // Direction embedded to 3×3
+  const vnl_matrix<double> Dfull = image->GetDirection().GetVnlMatrix().as_matrix();
+  vnl_matrix_fixed<double, 3, 3> D3;
+  D3.set_identity();
+  if (S == 3)
+  {
+    D3 = TopLeftBlock<3, 3>(Dfull);
+  }
+  else if (S == 2)
+  {
+    D3 = TopLeftBlock<3, 3>(Dfull);
+    D3(2, 2) = 1.0;
+  }
+  else // S == 1
+  {
+    D3.set_identity();
+  }
+
+  // Spacing padded to 3
+  vnl_vector_fixed<double, 3> s3(1.0, 1.0, 1.0);
+  for (unsigned int i = 0; i < S; ++i)
+  {
+    s3[i] = image->GetSpacing()[i];
+  }
+
+  // Origin padded to 3
+  vnl_vector_fixed<double, 3> o3(0.0, 0.0, 0.0);
+  for (unsigned int i = 0; i < S; ++i)
+  {
+    o3[i] = image->GetOrigin()[i];
+  }
+
+  // LPS->RAS = diag(-1, -1, +1)
+  vnl_diag_matrix<double> LPS2RAS(3);
+  LPS2RAS.fill(1.0);
+  LPS2RAS[0] = -1.0;
+  LPS2RAS[1] = -1.0;
+
+  // M = LPS->RAS * (D3 * diag(s))
+  vnl_diag_matrix<double> Sdiag(s3.as_ref());
+  vnl_matrix<double> M = LPS2RAS * (D3.as_ref() * Sdiag.as_ref());
+
+  // t = LPS->RAS * origin
+  vnl_vector<double> t = LPS2RAS * o3.as_ref();
+
+  // Assemble homogeneous 4×4
+  vnl_matrix_fixed<double, 4, 4> H;
+  H.set_identity();
+  H.update(M);
+  H(0, 3) = t[0];
+  H(1, 3) = t[1];
+  H(2, 3) = t[2];
+  return H;
+}
+
+// RAI code from direction matrix (supports 1D/2D/3D)
+template <unsigned int VDim>
+std::string
+GetRAICodeFromDirectionMatrix(const vnl_matrix_fixed<double, VDim, VDim> & dir)
+{
+  static_assert(VDim >= 1 && VDim <= 3, "VDim must be 1..3");
+  const char codes[3][2] = { { 'R', 'L' }, { 'A', 'P' }, { 'I', 'S' } };
+
+  char out[VDim + 1];
+  out[VDim] = '\0';
+  bool oblique = false;
+
+  for (unsigned int i = 0; i < VDim; ++i)
+  {
+    double       amax = 0.0;
+    unsigned int argmax = 0;
+    unsigned int sgn = 0;
+    for (unsigned int j = 0; j < VDim; ++j)
+    {
+      const double a = std::abs(dir(j, i));
+      if (a > amax)
+      {
+        amax = a;
+        argmax = j;
+        sgn = (dir(j, i) >= 0.0) ? 0 : 1;
+      }
+    }
+    if (std::abs(amax - 1.0) > 1e-6)
+    {
+      oblique = true;
+    }
+    out[i] = codes[argmax][sgn];
+  }
+
+  if (oblique)
+  {
+    std::ostringstream sout;
+    sout << "Oblique, closest to " << out;
+    return sout.str();
+  }
+  return std::string(out);
+}
+
+
+
+// ---------- Core templated PrintHeader ----------
+
 template <unsigned int ImageDimension>
 int
 PrintHeader(int argc, char * argv[])
@@ -125,12 +373,11 @@ PrintHeader(int argc, char * argv[])
   reader->Update();
 
   // Print only specific header information
-
   if (argc > 2)
   {
     switch (std::stoi(argv[2]))
     {
-      case 0:
+      case 0: // origin
       {
         for (int d = 0; d < static_cast<int>(ImageDimension) - 1; d++)
         {
@@ -139,7 +386,7 @@ PrintHeader(int argc, char * argv[])
         std::cout << reader->GetOutput()->GetOrigin()[static_cast<int>(ImageDimension) - 1] << std::endl;
         break;
       }
-      case 1:
+      case 1: // spacing
       {
         for (int d = 0; d < static_cast<int>(ImageDimension) - 1; d++)
         {
@@ -148,7 +395,7 @@ PrintHeader(int argc, char * argv[])
         std::cout << reader->GetOutput()->GetSpacing()[static_cast<int>(ImageDimension) - 1] << std::endl;
         break;
       }
-      case 2:
+      case 2: // size
       {
         for (int d = 0; d < static_cast<int>(ImageDimension) - 1; d++)
         {
@@ -158,7 +405,7 @@ PrintHeader(int argc, char * argv[])
                   << std::endl;
         break;
       }
-      case 3:
+      case 3: // index
       {
         for (int d = 0; d < static_cast<int>(ImageDimension) - 1; d++)
         {
@@ -168,7 +415,7 @@ PrintHeader(int argc, char * argv[])
                   << std::endl;
         break;
       }
-      case 4:
+      case 4: // direction
       {
         for (int di = 0; di < static_cast<int>(ImageDimension); di++)
         {
@@ -187,41 +434,18 @@ PrintHeader(int argc, char * argv[])
         }
         break;
       }
+      default:
+        break;
     }
     return EXIT_SUCCESS;
   }
 
   // else print out entire header information
 
-  std::cout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
-  std::cout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
-  std::cout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
-  if (ImageDimension == 1)
-  {
-    std::cout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] << " " << std::endl;
-  }
-  else if (ImageDimension == 2)
-  {
-    std::cout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] << " "
-              << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[1] << " " << std::endl;
-  }
-  else if (ImageDimension == 3)
-  {
-    std::cout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] << " "
-              << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[1] << " "
-              << " " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[2] << std::endl;
-  }
-  else
-  {
-    std::cout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
-  }
-  //  std::cout << " Orientation " << reader->GetOutput()->GetOrientation() << std::endl;
-
-  unsigned int VDim = ImageDimension;
-  // Get the input image
   typename ImageType::Pointer image = reader->GetOutput();
+  unsigned int VDim = ImageDimension;
 
-  // Compute the bounding box
+  // Compute the bounding box and origin/spacing per mm
   vnl_vector<double> bb0, bb1, ospm;
   bb0.set_size(VDim);
   bb1.set_size(VDim);
@@ -233,7 +457,7 @@ PrintHeader(int argc, char * argv[])
     ospm[i] = -image->GetOrigin()[i] / image->GetSpacing()[i];
   }
 
-  // Compute the intensity range of the image
+  // Compute the intensity range of the image (assumes float pixel type here)
   size_t  n = image->GetBufferedRegion().GetNumberOfPixels();
   float * vox = image->GetBufferPointer();
   double  iMax = vox[0], iMin = vox[0], iMean = vox[0];
@@ -243,15 +467,16 @@ PrintHeader(int argc, char * argv[])
     iMin = (iMin < static_cast<double>(vox[i])) ? iMin : static_cast<double>(vox[i]);
     iMean += static_cast<double>(vox[i]);
   }
-  iMean /= n;
+  iMean /= static_cast<double>(n);
 
-  // Short or long?
+  // Full header dump
   bool full = true;
   if (!full)
   {
-    cout << " dim = " << image->GetBufferedRegion().GetSize() << "; ";
+    cout << " dims = " << image->GetBufferedRegion().GetSize() << "; ";
     cout << " bb = {[" << bb0 << "], [" << bb1 << "]}; ";
-    cout << " vox = " << image->GetSpacing() << "; ";
+    cout << " spc = " << image->GetSpacing() << "; ";
+    cout << " orig = " << image->GetOrigin() << "; ";
     cout << " range = [" << iMin << ", " << iMax << "]; ";
     cout << endl;
   }
@@ -261,38 +486,62 @@ PrintHeader(int argc, char * argv[])
     cout << "  Image Dimensions   : " << image->GetBufferedRegion().GetSize() << endl;
     cout << "  Bounding Box       : "
          << "{[" << bb0 << "], [" << bb1 << "]}" << endl;
+    cout << "  Origin             : " << image->GetOrigin() << endl;
     cout << "  Voxel Spacing      : " << image->GetSpacing() << endl;
     cout << "  Intensity Range    : [" << iMin << ", " << iMax << "]" << endl;
     cout << "  Mean Intensity     : " << iMean << endl;
+
+    // Canonical orientation (RAI-like string) from direction
+    {
+      constexpr unsigned int Dim = ImageDimension;
+      const unsigned int S = Dim >= 3 ? 3u : Dim;
+      if (S == 3)
+      {
+        auto D3 = TopLeftBlock<3, 3>(image->GetDirection().GetVnlMatrix().as_matrix());
+        cout << "  Canon. Orientation : " << GetRAICodeFromDirectionMatrix<3>(D3) << endl;
+      }
+      else if (S == 2)
+      {
+        auto D2 = TopLeftBlock<2, 2>(image->GetDirection().GetVnlMatrix().as_matrix());
+        cout << "  Canon. Orientation : " << GetRAICodeFromDirectionMatrix<2>(D2) << endl;
+      }
+      else /* S == 1 */
+      {
+        vnl_matrix_fixed<double, 1, 1> D1;
+        D1(0, 0) = 1.0;
+        cout << "  Canon. Orientation : " << GetRAICodeFromDirectionMatrix<1>(D1) << endl;
+      }
+    }
+
     cout << "  Direction Cos Mtx. : " << endl;
-    std::cout << image->GetDirection().GetVnlMatrix() << std::endl;
-    // Print NIFTI s-form matrix (check against freesurfer's MRIinfo)
+    print_vnl_matrix(image->GetDirection().GetVnlMatrix());
+
+    // Print Voxel->RAS 4x4 x-form (derived from ITK LPS geometry)
     cout << "  Voxel->RAS x-form  : " << endl;
-    //    image->GetVoxelSpaceToRASPhysicalSpaceMatrix().GetVnlMatrix();
-    //    std::cout << image->GetVoxelSpaceToRASPhysicalSpaceMatrix().GetVnlMatrix() << std::endl;
+    print_vnl_matrix(GetVoxelSpaceToRASPhysicalSpaceMatrix(image.GetPointer()));
 
     //
     // Print metadata
     cout << "  Image Metadata: " << endl;
-    itk::MetaDataDictionary &              mdd = image->GetMetaDataDictionary();
+    const itk::MetaDataDictionary &              mdd = image->GetMetaDataDictionary();
     itk::MetaDataDictionary::ConstIterator itMeta;
     for (itMeta = mdd.Begin(); itMeta != mdd.End(); ++itMeta)
     {
       // Get the metadata as a generic object
-      string                                                   key = itMeta->first, v_string;
+      std::string                                               key = itMeta->first, v_string;
       itk::SpatialOrientationEnums::ValidCoordinateOrientations v_oflags =
         itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_INVALID;
 
-      if (itk::ExposeMetaData<string>(mdd, key, v_string))
+      if (itk::ExposeMetaData<std::string>(mdd, key, v_string))
       {
         // For some weird reason, some of the strings returned by this method
         // contain '\0' characters. We will replace them by spaces
         std::ostringstream sout("");
-        for (char i : v_string)
+        for (char c : v_string)
         {
-          if (i >= ' ')
+          if (c >= ' ')
           {
-            sout << i;
+            sout << c;
           }
         }
         v_string = sout.str();
@@ -303,53 +552,40 @@ PrintHeader(int argc, char * argv[])
           cout << "    " << key << " = " << v_string << endl;
         }
       }
-      else if (itk::ExposeMetaData(mdd, key, v_oflags))
+      else if (itk::ExposeMetaData<itk::SpatialOrientationEnums::ValidCoordinateOrientations>(mdd, key, v_oflags))
       {
         cout << "    " << key << " = " << get_rai_code(v_oflags) << endl;
       }
       else
       {
         bool rc = false;
-        if (!rc)
-        {
-          rc |= try_print_metadata<double>(mdd, key);
-        }
-        if (!rc)
-        {
-          rc |= try_print_metadata<float>(mdd, key);
-        }
-        if (!rc)
-        {
-          rc |= try_print_metadata<int>(mdd, key);
-        }
-        if (!rc)
-        {
-          rc |= try_print_metadata<unsigned int>(mdd, key);
-        }
-        if (!rc)
-        {
-          rc |= try_print_metadata<long>(mdd, key);
-        }
-        if (!rc)
-        {
-          rc |= try_print_metadata<unsigned long>(mdd, key);
-        }
-        if (!rc)
-        {
-          rc |= try_print_metadata<short>(mdd, key);
-        }
-        if (!rc)
-        {
-          rc |= try_print_metadata<unsigned short>(mdd, key);
-        }
-        if (!rc)
-        {
-          rc |= try_print_metadata<char>(mdd, key);
-        }
-        if (!rc)
-        {
-          rc |= try_print_metadata<unsigned char>(mdd, key);
-        }
+        if (!rc) { rc |= try_print_metadata<double>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata<float>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata<int>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata<unsigned int>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata<long>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata<unsigned long>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata<short>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata<unsigned short>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata<char>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata<unsigned char>(mdd, key); }
+        // matrix metadata (handle spatial-only and full-dim cases)
+        if (!rc) { rc |= try_print_metadata_matrix<Mat22d>(mdd, key); }  // 2D original direction
+        if (!rc) { rc |= try_print_metadata_matrix<Mat33d>(mdd, key); }  // 3D original direction
+        if (!rc) { rc |= try_print_metadata_matrix<Mat44d>(mdd, key); }  // 4D original direction
+        if (!rc) { rc |= try_print_metadata_matrix<Mat22f>(mdd, key); }  // float variants
+        if (!rc) { rc |= try_print_metadata_matrix<Mat33f>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata_matrix<Mat44f>(mdd, key); }  // qto_xyz / sto_xyz (NIfTI)
+        // fixed-array variants of spacing/origin/etc. (varies by writer/reader)
+        if (!rc) { rc |= try_print_metadata_fixed_array<Fix1d>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata_fixed_array<Fix2d>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata_fixed_array<Fix3d>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata_fixed_array<Fix4d>(mdd, key); }
+        if (!rc) { rc |= try_print_metadata_fixed_array<Fix5d>(mdd, key); }
+
+        // dynamic vector fallback (e.g., ITK_original_spacing)
+        if (!rc) { rc |= try_print_metadata_std_vector<double>(mdd, key); }
+
 
         if (!rc)
         {
@@ -358,37 +594,20 @@ PrintHeader(int argc, char * argv[])
       }
     }
   }
-  return EXIT_FAILURE;
+  return EXIT_SUCCESS;
 }
+
+// ---------- Utility: FileExists ----------
 
 bool
-FileExists(string strFilename)
+FileExists(std::string strFilename)
 {
   struct stat stFileInfo;
-  bool        blnReturn;
-  int         intStat;
-
-  // Attempt to get the file attributes
-  intStat = stat(strFilename.c_str(), &stFileInfo);
-  if (intStat == 0)
-  {
-    // We were able to get the file attributes
-    // so the file obviously exists.
-    blnReturn = true;
-  }
-  else
-  {
-    // We were not able to get the file attributes.
-    // This may mean that we don't have permission to
-    // access the folder which contains this file. If you
-    // need to do that level of checking, lookup the
-    // return values of stat which will give you
-    // more details on why stat failed.
-    blnReturn = false;
-  }
-
-  return blnReturn;
+  int         intStat = stat(strFilename.c_str(), &stFileInfo);
+  return (intStat == 0);
 }
+
+// ---------- Entry point wrapper used by ANTs tools ----------
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
@@ -401,7 +620,7 @@ PrintHeader(std::vector<std::string> args, std::ostream * /*out_stream = nullptr
   // which the parser should handle
   args.insert(args.begin(), "PrintHeader");
 
-  int     argc = args.size();
+  int     argc = static_cast<int>(args.size());
   char ** argv = new char *[args.size() + 1];
   for (unsigned int i = 0; i < args.size(); ++i)
   {
@@ -412,6 +631,7 @@ PrintHeader(std::vector<std::string> args, std::ostream * /*out_stream = nullptr
     argv[i][args[i].length()] = '\0';
   }
   argv[argc] = nullptr;
+
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
@@ -436,8 +656,6 @@ PrintHeader(std::vector<std::string> args, std::ostream * /*out_stream = nullptr
   };
   Cleanup_argv cleanup_argv(argv, argc + 1);
 
-  // antscout->set_stream( out_stream );
-
   if (argc < 2 || ((argc == 2) && (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)))
   {
     std::cout << "Usage:  " << argv[0] << " image.ext [whatInformation]" << std::endl;
@@ -453,6 +671,7 @@ PrintHeader(std::vector<std::string> args, std::ostream * /*out_stream = nullptr
     }
     return EXIT_SUCCESS;
   }
+
   // Get the image dimension
   std::string fn = std::string(argv[1]);
   if (!FileExists(fn))
@@ -506,4 +725,5 @@ PrintHeader(std::vector<std::string> args, std::ostream * /*out_stream = nullptr
 
   return EXIT_SUCCESS;
 }
+
 } // namespace ants
