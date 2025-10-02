@@ -459,7 +459,7 @@ PrintHeader(int argc, char * argv[])
     print_vnl_matrix(image->GetDirection().GetVnlMatrix());
 
     // Print Voxel->RAS 4x4 x-form (derived from ITK LPS geometry)
-    cout << "  Voxel->RAS x-form  : " << endl;
+    cout << "  Voxel->RAS+ x-form  : " << endl;
     print_vnl_matrix(GetVoxelSpaceToRASPhysicalSpaceMatrix(image.GetPointer()));
 
     //
@@ -494,6 +494,8 @@ PrintHeader(int argc, char * argv[])
       else
       {
         bool rc = false;
+        // order here depends on actual type in the ITK metadata dictionary, rather than
+        // a successful attempt to parse the data to a specific type
         if (!rc) { rc |= try_print_metadata<double>(mdd, key); }
         if (!rc) { rc |= try_print_metadata<float>(mdd, key); }
         if (!rc) { rc |= try_print_metadata<int>(mdd, key); }
