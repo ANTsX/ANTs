@@ -165,65 +165,6 @@ try_print_metadata_matrix(const itk::MetaDataDictionary & mdd,
   return false;
 }
 
-
-// ---------- Orientation enum -> string ----------
-
-std::string
-get_rai_code(itk::SpatialOrientationEnums::ValidCoordinateOrientations code)
-{
-  std::map<itk::SpatialOrientationEnums::ValidCoordinateOrientations, std::string> m_CodeToString;
-
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_RIP] = "RIP";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_LIP] = "LIP";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_RSP] = "RSP";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_LSP] = "LSP";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_RIA] = "RIA";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_LIA] = "LIA";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_RSA] = "RSA";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_LSA] = "LSA";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_IRP] = "IRP";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_ILP] = "ILP";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_SRP] = "SRP";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_SLP] = "SLP";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_IRA] = "IRA";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_ILA] = "ILA";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_SRA] = "SRA";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_SLA] = "SLA";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_RPI] = "RPI";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_LPI] = "LPI";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_RAI] = "RAI";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_LAI] = "LAI";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_RPS] = "RPS";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_LPS] = "LPS";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_RAS] = "RAS";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_LAS] = "LAS";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_PRI] = "PRI";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_PLI] = "PLI";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_ARI] = "ARI";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_ALI] = "ALI";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_PRS] = "PRS";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_PLS] = "PLS";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_ARS] = "ARS";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_ALS] = "ALS";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_IPR] = "IPR";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_SPR] = "SPR";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_IAR] = "IAR";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_SAR] = "SAR";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_IPL] = "IPL";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_SPL] = "SPL";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_IAL] = "IAL";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_SAL] = "SAL";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_PIR] = "PIR";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_PSR] = "PSR";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_AIR] = "AIR";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_ASR] = "ASR";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_PIL] = "PIL";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_PSL] = "PSL";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_AIL] = "AIL";
-  m_CodeToString[itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_ASL] = "ASL";
-  return m_CodeToString[code];
-}
-
 // ---------- Math helpers ----------
 
 // Copy top-left MxN block from a dynamic vnl_matrix into a fixed one
@@ -499,18 +440,18 @@ PrintHeader(int argc, char * argv[])
       if (S == 3)
       {
         auto D3 = TopLeftBlock<3, 3>(image->GetDirection().GetVnlMatrix().as_matrix());
-        cout << "  Canon. Orientation : " << GetRAICodeFromDirectionMatrix<3>(D3) << endl;
+        cout << "  Canon. FROM Orient : " << GetRAICodeFromDirectionMatrix<3>(D3) << endl;
       }
       else if (S == 2)
       {
         auto D2 = TopLeftBlock<2, 2>(image->GetDirection().GetVnlMatrix().as_matrix());
-        cout << "  Canon. Orientation : " << GetRAICodeFromDirectionMatrix<2>(D2) << endl;
+        cout << "  Canon. FROM Orient : " << GetRAICodeFromDirectionMatrix<2>(D2) << endl;
       }
       else /* S == 1 */
       {
         vnl_matrix_fixed<double, 1, 1> D1;
         D1(0, 0) = 1.0;
-        cout << "  Canon. Orientation : " << GetRAICodeFromDirectionMatrix<1>(D1) << endl;
+        cout << "  Canon. FROM Orient : " << GetRAICodeFromDirectionMatrix<1>(D1) << endl;
       }
     }
 
@@ -530,9 +471,6 @@ PrintHeader(int argc, char * argv[])
     {
       // Get the metadata as a generic object
       std::string                                               key = itMeta->first, v_string;
-      itk::SpatialOrientationEnums::ValidCoordinateOrientations v_oflags =
-        itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_INVALID;
-
       if (itk::ExposeMetaData<std::string>(mdd, key, v_string))
       {
         // For some weird reason, some of the strings returned by this method
@@ -552,10 +490,6 @@ PrintHeader(int argc, char * argv[])
         {
           cout << "    " << key << " = " << v_string << endl;
         }
-      }
-      else if (itk::ExposeMetaData<itk::SpatialOrientationEnums::ValidCoordinateOrientations>(mdd, key, v_oflags))
-      {
-        cout << "    " << key << " = " << get_rai_code(v_oflags) << endl;
       }
       else
       {
