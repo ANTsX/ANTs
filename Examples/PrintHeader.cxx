@@ -433,7 +433,7 @@ PrintHeader(int argc, char * argv[])
     cout << "  Intensity Range    : [" << iMin << ", " << iMax << "]" << endl;
     cout << "  Mean Intensity     : " << iMean << endl;
 
-    // Canonical orientation (RAI-like string) from direction
+    // Canonical orientation code, the "from" direction
     {
       constexpr unsigned int Dim = ImageDimension;
       const unsigned int S = Dim >= 3 ? 3u : Dim;
@@ -459,8 +459,11 @@ PrintHeader(int argc, char * argv[])
     print_vnl_matrix(image->GetDirection().GetVnlMatrix());
 
     // Print Voxel->RAS 4x4 x-form (derived from ITK LPS geometry)
-    cout << "  Voxel->RAS+ x-form  : " << endl;
-    print_vnl_matrix(GetVoxelSpaceToRASPhysicalSpaceMatrix(image.GetPointer()));
+    // This was previously in the code but it just printed the heading, not the actual matrix
+    // the function below actually works, but it's commented out to avoid confusing users with
+    // different coordinate systems
+    // cout << "  Voxel->RAS+ x-form  : " << endl;
+    // print_vnl_matrix(GetVoxelSpaceToRASPhysicalSpaceMatrix(image.GetPointer()));
 
     //
     // Print metadata
