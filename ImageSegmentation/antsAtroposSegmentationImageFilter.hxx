@@ -87,6 +87,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Atrop
 
   this->m_MRFSmoothingFactor = 0.3;
   this->m_MRFRadius.Fill(1);
+  this->m_MRFNeighborhoodInvDistances = std::vector<RealType>();
+  this->m_MRFNeighborhoodSize = 1;
+  this->m_MRFNeighborhoodCenterIndex = 0;
 
   this->m_SplineOrder = 3;
   this->m_NumberOfLevels.Fill(6);
@@ -448,6 +451,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Gener
   //
   this->m_ImageSpacing = this->GetOutput()->GetSpacing();
 
+  //
+  // precompute MRF neighborhood distances
+  //
+  this->ComputeMRFNeighborhoodDistances();
+
   bool isConverged = false;
   this->m_CurrentPosteriorProbability = 0.0;
   RealType probabilityOld = NumericTraits<RealType>::NonpositiveMin();
@@ -479,6 +487,57 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Gener
     this->m_PosteriorProbabilityImages.clear();
   }
 }
+
+
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
+void
+AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::ComputeMRFNeighborhoodDistances()
+{
+
+  // Determine neighborhood size and radius
+  typename NeighborhoodIterator<ClassifiedImageType>::RadiusType radius;
+  unsigned int neighborhoodSize = 1;
+
+  for (unsigned int d = 0; d < ImageDimension; d++)
+  {
+    radius[d] = this->m_MRFRadius[d];
+    neighborhoodSize *= (2 * this->m_MRFRadius[d] + 1);
+  }
+
+  this->m_MRFNeighborhoodInvDistances.resize(neighborhoodSize);
+
+  this->m_MRFNeighborhoodSize = neighborhoodSize;
+
+  this->m_MRFNeighborhoodCenterIndex = neighborhoodSize / 2;
+
+  // this is just to get the offsets
+  NeighborhoodIterator<ClassifiedImageType> ItO(radius, this->GetOutput(), this->GetOutput()->GetRequestedRegion());
+
+  //
+  // Precompute distances for every offset index 'n'
+  //
+  for (unsigned int n = 0; n < neighborhoodSize; n++)
+  {
+    typename NeighborhoodIterator<ClassifiedImageType>::OffsetType offset =
+      ItO.GetOffset(n);
+
+    RealType distance = NumericTraits<RealType>::ZeroValue();
+
+    if (n == this->m_MRFNeighborhoodCenterIndex)
+      this->m_MRFNeighborhoodInvDistances[n] = 0.0;
+    else
+    {
+      for (unsigned int d = 0; d < ImageDimension; d++)
+      {
+      const RealType phys = static_cast<RealType>(offset[d]) *
+                              static_cast<RealType>(this->m_ImageSpacing[d]);
+      distance += phys * phys;
+      }
+      this->m_MRFNeighborhoodInvDistances[n] = 1.0 / std::sqrt(distance);
+    }
+  }
+}
+
 
 template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
@@ -1823,15 +1882,13 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Evalu
   mrfNeighborhoodWeights.SetSize(totalNumberOfClasses);
   mrfNeighborhoodWeights.Fill(0.0);
 
-  unsigned int neighborhoodSize = (It.GetNeighborhood()).Size();
-
-  if (mrfSmoothingFactor > NumericTraits<RealType>::ZeroValue() && neighborhoodSize > 1)
+  if (mrfSmoothingFactor > NumericTraits<RealType>::ZeroValue() && this->m_MRFNeighborhoodSize > 1)
   {
     for (unsigned int label = 1; label <= totalNumberOfClasses; label++)
     {
-      for (unsigned int n = 0; n < neighborhoodSize; n++)
+      for (unsigned int n = 0; n < this->m_MRFNeighborhoodSize; n++)
       {
-        if (n == static_cast<unsigned int>(0.5 * neighborhoodSize))
+        if (n == this->m_MRFNeighborhoodCenterIndex)
         {
           continue;
         }
@@ -1841,15 +1898,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Evalu
         {
           continue;
         }
-        typename ClassifiedImageType::OffsetType offset = It.GetOffset(n);
-
-        RealType distance = 0.0;
-        for (unsigned int d = 0; d < ImageDimension; d++)
-        {
-          distance += static_cast<RealType>(Math::sqr(offset[d] * this->m_ImageSpacing[d]));
-        }
-        distance = std::sqrt(distance);
-
         RealType delta = 0.0;
         if (label == neighborLabel)
         {
@@ -1888,7 +1936,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Evalu
             delta = 0.0;
           }
         }
-        mrfNeighborhoodWeights[label - 1] += (delta / distance);
+        mrfNeighborhoodWeights[label - 1] += (delta * this->m_MRFNeighborhoodInvDistances[n]);
       }
     }
   }
