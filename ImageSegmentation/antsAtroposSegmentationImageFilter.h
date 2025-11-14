@@ -768,9 +768,14 @@ protected:
   /** Index of the center voxel in the flattened neighborhood */
   unsigned int m_MRFNeighborhoodCenterIndex;
 
+  /** Precomputed neighborhood delta matrix between classes for MRF */
+  std::vector<std::vector<RealType>> m_MRFDelta;
+
   /** Build inverse-distance table for MRF */
   void ComputeMRFNeighborhoodDistances();
 
+  /** Precomputed neighborhood delta matrix between classes for MRF */
+  void ComputeMRFDeltaMatrix();
 
 private:
   AtroposSegmentationImageFilter(const Self &) = delete;
