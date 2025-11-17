@@ -40,8 +40,8 @@ jobs:
             generators: "Ninja"
         }
         - {
-            name: "Macos-13-clang",
-            os: macos-13,
+            name: "Macos-15-intel-clang",
+            os: macos-15-intel,
             cc: "clang",
             cxx: "clang++",
             build_type: "Release",
