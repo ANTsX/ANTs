@@ -87,6 +87,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Atrop
 
   this->m_MRFSmoothingFactor = 0.3;
   this->m_MRFRadius.Fill(1);
+  this->m_MRFNeighborhoodInvDistances = std::vector<RealType>();
+  this->m_MRFNeighborhoodSize = 1;
+  this->m_MRFNeighborhoodCenterIndex = 0;
+  this->m_MRFDelta = std::vector<std::vector<RealType>>();
 
   this->m_SplineOrder = 3;
   this->m_NumberOfLevels.Fill(6);
@@ -448,6 +452,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Gener
   //
   this->m_ImageSpacing = this->GetOutput()->GetSpacing();
 
+  //
+  // precompute MRF neighborhood distances and delta matrix
+  //
+  this->ComputeMRFNeighborhoodDistances();
+  this->ComputeMRFDeltaMatrix();
+
   bool isConverged = false;
   this->m_CurrentPosteriorProbability = 0.0;
   RealType probabilityOld = NumericTraits<RealType>::NonpositiveMin();
@@ -479,6 +489,126 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Gener
     this->m_PosteriorProbabilityImages.clear();
   }
 }
+
+
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
+void
+AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::ComputeMRFNeighborhoodDistances()
+{
+
+  // Determine neighborhood size and radius
+  typename NeighborhoodIterator<ClassifiedImageType>::RadiusType radius;
+  unsigned int neighborhoodSize = 1;
+
+  for (unsigned int d = 0; d < ImageDimension; d++)
+  {
+    radius[d] = this->m_MRFRadius[d];
+    neighborhoodSize *= (2 * this->m_MRFRadius[d] + 1);
+  }
+
+  this->m_MRFNeighborhoodInvDistances.resize(neighborhoodSize);
+
+  this->m_MRFNeighborhoodSize = neighborhoodSize;
+
+  this->m_MRFNeighborhoodCenterIndex = neighborhoodSize / 2;
+
+  // this is just to get the offsets
+  NeighborhoodIterator<ClassifiedImageType> ItO(radius, this->GetOutput(), this->GetOutput()->GetRequestedRegion());
+
+  //
+  // Precompute distances for every offset index 'n'
+  //
+  for (unsigned int n = 0; n < neighborhoodSize; n++)
+  {
+    typename NeighborhoodIterator<ClassifiedImageType>::OffsetType offset =
+      ItO.GetOffset(n);
+
+    RealType distance = NumericTraits<RealType>::ZeroValue();
+
+    if (n == this->m_MRFNeighborhoodCenterIndex)
+      this->m_MRFNeighborhoodInvDistances[n] = 0.0;
+    else
+    {
+      for (unsigned int d = 0; d < ImageDimension; d++)
+      {
+      const RealType phys = static_cast<RealType>(offset[d]) *
+                              static_cast<RealType>(this->m_ImageSpacing[d]);
+      distance += phys * phys;
+      }
+      this->m_MRFNeighborhoodInvDistances[n] = 1.0 / std::sqrt(distance);
+    }
+  }
+}
+
+template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
+void
+AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
+::ComputeMRFDeltaMatrix()
+{
+  const unsigned int totalClasses =
+    this->m_NumberOfTissueClasses + this->m_NumberOfPartialVolumeClasses;
+
+  const bool hasPV = (this->m_NumberOfPartialVolumeClasses > 0);
+
+  m_MRFDelta.assign(totalClasses,
+                    std::vector<RealType>(totalClasses, NumericTraits<RealType>::ZeroValue()));
+
+  for (unsigned int L = 0; L < totalClasses; L++)
+  {
+    for (unsigned int k = 0; k < totalClasses; k++)
+    {
+      RealType delta = NumericTraits<RealType>::ZeroValue();
+
+      const LabelType label    = static_cast<LabelType>(L + 1);
+      const LabelType neighLab = static_cast<LabelType>(k + 1);
+
+      if (label == neighLab)
+      {
+        // ORIGINAL RULE #1
+        if (hasPV)
+          delta = -2.0;
+        else
+          delta = -1.0;
+      }
+      else if (hasPV)
+      {
+        // ORIGINAL RULE #2: do L and k share a PV class?
+        bool isCommonTissue = false;
+
+        for (const auto & pvClass : this->m_PartialVolumeClasses)
+        {
+          bool in1 = (std::find(pvClass.begin(), pvClass.end(), label)    != pvClass.end());
+          bool in2 = (std::find(pvClass.begin(), pvClass.end(), neighLab) != pvClass.end());
+          if (in1 && in2)
+          {
+            isCommonTissue = true;
+            break;
+          }
+        }
+
+        if (isCommonTissue)
+        {
+          // ORIGINAL RULE #2a
+          delta = -1.0;
+        }
+        else
+        {
+          // ORIGINAL RULE #3
+          delta = 1.0;
+        }
+      }
+      else
+      {
+        // no PV classes and labels differ → ORIGINAL RULE #4: delta = 0
+        delta = 0.0;
+      }
+
+      m_MRFDelta[L][k] = delta;
+    }
+  }
+}
+
+
 
 template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
@@ -1809,90 +1939,50 @@ template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::EvaluateMRFNeighborhoodWeights(
   ConstNeighborhoodIterator<TClassifiedImage> It,
-  Array<RealType> &                           mrfNeighborhoodWeights)
+  Array<RealType> & mrfNeighborhoodWeights)
 {
-  unsigned int totalNumberOfClasses = this->m_NumberOfTissueClasses + this->m_NumberOfPartialVolumeClasses;
+  const unsigned int totalClasses =
+    this->m_NumberOfTissueClasses + this->m_NumberOfPartialVolumeClasses;
 
-  RealType mrfSmoothingFactor = this->m_MRFSmoothingFactor;
-
-  if (this->m_MRFCoefficientImage)
-  {
-    mrfSmoothingFactor = this->m_MRFCoefficientImage->GetPixel(It.GetIndex());
-  }
-
-  mrfNeighborhoodWeights.SetSize(totalNumberOfClasses);
+  mrfNeighborhoodWeights.SetSize(totalClasses);
   mrfNeighborhoodWeights.Fill(0.0);
 
-  unsigned int neighborhoodSize = (It.GetNeighborhood()).Size();
+  const unsigned int N = this->m_MRFNeighborhoodSize;
+  const unsigned int centerIndex = this->m_MRFNeighborhoodCenterIndex;
 
-  if (mrfSmoothingFactor > NumericTraits<RealType>::ZeroValue() && neighborhoodSize > 1)
+  // Histogram: H[k] = Σ invDist[n] where neighbor label == k+1
+  std::vector<RealType> H(totalClasses, NumericTraits<RealType>::ZeroValue());
+
+  for (unsigned int n = 0; n < N; n++)
   {
-    for (unsigned int label = 1; label <= totalNumberOfClasses; label++)
+    if (n == centerIndex)
+      continue;
+
+    bool isInBounds = false;
+    LabelType neighLab = It.GetPixel(n, isInBounds);
+
+    if (!isInBounds || neighLab == 0)
+      continue;
+
+    const RealType invDist = this->m_MRFNeighborhoodInvDistances[n];
+    if (invDist <= 0.0)
+      continue;
+
+    H[neighLab - 1] += invDist;
+  }
+
+  // Compute MRF energy using precomputed delta matrix
+  for (unsigned int L = 0; L < totalClasses; L++)
+  {
+    RealType sum = NumericTraits<RealType>::ZeroValue();
+    for (unsigned int k = 0; k < totalClasses; k++)
     {
-      for (unsigned int n = 0; n < neighborhoodSize; n++)
-      {
-        if (n == static_cast<unsigned int>(0.5 * neighborhoodSize))
-        {
-          continue;
-        }
-        bool      isInBounds = false;
-        LabelType neighborLabel = It.GetPixel(n, isInBounds);
-        if (!isInBounds || neighborLabel == 0)
-        {
-          continue;
-        }
-        typename ClassifiedImageType::OffsetType offset = It.GetOffset(n);
-
-        RealType distance = 0.0;
-        for (unsigned int d = 0; d < ImageDimension; d++)
-        {
-          distance += static_cast<RealType>(Math::sqr(offset[d] * this->m_ImageSpacing[d]));
-        }
-        distance = std::sqrt(distance);
-
-        RealType delta = 0.0;
-        if (label == neighborLabel)
-        {
-          if (this->m_NumberOfPartialVolumeClasses > 0)
-          {
-            delta = -2.0;
-          }
-          else
-          {
-            delta = -1.0;
-          }
-        }
-        else
-        {
-          bool                                              isCommonTissue = false;
-          typename PartialVolumeClassesType::const_iterator it;
-          for (it = this->m_PartialVolumeClasses.begin(); it != this->m_PartialVolumeClasses.end(); ++it)
-          {
-            if (std::find(it->begin(), it->end(), static_cast<LabelType>(label)) != it->end() &&
-                std::find(it->begin(), it->end(), static_cast<LabelType>(neighborLabel)) != it->end())
-            {
-              isCommonTissue = true;
-              break;
-            }
-          }
-          if (isCommonTissue)
-          {
-            delta = -1.0;
-          }
-          else if (this->m_NumberOfPartialVolumeClasses > 0)
-          {
-            delta = 1.0;
-          }
-          else
-          {
-            delta = 0.0;
-          }
-        }
-        mrfNeighborhoodWeights[label - 1] += (delta / distance);
-      }
+      sum += m_MRFDelta[L][k] * H[k];
     }
+    mrfNeighborhoodWeights[L] = sum;
   }
 }
+
 
 template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::RealImagePointer

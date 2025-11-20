@@ -759,6 +759,24 @@ protected:
   void
   GenerateData() override;
 
+ /** Precomputed neighborhood inverse distances for MRF */
+  std::vector<RealType> m_MRFNeighborhoodInvDistances;
+
+  /** Total number of neighborhood elements */
+  unsigned int m_MRFNeighborhoodSize;
+
+  /** Index of the center voxel in the flattened neighborhood */
+  unsigned int m_MRFNeighborhoodCenterIndex;
+
+  /** Precomputed neighborhood delta matrix between classes for MRF */
+  std::vector<std::vector<RealType>> m_MRFDelta;
+
+  /** Build inverse-distance table for MRF */
+  void ComputeMRFNeighborhoodDistances();
+
+  /** Precomputed neighborhood delta matrix between classes for MRF */
+  void ComputeMRFDeltaMatrix();
+
 private:
   AtroposSegmentationImageFilter(const Self &) = delete;
   void
