@@ -1043,19 +1043,19 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
 
   {
     std::string description = std::string("Option specifying the input image type of scalar (default), ") +
-                              std::string("vector (vectors in index space), tensor (3D diffusion tensor ") +
+                              std::string("vector (spatial vectors in index space), tensor (3D diffusion tensor ") +
                               std::string("in index space), time-series, multichannel, five-dimensional, ") +
-                              std::string("or displacement-field (vectors in physical space).  ") +
+                              std::string("or physical-vector (spatial vectors in ITK LPS+ physical space).  ") +
                               std::string("A time-series image is a scalar image defined by an additional ") +
                               std::string("dimension for the time component whereas a multi-channel image is a ") +
-                              std::string("vector image with only spatial dimensions.  Five-dimensional") +
+                              std::string("vector image with only spatial dimensions.  Five-dimensional ") +
                               std::string("images are e.g., AFNI stats image.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("input-image-type");
     option->SetShortName('e');
     option->SetUsageOption(0, "0/1/2/3/4/5/6");
-    option->SetUsageOption(1, "scalar/vector/tensor/time-series/multichannel/five-dimensional/displacement-field");
+    option->SetUsageOption(1, "scalar/vector/tensor/time-series/multichannel/five-dimensional/physical-vector");
     option->AddFunction(std::string("0"));
     option->SetDescription(description);
     parser->AddOption(option);
@@ -1125,8 +1125,11 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
   }
 
   {
-    std::string description = std::string("Several interpolation options are available in ITK. ") +
-                              std::string("These have all been made available.");
+    std::string description =
+        "Several interpolation options are available via ITK. For tensor data, NearestNeighbor or linear interpolation are "
+        "recommended. The interpolation is done on log-transformed tensors, which reduces interpolation artifacts. "
+        "Vector data is interpolated component-wise. Vector data that has arbitrary sign (eg, diffusion tensor eigenvectors) "
+        "should use NearestNeighbor interpolation.";
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("interpolation");
@@ -1316,8 +1319,7 @@ antsApplyTransforms(std::vector<std::string> args, std::ostream * /*out_stream =
   std::string commandDescription = std::string("antsApplyTransforms, applied to an input image, transforms it ") +
                                    std::string("according to a reference image and a transform (or a set of transforms). ") +
                                    std::string("The output image is resliced into the space of the reference image. Tensor ") +
-                                   std::string("images are reoriented to preserve the principal directions. Vector input ") +
-                                   std::string("is not currently reoriented (this may be added later). ") +
+                                   std::string("and vector images are reoriented to preserve the principal directions.\n") +
                                    std::string("As well as applying warps to images, antsApplyTransforms can also compose ") +
                                    std::string("multiple transforms into a composite transform file, or collapse them into ") +
                                    std::string("a single affine transform or displacement field.");
@@ -1402,7 +1404,7 @@ antsApplyTransforms(std::vector<std::string> args, std::ostream * /*out_stream =
     TIME_SERIES,
     MULTICHANNEL,
     FIVEDIMENSIONAL,
-    DISPLACEMENT_FIELD
+    PHYSICAL_VECTOR
   };
 
   InputImageType imageType = SCALAR;
@@ -1433,9 +1435,9 @@ antsApplyTransforms(std::vector<std::string> args, std::ostream * /*out_stream =
     {
       imageType = FIVEDIMENSIONAL;
     }
-    else if (!std::strcmp(inputImageType.c_str(), "displacement-field") || !std::strcmp(inputImageType.c_str(), "6"))
+    else if (!std::strcmp(inputImageType.c_str(), "physical-vector") || !std::strcmp(inputImageType.c_str(), "6"))
     {
-      imageType = DISPLACEMENT_FIELD;
+      imageType = PHYSICAL_VECTOR;
     }
     else
     {
