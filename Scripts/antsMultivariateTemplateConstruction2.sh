@@ -443,7 +443,7 @@ function shapeupdatetotemplate() {
 
         if [[ $NWARPS -ne 0 ]];
           then
-            ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template} --verbose 1
+            ${WARP} -d ${dim} -e physical-vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [ ${templatename}0GenericAffine.mat,1 ] -r ${template} --verbose 1
             MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
           fi
       fi

@@ -2,6 +2,7 @@
 #include "antsAllocImage.h"
 #include "itkantsRegistrationHelper.h"
 #include "itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.h"
+#include "itkPreservationOfVectorDirectionImageFilter.h"
 #include "ReadWriteData.h"
 #include "TensorFunctions.h"
 #include "itkExpTensorImageFilter.h"
@@ -379,7 +380,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     ReadImage<ImageType>(image, inputFN.c_str());
     inputImages.push_back(image);
   }
-  else if (inputImageType == 1 && inputOption && inputOption->GetNumberOfFunctions())
+  else if ((inputImageType == 1 || inputImageType == 6) && inputOption && inputOption->GetNumberOfFunctions())
   {
     if (verbose)
     {
@@ -476,9 +477,12 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     return EXIT_FAILURE;
   }
 
-  if (inputImageType == 1)
+  if (inputImageType == 1 || inputImageType == 6)
   {
-    CorrectImageVectorDirection<DisplacementFieldType, ReferenceImageType>(vectorImage, referenceImage);
+    if (inputImageType == 1)
+    {
+      CorrectImageVectorDirection<DisplacementFieldType, ReferenceImageType>(vectorImage, referenceImage);
+    }
     for (unsigned int i = 0; i < Dimension; i++)
     {
       using SelectorType = itk::VectorIndexSelectionCastImageFilter<DisplacementFieldType, ImageType>;
@@ -770,7 +774,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
         std::cout << "Output warped image: " << outputFileName << std::endl;
       }
 
-      if (inputImageType == 1)
+      if (inputImageType == 1 || inputImageType == 6)
       {
         if (outputImages.size() != Dimension)
         {
@@ -799,9 +803,38 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
           It.Set(vector);
         }
 
+        // reorient the vector image to match the reference image
+        using VectorReorientType = itk::PreservationOfVectorDirectionImageFilter<DisplacementFieldType>;
+        typename VectorReorientType::Pointer reorienter = VectorReorientType::New();
+        reorienter->SetInput(outputVectorImage);
+        reorienter->SetCompositeTransform(compositeTransform);
+
+        if (verbose)
+        {
+          std::cout << "Applying vector reorientation " << std::endl;
+        }
+
+        if (inputImageType == 1)
+        {
+          if (verbose)
+          {
+            std::cout << "Reorienting vectors, output in reference index space" << std::endl;
+          }
+          reorienter->SetInputVectorsInPhysicalSpace(false);
+        }
+        else
+        {
+          if (verbose)
+          {
+            std::cout << "Reorienting displacement vectors, output in physical space" << std::endl;
+          }
+          reorienter->SetInputVectorsInPhysicalSpace(true);
+        }
+        reorienter->Update();
+
         using CastFilterType = itk::CastImageFilter<DisplacementFieldType, OutputDisplacementFieldType>;
         typename CastFilterType::Pointer caster = CastFilterType::New();
-        caster->SetInput(outputVectorImage);
+        caster->SetInput(reorienter->GetOutput());
         caster->Update();
 
         using WriterType = itk::ImageFileWriter<OutputDisplacementFieldType>;
@@ -1010,17 +1043,19 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
 
   {
     std::string description = std::string("Option specifying the input image type of scalar (default), ") +
-                              std::string("vector, tensor (3D diffusion tensor), time series, or multi-channel.  ") +
-                              std::string("A time series image is a scalar image defined by an additional ") +
+                              std::string("vector (spatial vectors in index space), tensor (3D diffusion tensor ") +
+                              std::string("in index space), time-series, multichannel, five-dimensional, ") +
+                              std::string("or physical-vector (spatial vectors in ITK LPS+ physical space).  ") +
+                              std::string("A time-series image is a scalar image defined by an additional ") +
                               std::string("dimension for the time component whereas a multi-channel image is a ") +
-                              std::string("vector image with only spatial dimensions.  Five-dimensional") +
+                              std::string("vector image with only spatial dimensions.  Five-dimensional ") +
                               std::string("images are e.g., AFNI stats image.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("input-image-type");
     option->SetShortName('e');
-    option->SetUsageOption(0, "0/1/2/3/4/5");
-    option->SetUsageOption(1, "scalar/vector/tensor/time-series/multichannel/five-dimensional");
+    option->SetUsageOption(0, "0/1/2/3/4/5/6");
+    option->SetUsageOption(1, "scalar/vector/tensor/time-series/multichannel/five-dimensional/physical-vector");
     option->AddFunction(std::string("0"));
     option->SetDescription(description);
     parser->AddOption(option);
@@ -1090,8 +1125,11 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
   }
 
   {
-    std::string description = std::string("Several interpolation options are available in ITK. ") +
-                              std::string("These have all been made available.");
+    std::string description =
+        "Several interpolation options are available via ITK. For tensor data, NearestNeighbor or linear interpolation are "
+        "recommended. The interpolation is done on log-transformed tensors, which reduces interpolation artifacts. "
+        "Vector data is interpolated component-wise. Vector data that has arbitrary sign (eg, diffusion tensor eigenvectors) "
+        "should use NearestNeighbor interpolation.";
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("interpolation");
@@ -1281,8 +1319,7 @@ antsApplyTransforms(std::vector<std::string> args, std::ostream * /*out_stream =
   std::string commandDescription = std::string("antsApplyTransforms, applied to an input image, transforms it ") +
                                    std::string("according to a reference image and a transform (or a set of transforms). ") +
                                    std::string("The output image is resliced into the space of the reference image. Tensor ") +
-                                   std::string("images are reoriented to preserve the principal directions. Vector input ") +
-                                   std::string("is not currently reoriented (this may be added later). ") +
+                                   std::string("and vector images are reoriented to preserve the principal directions.\n") +
                                    std::string("As well as applying warps to images, antsApplyTransforms can also compose ") +
                                    std::string("multiple transforms into a composite transform file, or collapse them into ") +
                                    std::string("a single affine transform or displacement field.");
@@ -1366,7 +1403,8 @@ antsApplyTransforms(std::vector<std::string> args, std::ostream * /*out_stream =
     TENSOR,
     TIME_SERIES,
     MULTICHANNEL,
-    FIVEDIMENSIONAL
+    FIVEDIMENSIONAL,
+    PHYSICAL_VECTOR
   };
 
   InputImageType imageType = SCALAR;
@@ -1396,6 +1434,10 @@ antsApplyTransforms(std::vector<std::string> args, std::ostream * /*out_stream =
     else if (!std::strcmp(inputImageType.c_str(), "five-dimensional") || !std::strcmp(inputImageType.c_str(), "5"))
     {
       imageType = FIVEDIMENSIONAL;
+    }
+    else if (!std::strcmp(inputImageType.c_str(), "physical-vector") || !std::strcmp(inputImageType.c_str(), "6"))
+    {
+      imageType = PHYSICAL_VECTOR;
     }
     else
     {
