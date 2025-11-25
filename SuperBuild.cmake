@@ -152,7 +152,7 @@ set(${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARNAMES) # List of CMake variable names
 set(${LOCAL_PROJECT_NAME}_C_OPTIMIZATION_FLAGS ${${CMAKE_PROJECT_NAME}_C_OPTIMIZATION_FLAGS})
 set(${LOCAL_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS ${${CMAKE_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS})
 # These are not explicitly added to the external project variable list, but they exist in the scope
-# of External_ITKv5.cmake. From there they are added to the ITK cmake call. Adding them to
+# of External_ITKv${ITK_VERSION_MAJOR}.cmake. From there they are added to the ITK cmake call. Adding them to
 # ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_ARGS doesn't seem to work, so instead use these directly as is
 # done for ITK_BULD_MINC_SUPPORT
 set(ITK_C_OPTIMIZATION_FLAGS "${${CMAKE_PROJECT_NAME}_C_OPTIMIZATION_FLAGS}")
