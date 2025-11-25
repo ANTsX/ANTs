@@ -166,11 +166,12 @@ Brian B. Avants, Nick Tustison and Gang Song
 Penn Image Computing And Science Laboratory
 University of Pennsylvania
 
+This script by Nick Tustison
+--------------------------------------------------------------------------------------
+
 Relevent references for this script include:
    * http://www.ncbi.nlm.nih.gov/pubmed/20851191
    * http://www.frontiersin.org/Journal/10.3389/fninf.2013.00039/abstract
---------------------------------------------------------------------------------------
-script by Nick Tustison
 --------------------------------------------------------------------------------------
 
 HELP

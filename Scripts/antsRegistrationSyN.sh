@@ -169,7 +169,7 @@ Brian B. Avants, Nick Tustison and Gang Song
 Penn Image Computing And Science Laboratory
 University of Pennsylvania
 
-script by Nick Tustison
+This script by Nick Tustison
 
 --------------------------------------------------------------------------------------
 Get the latest ANTs version at:
