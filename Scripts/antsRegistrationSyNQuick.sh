@@ -7,6 +7,30 @@ trap control_c SIGINT
 
 ANTS=antsRegistration
 
+#################
+#
+# default values
+#
+#################
+
+DIM=3
+FIXEDIMAGES=()
+MOVINGIMAGES=()
+INITIALTRANSFORMS=()
+OUTPUTNAME=output
+NUMBEROFTHREADS=0
+SPLINEDISTANCE=26
+LINEARGRADIENTSTEP=0.1
+SYNGRADIENTSTEP=0.2
+TRANSFORMTYPE='s'
+PRECISIONTYPE='d'
+NUMBEROFBINS=32
+MASKIMAGES=()
+USEHISTOGRAMMATCHING=0
+COLLAPSEOUTPUTTRANSFORMS=1
+RANDOMSEED=0
+REPRO=0
+
 if ! command -v ${ANTS} &> /dev/null
   then
     echo "antsRegistration program can't be found. Please (re)define \$PATH in your environment."
@@ -14,6 +38,15 @@ if ! command -v ${ANTS} &> /dev/null
   fi
 
 function Usage {
+  printUsage
+
+  echo "For more information on usage and documentation resources, run
+    `basename $0` -h
+"
+  exit 1
+}
+
+function printUsage {
     cat <<USAGE
 
 Usage:
@@ -22,25 +55,25 @@ Usage:
 
 Compulsory arguments:
 
-     -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
+     -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume, default = ${DIM})
 
      -f:  Fixed image(s) or source image(s) or reference image(s)
 
      -m:  Moving image(s) or target image(s)
 
-     -o:  OutputPrefix: A prefix that is prepended to all output files.
+     -o:  OutputPrefix: A prefix that is prepended to all output files (default = ${OUTPUTNAME})
 
 Optional arguments:
 
      -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
 
-     -i:  initial transform(s) --- order specified on the command line matters. If not specified, a
+     -i:  initial transform(s) -- order specified on the command line matters. If not specified, a
           default initialization is used, based on the transform type.
 
           For "syn only" and "b-spline syn only" transforms, the initial transform is the identity
           matrix. For other transforms, it is a translation that aligns the input centers of mass.
 
-     -t:  transform type (default = 's')
+     -t:  transform type (default = '${TRANSFORMTYPE}')
         t: translation (1 stage)
         r: rigid (1 stage)
         a: rigid + affine (2 stages)
@@ -51,31 +84,31 @@ Optional arguments:
         br: rigid + deformable b-spline syn (2 stages)
         bo: deformable b-spline syn only (1 stage)
 
-     -r:  histogram bins for mutual information in SyN stage (default = 32)
+     -r:  histogram bins for mutual information in SyN stage (default = ${NUMBEROFBINS})
 
-     -s:  spline distance for deformable B-spline SyN transform (default = 26)
+     -s:  spline distance for deformable B-spline SyN transform (default = ${SPLINEDISTANCE})
 
-     -g:  gradient step size for SyN and B-spline SyN (default = 0.1)
+     -g:  gradient step size for SyN and B-spline SyN (default = ${SYNGRADIENTSTEP})
 
      -x:  mask(s) for the fixed image space, or for the fixed and moving image space in the format
           "fixedMask,MovingMask". Use -x once to specify mask(s) to be used for all stages or use
           -x for each "stage" (cf -t option).  If no mask is to be used for a particular stage,
           the keyword 'NULL' should be used in place of file names.
 
-     -p:  precision type (default = 'd')
+     -p:  precision type (default = '${PRECISIONTYPE}')
         f: float
         d: double
 
-     -j:  use histogram matching (default = 0)
+     -j:  use histogram matching (default = ${USEHISTOGRAMMATCHING})
         0: false
         1: true
 
      -y:  use 'repro' mode for exact reproducibility of output.  Uses GC metric for linear
-          stages, CC metric for deformable stages, and a fixed random seed (default = 0).
+          stages, CC metric for deformable stages, and a fixed random seed (default = ${REPRO}).
         0: false
         1: true
 
-     -z:  collapse output transforms (default = 1)
+     -z:  collapse output transforms (default = ${COLLAPSEOUTPUTTRANSFORMS})
         0: false
         1: true
 
@@ -99,22 +132,13 @@ Example with masks:
 
 `basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -t sr -x NULL -x fixedMask.nii.gz  -t -o output
 
-
---------------------------------------------------------------------------------------
-ANTs was created by:
---------------------------------------------------------------------------------------
-Brian B. Avants, Nick Tustison and Gang Song
-Penn Image Computing And Science Laboratory
-University of Pennsylvania
-
-script by Nick Tustison
-
 USAGE
-    exit 1
 }
 
 function Help {
-    cat <<HELP
+  printUsage
+
+  cat <<HELP
 
 Usage:
 
@@ -124,72 +148,6 @@ Example Case:
 
 `basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -o output
 
-Compulsory arguments:
-
-     -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
-
-     -f:  Fixed image(s) or source image(s) or reference image(s)
-
-     -m:  Moving image(s) or target image(s)
-
-     -o:  OutputPrefix: A prefix that is prepended to all output files.
-
-Optional arguments:
-
-     -n:  Number of threads (default = ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS if defined, otherwise 1)
-
-     -i:  initial transform(s) --- order specified on the command line matters. If not specified, a
-          default initialization is used, based on the transform type.
-
-          For "syn only" and "b-spline syn only" transforms, the initial transform is the identity
-          matrix. For other transforms, it is a translation that aligns the input centers of mass.
-
-     -t:  transform type (default = 's')
-        t: translation (1 stage)
-        r: rigid (1 stage)
-        a: rigid + affine (2 stages)
-        s: rigid + affine + deformable syn (3 stages)
-        sr: rigid + deformable syn (2 stages)
-        so: deformable syn only (1 stage)
-        b: rigid + affine + deformable b-spline syn (3 stages)
-        br: rigid + deformable b-spline syn (2 stages)
-        bo: deformable b-spline syn only (1 stage)
-
-     -r:  histogram bins for mutual information in SyN stage (default = 32)
-
-     -s:  spline distance for deformable B-spline SyN transform (default = 26)
-
-     -g:  gradient step size for SyN and B-spline SyN (default = 0.1)
-
-     -x:  mask(s) for the fixed image space, or for the fixed and moving image space in the format
-          "fixedMask,MovingMask". Use -x once to specify mask(s) to be used for all stages or use
-          -x for each "stage" (cf -t option).  If no mask is to be used for a particular stage,
-          the keyword 'NULL' should be used in place of file names.
-
-     -p:  precision type (default = 'd')
-        f: float
-        d: double
-
-     -j:  use histogram matching (default = 0)
-        0: false
-        1: true
-
-     -y:  use 'repro' mode for exact reproducibility of output.  Uses GC metric for linear
-          stages, CC metric for deformable stages, and a fixed random seed (default = 0).
-        0: false
-        1: true
-
-     -z:  collapse output transforms (default = 1)
-        0: false
-        1: true
-
-     -e:  Fix random seed to an int value
-
-     NB:  Multiple image pairs can be specified for registration during the SyN stage.
-          Specify additional images using the '-m' and '-f' options.  Note that image
-          pair correspondence is given by the order specified on the command line.
-          Only the first fixed and moving image pair is used for the linear registration
-          stages.
 
 --------------------------------------------------------------------------------------
 Get the latest ANTs version at:
@@ -208,11 +166,12 @@ Brian B. Avants, Nick Tustison and Gang Song
 Penn Image Computing And Science Laboratory
 University of Pennsylvania
 
+This script by Nick Tustison
+--------------------------------------------------------------------------------------
+
 Relevent references for this script include:
    * http://www.ncbi.nlm.nih.gov/pubmed/20851191
    * http://www.frontiersin.org/Journal/10.3389/fninf.2013.00039/abstract
---------------------------------------------------------------------------------------
-script by Nick Tustison
 --------------------------------------------------------------------------------------
 
 HELP
@@ -274,29 +233,6 @@ if [[ "$1" == "-h" || $# -eq 0 ]];
     Help >&2
   fi
 
-#################
-#
-# default values
-#
-#################
-
-DIM=3
-FIXEDIMAGES=()
-MOVINGIMAGES=()
-INITIALTRANSFORMS=()
-OUTPUTNAME=output
-NUMBEROFTHREADS=0
-SPLINEDISTANCE=26
-LINEARGRADIENTSTEP=0.1
-SYNGRADIENTSTEP=0.2
-TRANSFORMTYPE='s'
-PRECISIONTYPE='d'
-NUMBEROFBINS=32
-MASKIMAGES=()
-USEHISTOGRAMMATCHING=0
-COLLAPSEOUTPUTTRANSFORMS=1
-RANDOMSEED=0
-REPRO=0
 
 # reading command line arguments
 while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:y:z:" OPT
@@ -355,7 +291,7 @@ while getopts "d:e:f:g:h:i:m:j:n:o:p:r:s:t:x:y:z:" OPT
    COLLAPSEOUTPUTTRANSFORMS=$OPTARG
    ;;
      \?) # getopts issues an error message
-   echo "$USAGE" >&2
+   Usage
    exit 1
    ;;
   esac
