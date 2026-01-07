@@ -337,9 +337,8 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
         {
           if (d != direction)
           {
-            croppedSliceSize[count] = std::min(
-                size[d] - (itk::Math::abs(lowerBoundVector[count]) + itk::Math::abs(upperBoundVector[count])),
-                size[d]);
+            croppedSliceSize[count] =
+                size[d] - (itk::Math::abs(lowerBoundVector[count]) + itk::Math::abs(upperBoundVector[count]));
 
             croppedSliceIndex[count] = itk::Math::abs(lowerBoundVector[count]);
             count++;
@@ -390,6 +389,7 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
         {
           std::string offsetString = padWidthString.substr(padWidthString.find(std::string("-")) + 1);
           offset = parser->Convert<int>(offsetString);
+          // make offset negative because the minus sign in the string is the delimiter
           offset *= -1;
         }
 
@@ -400,7 +400,7 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
           if (d != direction)
           {
             croppedSliceSize[count] = std::min(maskRegion.GetSize()[d] + 2 * offset, size[d]);
-            croppedSliceIndex[count] = maskRegion.GetIndex()[d] - offset;
+            croppedSliceIndex[count] = std::max(0, static_cast<int>(maskRegion.GetIndex()[d] - offset));
             count++;
           }
         }
