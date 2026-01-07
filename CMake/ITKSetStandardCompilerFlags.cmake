@@ -309,24 +309,25 @@ function(
       # Check this list on C++ compiler only
       set(cxx_flags "")
 
-    # Check this list on both C and C++ compilers
-    if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ppc64le")
-      EXECUTE_PROCESS(COMMAND lscpu COMMAND grep "Model name:" OUTPUT_VARIABLE CPU OUTPUT_STRIP_TRAILING_WHITESPACE)
-      if (${CPU} MATCHES "POWER8")
-	set(CPU "power8")
+      # Check this list on both C and C++ compilers
+      if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "ppc64le")
+        EXECUTE_PROCESS(COMMAND lscpu COMMAND grep "Model name:" OUTPUT_VARIABLE CPU OUTPUT_STRIP_TRAILING_WHITESPACE)
+        if (${CPU} MATCHES "POWER8")
+          set(CPU "power8")
+        else()
+          set(CPU "power9")
+        endif()
+        set(InstructionSetOptimizationFlags
+        -m64 -mcpu=${CPU} -mtune=${CPU} -ffast-math -fpeel-loops -funroll-loops -fvect-cost-model -mcmodel=medium -DNO_WARN_X86_INTRINSICS
+        )
       else()
-	set(CPU "power9")
+        # https://gcc.gnu.org/onlinedocs/gcc-4.8.0/gcc/i386-and-x86_002d64-Options.html
+        # NOTE the corei7 release date was 2008
+        set(InstructionSetOptimizationFlags
+        -mtune=generic # for reproducible results https://github.com/InsightSoftwareConsortium/ITK/issues/1939
+        -march=corei7 # Use ABI settings to support corei7 (circa 2008 ABI feature sets, core-avx circa 2013)
+        )
       endif()
-      set(InstructionSetOptimizationFlags
-	-m64 -mcpu=${CPU} -mtune=${CPU} -ffast-math -fpeel-loops -funroll-loops -fvect-cost-model -mcmodel=medium -DNO_WARN_X86_INTRINSICS
-	)
-    else()
-       # https://gcc.gnu.org/onlinedocs/gcc-4.8.0/gcc/i386-and-x86_002d64-Options.html
-       # NOTE the corei7 release date was 2008
-      set(InstructionSetOptimizationFlags
-       -mtune=generic # for reproducible results https://github.com/InsightSoftwareConsortium/ITK/issues/1939
-       -march=corei7 # Use ABI settings to support corei7 (circa 2008 ABI feature sets, core-avx circa 2013)
-       )
     endif()
     set(c_and_cxx_flags ${InstructionSetOptimizationFlags})
   endif()
@@ -336,6 +337,7 @@ function(
 
   set(${c_optimization_flags_var} "${CMAKE_C_WARNING_FLAGS}" PARENT_SCOPE)
   set(${cxx_optimization_flags_var} "${CMAKE_CXX_WARNING_FLAGS}" PARENT_SCOPE)
+
 endfunction()
 
 macro(check_compiler_platform_flags)
