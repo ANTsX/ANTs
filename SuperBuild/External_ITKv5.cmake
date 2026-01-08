@@ -80,6 +80,11 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
         -DModule_ITKMINC:BOOL=ON
        )
   endif()
+  if(${extProjName}_BUILD_VKFFT_SUPPORT)
+    set(${proj}_MINC_ARGS
+        -DModule_VkFFTBackend:BOOL=ON
+       )
+  endif()
 
   set(${proj}_WRAP_ARGS)
   #if(foo)
@@ -136,6 +141,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       ${${proj}_FFTWF_ARGS}
       ${${proj}_FFTWD_ARGS}
       ${${proj}_MINC_ARGS}
+      ${${proj}_VKFFT_ARGS}
   )
 
     if( USE_VTK STREQUAL "ON" )

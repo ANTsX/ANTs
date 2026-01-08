@@ -45,6 +45,7 @@
 #include "itkEuler2DTransform.h"
 #include "itkEuler3DTransform.h"
 #include "itkExpectationBasedPointSetToPointSetMetricv4.h"
+#include "itkFFTDiscreteGaussianImageFilterFactory.h" 
 #include "itkGaussianExponentialDiffeomorphicTransform.h"
 #include "itkGaussianExponentialDiffeomorphicTransformParametersAdaptor.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransform.h"
