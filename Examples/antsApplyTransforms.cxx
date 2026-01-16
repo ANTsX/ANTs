@@ -819,7 +819,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
         caster->SetInput(reorienter->GetOutput());
         caster->Update();
 
-        ANTs::WriteImage<OutputDisplacementFieldType>(caster->GetOutput(), (outputFileName).c_str());
+        WriteVectorImage<OutputDisplacementFieldType>(caster->GetOutput(), (outputFileName).c_str());
       }
       else if (inputImageType == 2)
       {

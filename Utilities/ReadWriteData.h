@@ -553,8 +553,48 @@ WriteImage(const itk::SmartPointer<TImageType> image, const char * file)
 
 template <typename TImageType>
 void
+WriteVectorImage(itk::SmartPointer<TImageType> image, const char * file)
+{
+  if (FileIsPointer(file))
+  {
+    void * ptr;
+    sscanf(file, "%p", (void **)&ptr);
+    using Scalar = typename TImageType::PixelType::ComponentType;
+    constexpr unsigned int Dimension = TImageType::ImageDimension;
+    using VectorImageType = itk::VectorImage<Scalar, Dimension>;
+    using CastFilterType = itk::CastImageFilter<TImageType, VectorImageType>;
+    typename CastFilterType::Pointer caster = CastFilterType::New();
+    caster->SetInput(image);
+    caster->Update();
+    typename VectorImageType::Pointer outVecImg = caster->GetOutput();
+    *(static_cast<typename VectorImageType::Pointer *>(ptr)) = outVecImg;
+  }
+  else
+  {
+    if (!image)
+    {
+      std::cerr << "Image is nullptr." << std::endl;
+      std::exception();
+    }
+    using WriterType = itk::ImageFileWriter<TImageType>;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetInput(image);
+    writer->SetFileName(std::string(file));
+    writer->SetUseCompression(true);
+    writer->Update();
+  }
+}
+
+template <typename TImageType>
+void
 WriteTensorImage(itk::SmartPointer<TImageType> image, const char * file, bool takeexp = true)
 {
+  if (!image)
+  {
+    std::cerr << "Image is nullptr." << std::endl;
+    std::exception();
+  }
+
   typedef itk::ExpTensorImageFilter<TImageType, TImageType> ExpFilterType;
   typename TImageType::Pointer writeImage = image;
 
