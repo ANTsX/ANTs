@@ -386,25 +386,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     {
       std::cout << "Input vector image: " << inputOption->GetFunction(0)->GetName() << std::endl;
     }
-
-    using ReaderType = itk::ImageFileReader<DisplacementFieldType>;
-    typename ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName((inputOption->GetFunction(0)->GetName()).c_str());
-
-    try
-    {
-      vectorImage = reader->GetOutput();
-      vectorImage->Update();
-      vectorImage->DisconnectPipeline();
-    }
-    catch (...)
-    {
-      if (verbose)
-      {
-        std::cerr << "Unable to read vector image " << reader->GetFileName() << std::endl;
-      }
-      return EXIT_FAILURE;
-    }
+    ReadImage<DisplacementFieldType>(vectorImage, (inputOption->GetFunction(0)->GetName()).c_str());
   }
   else if (outputOption && outputOption->GetNumberOfFunctions())
   {
@@ -837,11 +819,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
         caster->SetInput(reorienter->GetOutput());
         caster->Update();
 
-        using WriterType = itk::ImageFileWriter<OutputDisplacementFieldType>;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetInput(caster->GetOutput());
-        writer->SetFileName((outputFileName).c_str());
-        writer->Update();
+        ANTs::WriteImage<OutputDisplacementFieldType>(caster->GetOutput(), (outputFileName).c_str());
       }
       else if (inputImageType == 2)
       {
