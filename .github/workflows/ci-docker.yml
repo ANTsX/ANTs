@@ -14,6 +14,10 @@ on:
       - synchronize
       - ready_for_review
 
+env:
+  DOCKER_REPO: antsx/ants
+  DOCKER_TAGS: ''
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ !(github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) }}
@@ -31,7 +35,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: antsx/ants
+          images: ${{ env.DOCKER_REPO }}
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -40,12 +44,30 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Edit tag for releases
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        name: Compute Docker tag
+        shell: bash
         run: |
-          GIT_TAG="${{ github.ref }}"
-          STRIPPED_TAG="${GIT_TAG#refs/tags/v}"
-          echo "DOCKER_TAG=antsx/ants:${STRIPPED_TAG}" >> $GITHUB_ENV
+            REF="${GITHUB_REF}"
+
+            DOCKER_TAGS=""
+
+            if [[ "$REF" == refs/tags/* ]]; then
+              TAG="${REF#refs/tags/}"
+
+              # Strip leading 'v' only for vA.B.C where A,B,C are integers
+              if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                  TAG="${TAG#v}"
+                  DOCKER_TAGS="${DOCKER_REPO}:${TAG},${DOCKER_REPO}:latest"
+              else
+                  DOCKER_TAGS="${DOCKER_REPO}:${TAG}"
+              fi
+            elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+              DOCKER_TAGS="${DOCKER_REPO}:pr-${{ github.event.pull_request.number }}"
+            else
+              DOCKER_TAGS="${DOCKER_REPO}:${GITHUB_REF_NAME}"
+            fi
+
+            echo "DOCKER_TAGS=${DOCKER_TAGS}" >> "$GITHUB_ENV"
       -
         name: Build and load (PR) or push (commit/tag)
         uses: docker/build-push-action@v5
@@ -53,13 +75,14 @@ jobs:
             context: .
             push: ${{ github.event_name != 'pull_request' }}
             load: ${{ github.event_name == 'pull_request' }}
-            tags: ${{ env.DOCKER_TAG }},${{ steps.meta.outputs.tags }}
+            tags: |
+              ${{ env.DOCKER_TAGS }}
             labels: ${{ steps.meta.outputs.labels }}
       -
         name: Export Docker image for PR
         if: github.event_name == 'pull_request'
         run: |
-          docker save antsx/ants:${{ steps.meta.outputs.version }} > ants_image.tar
+          docker save ${{ env.DOCKER_REPO }}:${{ steps.meta.outputs.version }} > ants_image.tar
       -
         name: Upload PR Docker image as artifact
         if: github.event_name == 'pull_request'
