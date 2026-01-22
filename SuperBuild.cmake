@@ -335,24 +335,20 @@ ExternalProject_Add_Step(${proj} forcebuild
 
 set(_inner_build_dir "${CMAKE_BINARY_DIR}/${LOCAL_PROJECT_NAME}-build")
 
-# Create a harmless stamp so the superbuild has an install script
-set(_superbuild_stamp "${CMAKE_CURRENT_BINARY_DIR}/superbuild-install-stamp.txt")
-file(WRITE "${_superbuild_stamp}" "ANTs superbuild install stamp\n")
-install(FILES "${_superbuild_stamp}" DESTINATION "share/ANTs" COMPONENT Superbuild)
-
-# Delegate install to the inner build tree (and build it first for cmake --install)
+# Delegate install to the inner build tree.
+# - `cmake --install build` (no component): delegates.
+# - `cmake --install build --component <X>`: delegates only for <X> == "Superbuild"
+#   (so other component installs don't unexpectedly trigger the inner install).
 install(CODE
   "
-  message(STATUS \"Superbuild: building ${LOCAL_PROJECT_NAME} target before install\")
-  execute_process(
-    COMMAND \"${CMAKE_COMMAND}\" --build \"${CMAKE_BINARY_DIR}\" --target \"${LOCAL_PROJECT_NAME}\"
-    RESULT_VARIABLE _bres
-  )
-  if(NOT _bres EQUAL 0)
-    message(FATAL_ERROR \"Superbuild build of ${LOCAL_PROJECT_NAME} failed with exit code: \${_bres}\")
+  if(DEFINED CMAKE_INSTALL_COMPONENT AND
+     NOT \"\${CMAKE_INSTALL_COMPONENT}\" STREQUAL \"\" AND
+     NOT \"\${CMAKE_INSTALL_COMPONENT}\" STREQUAL \"Superbuild\")
+    message(STATUS \"Superbuild: skipping delegation (component='\${CMAKE_INSTALL_COMPONENT}')\")
+    return()
   endif()
 
-  message(STATUS \"Superbuild: installing from inner build dir: ${_inner_build_dir}\")
+  message(STATUS \"Superbuild: delegating install to inner ANTs-build: ${_inner_build_dir}\")
   execute_process(
     COMMAND \"${CMAKE_COMMAND}\" --install \"${_inner_build_dir}\" --prefix \"${CMAKE_INSTALL_PREFIX}\"
     RESULT_VARIABLE _res
