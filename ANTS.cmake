@@ -44,6 +44,20 @@ include(${ITK_USE_FILE})
 # Set up which ANTs apps to build
 option(BUILD_ALL_ANTS_APPS "Use All ANTs Apps" ON)
 
+# -------------------------------------------------------------------------
+# Install options
+# -------------------------------------------------------------------------
+option(ANTS_INSTALL_BIN_ONLY "Install only ANTs executables + scripts (bin/). Requires BUILD_SHARED_LIBS=OFF." OFF)
+mark_as_advanced(ANTS_INSTALL_BIN_ONLY)
+
+if(ANTS_INSTALL_BIN_ONLY AND ANTS_INSTALL_LIBS_ONLY)
+  message(FATAL_ERROR "ANTS_INSTALL_BIN_ONLY and ANTS_INSTALL_LIBS_ONLY are mutually exclusive.")
+endif()
+
+if(ANTS_INSTALL_BIN_ONLY AND BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "ANTS_INSTALL_BIN_ONLY requires BUILD_SHARED_LIBS=OFF (static build).")
+endif()
+
 # Set up VTK
 option(USE_VTK "Use VTK Libraries" OFF)
 if(USE_VTK)
@@ -132,7 +146,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ANTsVersionConfig.h.in"
 
 add_subdirectory(Examples)
 
-if (NOT ANTS_INSTALL_LIBS_ONLY) 
+if (NOT ANTS_INSTALL_LIBS_ONLY)
   install(PROGRAMS Scripts/ANTSpexec.sh
      Scripts/antsASLProcessing.sh
      Scripts/antsAtroposN4.sh
