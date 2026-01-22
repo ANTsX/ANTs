@@ -127,6 +127,7 @@ jobs:
               -DBUILD_TESTING=ON \
               -DRUN_SHORT_TESTS=ON \
               -DRUN_LONG_TESTS=OFF \
+              -DANTS_INSTALL_BIN_ONLY=ON \
               -DCMAKE_INSTALL_PREFIX:PATH=/workspace/install/ants-${{ env.ANTS_VERSION }} \
               /workspace
           "

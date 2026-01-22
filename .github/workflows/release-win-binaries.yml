@@ -51,6 +51,7 @@ jobs:
             -DBUILD_TESTING=ON `
             -DRUN_SHORT_TESTS=ON `
             -DRUN_LONG_TESTS=OFF `
+            -DANTS_INSTALL_BIN_ONLY=ON `
             -DCMAKE_INSTALL_PREFIX:PATH=${{ runner.temp }}/install/ants-${{ env.ANTS_VERSION }} `
             ${{ github.workspace }}
       - name: Build
