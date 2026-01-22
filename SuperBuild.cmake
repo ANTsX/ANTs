@@ -116,6 +116,14 @@ option(ANTS_INSTALL_LIBS_ONLY "Do not install binaries" OFF)
 mark_as_advanced(ANTS_INSTALL_BIN_ONLY)
 mark_as_advanced(ANTS_INSTALL_LIBS_ONLY)
 
+if(ANTS_INSTALL_BIN_ONLY AND BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "ANTS_INSTALL_BIN_ONLY requires BUILD_SHARED_LIBS=OFF (static build).")
+endif()
+
+if(ANTS_INSTALL_BIN_ONLY AND ANTS_INSTALL_LIBS_ONLY)
+  message(FATAL_ERROR "ANTS_INSTALL_BIN_ONLY and ANTS_INSTALL_LIBS_ONLY are mutually exclusive.")
+endif()
+
 #------------------------------------------------------------------------------
 # ${LOCAL_PROJECT_NAME} dependency list
 #------------------------------------------------------------------------------
