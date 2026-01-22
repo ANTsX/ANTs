@@ -328,3 +328,37 @@ ExternalProject_Add_Step(${proj} forcebuild
     DEPENDERS build
     ALWAYS 1
   )
+
+# -------------------------------------------------------------------------
+# Superbuild install: delegate to inner ANTS-build
+# -------------------------------------------------------------------------
+
+set(_inner_build_dir "${CMAKE_BINARY_DIR}/${LOCAL_PROJECT_NAME}-build")
+
+# Create a harmless stamp so the superbuild has an install script
+set(_superbuild_stamp "${CMAKE_CURRENT_BINARY_DIR}/superbuild-install-stamp.txt")
+file(WRITE "${_superbuild_stamp}" "ANTs superbuild install stamp\n")
+install(FILES "${_superbuild_stamp}" DESTINATION "share/ANTs" COMPONENT Superbuild)
+
+# Delegate install to the inner build tree (and build it first for cmake --install)
+install(CODE
+  "
+  message(STATUS \"Superbuild: building ${LOCAL_PROJECT_NAME} target before install\")
+  execute_process(
+    COMMAND \"${CMAKE_COMMAND}\" --build \"${CMAKE_BINARY_DIR}\" --target \"${LOCAL_PROJECT_NAME}\"
+    RESULT_VARIABLE _bres
+  )
+  if(NOT _bres EQUAL 0)
+    message(FATAL_ERROR \"Superbuild build of ${LOCAL_PROJECT_NAME} failed with exit code: \${_bres}\")
+  endif()
+
+  message(STATUS \"Superbuild: installing from inner build dir: ${_inner_build_dir}\")
+  execute_process(
+    COMMAND \"${CMAKE_COMMAND}\" --install \"${_inner_build_dir}\" --prefix \"${CMAKE_INSTALL_PREFIX}\"
+    RESULT_VARIABLE _res
+  )
+  if(NOT _res EQUAL 0)
+    message(FATAL_ERROR \"Inner ${LOCAL_PROJECT_NAME} install failed with exit code: \${_res}\")
+  endif()
+  "
+)
