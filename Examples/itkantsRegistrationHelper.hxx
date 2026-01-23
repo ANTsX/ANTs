@@ -4,6 +4,10 @@
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_copy.h>
 
+#include "itkVkHalfHermitianToRealInverseFFTImageFilter.h"
+#include "itkVkRealToHalfHermitianForwardFFTImageFilter.h"  
+#include "itkFFTImageFilterFactory.h" 
+
 namespace ants
 {
 
@@ -66,6 +70,16 @@ RegistrationHelper<TComputeType, VImageDimension>::RegistrationHelper()
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
   typename LinearInterpolatorType::Pointer                         linearInterpolator = LinearInterpolatorType::New();
   this->m_Interpolator = linearInterpolator;
+
+  using ForwardFactoryType = itk::FFTImageFilterFactory<itk::VkRealToHalfHermitianForwardFFTImageFilter>;
+  typename ForwardFactoryType::Pointer forwardFactory{ ForwardFactoryType::New() };
+  itk::ObjectFactoryBase::RegisterFactory(forwardFactory, itk::ObjectFactoryEnums::InsertionPosition::INSERT_AT_FRONT);
+
+  using InverseFactoryType = itk::FFTImageFilterFactory<itk::VkHalfHermitianToRealInverseFFTImageFilter>;
+  typename InverseFactoryType::Pointer inverseFactory{ InverseFactoryType::New() };
+  itk::ObjectFactoryBase::RegisterFactory(inverseFactory, itk::ObjectFactoryEnums::InsertionPosition::INSERT_AT_FRONT);
+
+  itk::FFTDiscreteGaussianImageFilterFactory::RegisterOneFactory();
 }
 
 template <typename TComputeType, unsigned VImageDimension>
