@@ -1,15 +1,15 @@
-set(ANTs_OLDEST_VALIDATED_POLICIES_VERSION "3.16.3")
-set(ANTs_NEWEST_VALIDATED_POLICIES_VERSION "3.19.7")
+set(ANTs_OLDEST_VALIDATED_POLICIES_VERSION "3.22.1")
+set(ANTs_NEWEST_VALIDATED_POLICIES_VERSION "3.29.0")
 cmake_minimum_required(VERSION ${ANTs_OLDEST_VALIDATED_POLICIES_VERSION}..${ANTs_NEWEST_VALIDATED_POLICIES_VERSION} FATAL_ERROR)
 
 #####
 ##  Set the default target properties for ITK
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14) # Supported values are ``14``, ``17``, and ``20``.
+  set(CMAKE_CXX_STANDARD 17) # Supported values are ``14``, ``17``, and ``20``.
 endif()
 # ==== Define language standard configurations requiring at least c++14 standard
-if(CMAKE_CXX_STANDARD EQUAL "98" OR CMAKE_CXX_STANDARD LESS "14")
-   message(FATAL_ERROR "C++98 to C++11 are no longer supported in ITK version 5.3 and greater.")
+if(CMAKE_CXX_STANDARD EQUAL "98" OR CMAKE_CXX_STANDARD LESS "17")
+   message(FATAL_ERROR "C++98 to C++14 are no longer supported in ITK version 5.4 and greater.")
 endif()
 if(NOT CMAKE_CXX_STANDARD_REQUIRED)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
