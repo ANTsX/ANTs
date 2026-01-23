@@ -111,8 +111,18 @@ option(RUN_SHORT_TESTS    "Run the quick unit tests."                           
 option(RUN_LONG_TESTS     "Run the time consuming tests. i.e. real world registrations" ON  )
 option(OLD_BASELINE_TESTS "Use reported metrics from old tests"                         OFF )
 
+option(ANTS_INSTALL_BIN_ONLY "Do not install libraries (requires static build)" OFF)
 option(ANTS_INSTALL_LIBS_ONLY "Do not install binaries" OFF)
+mark_as_advanced(ANTS_INSTALL_BIN_ONLY)
 mark_as_advanced(ANTS_INSTALL_LIBS_ONLY)
+
+if(ANTS_INSTALL_BIN_ONLY AND BUILD_SHARED_LIBS)
+  message(FATAL_ERROR "ANTS_INSTALL_BIN_ONLY requires BUILD_SHARED_LIBS=OFF (static build).")
+endif()
+
+if(ANTS_INSTALL_BIN_ONLY AND ANTS_INSTALL_LIBS_ONLY)
+  message(FATAL_ERROR "ANTS_INSTALL_BIN_ONLY and ANTS_INSTALL_LIBS_ONLY are mutually exclusive.")
+endif()
 
 #------------------------------------------------------------------------------
 # ${LOCAL_PROJECT_NAME} dependency list
@@ -261,6 +271,7 @@ list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
   RUN_SHORT_TESTS:BOOL
   RUN_LONG_TESTS:BOOL
   OLD_BASELINE_TESTS:BOOL
+  ANTS_INSTALL_BIN_ONLY:BOOL
   ANTS_INSTALL_LIBS_ONLY:BOOL
 
   # PAC - ANTS and ITK both include ITKSetStandardCompilerFlags.cmake, which will set optimization flags unless
