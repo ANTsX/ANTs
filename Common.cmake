@@ -20,7 +20,7 @@ include(CMakeDependentOption)
 # Build option(s)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
-option(ANTS_BUILD_WITH_CCACHE "Build ${LOCAL_PROJECT_NAME} using ccache if available." ON)
+option(ANTS_BUILD_WITH_CCACHE "Build ANTS using ccache if available." ON)
 mark_as_advanced(ANTS_BUILD_WITH_CCACHE)
 if(ANTS_BUILD_WITH_CCACHE)
   include(CCache)

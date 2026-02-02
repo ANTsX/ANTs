@@ -25,8 +25,8 @@ find_package(Git REQUIRED)
 #-----------------------------------------------------------------------------
 # QT
 #-----------------------------------------------------------------------------
-# Required in order to build VTK if ${LOCAL_PROJECT_NAME}_USE_QT is set.
-if(${LOCAL_PROJECT_NAME}_USE_QT)
+# Required in order to build VTK if ANTS_USE_QT is set.
+if(ANTS_USE_QT)
 find_package(Qt4 REQUIRED)
 endif()
 
@@ -125,19 +125,19 @@ if(ANTS_INSTALL_BIN_ONLY AND ANTS_INSTALL_LIBS_ONLY)
 endif()
 
 #------------------------------------------------------------------------------
-# ${LOCAL_PROJECT_NAME} dependency list
+# ANTS dependency list
 #------------------------------------------------------------------------------
 
 set(ITK_EXTERNAL_NAME ITKv${ITK_VERSION_MAJOR})
 
 if(USE_VTK)
-  list(APPEND ${LOCAL_PROJECT_NAME}_DEPENDENCIES VTK )
+  list(APPEND ANTS_DEPENDENCIES VTK )
 endif()
 
-list(APPEND ${LOCAL_PROJECT_NAME}_DEPENDENCIES ${ITK_EXTERNAL_NAME}  )
+list(APPEND ANTS_DEPENDENCIES ${ITK_EXTERNAL_NAME}  )
 
 if(BUILD_STYLE_UTILS)
-  list(APPEND ${LOCAL_PROJECT_NAME}_DEPENDENCIES Cppcheck KWStyle Uncrustify)
+  list(APPEND ANTS_DEPENDENCIES Cppcheck KWStyle Uncrustify)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -148,8 +148,8 @@ endif()
 # that should passed to ${CMAKE_PROJECT_NAME}.
 # The item of this list should have the following form: <EP_VAR>:<TYPE>
 # where '<EP_VAR>' is an external project variable and TYPE is either BOOL, STRING, PATH or FILEPATH.
-# TODO Variable appended to this list will be automatically exported in ${LOCAL_PROJECT_NAME}Config.cmake,
-# prefix '${LOCAL_PROJECT_NAME}_' will be prepended if it applies.
+# TODO Variable appended to this list will be automatically exported in ANTSConfig.cmake,
+# prefix 'ANTS_' will be prepended if it applies.
 set(${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS)
 
 # The macro '_expand_external_project_vars' can be used to expand the list of <EP_VAR>.
@@ -159,8 +159,8 @@ set(${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARNAMES) # List of CMake variable names
 # SuperBuild_ANTS_C[XX]_OPTIMIZATION_FLAGS is defined when Common.cmake is included above, and will
 # be set to default values. Export this variable to the ANTs-build config by adding it to the list
 # of SUPERBUILD_EP_ARGS
-set(${LOCAL_PROJECT_NAME}_C_OPTIMIZATION_FLAGS ${${CMAKE_PROJECT_NAME}_C_OPTIMIZATION_FLAGS})
-set(${LOCAL_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS ${${CMAKE_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS})
+set(ANTS_C_OPTIMIZATION_FLAGS ${${CMAKE_PROJECT_NAME}_C_OPTIMIZATION_FLAGS})
+set(ANTS_CXX_OPTIMIZATION_FLAGS ${${CMAKE_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS})
 # These are not explicitly added to the external project variable list, but they exist in the scope
 # of External_ITKv5.cmake. From there they are added to the ITK cmake call. Adding them to
 # ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_ARGS doesn't seem to work, so instead use these directly as is
@@ -238,8 +238,8 @@ list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
 
 _expand_external_project_vars()
 set(COMMON_EXTERNAL_PROJECT_ARGS ${${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_ARGS})
-set(extProjName ${LOCAL_PROJECT_NAME})
-set(proj        ${LOCAL_PROJECT_NAME})
+set(extProjName ANTS)
+set(proj        ANTS)
 SlicerMacroCheckExternalProjectDependency(${proj})
 
 #-----------------------------------------------------------------------------
@@ -277,16 +277,16 @@ list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
   # PAC - ANTS and ITK both include ITKSetStandardCompilerFlags.cmake, which will set optimization flags unless
   # built with PROJECT_C[XX]_OPTIMIZATION_FLAGS, eg ANTS needs to be built with -DANTS_C_OPTIMIZATION_FLAGS and
   # -DANTS_CXX_OPTIMIZATION_FLAGS
-  ${LOCAL_PROJECT_NAME}_C_OPTIMIZATION_FLAGS:STRING
-  ${LOCAL_PROJECT_NAME}_CXX_OPTIMIZATION_FLAGS:STRING
+  ANTS_C_OPTIMIZATION_FLAGS:STRING
+  ANTS_CXX_OPTIMIZATION_FLAGS:STRING
 
 
-  ${LOCAL_PROJECT_NAME}_CLI_LIBRARY_OUTPUT_DIRECTORY:PATH
-  ${LOCAL_PROJECT_NAME}_CLI_ARCHIVE_OUTPUT_DIRECTORY:PATH
-  ${LOCAL_PROJECT_NAME}_CLI_RUNTIME_OUTPUT_DIRECTORY:PATH
-  ${LOCAL_PROJECT_NAME}_CLI_INSTALL_LIBRARY_DESTINATION:PATH
-  ${LOCAL_PROJECT_NAME}_CLI_INSTALL_ARCHIVE_DESTINATION:PATH
-  ${LOCAL_PROJECT_NAME}_CLI_INSTALL_RUNTIME_DESTINATION:PATH
+  ANTS_CLI_LIBRARY_OUTPUT_DIRECTORY:PATH
+  ANTS_CLI_ARCHIVE_OUTPUT_DIRECTORY:PATH
+  ANTS_CLI_RUNTIME_OUTPUT_DIRECTORY:PATH
+  ANTS_CLI_INSTALL_LIBRARY_DESTINATION:PATH
+  ANTS_CLI_INSTALL_ARCHIVE_DESTINATION:PATH
+  ANTS_CLI_INSTALL_RUNTIME_DESTINATION:PATH
 
   INSTALL_RUNTIME_DESTINATION:STRING
   INSTALL_LIBRARY_DESTINATION:STRING
@@ -315,18 +315,18 @@ endif()
 #------------------------------------------------------------------------------
 # Configure and build
 #------------------------------------------------------------------------------
-set(proj ${LOCAL_PROJECT_NAME})
+set(proj ANTS)
 ExternalProject_Add(${proj}
-  DEPENDS ${${LOCAL_PROJECT_NAME}_DEPENDENCIES}
+  DEPENDS ${ANTS_DEPENDENCIES}
   DOWNLOAD_COMMAND ""
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
-  BINARY_DIR ${LOCAL_PROJECT_NAME}-build
+  BINARY_DIR ANTS-build
   CMAKE_GENERATOR ${gen}
   CMAKE_ARGS
     --no-warn-unused-cli # HACK Only expected variables should be passed down.
     ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
     ${COMMON_EXTERNAL_PROJECT_ARGS}
-    -D${LOCAL_PROJECT_NAME}_SUPERBUILD:BOOL=OFF
+    -DANTS_SUPERBUILD:BOOL=OFF
     -DCMAKE_GENERATOR_PLATFORM:STRING=${CMAKE_GENERATOR_PLATFORM}
   INSTALL_COMMAND ""
   )
@@ -344,7 +344,7 @@ ExternalProject_Add_Step(${proj} forcebuild
 # Superbuild install: delegate to inner ANTS-build
 # -------------------------------------------------------------------------
 
-set(_inner_build_dir "${CMAKE_BINARY_DIR}/${LOCAL_PROJECT_NAME}-build")
+set(_inner_build_dir "${CMAKE_BINARY_DIR}/ANTS-build")
 
 # Delegate install to the inner build tree.
 # - `cmake --install build` (no component): delegates.
@@ -365,7 +365,7 @@ install(CODE
     RESULT_VARIABLE _res
   )
   if(NOT _res EQUAL 0)
-    message(FATAL_ERROR \"Inner ${LOCAL_PROJECT_NAME} install failed with exit code: \${_res}\")
+    message(FATAL_ERROR \"Inner ANTS install failed with exit code: \${_res}\")
   endif()
   "
 )
