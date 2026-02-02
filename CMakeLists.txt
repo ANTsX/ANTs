@@ -27,7 +27,6 @@ foreach(p
   endif()
 endforeach()
 
-set(LOCAL_PROJECT_NAME ANTS)
 include(InstallRequiredSystemLibraries)
 ## NOTE THERE SHOULD BE NO PROJECT STATEMENT HERE!
 ## This file acts as a simple switch to initiate
@@ -35,24 +34,24 @@ include(InstallRequiredSystemLibraries)
 
 #-----------------------------------------------------------------------------
 # Superbuild Option - Enabled by default
-#                   Phase I:  ${LOCAL_PROJECT_NAME}_SUPERBUILD is set to ON, and the
+#                   Phase I:  ANTS_SUPERBUILD is set to ON, and the
 #                             supporting packages defined in "SuperBuild.cmake"
 #                             are built.  The last package in "SuperBuild.cmake"
 #                             to be built is a recursive call to this
-#                             file with ${LOCAL_PROJECT_NAME}_SUPERBUILD explicitly
+#                             file with ANTS_SUPERBUILD explicitly
 #                             set to "OFF" to initiate Phase II
 #
-#                   Phase II: Build the ${LOCAL_PROJECT_NAME}, referencing the support
+#                   Phase II: Build the ANTS, referencing the support
 #                             packages built in Phase I.
 #-----------------------------------------------------------------------------
-option(${LOCAL_PROJECT_NAME}_SUPERBUILD "Build ${LOCAL_PROJECT_NAME} and the projects it depends on via SuperBuild.cmake." ON)
-mark_as_advanced(${LOCAL_PROJECT_NAME}_SUPERBUILD)
+option(ANTS_SUPERBUILD "Build ANTS and the projects it depends on via SuperBuild.cmake." ON)
+mark_as_advanced(ANTS_SUPERBUILD)
 
-option(${LOCAL_PROJECT_NAME}_USE_QT "Find and use Qt with VTK to build GUI Tools" OFF)
-mark_as_advanced(${LOCAL_PROJECT_NAME}_USE_QT)
+option(ANTS_USE_QT "Find and use Qt with VTK to build GUI Tools" OFF)
+mark_as_advanced(ANTS_USE_QT)
 
-option(${LOCAL_PROJECT_NAME}_INSTALL_DEVELOPMENT "Install development support include and libraries for external packages." OFF)
-mark_as_advanced(${LOCAL_PROJECT_NAME}_INSTALL_DEVELOPMENT)
+option(ANTS_INSTALL_DEVELOPMENT "Install development support include and libraries for external packages." OFF)
+mark_as_advanced(ANTS_INSTALL_DEVELOPMENT)
 
 #-----------------------------------------------------------------------------
 # Superbuild script
@@ -60,19 +59,19 @@ mark_as_advanced(${LOCAL_PROJECT_NAME}_INSTALL_DEVELOPMENT)
 SET(CMAKE_INSTALL_PREFIX /opt/ANTs CACHE PATH "Default ANTs install path")
 SET(SUPERBUILD_STAGING_PREFIX ${CMAKE_BINARY_DIR}/external)
 
-if(${LOCAL_PROJECT_NAME}_SUPERBUILD)
-  project(SuperBuild_${LOCAL_PROJECT_NAME}
+if(ANTS_SUPERBUILD)
+  project(SuperBuild_ANTS
     DESCRIPTION "Optional superbuild step to build external support libraries for ANTs"
   )
   include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
   include(CPack)   # This must always be last!
   return()
 else()
-  project(${LOCAL_PROJECT_NAME}
+  project(ANTS
     DESCRIPTION "Advanced Normalization Tools (ANTs) computes high-dimensional mappings to capture the statistics of brain structure and function."
     HOMEPAGE_URL "https://github.com/ANTsX/ANTs"
     LANGUAGES CXX C)
-  include("${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_PROJECT_NAME}.cmake")
+  include("${CMAKE_CURRENT_SOURCE_DIR}/ANTS.cmake")
   include(CPack)   # This must always be last!
   return()
 endif()
