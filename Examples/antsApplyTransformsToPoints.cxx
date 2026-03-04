@@ -284,22 +284,21 @@ antsApplyTransformsToPointsInitializeCommandLineOptions(itk::ants::CommandLinePa
 
   {
     std::string description =
-      std::string("Currently, the only input supported is a csv file with ") +
-      std::string("columns including x,y,z,t (all 4) column headers. ") +
-      std::string("if you dont have 4D data, still supply 4D filling in extra places with zero. ") +
-      std::string("The points should be defined in physical space. ") +
-      std::string("Points are transformed in the OPPOSITE direction of images, therefore ") +
-      std::string("you should pass the inverse of what is needed to warp the images. ") +
-      std::string("Eg if the image is warped by  Affine.mat, you should pass the inverse of Affine.mat ") +
-      std::string("to transform points defined in the same space as the image. ") +
-      std::string("If in doubt how to convert coordinates from your files to the space ") +
-      std::string("required by antsApplyTransformsToPoints try creating/drawing a simple ") +
-      std::string("label volume with only one voxel set to 1 and all others set to 0. ") +
-      std::string("Write down the voxel coordinates. Then use ImageMaths LabelStats to find ") +
-      std::string("out what coordinates for this voxel antsApplyTransformsToPoints is ") +
-      std::string("expecting.  ITK uses a LPS coordinate system.  See "
-                  "http://sourceforge.net/p/advants/discussion/840261/thread/2a1e9307/") +
-      std::string(" ***Or pass in a 2D mha (meta format) binary image file.");
+        "Input can either be a CSV file or a 2D binary meta image (.mha). CSV input should have "
+        "at least D columns where D is the spatial dimensionality of the transform. The first D "
+        "columns should have column headers x,y,z,t. Additional numerical columns are passed "
+        "through to the output file, but not transformed. "
+        "MHA input should be 2D with the first dimension being the point index and the second "
+        "dimension being the point coordinates. "
+        "\n"
+        "The points should be defined in LPS+ physical space as defined by ITK. "
+        "Points are transformed in the OPPOSITE direction of images, therefore "
+        "you should pass the inverse of what is needed to warp the images. "
+        "Eg if the image is warped by Affine.mat, you should pass the inverse of "
+        "Affine.mat to transform points defined in the same space as the image. "
+        "\n"
+        "See https://github.com/ANTsX/ANTs/wiki/Applying-transforms-to-point-data "
+        "for more details and examples.";
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("input");
