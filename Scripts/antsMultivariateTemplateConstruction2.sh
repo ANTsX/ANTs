@@ -97,7 +97,8 @@ Optional arguments:
      -i:  Iteration limit (default 4): iterations of the template construction
           (Iteration limit)*NumImages registrations.
 
-     -j:  Number of cpu cores to use locally for pexec option (default 2; requires "-c 2")
+     -j:  Number of cpu cores to use.  For pexec option (default 2; requires "-c 2")
+          or Slurm's --cpu-per-tasks.  
 
      -k:  Number of modalities used to construct the template (default 1):  For example,
           if one wanted to create a multimodal template consisting of T1,T2,and FA
@@ -1216,7 +1217,7 @@ if [[ "$RIGID" -eq 1 ]];
             jobIDs="$jobIDs $id"
         elif [[ $DOQSUB -eq 5 ]];
             then
-            id=`sbatch --job-name=antsrigid --export=${QSUBOPTS} --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $qscript | rev | cut -f1 -d\ | rev`
+            id=`sbatch --job-name=antsrigid --export=${QSUBOPTS} --nodes=1 --cpus-per-task=${CORES} --time=${WALLTIME} --mem=${MEMORY} $qscript | rev | cut -f1 -d\ | rev`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
@@ -1600,7 +1601,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             echo '#!/bin/sh' > $qscript
             echo -e "$SCRIPTPREPEND" >> $qscript
             echo -e "$exe" >> $qscript
-            id=`sbatch --job-name=antsdef${i} --export=${QSUBOPTS} --nodes=1 --cpus-per-task=1 --time=${WALLTIME} --mem=${MEMORY} $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
+            id=`sbatch --job-name=antsdef${i} --export=${QSUBOPTS} --nodes=1 --cpus-per-task=${CORES} --time=${WALLTIME} --mem=${MEMORY} $QSUBOPTS $qscript | rev | cut -f1 -d\ | rev`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
