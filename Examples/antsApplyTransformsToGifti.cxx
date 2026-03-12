@@ -149,9 +149,15 @@ antsApplyTransformsToGifti(itk::ants::CommandLineParser::Pointer & parser)
   }
 
   // -----------------------------------------------------------------------
-  // Read GIFTI file with all data
+  // Read GIFTI file with all data.
+  // Silence gifticlib's validator: HCP- and fMRIPrep-produced files commonly
+  // carry a coordsys on the TRIANGLE array, which is valid in practice even
+  // though the GIFTI spec reserves coordsys for POINTSET arrays only.
   // -----------------------------------------------------------------------
+  const int savedVerb = gifti_get_verb();
+  gifti_set_verb(0);
   gifti_image * gim = gifti_read_image(inputFile.c_str(), /*read_data=*/1);
+  gifti_set_verb(savedVerb);
   if (!gim)
   {
     std::cerr << "Failed to read GIFTI file: " << inputFile << std::endl;
@@ -282,6 +288,7 @@ antsApplyTransformsToGifti(itk::ants::CommandLineParser::Pointer & parser)
   // topology, shape data, etc.), the coordsys/xform matrix, label tables, and
   // all file- and array-level metadata.  Only the POINTSET coordinate buffer
   // and the zeroed-out VolGeomC_* fields differ from the input.
+  //
   // -----------------------------------------------------------------------
   if (gifti_write_image(gim, outputFile.c_str(), /*write_data=*/1) != 0)
   {
