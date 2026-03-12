@@ -21,6 +21,8 @@
 
 #include "antsApplyTransformsToPoints.h"
 
+#include "antsApplyTransformsToGifti.h"
+
 #include "antsJointFusion.h"
 
 #include "antsJointTensorFusion.h"
