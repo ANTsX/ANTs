@@ -47,8 +47,13 @@
  *     updated in place; face topology and all other data arrays are preserved.
  *   - VolGeomC_R, VolGeomC_A, VolGeomC_S are set to "0.000000" if they were
  *     non-zero (C_RAS offset has been baked into the coordinates).
- *   - All other metadata, including the coordsys/xform matrix, label tables,
- *     and per-file metadata, are written through unchanged.
+ *   - CoordinateSystemTransformMatrix TransformedSpace is set to
+ *     NIFTI_XFORM_UNKNOWN and the matrix is reset to identity, because the
+ *     original xform (e.g. a FreeSurfer Talairach matrix) no longer describes
+ *     a valid mapping after the ANTs transform has been applied.  DataSpace is
+ *     preserved unchanged.
+ *   - All other metadata, including label tables and per-file metadata, are
+ *     written through unchanged.
  *
  *
  * Example
@@ -284,10 +289,38 @@ antsApplyTransformsToGifti(itk::ants::CommandLineParser::Pointer & parser)
   }
 
   // -----------------------------------------------------------------------
+  // Update coordsys on the POINTSET array: the coordinates have been moved by
+  // an external ANTs transform, so the original DataSpace->TransformedSpace
+  // matrix (e.g. a FreeSurfer Talairach matrix) no longer describes a valid
+  // relationship.  Set TransformedSpace to NIFTI_XFORM_UNKNOWN and the matrix
+  // to identity so that downstream tools do not attempt to apply stale values.
+  // DataSpace is left unchanged — it still correctly names the space the
+  // coordinates were originally defined in (e.g. NIFTI_XFORM_UNKNOWN for
+  // HCP/fMRIPrep surfaces, or NIFTI_XFORM_TALAIRACH for FreeSurfer ones).
+  // -----------------------------------------------------------------------
+  for (int cs = 0; cs < da->numCS; ++cs)
+  {
+    giiCoordSystem * csys = da->coordsys[cs];
+    if (!csys)
+      continue;
+
+    if (csys->xformspace)
+    {
+      free(csys->xformspace);
+    }
+    csys->xformspace = strdup("NIFTI_XFORM_UNKNOWN");
+
+    memset(csys->xform, 0, sizeof(csys->xform));
+    for (int i = 0; i < 4; ++i)
+      csys->xform[i][i] = 1.0;
+  }
+
+  // -----------------------------------------------------------------------
   // Write output GIFTI.  gifti_write_image preserves all data arrays (face
   // topology, shape data, etc.), the coordsys/xform matrix, label tables, and
-  // all file- and array-level metadata.  Only the POINTSET coordinate buffer
-  // and the zeroed-out VolGeomC_* fields differ from the input.
+  // all file- and array-level metadata.  Only the POINTSET coordinate buffer,
+  // the zeroed-out VolGeomC_* fields, and the reset coordsys differ from the
+  // input.
   //
   // -----------------------------------------------------------------------
   if (gifti_write_image(gim, outputFile.c_str(), /*write_data=*/1) != 0)
