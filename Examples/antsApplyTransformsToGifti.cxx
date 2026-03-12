@@ -347,14 +347,15 @@ antsApplyTransformsToGiftiInitializeCommandLineOptions(itk::ants::CommandLinePar
   {
     std::string description =
       "One or more ANTs transforms to apply, specified in the same order as"
-      " antsApplyTransforms and antsApplyTransformsToPoints.  Transforms are"
+      " antsApplyTransformsToPoints.  Transforms are"
       " applied last-specified first.  Use [transformFile,1] to apply the inverse"
       " of a transform."
       "\n\n"
-      " Note on transform direction: surface vertices move in the OPPOSITE direction"
-      " to images.  To warp a surface defined in moving-image space into fixed-image"
-      " space, pass the same transforms you would supply to antsApplyTransforms for"
-      " the moving image (not their inverses).";
+      "Note on transform direction: surface vertices move in the OPPOSITE direction "
+      "to images.  Given warps from antsRegistration with a given 'fixed' and 'moving' image: "
+      "to warp a surface defined in the moving-image space into the fixed-image space "
+      "use the same transforms you would use with antsApplyTransforms to warp the fixed image "
+      "into moving space. See https://github.com/ANTsX/ANTs/wiki/Applying-transforms-to-point-data";
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("transform");
     option->SetShortName('t');
