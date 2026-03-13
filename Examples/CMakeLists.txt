@@ -133,6 +133,7 @@ set(CORE_ANTS_APPS
   LabelClustersUniquely
   Atropos
   antsApplyTransformsToPoints
+  antsApplyTransformsToGifti
 )
 
 set(MORE_ANTS_APPS
