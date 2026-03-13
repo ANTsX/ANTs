@@ -44,10 +44,10 @@ mark_as_advanced(ITK_USE_SYSTEM_PNG)
 # endif()
 #####################################################################################################
 
-set(USE_ITKv5 ON)
-set(ITK_VERSION_MAJOR 5 CACHE STRING "Choose the expected ITK major version to build ANTS only version 5 allowed.")
+set(USE_ITKv6 ON)
+set(ITK_VERSION_MAJOR 6 CACHE STRING "Choose the expected ITK major version to build ANTS only version 6 allowed.")
 # Set the possible values of ITK major version for cmake-gui
-set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "5")
+set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "6")
 set(expected_ITK_VERSION_MAJOR ${ITK_VERSION_MAJOR})
 if(${ITK_VERSION_MAJOR} VERSION_LESS ${expected_ITK_VERSION_MAJOR})
   # Note: Since ITKv3 doesn't include a ITKConfigVersion.cmake file, let's check the version
