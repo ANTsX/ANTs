@@ -1,5 +1,5 @@
-#ifndef ANTSAPPLYTRANSFORMSTOTRIX_H
-#define ANTSAPPLYTRANSFORMSTOTRIX_H
+#ifndef ANTSAPPLYTRANSFORMSTOTRX_H
+#define ANTSAPPLYTRANSFORMSTOTRX_H
 
 namespace ants
 {
@@ -9,4 +9,4 @@ antsApplyTransformsToTRX(std::vector<std::string>, // equivalent to argv of comm
 );
 } // namespace ants
 
-#endif // ANTSAPPLYTRANSFORMSTOTRIX_H
+#endif // ANTSAPPLYTRANSFORMSTOTRX_H
