@@ -106,6 +106,8 @@ CMAKE_DEPENDENT_OPTION(
      "USE_VTK" OFF
      )
 
+option(USE_TractographyTRX "Build antsApplyTransformsToTRX using the ITK TractographyTRX module" ON)
+
 option(BUILD_ALL_ANTS_APPS "Build all ANTs apps" ON)
 option(RUN_SHORT_TESTS    "Run the quick unit tests."                                   ON  )
 option(RUN_LONG_TESTS     "Run the time consuming tests. i.e. real world registrations" ON  )
@@ -234,6 +236,7 @@ list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
   CMAKE_CUDA_COMPILER_LAUNCHER:STRING
   USE_SYSTEM_ITK:BOOL
   USE_SYSTEM_VTK:BOOL
+  USE_TractographyTRX:BOOL
   )
 
 _expand_external_project_vars()

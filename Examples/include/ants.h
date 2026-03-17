@@ -23,6 +23,8 @@
 
 #include "antsApplyTransformsToGifti.h"
 
+#include "antsApplyTransformsToTRX.h"
+
 #include "antsJointFusion.h"
 
 #include "antsJointTensorFusion.h"

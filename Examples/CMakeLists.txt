@@ -136,6 +136,10 @@ set(CORE_ANTS_APPS
   antsApplyTransformsToGifti
 )
 
+if(USE_TractographyTRX)
+  list(APPEND CORE_ANTS_APPS antsApplyTransformsToTRX)
+endif()
+
 set(MORE_ANTS_APPS
     antsAI
     ANTSIntegrateVelocityField
