@@ -5,12 +5,7 @@
  * streamline coordinates of a TRX tractography file (.trx), producing a warped
  * output in TRX format.
  *
- * This tool is the TRX-native equivalent of antsApplyTransformsToPoints and
- * replaces the multi-step workflow previously needed to warp tractography:
- *
- *   TRX -> CSV (itk_lps=True)
- *     -> antsApplyTransformsToPoints -> CSV -> TRX (itk_lps=True)
- *
+ * This tool is the TRX equivalent of antsApplyTransformsToPoints
  *
  * Coordinate system handling
  * --------------------------
@@ -29,8 +24,8 @@
  *   antsApplyTransformsToTRX \
  *     -i tractogram.trx \
  *     -o tractogram.warped.trx \
- *     -t [Warp.nii.gz,0] \
- *     -t [Affine.mat,0]
+ *     -t Warp.nii.gz \
+ *     -t Affine.mat
  *
  * Note on transform direction: streamline vertices are transformed in the
  * OPPOSITE direction to images.  To warp a tractogram defined in moving-image
