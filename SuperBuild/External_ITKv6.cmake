@@ -133,7 +133,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DModule_AdaptiveDenoising:BOOL=ON
       -DModule_TractographyTRX:BOOL=${USE_TractographyTRX}
       -DModule_TractographyTRX_GIT_TAG:STRING=4f4c74208ade633b55a7406c0cdbcf2a4fc23b78
-      -DTRX_CPP_GIT_TAG:STRING=a06c8ea
+      -DTRX_CPP_GIT_TAG:STRING=4e4be3c3f32d53d67cdbedcc50f6196f47d391f0
       ${${proj}_DCMTK_ARGS}
       ${${proj}_WRAP_ARGS}
       ${${proj}_FFTWF_ARGS}
