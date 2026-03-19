@@ -132,6 +132,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DModule_GenericLabelInterpolator:BOOL=ON
       -DModule_AdaptiveDenoising:BOOL=ON
       -DModule_TractographyTRX:BOOL=${USE_TractographyTRX}
+      -DModule_TractographyTRX_GIT_TAG:STRING=4f4c74208ade633b55a7406c0cdbcf2a4fc23b78
       -DTRX_CPP_GIT_TAG:STRING=a06c8ea
       ${${proj}_DCMTK_ARGS}
       ${${proj}_WRAP_ARGS}
