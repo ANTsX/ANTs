@@ -109,6 +109,12 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   string(REPLACE "-fopenmp" "" ITK_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   string(REPLACE "-fopenmp" "" ITK_CMAKE_CXX_FLAGS "${CMAKE_CX_FLAGS}")
 
+  # Pin TractographyTRX/trx-cpp revisions used by ITK remote module resolution.
+  # This avoids floating 'main' behavior in CI/superbuild where dependency
+  # updates can break Docker builds unexpectedly.
+  set(TractographyTRX_GIT_TAG "4f4c74208ade633b55a7406c0cdbcf2a4fc23b78")
+  set(TrxCpp_GIT_TAG "22110ad2586e5a14e014487f76091e4465af9d9c")
+
   set(${proj}_CMAKE_OPTIONS
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
@@ -132,8 +138,8 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DModule_GenericLabelInterpolator:BOOL=ON
       -DModule_AdaptiveDenoising:BOOL=ON
       -DModule_TractographyTRX:BOOL=${USE_TractographyTRX}
-      -DModule_TractographyTRX_GIT_TAG:STRING=4f4c74208ade633b55a7406c0cdbcf2a4fc23b78
-      -DTRX_CPP_GIT_TAG:STRING=4e4be3c3f32d53d67cdbedcc50f6196f47d391f0
+      -DModule_TractographyTRX_GIT_TAG:STRING=${TractographyTRX_GIT_TAG}
+      -DTRX_CPP_GIT_TAG:STRING=${TrxCpp_GIT_TAG}
       ${${proj}_DCMTK_ARGS}
       ${${proj}_WRAP_ARGS}
       ${${proj}_FFTWF_ARGS}
