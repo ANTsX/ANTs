@@ -25,6 +25,8 @@
 
 #include "antsApplyTransformsToTRX.h"
 
+#include "PrintTRXHeader.h"
+
 #include "antsJointFusion.h"
 
 #include "antsJointTensorFusion.h"

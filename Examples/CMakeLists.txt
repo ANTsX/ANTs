@@ -137,7 +137,7 @@ set(CORE_ANTS_APPS
 )
 
 if(USE_TractographyTRX)
-  list(APPEND CORE_ANTS_APPS antsApplyTransformsToTRX)
+  list(APPEND CORE_ANTS_APPS antsApplyTransformsToTRX PrintTRXHeader)
 endif()
 
 set(MORE_ANTS_APPS
