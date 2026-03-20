@@ -112,8 +112,8 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   # Pin TractographyTRX/trx-cpp revisions used by ITK remote module resolution.
   # This avoids floating 'main' behavior in CI/superbuild where dependency
   # updates can break Docker builds unexpectedly.
-  set(TractographyTRX_GIT_TAG "399be51cfd51de6dadd5c9b0df4ca35752ccd023")
-  set(TrxCpp_GIT_TAG "8f54c067cd962d1d13283c5965ee35eac7d9924e")
+  set(TractographyTRX_GIT_TAG "034cfafc853db862f9ee11f03e54b13e7dbeec03")
+  set(TrxCpp_GIT_TAG "21b963ca715fe6f021cdd7ee9da46041d52655fe")
   set(${proj}_CMAKE_OPTIONS
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
