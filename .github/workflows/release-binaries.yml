@@ -1,11 +1,12 @@
 # Workflow adapted from https://gist.github.com/NickNaso/0d478f1481686d5bcc868cac06620a60
-# build directly on supported runners: Ubuntu 18, Ubuntu 20, Mac OS 11
+# build directly on supported runners
 name: Native release binaries
 
 # Controls when the action will run. Triggers the workflow on push
 on:
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -49,7 +50,7 @@ jobs:
           }
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
       - name: Get ANTs version
@@ -118,10 +119,17 @@ jobs:
         run: |
           cd install
           zip -r ${ARTIFACT} .
-      - name: Upload release asset
+      - name: Upload artifact (for pre-release testing)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          path: ${{ env.ARTIFACT }}
+          retention-days: 7
+      - name: Upload release asset (for release event)
+        if: github.event_name == 'release'
         # Previously was using actions/upload-release-asset@v1 , but this had some
         # errors with large files
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd
         with:
           allowUpdates: true
           omitBodyDuringUpdate: true
