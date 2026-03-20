@@ -5,6 +5,7 @@ name: Native Windows release binaries
 on:
   release:
     types: [created]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,7 +22,7 @@ jobs:
             build_type: "Release"
           }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
       # Set up vs studio. Use default windows shell (powershell) not bash,
@@ -74,10 +75,16 @@ jobs:
         run: |
           cd install
           7z a ${{ env.ARTIFACT }} .
+      - name: Upload artifact for pre-release testing
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+            path: ${{ env.ARTIFACT }}
+            retention-days: 7
       - name: Upload release asset
         # Previously was using actions/upload-release-asset@v1 , but this had some
         # errors with large files
-        uses: ncipollo/release-action@v1.14.0
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd
         with:
           allowUpdates: true
           omitBodyDuringUpdate: true

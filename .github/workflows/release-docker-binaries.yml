@@ -2,6 +2,8 @@ name: Cross-platform release binaries
 on:
   release:
     types: [created]
+  workflow_dispatch:
+
 env:
   CMAKE_VERSION: 3.23.1 # for ubuntu
 jobs:
@@ -59,7 +61,7 @@ jobs:
             generators: "Ninja"
           }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
 
@@ -155,8 +157,15 @@ jobs:
             cd /workspace/install
             zip -r /artifact/${{ env.ARTIFACT }} .
           "
+      - name: Upload artifact for pre-release testing
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          path: ${{ env.ARTIFACT }}
+          retention-days: 7
       - name: Upload release asset
-        uses: ncipollo/release-action@v1.14.0
+        if: github.event_name == 'release'
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd
         with:
           allowUpdates: true
           omitBodyDuringUpdate: true
