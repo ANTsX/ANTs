@@ -65,6 +65,7 @@ jobs:
           echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
           echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
           echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
+          echo "ARTIFACT_FILE_NAME_NO_EXT=$(basename ${{ env.ARTIFACT }} .zip)" >> $GITHUB_ENV
       - name: Install dependencies on ubuntu
         if: startsWith(matrix.config.name, 'Ubuntu-')
         run: |
@@ -74,7 +75,7 @@ jobs:
           cmake --version
           gcc --version
       - name: Install dependencies on macos
-        if: startsWith(matrix.config.os, 'Macos')
+        if: startsWith(matrix.config.os, 'macos')
         run: |
           brew update
           brew install cmake ninja
@@ -124,6 +125,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           path: ${{ env.ARTIFACT }}
+          name: ${{ env.ARTIFACT_FILE_NAME_NO_EXT }}
           retention-days: 7
       - name: Upload release asset (for release event)
         if: github.event_name == 'release'
