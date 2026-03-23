@@ -109,6 +109,11 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   string(REPLACE "-fopenmp" "" ITK_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   string(REPLACE "-fopenmp" "" ITK_CMAKE_CXX_FLAGS "${CMAKE_CX_FLAGS}")
 
+  # Pin TractographyTRX/trx-cpp revisions used by ITK remote module resolution.
+  # This avoids floating 'main' behavior in CI/superbuild where dependency
+  # updates can break Docker builds unexpectedly.
+  set(TractographyTRX_GIT_TAG "034cfafc853db862f9ee11f03e54b13e7dbeec03")
+  set(TrxCpp_GIT_TAG "21b963ca715fe6f021cdd7ee9da46041d52655fe")
   set(${proj}_CMAKE_OPTIONS
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
@@ -131,6 +136,9 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DModule_ITKReview:BOOL=ON
       -DModule_GenericLabelInterpolator:BOOL=ON
       -DModule_AdaptiveDenoising:BOOL=ON
+      -DModule_TractographyTRX:BOOL=${USE_TractographyTRX}
+      -DModule_TractographyTRX_GIT_TAG:STRING=${TractographyTRX_GIT_TAG}
+      -DTRX_CPP_GIT_TAG:STRING=${TrxCpp_GIT_TAG}
       ${${proj}_DCMTK_ARGS}
       ${${proj}_WRAP_ARGS}
       ${${proj}_FFTWF_ARGS}
@@ -152,7 +160,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/InsightSoftwareConsortium/ITK.git)
-  set(${proj}_GIT_TAG badec43941c7c6ed5d87912b376edbffc781569d) # 2026-03-13
+  set(${proj}_GIT_TAG 18d89fd6538769ac83d8e21ba0e10593c6c68751) # 2026-03-18
   set(ITK_VERSION_ID ITK-6.0) ### NOTE: When updating GIT_TAG, also update ITK_VERSION_ID if ITK version has changed
 
   ExternalProject_Add(${proj}

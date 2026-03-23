@@ -37,6 +37,14 @@ set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 
 message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\"")
 
+# When TractographyTRX is enabled, the installed ITKTargets.cmake exports a
+# 'trx' imported target with INTERFACE_LINK_LIBRARIES referencing libzip::zip.
+# find_package(libzip) must be called before find_package(ITK) to make that
+# target available; otherwise CMake errors during ITK target import.
+if(USE_TractographyTRX)
+  find_package(libzip QUIET)
+endif()
+
 # Set up ITK
 find_package(ITK ${ITK_VERSION_ID} REQUIRED)
 include(${ITK_USE_FILE})
