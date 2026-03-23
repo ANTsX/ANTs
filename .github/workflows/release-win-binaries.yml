@@ -33,15 +33,19 @@ jobs:
           vsversion: ${{ matrix.vs }}
       - name: Get ANTs version
         run: |
-         $antsVersion="${{ env.ANTS_TAG }}"
-         $antsVersion=$antsVersion.Substring(1)
-         echo "ANTS_VERSION=$antsVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $antsVersion = "${{ env.ANTS_TAG }}"
+          if ($antsVersion.StartsWith('v')) {
+            $antsVersion = $antsVersion.Substring(1)
+          }
+          echo "ANTS_VERSION=$antsVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
         env:
           ANTS_TAG: ${{ github.ref_name }}
       - name: Define env
         run: |
           echo github.event.action: ${{ github.event.action }}
           echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os }}-${{ runner.arch }}-VS${{ matrix.config.vs }}.zip" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $name = [System.IO.Path]::GetFileNameWithoutExtension($artifact)
+          echo "ARTIFACT_FILE_NAME_NO_EXT=$name" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Configure
         working-directory: ${{ runner.temp }}
         run: |
@@ -80,6 +84,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
             path: ${{ env.ARTIFACT }}
+            name: ${{ env.ARTIFACT_FILE_NAME_NO_EXT }}
             retention-days: 7
       - name: Upload release asset
         # Previously was using actions/upload-release-asset@v1 , but this had some
