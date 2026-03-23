@@ -53,19 +53,21 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.ref }}
-      - name: Get ANTs version
-        run:
-          echo "ANTS_VERSION=${ANTS_TAG#v}" >> $GITHUB_ENV
-        env:
-          ANTS_TAG: ${{ github.ref_name }}
-      - name: Define env
+      - name: Define build environment variables
+        shell: bash
         run: |
           echo github.event.action: ${{ github.event.action }}
           echo github.event_name: ${{ github.event_name }}
+          ants_version="${{ github.ref_name }}"
+          if [[ "$ants_version" =~ ^v[0-9] ]]; then
+            ants_version="${ants_version#v}"
+          fi
+          echo "ANTS_VERSION=$ants_version" >> "$GITHUB_ENV"
+          artifact="${{ runner.temp }}/ants-${ants_version}-${{ matrix.config.os }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip"
           echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
           echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
-          echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip" >> $GITHUB_ENV
-          echo "ARTIFACT_FILE_NAME_NO_EXT=$(basename ${{ env.ARTIFACT }} .zip)" >> $GITHUB_ENV
+          echo "ARTIFACT=${artifact}" >> "$GITHUB_ENV"
+          echo "ARTIFACT_FILE_NAME_NO_EXT=$(basename ${artifact} .zip)" >> $GITHUB_ENV
       - name: Install dependencies on ubuntu
         if: startsWith(matrix.config.name, 'Ubuntu-')
         run: |

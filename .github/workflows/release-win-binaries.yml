@@ -31,20 +31,19 @@ jobs:
         with:
           arch: ${{ runner.arch }}
           vsversion: ${{ matrix.vs }}
-      - name: Get ANTs version
+      - name: Define build environment variables
+        shell: pwsh
         run: |
-          $antsVersion = "${{ env.ANTS_TAG }}"
-          if ($antsVersion.StartsWith('v')) {
+          echo "github.event.action: ${{ github.event.action }}"
+          echo "github.event_name: ${{ github.event_name }}"
+          $antsVersion = "${{ github.ref_name }}"
+          if ($antsVersion -match '^v\d') {
             $antsVersion = $antsVersion.Substring(1)
           }
-          echo "ANTS_VERSION=$antsVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
-        env:
-          ANTS_TAG: ${{ github.ref_name }}
-      - name: Define env
-        run: |
-          echo github.event.action: ${{ github.event.action }}
-          echo "ARTIFACT=${{ runner.temp }}/ants-${{ env.ANTS_VERSION }}-${{ matrix.config.os }}-${{ runner.arch }}-VS${{ matrix.config.vs }}.zip" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $artifact = "${{ runner.temp }}/ants-${antsVersion}-${{ matrix.config.os }}-${{ runner.arch }}-VS${{ matrix.config.vs }}.zip"
           $name = [System.IO.Path]::GetFileNameWithoutExtension($artifact)
+          echo "ANTS_VERSION=$antsVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "ARTIFACT=$artifact" | Out-File -FilePath $env:GITHUB_ENV -Append
           echo "ARTIFACT_FILE_NAME_NO_EXT=$name" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Configure
         working-directory: ${{ runner.temp }}
