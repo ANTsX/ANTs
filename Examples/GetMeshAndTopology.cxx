@@ -46,7 +46,6 @@
 #include <vtkSphereSource.h>
 #include <vtkWindowToImageFilter.h>
 #include <vtkPNGWriter.h>
-#include <vtkGraphicsFactory.h>
 #include "ReadWriteData.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "vtkDelaunay2D.h"
@@ -96,14 +95,13 @@ Display(vtkUnstructuredGrid * vtkgrid, std::string offscreen, bool secondwin = f
   normalGenerator->ComputeCellNormalsOff();
   normalGenerator->Update();
 
-  vtkSmartPointer<vtkGraphicsFactory> graphics_factory = vtkSmartPointer<vtkGraphicsFactory>::New();
-  if (offscreen.length() > 4)
-    graphics_factory->SetOffScreenOnlyMode(1);
-  graphics_factory->SetUseMesaClasses(1);
-
   vtkRenderer *     ren1 = vtkRenderer::New();
   vtkRenderer *     ren2 = vtkRenderer::New();
   vtkRenderWindow * renWin = vtkRenderWindow::New();
+  if (offscreen.length() > 4)
+  {
+    renWin->SetOffScreenRendering(true);
+  }
   renWin->AddRenderer(ren1);
   if (secondwin)
   {

@@ -275,6 +275,14 @@ foreach(ANTS_APP ${VTK_ANTS_APPS})
   endif()
 
 endforeach()
+
+# Required for VTK 9 object factory initialization
+foreach(ANTS_APP ${VTK_ANTS_APPS})
+  vtk_module_autoinit(
+    TARGETS l_${ANTS_APP}
+    MODULES ${VTK_LIBRARIES}
+  )
+endforeach()
 endif()
 
 ## Build test option

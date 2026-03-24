@@ -15,7 +15,6 @@
 #include "vtkActor.h"
 #include "vtkCallbackCommand.h"
 #include "vtkExtractEdges.h"
-#include "vtkGraphicsFactory.h"
 #include "vtkImageData.h"
 #include "vtkImageStencil.h"
 #include "vtkLookupTable.h"
@@ -87,10 +86,6 @@ Display(vtkPolyData *            vtkMesh,
         unsigned int             scalarBarWidthInPixels = 0,
         unsigned int             scalarBarHeightInPixels = 0)
 {
-  vtkSmartPointer<vtkGraphicsFactory> graphicsFactory = vtkSmartPointer<vtkGraphicsFactory>::New();
-  graphicsFactory->SetOffScreenOnlyMode(false);
-  graphicsFactory->SetUseMesaClasses(1);
-
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   mapper->SetInputData(vtkMesh);
   mapper->ScalarVisibilityOn();

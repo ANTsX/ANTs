@@ -254,7 +254,7 @@ WarpLabeledPointSetFileMultiTransform(char *           input_vtk_filename,
     point.CastFrom( It.Value() );
   */
   vnl_matrix_fixed<double, 4, 4> ijk2ras, vtk2ras, lps2ras;
-  vtk2ras = ConstructVTKtoNiftiTransform(field_output->GetDirection().GetVnlMatrix(),
+  vtk2ras = ConstructVTKtoNiftiTransform(field_output->GetDirection().GetVnlMatrix().as_matrix(),
                                          field_output->GetOrigin().GetVnlVector(),
                                          field_output->GetSpacing().GetVnlVector());
   ijk2ras.set_identity();
@@ -264,11 +264,11 @@ WarpLabeledPointSetFileMultiTransform(char *           input_vtk_filename,
   lps2ras(1, 1) = -1;
 
   // Set up the transforms
-  ijk2ras = ConstructNiftiSform(field_output->GetDirection().GetVnlMatrix(),
+  ijk2ras = ConstructNiftiSform(field_output->GetDirection().GetVnlMatrix().as_matrix(),
                                 field_output->GetOrigin().GetVnlVector(),
                                 field_output->GetSpacing().GetVnlVector());
 
-  vtk2ras = ConstructVTKtoNiftiTransform(field_output->GetDirection().GetVnlMatrix(),
+  vtk2ras = ConstructVTKtoNiftiTransform(field_output->GetDirection().GetVnlMatrix().as_matrix(),
                                          field_output->GetOrigin().GetVnlVector(),
                                          field_output->GetSpacing().GetVnlVector());
 

@@ -53,7 +53,6 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
   endif()
 
   ### --- Project specific additions here
-  set(VTK_WRAP_TCL OFF)
   set(VTK_WRAP_PYTHON OFF)
 
   if (${PROJECT_NAME}_USE_PYTHONQT)
@@ -70,70 +69,6 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
       )
   endif()
 
-  set(VTK_QT_ARGS)
-  if(${PRIMARY_PROJECT_NAME}_USE_QT)
-    if(NOT APPLE)
-      set(VTK_QT_ARGS
-        #-DDESIRED_QT_VERSION:STRING=4 # Unused
-        -DVTK_USE_GUISUPPORT:BOOL=ON
-        -DVTK_USE_QVTK_QTOPENGL:BOOL=ON
-        -DVTK_USE_QT:BOOL=ON
-        -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
-        )
-    else()
-      set(VTK_QT_ARGS
-        -DVTK_USE_CARBON:BOOL=OFF
-        # Default to Cocoa, VTK/CMakeLists.txt will enable Carbon and disable cocoa if needed
-        -DVTK_USE_COCOA:BOOL=ON
-        -DVTK_USE_X:BOOL=OFF
-        #-DVTK_USE_RPATH:BOOL=ON # Unused
-        #-DDESIRED_QT_VERSION:STRING=4 # Unused
-        -DVTK_USE_GUISUPPORT:BOOL=ON
-        -DVTK_USE_QVTK_QTOPENGL:BOOL=ON
-        -DVTK_USE_QT:BOOL=ON
-        -DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}
-        )
-    endif()
-    find_package(Qt4 REQUIRED)
-  else()
-    set(VTK_QT_ARGS
-        -DVTK_USE_GUISUPPORT:BOOL=OFF
-        -DVTK_USE_QT:BOOL=OFF
-        )
-  endif()
-
-  # Disable Tk when Python wrapping is enabled
-  if (${PROJECT_NAME}_USE_PYTHONQT)
-    list(APPEND VTK_QT_ARGS -DVTK_USE_TK:BOOL=OFF)
-  endif()
-
-  set(slicer_TCL_LIB)
-  set(slicer_TK_LIB)
-  set(slicer_TCLSH)
-  set(VTK_TCL_ARGS)
-  if(VTK_WRAP_TCL)
-    if(WIN32)
-      set(slicer_TCL_LIB ${CMAKE_BINARY_DIR}/tcl-build/lib/tcl84.lib)
-      set(slicer_TK_LIB ${CMAKE_BINARY_DIR}/tcl-build/lib/tk84.lib)
-      set(slicer_TCLSH ${CMAKE_BINARY_DIR}/tcl-build/bin/tclsh.exe)
-    elseif(APPLE)
-      set(slicer_TCL_LIB ${CMAKE_BINARY_DIR}/tcl-build/lib/libtcl8.4.dylib)
-      set(slicer_TK_LIB ${CMAKE_BINARY_DIR}/tcl-build/lib/libtk8.4.dylib)
-      set(slicer_TCLSH ${CMAKE_BINARY_DIR}/tcl-build/bin/tclsh84)
-    else()
-      set(slicer_TCL_LIB ${CMAKE_BINARY_DIR}/tcl-build/lib/libtcl8.4.so)
-      set(slicer_TK_LIB ${CMAKE_BINARY_DIR}/tcl-build/lib/libtk8.4.so)
-      set(slicer_TCLSH ${CMAKE_BINARY_DIR}/tcl-build/bin/tclsh84)
-    endif()
-    set(VTK_TCL_ARGS
-      -DTCL_INCLUDE_PATH:PATH=${CMAKE_BINARY_DIR}/tcl-build/include
-      -DTK_INCLUDE_PATH:PATH=${CMAKE_BINARY_DIR}/tcl-build/include
-      -DTCL_LIBRARY:FILEPATH=${slicer_TCL_LIB}
-      -DTK_LIBRARY:FILEPATH=${slicer_TK_LIB}
-      -DTCL_TCLSH:FILEPATH=${slicer_TCLSH}
-      )
-  endif()
-
   set(VTK_BUILD_STEP "")
   if(UNIX)
     configure_file(SuperBuild/External_VTK_build_step.cmake.in
@@ -146,22 +81,15 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
       -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/staging
       -DBUILD_EXAMPLES:BOOL=OFF
       -DBUILD_TESTING:BOOL=OFF
-      -DVTK_USE_PARALLEL:BOOL=ON
       -DVTK_DEBUG_LEAKS:BOOL=${${PROJECT_NAME}_USE_VTK_DEBUG_LEAKS}
       -DVTK_LEGACY_REMOVE:BOOL=OFF
-      -DVTK_WRAP_TCL:BOOL=${VTK_WRAP_TCL}
-      #-DVTK_USE_RPATH:BOOL=ON # Unused
-      ${VTK_TCL_ARGS}
       -DVTK_WRAP_PYTHON:BOOL=${VTK_WRAP_PYTHON}
-      # setting VTK_INSTALL_LIB_DIR can cause confusion in superbuild staging
-      # -DVTK_INSTALL_LIB_DIR:PATH=${${PROJECT_NAME}_INSTALL_LIB_DIR}
       ${VTK_PYTHON_ARGS}
-      ${VTK_QT_ARGS}
       ${VTK_MAC_ARGS}
     )
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://github.com/Kitware/VTK.git)
-  set(${proj}_GIT_TAG v9.1.0 ) # using modern stable VTK version to avoid modern compiler warnings
+  set(${proj}_GIT_TAG v9.6.0 )
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}
