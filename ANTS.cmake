@@ -42,7 +42,6 @@ message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\""
 # find_package(libzip) must be called before find_package(ITK) to make that
 # target available; otherwise CMake errors during ITK target import.
 if(USE_TractographyTRX)
-  find_package(OpenSSL QUIET)
   find_package(libzip QUIET)
 endif()
 
