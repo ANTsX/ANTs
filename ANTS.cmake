@@ -42,6 +42,7 @@ message(STATUS "Building ${PROJECT_NAME} version \"${${PROJECT_NAME}_VERSION}\""
 # find_package(libzip) must be called before find_package(ITK) to make that
 # target available; otherwise CMake errors during ITK target import.
 if(USE_TractographyTRX)
+  find_package(OpenSSL QUIET)
   find_package(libzip QUIET)
 endif()
 
@@ -69,28 +70,26 @@ endif()
 # Set up VTK
 option(USE_VTK "Use VTK Libraries" OFF)
 if(USE_VTK)
-  find_package(VTK)
-
-  if(VTK_VERSION_MAJOR GREATER 6)
-    find_package(VTK 8.1.1 COMPONENTS vtkRenderingVolumeOpenGL2
-   vtkCommonCore
-   vtkCommonDataModel
-   vtkIOGeometry
-   vtkIOXML
-   vtkIOLegacy
-   vtkIOPLY
-   vtkFiltersModeling
-   vtkImagingStencil
-   vtkImagingGeneral
-   vtkRenderingAnnotation
-   vtkFiltersExtraction
-   )
-  endif()
-
-  if(VTK_FOUND)
-    include(${VTK_USE_FILE})
-  else()
-     message("Cannot build some programs without VTK.  Please set VTK_DIR if you need these programs.")
+  find_package(VTK 9.1 REQUIRED
+    COMPONENTS
+      CommonCore
+      CommonDataModel
+      FiltersExtraction
+      FiltersModeling
+      ImagingGeneral
+      ImagingStencil
+      IOGeometry
+      IOLegacy
+      IOPLY
+      IOXML
+      RenderingAnnotation
+      RenderingCore
+      RenderingOpenGL2
+      RenderingVolumeOpenGL2
+      InteractionStyle
+  )
+  if(NOT VTK_FOUND)
+    message("Cannot build some programs without VTK. Please set VTK_DIR if you need these programs.")
   endif()
 endif()
 

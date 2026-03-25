@@ -217,13 +217,13 @@ protected:
 
     // Cast the image to VTK
     fltExport = ExportFilter::New();
-    fltImport = vtkImageImport::New();
+    fltImport = vtkSmartPointer<vtkImageImport>::New();
     fltExport->SetInput(imgPipeEnd);
     ConnectITKToVTK(fltExport.GetPointer(), fltImport);
 
     // Compute marching cubes
     vtkImageData * importPipeEnd = fltImport->GetOutput();
-    fltMarching = vtkImageMarchingCubes::New();
+    fltMarching = vtkSmartPointer<vtkImageMarchingCubes>::New();
     fltMarching->SetInputData(importPipeEnd);
     fltMarching->ComputeScalarsOff();
     fltMarching->ComputeGradientsOff();
@@ -232,12 +232,13 @@ protected:
     vtkPolyData * meshPipeEnd = fltMarching->GetOutput();
 
     // Keep the largest connected component
-    fltConnect = vtkPolyDataConnectivityFilter::New();
+    fltConnect = vtkSmartPointer<vtkPolyDataConnectivityFilter>::New();
     fltConnect->SetInputData(meshPipeEnd);
     fltConnect->SetExtractionModeToLargestRegion();
     meshPipeEnd = fltMarching->GetOutput();
 
-    fltClean = vtkCleanPolyData::New();
+    fltClean = vtkSmartPointer<vtkCleanPolyData>::New();
+    fltDecimate = vtkSmartPointer<vtkDecimatePro>::New();
     bool doclean = false;
     if (doclean)
     {
@@ -245,20 +246,19 @@ protected:
       fltClean->SetInputData(meshPipeEnd);
       meshPipeEnd = fltClean->GetOutput();
       // Decimate the data
-      fltDecimate = vtkDecimatePro::New();
       fltDecimate->SetInputData(meshPipeEnd);
       fltDecimate->PreserveTopologyOn();
       meshPipeEnd = fltDecimate->GetOutput();
     }
 
     // Smooth the data, keeping it on the contour
-    vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
-    smoothFilter->SetInputData(meshPipeEnd);
-    smoothFilter->SetNumberOfIterations(5);
-    meshPipeEnd = smoothFilter->GetOutput();
+    fltSmoothMesh = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+    fltSmoothMesh->SetInputData(meshPipeEnd);
+    fltSmoothMesh->SetNumberOfIterations(5);
+    meshPipeEnd = fltSmoothMesh->GetOutput();
 
     // Compute triangle strips for faster display
-    fltTriangle = vtkTriangleFilter::New();
+    fltTriangle = vtkSmartPointer<vtkTriangleFilter>::New();
     fltTriangle->SetInputData(meshPipeEnd);
     meshPipeEnd = fltTriangle->GetOutput();
 
@@ -281,17 +281,7 @@ protected:
     m_DecimateFactor = 0.0f;
   }
 
-  ~BinaryImageToMeshFilter() override
-  {
-    // CLean up
-    fltMarching->Delete();
-    fltConnect->Delete();
-    fltImport->Delete();
-    fltTriangle->Delete();
-    fltClean->Delete();
-    fltDecimate->Delete();
-    fltSmoothMesh->Delete();
-  }
+  ~BinaryImageToMeshFilter() override = default;
 
   /** Generate Data */
   void
@@ -495,13 +485,13 @@ private:
   typename ResampleFilter::Pointer   fltResample;
   typename ResampleFunction::Pointer fnInterpolate;
 
-  vtkImageImport *                fltImport;
-  vtkImageMarchingCubes *         fltMarching;
-  vtkPolyDataConnectivityFilter * fltConnect;
-  vtkCleanPolyData *              fltClean;
-  vtkTriangleFilter *             fltTriangle;
-  vtkDecimatePro *                fltDecimate;
-  vtkSmoothPolyDataFilter *       fltSmoothMesh;
+  vtkSmartPointer<vtkImageImport>                fltImport;
+  vtkSmartPointer<vtkImageMarchingCubes>         fltMarching;
+  vtkSmartPointer<vtkPolyDataConnectivityFilter> fltConnect;
+  vtkSmartPointer<vtkCleanPolyData>              fltClean;
+  vtkSmartPointer<vtkTriangleFilter>             fltTriangle;
+  vtkSmartPointer<vtkDecimatePro>                fltDecimate;
+  vtkSmartPointer<vtkSmoothPolyDataFilter>       fltSmoothMesh;
 
   bool   m_InvertInput;
   float  m_ResampleScaleFactor;
