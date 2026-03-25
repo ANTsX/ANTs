@@ -113,7 +113,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   # This avoids floating 'main' behavior in CI/superbuild where dependency
   # updates can break Docker builds unexpectedly.
   set(TractographyTRX_GIT_TAG "034cfafc853db862f9ee11f03e54b13e7dbeec03")
-  set(TrxCpp_GIT_TAG "21b963ca715fe6f021cdd7ee9da46041d52655fe")
+  set(TrxCpp_GIT_TAG "3921412f2c190f9561b64a11a35eba11c20b1e47")
   set(${proj}_CMAKE_OPTIONS
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
