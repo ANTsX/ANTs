@@ -86,6 +86,7 @@ jobs:
             name: ${{ env.ARTIFACT_FILE_NAME_NO_EXT }}
             retention-days: 7
       - name: Upload release asset
+        if: github.event_name == 'release'
         # Previously was using actions/upload-release-asset@v1 , but this had some
         # errors with large files
         uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd
