@@ -75,7 +75,7 @@ jobs:
           fi
           echo "ANTS_VERSION=$ants_version" >> "$GITHUB_ENV"
           # Just file name, because we're inside a container, the artifact upload has to find it at the mounted path later
-          artifact="ants-${ants_version}-${{ matrix.config.os }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip"
+          artifact="ants-${ants_version}-${{ matrix.config.os_desc }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip"
           echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
           echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
           echo "ARTIFACT=${artifact}" >> "$GITHUB_ENV"
