@@ -342,6 +342,20 @@ DoRegistration(typename ParserType::Pointer & parser)
     return cached;
   };
 
+  std::map<std::string, typename MaskImageType::Pointer> maskCache;
+
+  auto getCachedMask = [&maskCache](const std::string & filename) -> typename MaskImageType::Pointer {
+    std::error_code                        ec;
+    std::filesystem::path                  canonicalPath = std::filesystem::canonical(filename, ec);
+    std::string                            key = ec ? filename : canonicalPath.string();
+    typename MaskImageType::Pointer &      cached = maskCache[key];
+    if (cached.IsNull())
+    {
+      ReadImage<MaskImageType>(cached, filename.c_str());
+    }
+    return cached;
+  };
+
   if (maskOption && maskOption->GetNumberOfFunctions())
   {
     if (verbose)
@@ -359,8 +373,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         for (unsigned m = 0; m < maskOption->GetFunction(l)->GetNumberOfParameters(); m++)
         {
           std::string                     fname = maskOption->GetFunction(l)->GetParameter(m);
-          typename MaskImageType::Pointer maskImage;
-          ReadImage<MaskImageType>(maskImage, fname.c_str());
+          typename MaskImageType::Pointer maskImage = getCachedMask(fname);
           if (m == 0)
           {
             regHelper->AddFixedImageMask(maskImage);
@@ -396,8 +409,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       else
       {
         std::string                     fname = maskOption->GetFunction(l)->GetName();
-        typename MaskImageType::Pointer maskImage;
-        ReadImage<MaskImageType>(maskImage, fname.c_str());
+        typename MaskImageType::Pointer maskImage = getCachedMask(fname);
         regHelper->AddFixedImageMask(maskImage);
         if (verbose)
         {
