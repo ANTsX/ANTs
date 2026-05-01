@@ -707,9 +707,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         if (meshSizeForTheUpdateField.size() == 1)
         {
-          typename ImageType::Pointer fixedImage;
-          ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-          fixedImage->DisconnectPipeline();
+          typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
           meshSizeForTheUpdateField =
             regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, meshSizeForTheUpdateField[0], splineOrder);
@@ -722,9 +720,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->ConvertVector<unsigned int>(transformOption->GetFunction(currentStage)->GetParameter(2));
           if (meshSizeForTheTotalField.size() == 1)
           {
-            typename ImageType::Pointer fixedImage;
-            ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-            fixedImage->DisconnectPipeline();
+            typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
             meshSizeForTheTotalField =
               regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, meshSizeForTheTotalField[0], splineOrder);
@@ -748,9 +744,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           parser->ConvertVector<unsigned int>(transformOption->GetFunction(currentStage)->GetParameter(1));
         if (meshSizeAtBaseLevel.size() == 1)
         {
-          typename ImageType::Pointer fixedImage;
-          ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-          fixedImage->DisconnectPipeline();
+          typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
           meshSizeAtBaseLevel =
             regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, meshSizeAtBaseLevel[0], 3);
@@ -829,9 +823,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           parser->ConvertVector<float>(transformOption->GetFunction(currentStage)->GetParameter(1));
         if (meshSizeForTheUpdateFieldFloat.size() == 1)
         {
-          typename ImageType::Pointer fixedImage;
-          ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-          fixedImage->DisconnectPipeline();
+          typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
           meshSizeForTheUpdateField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
             fixedImage, meshSizeForTheUpdateFieldFloat[0], splineOrder);
@@ -849,9 +841,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->ConvertVector<float>(transformOption->GetFunction(currentStage)->GetParameter(2));
           if (meshSizeForTheTotalFieldFloat.size() == 1)
           {
-            typename ImageType::Pointer fixedImage;
-            ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-            fixedImage->DisconnectPipeline();
+            typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
             meshSizeForTheTotalField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
               fixedImage, meshSizeForTheTotalFieldFloat[0], splineOrder);
@@ -903,9 +893,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           parser->ConvertVector<unsigned int>(transformOption->GetFunction(currentStage)->GetParameter(1));
         if (meshSizeForTheUpdateField.size() == 1)
         {
-          typename ImageType::Pointer fixedImage;
-          ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-          fixedImage->DisconnectPipeline();
+          typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
           meshSizeForTheUpdateField =
             regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, meshSizeForTheUpdateField[0], splineOrder);
@@ -918,9 +906,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->ConvertVector<unsigned int>(transformOption->GetFunction(currentStage)->GetParameter(2));
           if (meshSizeForTheVelocityField.size() == 1)
           {
-            typename ImageType::Pointer fixedImage;
-            ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-            fixedImage->DisconnectPipeline();
+            typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
             meshSizeForTheVelocityField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
               fixedImage, meshSizeForTheVelocityField[0], splineOrder);
