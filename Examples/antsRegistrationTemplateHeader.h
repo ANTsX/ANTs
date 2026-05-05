@@ -21,6 +21,8 @@
 #include "itkLabelImageGenericInterpolateImageFunction.h"
 #include "include/antsRegistration.h"
 #include "ReadWriteData.h"
+#include <filesystem>
+#include <map>
 
 namespace ants
 {
@@ -945,6 +947,21 @@ DoRegistration(typename ParserType::Pointer & parser)
   // ID to the added metric.  Multiple metrics for a single stage are specified
   // on the command line by being specified adjacently.
 
+  std::map<std::string, typename ImageType::Pointer> imageCache;
+
+  auto getCachedImage = [&imageCache](const std::string & filename) -> typename ImageType::Pointer {
+    std::error_code                   ec;
+    std::filesystem::path             canonicalPath = std::filesystem::canonical(filename, ec);
+    std::string                       key = ec ? filename : canonicalPath.string();
+    typename ImageType::Pointer &     cached = imageCache[key];
+    if (cached.IsNull())
+    {
+      ReadImage<ImageType>(cached, filename.c_str());
+      cached->DisconnectPipeline();
+    }
+    return cached;
+  };
+
   unsigned int numberOfMetrics = metricOption->GetNumberOfFunctions();
   for (int currentMetricNumber = numberOfMetrics - 1; currentMetricNumber >= 0; currentMetricNumber--)
   {
@@ -1028,10 +1045,8 @@ DoRegistration(typename ParserType::Pointer & parser)
         std::cout << "  moving image: " << movingFileName << std::endl;
       }
 
-      ReadImage<ImageType>(fixedImage, fixedFileName.c_str());
-      ReadImage<ImageType>(movingImage, movingFileName.c_str());
-      fixedImage->DisconnectPipeline();
-      movingImage->DisconnectPipeline();
+      fixedImage = getCachedImage(fixedFileName);
+      movingImage = getCachedImage(movingFileName);
 
       std::string strategy = "none";
       if (metricOption->GetFunction(currentMetricNumber)->GetNumberOfParameters() > 4)
@@ -1252,18 +1267,8 @@ DoRegistration(typename ParserType::Pointer & parser)
     itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
   if (!std::strcmp(whichInterpolator.c_str(), "gaussian") || !std::strcmp(whichInterpolator.c_str(), "multilabel"))
   {
-#if 1
-    // HACK:: This can just be cached when reading the fixedImage from above!!
-    //
     std::string fixedImageFileName = metricOption->GetFunction(numberOfTransforms - 1)->GetParameter(0);
-
-    typedef itk::ImageFileReader<ImageType> ImageReaderType;
-    typename ImageReaderType::Pointer       fixedImageReader = ImageReaderType::New();
-
-    fixedImageReader->SetFileName(fixedImageFileName.c_str());
-    fixedImageReader->Update();
-    typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
-#endif
+    typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
     cache_spacing_for_smoothing_sigmas = fixedImage->GetSpacing();
   }
 
