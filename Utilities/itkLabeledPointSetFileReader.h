@@ -65,18 +65,18 @@ public:
   typedef std::vector<PixelType> LabelSetType;
 
   /** Set/Get the name of the file to be read. */
-  itkSetStringMacro(FileName);
-  itkGetStringMacro(FileName);
+  itkNonVirtualSetStringMacro(FileName);
+  itkNonVirtualGetStringMacro(FileName);
 
-  itkSetMacro(ExtractBoundaryPoints, bool);
-  itkGetMacro(ExtractBoundaryPoints, bool);
-  itkBooleanMacro(ExtractBoundaryPoints);
+  itkNonVirtualSetMacro(ExtractBoundaryPoints, bool);
+  itkNonVirtualGetMacro(ExtractBoundaryPoints, bool);
+  itkNonVirtualBooleanMacro(ExtractBoundaryPoints);
 
   /**
    * Percentage of points selected randomnly
    */
-  itkSetClampMacro(RandomPercentage, double, 0.0, 1.0);
-  itkGetConstMacro(RandomPercentage, double);
+  itkNonVirtualSetClampMacro(RandomPercentage, double, 0.0, 1.0);
+  itkNonVirtualGetConstMacro(RandomPercentage, double);
 
   LabelSetType *
   GetLabelSet()

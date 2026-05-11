@@ -97,12 +97,12 @@ public:
   MatrixType
   ComputeMyRotationMatrix();
 
-  itkGetConstReferenceMacro(S1, TScalarType);
-  itkGetConstReferenceMacro(S2, TScalarType);
-  itkGetConstReferenceMacro(S3, TScalarType);
-  itkGetConstReferenceMacro(K1, TScalarType);
-  itkGetConstReferenceMacro(K2, TScalarType);
-  itkGetConstReferenceMacro(K3, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(S1, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(S2, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(S3, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(K1, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(K2, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(K3, TScalarType);
 
   /** Set the parameters to the IdentityTransform */
   void

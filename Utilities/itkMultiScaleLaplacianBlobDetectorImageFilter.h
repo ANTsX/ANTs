@@ -59,8 +59,8 @@ public:
   itkOverrideGetNameOfClassMacro(ScaleSpaceBlobSpatialObject);
 
   /** Set/Get the normalized laplacian value of the extrema */
-  itkGetMacro(ScaleSpaceValue, double);
-  itkSetMacro(ScaleSpaceValue, double);
+  itkNonVirtualGetMacro(ScaleSpaceValue, double);
+  itkNonVirtualSetMacro(ScaleSpaceValue, double);
 
   /** The radius of the object if it is a solid hyper-sphere */
   double
@@ -77,8 +77,8 @@ public:
   }
 
   /** The location where the extrema occoured */
-  itkGetMacro(Center, CenterType);
-  itkSetMacro(Center, CenterType);
+  itkNonVirtualGetMacro(Center, CenterType);
+  itkNonVirtualSetMacro(Center, CenterType);
 
 private:
   double     m_ScaleSpaceValue;
@@ -142,28 +142,28 @@ public:
    *
    * T is equivalent to varinace or sigma squared.
    **/
-  itkSetMacro(StartT, double);
-  itkGetMacro(StartT, double);
+  itkNonVirtualSetMacro(StartT, double);
+  itkNonVirtualGetMacro(StartT, double);
 
   /** Set/Get the ending value to search scale-space.
    */
-  itkSetMacro(EndT, double);
-  itkGetMacro(EndT, double);
+  itkNonVirtualSetMacro(EndT, double);
+  itkNonVirtualGetMacro(EndT, double);
 
   /** Set/Get the number of steps per doubling of sigma sampled.
    */
-  itkSetMacro(StepsPerOctave, double);
-  itkGetMacro(StepsPerOctave, double);
+  itkNonVirtualSetMacro(StepsPerOctave, double);
+  itkNonVirtualGetMacro(StepsPerOctave, double);
 
   /** Set/Get the number of blobs to find
    */
-  itkSetMacro(NumberOfBlobs, size_t);
-  itkGetMacro(NumberOfBlobs, size_t);
+  itkNonVirtualSetMacro(NumberOfBlobs, size_t);
+  itkNonVirtualGetMacro(NumberOfBlobs, size_t);
 
   /** Set/Get the label image
    */
-  itkSetMacro(BlobRadiusImage, BlobRadiusImagePointer);
-  itkGetMacro(BlobRadiusImage, BlobRadiusImagePointer);
+  itkNonVirtualSetMacro(BlobRadiusImage, BlobRadiusImagePointer);
+  itkNonVirtualGetMacro(BlobRadiusImage, BlobRadiusImagePointer);
 
   /** Pseudo-output
    * Get the list of circles. This recomputes the circles

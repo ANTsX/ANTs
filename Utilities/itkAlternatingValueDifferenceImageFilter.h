@@ -74,11 +74,11 @@ public:
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-  itkGetMacro(SubtractionDimension, unsigned int);
-  itkSetMacro(SubtractionDimension, unsigned int);
+  itkNonVirtualGetMacro(SubtractionDimension, unsigned int);
+  itkNonVirtualSetMacro(SubtractionDimension, unsigned int);
 
-  itkGetMacro(IndexPadding, unsigned int);
-  itkSetMacro(IndexPadding, unsigned int);
+  itkNonVirtualGetMacro(IndexPadding, unsigned int);
+  itkNonVirtualSetMacro(IndexPadding, unsigned int);
 
   /** Set the interpolator function.  The default is
    * LinearInterpolateImageFunction<InputImageType,
@@ -87,18 +87,18 @@ public:
    * (useful for binary masks and other images with a small number of
    * possible pixel values), and BSplineInterpolateImageFunction
    * (which provides a higher order of interpolation).  */
-  itkSetObjectMacro(ControlInterpolator, InterpolatorType);
-  itkSetObjectMacro(LabelInterpolator, InterpolatorType);
+  itkNonVirtualSetObjectMacro(ControlInterpolator, InterpolatorType);
+  itkNonVirtualSetObjectMacro(LabelInterpolator, InterpolatorType);
 
   /** Get a pointer to the interpolator function. */
-  itkGetConstObjectMacro(ControlInterpolator, InterpolatorType);
-  itkGetConstObjectMacro(LabelInterpolator, InterpolatorType);
+  itkNonVirtualGetConstObjectMacro(ControlInterpolator, InterpolatorType);
+  itkNonVirtualGetConstObjectMacro(LabelInterpolator, InterpolatorType);
 
-  itkGetModifiableObjectMacro(ControlImage, InputImageType);
-  itkGetModifiableObjectMacro(LabelImage, InputImageType);
+  itkNonVirtualGetModifiableObjectMacro(ControlImage, InputImageType);
+  itkNonVirtualGetModifiableObjectMacro(LabelImage, InputImageType);
 
-  itkGetModifiableObjectMacro(ControlOutputImage, InputImageType);
-  itkGetModifiableObjectMacro(LabelOutputImage, InputImageType);
+  itkNonVirtualGetModifiableObjectMacro(ControlOutputImage, InputImageType);
+  itkNonVirtualGetModifiableObjectMacro(LabelOutputImage, InputImageType);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */

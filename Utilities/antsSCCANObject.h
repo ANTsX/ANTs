@@ -86,32 +86,32 @@ public:
   };
 
   /** ivars Set/Get functionality */
-  itkSetMacro(MaximumNumberOfIterations, unsigned int);
-  itkGetConstMacro(MaximumNumberOfIterations, unsigned int);
-  itkSetMacro(MinClusterSizeP, unsigned int);
-  itkGetConstMacro(MinClusterSizeP, unsigned int);
-  itkSetMacro(MinClusterSizeQ, unsigned int);
-  itkGetConstMacro(MinClusterSizeQ, unsigned int);
-  itkSetMacro(KeptClusterSize, unsigned int);
-  itkGetConstMacro(KeptClusterSize, unsigned int);
-  itkSetMacro(AlreadyWhitened, bool);
-  itkGetConstMacro(AlreadyWhitened, bool);
-  itkSetMacro(PriorWeight, RealType);
-  itkGetConstMacro(PriorWeight, RealType);
-  itkSetMacro(ConvergenceThreshold, RealType);
-  itkGetConstMacro(ConvergenceThreshold, RealType);
-  itkGetConstMacro(CurrentConvergenceMeasurement, RealType);
-  itkGetConstMacro(ElapsedIterations, unsigned int);
-  itkSetMacro(SCCANFormulation, SCCANFormulationType);
-  itkGetConstMacro(SCCANFormulation, SCCANFormulationType);
-  itkSetMacro(Silent, bool);
-  itkGetMacro(Silent, bool);
-  itkSetMacro(RowSparseness, RealType);
-  itkGetMacro(RowSparseness, RealType);
-  itkSetMacro(UseLongitudinalFormulation, RealType);
-  itkGetMacro(UseLongitudinalFormulation, RealType);
-  itkSetMacro(Smoother, RealType);
-  itkGetMacro(Smoother, RealType);
+  itkNonVirtualSetMacro(MaximumNumberOfIterations, unsigned int);
+  itkNonVirtualGetConstMacro(MaximumNumberOfIterations, unsigned int);
+  itkNonVirtualSetMacro(MinClusterSizeP, unsigned int);
+  itkNonVirtualGetConstMacro(MinClusterSizeP, unsigned int);
+  itkNonVirtualSetMacro(MinClusterSizeQ, unsigned int);
+  itkNonVirtualGetConstMacro(MinClusterSizeQ, unsigned int);
+  itkNonVirtualSetMacro(KeptClusterSize, unsigned int);
+  itkNonVirtualGetConstMacro(KeptClusterSize, unsigned int);
+  itkNonVirtualSetMacro(AlreadyWhitened, bool);
+  itkNonVirtualGetConstMacro(AlreadyWhitened, bool);
+  itkNonVirtualSetMacro(PriorWeight, RealType);
+  itkNonVirtualGetConstMacro(PriorWeight, RealType);
+  itkNonVirtualSetMacro(ConvergenceThreshold, RealType);
+  itkNonVirtualGetConstMacro(ConvergenceThreshold, RealType);
+  itkNonVirtualGetConstMacro(CurrentConvergenceMeasurement, RealType);
+  itkNonVirtualGetConstMacro(ElapsedIterations, unsigned int);
+  itkNonVirtualSetMacro(SCCANFormulation, SCCANFormulationType);
+  itkNonVirtualGetConstMacro(SCCANFormulation, SCCANFormulationType);
+  itkNonVirtualSetMacro(Silent, bool);
+  itkNonVirtualGetMacro(Silent, bool);
+  itkNonVirtualSetMacro(RowSparseness, RealType);
+  itkNonVirtualGetMacro(RowSparseness, RealType);
+  itkNonVirtualSetMacro(UseLongitudinalFormulation, RealType);
+  itkNonVirtualGetMacro(UseLongitudinalFormulation, RealType);
+  itkNonVirtualSetMacro(Smoother, RealType);
+  itkNonVirtualGetMacro(Smoother, RealType);
 
   void
   NormalizeWeights(const unsigned int k);
@@ -258,9 +258,9 @@ public:
     return M;
   }
 
-  itkSetMacro(FractionNonZeroP, RealType);
-  itkSetMacro(KeepPositiveP, bool);
-  itkGetMacro(KeepPositiveP, bool);
+  itkNonVirtualSetMacro(FractionNonZeroP, RealType);
+  itkNonVirtualSetMacro(KeepPositiveP, bool);
+  itkNonVirtualGetMacro(KeepPositiveP, bool);
   void
   SetMaskImageP(ImagePointer mask)
   {
@@ -276,9 +276,9 @@ public:
     this->m_MatrixP.update(matrix);
   }
 
-  itkSetMacro(FractionNonZeroQ, RealType);
-  itkSetMacro(KeepPositiveQ, bool);
-  itkGetMacro(KeepPositiveQ, bool);
+  itkNonVirtualSetMacro(FractionNonZeroQ, RealType);
+  itkNonVirtualSetMacro(KeepPositiveQ, bool);
+  itkNonVirtualGetMacro(KeepPositiveQ, bool);
 
   void
   SetMaskImageQ(ImagePointer mask)
@@ -295,14 +295,14 @@ public:
     this->m_MatrixQ.update(matrix);
   }
 
-  itkSetMacro(Covering, unsigned int);
-  itkSetMacro(GetSmall, bool);
-  itkSetMacro(UseL1, bool);
-  itkSetMacro(MaxBasedThresholding, bool);
-  itkGetMacro(MaxBasedThresholding, bool);
-  itkSetMacro(GradStep, RealType);
-  itkSetMacro(FractionNonZeroR, RealType);
-  itkSetMacro(KeepPositiveR, bool);
+  itkNonVirtualSetMacro(Covering, unsigned int);
+  itkNonVirtualSetMacro(GetSmall, bool);
+  itkNonVirtualSetMacro(UseL1, bool);
+  itkNonVirtualSetMacro(MaxBasedThresholding, bool);
+  itkNonVirtualGetMacro(MaxBasedThresholding, bool);
+  itkNonVirtualSetMacro(GradStep, RealType);
+  itkNonVirtualSetMacro(FractionNonZeroR, RealType);
+  itkNonVirtualSetMacro(KeepPositiveR, bool);
   void
   SetMaskImageR(ImagePointer mask)
   {
@@ -649,8 +649,8 @@ for ( unsigned int j = 0 ; j < b.rows(); j++ ) mat( i , j ) = invamat( i , j );
     this->m_MatrixPriorROI2.update(matrix);
   }
 
-  // itkSetMacro( priorScale, RealType );
-  // itkGetMacro( priorScale, RealType );
+  // itkNonVirtualSetMacro( priorScale, RealType );
+  // itkNonVirtualGetMacro( priorScale, RealType );
   RealType
   GetPriorScaleMat()
   {

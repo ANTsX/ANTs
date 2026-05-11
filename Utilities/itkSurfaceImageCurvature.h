@@ -155,18 +155,18 @@ public:
   void
   PostProcessGeometry();
 
-  itkSetMacro(NeighborhoodRadius, RealType);
-  itkGetMacro(NeighborhoodRadius, RealType);
+  itkNonVirtualSetMacro(NeighborhoodRadius, RealType);
+  itkNonVirtualGetMacro(NeighborhoodRadius, RealType);
 
-  itkSetMacro(UseLabel, bool);
-  itkGetMacro(UseLabel, bool);
+  itkNonVirtualSetMacro(UseLabel, bool);
+  itkNonVirtualGetMacro(UseLabel, bool);
 
-  itkSetMacro(kSign, float);
+  itkNonVirtualSetMacro(kSign, float);
 
-  itkSetMacro(Threshold, float);
+  itkNonVirtualSetMacro(Threshold, float);
 
-  itkGetMacro(FunctionImage, OutputImagePointer);
-  itkSetMacro(FunctionImage, OutputImagePointer);
+  itkNonVirtualGetMacro(FunctionImage, OutputImagePointer);
+  itkNonVirtualSetMacro(FunctionImage, OutputImagePointer);
 
   void
   ProcessLabelImage();

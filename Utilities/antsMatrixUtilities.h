@@ -134,8 +134,8 @@ public:
     this->m_MatrixP.update(matrix);
   }
 
-  itkSetMacro(FractionNonZeroQ, RealType);
-  itkSetMacro(KeepPositiveQ, bool);
+  itkNonVirtualSetMacro(FractionNonZeroQ, RealType);
+  itkNonVirtualSetMacro(KeepPositiveQ, bool);
   void
   SetMaskImageQ(ImagePointer mask)
   {
@@ -151,8 +151,8 @@ public:
     this->m_MatrixQ.update(matrix);
   }
 
-  itkSetMacro(FractionNonZeroR, RealType);
-  itkSetMacro(KeepPositiveR, bool);
+  itkNonVirtualSetMacro(FractionNonZeroR, RealType);
+  itkNonVirtualSetMacro(KeepPositiveR, bool);
   void
   SetMaskImageR(ImagePointer mask)
   {
