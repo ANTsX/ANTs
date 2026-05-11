@@ -222,7 +222,7 @@ public:
    *  ExtractionRegion.Size = 0. */
   void
   SetAveragingDimension(unsigned int averagingDimension);
-  itkGetMacro(AveragingDimension, unsigned int);
+  itkNonVirtualGetMacro(AveragingDimension, unsigned int);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */

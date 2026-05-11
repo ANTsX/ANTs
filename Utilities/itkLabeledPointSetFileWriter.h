@@ -76,26 +76,26 @@ public:
   SetInput(InputMeshType * input);
 
   /** Set/Get the name of the file where data are written. */
-  itkSetStringMacro(FileName);
-  itkGetStringMacro(FileName);
+  itkNonVirtualSetStringMacro(FileName);
+  itkNonVirtualGetStringMacro(FileName);
 
   /** Specify other attributes */
-  itkSetMacro(Lines, typename LineSetType::Pointer);
+  itkNonVirtualSetMacro(Lines, typename LineSetType::Pointer);
 
-  itkSetMacro(MultiComponentScalars, typename MultiComponentScalarSetType::Pointer);
+  itkNonVirtualSetMacro(MultiComponentScalars, typename MultiComponentScalarSetType::Pointer);
 
   /** Specify image attributes if output is an image. */
-  itkSetMacro(ImageSize, ImageSizeType);
-  itkGetConstMacro(ImageSize, ImageSizeType);
+  itkNonVirtualSetMacro(ImageSize, ImageSizeType);
+  itkNonVirtualGetConstMacro(ImageSize, ImageSizeType);
 
-  itkSetMacro(ImageOrigin, ImageOriginType);
-  itkGetConstMacro(ImageOrigin, ImageOriginType);
+  itkNonVirtualSetMacro(ImageOrigin, ImageOriginType);
+  itkNonVirtualGetConstMacro(ImageOrigin, ImageOriginType);
 
-  itkSetMacro(ImageSpacing, ImageSpacingType);
-  itkGetConstMacro(ImageSpacing, ImageSpacingType);
+  itkNonVirtualSetMacro(ImageSpacing, ImageSpacingType);
+  itkNonVirtualGetConstMacro(ImageSpacing, ImageSpacingType);
 
-  itkSetMacro(ImageDirection, ImageDirectionType);
-  itkGetConstMacro(ImageDirection, ImageDirectionType);
+  itkNonVirtualSetMacro(ImageDirection, ImageDirectionType);
+  itkNonVirtualGetConstMacro(ImageDirection, ImageDirectionType);
 
 protected:
   LabeledPointSetFileWriter();

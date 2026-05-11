@@ -77,20 +77,20 @@ public:
   static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
-  itkGetMacro(TimeDimension, unsigned int);
-  itkSetMacro(TimeDimension, unsigned int);
+  itkNonVirtualGetMacro(TimeDimension, unsigned int);
+  itkNonVirtualSetMacro(TimeDimension, unsigned int);
 
-  itkSetMacro(SliceDimension, unsigned int);
-  itkGetMacro(SliceDimension, unsigned int);
+  itkNonVirtualSetMacro(SliceDimension, unsigned int);
+  itkNonVirtualGetMacro(SliceDimension, unsigned int);
 
-  itkGetMacro(IndexPadding, unsigned int);
-  itkSetMacro(IndexPadding, unsigned int);
+  itkNonVirtualGetMacro(IndexPadding, unsigned int);
+  itkNonVirtualSetMacro(IndexPadding, unsigned int);
 
-  itkSetMacro(SliceTiming, TimingType);
-  itkGetMacro(SliceTiming, TimingType);
+  itkNonVirtualSetMacro(SliceTiming, TimingType);
+  itkNonVirtualGetMacro(SliceTiming, TimingType);
 
-  itkSetMacro(ExtrapolateEdges, bool);
-  itkGetMacro(ExtrapolateEdges, bool);
+  itkNonVirtualSetMacro(ExtrapolateEdges, bool);
+  itkNonVirtualGetMacro(ExtrapolateEdges, bool);
 
   /** Set the interpolator function.  The default is
    * LinearInterpolateImageFunction<InputImageType,
@@ -100,10 +100,10 @@ public:
    * (useful for binary masks and other images with a small number of
    * possible pixel values), and BSplineInterpolateImageFunction
    * (which provides a higher order of interpolation).  */
-  itkSetObjectMacro(Interpolator, InterpolatorType);
+  itkNonVirtualSetObjectMacro(Interpolator, InterpolatorType);
 
   /** Get a pointer to the interpolator function. */
-  itkGetConstObjectMacro(Interpolator, InterpolatorType);
+  itkNonVirtualGetConstObjectMacro(Interpolator, InterpolatorType);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */

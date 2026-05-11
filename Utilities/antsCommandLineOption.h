@@ -63,15 +63,15 @@ public:
 
   typedef std::deque<std::string> ParameterStackType;
 
-  itkSetStringMacro(Name);
-  itkGetStringMacro(Name);
-  itkGetMacro(Name, std::string);
+  itkNonVirtualSetStringMacro(Name);
+  itkNonVirtualGetStringMacro(Name);
+  itkNonVirtualGetMacro(Name, std::string);
 
-  itkSetMacro(ArgOrder, unsigned int);
-  itkGetConstMacro(ArgOrder, unsigned int);
+  itkNonVirtualSetMacro(ArgOrder, unsigned int);
+  itkNonVirtualGetConstMacro(ArgOrder, unsigned int);
 
-  itkSetMacro(StageID, unsigned int);
-  itkGetConstMacro(StageID, unsigned int);
+  itkNonVirtualSetMacro(StageID, unsigned int);
+  itkNonVirtualGetConstMacro(StageID, unsigned int);
 
   ParameterStackType
   GetParameters()
@@ -179,14 +179,14 @@ public:
     }
   }
 
-  itkSetMacro(ShortName, char);
-  itkGetConstMacro(ShortName, char);
+  itkNonVirtualSetMacro(ShortName, char);
+  itkNonVirtualGetConstMacro(ShortName, char);
 
-  itkSetStringMacro(LongName);
-  itkGetConstMacro(LongName, std::string);
+  itkNonVirtualSetStringMacro(LongName);
+  itkNonVirtualGetConstMacro(LongName, std::string);
 
-  itkSetStringMacro(Description);
-  itkGetMacro(Description, std::string);
+  itkNonVirtualSetStringMacro(Description);
+  itkNonVirtualGetMacro(Description, std::string);
 
   void
   AddFunction(std::string, char, char, unsigned int order = 0);

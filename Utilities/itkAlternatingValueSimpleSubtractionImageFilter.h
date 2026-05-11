@@ -65,8 +65,8 @@ public:
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
 
   /** Set/Get dimension to subtract over */
-  itkGetMacro(SubtractionDimension, unsigned int);
-  itkSetMacro(SubtractionDimension, unsigned int);
+  itkNonVirtualGetMacro(SubtractionDimension, unsigned int);
+  itkNonVirtualSetMacro(SubtractionDimension, unsigned int);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */

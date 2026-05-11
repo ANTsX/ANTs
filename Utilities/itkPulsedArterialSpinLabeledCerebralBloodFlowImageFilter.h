@@ -78,23 +78,23 @@ public:
   static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
   static constexpr unsigned int ReferenceImageDimension = TReferenceImage::ImageDimension;
 
-  itkGetMacro(TI1, float);
-  itkSetMacro(TI1, float);
+  itkNonVirtualGetMacro(TI1, float);
+  itkNonVirtualSetMacro(TI1, float);
 
-  itkGetMacro(TI2, float);
-  itkSetMacro(TI2, float);
+  itkNonVirtualGetMacro(TI2, float);
+  itkNonVirtualSetMacro(TI2, float);
 
-  itkGetMacro(T1blood, float);
-  itkSetMacro(T1blood, float);
+  itkNonVirtualGetMacro(T1blood, float);
+  itkNonVirtualSetMacro(T1blood, float);
 
-  itkGetMacro(Alpha, float);
-  itkSetMacro(Alpha, float);
+  itkNonVirtualGetMacro(Alpha, float);
+  itkNonVirtualSetMacro(Alpha, float);
 
-  itkGetMacro(Lambda, float);
-  itkSetMacro(Lambda, float);
+  itkNonVirtualGetMacro(Lambda, float);
+  itkNonVirtualSetMacro(Lambda, float);
 
-  itkGetMacro(SliceDelay, float);
-  itkSetMacro(SliceDelay, float);
+  itkNonVirtualGetMacro(SliceDelay, float);
+  itkNonVirtualSetMacro(SliceDelay, float);
 
   void
   SetDifferenceImage(const InputImageType * image);

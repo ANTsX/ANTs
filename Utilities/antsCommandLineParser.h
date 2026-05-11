@@ -89,11 +89,11 @@ public:
   void
   PrintMenu(std::ostream & os, Indent indent, bool printShortVersion = false) const;
 
-  itkSetStringMacro(Command);
-  itkGetStringMacro(Command);
+  itkNonVirtualSetStringMacro(Command);
+  itkNonVirtualGetStringMacro(Command);
 
-  itkSetStringMacro(CommandDescription);
-  itkGetStringMacro(CommandDescription);
+  itkNonVirtualSetStringMacro(CommandDescription);
+  itkNonVirtualGetStringMacro(CommandDescription);
 
   OptionListType
   GetOptions() const

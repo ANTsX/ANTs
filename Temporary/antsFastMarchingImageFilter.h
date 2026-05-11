@@ -255,38 +255,38 @@ public:
   }
 
   /** Get the Speed Constant. */
-  itkGetConstReferenceMacro(SpeedConstant, double);
+  itkNonVirtualGetConstReferenceMacro(SpeedConstant, double);
 
   /** Set/Get the Normalization Factor for the Speed Image.
       The values in the Speed Image is divided by this
       factor. This allows the use of images with
       integer pixel types to represent the speed. */
-  itkSetMacro(NormalizationFactor, double);
-  itkGetConstMacro(NormalizationFactor, double);
+  itkNonVirtualSetMacro(NormalizationFactor, double);
+  itkNonVirtualGetConstMacro(NormalizationFactor, double);
 
   /** Set the Fast Marching algorithm Stopping Value. The Fast Marching
    * algorithm is terminated when the value of the smallest trial point
    * is greater than the stopping value. */
-  itkSetMacro(StoppingValue, double);
+  itkNonVirtualSetMacro(StoppingValue, double);
 
   /** Get the Fast Marching algorithm Stopping Value. */
-  itkGetConstReferenceMacro(StoppingValue, double);
+  itkNonVirtualGetConstReferenceMacro(StoppingValue, double);
 
   /** Set the Collect Points flag. Instrument the algorithm to collect
    * a container of all nodes which it has visited. Useful for
    * creating Narrowbands for level set algorithms that supports
    * narrow banding. */
-  itkSetMacro(CollectPoints, bool);
+  itkNonVirtualSetMacro(CollectPoints, bool);
 
   /** Get thConste Collect Points flag. */
-  itkGetConstReferenceMacro(CollectPoints, bool);
-  itkBooleanMacro(CollectPoints);
+  itkNonVirtualGetConstReferenceMacro(CollectPoints, bool);
+  itkNonVirtualBooleanMacro(CollectPoints);
 
   using TopologyCheckType = itk::FastMarchingTraitsEnums::TopologyCheck;
 
   /** Set/Get boolean macro indicating whether the user wants to check topology. */
-  itkSetMacro(TopologyCheck, TopologyCheckType);
-  itkGetConstReferenceMacro(TopologyCheck, TopologyCheckType);
+  itkNonVirtualSetMacro(TopologyCheck, TopologyCheckType);
+  itkNonVirtualGetConstReferenceMacro(TopologyCheck, TopologyCheckType);
 
   /** Get the container of Processed Points. If the CollectPoints flag
    * is set, the algorithm collects a container of all processed nodes.
@@ -316,17 +316,17 @@ public:
     return m_OutputRegion.GetSize();
   }
 
-  itkSetMacro(OutputRegion, OutputRegionType);
-  itkGetConstReferenceMacro(OutputRegion, OutputRegionType);
-  itkSetMacro(OutputSpacing, OutputSpacingType);
-  itkGetConstReferenceMacro(OutputSpacing, OutputSpacingType);
-  itkSetMacro(OutputDirection, OutputDirectionType);
-  itkGetConstReferenceMacro(OutputDirection, OutputDirectionType);
-  itkSetMacro(OutputOrigin, OutputPointType);
-  itkGetConstReferenceMacro(OutputOrigin, OutputPointType);
-  itkSetMacro(OverrideOutputInformation, bool);
-  itkGetConstReferenceMacro(OverrideOutputInformation, bool);
-  itkBooleanMacro(OverrideOutputInformation);
+  itkNonVirtualSetMacro(OutputRegion, OutputRegionType);
+  itkNonVirtualGetConstReferenceMacro(OutputRegion, OutputRegionType);
+  itkNonVirtualSetMacro(OutputSpacing, OutputSpacingType);
+  itkNonVirtualGetConstReferenceMacro(OutputSpacing, OutputSpacingType);
+  itkNonVirtualSetMacro(OutputDirection, OutputDirectionType);
+  itkNonVirtualGetConstReferenceMacro(OutputDirection, OutputDirectionType);
+  itkNonVirtualSetMacro(OutputOrigin, OutputPointType);
+  itkNonVirtualGetConstReferenceMacro(OutputOrigin, OutputPointType);
+  itkNonVirtualSetMacro(OverrideOutputInformation, bool);
+  itkNonVirtualGetConstReferenceMacro(OverrideOutputInformation, bool);
+  itkNonVirtualBooleanMacro(OverrideOutputInformation);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -371,15 +371,15 @@ protected:
       represent the concept of infinity for the time assigned to pixels that
       have not been visited. This value is set by default to half the
       max() of the pixel type used to represent the time-crossing map. */
-  itkGetConstReferenceMacro(LargeValue, PixelType);
+  itkNonVirtualGetConstReferenceMacro(LargeValue, PixelType);
 
   OutputRegionType                              m_BufferedRegion;
   typedef typename LevelSetImageType::IndexType LevelSetIndexType;
   LevelSetIndexType                             m_StartIndex;
   LevelSetIndexType                             m_LastIndex;
 
-  itkGetConstReferenceMacro(StartIndex, LevelSetIndexType);
-  itkGetConstReferenceMacro(LastIndex, LevelSetIndexType);
+  itkNonVirtualGetConstReferenceMacro(StartIndex, LevelSetIndexType);
+  itkNonVirtualGetConstReferenceMacro(LastIndex, LevelSetIndexType);
 
 private:
   FMarchingImageFilter(const Self &); // purposely not implemented
