@@ -1,0 +1,36 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# The ITK install that ANTS was built against carries libzip (when
+# TractographyTRX is enabled) as a vendored static archive inside its own
+# install tree, exported by absolute path in ITKTargets-<config>.cmake.
+# Downstream therefore does NOT need find_dependency(libzip) here -- ITK is
+# the only transitive dependency a consumer must locate. find_dependency
+# forwards the REQUIRED/QUIET state of the outer find_package(ANTS ...).
+find_dependency(ITK)
+
+set(ANTS_USE_VTK "@USE_VTK@")
+if(ANTS_USE_VTK)
+  find_dependency(VTK)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/ANTSTargets.cmake")
+
+# Plain-list aliases for downstream consumers that use the legacy variable
+# pattern (e.g. ITK external modules whose ${MODULE}_INCLUDE_DIRS is a flat
+# list, not an imported-target's INTERFACE_INCLUDE_DIRECTORIES with embedded
+# generator expressions). Modern consumers should prefer ANTS::antsUtilities
+# directly. Subdir list is generated from ANTS_PUBLIC_HEADER_DIRS in ANTS.cmake.
+set_and_check(ANTS_INCLUDE_DIR  "${PACKAGE_PREFIX_DIR}/include/ANTs")
+set(ANTS_INCLUDE_DIRS "${ANTS_INCLUDE_DIR}")
+set(_ANTS_HEADER_SUBDIRS "@ANTS_PUBLIC_HEADER_DIRS@")
+foreach(_ants_dir IN LISTS _ANTS_HEADER_SUBDIRS)
+  list(APPEND ANTS_INCLUDE_DIRS "${ANTS_INCLUDE_DIR}/${_ants_dir}")
+endforeach()
+unset(_ANTS_HEADER_SUBDIRS)
+# Examples/ also ships nested public headers under Examples/include/.
+list(APPEND ANTS_INCLUDE_DIRS "${ANTS_INCLUDE_DIR}/Examples/include")
+set(ANTS_LIBRARIES ANTS::antsUtilities)
+
+check_required_components(ANTS)
