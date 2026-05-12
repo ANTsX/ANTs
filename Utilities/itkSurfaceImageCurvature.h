@@ -15,6 +15,7 @@
 #define _SurfaceImageCurvature_h
 
 #include "itkNeighborhoodIterator.h"
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageRegionIteratorWithIndex.h"
 
 #include "itkSurfaceCurvatureBase.h"

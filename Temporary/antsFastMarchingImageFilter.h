@@ -15,6 +15,7 @@ Program:   Advanced Normalization Tools
 #define __antsFMarchingImageFilter_h
 
 #include "itkArray.h"
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageToImageFilter.h"
 #include "itkIndex.h"
 #include "itkLevelSet.h"

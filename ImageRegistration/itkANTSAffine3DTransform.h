@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "itkRigid3DTransform.h"
+#include "ITKGetterSetterMacroShims.h"
 #include "vnl/vnl_quaternion.h"
 
 namespace itk

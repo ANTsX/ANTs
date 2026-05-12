@@ -19,6 +19,7 @@
 #define __itkAlternatingValueDifferenceImageFilter_h
 
 #include "itkImageToImageFilter.h"
+#include "ITKGetterSetterMacroShims.h"
 #include "itkExtrapolateImageFunction.h"
 #include "itkInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
