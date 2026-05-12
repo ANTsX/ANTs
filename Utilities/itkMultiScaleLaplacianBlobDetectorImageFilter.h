@@ -27,6 +27,7 @@
 #define __itkMultiScaleLaplacianBlobDetectorImageFilter_h
 
 #include "itkImageToImageFilter.h"
+#include "ITKGetterSetterMacroShims.h"
 #include "itkGaussianSpatialObject.h"
 
 namespace itk

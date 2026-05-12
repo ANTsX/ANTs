@@ -25,6 +25,7 @@
 #  include "itkImageToImageFilter.h"
 
 #  include "itkMath.h"
+#  include "ITKGetterSetterMacroShims.h"
 
 /** Custom SCCA implemented with vnl and ITK: Flexible positivity constraints, image ops, permutation testing, etc. */
 namespace itk

@@ -15,6 +15,7 @@
 #define itkLabeledPointSetFileWriter_h
 
 #include "itkMesh.h"
+#include "ITKGetterSetterMacroShims.h"
 
 #include "itkArray.h"
 #include "itkImage.h"

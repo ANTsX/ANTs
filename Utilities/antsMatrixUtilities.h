@@ -17,6 +17,7 @@
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/algo/vnl_cholesky.h>
 #include "itkImageToImageFilter.h"
+#include "ITKGetterSetterMacroShims.h"
 namespace itk
 {
 namespace ants

@@ -19,6 +19,7 @@
 #define __itkAverageOverDimensionImageFilter_h
 
 #include "itkInPlaceImageFilter.h"
+#include "ITKGetterSetterMacroShims.h"
 #include "itkSmartPointer.h"
 #include "itkExtractImageFilterRegionCopier.h"
 

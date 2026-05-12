@@ -15,6 +15,7 @@
 #define itkLabeledPointSetFileReader_h
 
 #include "itkMesh.h"
+#include "ITKGetterSetterMacroShims.h"
 #include "itkMeshSource.h"
 
 #include "itkArray.h"

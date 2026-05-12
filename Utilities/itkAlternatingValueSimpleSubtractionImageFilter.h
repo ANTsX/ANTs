@@ -19,6 +19,7 @@
 #define __itkAlternatingValueSimpleSubtractionImageFilter_h
 
 #include "itkImageToImageFilter.h"
+#include "ITKGetterSetterMacroShims.h"
 
 namespace itk
 {

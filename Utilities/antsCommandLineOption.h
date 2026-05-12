@@ -15,6 +15,7 @@
 #define antsCommandLineOption_h
 
 #include "itkDataObject.h"
+#include "ITKGetterSetterMacroShims.h"
 #include "itkObjectFactory.h"
 #include "itkMacro.h"
 #include "itkNumericTraits.h"
