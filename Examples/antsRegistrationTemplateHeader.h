@@ -327,6 +327,36 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
   }
 
+  std::map<std::string, typename ImageType::Pointer> imageCache;
+
+  auto getCachedImage = [&imageCache](const std::string & filename) -> typename ImageType::Pointer {
+    std::error_code                   ec;
+    std::filesystem::path             canonicalPath = std::filesystem::canonical(filename, ec);
+    std::string                       key = ec ? filename : canonicalPath.string();
+    typename ImageType::Pointer &     cached = imageCache[key];
+    if (cached.IsNull())
+    {
+      ReadImage<ImageType>(cached, filename.c_str());
+      cached->DisconnectPipeline();
+    }
+    return cached;
+  };
+
+  std::map<std::string, typename MaskImageType::Pointer> maskCache;
+
+  auto getCachedMask = [&maskCache](const std::string & filename) -> typename MaskImageType::Pointer {
+    std::error_code                        ec;
+    std::filesystem::path                  canonicalPath = std::filesystem::canonical(filename, ec);
+    std::string                            key = ec ? filename : canonicalPath.string();
+    typename MaskImageType::Pointer &      cached = maskCache[key];
+    if (cached.IsNull())
+    {
+      ReadImage<MaskImageType>(cached, filename.c_str());
+      cached->DisconnectPipeline();
+    }
+    return cached;
+  };
+
   if (maskOption && maskOption->GetNumberOfFunctions())
   {
     if (verbose)
@@ -344,8 +374,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         for (unsigned m = 0; m < maskOption->GetFunction(l)->GetNumberOfParameters(); m++)
         {
           std::string                     fname = maskOption->GetFunction(l)->GetParameter(m);
-          typename MaskImageType::Pointer maskImage;
-          ReadImage<MaskImageType>(maskImage, fname.c_str());
+          typename MaskImageType::Pointer maskImage = getCachedMask(fname);
           if (m == 0)
           {
             regHelper->AddFixedImageMask(maskImage);
@@ -381,8 +410,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       else
       {
         std::string                     fname = maskOption->GetFunction(l)->GetName();
-        typename MaskImageType::Pointer maskImage;
-        ReadImage<MaskImageType>(maskImage, fname.c_str());
+        typename MaskImageType::Pointer maskImage = getCachedMask(fname);
         regHelper->AddFixedImageMask(maskImage);
         if (verbose)
         {
@@ -680,9 +708,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         if (meshSizeForTheUpdateField.size() == 1)
         {
-          typename ImageType::Pointer fixedImage;
-          ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-          fixedImage->DisconnectPipeline();
+          typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
           meshSizeForTheUpdateField =
             regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, meshSizeForTheUpdateField[0], splineOrder);
@@ -695,9 +721,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->ConvertVector<unsigned int>(transformOption->GetFunction(currentStage)->GetParameter(2));
           if (meshSizeForTheTotalField.size() == 1)
           {
-            typename ImageType::Pointer fixedImage;
-            ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-            fixedImage->DisconnectPipeline();
+            typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
             meshSizeForTheTotalField =
               regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, meshSizeForTheTotalField[0], splineOrder);
@@ -721,9 +745,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           parser->ConvertVector<unsigned int>(transformOption->GetFunction(currentStage)->GetParameter(1));
         if (meshSizeAtBaseLevel.size() == 1)
         {
-          typename ImageType::Pointer fixedImage;
-          ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-          fixedImage->DisconnectPipeline();
+          typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
           meshSizeAtBaseLevel =
             regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, meshSizeAtBaseLevel[0], 3);
@@ -802,9 +824,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           parser->ConvertVector<float>(transformOption->GetFunction(currentStage)->GetParameter(1));
         if (meshSizeForTheUpdateFieldFloat.size() == 1)
         {
-          typename ImageType::Pointer fixedImage;
-          ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-          fixedImage->DisconnectPipeline();
+          typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
           meshSizeForTheUpdateField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
             fixedImage, meshSizeForTheUpdateFieldFloat[0], splineOrder);
@@ -822,9 +842,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->ConvertVector<float>(transformOption->GetFunction(currentStage)->GetParameter(2));
           if (meshSizeForTheTotalFieldFloat.size() == 1)
           {
-            typename ImageType::Pointer fixedImage;
-            ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-            fixedImage->DisconnectPipeline();
+            typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
             meshSizeForTheTotalField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
               fixedImage, meshSizeForTheTotalFieldFloat[0], splineOrder);
@@ -876,9 +894,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           parser->ConvertVector<unsigned int>(transformOption->GetFunction(currentStage)->GetParameter(1));
         if (meshSizeForTheUpdateField.size() == 1)
         {
-          typename ImageType::Pointer fixedImage;
-          ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-          fixedImage->DisconnectPipeline();
+          typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
           meshSizeForTheUpdateField =
             regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, meshSizeForTheUpdateField[0], splineOrder);
@@ -891,9 +907,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->ConvertVector<unsigned int>(transformOption->GetFunction(currentStage)->GetParameter(2));
           if (meshSizeForTheVelocityField.size() == 1)
           {
-            typename ImageType::Pointer fixedImage;
-            ReadImage<ImageType>(fixedImage, fixedImageFileName.c_str());
-            fixedImage->DisconnectPipeline();
+            typename ImageType::Pointer fixedImage = getCachedImage(fixedImageFileName);
 
             meshSizeForTheVelocityField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
               fixedImage, meshSizeForTheVelocityField[0], splineOrder);
@@ -946,21 +960,6 @@ DoRegistration(typename ParserType::Pointer & parser)
   // line and add it the registration helper.  We also need to assign the stage
   // ID to the added metric.  Multiple metrics for a single stage are specified
   // on the command line by being specified adjacently.
-
-  std::map<std::string, typename ImageType::Pointer> imageCache;
-
-  auto getCachedImage = [&imageCache](const std::string & filename) -> typename ImageType::Pointer {
-    std::error_code                   ec;
-    std::filesystem::path             canonicalPath = std::filesystem::canonical(filename, ec);
-    std::string                       key = ec ? filename : canonicalPath.string();
-    typename ImageType::Pointer &     cached = imageCache[key];
-    if (cached.IsNull())
-    {
-      ReadImage<ImageType>(cached, filename.c_str());
-      cached->DisconnectPipeline();
-    }
-    return cached;
-  };
 
   unsigned int numberOfMetrics = metricOption->GetNumberOfFunctions();
   for (int currentMetricNumber = numberOfMetrics - 1; currentMetricNumber >= 0; currentMetricNumber--)
