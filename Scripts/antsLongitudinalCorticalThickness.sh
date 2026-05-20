@@ -7,7 +7,7 @@ VERSION="0.0"
 PROGRAM_DEPENDENCIES=( 'antsRegistration' 'antsApplyTransforms' 'N4BiasFieldCorrection' 'Atropos' 'KellyKapowski' )
 SCRIPTS_DEPENDENCIES=( 'antsBrainExtraction.sh' 'antsAtroposN4.sh' 'antsMultivariateTemplateConstruction2.sh' 'antsJointLabelFusion.sh' )
 
-for D in ${PROGRAM_DEPENDENCIES[@]};
+for D in "${PROGRAM_DEPENDENCIES[@]}";
   do
     if ! command -v ${D} &> /dev/null
       then
@@ -17,7 +17,7 @@ for D in ${PROGRAM_DEPENDENCIES[@]};
       fi
   done
 
-for D in ${SCRIPT_DEPENDENCIES[@]};
+for D in "${SCRIPT_DEPENDENCIES[@]}";
   do
     if ! command -v ${D} &> /dev/null
       then
@@ -54,11 +54,11 @@ Usage:
               -p brainSegmentationPriors
               <OPTARGS>
               -o outputPrefix
-              \${anatomicalImages[@]}
+              \"${anatomicalImages[@]}"
 
 Example:
 
-  bash $0 -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output \${anatomicalImages[@]}
+  bash $0 -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output \"${anatomicalImages[@]}"
 
 Required arguments:
 
@@ -199,7 +199,7 @@ echoParameters() {
 
     Using antsLongitudinalCorticalThickness with the following arguments:
       image dimension         = ${DIMENSION}
-      anatomical image        = ${ANATOMICAL_IMAGES[@]}
+      anatomical image        = "${ANATOMICAL_IMAGES[@]}"
       brain template          = ${BRAIN_TEMPLATE}
       extraction prior        = ${EXTRACTION_PRIOR}
       segmentation prior      = ${SEGMENTATION_PRIOR}
@@ -682,7 +682,7 @@ if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
           -t GR \
           -y ${AFFINE_UPDATE_FULL} \
           ${TEMPLATE_Z_IMAGES} \
-          ${ANATOMICAL_IMAGES[@]}
+          "${ANATOMICAL_IMAGES[@]}"
     else
        logCmd antsMultivariateTemplateConstruction2.sh \
          -d ${DIMENSION} \
@@ -706,7 +706,7 @@ if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
          -t SyN \
          -y ${AFFINE_UPDATE_FULL} \
          ${TEMPLATE_Z_IMAGES} \
-         ${ANATOMICAL_IMAGES[@]}
+         "${ANATOMICAL_IMAGES[@]}"
     fi
 
   fi
@@ -872,7 +872,7 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
         echo "   ---> Smoothing single-subject template posteriors as priors."
         echo
 
-        for j in ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}
+        for j in "${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}"
           do
             PRIOR=${j/BrainSegmentationPosteriors/Priors}
             logCmd SmoothImage ${DIMENSION} $j 1 $PRIOR 1

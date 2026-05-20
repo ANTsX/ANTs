@@ -62,7 +62,7 @@ echoParameters() {
       image dimension         = ${DIMENSION}
       segmentation image      = ${SEG_IMAGE}
       cortical label image    = ${LABEL_IMAGE}
-        (labels -> ${LABELS[@]})
+        (labels -> "${LABELS[@]}")
       output image            = ${OUTPUT_IMAGE}
       wm probability image    = ${WMPROB_IMAGE}
       gm probability image    = ${GMPROB_IMAGE}
@@ -108,7 +108,7 @@ getLabelsAndBoundingBoxes() {
 
   if [[ $extension = 'csv' ]] || [[ $extension = 'txt' ]] ; then
 
-    echo ${LABELS[@]}
+    echo "${LABELS[@]}"
     while read line
       do
       bar=(`echo $line | tr ',' ' '`)
@@ -385,7 +385,7 @@ jobIDs=""
 count=0
 
 # Submit registration of each input to volume template to SGE or run locally.
-for LABEL in ${LABELS[@]}
+for LABEL in "${LABELS[@]}"
   do
   # prepare DiReCT command
   segLabelImage=${TMPDIR}seg_${LABEL}.nii.gz

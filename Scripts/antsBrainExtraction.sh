@@ -179,7 +179,7 @@ echoParameters() {
 
     Using antsBrainExtraction with the following arguments:
       image dimension         = ${DIMENSION}
-      anatomical image        = ${ANATOMICAL_IMAGES[@]}
+      anatomical image        = "${ANATOMICAL_IMAGES[@]}"
       extraction template     = ${EXTRACTION_TEMPLATE}
       extraction reg. mask    = ${EXTRACTION_REGISTRATION_MASK}
       extraction prior        = ${EXTRACTION_PRIOR}
@@ -483,8 +483,8 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
         N4_TRUNCATED_IMAGE=${OUTPUT_PREFIX}N4Truncated${i}.${OUTPUT_SUFFIX}
         N4_CORRECTED_IMAGE=${OUTPUT_PREFIX}N4Corrected${i}.${OUTPUT_SUFFIX}
 
-        TMP_FILES=( ${TMP_FILES[@]} $N4_TRUNCATED_IMAGE $N4_CORRECTED_IMAGE )
-        N4_CORRECTED_IMAGES=( ${N4_CORRECTED_IMAGES[@]} ${N4_CORRECTED_IMAGE} )
+        TMP_FILES=( "${TMP_FILES[@]}" $N4_TRUNCATED_IMAGE $N4_CORRECTED_IMAGE )
+        N4_CORRECTED_IMAGES=( "${N4_CORRECTED_IMAGES[@]}" ${N4_CORRECTED_IMAGE} )
 
         if [[ ! -f ${N4_CORRECTED_IMAGE} ]];
           then
@@ -554,10 +554,10 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
                 done
 
               logCmd ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} \
-                ${EXTRACTION_INITIAL_AFFINE_FIXED} ${downsample_template_spacing[@]} 0
+                ${EXTRACTION_INITIAL_AFFINE_FIXED} "${downsample_template_spacing[@]}" 0
 
               logCmd ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_MOVING} \
-                ${EXTRACTION_INITIAL_AFFINE_MOVING} ${downsample_template_spacing[@]} 0
+                ${EXTRACTION_INITIAL_AFFINE_MOVING} "${downsample_template_spacing[@]}" 0
 
               exe_initial_align="antsAI -d ${DIMENSION} -v 1"
               exe_initial_align="${exe_initial_align} -m Mattes[ ${EXTRACTION_INITIAL_AFFINE_FIXED},${EXTRACTION_INITIAL_AFFINE_MOVING},32,Regular,0.2 ]"
@@ -706,7 +706,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
 if [[ $KEEP_TMP_IMAGES -eq 0 ]];
   then
-    for f in ${TMP_FILES[@]}
+    for f in "${TMP_FILES[@]}"
       do
         if [[ -e $f ]];
           then

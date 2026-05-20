@@ -144,8 +144,8 @@ function reportMappingParameters {
 --------------------------------------------------------------------------------------
  Dimensionality:           $DIM
  Output name prefix:       $OUTPUTNAME
- Fixed images:             ${FIXEDIMAGES[@]}
- Moving images:            ${MOVINGIMAGES[@]}
+ Fixed images:             "${FIXEDIMAGES[@]}"
+ Moving images:            "${MOVINGIMAGES[@]}"
  Number of threads:        $NUMBEROFTHREADS
  Spline distance:          $SPLINEDISTANCE
  Transform type:           $TRANSFORMTYPE
@@ -302,7 +302,7 @@ nmov=${#MOVINGIMAGES[@]}
 let nmov=$nmov-1
 MultiplyImages $DIM ${MOVINGIMAGES[0]} 1 $zero
 stackmovparam=" $zero $zero "
-for mov in ${MOVINGIMAGES[@]} ; do
+for mov in "${MOVINGIMAGES[@]}" ; do
   for k in `seq 1 $nrepeats ` ; do
     stackmovparam=" $stackmovparam $mov "
   done
@@ -321,7 +321,7 @@ nm=${OUTPUTNAME}
 MultiplyImages $DIM ${FIXEDIMAGES} 1 $zero
 stackparam=" $zero $zero  "
 stacktemplate=${OUTPUTNAME}template.nii.gz
-for mov in ${MOVINGIMAGES[@]} ; do
+for mov in "${MOVINGIMAGES[@]}" ; do
   for k in `seq 1 $nrepeats ` ; do
     stackparam=" $stackparam ${FIXEDIMAGES} "
   done

@@ -7,7 +7,7 @@ VERSION="0.0"
 PROGRAM_DEPENDENCIES=( 'antsRegistration' 'antsApplyTransforms' 'N4BiasFieldCorrection' 'Atropos' 'KellyKapowski' )
 SCRIPTS_DEPENDENCIES=( 'antsBrainExtraction.sh' 'antsAtroposN4.sh' )
 
-for D in ${PROGRAM_DEPENDENCIES[@]};
+for D in "${PROGRAM_DEPENDENCIES[@]}";
   do
     if ! command -v ${D} &> /dev/null
       then
@@ -17,7 +17,7 @@ for D in ${PROGRAM_DEPENDENCIES[@]};
       fi
   done
 
-for D in ${SCRIPT_DEPENDENCIES[@]};
+for D in "${SCRIPT_DEPENDENCIES[@]}";
   do
     if ! command -v ${D} &> /dev/null
       then
@@ -215,16 +215,16 @@ USAGE
 function checkOutputExists() {
 
   singleOutputs=( ${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX} )
-  singleOutputs=( ${singleOutputs[@]} ${OUTPUT_PREFIX}BrainSegmentationTiledMosaic.png ${OUTPUT_PREFIX}CorticalThicknessTiledMosaic.png )
+  singleOutputs=( "${singleOutputs[@]}" ${OUTPUT_PREFIX}BrainSegmentationTiledMosaic.png ${OUTPUT_PREFIX}CorticalThicknessTiledMosaic.png )
 
   if [[ -f ${REGISTRATION_TEMPLATE} ]];
     then
-      singleOutputs=( ${singleOutputs[@]} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.nii.gz ${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.nii.gz ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX} )
+      singleOutputs=( "${singleOutputs[@]}" ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.nii.gz ${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.nii.gz ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX} )
     fi
 
   missingOutput=0
 
-  for img in ${singleOutputs[@]};
+  for img in "${singleOutputs[@]}";
     do
       if [[ ! -f $img ]];
         then
@@ -268,7 +268,7 @@ echoParameters() {
 
     Using antsCorticalThickness with the following arguments:
       image dimension         = ${DIMENSION}
-      anatomical image        = ${ANATOMICAL_IMAGES[@]}
+      anatomical image        = "${ANATOMICAL_IMAGES[@]}"
       brain template          = ${BRAIN_TEMPLATE}
       extraction prior        = ${EXTRACTION_PRIOR}
       extraction reg. mask    = ${EXTRACTION_REGISTRATION_MASK}
@@ -295,7 +295,7 @@ echoParameters() {
       denoise images          = ${DENOISE_ANATOMICAL_IMAGES}
       float precision         = ${USE_FLOAT_PRECISION}
       use random seeding      = ${USE_RANDOM_SEEDING}
-      prior combinations      = ${PRIOR_COMBINATIONS[@]}
+      prior combinations      = "${PRIOR_COMBINATIONS[@]}"
 
 PARAMETERS
 }
@@ -679,7 +679,7 @@ for(( j=0; j < ${#PRIOR_COMBINATIONS[@]}; j++ ))
     echo ${PRIOR_COMBINATIONS[$j]}
     COMBINATION=( $( echo ${PRIOR_COMBINATIONS[$j]} | tr -d ' ' | tr '[],' '\n' ) )
 
-    echo ${COMBINATION[@]}
+    echo "${COMBINATION[@]}"
 
     if [[ ${COMBINATION[0]} == ${WHITE_MATTER_LABEL} || ${COMBINATION[0]} == 'WM' ]];
       then
@@ -889,7 +889,7 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage2Complete.txt ]]  && \
             basecall=''
             if [[ ${RUN_QUICK} -ne 0 ]];
               then
-                TMP_FILES=( ${TMP_FILES[@]} "${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped.nii.gz" "${SEGMENTATION_WARP_OUTPUT_PREFIX}InverseWarped.nii.gz" )
+                TMP_FILES=( "${TMP_FILES[@]}" "${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped.nii.gz" "${SEGMENTATION_WARP_OUTPUT_PREFIX}InverseWarped.nii.gz" )
 
                 basecall="antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${EXTRACTED_SEGMENTATION_BRAIN}"
                 basecall="${basecall} -m ${EXTRACTED_BRAIN_TEMPLATE} -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -j 1"
@@ -1044,16 +1044,16 @@ if [[ ! -s ${OUTPUT_PREFIX}ACTStage3Complete.txt ]] && \
       -z ${DEBUG_MODE}
 
     ## Step 3 ###
-    TMP_FILES=( ${TMP_FILES[@]} $EXTRACTION_GENERIC_AFFINE $EXTRACTED_SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED $EXTRACTED_BRAIN_TEMPLATE )
-    TMP_FILES=( ${TMP_FILES[@]} ${WARPED_PRIOR_IMAGE_FILENAMES[@]}  )
+    TMP_FILES=( "${TMP_FILES[@]}" $EXTRACTION_GENERIC_AFFINE $EXTRACTED_SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED $EXTRACTED_BRAIN_TEMPLATE )
+    TMP_FILES=( "${TMP_FILES[@]}" "${WARPED_PRIOR_IMAGE_FILENAMES[@]}"  )
     if [[ $TEMPLATES_ARE_IDENTICAL -eq 0 ]];
       then
-        TMP_FILES=( ${TMP_FILES[@]} $SEGMENTATION_WARP $SEGMENTATION_INVERSE_WARP $SEGMENTATION_GENERIC_AFFINE )
+        TMP_FILES=( "${TMP_FILES[@]}" $SEGMENTATION_WARP $SEGMENTATION_INVERSE_WARP $SEGMENTATION_GENERIC_AFFINE )
       fi
 
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
-        for f in ${TMP_FILES[@]}
+        for f in "${TMP_FILES[@]}"
           do
             if [[ -e $f ]];
           then
@@ -1119,14 +1119,14 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
 
     logCmd ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} m ${HEAD_N4_IMAGE} ${BRAIN_EXTRACTION_MASK}
 
-    TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} )
+    TMP_FILES=( "${TMP_FILES[@]}" ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} )
 
     time_start_template_registration=`date +%s`
 
     basecall=''
     if [[ ${RUN_QUICK} -ne 0 ]];
       then
-        TMP_FILES=( ${TMP_FILES[@]} "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.nii.gz" "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}InverseWarped.nii.gz" )
+        TMP_FILES=( "${TMP_FILES[@]}" "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.nii.gz" "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}InverseWarped.nii.gz" )
 
         basecall="antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${REGISTRATION_TEMPLATE}"
         basecall="${basecall} -m ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -j 1"
@@ -1185,7 +1185,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
 
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
-        for f in ${TMP_FILES[@]}
+        for f in "${TMP_FILES[@]}"
           do
             if [[ -e $f ]];
               then
@@ -1302,7 +1302,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 
         exe_direct="${exe_direct} -a ${CORTICAL_LABEL_THICKNESS_PRIOR}"
 
-        TMP_FILES=( ${TMP_FILES[@]} $CORTICAL_LABEL_THICKNESS_PRIOR ${CORTICAL_THICKNESS_GM_SEGMENTATION} )
+        TMP_FILES=( "${TMP_FILES[@]}" $CORTICAL_LABEL_THICKNESS_PRIOR ${CORTICAL_THICKNESS_GM_SEGMENTATION} )
 
       else
         exe_direct="${exe_direct} -t ${DIRECT_THICKNESS_PRIOR}"
@@ -1311,7 +1311,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
-        for f in ${TMP_FILES[@]}
+        for f in "${TMP_FILES[@]}"
           do
             if [[ -e $f ]];
               then
@@ -1372,7 +1372,7 @@ if [[ -f ${REGISTRATION_TEMPLATE_WARP} ]];
 
     logCmd ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} m ${HEAD_N4_IMAGE} ${BRAIN_EXTRACTION_MASK}
 
-    TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK} )
+    TMP_FILES=( "${TMP_FILES[@]}" ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK} )
 
     logCmd ${WARP} -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} -r ${REGISTRATION_TEMPLATE} -n Linear -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION} --verbose 1
   fi
@@ -1419,7 +1419,7 @@ ITKSNAP_COLORMAP="${OUTPUT_PREFIX}ItkSnapColormap.txt"
 if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
   then
     TMP_FILES=( $CORTICAL_THICKNESS_IMAGE_RGB $CORTICAL_THICKNESS_MASK $BRAIN_SEGMENTATION_IMAGE_RGB $ITKSNAP_COLORMAP )
-    TMP_FILES=( ${TMP_FILES[@]} $HEAD_N4_IMAGE_RESAMPLED $CORTICAL_THICKNESS_IMAGE_RESAMPLED $BRAIN_EXTRACTION_MASK_RESAMPLED $BRAIN_SEGMENTATION_IMAGE_RESAMPLED )
+    TMP_FILES=( "${TMP_FILES[@]}" $HEAD_N4_IMAGE_RESAMPLED $CORTICAL_THICKNESS_IMAGE_RESAMPLED $BRAIN_EXTRACTION_MASK_RESAMPLED $BRAIN_SEGMENTATION_IMAGE_RESAMPLED )
 
     # Resample images
 
@@ -1477,7 +1477,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
 
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
-        for f in ${TMP_FILES[@]}
+        for f in "${TMP_FILES[@]}"
           do
             if [[ -e $f ]];
              then
