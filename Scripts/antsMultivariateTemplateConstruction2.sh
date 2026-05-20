@@ -418,7 +418,7 @@ function shapeupdatetotemplate() {
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
-          echo "   AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 ${WARPLIST[@]}"
+          echo "   AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 ${WARPLIST[*]}"
           date
           echo "--------------------------------------------------------------------------------------"
           AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 ${WARPLIST[@]}
@@ -1088,7 +1088,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
-        echo "   ${CURRENTIMAGESET[@]}"
+        echo "   ${CURRENTIMAGESET[*]}"
         echo "--------------------------------------------------------------------------------------"
         # Normalized mean, no sharpening
         # This forces a call to AverageImages, which resizes images to match the largest input
@@ -1319,7 +1319,7 @@ if [[ "$RIGID" -eq 1 ]];
             IMAGERIGIDSET[${#IMAGERIGIDSET[@]}]=$RIGID
           done
         echo
-        echo  "Building rigid template from ${IMAGERIGIDSET[@]}"
+        echo  "Building rigid template from ${IMAGERIGIDSET[*]}"
 
         # No sharpening at rigid stage
         summarizeimageset $DIM ${TEMPLATES[$j]} $STATSMETHOD 0 ${IMAGERIGIDSET[@]}
@@ -1400,7 +1400,7 @@ if [[ $NUMLEVELS -ne $NUMSMOOTH ]]
 #
 echo
 echo "--------------------------------------------------------------------------------------"
-echo " Start to build templates: ${TEMPLATES[@]}"
+echo " Start to build templates: ${TEMPLATES[*]}"
 echo "--------------------------------------------------------------------------------------"
 #
 
@@ -1767,7 +1767,7 @@ rm -f job*.sh
 #cleanup of 4D files
 if [[ "${range}" -gt 1 && "${TDIM}" -eq 4 ]];
   then
-    mv ${tmpdir}/selection/${TEMPLATES[@]} ${currentdir}/
+    for _t in "${TEMPLATES[@]}"; do mv "${tmpdir}/selection/${_t}" "${currentdir}/"; done
     cd ${currentdir}
     rm -rf ${tmpdir}/
   fi
@@ -1775,7 +1775,7 @@ time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
 echo
 echo "--------------------------------------------------------------------------------------"
-echo " Done creating: ${TEMPLATES[@]}"
+echo " Done creating: ${TEMPLATES[*]}"
 echo " Script executed in $time_elapsed seconds"
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
 echo " Intermediate templates and warps stored in: ${intermediateTemplateDir}/"
