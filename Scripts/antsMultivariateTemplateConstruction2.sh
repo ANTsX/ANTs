@@ -476,7 +476,7 @@ function jobfnamepadding {
     fi
 
     files=`ls ${outdir}/job*.sh`
-    BASENAME1=`echo $files[1] | cut -d 'b' -f 1`
+    BASENAME1=`echo $files | cut -d 'b' -f 1`
 
     for file in ${files}
       do
@@ -1114,7 +1114,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
       then
-        echo "Your initial template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
+        echo "Your initial template : ${TEMPLATES[$i]} was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
         exit 1
       fi
 

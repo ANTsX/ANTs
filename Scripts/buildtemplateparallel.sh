@@ -538,7 +538,7 @@ function ANTSAverage3DAffine {
 function jobfnamepadding {
 
     files=`ls job*.sh`
-    BASENAME1=`echo $files[1] | cut -d 'b' -f 1`
+    BASENAME1=`echo $files | cut -d 'b' -f 1`
 
     for file in ${files}
       do
