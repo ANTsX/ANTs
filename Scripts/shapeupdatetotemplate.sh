@@ -147,7 +147,7 @@ function shapeupdatetotemplate() {
       exit 1
     fi
 
-    summarizeimageset $dim $template $statsmethod ${imagelist[@]}
+    summarizeimageset $dim $template $statsmethod "${imagelist[@]}"
 
     WARPLIST=( `ls ${outputname}*[0-9]Warp.nii.gz 2> /dev/null` )
     NWARPS=${#WARPLIST[*]}

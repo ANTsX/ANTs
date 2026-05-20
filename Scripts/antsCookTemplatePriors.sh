@@ -7,7 +7,7 @@ VERSION="0.0"
 PROGRAM_DEPENDENCIES=( 'ImageMath' 'SmoothImage' 'ThresholdImage' 'antsRegistration' 'antsApplyTransforms' 'N4BiasFieldCorrection' 'Atropos' 'KellyKapowski' )
 SCRIPTS_DEPENDENCIES=( 'antsCorticalThickness.sh' 'antsBrainExtraction.sh' 'antsAtroposN4.sh' 'antsJointLabelFusion.sh' )
 
-for D in ${PROGRAM_DEPENDENCIES[@]};
+for D in "${PROGRAM_DEPENDENCIES[@]}";
   do
     if ! command -v ${D} &> /dev/null
       then
@@ -17,7 +17,7 @@ for D in ${PROGRAM_DEPENDENCIES[@]};
       fi
   done
 
-for D in ${SCRIPT_DEPENDENCIES[@]};
+for D in "${SCRIPT_DEPENDENCIES[@]}";
   do
     if ! command -v ${D} &> /dev/null
       then
@@ -48,11 +48,11 @@ Usage:
               -p brainSegmentationPriors
               <OPTARGS>
               -o outputPrefix
-              \${templateImages[@]}
+              \"${templateImages[@]}"
 
 Example:
 
-  bash $0 -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output \${templateImages[@]}
+  bash $0 -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output \"${templateImages[@]}"
 
 Required arguments:
 
@@ -140,7 +140,7 @@ echoParameters() {
 
     Using antsLongitudinalCorticalThickness with the following arguments:
       image dimension         = ${DIMENSION}
-      anatomical image        = ${ANATOMICAL_IMAGES[@]}
+      anatomical image        = "${ANATOMICAL_IMAGES[@]}"
       brain template          = ${BRAIN_TEMPLATE}
       extraction prior        = ${EXTRACTION_PRIOR}
       segmentation prior      = ${SEGMENTATION_PRIOR}
@@ -357,8 +357,8 @@ for (( i = 1; i < $MAXNUMBER; i++ ))
     WARPED_FILENAME=${SEGMENTATION_PRIOR_WARPED}${ROOT}${i}.${OUTPUT_SUFFIX}
     if [[ -f $FILENAME ]];
       then
-        PRIOR_IMAGE_FILENAMES=( ${PRIOR_IMAGE_FILENAMES[@]} $FILENAME )
-        WARPED_PRIOR_IMAGE_FILENAMES=( ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $WARPED_FILENAME )
+        PRIOR_IMAGE_FILENAMES=( "${PRIOR_IMAGE_FILENAMES[@]}" $FILENAME )
+        WARPED_PRIOR_IMAGE_FILENAMES=( "${WARPED_PRIOR_IMAGE_FILENAMES[@]}" $WARPED_FILENAME )
       else
         break 1
       fi
@@ -556,7 +556,7 @@ if [[ ${TEMPLATE_PRIORS_EXIST} -eq 0 ]];
         echo "   ---> Smoothing template posteriors as priors."
         echo
 
-        for j in ${TEMPLATE_POSTERIORS[@]}
+        for j in "${TEMPLATE_POSTERIORS[@]}"
           do
             PRIOR=${j/BrainSegmentationPosteriors/Priors}
             logCmd SmoothImage ${DIMENSION} $j 1 $PRIOR 1

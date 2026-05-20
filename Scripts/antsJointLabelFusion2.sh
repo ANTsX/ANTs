@@ -351,8 +351,8 @@ function reportParameters {
  Output prefix:            $OUTPUT_PREFIX
  Posteriors format:        $OUTPUT_POSTERIORS_FORMAT
  Target image:             $TARGET_IMAGE
- Atlas images:             ${ATLAS_IMAGES[@]}
- Atlas labels:             ${ATLAS_LABELS[@]}
+ Atlas images:             "${ATLAS_IMAGES[@]}"
+ Atlas labels:             "${ATLAS_LABELS[@]}"
  Transformation:           ${TRANSFORM_TYPE}
 
  Keep all images:          $KEEP_ALL_IMAGES
@@ -806,7 +806,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
             echo "$resampleCall" >> $qscript
           fi
 
-        TMP_FILES=( ${TMP_FILES[@]} ${PIECEWISE_MASKS[@]} ${PIECEWISE_DILATED_MASKS[@]} ${SUBSET_CONFIDENCE_MASK} ${CONFIDENCE_DILATED_MASK} )
+        TMP_FILES=( "${TMP_FILES[@]}" "${PIECEWISE_MASKS[@]}" "${PIECEWISE_DILATED_MASKS[@]}" ${SUBSET_CONFIDENCE_MASK} ${CONFIDENCE_DILATED_MASK} )
 
         # Perform initial linear registration of the whole images
         # Note that we're registering the target image to the atlas image since the atlas
@@ -864,12 +864,12 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                                  -t ${PIECEWISE_OUTPUT_PREFIX}1Rigid.mat >> $logFile"
             echo "$composeCallPiecewise" >> $qscript
 
-            TMP_FILES=( ${TMP_FILES[@]} ${PIECEWISE_OUTPUT_PREFIX}1Rigid.mat )
-            TMP_FILES=( ${TMP_FILES[@]} ${PIECEWISE_OUTPUT_PREFIX}2Similarity.mat )
-            TMP_FILES=( ${TMP_FILES[@]} ${PIECEWISE_OUTPUT_PREFIX}3Affine.mat )
-            TMP_FILES=( ${TMP_FILES[@]} ${PIECEWISE_OUTPUT_PREFIX}4Warp.nii.gz )
-            TMP_FILES=( ${TMP_FILES[@]} ${PIECEWISE_OUTPUT_PREFIX}4InverseWarp.nii.gz )
-            TMP_FILES=( ${TMP_FILES[@]} ${PIECEWISE_OUTPUT_PREFIX}TotalWarp.nii.gz )
+            TMP_FILES=( "${TMP_FILES[@]}" ${PIECEWISE_OUTPUT_PREFIX}1Rigid.mat )
+            TMP_FILES=( "${TMP_FILES[@]}" ${PIECEWISE_OUTPUT_PREFIX}2Similarity.mat )
+            TMP_FILES=( "${TMP_FILES[@]}" ${PIECEWISE_OUTPUT_PREFIX}3Affine.mat )
+            TMP_FILES=( "${TMP_FILES[@]}" ${PIECEWISE_OUTPUT_PREFIX}4Warp.nii.gz )
+            TMP_FILES=( "${TMP_FILES[@]}" ${PIECEWISE_OUTPUT_PREFIX}4InverseWarp.nii.gz )
+            TMP_FILES=( "${TMP_FILES[@]}" ${PIECEWISE_OUTPUT_PREFIX}TotalWarp.nii.gz )
 
             componentCall="ConvertImage ${DIM} ${PIECEWISE_OUTPUT_PREFIX}TotalWarp.nii.gz ${PIECEWISE_OUTPUT_PREFIX}TotalWarp 10"
             echo "$componentCall" >> $qscript
@@ -886,7 +886,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                     echo "$resampleCall" >> $qscript
                   fi
 
-                TMP_FILES=( ${TMP_FILES[@]} ${PIECEWISE_OUTPUT_PREFIX}TotalWarp${components[$d]}.nii.gz )
+                TMP_FILES=( "${TMP_FILES[@]}" ${PIECEWISE_OUTPUT_PREFIX}TotalWarp${components[$d]}.nii.gz )
               done
 
             componentCall="ConvertImage ${DIM} ${PIECEWISE_OUTPUT_PREFIX}TotalWarp ${PIECEWISE_OUTPUT_PREFIX}TotalWarp.nii.gz 9"
@@ -956,9 +956,9 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                               -t ${OUTPUT_PREFIX}${BASENAME}_${i}_2InverseWarp.nii.gz >> ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
         echo "$labelXfrmCall" >> $qscript
 
-        TMP_FILES=( ${TMP_FILES[@]} ${INIT_OUTPUT_PREFIX}0GenericAffine.mat )
-        TMP_FILES=( ${TMP_FILES[@]} ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalWarp.nii.gz ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalInverseWarp.nii.gz )
-        TMP_FILES=( ${TMP_FILES[@]} ${OUTPUT_PREFIX}${BASENAME}_${i}_2Warp.nii.gz ${OUTPUT_PREFIX}${BASENAME}_${i}_2InverseWarp.nii.gz )
+        TMP_FILES=( "${TMP_FILES[@]}" ${INIT_OUTPUT_PREFIX}0GenericAffine.mat )
+        TMP_FILES=( "${TMP_FILES[@]}" ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalWarp.nii.gz ${OUTPUT_PREFIX}${BASENAME}_${i}_TotalInverseWarp.nii.gz )
+        TMP_FILES=( "${TMP_FILES[@]}" ${OUTPUT_PREFIX}${BASENAME}_${i}_2Warp.nii.gz ${OUTPUT_PREFIX}${BASENAME}_${i}_2InverseWarp.nii.gz )
 
         copyImageHeaderCall="CopyImageHeaderInformation \
                              ${TARGET_IMAGE} \
@@ -974,7 +974,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
 
         if [[ $KEEP_ALL_IMAGES -eq 0 ]];
           then
-            for f in ${TMP_FILES[@]}
+            for f in "${TMP_FILES[@]}"
               do
                 echo "rm -f $f" >> $qscript
              done
@@ -1054,7 +1054,7 @@ if [[ $DOQSUB -eq 0 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -1090,7 +1090,7 @@ if [[ $DOQSUB -eq 0 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1156,7 +1156,7 @@ if [[ $DOQSUB -eq 1 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -1192,7 +1192,7 @@ if [[ $DOQSUB -eq 1 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1257,7 +1257,7 @@ if [[ $DOQSUB -eq 4 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -1293,7 +1293,7 @@ if [[ $DOQSUB -eq 4 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1345,7 +1345,7 @@ if [[ $DOQSUB -eq 2 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -1381,7 +1381,7 @@ if [[ $DOQSUB -eq 2 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1445,7 +1445,7 @@ if [[ $DOQSUB -eq 3 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -1481,7 +1481,7 @@ if [[ $DOQSUB -eq 3 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1548,7 +1548,7 @@ if [[ $DOQSUB -eq 5 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -1584,7 +1584,7 @@ if [[ $DOQSUB -eq 5 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1613,12 +1613,12 @@ if [[ $DOQSUB -eq 5 ]];
 rm -f ${OUTPUT_DIR}/job_*.sh
 if [[ $KEEP_ALL_IMAGES -eq 0 ]];
   then
-    rm -f ${WARPED_ATLAS_IMAGES[@]}
-    rm -f ${INVERSE_WARPED_ATLAS_IMAGES[@]}
-    rm -f ${WARPED_ATLAS_LABELS[@]}
-    rm -f ${AFFINE_FILES[@]}
-    rm -f ${WARP_FIELDS[@]}
-    rm -f ${INVERSE_WARP_FIELDS[@]}
+    rm -f "${WARPED_ATLAS_IMAGES[@]}"
+    rm -f "${INVERSE_WARPED_ATLAS_IMAGES[@]}"
+    rm -f "${WARPED_ATLAS_LABELS[@]}"
+    rm -f "${AFFINE_FILES[@]}"
+    rm -f "${WARP_FIELDS[@]}"
+    rm -f "${INVERSE_WARP_FIELDS[@]}"
     rm -f $qscript
     rm -f $qscript2
     rm -f ${OUTPUT_DIR}/slurm-*.out

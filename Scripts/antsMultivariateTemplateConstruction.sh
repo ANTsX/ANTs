@@ -248,10 +248,10 @@ function summarizeimageset() {
 
   case $summarizemethod in
     0) #mean
-      AverageImages $dim $output 0 ${images[@]}
+      AverageImages $dim $output 0 "${images[@]}"
       ;;
     1) #mean of normalized images
-      AverageImages $dim $output 2 ${images[@]}
+      AverageImages $dim $output 2 "${images[@]}"
       ;;
     2) #median
       local image
@@ -332,7 +332,7 @@ function shapeupdatetotemplate() {
         exit 1
       fi
 
-    summarizeimageset ${dim} ${template} ${summarizemethod} ${sharpenmethod} ${imagelist[@]}
+    summarizeimageset ${dim} ${template} ${summarizemethod} ${sharpenmethod} "${imagelist[@]}"
 
     if [[ $whichtemplate -eq 0 ]] ;
       then
@@ -919,7 +919,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo "--------------------------------------------------------------------------------------"
         # Normalized mean, no sharpening
         # This forces a call to AverageImages, which resizes images to match the largest input
-        summarizeimageset $DIM ${TEMPLATES[$i]} 1 0 ${CURRENTIMAGESET[@]}
+        summarizeimageset $DIM ${TEMPLATES[$i]} 1 0 "${CURRENTIMAGESET[@]}"
         # Quickly align COM of input images to average, and then recompute average
         IMAGECOMSET=()
         for (( j = 0; j < ${#CURRENTIMAGESET[@]}; j+=1 ))
@@ -934,9 +934,9 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
             IMAGECOMSET[${#IMAGECOMSET[@]}]=$COM
           done
           # Now safe to let user control stat method
-          summarizeimageset $DIM ${TEMPLATES[$i]} ${STATSMETHOD} 0 ${IMAGECOMSET[@]}
+          summarizeimageset $DIM ${TEMPLATES[$i]} ${STATSMETHOD} 0 "${IMAGECOMSET[@]}"
           # Clean up
-          rm -f ${IMAGECOMSET[@]}
+          rm -f "${IMAGECOMSET[@]}"
     fi
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
@@ -1141,7 +1141,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo  "AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[*]}"
 
       # Don't sharpen after rigid alignment
-      summarizeimageset $DIM ${TEMPLATES[$j]} ${STATSMETHOD} 0 ${IMAGERIGIDSET[@]}
+      summarizeimageset $DIM ${TEMPLATES[$j]} ${STATSMETHOD} 0 "${IMAGERIGIDSET[@]}"
       intermediateTemplateBase=`basename ${TEMPLATES[$j]}`
       cp ${TEMPLATES[$j]} ${intermediateTemplateDir}/initialRigid_${intermediateTemplateBase}
 

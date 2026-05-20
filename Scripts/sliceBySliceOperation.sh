@@ -177,7 +177,7 @@ PERMUTATION_ORDER[2]='0 1 2'
 
 if [[ $OPERATION != "ExtractAllSlices" ]];
   then
-    TileImages 3 $TMP_OUTPUT_FILE 1x1x0 ${ALL_OUTPUT_SLICES[@]}
+    TileImages 3 $TMP_OUTPUT_FILE 1x1x0 "${ALL_OUTPUT_SLICES[@]}"
     PermuteFlipImageOrientationAxes 3 $TMP_OUTPUT_FILE $TMP_OUTPUT_FILE ${PERMUTATION_ORDER[$WHICH_DIRECTION]} 0 0 0 0
     CopyImageHeaderInformation $INPUT_IMAGE $TMP_OUTPUT_FILE $OUTPUT_IMAGE 1 1 1
   fi

@@ -146,7 +146,7 @@ echoParameters() {
 
     Using antsAtroposN4 with the following arguments:
       image dimension         = ${DIMENSION}
-      anatomical image        = ${ANATOMICAL_IMAGES[@]}
+      anatomical image        = "${ANATOMICAL_IMAGES[@]}"
       segmentation priors     = ${ATROPOS_SEGMENTATION_PRIORS}
       output prefix           = ${OUTPUT_PREFIX}
       output image suffix     = ${OUTPUT_SUFFIX}
@@ -156,7 +156,7 @@ echoParameters() {
       convergence             = ${N4_CONVERGENCE}
       shrink factor           = ${N4_SHRINK_FACTOR}
       B-spline parameters     = ${N4_BSPLINE_PARAMS}
-      weight mask post. label = ${N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}
+      weight mask post. label = "${N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}"
 
     Atropos parameters (segmentation):
        convergence            = ${ATROPOS_SEGMENTATION_CONVERGENCE}
@@ -392,11 +392,11 @@ for (( i = 1; i <= $ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES; i++ ))
     PRIOR_FILENAME=${PREFORMAT}${ROOT}${i}${POSTFORMAT}
     POSTERIOR_FILENAME=${OUTPUT_PREFIX}SegmentationPosteriors${ROOT}${i}.${OUTPUT_SUFFIX}
     POSTERIOR_FILENAME_PREVIOUS_ITERATION=${OUTPUT_PREFIX}SegmentationPosteriorsPreviousIteration${ROOT}${i}.${OUTPUT_SUFFIX}
-    POSTERIOR_IMAGE_FILENAMES=( ${POSTERIOR_IMAGE_FILENAMES[@]} $POSTERIOR_FILENAME )
-    POSTERIOR_IMAGE_FILENAMES_PREVIOUS_ITERATION=( ${POSTERIOR_IMAGE_FILENAMES_PREVIOUS_ITERATION[@]} $POSTERIOR_FILENAME_PREVIOUS_ITERATION )
+    POSTERIOR_IMAGE_FILENAMES=( "${POSTERIOR_IMAGE_FILENAMES[@]}" $POSTERIOR_FILENAME )
+    POSTERIOR_IMAGE_FILENAMES_PREVIOUS_ITERATION=( "${POSTERIOR_IMAGE_FILENAMES_PREVIOUS_ITERATION[@]}" $POSTERIOR_FILENAME_PREVIOUS_ITERATION )
     if [[ -f $PRIOR_FILENAME ]];
       then
-        PRIOR_IMAGE_FILENAMES=( ${PRIOR_IMAGE_FILENAMES[@]} $PRIOR_FILENAME )
+        PRIOR_IMAGE_FILENAMES=( "${PRIOR_IMAGE_FILENAMES[@]}" $PRIOR_FILENAME )
       fi
   done
 
@@ -474,7 +474,7 @@ SEGMENTATION_PREPROCESSED_IMAGES=()
 
 for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
   do
-    SEGMENTATION_PREPROCESSED_IMAGES=( ${SEGMENTATION_PREPROCESSED_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}PreprocessedAnatomical${j}.${OUTPUT_SUFFIX} )
+    SEGMENTATION_PREPROCESSED_IMAGES=( "${SEGMENTATION_PREPROCESSED_IMAGES[@]}" ${ATROPOS_SEGMENTATION_OUTPUT}PreprocessedAnatomical${j}.${OUTPUT_SUFFIX} )
     # Truncate on the whole head to get outliers over the whole volume, without losing contrast in the brain
     logCmd ImageMath ${DIMENSION} ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0 0.995 256
     if [[ ${DENOISE_ANATOMICAL_IMAGES} -ne 0 ]];
@@ -507,12 +507,12 @@ if [[ $INITIALIZE_WITH_KMEANS -eq 0 ]]
     N4_WEIGHT_MASK_IMAGES=()
     for (( i = 0; i < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; i++ ))
       do
-        N4_WEIGHT_MASK_IMAGES=( ${N4_WEIGHT_MASK_IMAGES[@]} ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]} )
+        N4_WEIGHT_MASK_IMAGES=( "${N4_WEIGHT_MASK_IMAGES[@]}" ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]} )
       done
 
     if [[ ${#N4_WEIGHT_MASK_IMAGES[@]} -gt 0 ]];
       then
-        logCmd ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+        logCmd ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask "${N4_WEIGHT_MASK_IMAGES[@]}"
       fi
   fi
 
@@ -527,7 +527,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
     SEGMENTATION_N4_IMAGES=()
     for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
-        SEGMENTATION_N4_IMAGES=( ${SEGMENTATION_N4_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}${j}N4.${OUTPUT_SUFFIX} )
+        SEGMENTATION_N4_IMAGES=( "${SEGMENTATION_N4_IMAGES[@]}" ${ATROPOS_SEGMENTATION_OUTPUT}${j}N4.${OUTPUT_SUFFIX} )
         exe_n4_correction="${N4} -d ${DIMENSION} -i ${SEGMENTATION_PREPROCESSED_IMAGES[$j]} -x ${ATROPOS_SEGMENTATION_MASK} -s ${N4_SHRINK_FACTOR} -c ${N4_CONVERGENCE} -b ${N4_BSPLINE_PARAMS} -o ${SEGMENTATION_N4_IMAGES[$j]} --verbose 1"
         if [[ -f ${SEGMENTATION_WEIGHT_MASK} ]];
           then
@@ -641,21 +641,21 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
     N4_WEIGHT_MASK_IMAGES=()
     for (( j = 0; j < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; j++ ))
       do
-        N4_WEIGHT_MASK_IMAGES=( ${N4_WEIGHT_MASK_IMAGES[@]} ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$j]}]} )
+        N4_WEIGHT_MASK_IMAGES=( "${N4_WEIGHT_MASK_IMAGES[@]}" ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$j]}]} )
       done
 
     if [[ ${#N4_WEIGHT_MASK_IMAGES[@]} -gt 0 ]];
       then
-        logCmd ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+        logCmd ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask "${N4_WEIGHT_MASK_IMAGES[@]}"
       fi
 
   done
 
-TMP_FILES=( $SEGMENTATION_WEIGHT_MASK ${POSTERIOR_IMAGE_FILENAMES_PREVIOUS_ITERATION[@]} ${SEGMENTATION_PREVIOUS_ITERATION} ${SEGMENTATION_PREPROCESSED_IMAGES[@]} )
+TMP_FILES=( $SEGMENTATION_WEIGHT_MASK "${POSTERIOR_IMAGE_FILENAMES_PREVIOUS_ITERATION[@]}" ${SEGMENTATION_PREVIOUS_ITERATION} "${SEGMENTATION_PREPROCESSED_IMAGES[@]}" )
 
 if [[ $KEEP_TMP_IMAGES -eq 0 ]];
   then
-    for f in ${TMP_FILES[@]}
+    for f in "${TMP_FILES[@]}"
       do
         if [[ -e $f ]];
           then

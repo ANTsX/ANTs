@@ -297,8 +297,8 @@ function reportParameters {
  Output prefix:            $OUTPUT_PREFIX
  Posteriors format:        $OUTPUT_POSTERIORS_FORMAT
  Target image:             $TARGET_IMAGE
- Atlas images:             ${ATLAS_IMAGES[@]}
- Atlas labels:             ${ATLAS_LABELS[@]}
+ Atlas images:             "${ATLAS_IMAGES[@]}"
+ Atlas labels:             "${ATLAS_LABELS[@]}"
  Transformation:           ${TRANSFORM_TYPE}
 
  Keep all images:          $KEEP_ALL_IMAGES
@@ -668,7 +668,7 @@ if [[ $DOQSUB -eq 0 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -704,7 +704,7 @@ if [[ $DOQSUB -eq 0 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -770,7 +770,7 @@ if [[ $DOQSUB -eq 1 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -866,7 +866,7 @@ if [[ $DOQSUB -eq 4 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -902,7 +902,7 @@ if [[ $DOQSUB -eq 4 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -954,7 +954,7 @@ if [[ $DOQSUB -eq 2 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -990,7 +990,7 @@ if [[ $DOQSUB -eq 2 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1054,7 +1054,7 @@ if [[ $DOQSUB -eq 3 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -1090,7 +1090,7 @@ if [[ $DOQSUB -eq 3 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1157,7 +1157,7 @@ if [[ $DOQSUB -eq 5 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
+        jlfCall="ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting "${EXISTING_WARPED_ATLAS_LABELS[@]}" "
       else
 
         for (( i = 0; i < ${#EXISTING_WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -1193,7 +1193,7 @@ if [[ $DOQSUB -eq 5 ]];
         elif [[ ${TARGET_MASK_IMAGE} == 'majorityvoting' ]];
           then
             MAJORITY_VOTING_IMAGE="${OUTPUT_PREFIX}TargetMaskImageMajorityVoting.nii.gz"
-            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 ${EXISTING_WARPED_ATLAS_LABELS[@]};"
+            maskCall="ImageMath ${DIM} ${MAJORITY_VOTING_IMAGE} MajorityVoting 0.8 "${EXISTING_WARPED_ATLAS_LABELS[@]}";"
             jlfCall="${jlfCall} -x ${OUTPUT_PREFIX}TargetMaskImageMajorityVoting_Mask.nii.gz"
 
         elif [[ -f ${TARGET_MASK_IMAGE} ]];
@@ -1222,12 +1222,12 @@ if [[ $DOQSUB -eq 5 ]];
 rm -f ${OUTPUT_DIR}/job_*.sh
 if [[ $KEEP_ALL_IMAGES -eq 0 ]];
   then
-    rm -f ${WARPED_ATLAS_IMAGES[@]}
-    rm -f ${INVERSE_WARPED_ATLAS_IMAGES[@]}
-    rm -f ${WARPED_ATLAS_LABELS[@]}
-    rm -f ${AFFINE_FILES[@]}
-    rm -f ${WARP_FIELDS[@]}
-    rm -f ${INVERSE_WARP_FIELDS[@]}
+    rm -f "${WARPED_ATLAS_IMAGES[@]}"
+    rm -f "${INVERSE_WARPED_ATLAS_IMAGES[@]}"
+    rm -f "${WARPED_ATLAS_LABELS[@]}"
+    rm -f "${AFFINE_FILES[@]}"
+    rm -f "${WARP_FIELDS[@]}"
+    rm -f "${INVERSE_WARP_FIELDS[@]}"
     rm -f $qscript
     rm -f $qscript2
     rm -f ${OUTPUT_DIR}/slurm-*.out
