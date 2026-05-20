@@ -201,7 +201,7 @@ writeSubimages() {
 function jobfnamepadding {
 
     files=`ls ${TMPDIR}job*.sh`
-    BASENAME1=`echo $files[1] | cut -d 'b' -f 1`
+    BASENAME1=`echo $files | cut -d 'b' -f 1`
 
     for file in ${files}
       do
