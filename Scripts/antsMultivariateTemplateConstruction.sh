@@ -915,7 +915,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
-        echo "   ${CURRENTIMAGESET[@]}"
+        echo "   ${CURRENTIMAGESET[*]}"
         echo "--------------------------------------------------------------------------------------"
         # Normalized mean, no sharpening
         # This forces a call to AverageImages, which resizes images to match the largest input
@@ -1138,7 +1138,7 @@ if [[ "$RIGID" -eq 1 ]];
             IMAGERIGIDSET[${#IMAGERIGIDSET[@]}]=$RIGID
         done
         echo
-        echo  "AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[@]}"
+        echo  "AverageImages $DIM ${TEMPLATES[$j]} 2 ${IMAGERIGIDSET[*]}"
 
       # Don't sharpen after rigid alignment
       summarizeimageset $DIM ${TEMPLATES[$j]} ${STATSMETHOD} 0 ${IMAGERIGIDSET[@]}
@@ -1204,7 +1204,7 @@ NUMLEVELS=${#ITERATLEVEL[@]}
 #
 echo
 echo "--------------------------------------------------------------------------------------"
-echo " Start to build templates: ${TEMPLATES[@]}"
+echo " Start to build templates: ${TEMPLATES[*]}"
 echo "--------------------------------------------------------------------------------------"
 reportMappingParameters
 #
@@ -1556,7 +1556,7 @@ rm -f job*.sh
 #cleanup of 4D files
 if [[ "${range}" -gt 1 && "${TDIM}" -eq 4 ]];
   then
-    mv ${tmpdir}/selection/${TEMPLATES[@]} ${currentdir}/
+    for _t in "${TEMPLATES[@]}"; do mv "${tmpdir}/selection/${_t}" "${currentdir}/"; done
     cd ${currentdir}
     rm -rf ${tmpdir}/
   fi
@@ -1564,7 +1564,7 @@ time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
 echo
 echo "--------------------------------------------------------------------------------------"
-echo " Done creating: ${TEMPLATES[@]}"
+echo " Done creating: ${TEMPLATES[*]}"
 echo " Script executed in $time_elapsed seconds"
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
 echo "--------------------------------------------------------------------------------------"
