@@ -185,3 +185,63 @@ if(BUILD_SHARED_LIBS AND ((NOT USE_SYSTEM_ITK) OR ((NOT USE_SYSTEM_VTK) AND USE_
   install(DIRECTORY ${CMAKE_BINARY_DIR}/../staging/${CMAKE_INSTALL_LIBDIR}/
           DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
+
+if(NOT ANTS_INSTALL_BIN_ONLY)
+  # Single source of truth for the public-header subdirs; also substituted
+  # into ANTSConfig.cmake.in to build the legacy ANTS_INCLUDE_DIRS list.
+  set(ANTS_PUBLIC_HEADER_DIRS
+    Examples
+    Utilities
+    ImageRegistration
+    ImageSegmentation
+    Tensor
+    Temporary
+  )
+  foreach(_d IN LISTS ANTS_PUBLIC_HEADER_DIRS)
+    install(DIRECTORY "${${PROJECT_NAME}_SOURCE_DIR}/${_d}/"
+      DESTINATION "include/ANTs/${_d}"
+      COMPONENT DEVELOPMENT_antsUtilities
+      FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.hxx"
+        PATTERN "*.txx"
+    )
+  endforeach()
+
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ANTsVersionConfig.h"
+    DESTINATION "include/ANTs"
+    COMPONENT DEVELOPMENT_antsUtilities
+  )
+endif()
+
+if(NOT ANTS_INSTALL_BIN_ONLY)
+  include(CMakePackageConfigHelpers)
+
+  set(ANTS_CONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/ANTS")
+
+  export(EXPORT ANTSTargets
+    NAMESPACE ANTS::
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/ANTSTargets.cmake")
+
+  install(EXPORT ANTSTargets
+    NAMESPACE ANTS::
+    FILE ANTSTargets.cmake
+    DESTINATION "${ANTS_CONFIG_INSTALL_DIR}"
+    COMPONENT DEVELOPMENT_antsUtilities)
+
+  configure_package_config_file(
+    "${${PROJECT_NAME}_SOURCE_DIR}/CMake/ANTSConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/ANTSConfig.cmake"
+    INSTALL_DESTINATION "${ANTS_CONFIG_INSTALL_DIR}")
+
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/ANTSConfigVersion.cmake"
+    VERSION "${${PROJECT_NAME}_VERSION}"
+    COMPATIBILITY SameMajorVersion)
+
+  install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/ANTSConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/ANTSConfigVersion.cmake"
+    DESTINATION "${ANTS_CONFIG_INSTALL_DIR}"
+    COMPONENT DEVELOPMENT_antsUtilities)
+endif()

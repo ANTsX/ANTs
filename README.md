@@ -55,6 +55,19 @@ make install 2>&1 | tee install.log
 
 More details and a full downloadable installation script can be found in the [Linux/MacOS Guide](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS). Building from source will generally work on Windows as well with some additional steps explained in the [Windows Guide](https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Windows-10). Alternatively, it is also possible to install ANTs via [Docker](https://hub.docker.com/r/antsx/ants) or [Conda](https://anaconda.org/conda-forge/ants).
 
+### Using ANTs from another CMake project
+
+An installed ANTs ships a CMake package configuration, so a downstream project can locate it with `find_package` and link against the exported `ANTS::` targets without hand-listing include paths or library names:
+
+```cmake
+find_package(ANTS CONFIG REQUIRED)
+
+add_executable(my_tool main.cxx)
+target_link_libraries(my_tool PRIVATE ANTS::antsUtilities)
+```
+
+ITK (and VTK, when ANTs was built with `USE_VTK=ON`) are pulled in transitively. Point CMake at the install with `-DANTS_DIR=<prefix>/lib/cmake/ANTS` (or add `<prefix>` to `CMAKE_PREFIX_PATH`).
+
 <br />
 
 ## Code examples
