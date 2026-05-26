@@ -1637,7 +1637,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Boolean indicating alignment by principal axes.  ") +
+    std::string description = std::string("Boolean indicating alignment by principal axes.  Default = false.  ") +
                               std::string("Alternatively, one can align using blobs (see -b option).");
 
     OptionType::Pointer option = OptionType::New();
