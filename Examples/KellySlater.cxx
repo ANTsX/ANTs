@@ -1101,8 +1101,8 @@ KellySlater(std::vector<std::string> args, std::ostream * /*out_stream = nullptr
   if (argc < 6)
   {
     std::cout << "Usage:   " << argv[0]
-              << " ImageDimension Segmentation.nii.gz WMProb.nii.gz GMProb.nii.gz   Out.nii {GradStep-1-2D,2-3D}   "
-                 "{#Its-~50}  {ThickPriorValue-6} {Bool-use-curvature-prior} {smoothing} {BoolUseEuclidean?}"
+              << " ImageDimension Segmentation.nii.gz WMProb.nii.gz GMProb.nii.gz   Out.nii {GradStep=1(2D)/2(3D)}   "
+                 "{#Its=50}  {ThickPriorValue=6} {Bool-use-curvature-prior=0} {smoothing=0} {BoolUseEuclidean=0}"
               << std::endl;
     std::cout << " this is a kind of binary image registration thing with diffeomorphisms " << std::endl;
     std::cout << " Segmentation.nii.gz -- should contain the value 3 where WM exists and the value 2 where GM exists "
