@@ -283,10 +283,11 @@ CreateImage(std::vector<std::string> args, std::ostream * /*out_stream = nullptr
 
   if (argc < 5)
   {
-    std::cout << "Usage 1: " << argv[0] << " imageDimension referenceImage outputImage constant [random?]" << std::endl;
-    std::cout << "Usage 2: " << argv[0] << " imageDimension outputImage origin spacing size constant [random?]"
+    std::cout << "Usage 1: " << argv[0] << " imageDimension referenceImage outputImage constant [random?=0]" << std::endl;
+    std::cout << "Usage 2: " << argv[0] << " imageDimension outputImage origin spacing size constant [random?=0]"
               << std::endl;
     std::cout << "Usage 3: " << argv[0] << " imageDimension outputImage origin spacing size pixelValues" << std::endl;
+    std::cout << "  Usage 1 copies geometry from referenceImage. Usage 2/3 specify geometry directly." << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
