@@ -138,7 +138,7 @@ ConvertImagePixelType(std::vector<std::string> args, std::ostream * /*out_stream
 
   if (argc < 3)
   {
-    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION " << std::endl;
+    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION (default: 0 = char) " << std::endl;
     std::cout << " ext is the extension you want, e.g. tif.  " << std::endl;
     std::cout << " TYPE-OPTION  :  TYPE " << std::endl;
     std::cout << "  0  :  char   " << std::endl;
