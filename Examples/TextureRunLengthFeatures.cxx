@@ -167,6 +167,7 @@ TextureRunLengthFeatures(std::vector<std::string> args, std::ostream * /*out_str
   {
     std::cout << "Usage: " << argv[0] << " imageDimension inputImage "
               << "[numberOfBinsPerAxis=256] [maskImage] [maskLabel=1]" << std::endl;
+    std::cout << "  maskImage: optional mask to restrict computation (default: whole image)" << std::endl;
     std::cout << "Features: ShortRunEmphasis,LongRunEmphasis,GreyLevelNonuniformity,";
     std::cout << "RunLengthNonuniformity,LowGreyLevelRunEmphasis,HighGreyLevelRunEmphasis,";
     std::cout << "ShortRunLowGreyLevelEmphasis,ShortRunHighGreyLevelEmphasis,";
