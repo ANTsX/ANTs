@@ -93,6 +93,8 @@ DeNrrd(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   if (argc < 4)
   {
     std::cerr << "Usage: " << argv[0] << " inImage.nrrd outImage.nii gradients.txt" << std::endl;
+    std::cerr << "  Converts NRRD diffusion-weighted images to NIfTI format." << std::endl;
+    std::cerr << "  gradients.txt: output file containing gradient directions" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
