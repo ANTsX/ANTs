@@ -43,6 +43,21 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
 
   int     argc = args.size();
   char ** argv = new char *[args.size() + 1];
+
+  if (argc < 2)
+  {
+    std::cout << "Usage: antsTransformInfo <transformFile1> [transformFile2] ..." << std::endl
+              << std::endl
+              << "Prints information about one or more transform files, including:" << std::endl
+              << "  - Transform type and number of transforms" << std::endl
+              << "  - Parameters and fixed parameters" << std::endl
+              << "  - Matrix determinant (for affine transforms)" << std::endl
+              << "  - Composite transform queue contents" << std::endl
+              << std::endl
+              << "Supports 2D and 3D transforms in binary (.mat) or text (.txt) format," << std::endl
+              << "as well as composite transforms (.h5) and displacement fields." << std::endl;
+    return EXIT_FAILURE;
+  }
   for (unsigned int i = 0; i < args.size(); ++i)
   {
     // allocate space for the string plus a null character
