@@ -71,10 +71,18 @@ ImageCompare(std::vector<std::string> args, std::ostream * /*out_stream = nullpt
 
   if (argc < 3)
   {
-    cerr << "Usage:" << endl;
-    cerr << "testImage, baselineImage1, [baselineImage2, baselineImage3, ...]" << endl;
-    cerr << "Note that if you supply more than one baselineImage, this test will pass if any" << endl;
-    cerr << "of them match the testImage" << endl;
+    cerr << "Usage: ImageCompare testImage baselineImage1 [baselineImage2 baselineImage3 ...]" << std::endl
+         << std::endl
+         << "Compares a test image against one or more baseline images." << std::endl
+         << "If multiple baseline images are provided, the test passes if ANY match." << std::endl
+         << std::endl
+         << "Comparison tolerance: intensity differences > 2.0 are considered failures." << std::endl
+         << std::endl
+         << "Return codes:" << std::endl
+         << "  0 = images match" << std::endl
+         << "  1 = images differ" << std::endl
+         << "  1000 = error reading images" << std::endl
+         << "  -1 = exception occurred" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
