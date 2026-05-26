@@ -122,7 +122,8 @@ ConvertInputImagePixelTypeToFloat(std::vector<std::string> args, std::ostream * 
 
   if (argc < 3)
   {
-    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION " << std::endl;
+    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION (default: 0 = char) " << std::endl;
+    std::cout << " TYPE-OPTION specifies the input image pixel type for reading (output is always float). " << std::endl;
     std::cout << " ext is the extension you want, e.g. tif.  " << std::endl;
     std::cout << " TYPE-OPTION  :  TYPE " << std::endl;
     std::cout << "  0  :  char   " << std::endl;
