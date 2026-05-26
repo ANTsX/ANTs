@@ -68,10 +68,11 @@ ResampleImageBySpacing(std::vector<std::string> args, std::ostream * /*out_strea
   {
     std::cout << "Usage: " << std::endl;
     std::cout << argv[0]
-              << "  ImageDimension inputImageFile  outputImageFile outxspc outyspc {outzspacing}  {dosmooth?}  "
-                 "{addvox} {nn-interp?}"
+              << "  ImageDimension inputImageFile  outputImageFile outxspc outyspc {outzspacing}  {dosmooth=0}  "
+                 "{addvox=0} {nn-interp=0}"
               << std::endl;
-    std::cout << " addvox pads each dimension by addvox " << std::endl;
+    std::cout << " addvox pads each dimension by addvox (default: 0)" << std::endl;
+    std::cout << " nn-interp: 0 = linear interpolation (default), 1 = nearest neighbor" << std::endl;
     std::cout << "  " << std::endl;
     //    std::cout << " interp 0 = linear, 1 = nn " << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
