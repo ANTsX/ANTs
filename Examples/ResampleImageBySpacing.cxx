@@ -68,7 +68,7 @@ ResampleImageBySpacing(std::vector<std::string> args, std::ostream * /*out_strea
   {
     std::cout << "Usage: " << std::endl;
     std::cout << argv[0]
-              << "  ImageDimension inputImageFile  outputImageFile outxspc outyspc {outzspacing}  {dosmooth=0}  "
+              << "  ImageDimension inputImageFile  outputImageFile outxspc outyspc {outzspacing}  {dosmooth=1}  "
                  "{addvox=0} {nn-interp=0}"
               << std::endl;
     std::cout << " addvox pads each dimension by addvox (default: 0)" << std::endl;
