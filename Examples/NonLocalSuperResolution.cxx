@@ -501,7 +501,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Several interpolation options are available in ITK. ") +
+    std::string description = std::string("Several interpolation options are available in ITK. Default = Linear. ") +
                               std::string("These have all been made available.");
 
     OptionType::Pointer option = OptionType::New();
