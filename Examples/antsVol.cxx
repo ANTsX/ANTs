@@ -380,7 +380,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
-    std::string description = std::string("Main input image for 3-D rendering.");
+    std::string description = std::string("Main input image for 3-D rendering. Default clip percentage = 0.0x1.0.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("input-image");
