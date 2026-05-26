@@ -907,7 +907,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
                               std::string("images.  Van Hecke uses the noise-estimation method of Sijbers et ") +
                               std::string("al. \"Automatic estimation of the noise variance from the ") +
                               std::string("histogram of a magnetic resonance image\", Phys. Med. Biol. ") +
-                              std::string("52:1335-1348, 2007.");
+                              std::string("52:1335-1348, 2007.  Default = 0 (no noise added).");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("noise-sigma");
