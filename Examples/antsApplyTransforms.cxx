@@ -1234,7 +1234,7 @@ antsApplyTransformsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
   }
 
   {
-    std::string description = std::string("Use 'float' instead of 'double' for computations.");
+    std::string description = std::string("Use 'float' instead of 'double' for computations. Default = 0 (use double).");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("float");
