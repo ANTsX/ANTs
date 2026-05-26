@@ -343,7 +343,7 @@ antsApplyTransformsToGiftiInitializeCommandLineOptions(itk::ants::CommandLinePar
       "Use double-precision floating point for transform computation (0 = float,"
       " 1 = double).  Float is faster; double may improve accuracy for very large"
       " deformation fields.  Vertex coordinates are always stored as float32 in the"
-      " output GIFTI regardless of this setting.";
+      " output GIFTI regardless of this setting.  Default = 0 (float).";
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("precision");
     option->SetShortName('p');
