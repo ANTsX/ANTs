@@ -278,15 +278,28 @@ LesionFilling(std::vector<std::string> args, std::ostream * itkNotUsed(out_strea
   // antscout->set_stream( out_stream );
 
   // LesionFilling dimension t1.nii.gz lesionmask output.nii.gz
-  if (argc < 3)
+  if (argc < 2 || (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h"))))
   {
-    std::cout << "Example usage: " << argv[0]
-              << " imageDimension T1_image.nii.gz lesion_mask.nii.gz output_lesion_filled.nii.gz" << std::endl;
-
+    std::cout << "Usage: LesionFilling imageDimension T1_image.nii.gz lesion_mask.nii.gz output_filled.nii.gz" << std::endl
+              << std::endl
+              << "Fills lesions in a T1 image by replacing lesion voxels with randomly selected" << std::endl
+              << "intensity values from surrounding white matter voxels." << std::endl
+              << std::endl
+              << "Arguments:" << std::endl
+              << "  imageDimension    : 2 or 3" << std::endl
+              << "  T1_image.nii.gz   : Input T1-weighted image" << std::endl
+              << "  lesion_mask.nii.gz: Binary lesion mask (non-zero = lesion)" << std::endl
+              << "  output_filled.nii.gz: Output image with lesions filled" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
     }
+    return EXIT_FAILURE;
+  }
+
+  if (argc < 5)
+  {
+    std::cout << "Error: not enough arguments. Requires imageDimension, T1_image, lesion_mask, and output." << std::endl;
     return EXIT_FAILURE;
   }
 
