@@ -597,7 +597,7 @@ ANTSJacobian(std::vector<std::string> args, std::ostream * /*out_stream = nullpt
 
   if (argc < 3)
   {
-    std::cout << "Usage: " << argv[0] << " ImageDim gWarp outfile uselog maskfn normbytotalbool projectionvector "
+    std::cout << "Usage: " << argv[0] << " ImageDim gWarp outfile {uselog=0} {maskfn} {normbytotalbool=0} {projectionvector}"
               << std::endl;
     std::cout << " for example " << std::endl
               << " ANTSJacobian 3  myWarp.nii   Output  1   templatebrainmask.nii   1 1x0 " << std::endl;
