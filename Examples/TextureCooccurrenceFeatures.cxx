@@ -198,6 +198,7 @@ TextureCooccurrenceFeatures(std::vector<std::string> args, std::ostream * /*out_
   {
     std::cerr << "Usage: " << argv[0] << " imageDimension inputImage "
               << "[numberOfBinsPerAxis=256] [maskImage] [maskLabel=1]" << std::endl;
+    std::cerr << "  maskImage: optional mask to restrict computation (default: whole image)" << std::endl;
     std::cerr << "Features: Energy,Entropy,InverseDifferenceMoment,Inertia,ClusterShade,ClusterProminence" << std::endl;
     exit(1);
   }
