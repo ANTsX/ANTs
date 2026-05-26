@@ -187,8 +187,8 @@ PermuteFlipImageOrientationAxes(std::vector<std::string> args, std::ostream * /*
     std::cout << "Usage: " << std::endl;
     std::cout
       << argv[0]
-      << " ImageDimension  inputImageFile  outputImageFile xperm yperm {zperm}  xflip yflip {zflip}  {FlipAboutOrigin}"
-      << std::endl;
+      << " ImageDimension  inputImageFile  outputImageFile xperm yperm {zperm}  xflip yflip {zflip}  {FlipAboutOrigin=0}"
+              << std::endl;
     std::cout << " for 3D:  " << argv[0]
               << " 3  in.nii out.nii   2 0 1  1 1 1  \n would map z=>x, x=>y, y=>z and flip each " << std::endl;
     std::cout << " for 2D:  " << argv[0] << " 2  in.nii out.nii   1 0  1 0  \n would map x=>y, y=>x and flip x  "
