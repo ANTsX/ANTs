@@ -58,12 +58,11 @@ SurfaceBasedSmoothing(std::vector<std::string> args, std::ostream * /*out_stream
 
   if (argc < 3)
   {
-    std::cout << " usage :  " << argv[0] << " ImageToSmooth  sigma SurfaceImage  outname  {numrepeatsofsmoothing}"
+    std::cout << " usage :  " << argv[0] << " ImageToSmooth  sigma SurfaceImage  outname  {numrepeatsofsmoothing=0}"
               << std::endl;
     std::cout << " We assume the SurfaceImage has a label == 1 that defines the surface " << std::endl;
-    std::cout << " sigma  defines the geodesic n-hood radius --- numrepeats allows one to use " << std::endl;
-    std::cout << " a small geodesic n-hood repeatedly applied many times -- faster computation, same effect "
-              << std::endl;
+    std::cout << " sigma  defines the geodesic n-hood radius (default: 1.0). numrepeats allows one to use " << std::endl;
+    std::cout << " a small geodesic n-hood repeatedly applied many times -- faster computation, same effect " << std::endl;
     return 0;
   }
   using ImageType = itk::Image<float, 3>;
