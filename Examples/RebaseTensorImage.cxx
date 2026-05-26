@@ -74,6 +74,9 @@ RebaseTensorImage(std::vector<std::string> args, std::ostream * /*out_stream = n
   {
     std::cout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <PHYSICAL/LOCAL/reference.nii.gz> "
               << std::endl;
+    std::cout << "  PHYSICAL: rebase tensors to physical space using reference image direction" << std::endl;
+    std::cout << "  LOCAL: rebase tensors to local (identity) space" << std::endl;
+    std::cout << "  reference.nii.gz: reference image for PHYSICAL rebase direction matrix" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
