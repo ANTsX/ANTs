@@ -1128,7 +1128,7 @@ antsSliceRegularizedRegistrationInitializeCommandLineOptions(itk::ants::CommandL
   }
 
   {
-    std::string description = std::string("Several interpolation options are available in ITK. ") +
+    std::string description = std::string("Several interpolation options are available in ITK. Default = Linear. ") +
                               std::string("These have all been made available.");
 
     OptionType::Pointer option = OptionType::New();
@@ -1224,7 +1224,7 @@ antsSliceRegularizedRegistrationInitializeCommandLineOptions(itk::ants::CommandL
   }
 
   {
-    std::string         description = std::string("verbose option");
+    std::string         description = std::string("Verbose option. Default = 0.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("verbose");
     option->SetShortName('v');
