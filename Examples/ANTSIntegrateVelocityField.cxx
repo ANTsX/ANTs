@@ -163,8 +163,11 @@ ANTSIntegrateVelocityField(std::vector<std::string> args, std::ostream * /*out_s
 
   if (argc < 4)
   {
-    std::cerr << "Usage:   " << argv[0] << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  "
+    std::cerr << "Usage:   " << argv[0] << " reference_image VelocityIn.mhd DeformationOut.nii.gz time0 time1 dT  "
               << std::endl;
+    std::cerr << "  time0: start time for integration (e.g. 0)" << std::endl;
+    std::cerr << "  time1: end time for integration (e.g. 1)" << std::endl;
+    std::cerr << "  dT: time step for integration (e.g. 0.1)" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
