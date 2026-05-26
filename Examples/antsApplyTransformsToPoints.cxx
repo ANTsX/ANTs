@@ -263,7 +263,7 @@ antsApplyTransformsToPointsInitializeCommandLineOptions(itk::ants::CommandLinePa
   }
 
   {
-    std::string         description = std::string("use-double-precision");
+    std::string         description = std::string("Use double-precision. Default = 0 (single precision).");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("precision");
     option->SetShortName('p');
@@ -273,7 +273,7 @@ antsApplyTransformsToPointsInitializeCommandLineOptions(itk::ants::CommandLinePa
   }
 
   {
-    std::string         description = std::string("set true for ANTsR IO");
+    std::string         description = std::string("Set true for ANTsR IO. Default = 0.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("forantsr");
     option->SetShortName('f');
