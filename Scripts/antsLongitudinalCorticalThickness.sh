@@ -54,11 +54,11 @@ Usage:
               -p brainSegmentationPriors
               <OPTARGS>
               -o outputPrefix
-              \"${anatomicalImages[@]}"
+              "\${anatomicalImages[@]}"
 
 Example:
 
-  bash $0 -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output \"${anatomicalImages[@]}"
+  $(basename $0) -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output "\${anatomicalImages[@]}"
 
 Required arguments:
 
