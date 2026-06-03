@@ -181,9 +181,11 @@ MeasureMinMaxMean(std::vector<std::string> args, std::ostream * /*out_stream = n
 
   if (argc < 3)
   {
-    std::cout << "Basic useage ex: " << std::endl;
-    std::cout << argv[0] << " ImageDimension  image.nii {log.txt} {take-absolute-value}  {mask-name} " << std::endl;
-    std::cout << "  log.txt is optional  - take-abs-val reports min-max-mean of abs val image " << std::endl;
+    std::cout << "Usage: " << std::endl;
+    std::cout << argv[0] << " ImageDimension image.nii {log.txt} {take-absolute-value=0} {mask-name} " << std::endl;
+    std::cout << "  log.txt: optional output file (default: print to stdout)" << std::endl;
+    std::cout << "  take-absolute-value: 0 = use original values (default), 1 = report min/max/mean of |image|" << std::endl;
+    std::cout << "  mask-name: optional mask image to restrict computation" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;

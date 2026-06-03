@@ -219,6 +219,8 @@ ImageIntensityStatistics(std::vector<std::string> args, std::ostream * itkNotUse
   if (argc < 3)
   {
     std::cerr << "Usage: " << argv[0] << " imageDimension inputImage <labelImage>" << std::endl;
+    std::cerr << "  labelImage: optional label image for per-label statistics (default: compute for whole image)" << std::endl;
+    std::cerr << "  Outputs: min, max, mean, standard deviation for each label/region" << std::endl;
     exit(1);
   }
 

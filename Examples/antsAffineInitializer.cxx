@@ -597,8 +597,8 @@ antsAffineInitializer(std::vector<std::string> args, std::ostream * /*out_stream
       << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Optional-Radian-Fraction "
          "Optional-bool-UsePrincipalAxes Optional-uint-UseLocalSearch Optional-Image1Mask "
       << std::endl;
-    std::cerr << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
-    std::cerr << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis."
+    std::cerr << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments . Default = 10." << std::endl;
+    std::cerr << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis. Default = 0.785 (=pi/4)."
               << std::endl;
     std::cerr << " Optional-bool-UsePrincipalAxes determines whether the rotation is searched around an initial "
                  "principal axis alignment.  Default = false. "

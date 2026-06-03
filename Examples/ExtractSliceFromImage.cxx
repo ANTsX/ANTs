@@ -150,7 +150,7 @@ ExtractSliceFromImage(std::vector<std::string> args, std::ostream * /*out_stream
   {
     std::cout << "Usage: " << argv[0]
               << " imageDimension inputImage outputSlice direction(e.g. 0, 1, 2) slice_number "
-                 "[KeepSliceInOriginalSpace (0 or 1)]"
+                 "[KeepSliceInOriginalSpace=0]"
               << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {

@@ -182,7 +182,7 @@ MultiplyImages(std::vector<std::string> args, std::ostream * /*out_stream = null
   if (argc < 4)
   {
     std::cout << "Usage:  " << std::endl;
-    std::cout << argv[0] << " ImageDimension img1.nii img2.nii product.nii {smoothing}" << std::endl;
+    std::cout << argv[0] << " ImageDimension img1.nii img2.nii product.nii {smoothing=0}" << std::endl;
     std::cout << " 2nd image file may also be floating point numerical value, and program will act accordingly -- i.e. "
                  "read as a number. "
               << std::endl;

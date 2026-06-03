@@ -512,7 +512,7 @@ ThresholdImage(std::vector<std::string> args, std::ostream * /*out_stream = null
   if (argc < 3)
   {
     std::cout << "Usage: " << argv[0];
-    std::cout << "   ImageDimension ImageIn.ext outImage.ext  threshlo threshhi <insideValue> <outsideValue>"
+    std::cout << "   ImageDimension ImageIn.ext outImage.ext  threshlo threshhi <insideValue=1> <outsideValue=0>"
               << std::endl;
     std::cout << "   ImageDimension ImageIn.ext outImage.ext  Otsu NumberofThresholds <maskImage.ext>" << std::endl;
     std::cout << "   ImageDimension ImageIn.ext outImage.ext  Kmeans NumberofThresholds <maskImage.ext>" << std::endl;

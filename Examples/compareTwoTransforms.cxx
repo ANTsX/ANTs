@@ -185,8 +185,20 @@ compareTwoTransforms(std::vector<std::string> args, std::ostream * /* out_stream
 
   if (argc != 3)
   {
-    std::cerr << "Usage: compareTwoTransforms\n"
-              << "<First Transform> , <Second Transform>" << std::endl;
+    std::cerr << "Usage: compareTwoTransforms <First Transform> <Second Transform>" << std::endl
+              << std::endl
+              << "Compares two transform files for equality." << std::endl
+              << std::endl
+              << "Supports:" << std::endl
+              << "  - Affine transforms (.mat, .txt)" << std::endl
+              << "  - Displacement field transforms (.nii.gz)" << std::endl
+              << "  - Composite transforms (.h5)" << std::endl
+              << std::endl
+              << "Note: BSpline transforms are not supported." << std::endl
+              << std::endl
+              << "Return codes:" << std::endl
+              << "  0 = transforms are equal" << std::endl
+              << "  1 = transforms differ" << std::endl;
     return EXIT_FAILURE;
   }
 

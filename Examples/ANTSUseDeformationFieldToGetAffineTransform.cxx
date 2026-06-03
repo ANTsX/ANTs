@@ -469,8 +469,8 @@ ANTSUseDeformationFieldToGetAffineTransform(std::vector<std::string> args, std::
               << " zzzWarp.nii.gz load_ratio(ex: 0.01) [rigid | affine] OutAffine.txt [mask.nii.gz]" << std::endl;
     std::cout << " we expect the input deformation field in the same physical space as the images you want to "
               << std::endl;
-    std::cout << "load_ratio: ratio of points to be loaded from deformation field (to save memory) " << std::endl;
-    std::cout << " the mask gives the region from which points will be selected ... " << std::endl;
+    std::cout << "load_ratio: ratio of points to be loaded from deformation field (to save memory, e.g. 0.01)" << std::endl;
+    std::cout << " mask.nii.gz: optional mask to restrict point selection (default: no mask)" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;

@@ -279,7 +279,7 @@ SmoothDisplacementField(std::vector<std::string> args, std::ostream * /*out_stre
   if (argc < 5)
   {
     std::cout << argv[0] << " imageDimension inputField outputField variance_or_mesh_size_base_level "
-              << "[numberOfevels=1] [splineOrder=3] [estimateInverse=0] [confidenceImage]" << std::endl;
+              << "[numberOfLevels=1] [splineOrder=3] [estimateInverse=0] [confidenceImage]" << std::endl;
 
     return EXIT_FAILURE;
   }

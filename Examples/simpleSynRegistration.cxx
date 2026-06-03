@@ -114,8 +114,21 @@ simpleSynRegistration(std::vector<std::string> args, std::ostream * /*out_stream
   if (argc != 5)
   {
     std::cerr
-      << "Usage: simpleSynRegistration\n"
-      << "<Fixed Image> , <Moving Image> , <Initial Transform> , <Output prefix file name without any extension>"
+      << "Usage: simpleSynRegistration <FixedImage> <MovingImage> <InitialTransform> <OutputPrefix>"
+      << std::endl
+      << std::endl
+      << "Performs SyN registration with hard-coded parameters:" << std::endl
+      << "  Metric: Mattes MI (200 bins)" << std::endl
+      << "  Iterations: 100x70x20" << std::endl
+      << "  Shrink factors: 3x2x1" << std::endl
+      << "  Smoothing sigmas: 2x1x0 mm" << std::endl
+      << "  Learning rate: 0.25" << std::endl
+      << std::endl
+      << "Arguments:" << std::endl
+      << "  FixedImage       : Fixed (reference) image (3D only)" << std::endl
+      << "  MovingImage      : Moving image to register to fixed" << std::endl
+      << "  InitialTransform : Initial transform applied before SyN" << std::endl
+      << "  OutputPrefix     : Output prefix (produces <prefix>Warp.nii.gz and <prefix>InverseWarp.nii.gz)"
       << std::endl;
     return EXIT_FAILURE;
   }

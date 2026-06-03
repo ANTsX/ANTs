@@ -1026,8 +1026,8 @@ ImageSetStatistics(std::vector<std::string> args, std::ostream * /*out_stream = 
       << argv[0]
       << " ImageDimension controlslist.txt outimage.nii whichstat {roi.nii} {imagelist2forsimilarityweightedstats.txt}"
       << std::endl;
-    std::cout << " whichstat = 0:  median,  1:  max prob appearance  , 2: weighted mean appearance ,  3: trimmed mean "
-                 ", 4 : max value , option 5 : similarity-weighted (must pass imagelist2 as well) else median , option "
+    std::cout << " whichstat = 0:  median (default),  1:  max prob appearance  , 2: weighted mean appearance ,  3: trimmed "
+                 "mean , 4 : max value , option 5 : similarity-weighted (must pass imagelist2 as well) , option "
                  "6 : same as similarity-weighted option 5 but the label corresponds to the image that provides the "
                  "best local match ... useful if you want to MRF smooth these indices  , option 7 : similar to 5 but "
                  "expects the max-value to be stored in the ROI image and uses it to get the intensity ... "

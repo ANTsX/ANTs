@@ -2220,15 +2220,6 @@ sccan(itk::ants::CommandLineParser * sccanparser)
   }
 
 
-  itk::ants::CommandLineParser::OptionType::Pointer evecg_option = sccanparser->GetOption("EvecGradPenalty");
-  if (!evecg_option || evecg_option->GetNumberOfFunctions() == 0)
-  {
-  }
-  else
-  {
-    sccanparser->Convert<matPixelType>(evecg_option->GetFunction()->GetName());
-  }
-
   matPixelType                                      smoother = 0;
   itk::ants::CommandLineParser::OptionType::Pointer smooth_option = sccanparser->GetOption("smoother");
   if (!smooth_option || smooth_option->GetNumberOfFunctions() == 0)
@@ -2284,15 +2275,6 @@ sccan(itk::ants::CommandLineParser * sccanparser)
   else
   {
     q_cluster_thresh = sccanparser->Convert<unsigned int>(clust_option->GetFunction()->GetName());
-  }
-
-  itk::ants::CommandLineParser::OptionType::Pointer positivity_option = sccanparser->GetOption("PositivityConstraint");
-  if (!positivity_option || positivity_option->GetNumberOfFunctions() == 0)
-  {
-  }
-  else
-  {
-    sccanparser->Convert<unsigned int>(positivity_option->GetFunction()->GetName());
   }
 
   bool                                              eigen_imp = false;
@@ -2669,11 +2651,11 @@ sccan(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   }
 
   {
-    std::string         description = std::string("Number of permutations to use in scca.");
+    std::string         description = std::string("Number of permutations to use in scca. Default = 0 (no permutations).");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("n_permutations");
     option->SetShortName('p');
-    option->SetUsageOption(0, "500");
+    option->SetUsageOption(0, "0");
     option->SetDescription(description);
     sccanparser->AddOption(option);
   }
@@ -2710,11 +2692,11 @@ sccan(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   }
 
   {
-    std::string         description = std::string("Number of eigenvectors to compute in scca/spca.");
+    std::string         description = std::string("Number of eigenvectors to compute in scca/spca. Default = 1.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("n_eigenvectors");
     option->SetShortName('n');
-    option->SetUsageOption(0, "2");
+    option->SetUsageOption(0, "1");
     option->SetDescription(description);
     sccanparser->AddOption(option);
   }
@@ -2730,11 +2712,11 @@ sccan(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   }
 
   {
-    std::string         description = std::string("try to make the decomposition cover the whole domain, if possible ");
+    std::string         description = std::string("try to make the decomposition cover the whole domain, if possible. Default = 1.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("covering");
     option->SetShortName('c');
-    option->SetUsageOption(0, "0");
+    option->SetUsageOption(0, "1");
     option->SetDescription(description);
     sccanparser->AddOption(option);
   }
@@ -2752,11 +2734,11 @@ sccan(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   {
     std::string description =
       std::string("use l1 ( > 0 ) or l0 ( < 0 ) penalty, also sets gradient step size e.g. -l 0.5 ( L1 ) , -l -0.5 "
-                  "(L0)  will set 0.5 grad descent step for either penalty");
+                  "(L0)  will set 0.5 grad descent step for either penalty. Default = 0.1 (L1).");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("l1");
     option->SetShortName('l');
-    option->SetUsageOption(0, "0");
+    option->SetUsageOption(0, "0.1");
     option->SetDescription(description);
     sccanparser->AddOption(option);
   }
@@ -2826,10 +2808,10 @@ sccan(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   }
 
   {
-    std::string         description = std::string("Choices for pscca: PQ, PminusRQ, PQminusR, PminusRQminusR ");
+    std::string         description = std::string("Choices for pscca: PQ, PminusRQ, PQminusR, PminusRQminusR. Default = PQ.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("partial-scca-option");
-    option->SetUsageOption(0, "PminusRQ");
+    option->SetUsageOption(0, "PQ");
     option->SetDescription(description);
     sccanparser->AddOption(option);
   }

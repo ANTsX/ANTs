@@ -191,6 +191,8 @@ CreateDisplacementField(std::vector<std::string> args, std::ostream * /*out_stre
               << " ImageDimension EnforceZeroBoundaryFlag{0/1} ComponentImage1 [ ComponentImage2 [...ComponentImageN] "
                  "] OutputImage "
               << std::endl;
+    std::cout << "  EnforceZeroBoundaryFlag: 0 = do not enforce, 1 = set zero-valued vectors at image boundaries (recommended)" << std::endl;
+    std::cout << "  ComponentImages: one scalar image per displacement vector component (e.g. x, y, z)" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;

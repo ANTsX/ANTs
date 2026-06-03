@@ -920,7 +920,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Perform inflation of the mesh.");
+    std::string description = std::string("Perform inflation of the mesh. Default = 0 (no inflation).");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("inflation");

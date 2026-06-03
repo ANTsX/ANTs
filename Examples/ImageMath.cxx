@@ -234,11 +234,11 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
     std::cout << "  Project Image1.ext axis-a which-projection   : Project an image along axis a, "
                  "which-projection=0(sum, 1=max, 2=min)"
               << std::endl;
-    std::cout << "  G Image1.ext s    : Smooth with Gaussian of sigma = s" << std::endl;
-    std::cout << "  MD Image1.ext s    : Morphological Dilation with radius s" << std::endl;
-    std::cout << "  ME Image1.ext s    : Morphological Erosion with radius s" << std::endl;
-    std::cout << "  MO Image1.ext s    : Morphological Opening with radius s" << std::endl;
-    std::cout << "  MC Image1.ext s    : Morphological Closing with radius s" << std::endl;
+    std::cout << "  G Image1.ext s    : Smooth with Gaussian of sigma = s (default sigma = 0)" << std::endl;
+    std::cout << "  MD Image1.ext s    : Morphological Dilation with radius s (default radius = 1)" << std::endl;
+    std::cout << "  ME Image1.ext s    : Morphological Erosion with radius s (default radius = 1)" << std::endl;
+    std::cout << "  MO Image1.ext s    : Morphological Opening with radius s (default radius = 1)" << std::endl;
+    std::cout << "  MC Image1.ext s    : Morphological Closing with radius s (default radius = 1)" << std::endl;
     std::cout << "  GD Image1.ext s    : Grayscale Dilation with radius s" << std::endl;
     std::cout << "  GE Image1.ext s    : Grayscale Erosion with radius s" << std::endl;
     std::cout << "  GO Image1.ext s    : Grayscale Opening with radius s" << std::endl;
@@ -387,7 +387,7 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
     std::cout << "  MajorityVoting : Select label with most votes from candidates" << std::endl;
     std::cout << "    Usage: MajorityVoting LabelImage1.nii.gz .. LabelImageN.nii.gz" << std::endl;
     std::cout << "  CorrelationVoting : Select label with local correlation weights" << std::endl;
-    std::cout << "    Usage: CorrelationVoting Template.ext IntenistyImages* LabelImages* {Optional-Radius=5}"
+    std::cout << "    Usage: CorrelationVoting Template.ext IntensityImages* LabelImages* {Optional-Radius=5}"
               << std::endl;
     std::cout << "  STAPLE : Select label using STAPLE method" << std::endl;
     std::cout << "    Usage: STAPLE confidence-weighting LabelImages*" << std::endl;
@@ -476,12 +476,13 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
 
     std::cout << "\n  CorruptImage        : " << std::endl;
     std::cout << "      Usage        : CorruptImage Image NoiseLevel Smoothing" << std::endl;
+    std::cout << "        NoiseLevel: add Gaussian noise with this standard deviation (default: 0)" << std::endl;
+    std::cout << "        Smoothing: smooth noise with this sigma before adding (default: 0)" << std::endl;
 
     std::cout << "\n  D             : Danielson Distance Transform" << std::endl;
 
     std::cout << "\n  MaurerDistance : Maurer distance transform (much faster than Danielson)" << std::endl;
     std::cout << "      Usage        : MaurerDistance inputImage {foreground=1}" << std::endl;
-
     std::cout << "\n  DiceAndMinDistSum    : Outputs DiceAndMinDistSum and Dice Overlap to text log file + optional "
                  "distance image"
               << std::endl;
@@ -513,7 +514,7 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
 
     std::cout << "\n  InPaint        : very simple inpainting --- assumes zero values should be inpainted  "
               << std::endl;
-    std::cout << "      Usage        : InPaint #iterations" << std::endl;
+    std::cout << "      Usage        : InPaint #iterations (default: fills zero-valued voxels)" << std::endl;
 
     std::cout << "\n  PeronaMalik       : anisotropic diffusion w/varying conductance param (0.25 in example below)"
               << std::endl;
@@ -526,18 +527,18 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
     std::cout << "      Usage        : Finite Image.exdt {replace-value=0}" << std::endl;
 
     std::cout << "\n  LabelSurfaceArea        : " << std::endl;
-    std::cout << "      Usage        : LabelSurfaceArea ImageIn {MaxRad-Default=1}" << std::endl;
+    std::cout << "      Usage        : LabelSurfaceArea ImageIn {MaxRad=1}" << std::endl;
 
     std::cout << "\n  FlattenImage        : Replaces values greater than %ofMax*Max to the value %ofMax*Max "
               << std::endl;
     std::cout << "      Usage        : FlattenImage Image %ofMax" << std::endl;
 
     std::cout << "\n  GetLargestComponent    : Get the largest object in an image" << std::endl;
-    std::cout << "      Usage        : GetLargestComponent InputImage {MinObjectSize}" << std::endl;
+    std::cout << "      Usage        : GetLargestComponent InputImage {MinObjectSize=0}" << std::endl;
 
     std::cout << "\n  Grad            : Gradient magnitude with sigma s (if normalize, then output in range [0, 1])"
               << std::endl;
-    std::cout << "      Usage        : Grad Image.ext s normalize?" << std::endl;
+    std::cout << "      Usage        : Grad Image.ext s {normalize=0}" << std::endl;
 
     std::cout << "\n  HistogramMatch    : " << std::endl;
     std::cout << "      Usage        : HistogramMatch SourceImage ReferenceImage {NumberBins-Default=255} "
@@ -578,10 +579,10 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
 
     std::cout << "\n  Laplacian        : Laplacian computed with sigma s (if normalize, then output in range [0, 1])"
               << std::endl;
-    std::cout << "      Usage        : Laplacian Image.ext s normalize?" << std::endl;
+    std::cout << "      Usage        : Laplacian Image.ext s {normalize=0}" << std::endl;
 
     std::cout << "\n  Canny        : Canny edge detector" << std::endl;
-    std::cout << "      Usage        : Canny Image.ext sigma lowerThresh upperThresh" << std::endl;
+    std::cout << "      Usage        : Canny Image.ext sigma {lowerThresh=0.0} {upperThresh=1.0}" << std::endl;
 
     std::cout << "\n  Lipschitz        : Computes the Lipschitz norm of a vector field " << std::endl;
     std::cout << "      Usage        : Lipschitz VectorFieldName" << std::endl;

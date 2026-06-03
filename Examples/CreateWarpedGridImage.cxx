@@ -188,6 +188,9 @@ CreateWarpedGridImage(std::vector<std::string> args, std::ostream * /*out_stream
     std::cout << "Usage: " << argv[0] << " ImageDimension deformationField "
               << "outputImage [directions, e.g. 1x0x0] [gridSpacing, e.g. 10x10x10] [gridSigma, e.g. 1x1x1]"
               << std::endl;
+    std::cout << "  Default gridSpacing: computed as fieldPhysicalSize/25 per dimension" << std::endl;
+    std::cout << "  Default gridSigma: computed as gridSpacing/10" << std::endl;
+    std::cout << "  Default directions: 1x1x0 (first two dimensions)" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;

@@ -614,7 +614,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string         description = std::string("Output is a 2D correlation matrix.");
+    std::string         description = std::string("Output is a 2D correlation matrix. Default = output.nii.gz.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("output");
     option->SetShortName('o');
@@ -624,7 +624,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string         description = std::string("Number of consecutive labels in data");
+    std::string         description = std::string("Number of consecutive labels in data. Default = 0.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("number-consecutive-labels");
     option->SetShortName('l');
@@ -635,7 +635,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
 
   {
     std::string description =
-      std::string("Minimum size of a region: regions below this size are given a 0.0 connectivity value");
+      std::string("Minimum size of a region: regions below this size are given a 0.0 connectivity value. Default = 1.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("minimum-region-size");
     option->SetShortName('R');
@@ -645,7 +645,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string         description = std::string("Number of iterations");
+    std::string         description = std::string("Number of iterations. Default = 20.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("iterations");
     option->SetShortName('i');
@@ -655,7 +655,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Sparsity - a float from (0,1] indicating what fraction of the data to use");
+    std::string description = std::string("Sparsity - a float from (0,1] indicating what fraction of the data to use. Default = 0.1.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("sparsity");
     option->SetShortName('s');
@@ -665,7 +665,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string         description = std::string("Number of permutations to use in scca.");
+    std::string         description = std::string("Number of permutations to use in scca. Default = 5.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("n_eigenvectors");
     option->SetShortName('n');
@@ -675,7 +675,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string         description = std::string("rank-based scca");
+    std::string         description = std::string("Rank-based scca. Default = 0.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("robustify");
     option->SetShortName('r');
@@ -687,7 +687,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   {
     std::string description =
       std::string("use l1 ( > 0 ) or l0 ( < 0 ) penalty, also sets gradient step size e.g. -l 0.5 ( L1 ) , -l -0.5 "
-                  "(L0)  will set 0.5 grad descent step for either penalty");
+                  "(L0)  will set 0.5 grad descent step for either penalty. Default = 1.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("l1");
     option->SetShortName('l');
@@ -697,7 +697,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string         description = std::string("cluster threshold on view P");
+    std::string         description = std::string("Cluster threshold on view P. Default = 1.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("ClusterThresh");
     option->SetUsageOption(0, "1");

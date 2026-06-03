@@ -136,8 +136,8 @@ AverageTensorImages(std::vector<std::string> args, std::ostream * /*out_stream =
   {
     if (argc - 4 < 1)
     {
-      std::cerr << "Basic useage ex: " << std::endl;
-      std::cerr << argv[0] << " ImageDimension  average.nii mathtype list-of-files-via-wildcard " << std::endl;
+      std::cerr << "Usage: " << std::endl;
+      std::cerr << argv[0] << " ImageDimension average.nii mathtype list-of-files-via-wildcard " << std::endl;
       std::cerr << " e.g. \n   AverageTensorImages 3  average.nii  1  *registered.nii " << std::endl;
       std::cerr << " mathtype=[0=log-euclidean, 1=euclidean] " << std::endl;
       if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))

@@ -328,6 +328,8 @@ SuperResolution(std::vector<std::string> args, std::ostream * /*out_stream = nul
       << " imageDimension outputImage domainImage gradientSigma meshSize numberOfLevels inputImage1 ... inputImageN"
       << std::endl;
     std::cerr << std::endl;
+    std::cerr << "  meshSize: B-spline control point grid size (e.g. 8x8x8)" << std::endl;
+    std::cerr << "  numberOfLevels: number of B-spline fitting levels" << std::endl;
     std::cerr
       << "    N.B. The \'gradientSigma\' parameter is used in calculating the gradient magnitude of the input images "
       << std::endl;

@@ -144,7 +144,9 @@ SetDirectionByMatrix(std::vector<std::string> args, std::ostream * /*out_stream 
 
   if (argc < 3)
   {
-    std::cout << "Usage:   " << argv[0] << "  infile.nii outfile.nii  d01 d02 d03 d10 .... " << std::endl;
+    std::cout << "Usage:   " << argv[0] << "  infile.nii outfile.nii d00 d01 d02 d10 d11 d12 d20 d21 d22 " << std::endl;
+    std::cout << "  For 2D: d00 d01 d10 d11  (row-major direction matrix)" << std::endl;
+    std::cout << "  For 3D: d00 d01 d02 d10 d11 d12 d20 d21 d22  (row-major direction matrix)" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;

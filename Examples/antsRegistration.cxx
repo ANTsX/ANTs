@@ -436,7 +436,7 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
   }
 
   {
-    std::string description = std::string("Histogram match the images before registration.");
+    std::string description = std::string("Histogram match the images before registration. Default = false.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("use-histogram-matching");
@@ -485,7 +485,7 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
   }
 
   {
-    std::string description = std::string("Use 'float' instead of 'double' for computations.");
+    std::string description = std::string("Use 'float' instead of 'double' for computations. Default = 0 (use double).");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("float");
@@ -494,7 +494,7 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
   }
 
   {
-    std::string description = std::string("Use MINC file formats for transformations.");
+    std::string description = std::string("Use MINC file formats for transformations. Default = 0 (use NIfTI).");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("minc");

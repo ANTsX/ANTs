@@ -173,7 +173,7 @@ CopyImageHeaderInformation(std::vector<std::string> args, std::ostream * /*out_s
   {
     std::cout << "Usage:  " << argv[0]
               << " refimage.ext imagetocopyrefimageinfoto.ext imageout.ext   boolcopydirection  boolcopyorigin "
-                 "boolcopyspacing  {bool-Image2-IsTensor}"
+                 "boolcopyspacing  {bool-Image2-IsTensor=0}"
               << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {

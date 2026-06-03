@@ -334,16 +334,17 @@ ClusterImageStatistics(std::vector<std::string> args, std::ostream * /*out_strea
     std::cout << " Given an ROI and Label Image, find the max and average value   \n in a value image  where the value "
                  "> some user-defined threshold \n and the cluster size  is larger than some min size. \n "
               << std::endl;
-    std::cout << "Usage: \n  " << std::endl;
+    std::cout << "Usage: " << std::endl;
     std::cout << argv[0]
-              << "  ImageDimension ROIMask.ext LabelImage.ext  OutPrefix   MinimumClusterSize  ValueImageThreshold  "
-                 "Image1WithValuesOfInterest.ext ...  ImageNWithValuesOfInterest.ext  \n \n "
+              << " ImageDimension ROIMask.ext LabelImage.ext OutPrefix {MinimumClusterSize=1} {ValueImageThreshold=0} "
+                 "Image1WithValuesOfInterest.ext ... ImageNWithValuesOfInterest.ext"
               << std::endl;
-    std::cout << " ROIMask.ext -- overall region of interest \n  \n LabelImage.ext -- labels for the sub-regions, e.g. "
-                 "Brodmann or just unique labels (see  LabelClustersUniquely ) \n \n  OutputPrefix -- all output  has "
-                 "this prefix  \n \n  MinimumClusterSize -- the minimum size of clusters of interest  \n  \n "
-                 "ValueImageThreshold -- minimum value of interest \n \n   Image*WithValuesOfInterest.ext  ---  "
-                 "image(s) that define the values you want to measure \n ";
+    std::cout << "  ROIMask.ext -- overall region of interest" << std::endl;
+    std::cout << "  LabelImage.ext -- labels for sub-regions (see LabelClustersUniquely)" << std::endl;
+    std::cout << "  OutPrefix -- prefix for all output files" << std::endl;
+    std::cout << "  MinimumClusterSize -- minimum cluster size in voxels (default: 1)" << std::endl;
+    std::cout << "  ValueImageThreshold -- minimum value of interest (default: 0)" << std::endl;
+    std::cout << "  Image*WithValuesOfInterest.ext -- image(s) that define the values to measure" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;

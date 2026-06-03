@@ -166,8 +166,10 @@ LabelClustersUniquely(std::vector<std::string> args, std::ostream * /*out_stream
   {
     std::cout << "Usage:  " << std::endl;
     std::cout << argv[0]
-              << " ImageDimension clustersin.hdr labeledclustersout.hdr   sizethresh optionalBoolFullyConnected"
+              << " ImageDimension clustersin.hdr labeledclustersout.hdr   sizethresh {optionalBoolFullyConnected=0}"
               << std::endl;
+    std::cout << "  sizethresh: minimum cluster size in voxels; clusters smaller than this are removed" << std::endl;
+    std::cout << "  optionalBoolFullyConnected: 0 = face connectivity (default), 1 = full connectivity" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;

@@ -428,7 +428,7 @@ antsMotionCorrStatsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
   }
 
   {
-    std::string description = std::string("do framewise summarywise stats");
+    std::string description = std::string("Do framewise summary stats. Default = 0.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("framewise");

@@ -202,6 +202,8 @@ GetConnectedComponentsFeatureImages(std::vector<std::string> args, std::ostream 
   {
     std::cout << "Usage: " << argv[0] << " imageDimension "
               << "inputSegmentationImage outputImagePrefix" << std::endl;
+    std::cout << "  Generates feature images from connected components of the input segmentation." << std::endl;
+    std::cout << "  Outputs: <outputImagePrefix>CC.nii.gz (labeled components) and per-component images" << std::endl;
     return EXIT_FAILURE;
   }
 

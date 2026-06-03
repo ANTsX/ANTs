@@ -330,7 +330,7 @@ ComposeMultiTransform(std::vector<std::string> args, std::ostream * /*out_stream
   {
     std::cout << "ComposeMultiTransform ImageDimension output_field [-R reference_image] "
               << "{[deformation_field | [-i] affine_transform_txt ]}" << std::endl;
-    std::cout << "  Usage has the same form as WarpImageMultiTransform " << std::endl;
+    std::cout << "  Composes multiple transforms (warp fields and/or affine) into a single combined transform." << std::endl;
     std::cout << " For Example: " << std::endl;
     std::cout << std::endl;
     std::cout << argv[0] << " Dimension  outwarp.nii   -R template.nii   ExistingWarp.nii  ExistingAffine.nii "

@@ -1883,7 +1883,7 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
   }
 
   {
-    std::string         description = std::string("use the scale estimator to control optimization.");
+    std::string         description = std::string("Use the scale estimator to control optimization. Default = false.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("useScalesEstimator");
     option->SetShortName('e');
