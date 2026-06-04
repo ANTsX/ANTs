@@ -352,7 +352,10 @@ DoRegistration(typename ParserType::Pointer & parser)
     if (cached.IsNull())
     {
       ReadImage<MaskImageType>(cached, filename.c_str());
-      cached->DisconnectPipeline();
+      if (cached.IsNotNull())
+      {
+        cached->DisconnectPipeline();
+      }
     }
     return cached;
   };
