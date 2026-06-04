@@ -100,17 +100,26 @@ public:
         this->m_Optimizer->SetNumberOfIterations(this->m_NumberOfIterations[this->m_CurrentLevel]);
         this->m_CurrentLevel++;
 
-        if (this->m_ComputeFullScaleCCInterval != 0)
         {
-          // Print header line one time
-          this->Logger()
-            << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,FullScaleCCInterval="
-            << this->m_ComputeFullScaleCCInterval << std::flush << std::endl;
-        }
-        else
-        {
-          this->Logger() << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
-                         << std::flush << std::endl;
+          const unsigned int levelIdx = this->m_CurrentLevel - 1;
+          this->Logger() << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST";
+          if (levelIdx < this->m_ShrinkFactors.size())
+          {
+            this->Logger() << ",ShrinkFactor=" << this->m_ShrinkFactors[levelIdx];
+          }
+          if (levelIdx < this->m_SmoothingSigmas.size())
+          {
+            this->Logger() << ",SmoothingSigma=" << this->m_SmoothingSigmas[levelIdx];
+          }
+          if (levelIdx < this->m_NumberOfIterations.size())
+          {
+            this->Logger() << ",MaxIterations=" << this->m_NumberOfIterations[levelIdx];
+          }
+          if (this->m_ComputeFullScaleCCInterval != 0)
+          {
+            this->Logger() << ",FullScaleCCInterval=" << this->m_ComputeFullScaleCCInterval;
+          }
+          this->Logger() << std::flush << std::endl;
         }
       }
       m_clock.Stop();
@@ -182,6 +191,18 @@ public:
   SetNumberOfIterations(const std::vector<unsigned int> & iterations)
   {
     this->m_NumberOfIterations = iterations;
+  }
+
+  void
+  SetShrinkFactors(const std::vector<unsigned int> & shrinkFactors)
+  {
+    this->m_ShrinkFactors = shrinkFactors;
+  }
+
+  void
+  SetSmoothingSigmas(const std::vector<float> & smoothingSigmas)
+  {
+    this->m_SmoothingSigmas = smoothingSigmas;
   }
 
   void
@@ -447,6 +468,8 @@ private:
 
   std::string                       m_OutputPrefix;
   std::vector<unsigned int>         m_NumberOfIterations;
+  std::vector<unsigned int>         m_ShrinkFactors;
+  std::vector<float>                m_SmoothingSigmas;
   std::ostream *                    m_LogStream;
   itk::TimeProbe                    m_clock;
   itk::RealTimeClock::TimeStampType m_lastTotalTime;

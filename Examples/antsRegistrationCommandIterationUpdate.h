@@ -84,9 +84,21 @@ public:
       const unsigned int lCurrentIteration = filter->GetCurrentIteration();
       if (lCurrentIteration == 1)
       {
-        // Print header line one time
-        this->Logger() << "XDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
-                       << std::flush << std::endl;
+        const unsigned int currentLevel = filter->GetCurrentLevel();
+        this->Logger() << "XDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST";
+        if (currentLevel < this->m_ShrinkFactors.size())
+        {
+          this->Logger() << ",ShrinkFactor=" << this->m_ShrinkFactors[currentLevel];
+        }
+        if (currentLevel < this->m_SmoothingSigmas.size())
+        {
+          this->Logger() << ",SmoothingSigma=" << this->m_SmoothingSigmas[currentLevel];
+        }
+        if (currentLevel < this->m_NumberOfIterations.size())
+        {
+          this->Logger() << ",MaxIterations=" << this->m_NumberOfIterations[currentLevel];
+        }
+        this->Logger() << std::flush << std::endl;
       }
 
       m_clock.Stop();
@@ -108,6 +120,18 @@ public:
   }
 
   void
+  SetShrinkFactors(const std::vector<unsigned int> & shrinkFactors)
+  {
+    this->m_ShrinkFactors = shrinkFactors;
+  }
+
+  void
+  SetSmoothingSigmas(const std::vector<float> & smoothingSigmas)
+  {
+    this->m_SmoothingSigmas = smoothingSigmas;
+  }
+
+  void
   SetLogStream(std::ostream & logStream)
   {
     this->m_LogStream = &logStream;
@@ -121,6 +145,8 @@ private:
   }
 
   std::vector<unsigned int>         m_NumberOfIterations;
+  std::vector<unsigned int>         m_ShrinkFactors;
+  std::vector<float>                m_SmoothingSigmas;
   std::ostream *                    m_LogStream;
   itk::TimeProbe                    m_clock;
   itk::RealTimeClock::TimeStampType m_lastTotalTime;

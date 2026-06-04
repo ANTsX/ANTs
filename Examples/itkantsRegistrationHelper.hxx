@@ -1381,6 +1381,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
     typename OptimizerCommandType::Pointer optimizerObserver = OptimizerCommandType::New();
     optimizerObserver->SetLogStream(*this->m_LogStream);
     optimizerObserver->SetNumberOfIterations(currentStageIterations);
+    optimizerObserver->SetShrinkFactors(factors);
+    optimizerObserver->SetSmoothingSigmas(sigmas);
     optimizerObserver->SetOptimizer(optimizer);
     optimizerObserver->SetOutputPrefix(this->m_OutputPrefix);
 
@@ -1419,6 +1421,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
     typename OptimizerCommandType2::Pointer optimizerObserver2 = OptimizerCommandType2::New();
     optimizerObserver2->SetLogStream(*this->m_LogStream);
     optimizerObserver2->SetNumberOfIterations(currentStageIterations);
+    optimizerObserver2->SetShrinkFactors(factors);
+    optimizerObserver2->SetSmoothingSigmas(sigmas);
     optimizerObserver2->SetOptimizer(optimizer2);
     if (!this->IsPointSetMetric(this->m_Metrics[0].m_MetricType))
     {
@@ -1813,6 +1817,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           DisplacementFieldCommandType::New();
         displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
         displacementFieldRegistrationObserver->SetNumberOfIterations(currentStageIterations);
+        displacementFieldRegistrationObserver->SetShrinkFactors(factors);
+        displacementFieldRegistrationObserver->SetSmoothingSigmas(sigmas);
 
         registrationMethod->AddObserver(itk::IterationEvent(), displacementFieldRegistrationObserver);
         registrationMethod->AddObserver(itk::InitializeEvent(), displacementFieldRegistrationObserver);
@@ -1947,6 +1953,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           DisplacementFieldCommandType::New();
         displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
         displacementFieldRegistrationObserver->SetNumberOfIterations(currentStageIterations);
+        displacementFieldRegistrationObserver->SetShrinkFactors(factors);
+        displacementFieldRegistrationObserver->SetSmoothingSigmas(sigmas);
 
         registrationMethod->AddObserver(itk::IterationEvent(), displacementFieldRegistrationObserver);
         registrationMethod->AddObserver(itk::InitializeEvent(), displacementFieldRegistrationObserver);
@@ -2163,6 +2171,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           DisplacementFieldCommandType2::New();
         displacementFieldRegistrationObserver2->SetLogStream(*this->m_LogStream);
         displacementFieldRegistrationObserver2->SetNumberOfIterations(currentStageIterations);
+        displacementFieldRegistrationObserver2->SetShrinkFactors(factors);
+        displacementFieldRegistrationObserver2->SetSmoothingSigmas(sigmas);
         displacementFieldRegistrationObserver2->SetOrigFixedImage(this->m_Metrics[0].m_FixedImage);
         displacementFieldRegistrationObserver2->SetOrigMovingImage(this->m_Metrics[0].m_MovingImage);
         displacementFieldRegistrationObserver2->SetOutputPrefix(this->m_OutputPrefix);
@@ -2334,6 +2344,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             DisplacementFieldCommandType::New();
           displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
           displacementFieldRegistrationObserver->SetNumberOfIterations(currentStageIterations);
+          displacementFieldRegistrationObserver->SetShrinkFactors(factors);
+          displacementFieldRegistrationObserver->SetSmoothingSigmas(sigmas);
 
           registrationMethod->AddObserver(itk::IterationEvent(), displacementFieldRegistrationObserver);
           registrationMethod->AddObserver(itk::InitializeEvent(), displacementFieldRegistrationObserver);
@@ -2449,6 +2461,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             DisplacementFieldCommandType::New();
           displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
           displacementFieldRegistrationObserver->SetNumberOfIterations(currentStageIterations);
+          displacementFieldRegistrationObserver->SetShrinkFactors(factors);
+          displacementFieldRegistrationObserver->SetSmoothingSigmas(sigmas);
 
           registrationMethod->AddObserver(itk::IterationEvent(), displacementFieldRegistrationObserver);
           registrationMethod->AddObserver(itk::InitializeEvent(), displacementFieldRegistrationObserver);
@@ -2683,6 +2697,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         typename VelocityFieldCommandType::Pointer velocityFieldRegistrationObserver = VelocityFieldCommandType::New();
         velocityFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
         velocityFieldRegistrationObserver->SetNumberOfIterations(currentStageIterations);
+        velocityFieldRegistrationObserver->SetShrinkFactors(factors);
+        velocityFieldRegistrationObserver->SetSmoothingSigmas(sigmas);
 
         velocityFieldRegistration->AddObserver(itk::IterationEvent(), velocityFieldRegistrationObserver);
         velocityFieldRegistration->AddObserver(itk::InitializeEvent(), velocityFieldRegistrationObserver);
@@ -2905,6 +2921,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             VelocityFieldCommandType::New();
           velocityFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
           velocityFieldRegistrationObserver->SetNumberOfIterations(currentStageIterations);
+          velocityFieldRegistrationObserver->SetShrinkFactors(factors);
+          velocityFieldRegistrationObserver->SetSmoothingSigmas(sigmas);
 
           velocityFieldRegistration->AddObserver(itk::IterationEvent(), velocityFieldRegistrationObserver);
           velocityFieldRegistration->AddObserver(itk::InitializeEvent(), velocityFieldRegistrationObserver);
@@ -3064,6 +3082,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
             VelocityFieldCommandType::New();
           velocityFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
           velocityFieldRegistrationObserver->SetNumberOfIterations(currentStageIterations);
+          velocityFieldRegistrationObserver->SetShrinkFactors(factors);
+          velocityFieldRegistrationObserver->SetSmoothingSigmas(sigmas);
 
           velocityFieldRegistration->AddObserver(itk::IterationEvent(), velocityFieldRegistrationObserver);
           velocityFieldRegistration->AddObserver(itk::InitializeEvent(), velocityFieldRegistrationObserver);
@@ -3227,6 +3247,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           DisplacementFieldCommandType::New();
         displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
         displacementFieldRegistrationObserver->SetNumberOfIterations(currentStageIterations);
+        displacementFieldRegistrationObserver->SetShrinkFactors(factors);
+        displacementFieldRegistrationObserver->SetSmoothingSigmas(sigmas);
 
         displacementFieldRegistration->AddObserver(itk::IterationEvent(), displacementFieldRegistrationObserver);
         displacementFieldRegistration->AddObserver(itk::InitializeEvent(), displacementFieldRegistrationObserver);
@@ -3409,6 +3431,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           DisplacementFieldCommandType::New();
         displacementFieldRegistrationObserver->SetLogStream(*this->m_LogStream);
         displacementFieldRegistrationObserver->SetNumberOfIterations(currentStageIterations);
+        displacementFieldRegistrationObserver->SetShrinkFactors(factors);
+        displacementFieldRegistrationObserver->SetSmoothingSigmas(sigmas);
 
         displacementFieldRegistration->AddObserver(itk::IterationEvent(), displacementFieldRegistrationObserver);
         displacementFieldRegistration->AddObserver(itk::InitializeEvent(), displacementFieldRegistrationObserver);
@@ -3515,6 +3539,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         typename BSplineCommandType::Pointer bsplineObserver = BSplineCommandType::New();
         bsplineObserver->SetLogStream(*this->m_LogStream);
         bsplineObserver->SetNumberOfIterations(currentStageIterations);
+        bsplineObserver->SetShrinkFactors(factors);
+        bsplineObserver->SetSmoothingSigmas(sigmas);
 
         registrationMethod->AddObserver(itk::IterationEvent(), bsplineObserver);
         registrationMethod->AddObserver(itk::InitializeEvent(), bsplineObserver);
