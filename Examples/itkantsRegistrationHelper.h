@@ -1068,6 +1068,8 @@ private:
     typename TransformCommandType::Pointer transformObserver = TransformCommandType::New();
     transformObserver->SetLogStream(*this->m_LogStream);
     transformObserver->SetNumberOfIterations(this->m_Iterations[currentStageNumber]);
+    transformObserver->SetShrinkFactors(this->m_ShrinkFactors[currentStageNumber]);
+    transformObserver->SetSmoothingSigmas(this->m_SmoothingSigmas[currentStageNumber]);
     registrationMethod->AddObserver(itk::IterationEvent(), transformObserver);
     registrationMethod->AddObserver(itk::InitializeEvent(), transformObserver);
 

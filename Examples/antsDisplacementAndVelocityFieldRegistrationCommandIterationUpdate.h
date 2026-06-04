@@ -120,18 +120,24 @@ public:
       const unsigned int lCurrentIteration = filter->GetCurrentIteration();
       if (lCurrentIteration == 1)
       {
+        this->Logger() << "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST";
+        if (currentLevel < this->m_ShrinkFactors.size())
+        {
+          this->Logger() << ",ShrinkFactor=" << this->m_ShrinkFactors[currentLevel];
+        }
+        if (currentLevel < this->m_SmoothingSigmas.size())
+        {
+          this->Logger() << ",SmoothingSigma=" << this->m_SmoothingSigmas[currentLevel];
+        }
+        if (currentLevel < this->m_NumberOfIterations.size())
+        {
+          this->Logger() << ",MaxIterations=" << this->m_NumberOfIterations[currentLevel];
+        }
         if (this->m_ComputeFullScaleCCInterval != 0)
         {
-          // Print header line one time
-          this->Logger() << "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,"
-                            "FullScaleCCInterval="
-                         << this->m_ComputeFullScaleCCInterval << std::flush << std::endl;
+          this->Logger() << ",FullScaleCCInterval=" << this->m_ComputeFullScaleCCInterval;
         }
-        else
-        {
-          this->Logger() << "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
-                         << std::endl;
-        }
+        this->Logger() << std::flush << std::endl;
       }
       m_clock.Stop();
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
@@ -206,6 +212,18 @@ public:
   SetNumberOfIterations(const std::vector<unsigned int> & iterations)
   {
     this->m_NumberOfIterations = iterations;
+  }
+
+  void
+  SetShrinkFactors(const std::vector<unsigned int> & shrinkFactors)
+  {
+    this->m_ShrinkFactors = shrinkFactors;
+  }
+
+  void
+  SetSmoothingSigmas(const std::vector<float> & smoothingSigmas)
+  {
+    this->m_SmoothingSigmas = smoothingSigmas;
   }
 
   void
@@ -508,6 +526,8 @@ private:
 
   std::string                       m_OutputPrefix;
   std::vector<unsigned int>         m_NumberOfIterations;
+  std::vector<unsigned int>         m_ShrinkFactors;
+  std::vector<float>                m_SmoothingSigmas;
   std::ostream *                    m_LogStream;
   itk::TimeProbe                    m_clock;
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
