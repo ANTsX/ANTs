@@ -58,7 +58,7 @@ Usage:
 
 Example:
 
-  bash $0 -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output \"${anatomicalImages[@]}"
+  bash $0 -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output "\${anatomicalImages[@]}"
 
 Required arguments:
 
