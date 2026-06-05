@@ -54,7 +54,7 @@ Usage:
               -p brainSegmentationPriors
               <OPTARGS>
               -o outputPrefix
-              \"${anatomicalImages[@]}"
+              "\${anatomicalImages[@]}"
 
 Example:
 
