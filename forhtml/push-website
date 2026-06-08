@@ -1,4 +1,4 @@
-  git checkout master 
+  git checkout main
 
   git branch -D gh-pages
 
@@ -6,7 +6,7 @@
 
   git checkout --orphan gh-pages
 
-  git add index.html .htaccess 
+  git add index.html .htaccess
 
   git add forhtml/
 
@@ -14,4 +14,4 @@
 
   git push origin gh-pages
 
-  git checkout master
+  git checkout main

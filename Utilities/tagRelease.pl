@@ -2,7 +2,7 @@
 
 use strict;
 
-my $masterBranchLabel = "master";
+my $mainBranchLabel = "main";
 
 if ($#ARGV < 0) {
     print qq{
@@ -12,9 +12,9 @@ Run this from the ANTs/ directory to tag a release.
 
 Given a tag "vX.Y.Z", the script will
 
-  1. Check user is on the ${masterBranchLabel} branch, with no uncommitted changes
+  1. Check user is on the ${mainBranchLabel} branch, with no uncommitted changes
   2. Update Version.cmake to set the version major, minor, patch
-  3. Commit Version.cmake and push to origin ${masterBranchLabel}
+  3. Commit Version.cmake and push to origin ${mainBranchLabel}
   4. git tag with the release tag and push the tags
 
 };
@@ -31,8 +31,8 @@ if (!($tag =~ m/^v[0-9]+\.[0-9]+\.[0-9]+/) ) {
 
 # Check that we are ready to update version
 
-my $cleanTree = qq{On branch ${masterBranchLabel}
-Your branch is up to date with 'origin/${masterBranchLabel}'.
+my $cleanTree = qq{On branch ${mainBranchLabel}
+Your branch is up to date with 'origin/${mainBranchLabel}'.
 
 nothing to commit, working tree clean
 };
@@ -40,7 +40,7 @@ nothing to commit, working tree clean
 my $status = `git status -b`;
 
 if (!($status eq $cleanTree)) {
-    print "Must be up to date and on branch $masterBranchLabel to tag a release.\ngit status output:\n";
+    print "Must be up to date and on branch $mainBranchLabel to tag a release.\ngit status output:\n";
     # run it again so output is colorized
     system("git status -b");
     exit(1);
@@ -102,7 +102,7 @@ print("\nUpdating Version.cmake\n");
 system("git add Version.cmake");
 system("git commit -m \"Updating version for release $tag\"");
 print("\nPushing changed Version.cmake\n");
-system("git push origin $masterBranchLabel") == 0
+system("git push origin $mainBranchLabel") == 0
     or die("Could not push updated Version.cmake");
 print("\nApplying tag\n");
 system("git tag -a $tag -m \"Tagging release $tag\"");
@@ -119,5 +119,5 @@ close($outFH);
 system("git add Version.cmake");
 system("git commit -m \"[skip ci] Updating version for development post $tag\"");
 print("\nPushing changed Version.cmake\n");
-system("git push origin $masterBranchLabel") == 0 
+system("git push origin $mainBranchLabel") == 0
     or die("Could not update Version.cmake post release");
