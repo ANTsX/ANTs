@@ -78,7 +78,7 @@ public:
         this->Logger() << " vox" << std::endl;
         }
       this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
-                     << std::flush << std::endl;
+                     << std::endl;
       // this->Logger() << "\n  LEVEL_TIME_INDEX: " << now << " SINCE_LAST: " << (now-this->m_lastTotalTime) <<
       // std::endl;
       this->m_lastTotalTime = now;
@@ -119,9 +119,9 @@ public:
           {
             this->Logger() << ",FullScaleCCInterval=" << this->m_ComputeFullScaleCCInterval;
           }
-          this->Logger() << std::flush << std::endl;
+          this->Logger() << std::endl;
           this->Logger() << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
-                         << std::flush << std::endl;
+                         << std::endl;
         }
       }
       m_clock.Stop();
@@ -160,11 +160,11 @@ public:
                      << ", ";
       if ((this->m_ComputeFullScaleCCInterval != 0) && std::fabs(metricValue) > static_cast<MeasureType>(1e-7))
       {
-        this->Logger() << std::scientific << std::setprecision(12) << metricValue << std::flush << std::endl;
+        this->Logger() << std::scientific << std::setprecision(12) << metricValue << std::endl;
       }
       else
       {
-        this->Logger() << std::flush << std::endl;
+        this->Logger() << std::endl;
       }
 
       this->m_lastTotalTime = now;
