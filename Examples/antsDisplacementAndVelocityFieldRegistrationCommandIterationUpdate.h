@@ -120,7 +120,7 @@ public:
       const unsigned int lCurrentIteration = filter->GetCurrentIteration();
       if (lCurrentIteration == 1)
       {
-        this->Logger() << "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST";
+        this->Logger() << "XXMETADATA,Level=" << currentLevel;
         if (currentLevel < this->m_ShrinkFactors.size())
         {
           this->Logger() << ",ShrinkFactor=" << this->m_ShrinkFactors[currentLevel];
@@ -138,6 +138,8 @@ public:
           this->Logger() << ",FullScaleCCInterval=" << this->m_ComputeFullScaleCCInterval;
         }
         this->Logger() << std::flush << std::endl;
+        this->Logger() << "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
+                       << std::flush << std::endl;
       }
       m_clock.Stop();
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
