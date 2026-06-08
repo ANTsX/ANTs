@@ -85,7 +85,7 @@ public:
       if (lCurrentIteration == 1)
       {
         const unsigned int currentLevel = filter->GetCurrentLevel();
-        this->Logger() << "XDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST";
+        this->Logger() << "XMETADATA,Level=" << currentLevel;
         if (currentLevel < this->m_ShrinkFactors.size())
         {
           this->Logger() << ",ShrinkFactor=" << this->m_ShrinkFactors[currentLevel];
@@ -99,6 +99,8 @@ public:
           this->Logger() << ",MaxIterations=" << this->m_NumberOfIterations[currentLevel];
         }
         this->Logger() << std::flush << std::endl;
+        this->Logger() << "XDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
+                       << std::flush << std::endl;
       }
 
       m_clock.Stop();

@@ -102,7 +102,7 @@ public:
 
         {
           const unsigned int levelIdx = this->m_CurrentLevel - 1;
-          this->Logger() << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST";
+          this->Logger() << "METADATA,Level=" << levelIdx;
           if (levelIdx < this->m_ShrinkFactors.size())
           {
             this->Logger() << ",ShrinkFactor=" << this->m_ShrinkFactors[levelIdx];
@@ -120,6 +120,8 @@ public:
             this->Logger() << ",FullScaleCCInterval=" << this->m_ComputeFullScaleCCInterval;
           }
           this->Logger() << std::flush << std::endl;
+          this->Logger() << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
+                         << std::flush << std::endl;
         }
       }
       m_clock.Stop();
