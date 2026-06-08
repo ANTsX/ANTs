@@ -65,7 +65,7 @@ public:
         this->Logger() << " vox" << std::endl;
       }
       this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
-                     << std::flush << std::endl;
+                     << std::endl;
       // this->Logger() << "\n  LEVEL_TIME_INDEX: " << now << " SINCE_LAST: " << (now-this->m_lastTotalTime) <<
       // std::endl;
       this->m_lastTotalTime = now;
@@ -98,9 +98,9 @@ public:
         {
           this->Logger() << ",MaxIterations=" << this->m_NumberOfIterations[currentLevel];
         }
-        this->Logger() << std::flush << std::endl;
+        this->Logger() << std::endl;
         this->Logger() << "XDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
-                       << std::flush << std::endl;
+                       << std::endl;
       }
 
       m_clock.Stop();
@@ -108,8 +108,7 @@ public:
       this->Logger() << "WDIAGNOSTIC, " << std::setw(5) << lCurrentIteration << ", " << std::scientific
                      << std::setprecision(12) << filter->GetCurrentMetricValue() << ", " << std::scientific
                      << std::setprecision(12) << filter->GetCurrentConvergenceValue() << ", " << std::setprecision(4)
-                     << now << ", " << std::setprecision(4) << (now - this->m_lastTotalTime) << ", " << std::flush
-                     << std::endl;
+                     << now << ", " << std::setprecision(4) << (now - this->m_lastTotalTime) << ", " << std::endl;
       this->m_lastTotalTime = now;
       m_clock.Start();
     }
