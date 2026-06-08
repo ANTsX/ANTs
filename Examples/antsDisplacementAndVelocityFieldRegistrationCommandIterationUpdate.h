@@ -127,7 +127,9 @@ public:
         }
         if (currentLevel < this->m_SmoothingSigmas.size())
         {
-          this->Logger() << ",SmoothingSigma=" << this->m_SmoothingSigmas[currentLevel];
+            std::ostringstream ss;
+            ss << std::scientific << std::setprecision(6) << this->m_SmoothingSigmas[currentLevel];
+            this->Logger() << ",SmoothingSigma=" << ss.str();
         }
         if (currentLevel < this->m_NumberOfIterations.size())
         {
