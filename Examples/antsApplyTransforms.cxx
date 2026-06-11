@@ -301,9 +301,9 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       typename TimeSeriesImageType::SizeType size = extractRegion.GetSize();
 
       // Check if the extractTimeIndex is within range
-      if (extractTimeIndex >= size[3])
+      if (extractTimeIndex >= size[Dimension])
       {
-        std::cerr << "Error: time index to extract is out of range [0, " << (size[3] - 1) << "]" << std::endl;
+        std::cerr << "Error: time index to extract is out of range [0, " << (size[Dimension] - 1) << "]" << std::endl;
         return EXIT_FAILURE;
       }
 
