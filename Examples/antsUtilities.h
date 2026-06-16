@@ -20,6 +20,7 @@
 #include <iostream>
 
 #include "itkVector.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryDilateImageFilter.h"

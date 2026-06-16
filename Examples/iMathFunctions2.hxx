@@ -15,6 +15,7 @@
 #include "antsUtilities.h"
 
 #include "itkAddImageFilter.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkAdaptiveHistogramEqualizationImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryErodeImageFilter.h"

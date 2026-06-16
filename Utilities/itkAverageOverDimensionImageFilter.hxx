@@ -19,6 +19,7 @@
 #define __itkAverageOverDimensionImageFilter_hxx
 
 #include "itkImageAlgorithm.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkObjectFactory.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"

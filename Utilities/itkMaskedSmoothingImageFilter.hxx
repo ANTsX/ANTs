@@ -16,6 +16,7 @@
 
 
 #include "itkCastImageFilter.h"
+#include "itkImageRegionIteratorWithIndex.h"
 
 namespace itk
 {
