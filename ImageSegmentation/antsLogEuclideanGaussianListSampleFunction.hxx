@@ -4,7 +4,7 @@
 
   Copyright (c) ConsortiumOfANTS. All rights reserved.
   See accompanying COPYING.txt or
-  https://github.com/stnava/ANTs/blob/master/ANTSCopyright.txt
+  https://github.com/ANTsX/ANTs/blob/main/ANTSCopyright.txt
   for details.
 
   This software is distributed WITHOUT ANY WARRANTY; without even

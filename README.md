@@ -7,7 +7,7 @@
 
 ![ants template](http://i.imgur.com/mLZ71Ai.png)
 
-**Advanced Normalization Tools (ANTs)** is a C++ library available through the command line that computes high-dimensional mappings to capture the statistics of brain structure and function. It allows one to organize, visualize and statistically explore large biomedical image sets. Additionally, it integrates imaging modalities in space + time and works across species or organ systems with minimal customization. 
+**Advanced Normalization Tools (ANTs)** is a C++ library available through the command line that computes high-dimensional mappings to capture the statistics of brain structure and function. It allows one to organize, visualize and statistically explore large biomedical image sets. Additionally, it integrates imaging modalities in space + time and works across species or organ systems with minimal customization.
 
 The ANTs library is considered a state-of-the-art medical image registration and segmentation toolkit which depends on the Insight ToolKit, a widely used medical image processing library to which ANTs developers contribute. ANTs-related tools have also won several international, unbiased competitions such as MICCAI, BRATS, and STACOM.
 
@@ -83,13 +83,13 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 - Automobile registration [[Link](http://stnava.github.io/cars/)]
 - Point-set mapping [[Link](http://stnava.github.io/chicken/)]
 - Global optimization [[Link](http://stnava.github.io/butterfly/)]
-  
+
 ### Template construction
 
 - Brain template [[Link](http://ntustison.github.io/TemplateBuildingExample/)]
 - Single subject template [[Link](https://github.com/ntustison/SingleSubjectTemplateExample)]
 - "Cooking" tissue priors for templates [[Link](https://github.com/ntustison/antsCookTemplatePriorsExample)]
-  
+
 ### Cortical thickness
 
 - Basic cortical thickness [[Link](https://github.com/ntustison/antsCorticalThicknessExample)]
@@ -107,9 +107,9 @@ ANTs is a flexible library that can be used for a variety of applications and ar
 - fMRI or Motion Correction [[Link](http://stnava.github.io/fMRIANTs/)]
 - fMRI reproducibility [[Link](http://stnava.github.io/RfMRI/)]
 - Partial EPI slab to T1 image registration [[Link](https://github.com/ntustison/PartialSlabEpiT1ImageRegistration)]
-  
+
 See also our pre-built ANTs templates with spatial priors available for download [[General](http://figshare.com/articles/ANTs_ANTsR_Brain_Templates/915436), [MNI](https://figshare.com/articles/ANTs_files_for_mni_icbm152_nlin_sym_09a/8061914)].
-  
+
 ### Lung
 
 - CT lung registration [[Link](https://github.com/ntustison/antsCtLungRegistrationExample)]
@@ -120,7 +120,7 @@ See also our pre-built ANTs templates with spatial priors available for download
 ### Cardiac
 
 - Basic example [[Link](http://stnava.github.io/LabelMyHeart)]
-  
+
 ### Other
 
 - Patch-based super-resolution [[Link](https://github.com/ntustison/NonLocalSuperResolutionExample)]
@@ -144,7 +144,7 @@ Some commonly visited tutorials for specific ANTs functions are also presented b
 * Using antsCorticalThickness [[Link](https://github.com/ANTsX/ANTs/wiki/antsCorticalThickness-and-antsLongitudinalCorticalThickness-output)]
 * Using N4BiasFieldCorrection [[Link](https://github.com/ANTsX/ANTs/wiki/N4BiasFieldCorrection)]
 * Multi-modality Presentation [[Link](https://github.com/stnava/ANTS_MultiModality/blob/master/ants_multimodality.pdf)]
-  
+
 <br />
 
 ## Contributing
@@ -157,7 +157,7 @@ We welcome any new contributions and ideas to improve ANTs. If you want to contr
 
 ## Team
 
-Development of ANTs is led by [Brian B. Avants](http://stnava.github.io/Resume/) (Creator, Algorithm Design, Implementation), [Nicholas J. Tustison](http://ntustison.github.io/CV/) (Compeller, Algorithm Design, Implementation Guru), Hans J. Johnson (Large-Scale Application, Testing, Software design), Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis), and Nick Cullen (Python, R). 
+Development of ANTs is led by [Brian B. Avants](http://stnava.github.io/Resume/) (Creator, Algorithm Design, Implementation), [Nicholas J. Tustison](http://ntustison.github.io/CV/) (Compeller, Algorithm Design, Implementation Guru), Hans J. Johnson (Large-Scale Application, Testing, Software design), Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis), and Nick Cullen (Python, R).
 
 <br />
 
@@ -199,8 +199,8 @@ A large collection of journal articles have been published using ANTs software a
 
 <i>Longitudinal Mapping of Cortical Thickness Measurements: An Alzheimer's Disease Neuroimaging Initiative-Based Evaluation Study</i>.  J Alzheimers Dis
  (2019). [[Link](https://pubmed.ncbi.nlm.nih.gov/31356207/)]
- 
-### Eigenanatomy 
+
+### Eigenanatomy
 
 <i>Eigenanatomy improves detection power for longitudinal cortical change</i>. Med Image Comput Comput Assist Interv (2012). [[Link](http://www.ncbi.nlm.nih.gov/pubmed/23286132)]
 
