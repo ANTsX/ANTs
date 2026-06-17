@@ -2,6 +2,7 @@
 #define ITKDEFORMATIONFIELDFROMMULTITRANSFORMFILTER_H_
 
 #include "itkWarpImageMultiTransformFilter.h"
+#include "itkImageRegionIteratorWithIndex.h"
 
 namespace itk
 {

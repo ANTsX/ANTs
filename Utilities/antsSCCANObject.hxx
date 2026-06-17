@@ -14,6 +14,7 @@
 
 =========================================================================*/
 #include "itkMinimumMaximumImageFilter.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkExtractImageFilter.h"

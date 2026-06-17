@@ -17,6 +17,7 @@
 #include <vnl/algo/vnl_real_eigensystem.h>
 
 // #include "itkLevelSetCurvatureFunction.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkCastImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include <queue>
