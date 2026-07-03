@@ -54,6 +54,8 @@ file(GLOB_RECURSE INCS ${CMAKE_SOURCE_DIR}/Examples/"*.h")
 
 MakeTestDriverFromANTSbinary(antsRegistrationTest antsRegistrationTest.cxx antsRegistration)
 MakeTestDriverFromANTSbinary(antsApplyTransformsTest antsApplyTransformsTest.cxx antsApplyTransforms)
+MakeTestDriverFromANTSbinary(compareTwoTransformsTest compareTwoTransformsTest.cxx compareTwoTransforms)
+MakeTestDriverFromANTSbinary(simpleSynRegistrationTest simpleSynRegistrationTest.cxx simpleSynRegistration)
 
 
 ###
