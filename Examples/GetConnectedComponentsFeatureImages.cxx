@@ -45,8 +45,6 @@ GetConnectedComponentsFeatureImages(int itkNotUsed(argc), char * argv[])
     outputImages.push_back(output);
   }
 
-  typename ImageType::SpacingType spacing = inputImage->GetSpacing();
-
   using RelabelerType = itk::RelabelComponentImageFilter<ImageType, ImageType>;
   typename RelabelerType::Pointer relabeler = RelabelerType::New();
   relabeler->SetInput(inputImage);
