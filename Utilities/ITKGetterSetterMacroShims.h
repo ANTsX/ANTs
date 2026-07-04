@@ -22,7 +22,7 @@
 
 // Sentinel: itkSetMacroImpl is the first internal helper introduced by
 // ITK PR #6253. When ITK provides it, the entire shim is a no-op.
-#if !defined(itkSetMacroImpl)
+#if !defined(ITK_DETAIL_SetInputMacroImpl)
 
 // ---------------------------------------------------------------------------
 // itkSetInputMacro family
@@ -533,6 +533,6 @@
 #define itkFinalGetDecoratedOutputMacro(name, type)      itkGetDecoratedOutputMacroImpl(, final, name, type)
 #define itkNonVirtualGetDecoratedOutputMacro(name, type) itkGetDecoratedOutputMacroImpl(, , name, type)
 
-#endif // !defined(itkSetMacroImpl)
+#endif // !defined(ITK_DETAIL_SetInputMacroImpl)
 
 #endif // ITKGetterSetterMacroShims_h
