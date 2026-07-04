@@ -380,6 +380,8 @@ public:
       outputSize[d] = static_cast<typename VelocityFieldSizeType::SizeValueType>(this->m_CurrentDomainSize[d]);
       outputSpacing[d] = inputSpacing[d] * static_cast<double>(inputSize[d]) / static_cast<double>(outputSize[d]);
     }
+    outputSize[ImageDimension] = inputSize[ImageDimension];
+    outputSpacing[ImageDimension] = inputSpacing[ImageDimension];
 
     using ResamplerType = ResampleImageFilter<TimeVaryingVelocityFieldType, TimeVaryingVelocityFieldType>;
     typename ResamplerType::Pointer resampler = ResamplerType::New();
