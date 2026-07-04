@@ -369,11 +369,11 @@ public:
     using VelocityFieldSpacingType = typename TimeVaryingVelocityFieldType::SpacingType;
     using VelocityFieldSizeType = typename TimeVaryingVelocityFieldType::SizeType;
 
-    VelocityFieldSpacingType outputSpacing;
-    VelocityFieldSizeType    outputSize;
-
     VelocityFieldSpacingType inputSpacing = this->m_TimeVaryingVelocity->GetSpacing();
     VelocityFieldSizeType    inputSize = this->m_TimeVaryingVelocity->GetLargestPossibleRegion().GetSize();
+
+    VelocityFieldSpacingType outputSpacing = inputSpacing;
+    VelocityFieldSizeType    outputSize = inputSize;
 
     for (unsigned int d = 0; d < ImageDimension; d++)
     {
