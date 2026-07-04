@@ -1067,7 +1067,7 @@ ConvertTimeSeriesImageToFiveDimensionalImage(TTimeSeriesImageType * timeSeriesIm
   for (It.GoToBegin(); !It.IsAtEnd(); ++It)
   {
     typename FiveDimensionalImageType::IndexType index = It.GetIndex();
-    typename TTimeSeriesImageType::IndexType     timeSeriesIndex;
+    typename TTimeSeriesImageType::IndexType     timeSeriesIndex{};
 
     timeSeriesIndex[0] = index[0];
     timeSeriesIndex[1] = index[1];
@@ -1123,7 +1123,7 @@ ConvertFiveDimensionalImageToTimeSeriesImage(FiveDimensionalImageType * FiveDime
   for (It.GoToBegin(); !It.IsAtEnd(); ++It)
   {
     typename FiveDimensionalImageType::IndexType index = It.GetIndex();
-    typename TimeSeriesImageType::IndexType      timeSeriesIndex;
+    typename TimeSeriesImageType::IndexType      timeSeriesIndex{};
 
     timeSeriesIndex[0] = index[0];
     timeSeriesIndex[1] = index[1];
