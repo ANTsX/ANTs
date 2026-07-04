@@ -1124,7 +1124,7 @@ private:
   RealType                               m_UpperQuantile;
   std::ostream *                         m_LogStream;
 
-  int m_RegistrationRandomSeed;
+  int m_RegistrationRandomSeed{ 0 };
 
   unsigned int m_PrintSimilarityMeasureInterval;
   unsigned int m_WriteIntervalVolumes;
