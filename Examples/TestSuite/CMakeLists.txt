@@ -417,6 +417,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
   antsRegistrationTest
   -v --dimensionality 3
+  --random-seed 1
   --convergence 25x20x5
   --shrink-factors 3x2x1
   --smoothing-sigmas 0x0x0
