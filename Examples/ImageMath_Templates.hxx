@@ -10603,7 +10603,7 @@ ReplicateDisplacement(int argc, char * argv[])
   typename VectorImageType::IndexType  ind;
   typename VectorRImageType::IndexType indp1;
   Iterator                             It1(vecimage1, vecimage1->GetLargestPossibleRegion());
-  typename VectorRImageType::PixelType vec;
+  typename VectorRImageType::PixelType vec{};
   for (It1.GoToBegin(); !It1.IsAtEnd(); ++It1)
   {
     ind = It1.GetIndex();
