@@ -188,7 +188,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
   using AffineTransformType = typename RegistrationHelperType::AffineTransformType;
   using CompositeTransformType = typename RegistrationHelperType::CompositeTransformType;
 
-  const unsigned int NumberOfTensorElements = numTensorElements<Dimension>();
+  const unsigned int NumberOfTensorElements = TensorPixelType::InternalDimension;
 
   std::vector<unsigned int> tensorDiagIndices = tensorDiagonalArrayIndices<Dimension>();
 
