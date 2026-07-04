@@ -28,7 +28,7 @@
 #include "itkSubtractImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
-#include "vnl/algo/vnl_fft_1d.h"
+#include "itkN3SharpenFFT.h"
 #include "vnl/vnl_complex_traits.h"
 #include "complex"
 
@@ -284,13 +284,9 @@ namespace itk
       V[n + histogramOffset] = H[n];
     }
 
-    // Instantiate the 1-d vnl fft routine.
-
-    vnl_fft_1d<FFTComputationType> fft(paddedHistogramSize);
-
     vnl_vector<FFTComplexType> Vf(V);
 
-    fft.fwd_transform(Vf);
+    ants::N3SharpenFFTForward(Vf);
 
     // Create the Gaussian filter.
 
@@ -315,7 +311,7 @@ namespace itk
 
     vnl_vector<FFTComplexType> Ff(F);
 
-    fft.fwd_transform(Ff);
+    ants::N3SharpenFFTForward(Ff);
 
     // Create the Wiener deconvolution filter.
 
@@ -337,7 +333,7 @@ namespace itk
 
     vnl_vector<FFTComplexType> U(Uf);
 
-    fft.bwd_transform(U);
+    ants::N3SharpenFFTInverse(U);
     for (unsigned int n = 0; n < paddedHistogramSize; n++)
     {
       U[n] = FFTComplexType(std::max(U[n].real(), static_cast<FFTComputationType>(0.0)), 0.0);
@@ -352,21 +348,21 @@ namespace itk
       numerator[n] =
         FFTComplexType((binMinimum + (static_cast<RealType>(n) - histogramOffset) * histogramSlope) * U[n].real(), 0.0);
     }
-    fft.fwd_transform(numerator);
+    ants::N3SharpenFFTForward(numerator);
     for (unsigned int n = 0; n < paddedHistogramSize; n++)
     {
       numerator[n] *= Ff[n];
     }
-    fft.bwd_transform(numerator);
+    ants::N3SharpenFFTInverse(numerator);
 
     vnl_vector<FFTComplexType> denominator(U);
 
-    fft.fwd_transform(denominator);
+    ants::N3SharpenFFTForward(denominator);
     for (unsigned int n = 0; n < paddedHistogramSize; n++)
     {
       denominator[n] *= Ff[n];
     }
-    fft.bwd_transform(denominator);
+    ants::N3SharpenFFTInverse(denominator);
 
     vnl_vector<RealType> E(paddedHistogramSize);
 
