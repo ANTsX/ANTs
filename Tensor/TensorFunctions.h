@@ -34,15 +34,7 @@ inline vnl_matrix<double>
 SymmetricInverse(const vnl_matrix<double> & A)
 {
 #ifdef ITK_MATH_HAS_SOLVE_SYMMETRIC
-  const unsigned int n = A.rows();
-  vnl_matrix<double> inv(n, n);
-  for (unsigned int c = 0; c < n; ++c)
-  {
-    vnl_vector<double> e(n, 0.0);
-    e[c] = 1.0;
-    inv.set_column(c, itk::Math::SolveSymmetric(A, e));
-  }
-  return inv;
+  return itk::Math::InverseSymmetric(A);
 #else
   return vnl_matrix_inverse<double>(A).inverse();
 #endif
