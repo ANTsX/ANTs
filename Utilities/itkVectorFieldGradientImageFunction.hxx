@@ -20,8 +20,42 @@
 #include "vnl/algo/vnl_matrix_inverse.h"
 #include "vnl/vnl_vector.h"
 
+// PROTOTYPE: adopt ITK's Eigen-backed symmetric solver for the symmetric
+// left-Cauchy-Green tensor inverse in the Eulerian strain below, when a
+// new-enough ITK provides it. Gated on a compile-time capability check so this
+// still builds against the currently pinned ITK (legacy vnl_matrix_inverse path).
+#if __has_include(<itkMathLDLT.h>)
+#  include <itkMathLDLT.h>
+#endif
+
 namespace itk
 {
+namespace vfg_detail
+{
+// Inverse of a SYMMETRIC matrix. With itk::Math::SolveSymmetric available, build
+// the inverse column-by-column via LDLT solves (A X = I); otherwise fall back to
+// vnl_matrix_inverse. Validated equivalent to <=2.6e-15 on random SPD tensors
+// (see .devlocal/tensor-solve-prototype).
+template <typename T>
+vnl_matrix<T>
+SymmetricInverse(const vnl_matrix<T> & A)
+{
+#ifdef ITK_MATH_HAS_SOLVE_SYMMETRIC
+  const unsigned int n = A.rows();
+  vnl_matrix<T>      inv(n, n);
+  for (unsigned int c = 0; c < n; ++c)
+  {
+    vnl_vector<T> e(n, T(0));
+    e[c] = T(1);
+    inv.set_column(c, itk::Math::SolveSymmetric(A, e));
+  }
+  return inv;
+#else
+  return vnl_matrix_inverse<T>(A).inverse();
+#endif
+}
+} // namespace vfg_detail
+
 template <typename TInputImage, typename TRealType, typename TOutputImage>
 VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>::VectorFieldGradientImageFunction()
 {}
@@ -358,7 +392,8 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>::Evaluate
   MatrixType F = this->EvaluateDeformationGradientTensor(point);
   MatrixType E(ImageDimension, ImageDimension);
 
-  typename MatrixType::InternalMatrixType ff = vnl_matrix_inverse<RealType>(F.GetVnlMatrix() * F.GetTranspose());
+  typename MatrixType::InternalMatrixType ff =
+    vfg_detail::SymmetricInverse<RealType>(F.GetVnlMatrix() * F.GetTranspose());
   for (unsigned int i = 0; i < ff.rows(); i++)
   {
     for (unsigned int j = 0; j < ff.columns(); j++)
@@ -383,7 +418,7 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>::Evaluate
   MatrixType E(ImageDimension, ImageDimension);
 
   typename MatrixType::InternalMatrixType ff =
-    vnl_matrix_inverse<RealType>(F.GetVnlMatrix() * F.GetTranspose()).as_matrix();
+    vfg_detail::SymmetricInverse<RealType>(F.GetVnlMatrix() * F.GetTranspose());
   for (unsigned int i = 0; i < ff.rows(); i++)
   {
     for (unsigned int j = 0; j < ff.columns(); j++)
