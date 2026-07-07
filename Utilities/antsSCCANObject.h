@@ -27,6 +27,31 @@
 #  include "itkMath.h"
 #  include "ITKGetterSetterMacroShims.h"
 
+// PROTOTYPE: adopt ITK's Eigen-backed symmetric solver for the symmetric Gram /
+// preconditioner inverses in SCCAN, when a new-enough ITK provides it. Gated on
+// a compile-time capability check so this still builds against the currently
+// pinned ITK (legacy vnl_matrix_inverse path).
+#  if __has_include(<itkMathLDLT.h>)
+#    include <itkMathLDLT.h>
+#  endif
+namespace sccan_detail
+{
+// Inverse of a SYMMETRIC matrix via itk::Math::InverseSymmetric (Eigen LDLT,
+// single factorization) when available; otherwise vnl_matrix_inverse. The SCCAN
+// operands (regularized b*b^T Gram; chollow*diaginv*chollow^T preconditioner)
+// are symmetric.
+template <typename T>
+inline vnl_matrix<T>
+SymmetricInverse(const vnl_matrix<T> & A)
+{
+#  ifdef ITK_MATH_HAS_SOLVE_SYMMETRIC
+  return itk::Math::InverseSymmetric(A);
+#  else
+  return vnl_matrix_inverse<T>(A).inverse();
+#  endif
+}
+} // namespace sccan_detail
+
 /** Custom SCCA implemented with vnl and ITK: Flexible positivity constraints, image ops, permutation testing, etc. */
 namespace itk
 {
@@ -601,7 +626,8 @@ public:
       MatrixType cov(mat.rows(), mat.cols(), 0);
       cov.set_identity();
       mat = cov * regularization + mat;
-      return vnl_svd<double>(mat).inverse();
+      // mat = regularization*I + b*b^T is symmetric positive-definite.
+      return sccan_detail::SymmetricInverse(mat);
       //      return vnl_svd<double>( mat ).pinverse( mc );
     }
     else
