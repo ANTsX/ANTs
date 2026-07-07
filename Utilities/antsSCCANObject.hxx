@@ -6942,7 +6942,7 @@ antsSCCANObject<TInputImage, TRealType>::MRFFilterVariateMatrix()
     if ( ! this->m_Silent )  std::cout << " precon " << std::endl;
     // preconditioner
     MatrixType temp = ( chollow * diaginv ) * chollow.transpose();
-    Cinv = vnl_matrix_inverse<double>( temp );
+    Cinv = sccan_detail::SymmetricInverse(temp);
     if ( ! this->m_Silent )  std::cout << " precon done " << std::endl;
     A = Cinv * A;
     if ( ! this->m_Silent )  std::cout << " got A precond " << std::endl;
