@@ -57,6 +57,14 @@ MakeTestDriverFromANTSbinary(antsApplyTransformsTest antsApplyTransformsTest.cxx
 MakeTestDriverFromANTSbinary(compareTwoTransformsTest compareTwoTransformsTest.cxx compareTwoTransforms)
 MakeTestDriverFromANTSbinary(simpleSynRegistrationTest simpleSynRegistrationTest.cxx simpleSynRegistration)
 
+## Wahba principal-axis rotation regression test: guards the proper
+## ants::NearestRotation used by antsAffineInitializer / antsAI. Fixture-free and
+## deterministic; would fail on the previous ad-hoc det-correction heuristic.
+add_executable(antsWahbaRotationTest antsWahbaRotationTest.cxx)
+target_include_directories(antsWahbaRotationTest PRIVATE ${CMAKE_SOURCE_DIR}/Utilities)
+target_link_libraries(antsWahbaRotationTest ${ITK_LIBRARIES})
+add_test(NAME antsWahbaRotationTest COMMAND antsWahbaRotationTest)
+
 
 ###
 #  Perform testing
