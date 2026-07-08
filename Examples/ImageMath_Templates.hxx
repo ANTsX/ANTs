@@ -13,6 +13,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsNearestRotation.h"
 #include <algorithm>
 #include <vnl/vnl_inverse.h>
 #include "itkTransformFileReader.h"
@@ -13065,8 +13066,8 @@ PatchCorrelation(itk::NeighborhoodIterator<TImageType> GHood,
     //        outer_product( evec2_primary , evec1_primary ) * wt0 / evsum;
     B = outer_product(evec2_2ndary, evec1_2ndary) + outer_product(evec2_primary, evec1_primary);
   }
-  vnl_svd<RealType>    wahba(B);
-  vnl_matrix<RealType> A_solution = wahba.V() * wahba.U().transpose();
+  // Inverse of the nearest rotation to B (proper, backend-invariant Wahba solution).
+  vnl_matrix<RealType> A_solution = ::ants::NearestRotation(B).transpose();
   //   " << vnl_determinant<RealType>(  wahba.U()) << std::endl;
   // now rotate the points to the same frame and sample the neighborhoods again
   for (unsigned int ii = 0; ii < Gsz; ii++)

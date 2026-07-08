@@ -13,6 +13,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsNearestRotation.h"
 #include <algorithm>
 #include <vnl/vnl_inverse.h>
 #include "antsAllocImage.h"
@@ -323,27 +324,9 @@ antsAffineInitializerImp(int argc, char * argv[])
   {
     B = outer_product(evec2_2ndary, evec1_2ndary) + outer_product(evec2_primary, evec1_primary);
   }
-  vnl_svd_fixed<RealType, ImageDimension, ImageDimension>    wahba(B);
-  vnl_matrix_fixed<RealType, ImageDimension, ImageDimension> A_solution =
-    vnl_inverse(wahba.V() * wahba.U().transpose());
-  const RealType det = vnl_determinant(A_solution);
-  if (det < 0)
-  {
-    std::cerr << " bad det " << det << " v " << vnl_determinant(wahba.V()) << " u " << vnl_determinant(wahba.U())
-              << std::endl;
-    vnl_matrix_fixed<RealType, ImageDimension, ImageDimension> id(A_solution);
-    id.set_identity();
-    for (unsigned int i = 0; i < ImageDimension; i++)
-    {
-      if (A_solution(i, i) < 0)
-      {
-        id(i, i) = -1.0;
-      }
-    }
-    A_solution = A_solution * id.transpose();
-    std::cerr << " bad det " << det << " v " << vnl_determinant(wahba.V()) << " u " << vnl_determinant(wahba.U())
-              << " new " << vnl_determinant(A_solution) << std::endl;
-  }
+  // Nearest rotation to B (Wahba solution): proper special-orthogonal polar
+  // factor, computed backend-invariantly (replaces an ad-hoc det-sign fix).
+  const vnl_matrix_fixed<RealType, ImageDimension, ImageDimension> A_solution = ::ants::NearestRotation(B);
 
   typename AffineType::MatrixType AA_solution = typename AffineType::MatrixType(A_solution);
 
