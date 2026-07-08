@@ -1,4 +1,5 @@
 #include "antsAllocImage.h"
+#include "antsNearestRotation.h"
 #include "antsCommandIterationUpdate.h"
 #include "antsCommandLineParser.h"
 #include "antsUtilities.h"
@@ -258,8 +259,8 @@ PatchCorrelation(itk::NeighborhoodIterator<TImage> fixedNeighborhood,
         outer_product(movingSecondaryEigenVector, fixedSecondaryEigenVector);
   }
 
-  vnl_svd<RealType>    wahba(B);
-  vnl_matrix<RealType> A = wahba.V() * wahba.U().transpose();
+  // Inverse of the nearest rotation to B (proper, backend-invariant Wahba solution).
+  vnl_matrix<RealType> A = ::ants::NearestRotation(B).transpose();
 
   bool patchIsInside = true;
   for (unsigned int i = 0; i < numberOfIndices; i++)
@@ -998,36 +999,8 @@ antsAI(itk::ants::CommandLineParser * parser)
 
       if (doAlignPrincipalAxes)
       {
-        vnl_svd<RealType>    wahba(B);
-        vnl_matrix<RealType> A = wahba.V() * wahba.U().transpose();
-        A = vnl_inverse(A);
-        RealType det = vnl_determinant(A);
-
-        if (det < 0.0)
-        {
-          if (verbose)
-          {
-            std::cout << "Bad determinant = " << det << std::endl;
-            std::cout << "  det( V ) = " << vnl_determinant(wahba.V()) << std::endl;
-            std::cout << "  det( U ) = " << vnl_determinant(wahba.U()) << std::endl;
-          }
-          vnl_matrix<RealType> I(A);
-          I.set_identity();
-          for (unsigned int i = 0; i < ImageDimension; i++)
-          {
-            if (A(i, i) < 0.0)
-            {
-              I(i, i) = -1.0;
-            }
-          }
-          A = A * I.transpose();
-          det = vnl_determinant(A);
-
-          if (verbose)
-          {
-            std::cout << "New determinant = " << det << std::endl;
-          }
-        }
+        // Nearest rotation to B (proper, backend-invariant Wahba solution).
+        const vnl_matrix<RealType> A = ::ants::NearestRotation(B);
         initialTransform->SetMatrix(typename AffineTransformType::MatrixType(A));
       }
       initialTransform->SetCenter(center);
