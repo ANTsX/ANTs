@@ -27,7 +27,7 @@ jobs:
           ref: ${{ github.ref }}
       # Set up vs studio. Use default windows shell (powershell) not bash,
       # to avoid conflicts with link executable
-      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: step-security/msvc-dev-cmd@v1
         with:
           arch: ${{ runner.arch }}
           vsversion: ${{ matrix.vs }}
