@@ -1007,8 +1007,10 @@ antsAI(itk::ants::CommandLineParser * parser)
 
       if (ImageDimension == 2)
       {
-        fixedTertiaryEigenVector = fixedSecondaryEigenVector;
         fixedSecondaryEigenVector = fixedPrimaryEigenVector;
+        fixedTertiaryEigenVector.set_size(2);
+        fixedTertiaryEigenVector[0] = -fixedPrimaryEigenVector[1];
+        fixedTertiaryEigenVector[1] = fixedPrimaryEigenVector[0];
       }
       if (ImageDimension == 3)
       {
