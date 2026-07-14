@@ -22,8 +22,19 @@ include("${CMAKE_CURRENT_LIST_DIR}/ANTSTargets.cmake")
 # list, not an imported-target's INTERFACE_INCLUDE_DIRECTORIES with embedded
 # generator expressions). Modern consumers should prefer ANTS::antsUtilities
 # directly. Subdir list is generated from ANTS_PUBLIC_HEADER_DIRS in ANTS.cmake.
-set_and_check(ANTS_INCLUDE_DIR  "${PACKAGE_PREFIX_DIR}/include/ANTs")
-set(ANTS_INCLUDE_DIRS "${ANTS_INCLUDE_DIR}")
+set(_ANTS_BUILD_TREE_CONFIG @ANTS_CONFIG_IS_BUILD_TREE@)
+if(_ANTS_BUILD_TREE_CONFIG)
+  # In the build tree the public headers are still rooted in the source tree,
+  # and ANTsVersionConfig.h is generated into the build tree.
+  set_and_check(ANTS_INCLUDE_DIR "@ANTS_CONFIG_INCLUDE_ROOT@")
+  set_and_check(_ANTS_GENERATED_HEADER_DIR "@ANTS_CONFIG_GENERATED_HEADER_DIR@")
+  set(ANTS_INCLUDE_DIRS "${ANTS_INCLUDE_DIR}" "${_ANTS_GENERATED_HEADER_DIR}")
+  unset(_ANTS_GENERATED_HEADER_DIR)
+else()
+  set_and_check(ANTS_INCLUDE_DIR  "${PACKAGE_PREFIX_DIR}/include/ANTs")
+  set(ANTS_INCLUDE_DIRS "${ANTS_INCLUDE_DIR}")
+endif()
+unset(_ANTS_BUILD_TREE_CONFIG)
 set(_ANTS_HEADER_SUBDIRS "@ANTS_PUBLIC_HEADER_DIRS@")
 foreach(_ants_dir IN LISTS _ANTS_HEADER_SUBDIRS)
   list(APPEND ANTS_INCLUDE_DIRS "${ANTS_INCLUDE_DIR}/${_ants_dir}")
