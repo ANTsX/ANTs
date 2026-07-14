@@ -47,6 +47,15 @@ endif()
 
 # Set up ITK
 find_package(ITK ${ITK_VERSION_ID} REQUIRED)
+if(NOT ITK_VERSION_MAJOR VERSION_EQUAL ANTs_EXPECTED_ITK_VERSION_MAJOR)
+  message(FATAL_ERROR "ANTs is configured for ITK v${ANTs_EXPECTED_ITK_VERSION_MAJOR} "
+                      "(ITK_VERSION_MAJOR), but found ITK ${ITK_VERSION} in ${ITK_DIR}.")
+endif()
+# ITK v5.4 ships no TractographyTRX remote-module entry, so the module cannot be fetched there.
+if(USE_TractographyTRX AND ITK_VERSION_MAJOR VERSION_LESS 6)
+  message(FATAL_ERROR "USE_TractographyTRX needs the ITK v6 TractographyTRX remote module, "
+                      "but found ITK ${ITK_VERSION}.")
+endif()
 include(${ITK_USE_FILE})
 
 # Set up which ANTs apps to build

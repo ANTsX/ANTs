@@ -106,7 +106,11 @@ CMAKE_DEPENDENT_OPTION(
      "USE_VTK" OFF
      )
 
-option(USE_TractographyTRX "Build antsApplyTransformsToTRX using the ITK TractographyTRX module" ON)
+# ITK v5.4 ships no TractographyTRX remote-module entry, so Module_TractographyTRX is a no-op there.
+CMAKE_DEPENDENT_OPTION(
+     USE_TractographyTRX "Build antsApplyTransformsToTRX using the ITK TractographyTRX module" ON
+     "ITK_VERSION_MAJOR EQUAL 6" OFF
+     )
 
 option(BUILD_ALL_ANTS_APPS "Build all ANTs apps" ON)
 option(RUN_SHORT_TESTS    "Run the quick unit tests."                                   ON  )
