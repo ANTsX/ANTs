@@ -229,9 +229,24 @@ if(NOT ANTS_INSTALL_BIN_ONLY)
     DESTINATION "${ANTS_CONFIG_INSTALL_DIR}"
     COMPONENT DEVELOPMENT_antsUtilities)
 
+  # Two configs from one template: consumers may point ANTS_DIR at either the
+  # build tree (headers rooted in the source tree) or the install tree
+  # (headers relocated under <prefix>/include/ANTs).
+  set(ANTS_CONFIG_IS_BUILD_TREE TRUE)
+  set(ANTS_CONFIG_INCLUDE_ROOT "${${PROJECT_NAME}_SOURCE_DIR}")
+  set(ANTS_CONFIG_GENERATED_HEADER_DIR "${CMAKE_CURRENT_BINARY_DIR}")
   configure_package_config_file(
     "${${PROJECT_NAME}_SOURCE_DIR}/CMake/ANTSConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/ANTSConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_CURRENT_BINARY_DIR}"
+    INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}")
+
+  set(ANTS_CONFIG_IS_BUILD_TREE FALSE)
+  set(ANTS_CONFIG_INCLUDE_ROOT "")
+  set(ANTS_CONFIG_GENERATED_HEADER_DIR "")
+  configure_package_config_file(
+    "${${PROJECT_NAME}_SOURCE_DIR}/CMake/ANTSConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/install/ANTSConfig.cmake"
     INSTALL_DESTINATION "${ANTS_CONFIG_INSTALL_DIR}")
 
   write_basic_package_version_file(
@@ -240,7 +255,7 @@ if(NOT ANTS_INSTALL_BIN_ONLY)
     COMPATIBILITY SameMajorVersion)
 
   install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/ANTSConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/install/ANTSConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/ANTSConfigVersion.cmake"
     DESTINATION "${ANTS_CONFIG_INSTALL_DIR}"
     COMPONENT DEVELOPMENT_antsUtilities)
