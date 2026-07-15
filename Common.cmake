@@ -44,23 +44,18 @@ mark_as_advanced(ITK_USE_SYSTEM_PNG)
 # endif()
 #####################################################################################################
 
-set(USE_ITKv6 ON)
-set(ITK_VERSION_MAJOR 6 CACHE STRING "Choose the expected ITK major version to build ANTS only version 6 allowed.")
+set(ITK_VERSION_MAJOR 6 CACHE STRING "Choose the expected ITK major version to build ANTs: 6 (default) or 5.")
 # Set the possible values of ITK major version for cmake-gui
-set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "6")
-set(expected_ITK_VERSION_MAJOR ${ITK_VERSION_MAJOR})
-if(${ITK_VERSION_MAJOR} VERSION_LESS ${expected_ITK_VERSION_MAJOR})
-  # Note: Since ITKv3 doesn't include a ITKConfigVersion.cmake file, let's check the version
-  #       explicitly instead of passing the version as an argument to find_package() command.
-  message(FATAL_ERROR "Could not find a configuration file for package \"ITK\" that is compatible "
-                      "with requested version \"${expected_ITK_VERSION_MAJOR}\".\n"
-                      "The following configuration files were considered but not accepted:\n"
-                      "  ${ITK_CONFIG}, version: ${ITK_VERSION_MAJOR}.${ITK_VERSION_MINOR}.${ITK_VERSION_PATCH}\n")
+set_property(CACHE ITK_VERSION_MAJOR PROPERTY STRINGS "6" "5")
+if(NOT ITK_VERSION_MAJOR MATCHES "^[56]$")
+  message(FATAL_ERROR "ITK_VERSION_MAJOR must be 6 (default) or 5, but is \"${ITK_VERSION_MAJOR}\".")
 endif()
+set(USE_ITKv5 OFF)
+set(USE_ITKv6 OFF)
+set(USE_ITKv${ITK_VERSION_MAJOR} ON)
 
-if(${ITK_VERSION_MAJOR} STREQUAL "3")
-  message(FATAL_ERROR "ITKv3 is no longer supported")
-endif()
+# find_package(ITK) overwrites ITK_VERSION_MAJOR with the version actually found.
+set(ANTs_EXPECTED_ITK_VERSION_MAJOR ${ITK_VERSION_MAJOR})
 
 
 #-----------------------------------------------------------------------------
