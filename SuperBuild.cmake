@@ -185,7 +185,14 @@ macro(_expand_external_project_vars)
     set(target_info_list ${target_info_list})
     list(GET varname_and_vartype 0 _varname)
     list(GET varname_and_vartype 1 _vartype)
-    list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_ARGS -D${_varname}:${_vartype}=${${_varname}})
+    if(
+      NOT (
+        _varname MATCHES "^CMAKE_(LIBRARY|ARCHIVE|RUNTIME|BUNDLE)_OUTPUT_DIRECTORY$"
+        AND "${${_varname}}" STREQUAL ""
+      )
+    )
+      list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_ARGS -D${_varname}:${_vartype}=${${_varname}})
+    endif()
     list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARNAMES ${_varname})
   endforeach()
 endmacro()
