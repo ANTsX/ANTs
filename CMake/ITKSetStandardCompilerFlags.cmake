@@ -59,11 +59,7 @@ function(check_compiler_warning_flags c_warning_flags_var cxx_warning_flags_var)
   set(${cxx_warning_flags_var} "" PARENT_SCOPE)
 
   # Check this list on C compiler only
-  set(
-    c_flags
-    -Wno-uninitialized
-    -Wno-unused-parameter
-  )
+  set(c_flags -Wno-unused-parameter)
 
   ## On windows, the most verbose compiler options
   ## is reporting 1000's of wanings in windows
@@ -75,66 +71,27 @@ function(check_compiler_warning_flags c_warning_flags_var cxx_warning_flags_var)
     ## and then disable warnings one by one
     ## set(VerboseWarningsFlag -Wall -wd4820 -wd4682)
   else()
-    ## with Intel compiler, the -Wall compiler options
-    ## is reporting 1000's of remarks of trivial items
-    ## that will only slow day-to-day operations
-    ## specify -w2 to restrict to only warnings and errors
-    if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
-      set(USING_INTEL_ICC_COMPILER TRUE)
-    endif()
-    if(${CMAKE_CXX_COMPILER} MATCHES "icpc.*$")
-      set(USING_INTEL_ICC_COMPILER TRUE)
-    endif()
-    if(USING_INTEL_ICC_COMPILER)
-      # NOTE -w2 is close to gcc's -Wall warning level, -w5 is intels -Wall warning level, and it is too verbose.
-      set(
-        VerboseWarningsFlag
-        -w2
-        -wd1268
-        -wd981
-        -wd383
-        -wd1418
-        -wd1419
-        -wd2259
-        -wd1572
-        -wd424
-      )
-      #-wd424  #Needed for Intel compilers with remarki  #424: extra ";" ignored
-      #-wd383  #Needed for Intel compilers with remark   #383: value copied to temporary, reference to temporary used
-      #-wd981  #Needed for Intel compilers with remark   #981: operands are evaluated in unspecified order
-      #-wd1418 #Needed for Intel compilers with remark  #1418: external function definition with no prior declaration
-      #-wd1419 #Needed for Intel compilers with remark  #1419: external declaration in primary source file
-      #-wd1572 #Needed for Intel compilers with remark  #1572: floating-point equality and inequality comparisons are unreliable
-      #-wd2259 #Needed for Intel compilers with remark  #2259: non-pointer conversion from "itk::SizeValueType={unsigned long}" to "double" may lose significant bits
-      #-wd1268 #Needed for Intel compilers with warning #1268: support for exported templates is disabled
-    else()
-      set(VerboseWarningsFlag -Wall)
-    endif()
+    set(VerboseWarningsFlag -Wall)
   endif()
 
   # Check this list on both C and C++ compilers
   set(
     c_and_cxx_flags
     ${VerboseWarningsFlag}
-    -Wno-long-double #Needed on APPLE
     -Wcast-align
     -Wdisabled-optimization
     -Wextra
     -Wformat=2
     -Winvalid-pch
-    -Wno-format-nonliteral
     -Wpointer-arith
     -Wshadow
     -Wunused
     -Wwrite-strings
-    -Wno-strict-overflow
   )
 
   # Check this list on C++ compiler only
   set(
     cxx_flags
-    -Wno-deprecated
-    -Wno-invalid-offsetof
     -Wno-undefined-var-template # suppress invalid warning when explicitly instantiated in another translation unit
     -Woverloaded-virtual
     -Wctad-maybe-unsupported
@@ -219,7 +176,6 @@ function(
 
   set(${c_optimization_flags_var} "${CMAKE_C_WARNING_FLAGS}" PARENT_SCOPE)
   set(${cxx_optimization_flags_var} "${CMAKE_CXX_WARNING_FLAGS}" PARENT_SCOPE)
-
 endfunction()
 
 macro(check_compiler_platform_flags)
@@ -339,43 +295,15 @@ macro(check_compiler_platform_flags)
       )
     endif()
 
-    check_sse2_flags(${PROJECT_NAME}_SSE2_CFLAGS_IF_AVAILABLE)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+      # Setting sse2 flags only make sense on 32 bit architectures
+      # on 64bit systems, sse2 support is required, and compiler support is defaulted
+      check_sse2_flags(${PROJECT_NAME}_SSE2_CFLAGS_IF_AVAILABLE)
+    endif()
     set(
       ${PROJECT_NAME}_REQUIRED_CXX_FLAGS
       "${${PROJECT_NAME}_REQUIRED_CXX_FLAGS} ${${PROJECT_NAME}_SSE2_CFLAGS_IF_AVAILABLE}"
     )
-  endif()
-
-  #-----------------------------------------------------------------------------
-
-  # for the gnu compiler a -D_PTHREADS is needed on sun
-  # for the native compiler a -mt flag is needed on the sun
-  if(CMAKE_SYSTEM MATCHES "SunOS.*")
-    if(CMAKE_COMPILER_IS_GNUCXX)
-      set(${PROJECT_NAME}_REQUIRED_CXX_FLAGS "${${PROJECT_NAME}_REQUIRED_CXX_FLAGS} -D_PTHREADS")
-      set(${PROJECT_NAME}_REQUIRED_LINK_FLAGS "${${PROJECT_NAME}_REQUIRED_LINK_FLAGS} -lrt")
-    else()
-      set(${PROJECT_NAME}_REQUIRED_CXX_FLAGS "${${PROJECT_NAME}_REQUIRED_CXX_FLAGS} -mt")
-      set(${PROJECT_NAME}_REQUIRED_C_FLAGS "${${PROJECT_NAME}_REQUIRED_C_FLAGS} -mt")
-    endif()
-    # Add flags for the SUN compiler to provide all the methods for std::allocator.
-    #
-    check_cxx_source_compiles(
-      "-features=no%anachronisms"
-      SUN_COMPILER
-    )
-    if(SUN_COMPILER)
-      check_cxx_source_compiles(
-        "-library=stlport4"
-        SUN_COMPILER_HAS_STL_PORT_4
-      )
-      if(SUN_COMPILER_HAS_STL_PORT_4)
-        set(
-          ${PROJECT_NAME}_REQUIRED_CXX_FLAGS
-          "${${PROJECT_NAME}_REQUIRED_CXX_FLAGS} -library=stlport4"
-        )
-      endif()
-    endif()
   endif()
 
   # mingw thread support
