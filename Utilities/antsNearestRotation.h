@@ -3,18 +3,32 @@
 
 // Nearest-rotation (special-orthogonal polar factor) helper used by the
 // principal-axis initializers (antsAffineInitializer, antsAI, ImageMath) to
-// solve Wahba's problem. Prefers the Eigen-backed itk::Math::SVD when the ITK in
-// use provides it, otherwise vnl_svd; the result is backend-invariant either way.
+// solve Wahba's problem. Prefers the Eigen-backed itk::bridge::Math::SVD when
+// the ITK in use provides it, otherwise vnl_svd; the result is backend-invariant.
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_matrix_fixed.h"
 #include "vnl/algo/vnl_svd.h"
 #include "vnl/algo/vnl_svd_fixed.h"
 #include "vnl/algo/vnl_determinant.h"
 
-#if __has_include(<itkMathSVD.h>)
+// itkBridgeMathSVD.h is the tiered spelling (ITK >= 6.0 after the
+// itk::bridge::Math move); itkMathSVD.h is the pre-move name. Probing the
+// new path first keeps both ITK vintages on the Eigen path.
+#if __has_include(<itkBridgeMathSVD.h>)
+#  include "itkBridgeMathSVD.h"
+#  ifndef ANTS_HAS_ITK_MATH_SVD
+#    define ANTS_HAS_ITK_MATH_SVD 1
+#  endif
+#  ifndef ANTS_ITK_MATH_NS
+#    define ANTS_ITK_MATH_NS itk::bridge::Math
+#  endif
+#elif __has_include(<itkMathSVD.h>)
 #  include "itkMathSVD.h"
 #  ifndef ANTS_HAS_ITK_MATH_SVD
 #    define ANTS_HAS_ITK_MATH_SVD 1
+#  endif
+#  ifndef ANTS_ITK_MATH_NS
+#    define ANTS_ITK_MATH_NS itk::Math
 #  endif
 #endif
 
@@ -46,7 +60,7 @@ vnl_matrix<T>
 NearestRotation(const vnl_matrix<T> & A)
 {
 #if defined(ANTS_HAS_ITK_MATH_SVD)
-  const auto s = itk::Math::SVD(A);
+  const auto s = ANTS_ITK_MATH_NS::SVD(A);
   return NearestRotationImpl<vnl_matrix<T>, T>(s.U, s.V);
 #else
   vnl_svd<T> s(A);
@@ -60,7 +74,7 @@ NearestRotation(const vnl_matrix_fixed<T, VDim, VDim> & A)
 {
   using MatrixType = vnl_matrix_fixed<T, VDim, VDim>;
 #if defined(ANTS_HAS_ITK_MATH_SVD)
-  const auto s = itk::Math::SVD(A);
+  const auto s = ANTS_ITK_MATH_NS::SVD(A);
   return NearestRotationImpl<MatrixType, T>(s.U, s.V);
 #else
   vnl_svd_fixed<T, VDim, VDim> s(A);
