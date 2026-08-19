@@ -20,20 +20,24 @@
 // diffusion-tensor inverses below, when a new-enough ITK provides it. Gated on a
 // compile-time capability check so this still builds against the currently pinned
 // ITK (which takes the legacy vnl_matrix_inverse path).
-#if __has_include(<itkMathLDLT.h>)
+#if __has_include(<itkBridgeMathLDLT.h>)
+#  include <itkBridgeMathLDLT.h>
+#elif __has_include(<itkMathLDLT.h>)
 #  include <itkMathLDLT.h>
 #endif
 
 namespace matHelper
 {
-// Inverse of a SYMMETRIC matrix. With itk::Math::SolveSymmetric available, build
+// Inverse of a SYMMETRIC matrix. With itk::bridge::Math::SolveSymmetric available, build
 // the inverse column-by-column via LDLT solves (DT X = I); otherwise fall back to
 // vnl_matrix_inverse. Validated equivalent to <=2.6e-15 on random SPD 3x3 tensors
 // (see .devlocal/tensor-solve-prototype).
 inline vnl_matrix<double>
 SymmetricInverse(const vnl_matrix<double> & A)
 {
-#ifdef ITK_MATH_HAS_SOLVE_SYMMETRIC
+#if defined(ITK_BRIDGE_MATH_HAS_SOLVE_SYMMETRIC)
+  return itk::bridge::Math::InverseSymmetric(A);
+#elif defined(ITK_MATH_HAS_SOLVE_SYMMETRIC)
   return itk::Math::InverseSymmetric(A);
 #else
   return vnl_matrix_inverse<double>(A).inverse();
