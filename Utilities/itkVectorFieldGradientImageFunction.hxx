@@ -24,7 +24,9 @@
 // left-Cauchy-Green tensor inverse in the Eulerian strain below, when a
 // new-enough ITK provides it. Gated on a compile-time capability check so this
 // still builds against the currently pinned ITK (legacy vnl_matrix_inverse path).
-#if __has_include(<itkMathLDLT.h>)
+#if __has_include(<itkBridgeMathLDLT.h>)
+#  include <itkBridgeMathLDLT.h>
+#elif __has_include(<itkMathLDLT.h>)
 #  include <itkMathLDLT.h>
 #endif
 
@@ -32,7 +34,7 @@ namespace itk
 {
 namespace vfg_detail
 {
-// Inverse of a SYMMETRIC matrix. With itk::Math::SolveSymmetric available, build
+// Inverse of a SYMMETRIC matrix. With itk::bridge::Math::SolveSymmetric available, build
 // the inverse column-by-column via LDLT solves (A X = I); otherwise fall back to
 // vnl_matrix_inverse. Validated equivalent to <=2.6e-15 on random SPD tensors
 // (see .devlocal/tensor-solve-prototype).
@@ -40,7 +42,9 @@ template <typename T>
 vnl_matrix<T>
 SymmetricInverse(const vnl_matrix<T> & A)
 {
-#ifdef ITK_MATH_HAS_SOLVE_SYMMETRIC
+#if defined(ITK_BRIDGE_MATH_HAS_SOLVE_SYMMETRIC)
+  return itk::bridge::Math::InverseSymmetric(A);
+#elif defined(ITK_MATH_HAS_SOLVE_SYMMETRIC)
   return itk::Math::InverseSymmetric(A);
 #else
   return vnl_matrix_inverse<T>(A).inverse();
