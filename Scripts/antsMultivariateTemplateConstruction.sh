@@ -80,7 +80,11 @@ Optional arguments:
           2 = Unsharp mask
 
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM
+          2 == use PEXEC (localhost, see -j), 3 == Apple XGrid, 4 == PBS qsub, 5 == SLURM
+
+          Use -T to control how many threads are used by each parallel job. For slurm,
+          --cpus-per-task is set automatically. For SGE and PBS, you must specify the parallel
+          environment options with -p in order to reserve the correct number of CPUs.
 
      -g:  Gradient step size (default 0.25) -- smaller in magnitude results in
           more cautious steps. Use smaller steps to refine template details.
@@ -88,8 +92,30 @@ Optional arguments:
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
-     -j:  Number of cpu cores to use.  For pexec option (default 2; requires "-c 2")
-          or Slurm's --cpu-per-tasks.
+     -j:  Number of parallel processes to use for pexec execution (-c 2). The default is 2. Each process may use
+          multiple threads, see the -T option. For example, if you have 8 cores, you could use -j 4 -T 2 to run
+          4 parallel processes, each using 2 threads, or -j 8 -T 1 to run 8 parallel processes, each using 1 thread.
+
+          If not using pexec, this option is ignored.
+
+     -T:  Number of ITK threads to use in registration and other ANTs programs. For cluster jobs, this value will be
+          set inside the job script.
+
+          A reasonable range for this value is 1 to 8. The optimal setting depends on the system and data but in general,
+          prefer more parallel processes and fewer threads.
+
+          For slurm, this script will set the '--cpus-per-task' option in the sbatch command line.
+          For SGE and PBS, you must specify the parallel environment options with -p in order to reserve the
+          correct number of CPUs.
+
+          For parallel execution, the default is to use the environment variable ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
+          if it is defined, or 1 otherwise.
+
+          For serial execution (-c 0), the default is to use the environment variable ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
+          if it is defined, otherwise the min(8, number of system CPU cores).
+
+          If the number of threads is set to 0, or if ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=0, then the script will use
+          min(8, number of system CPU cores).
 
      -k:  Number of modalities used to construct the template (default 1)
 
@@ -99,7 +125,9 @@ Optional arguments:
 
      -n:  N4BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on
 
-     -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set paths, etc)
+     -p:  Commands to prepend to job scripts. Job options for SGE/PBS/SLURM can be included here, but
+          command-line args in this script will take precedence for wall time (see -u), memory (see -v),
+          and multithreading (see -T).
 
      -r:  Do rigid-body registration of inputs to the initial template, before doing the main
           pairwise registration. 0 == off 1 == on (default 0). If you are trying to refine or update
@@ -127,6 +155,12 @@ Optional arguments:
              LDDMM          : Like SY, but with asymmetric time-dependent gradient estimation
              S2             : Like SY, but with no time-dependent gradient estimation
 
+     -u:  Walltime (default = 20:00:00):  Option for PBS/SLURM qsub specifying requested time
+          per pairwise registration.
+
+     -v:  Memory limit (default = 8G):  Option for PBS/SLURM qsub specifying requested memory
+          per pairwise registration.
+
      -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
 
      -y:  Update the template with the full affine transform (default 1). If 0, the rigid
@@ -142,6 +176,7 @@ Optional arguments:
      -b:  Boolean for saving full iteration output to directories (default = 0). If 1, images and warps
           are saved for each pairwise registration at each iteration. Otherwise, only templates and the shape
           update warps are saved.
+
 
 Example:
 
@@ -472,7 +507,10 @@ N4CORRECT=1 # initialize optional parameter
 DOQSUB=1 # By default, antsMultivariateTemplateConstruction tries to do things in parallel
 GRADIENTSTEP=0.25 # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
 ITERATIONLIMIT=4
-CORES=2
+# Number of threads to use, we set this to -1 as a default, after arg parsing we will set
+# this to a sensible value if it is not specified.
+NUMBER_OF_THREADS=-1
+PEXEC_PARALLEL_PROCESSES=2
 TDIM=0
 RIGID=0
 RIGIDTYPE="" # set to an empty string to use affine initialization
@@ -483,8 +521,12 @@ TEMPLATES=()
 CURRENTIMAGESET=()
 XGRIDOPTS=""
 SCRIPTPREPEND=""
-# System specific queue options, eg "-q name" to submit to a specific queue
-# It can be set to an empty string if you do not need any special cluster options
+WALLTIME="20:00:00"
+MEMORY="8G"
+# System specific queue options for SGE/PBS/SLURM, eg "-q name" to submit to a specific queue.
+# It can be set to an empty string if you do not need any special cluster options.
+# Some queue options are additive (eg, -l for resources) so check that your options are compatible
+# with what's hard-coded below
 QSUBOPTS="" # EDIT THIS
 OUTPUTNAME=antsBTP
 TEMPLATENAME=${OUTPUTNAME}template
@@ -517,8 +559,28 @@ if [[ $# -eq 0 || ${1:-} == "-h" ]];
 fi
 
 # reading command line arguments
-while getopts "A:a:b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
+while getopts "A:T:a:b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:u:v:w:x:y:z:" OPT
   do
+
+  case $OPT in
+      A|T|a|b|c|d|e|i|j|k|l|n|r|y)
+      if [[ ! $OPTARG =~ ^[0-9]+$ ]];
+        then
+          echo "Option -$OPT requires a non-negative integer, but received '$OPTARG'." >&2
+          exit 1
+        fi
+      # Force base 10 so values with leading zeroes are safe in arithmetic expressions.
+      OPTARG=$((10#$OPTARG))
+      ;;
+      g)
+      if [[ ! $OPTARG =~ ^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)([eE][+-]?[0-9]+)?$ ]];
+        then
+          echo "Option -$OPT requires a numeric value, but received '$OPTARG'." >&2
+          exit 1
+        fi
+      ;;
+  esac
+
   case $OPT in
       h) #help
    Usage >&2
@@ -526,6 +588,9 @@ while getopts "A:a:b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
    ;;
       A) # Sharpening method
       SHARPENMETHOD=$OPTARG
+   ;;
+      T) # number of threads to use for each process
+   NUMBER_OF_THREADS=$OPTARG
    ;;
       a) # summarizing statistic
       STATSMETHOD=$OPTARG
@@ -553,8 +618,13 @@ while getopts "A:a:b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
       i) #iteration limit (default = 3)
    ITERATIONLIMIT=$OPTARG
    ;;
-      j) #number of cpu cores to use (default = 2)
-   CORES=$OPTARG
+      j) #number of parallel processes to use for pexec execution (default = 2)
+   PEXEC_PARALLEL_PROCESSES=$OPTARG
+   if [[ $PEXEC_PARALLEL_PROCESSES -lt 2 ]];
+     then
+       echo " Number of parallel processes for pexec must be > 1. Use -c 0 to run serially."
+       exit 1
+     fi
    ;;
       k) #number of modalities used to construct the template (default = 1)
    NUMBEROFMODALITIES=$OPTARG
@@ -584,7 +654,13 @@ while getopts "A:a:b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
       t) #transformation model
    TRANSFORMATIONTYPE=$OPTARG
    ;;
-      x) # XGrid options
+      u)
+   WALLTIME=$OPTARG
+   ;;
+      v)
+   MEMORY=$OPTARG
+   ;;
+      x) # XGrid options (deprecated)
    XGRIDOPTS=$OPTARG
    ;;
       y) # update with full affine, 0 for no rigid (default = 1)
@@ -596,9 +672,43 @@ while getopts "A:a:b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
       \?) # getopts issues an error message
       Usage >&2
       exit 1
-      ;;
   esac
 done
+
+# Set up multi-threading
+if [[ $NUMBER_OF_THREADS -lt 0 ]];
+  then
+    # Number of threads not set on the command line, try ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
+    if [[ -n ${ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS:-} ]];
+      then
+	    NUMBER_OF_THREADS=${ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS}
+        echo "Number of threads per process not set on the command line, using environment value."
+        echo "Environment has ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=${ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS}"
+      else
+        if [[ $DOQSUB -eq 0 ]];
+          then
+            NUMBER_OF_THREADS=$(( cpu_count < 8 ? cpu_count : 8 ))
+            echo "Number of threads not set on the command line or via ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS."
+            echo "Using min(cpu_count, 8) = ${NUMBER_OF_THREADS} threads per process for serial execution"
+          else
+            NUMBER_OF_THREADS=1
+            echo "Number of threads not set on the command line or via ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS."
+            echo "Defaulting to 1 thread per parallel job"
+          fi
+      fi
+  else
+    echo "Number of threads per process set to $NUMBER_OF_THREADS on the command line"
+  fi
+
+if [[ $NUMBER_OF_THREADS -eq 0 ]];
+  then
+    NUMBER_OF_THREADS=$(( cpu_count < 8 ? cpu_count : 8 ))
+    echo "Number of threads set to 0. Using min(cpu_count, 8) = ${NUMBER_OF_THREADS} threads per process"
+  fi
+
+# This sets an appropriate number of threads for serial / pexec jobs and also things that run locally
+# like AverageImages, ImageMath, ImageSetStatistics, MeasureMinMaxMean, etc
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$NUMBER_OF_THREADS
 
 if [[ $TDIM -eq 4 && $TRANSFORMATIONTYPE == "GR" ]]; then
   # Use stronger regularization for 4D mapping, where deformations should be small and local.
@@ -996,6 +1106,7 @@ if [[ "$RIGID" -eq 1 ]];
             fi
 
         echo "$SCRIPTPREPEND" >> "$qscript"
+        printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
 
         IMGbase=`basename "${IMAGESETARRAY[$i]}"`
         BASENAME=` echo "${IMGbase}" | cut -d '.' -f 1 `
@@ -1036,7 +1147,7 @@ if [[ "$RIGID" -eq 1 ]];
             sleep 0.5
         elif [[ $DOQSUB -eq 4 ]];
             then
-            id=`qsub -N antsrigid $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l walltime=20:00:00 -l mem=8gb "$qscript" | awk '{print $1}'`
+            id=`qsub -N antsrigid -l mem=${MEMORY} -l walltime=${WALLTIME} $QSUBOPTS "$qscript" | awk '{print $1}'`
             jobIDs+=("$id")
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1051,7 +1162,7 @@ if [[ "$RIGID" -eq 1 ]];
             jobIDs+=("$id")
         elif [[ $DOQSUB -eq 5 ]];
             then
-            id=`sbatch --job-name=antsrigid $QSUBOPTS --nodes=1 --cpus-per-task=$CORES --time=20:00:00 --mem=8192M "$qscript" | rev | cut -f1 -d\ | rev`
+            id=`sbatch --job-name=antsrigid --nodes=1 --ntasks=1 --cpus-per-task=$NUMBER_OF_THREADS --time=${WALLTIME} --mem=${MEMORY} $QSUBOPTS "$qscript" | rev | cut -f1 -d\ | rev`
             jobIDs+=("$id")
             sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
@@ -1096,12 +1207,12 @@ if [[ "$RIGID" -eq 1 ]];
         then
         echo
         echo "--------------------------------------------------------------------------------------"
-        echo " Starting ANTS rigid registration on max ${CORES} cpucores. "
+        echo " Starting ANTS rigid registration with ${PEXEC_PARALLEL_PROCESSES} parallel processes. "
         echo " Progress can be viewed in ${outdir}/job*_metriclog.txt"
         echo "--------------------------------------------------------------------------------------"
         jobfnamepadding #adds leading zeros to the jobnames, so they are carried out chronologically
         chmod +x "${outdir}"/job*_r.sh
-        "$PEXEC" -j "${CORES}" "sh" "${outdir}"/job*_r.sh
+        "$PEXEC" -j "${PEXEC_PARALLEL_PROCESSES}" "sh" "${outdir}"/job*_r.sh
     fi
     if [[ $DOQSUB -eq 3 ]];
         then
@@ -1418,6 +1529,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         if [[ $DOQSUB -eq 1 ]];
             then
             echo -e "$SCRIPTPREPEND" > "$qscript"
+            printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
             echo -e "$exe" >> "$qscript"
             id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash $QSUBOPTS "$qscript" | awk '{print $3}'`
             jobIDs+=("$id")
@@ -1425,8 +1537,9 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         elif [[ $DOQSUB -eq 4 ]];
             then
             echo -e "$SCRIPTPREPEND" > "$qscript"
+            printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
             echo -e "$exe" >> "$qscript"
-            id=`qsub -N antsdef${i} -q nopreempt -l nodes=1:ppn=1 -l walltime=20:00:00 -l mem=8gb $QSUBOPTS "$qscript" | awk '{print $1}'`
+            id=`qsub -N antsdef${i} -l walltime=${WALLTIME} -l mem=${MEMORY} $QSUBOPTS "$qscript" | awk '{print $1}'`
             jobIDs+=("$id")
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1435,6 +1548,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         elif [[ $DOQSUB -eq 3 ]];
             then
             echo -e "$SCRIPTPREPEND" > "$qscript"
+            printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
             echo -e "$exe" >> "$qscript"
             id=`xgrid $XGRIDOPTS -job submit /bin/bash "$qscript" | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
             jobIDs+=("$id")
@@ -1442,8 +1556,9 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             then
             echo '#!/bin/sh' > "$qscript"
             echo -e "$SCRIPTPREPEND" >> "$qscript"
+            printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
             echo -e "$exe" >> "$qscript"
-            id=`sbatch --job-name=antsdef${i} --nodes=1 --cpus-per-task=$CORES --time=20:00:00 --mem=8192M $QSUBOPTS "$qscript" | rev | cut -f1 -d\ | rev`
+            id=`sbatch --job-name=antsdef${i} --nodes=1 --ntasks=1 --cpus-per-task=$NUMBER_OF_THREADS --time=${WALLTIME} --mem=${MEMORY} $QSUBOPTS "$qscript" | rev | cut -f1 -d\ | rev`
             jobIDs+=("$id")
             sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
@@ -1487,12 +1602,12 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         then
         echo
         echo "--------------------------------------------------------------------------------------"
-        echo " Starting ANTS registration on max ${CORES} cpucores. Iteration: $itdisplay of $ITERATIONLIMIT"
+        echo " Starting ANTS registration using ${PEXEC_PARALLEL_PROCESSES} parallel processes. Iteration: $itdisplay of $ITERATIONLIMIT"
         echo " Progress can be viewed in job*_${i}_metriclog.txt"
         echo "--------------------------------------------------------------------------------------"
         jobfnamepadding #adds leading zeros to the jobnames, so they are carried out chronologically
         chmod +x "${outdir}"/job*.sh
-        "$PEXEC" -j "${CORES}" sh "${outdir}"/job*.sh
+        "$PEXEC" -j "${PEXEC_PARALLEL_PROCESSES}" sh "${outdir}"/job*.sh
     fi
     if [[ $DOQSUB -eq 3 ]];
         then

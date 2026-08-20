@@ -153,7 +153,7 @@ while getopts j:rh OPT; do # "j:" waits for an argument "h" doesnt
 done
 
 # Main program
-echo Using max $MAX_NPROC parallel threads
+echo Using max $MAX_NPROC parallel processes
 
 if [ $MAX_NPROC -eq 1 ] ; then
 echo " Dont use pexec to run 1 process at a time. "
