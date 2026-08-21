@@ -25,8 +25,10 @@ Examples:
 
     `basename $0` -j 6 -r \"convert -scale 50% * small/small_*\" *.jpg"
 
-In case you terminate this script prematurely by pressing CTRL + C, run
-${here}/killme.sh to terminate any remaining processes.
+CTRL + C and SIGTERM automatically terminate processes started by this script.
+If the script is killed in a way that prevents cleanup, run ./killme.sh to
+terminate any processes recorded before it stopped.
+
 
 USAGE
     exit 0
@@ -58,8 +60,9 @@ Examples:
 
     `basename $0` -j 6 -r \"convert -scale 50% * small/small_*\" *.jpg"
 
-In case you terminate this script prematurely by pressing CTRL + C, run
-${here}/killme.sh to terminate any remaining processes.
+CTRL + C and SIGTERM automatically terminate processes started by this script.
+If the script is killed in a way that prevents cleanup, run ./killme.sh to
+terminate any processes recorded before it stopped.
 
 --------------------------------------------------------------------------------------
 Original script by Kawakamasu:
@@ -132,11 +135,60 @@ function checkqueuemac {
     done
 }
 
+function signal_descendants {
+    local parent_pid=$1
+    local signal_name=$2
+    local child_pid
+    local child_parent_pid
+
+    while read -r child_pid child_parent_pid; do
+        if [[ $child_parent_pid -eq $parent_pid ]]; then
+            signal_descendants "$child_pid" "$signal_name"
+            if kill -0 "$child_pid" 2>/dev/null; then
+                printf 'sending %s to process %s\n' "$signal_name" "$child_pid"
+                kill -s "$signal_name" "$child_pid" 2>/dev/null || true
+            fi
+        fi
+    done <<< "$PROCESS_TABLE"
+}
+
+function cleanup {
+    printf '\n*** Performing cleanup, please wait ***\n\n'
+
+    # The -Ao form is supported by both GNU/Linux and macOS/BSD ps.
+    if PROCESS_TABLE=$(ps -Ao pid=,ppid=); then
+        signal_descendants "$$" TERM
+        sleep 3
+        signal_descendants "$$" KILL
+    else
+        printf 'Unable to inspect child processes during cleanup.\n' >&2
+    fi
+
+    rm -f "${here}/killme.sh"
+}
+
+function control_c {
+    trap - SIGINT SIGTERM
+    printf '\n*** User pressed CTRL + C ***\n'
+    cleanup
+    printf '\n*** Script cancelled by user ***\n'
+    exit 130
+}
+
+function control_term {
+    trap - SIGINT SIGTERM
+    cleanup
+    exit 143
+}
+
 here=`pwd`
 NUM=0
 QUEUE=""
 MAX_NPROC=2 # default
 REPLACE_CMD=0 # no replacement by default
+
+trap control_c SIGINT
+trap control_term SIGTERM
 
 # parse command line
 if [ $# -eq 0 ]; then #  must be at least one arg
@@ -166,8 +218,8 @@ COMMAND=$1
 shift
 
 # keep list of started processes
-echo "#!/bin/bash" >> ${here}/killme.sh
-chmod +x ${here}/killme.sh
+printf '%s\n' '#!/bin/sh' > "${here}/killme.sh"
+chmod +x "${here}/killme.sh"
 
 for INS in $* # for the rest of the arguments
 do
@@ -183,7 +235,7 @@ do
     # DEFINE COMMAND END
 
     PID=$!
-    echo "kill $PID" >> ${here}/killme.sh
+    printf 'kill %s\n' "$PID" >> "${here}/killme.sh"
     queue $PID
 
     osmac=0
@@ -210,6 +262,6 @@ done
 
 wait # wait for all processes to finish before exit
 
-rm ${here}/killme.sh
+rm -f "${here}/killme.sh"
 
 exit 0
