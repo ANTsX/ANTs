@@ -15,7 +15,7 @@ Optional arguments:
 
      -r:  Replace asterix * in the command string with argument
 
-     -j:  Number of cpu cores to use (default 2)
+     -j:  Number of concurrent jobs to run (default 2, must be more than 1)
 
 Examples:
 
@@ -38,7 +38,7 @@ function Help {
     cat <<HELP
 
 This is a simple wrapper for running processes in parallel. Tested both on
-Mac (Darwin) and Linux (CentOS 5).
+Mac (Darwin) and Linux.
 
 Usage:
 
@@ -50,7 +50,7 @@ Optional arguments:
 
      -r:  Replace asterix * in the command string with argument
 
-     -j:  Number of cpu cores to use (default 2)
+     -j:  Number of concurrent jobs to run (default 2, must be more than 1)
 
 Examples:
 
@@ -59,6 +59,9 @@ Examples:
     `basename $0` -j 3 \"somecommand -r -p\" arg1 arg2 arg3
 
     `basename $0` -j 6 -r \"convert -scale 50% * small/small_*\" *.jpg"
+
+The script does not account for multi-threading, if you specify "-j N" it will
+run N concurrent jobs, even if each of those spawns multiple threads.
 
 CTRL + C and SIGTERM automatically terminate processes started by this script.
 If the script is killed in a way that prevents cleanup, run ./killme.sh to
@@ -82,56 +85,16 @@ function queue {
     NUM=$(($NUM+1))
 }
 
-function regeneratequeuelinux {
+function regeneratequeue {
     OLDREQUEUE=$QUEUE
     QUEUE=""
     NUM=0
     for PID in $OLDREQUEUE
     do
-        if [ -d /proc/$PID ] ; then
+        if kill -0 "$PID" 2>/dev/null; then
             QUEUE="$QUEUE $PID"
             NUM=$(($NUM+1))
         fi
-    done
-}
-
-function checkqueuelinux {
-    OLDCHQUEUE=$QUEUE
-    for PID in $OLDCHQUEUE
-    do
-        if [ ! -d /proc/$PID ] ; then
-            regeneratequeuelinux # at least one PID has finished
-            break
-        fi
-    done
-}
-
-function regeneratequeuemac {
-    OLDREQUEUE=$QUEUE
-    QUEUE=""
-    NUM=0
-    for PID in $OLDREQUEUE
-    do
-	whm=` whoami `
-	num=` ps U $whm | grep -i "${PID} "  | wc -l `
-        if [ $num = 2 ]    ;  then
-            QUEUE="$QUEUE $PID"
-            NUM=$(($NUM+1))
-	fi
-
-    done
-}
-
-function checkqueuemac {
-    OLDCHQUEUE=$QUEUE
-    for PID in $OLDCHQUEUE
-    do
-	whm=` whoami `
-	num=` ps U $whm | grep -i "${PID} "  | wc -l `
-        if [ $num = 1 ]  ; then
-            regeneratequeuemac # at least one PID has finished
-            break
-	fi
     done
 }
 
@@ -238,26 +201,10 @@ do
     printf 'kill %s\n' "$PID" >> "${here}/killme.sh"
     queue $PID
 
-    osmac=0
-    osmac="` uname -a | grep Darwin  `"
-    oslin=0
-    oslin="`uname -a | grep Linux`"
-
-    if [ ${#osmac} -ne 0 ]
-    then
-	while [ $NUM -ge $MAX_NPROC ]; do
-            checkqueuemac
-            sleep 0.5
-	done
-    elif [ ${#oslin} -ne 0 ]
-    then
-	while [ $NUM -ge $MAX_NPROC ]; do
-            checkqueuelinux
-            sleep 0.5
-	done
-    fi
-
-
+    while [ $NUM -ge $MAX_NPROC ]; do
+        sleep 2
+        regeneratequeue
+    done
 done
 
 wait # wait for all processes to finish before exit
