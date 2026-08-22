@@ -21,3 +21,6 @@ bin
 build
 *.orig
 *.bak
+
+# Transient CTest outputs (CTestCostData.txt, LastTest.log)
+**/Testing/Temporary/
