@@ -157,9 +157,13 @@ Optional arguments:
 
      -o:  OutputPrefix; A prefix that is prepended to all output files (default = "antsBTP").
 
-     -p:  Commands to prepend to job scripts. Job options for SGE/PBS/SLURM can be included here, but
-          command-line args in this script will take precedence for wall time (see -u), memory (see -v)
-          and number of cores (see -j).
+     -p:  A command or directive to prepend to job scripts. Repeat -p to add multiple lines; entries
+          are written to job scripts in the order given. Job options for SGE/PBS/SLURM can be included here,
+          but command-line args in this script will take precedence for wall time (see -u), memory (see -v),
+          and multithreading (see -T).
+
+          For slurm, a shebang for '/bin/sh' is always the first line in the job script. For SGE and PBS,
+          the shell interpreter is set to '/bin/bash'.
 
      -r:  Do rigid-body registration of inputs to the initial template, before doing the main
           pairwise registration. 0 == off 1 == on (default 0). If you are trying to refine or update
@@ -319,6 +323,23 @@ function reportMappingParameters {
 REPORTMAPPINGPARAMETERS
 }
 
+function write_script_prepend() {
+  if (( ${#SCRIPTPREPEND[@]} > 0 )); then
+    printf '%s\n' "${SCRIPTPREPEND[@]}"
+  fi
+}
+
+function get_image_stem() {
+  local filename=${1##*/}
+
+  # Treat .gz as a compression suffix, then remove the image-format suffix.
+  # This preserves internal periods for both compressed and uncompressed formats.
+  if [[ $filename == *.gz ]]; then
+    filename=${filename%.gz}
+  fi
+  printf '%s\n' "${filename%.*}"
+}
+
 function summarizeimageset() {
 
   local dim=$1
@@ -350,7 +371,7 @@ function summarizeimageset() {
       local image
       for image in "${images[@]}";
         do
-          echo "$image" >> "${output}_list.txt"
+          printf '%s\n' "$image" >> "${output}_list.txt"
         done
       ImageSetStatistics "$dim" "${output}_list.txt" "$output" 0
       rm "${output}_list.txt"
@@ -518,24 +539,24 @@ function jobfnamepadding {
     elif [[ ! -e ${files[0]} ]]; then
       return 0
     fi
-    BASENAME1=`echo "${files[0]}" | cut -d 'b' -f 1`
+    BASENAME1=`printf '%s\n' "${files[0]}" | cut -d 'b' -f 1`
 
     for file in "${files[@]}"
       do
 
       if [[ "${#file}" -eq "9" ]];
        then
-         BASENAME2=`echo "$file" | cut -d 'b' -f 2 `
+         BASENAME2=`printf '%s\n' "$file" | cut -d 'b' -f 2 `
          mv "$file" "${BASENAME1}b_000${BASENAME2}"
 
       elif [[ "${#file}" -eq "10" ]];
         then
-          BASENAME2=`echo "$file" | cut -d 'b' -f 2 `
+          BASENAME2=`printf '%s\n' "$file" | cut -d 'b' -f 2 `
           mv "$file" "${BASENAME1}b_00${BASENAME2}"
 
       elif [[ "${#file}" -eq "11" ]];
         then
-          BASENAME2=`echo "$file" | cut -d 'b' -f 2 `
+          BASENAME2=`printf '%s\n' "$file" | cut -d 'b' -f 2 `
           mv "$file" "${BASENAME1}b_0${BASENAME2}"
       fi
     done
@@ -555,28 +576,13 @@ for (( g = $WHICHMODALITY; g < ${#IMAGESETARRAY[@]}; g+=$NUMBEROFMODALITIES ))
   done
 }
 
-cleanup()
-{
-  echo "\n*** Performing cleanup, please wait ***\n"
-
-    runningANTSpids=$( ps --ppid $$ -o pid= )
-
-  for thePID in $runningANTSpids
-  do
-      echo "killing:  ${thePID}"
-      kill "${thePID}"
-  done
-
-  return $?
-}
-
 control_c()
 # run if user hits control-c
 {
-  echo -en "\n*** User pressed CTRL + C ***\n"
-  cleanup
-  exit $?
-  echo -en "\n*** Script cancelled by user ***\n"
+  trap - SIGINT
+  printf '\n*** User pressed CTRL + C ***\n'
+  printf '\n*** Script cancelled by user ***\n'
+  exit 130
 }
 
 #initializing variables with global scope
@@ -612,7 +618,7 @@ REGTEMPLATES=()
 TEMPLATES=()
 CURRENTIMAGESET=()
 XGRIDOPTS=""
-SCRIPTPREPEND=""
+SCRIPTPREPEND=()
 WALLTIME="20:00:00"
 MEMORY="8G"
 # System specific queue options for SGE/PBS/SLURM, eg "-q name" to submit to a specific queue.
@@ -740,7 +746,7 @@ while getopts "A:T:a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
    TEMPLATENAME=${OUTPUTNAME}template
    ;;
       p) #Script prepend
-   SCRIPTPREPEND=$OPTARG
+   SCRIPTPREPEND+=( "$OPTARG" )
    ;;
       m) #similarity model
    METRICTYPE[${#METRICTYPE[@]}]=$OPTARG
@@ -1198,7 +1204,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         for (( j = 0; j < ${#CURRENTIMAGESET[@]}; j+=1 ))
           do
             IMGbase=`basename "${CURRENTIMAGESET[$j]}"`
-            BASENAME=` echo "${IMGbase}" | cut -d '.' -f 1 `
+            BASENAME=$(get_image_stem "$IMGbase")
             COM="${OUTPUT_DIR}/initialCOM${i}_${j}_${IMGbase}"
             COMTRANSFORM="${OUTPUT_DIR}/initialCOM${i}_${j}_${BASENAME}.mat"
             antsAI -d "${DIM}" --convergence 0 --verbose 1 -m "Mattes[${TEMPLATES[$i]},${CURRENTIMAGESET[$j]},32,None]" -o "${COMTRANSFORM}" -t AlignCentersOfMass
@@ -1271,17 +1277,17 @@ if [[ "$RIGID" -eq 1 ]];
         if [[ $DOQSUB -eq 5 ]];
             then
             # SLURM job scripts must start with a shebang
-            echo '#!/bin/sh' > "$qscript"
+            printf '%s\n' '#!/bin/sh' > "$qscript"
             fi
 
-        echo "$SCRIPTPREPEND" >> "$qscript"
+        write_script_prepend >> "$qscript"
         printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
 
         IMGbase=`basename "${IMAGESETARRAY[$i]}"`
-        BASENAME=` echo "${IMGbase}" | cut -d '.' -f 1 `
+        BASENAME=$(get_image_stem "$IMGbase")
         RIGID="${outdir}/rigid${i}_0_${IMGbase}"
 
-        echo "$exe" >> "$qscript"
+        printf '%s\n' "$exe" >> "$qscript"
 
         exe2='';
         pexe2='';
@@ -1292,19 +1298,19 @@ if [[ "$RIGID" -eq 1 ]];
             k=0
             k=$((i+j))
             IMGbase=`basename "${IMAGESETARRAY[$k]}"`
-            BASENAME=` echo "${IMGbase}" | cut -d '.' -f 1 `
+            BASENAME=$(get_image_stem "$IMGbase")
             RIGID="${outdir}/rigid${i}_${j}_${IMGbase}"
             IMGbaseBASE=`basename "${IMAGESETARRAY[$i]}"`
-            BASENAMEBASE=` echo "${IMGbaseBASE}" | cut -d '.' -f 1 `
+            BASENAMEBASE=$(get_image_stem "$IMGbaseBASE")
             printf -v input_k_q '%q' "${IMAGESETARRAY[$k]}"
             printf -v rigid_q '%q' "$RIGID"
             printf -v rigid_affine_q '%q' "${outdir}/rigid${i}_0GenericAffine.mat"
             printf -v template_j_q '%q' "${TEMPLATES[$j]}"
-            exe2="$exe2 ${WARP} -d $DIM --float $USEFLOAT --verbose 1 -i ${input_k_q} -o ${rigid_q} -t ${rigid_affine_q} -r ${template_j_q}\n"
-            pexe2="$exe2 ${WARP} -d $DIM --float $USEFLOAT --verbose 1 -i ${input_k_q} -o ${rigid_q} -t ${rigid_affine_q} -r ${template_j_q} >> ${metriclog_q}\n"
+            exe2+=" ${WARP} -d $DIM --float $USEFLOAT --verbose 1 -i ${input_k_q} -o ${rigid_q} -t ${rigid_affine_q} -r ${template_j_q}"$'\n'
+            pexe2="$exe2 ${WARP} -d $DIM --float $USEFLOAT --verbose 1 -i ${input_k_q} -o ${rigid_q} -t ${rigid_affine_q} -r ${template_j_q} >> ${metriclog_q}"$'\n'
           done
 
-        echo -e "$exe2" >> "$qscript";
+        printf '%s' "$exe2" >> "$qscript";
 
         if [[ $DOQSUB -eq 1 ]];
           then
@@ -1319,8 +1325,8 @@ if [[ "$RIGID" -eq 1 ]];
         elif [[ $DOQSUB -eq 2 ]];
           then
             # Send pexe and exe2 to same job file so that they execute in series
-            echo "$pexe" >> "${outdir}/job${count}_r.sh"
-            echo -e "$pexe2" >> "${outdir}/job${count}_r.sh"
+            printf '%s\n' "$pexe" >> "${outdir}/job${count}_r.sh"
+            printf '%s' "$pexe2" >> "${outdir}/job${count}_r.sh"
         elif [[ $DOQSUB -eq 3 ]];
           then
             id=`xgrid $XGRIDOPTS -job submit /bin/bash "$qscript" | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
@@ -1420,7 +1426,7 @@ if [[ "$RIGID" -eq 1 ]];
             k=0
             k=$((i-j))
             IMGbase=`basename "${IMAGESETARRAY[$i]}"`
-            BASENAME=` echo "${IMGbase}" | cut -d '.' -f 1 `
+            BASENAME=$(get_image_stem "$IMGbase")
             RIGID="${outdir}/rigid${k}_${j}_${IMGbase}"
 
             IMAGERIGIDSET[${#IMAGERIGIDSET[@]}]=$RIGID
@@ -1598,12 +1604,14 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 indir=`pwd`
               fi
             IMGbase=`basename "${IMAGESETARRAY[$l]}"`
-            OUTFN=${OUTPUTNAME}input$(printf "%04d" $l)-modality${k}-${IMGbase/%?(.nii.gz|.nii)}
+            IMGstem=$(get_image_stem "$IMGbase")
+            OUTFN=${OUTPUTNAME}input$(printf "%04d" $l)-modality${k}-${IMGstem}
             OUTFN=`basename "${OUTFN}"`
             DEFORMED="${outdir}/${OUTFN}-WarpedToTemplate.nii.gz"
 
             IMGbase=`basename "${IMAGESETARRAY[$j]}"`
-            OUTWARPFN=${OUTPUTNAME}input$(printf "%04d" $j)-${IMGbase/%?(.nii.gz|.nii)}-
+            IMGstem=$(get_image_stem "$IMGbase")
+            OUTWARPFN=${OUTPUTNAME}input$(printf "%04d" $j)-${IMGstem}-
             OUTWARPFN=`basename "${OUTWARPFN}"`
 
             printf -v template_k_q '%q' "${TEMPLATES[$k]}"
@@ -1626,29 +1634,23 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 REPAIRED="${outdir}/${OUTFN}Repaired.nii.gz"
                 printf -v repaired_q '%q' "$REPAIRED"
                 if [[ ! -s ${REPAIRED} ]]; then
-                  exe=" $exe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${input_l_q} -o ${repaired_q} -r 0 -s 2 --verbose 1\n"
-                  pexe=" $pexe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${input_l_q} -o ${repaired_q} -r 0 -s 2 --verbose 1  >> ${metriclog_q} >> ${metriclog_q}\n"
+                  exe=" $exe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${input_l_q} -o ${repaired_q} -r 0 -s 2 --verbose 1"$'\n'
+                  pexe=" $pexe $N4 -d ${DIM} -b [ 200 ] -c [ 50x50x40x30,0.00000001 ] -i ${input_l_q} -o ${repaired_q} -r 0 -s 2 --verbose 1  >> ${metriclog_q} >> ${metriclog_q}"$'\n'
                 fi
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${template_k_q},${repaired_q},${METRICPARAMS}"
                 IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[ ${template_k_q},${repaired_q},${MODALITYWEIGHTS[$k]},32,Regular,0.25 ]"
 
-                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${repaired_q} -o ${deformed_q} -r ${template_k_q} ${OUTPUTTRANSFORMS}\n"
-                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${repaired_q} -o ${deformed_q} -r ${template_k_q} ${OUTPUTTRANSFORMS} >> ${metriclog_q}\n"
+                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${repaired_q} -o ${deformed_q} -r ${template_k_q} ${OUTPUTTRANSFORMS}"$'\n'
+                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${repaired_q} -o ${deformed_q} -r ${template_k_q} ${OUTPUTTRANSFORMS} >> ${metriclog_q}"$'\n'
               else
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${template_k_q},${input_l_q},${METRICPARAMS}"
                 IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[ ${template_k_q},${input_l_q},${MODALITYWEIGHTS[$k]},32,Regular,0.25 ]"
 
-                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${input_l_q} -o ${deformed_q} -r ${template_k_q} ${OUTPUTTRANSFORMS}\n"
-                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${input_l_q} -o ${deformed_q} -r ${template_k_q} ${OUTPUTTRANSFORMS} >> ${metriclog_q}\n"
+                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${input_l_q} -o ${deformed_q} -r ${template_k_q} ${OUTPUTTRANSFORMS}"$'\n'
+                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT --verbose 1 -i ${input_l_q} -o ${deformed_q} -r ${template_k_q} ${OUTPUTTRANSFORMS} >> ${metriclog_q}"$'\n'
               fi
 
         done
-
-
-      #  Already defined above
-      #  IMGbase=`basename ${IMAGESETARRAY[$j]}`
-      #  OUTWARPFN=${OUTPUTNAME}${IMGbase/%?(.nii.gz|.nii)}
-      #  OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
         printf -v template0_q '%q' "${TEMPLATES[0]}"
         printf -v input_j_q '%q' "${IMAGESETARRAY[$j]}"
@@ -1666,23 +1668,23 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
         if [[ $DOLINEAR -eq 0 ]];
           then
-            exe="$exe ${basecall} ${stageId} ${stage3}\n"
-            pexe="$pexe ${basecall} ${stageId} ${stage3} >> ${metriclog_q}\n"
+            exe="$exe ${basecall} ${stageId} ${stage3}"$'\n'
+            pexe="$pexe ${basecall} ${stageId} ${stage3} >> ${metriclog_q}"$'\n'
           elif [[ $NOWARP -eq 1 ]];
             then
     	      if [[ ${TRANSFORMATION} == "Affine"* ]];
 	        then
           	  # If affine, do standard rigid, then affine with levels, etc from command line
-		  exe="$exebase ${basecall} ${stage0} ${stage1} ${stage3}\n";
-		  pexe="$pexebase ${basecall} ${stage0} ${stage1} ${stage3} >> ${metriclog_q}\n"
+		  exe="$exebase ${basecall} ${stage0} ${stage1} ${stage3}"$'\n';
+		  pexe="$pexebase ${basecall} ${stage0} ${stage1} ${stage3} >> ${metriclog_q}"$'\n'
 	        else
 		  # Rigid only - just use command line params
-		  exe="$exebase ${basecall} ${stage0} ${stage3}\n";
-		  pexe="$pexebase ${basecall} ${stage0} ${stage3} >> ${metriclog_q}\n"
+		  exe="$exebase ${basecall} ${stage0} ${stage3}"$'\n';
+		  pexe="$pexebase ${basecall} ${stage0} ${stage3} >> ${metriclog_q}"$'\n'
                 fi
           else
-            exe="$exe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3}\n"
-            pexe="$pexe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${metriclog_q}\n"
+            exe="$exe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3}"$'\n'
+            pexe="$pexe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${metriclog_q}"$'\n'
           fi
 
         exe="$exe $warpexe"
@@ -1690,46 +1692,46 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
         qscript="${outdir}/job_${count}_${i}.sh"
 
-        echo -e "$exe" >> "${outdir}/job_${count}_${i}_metriclog.txt"
+        printf '%s' "$exe" >> "${outdir}/job_${count}_${i}_metriclog.txt"
         # 6 submit to SGE (DOQSUB=1), PBS (DOQSUB=4), PEXEC (DOQSUB=2), XGrid (DOQSUB=3), SLURM (DOQSUB=5) or else run locally (DOQSUB=0)
         if [[ $DOQSUB -eq 1 ]];
           then
-            echo "$SCRIPTPREPEND" > "$qscript"
+            write_script_prepend > "$qscript"
             printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
-            echo -e "$exe" >> "$qscript"
+            printf '%s' "$exe" >> "$qscript"
             id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash ${QSUBOPTS} "$qscript" | awk '{print $3}'`
             jobIDs+=("$id")
             sleep 0.5
         elif [[ $DOQSUB -eq 4 ]];
           then
-            echo -e "$SCRIPTPREPEND" > "$qscript"
+            write_script_prepend > "$qscript"
             printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
-            echo -e "$exe" >> "$qscript"
+            printf '%s' "$exe" >> "$qscript"
             id=`qsub -N antsdef${i} -l mem=${MEMORY} -l walltime=${WALLTIME} ${QSUBOPTS} "$qscript" | awk '{print $1}'`
             jobIDs+=("$id")
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
           then
-            echo -e "$pexe" >> "${outdir}/job${count}_r.sh"
+            printf '%s' "$pexe" >> "${outdir}/job${count}_r.sh"
         elif [[ $DOQSUB -eq 3 ]];
           then
-            echo -e "$SCRIPTPREPEND" > "$qscript"
+            write_script_prepend > "$qscript"
             printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
-            echo -e "$exe" >> "$qscript"
+            printf '%s' "$exe" >> "$qscript"
             id=`xgrid $XGRIDOPTS -job submit /bin/bash "$qscript" | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
             jobIDs+=("$id")
         elif [[ $DOQSUB -eq 5 ]];
           then
-            echo '#!/bin/sh' > "$qscript"
-            echo -e "$SCRIPTPREPEND" >> "$qscript"
+            printf '%s\n' '#!/bin/sh' > "$qscript"
+            write_script_prepend >> "$qscript"
             printf 'export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=%s\n' "$NUMBER_OF_THREADS" >> "$qscript"
-            echo -e "$exe" >> "$qscript"
+            printf '%s' "$exe" >> "$qscript"
             id=`sbatch --job-name=antsdef${i} --nodes=1 --ntasks=1 --cpus-per-task=${NUMBER_OF_THREADS} --time=${WALLTIME} --mem=${MEMORY} ${QSUBOPTS} "$qscript" | rev | cut -f1 -d\ | rev`
             jobIDs+=("$id")
             sleep 0.5
         elif [[ $DOQSUB -eq 0 ]];
           then
-            echo -e "$exe" > "$qscript"
+            printf '%s' "$exe" > "$qscript"
             bash "$qscript"
         fi
 

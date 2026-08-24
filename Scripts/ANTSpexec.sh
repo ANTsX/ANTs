@@ -15,7 +15,7 @@ Optional arguments:
 
      -r:  Replace asterix * in the command string with argument
 
-     -j:  Number of cpu cores to use (default 2)
+     -j:  Number of concurrent jobs to run (default 2, must be more than 1)
 
 Examples:
 
@@ -25,8 +25,10 @@ Examples:
 
     `basename $0` -j 6 -r \"convert -scale 50% * small/small_*\" *.jpg"
 
-In case you terminate this script prematurely by pressing CTRL + C, run
-${here}/killme.sh to terminate any remaining processes.
+CTRL + C and SIGTERM automatically terminate processes started by this script.
+If the script is killed in a way that prevents cleanup, run ./killme.sh to
+terminate any processes recorded before it stopped.
+
 
 USAGE
     exit 0
@@ -36,7 +38,7 @@ function Help {
     cat <<HELP
 
 This is a simple wrapper for running processes in parallel. Tested both on
-Mac (Darwin) and Linux (CentOS 5).
+Mac (Darwin) and Linux.
 
 Usage:
 
@@ -48,7 +50,7 @@ Optional arguments:
 
      -r:  Replace asterix * in the command string with argument
 
-     -j:  Number of cpu cores to use (default 2)
+     -j:  Number of concurrent jobs to run (default 2, must be more than 1)
 
 Examples:
 
@@ -58,8 +60,12 @@ Examples:
 
     `basename $0` -j 6 -r \"convert -scale 50% * small/small_*\" *.jpg"
 
-In case you terminate this script prematurely by pressing CTRL + C, run
-${here}/killme.sh to terminate any remaining processes.
+The script does not account for multi-threading, if you specify "-j N" it will
+run N concurrent jobs, even if each of those spawns multiple threads.
+
+CTRL + C and SIGTERM automatically terminate processes started by this script.
+If the script is killed in a way that prevents cleanup, run ./killme.sh to
+terminate any processes recorded before it stopped.
 
 --------------------------------------------------------------------------------------
 Original script by Kawakamasu:
@@ -79,57 +85,63 @@ function queue {
     NUM=$(($NUM+1))
 }
 
-function regeneratequeuelinux {
+function regeneratequeue {
     OLDREQUEUE=$QUEUE
     QUEUE=""
     NUM=0
     for PID in $OLDREQUEUE
     do
-        if [ -d /proc/$PID ] ; then
+        if kill -0 "$PID" 2>/dev/null; then
             QUEUE="$QUEUE $PID"
             NUM=$(($NUM+1))
         fi
     done
 }
 
-function checkqueuelinux {
-    OLDCHQUEUE=$QUEUE
-    for PID in $OLDCHQUEUE
-    do
-        if [ ! -d /proc/$PID ] ; then
-            regeneratequeuelinux # at least one PID has finished
-            break
+function signal_descendants {
+    local parent_pid=$1
+    local signal_name=$2
+    local child_pid
+    local child_parent_pid
+
+    while read -r child_pid child_parent_pid; do
+        if [[ $child_parent_pid -eq $parent_pid ]]; then
+            signal_descendants "$child_pid" "$signal_name"
+            if kill -0 "$child_pid" 2>/dev/null; then
+                printf 'sending %s to process %s\n' "$signal_name" "$child_pid"
+                kill -s "$signal_name" "$child_pid" 2>/dev/null || true
+            fi
         fi
-    done
+    done <<< "$PROCESS_TABLE"
 }
 
-function regeneratequeuemac {
-    OLDREQUEUE=$QUEUE
-    QUEUE=""
-    NUM=0
-    for PID in $OLDREQUEUE
-    do
-	whm=` whoami `
-	num=` ps U $whm | grep -i "${PID} "  | wc -l `
-        if [ $num = 2 ]    ;  then
-            QUEUE="$QUEUE $PID"
-            NUM=$(($NUM+1))
-	fi
+function cleanup {
+    printf '\n*** Performing cleanup, please wait ***\n\n'
 
-    done
+    # The -Ao form is supported by both GNU/Linux and macOS/BSD ps.
+    if PROCESS_TABLE=$(ps -Ao pid=,ppid=); then
+        signal_descendants "$$" TERM
+        sleep 3
+        signal_descendants "$$" KILL
+    else
+        printf 'Unable to inspect child processes during cleanup.\n' >&2
+    fi
+
+    rm -f "${here}/killme.sh"
 }
 
-function checkqueuemac {
-    OLDCHQUEUE=$QUEUE
-    for PID in $OLDCHQUEUE
-    do
-	whm=` whoami `
-	num=` ps U $whm | grep -i "${PID} "  | wc -l `
-        if [ $num = 1 ]  ; then
-            regeneratequeuemac # at least one PID has finished
-            break
-	fi
-    done
+function control_c {
+    trap - SIGINT SIGTERM
+    printf '\n*** User pressed CTRL + C ***\n'
+    cleanup
+    printf '\n*** Script cancelled by user ***\n'
+    exit 130
+}
+
+function control_term {
+    trap - SIGINT SIGTERM
+    cleanup
+    exit 143
 }
 
 here=`pwd`
@@ -137,6 +149,9 @@ NUM=0
 QUEUE=""
 MAX_NPROC=2 # default
 REPLACE_CMD=0 # no replacement by default
+
+trap control_c SIGINT
+trap control_term SIGTERM
 
 # parse command line
 if [ $# -eq 0 ]; then #  must be at least one arg
@@ -166,8 +181,8 @@ COMMAND=$1
 shift
 
 # keep list of started processes
-echo "#!/bin/bash" >> ${here}/killme.sh
-chmod +x ${here}/killme.sh
+printf '%s\n' '#!/bin/sh' > "${here}/killme.sh"
+chmod +x "${here}/killme.sh"
 
 for INS in $* # for the rest of the arguments
 do
@@ -183,33 +198,17 @@ do
     # DEFINE COMMAND END
 
     PID=$!
-    echo "kill $PID" >> ${here}/killme.sh
+    printf 'kill %s\n' "$PID" >> "${here}/killme.sh"
     queue $PID
 
-    osmac=0
-    osmac="` uname -a | grep Darwin  `"
-    oslin=0
-    oslin="`uname -a | grep Linux`"
-
-    if [ ${#osmac} -ne 0 ]
-    then
-	while [ $NUM -ge $MAX_NPROC ]; do
-            checkqueuemac
-            sleep 0.5
-	done
-    elif [ ${#oslin} -ne 0 ]
-    then
-	while [ $NUM -ge $MAX_NPROC ]; do
-            checkqueuelinux
-            sleep 0.5
-	done
-    fi
-
-
+    while [ $NUM -ge $MAX_NPROC ]; do
+        sleep 2
+        regeneratequeue
+    done
 done
 
 wait # wait for all processes to finish before exit
 
-rm ${here}/killme.sh
+rm -f "${here}/killme.sh"
 
 exit 0
