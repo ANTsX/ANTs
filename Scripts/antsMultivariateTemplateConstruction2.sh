@@ -17,9 +17,10 @@ SGE=waitForSGEQJobs.pl
 PBS=waitForPBSQJobs.pl
 XGRID=waitForXGridJobs.pl
 SLURM=waitForSlurmJobs.pl
+PRINTHEADER=PrintHeader
 
 fle_error=0
-for FLE in "$ANTS" "$WARP" "$N4" "$PEXEC" "$SGE" "$XGRID" "$PBS" "$SLURM"
+for FLE in "$ANTS" "$WARP" "$N4" "$PEXEC" "$SGE" "$XGRID" "$PBS" "$SLURM" "$PRINTHEADER"
   do
     if ! command -v "$FLE" &> /dev/null
       then
@@ -49,7 +50,11 @@ Compulsory arguments (minimal command line requires SGE/PBS cluster, otherwise u
 -j options):
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
-          ImageDimension: 4 (for template generation of time-series data)
+          ImageDimension: 4 (for template generation of time-series data).
+
+          With -d 4, input should be a single 4D NIFTI image. Up to 16 3D volumes from
+          the time series are selected and written to the output directory as
+          time_index_XXXX.nii.gz. The template is then built from these 3D images.
 
 <images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
           of the command.  Optionally, one can specify a .csv or .txt file where each
@@ -340,6 +345,39 @@ function get_image_stem() {
   printf '%s\n' "${filename%.*}"
 }
 
+# Set RANDOM_INDEX to an unbiased random integer in [0, upper_bound).
+# Combining two values of RANDOM gives a uniform 30-bit source value; rejection
+# sampling avoids the modulo bias that occurs when upper_bound does not divide
+# the source range evenly.
+function random_index_below() {
+  local upper_bound=$1
+  local random_value
+  local rejection_limit
+  local random_source_size=$((1 << 30))
+
+  if (( upper_bound < 1 || upper_bound > random_source_size )); then
+    printf 'random_index_below: upper bound must be between 1 and %d\n' "$random_source_size" >&2
+    return 1
+  fi
+
+  rejection_limit=$((random_source_size - random_source_size % upper_bound))
+  while true; do
+    random_value=$((RANDOM << 15 | RANDOM))
+    if (( random_value < rejection_limit )); then
+      RANDOM_INDEX=$((random_value % upper_bound))
+      return 0
+    fi
+  done
+}
+
+function cleanup_4d_tempdir() {
+  if [[ -n ${tmpdir:-} && -d $tmpdir ]]; then
+    rm -rf "$tmpdir"
+    tmpdir=""
+  fi
+}
+trap cleanup_4d_tempdir EXIT
+
 function summarizeimageset() {
 
   local dim=$1
@@ -581,6 +619,7 @@ control_c()
 {
   trap - SIGINT
   printf '\n*** User pressed CTRL + C ***\n'
+  cleanup_4d_tempdir
   printf '\n*** Script cancelled by user ***\n'
   exit 130
 }
@@ -1041,8 +1080,33 @@ elif [[ ${NINFILES} -eq 1 ]];
             done
          done < "$IMAGESFILE"
     else
-        range=`ImageMath "$TDIM" abs nvols "$IMAGESETVARIABLE" | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d "]" -f 1 `
-        if [[ ${range} -eq 1 && ${TDIM} -ne 4 ]];
+        if [[ ${TDIM} -eq 0 ]];
+          then
+            echo "Please provide at least 2 filenames for the template."
+            echo "If building a template from a 4D image, use -d 4"
+            echo "Use `basename $0` -h for help"
+            exit 1
+        fi
+
+        if ! size_string=$("$PRINTHEADER" "$IMAGESETVARIABLE" 2); then
+            printf 'Could not read image dimensions from %s\n' "$IMAGESETVARIABLE" >&2
+            exit 1
+        fi
+        IFS='x' read -r -a image_size <<< "$size_string"
+
+        if (( ${#image_size[@]} != TDIM )); then
+            printf 'Expected a %dD time-series image, but %s has %d dimensions\n' \
+                "$TDIM" "$IMAGESETVARIABLE" "${#image_size[@]}" >&2
+            exit 1
+        fi
+
+        range=${image_size[$((TDIM - 1))]}
+        if [[ ! $range =~ ^[1-9][0-9]*$ ]]; then
+            printf 'Invalid time dimension reported for %s: %s\n' "$IMAGESETVARIABLE" "$range" >&2
+            exit 1
+        fi
+
+        if [[ ${range} -eq 1 ]];
           then
             echo "Please provide at least 2 filenames for the template."
             echo "Use `basename $0` -h for help"
@@ -1056,97 +1120,75 @@ elif [[ ${NINFILES} -eq 1 ]];
           then
             echo
             echo "--------------------------------------------------------------------------------------"
-            echo " Creating template of 4D input. "
+            echo " Creating template from 4D input. "
             echo "--------------------------------------------------------------------------------------"
 
-             #splitting volume
-             #setting up working dirs
+             # Stage a private copy of the input. Selected volumes are written
+             # to OUTPUT_DIR and remain there after template construction.
              tmpdir=${currentdir}/tmp_${RANDOM}_${RANDOM}_${RANDOM}_$$
              (umask 077 && mkdir "${tmpdir}") || {
                  echo "Could not create temporary directory! Exiting." 1>&2
                  exit 1
                  }
 
-             mkdir "${tmpdir}/selection"
-
-             #split the 4D file into 3D elements
-             cp "$IMAGESETVARIABLE" "${tmpdir}/"
-             cd "${tmpdir}/"
-             # ImageMath $TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
-             # rm -f ${IMAGESETVARIABLE}
-
-             # selecting 16 volumes randomly from the timeseries for averaging, placing them in tmp/selection folder.
-             # the script will automatically divide timeseries into $total_volumes/16 bins from wich to take the random volumes;
-             # if there are more than 32 volumes in the time-series (in case they are smaller
+             staged_input="${tmpdir}/$(basename "$IMAGESETVARIABLE")"
+             if ! cp "$IMAGESETVARIABLE" "$staged_input"; then
+                 cleanup_4d_tempdir
+                 echo "Could not stage 4D input image. Exiting." 1>&2
+                 exit 1
+             fi
 
              nfmribins=16
-            if [[ ${range} -gt 31 ]];
-              then
-                BINSIZE=$((${range} / ${nfmribins}))
-                j=1 # initialize counter j
-                for ((i = 0; i < ${nfmribins}; i++))
-                    do
-                    FLOOR=$((${i} * ${BINSIZE}))
-                    BINrange=$((${j} * ${BINSIZE}))
-                    # Retrieve random number between two limits.
-                    number=0   #initialize
-                    while [[ "$number" -le $FLOOR ]];
-                        do
-                        number=$RANDOM
-                        if [[ $i -lt 15 ]];
-                            then
-                            number=$((number %= $BINrange))  # Scales $number down within $range.
-                        elif [[ $i -eq 15 ]];
-                            then
-                            number=$((number %= $range))  # Scales $number down within $range.
-                        fi
-                    done
-                    #debug only
-                    echo
-                    echo "Random number between $FLOOR and $BINrange ---  $number"
-                    #  echo "Random number between $FLOOR and $range ---  $number"
+             selected_indices=()
 
-                    if [[ ${number} -lt 10 ]];
-                        then
-                        ImageMath "$TDIM" selection/vol000${number}.nii.gz ExtractSlice "$IMAGESETVARIABLE" "${number}"
-                        #   cp vol000${number}.nii.gz selection/
-                    elif [[ ${number} -ge 10 && ${number} -lt 100 ]];
-                        then
-                        ImageMath "$TDIM" selection/vol00${number}.nii.gz ExtractSlice "$IMAGESETVARIABLE" "${number}"
-                        #   cp vol00${number}.nii.gz selection/
-                    elif [[ ${number} -ge 100 && ${number} -lt 1000 ]];
-                        then
-                        ImageMath "$TDIM" selection/vol0${number}.nii.gz ExtractSlice "$IMAGESETVARIABLE" "${number}"
-                        #   cp vol0${number}.nii.gz selection/
-                    fi
-                    j=$(( j + 1 ))
-                done
-            fi
-        elif [[ ${range} -gt ${nfmribins} && ${range} -lt 32 ]];
-            then
-            for ((i = 0; i < ${nfmribins} ; i++))
-                do
-                number=$RANDOM
-                number=$((number %= $range))
-                if [[ ${number} -lt 10 ]];
-                    then
-                    ImageMath "$TDIM" selection/vol0.nii.gz ExtractSlice "$IMAGESETVARIABLE" "${number}"
-                    #   cp vol000${number}.nii.gz selection/
-                elif [[ ${number} -ge 10 && ${number} -lt 100 ]];
-                    then
-                    ImageMath "$TDIM" selection/vol0.nii.gz ExtractSlice "$IMAGESETVARIABLE" "${number}"
-                    #   cp vol00${number}.nii.gz selection/
-                fi
-            done
-        elif [[ ${range} -le ${nfmribins} ]];
-            then
-            ImageMath "selection/$TDIM" vol0.nii.gz TimeSeriesSubset "$IMAGESETVARIABLE" "$range"
-            # cp *.nii.gz selection/
+             if (( range <= nfmribins )); then
+                 # Use every time point when the series contains at most 16.
+                 for ((i = 0; i < range; i++)); do
+                     selected_indices+=( "$i" )
+                 done
+             elif (( range < 32 )); then
+                 # Select 16 unique time points uniformly without replacement.
+                 candidate_indices=()
+                 for ((i = 0; i < range; i++)); do
+                     candidate_indices+=( "$i" )
+                 done
+                 for ((i = 0; i < nfmribins; i++)); do
+                     random_index_below $((range - i))
+                     swap_index=$((i + RANDOM_INDEX))
+                     number=${candidate_indices[$swap_index]}
+                     candidate_indices[$swap_index]=${candidate_indices[$i]}
+                     candidate_indices[$i]=$number
+                     selected_indices+=( "$number" )
+                 done
+             else
+                 # Divide the complete time series into 16 non-overlapping bins
+                 # and select every member of each bin with equal probability.
+                 for ((i = 0; i < nfmribins; i++)); do
+                     bin_start=$((i * range / nfmribins))
+                     bin_end=$(((i + 1) * range / nfmribins - 1))
+                     random_index_below $((bin_end - bin_start + 1))
+                     selected_indices+=( "$((bin_start + RANDOM_INDEX))" )
+                 done
+             fi
+
+             IMAGESETARRAY=()
+             selected_volume_dir=$(cd "$OUTPUT_DIR" && pwd -P)
+             for number in "${selected_indices[@]}"; do
+                 printf -v selected_volume '%s/time_index_%04d.nii.gz' "$selected_volume_dir" "$number"
+                 printf 'Selecting time point %d as %s\n' "$number" "$selected_volume"
+                 if ! ImageMath "$TDIM" "$selected_volume" ExtractSlice "$staged_input" "$number"; then
+                     cleanup_4d_tempdir
+                     echo "Could not extract time point $number. Exiting." 1>&2
+                     exit 1
+                 fi
+                 IMAGESETARRAY+=( "$selected_volume" )
+             done
+
+             cleanup_4d_tempdir
+             unset candidate_indices selected_indices selected_volume_dir staged_input selected_volume
+             # Continue in the invocation directory with absolute input paths.
+             cd "$currentdir"
         fi
-        # set filelist variable
-        rm -f "$IMAGESETVARIABLE"
-        cd selection/
-        IMAGESETARRAY=( *.nii.gz )
     fi
 fi
 
@@ -1895,13 +1937,6 @@ done
 # end main loop
 
 rm -f job*.sh
-#cleanup of 4D files
-if [[ "${range}" -gt 1 && "${TDIM}" -eq 4 ]];
-  then
-    for _t in "${TEMPLATES[@]}"; do mv "${tmpdir}/selection/${_t}" "${currentdir}/"; done
-    cd "${currentdir}"
-    rm -rf "${tmpdir}/"
-  fi
 time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
 echo
