@@ -558,6 +558,8 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
     std::cout << "  5  :  unsigned int   " << std::endl;
     std::cout << "  6  :  float (default)  " << std::endl;
     std::cout << "  7  :  double  " << std::endl;
+    std::cout << "  Note: both input and output images will be processed as pixeltype, casting may cause " << std::endl;
+    std::cout << "  rounding before resampling" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
