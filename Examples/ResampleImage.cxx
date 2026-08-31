@@ -533,22 +533,22 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
   {
     std::cout << "Usage: " << argv[0] << " imageDimension inputImage "
               << "outputImage MxNxO [size=1,spacing=0] [interpolation=Linear] [pixeltype=6]" << std::endl;
-    std::cout << "  Interpolation (parameters are positional; parameter names below document their defaults):"
+    std::cout << "  imageDimension: 2, 3, or 4" << std::endl;
+    std::cout << "  inputImage: input image file name" << std::endl;
+    std::cout << "  outputImage: output image file name" << std::endl;
+    std::cout << "  MxNxO: either the new size (number of pixels) in each dimension, or the new spacing (physical size of a pixel) in each dimension" << std::endl;
+    std::cout << "  size=1,spacing=0: Either 1 or 0, if the MxNxO argument is interpreted as size (1), or spacing (0)" << std::endl;
+    std::cout << "  interpolation (parameters are positional; parameter names below document their defaults):"
               << std::endl;
-    std::cout << "    Linear" << std::endl;
+    std::cout << "    Linear (default)" << std::endl;
     std::cout << "    NearestNeighbor" << std::endl;
     std::cout << "    Gaussian[<sigma=spacing>,<alpha=1>]" << std::endl;
     std::cout << "      sigma may be one value or one value per dimension separated by 'x'." << std::endl;
     std::cout << "    WindowedSinc[<type=hamming>] (fixed radius 3)" << std::endl;
     std::cout << "      type: cosine, welch, blackman, lanczos, or hamming." << std::endl;
     std::cout << "    BSpline[<order=3>]" << std::endl;
-    std::cout << "  Examples:" << std::endl;
-    std::cout << "    Gaussian[2]                 sigma=2, alpha=1" << std::endl;
-    std::cout << "    Gaussian[2,0.5]             sigma=2, alpha=0.5" << std::endl;
-    std::cout << "    WindowedSinc[cosine]        type=cosine" << std::endl;
-    std::cout << "    BSpline[2]                  order=2" << std::endl;
-    std::cout << "  Deprecated numeric interpolation options (default parameters only):" << std::endl;
-    std::cout << "    0: Linear, 1: NearestNeighbor, 2: Gaussian, 3: WindowedSinc, 4: BSpline" << std::endl;
+    std::cout << "    Deprecated numeric interpolation options (default parameters only):" << std::endl;
+    std::cout << "      0: Linear,1: NearestNeighbor, 2: Gaussian, 3: WindowedSinc, 4: BSpline" << std::endl;
     std::cout << "  pixeltype: TYPE" << std::endl;
     std::cout << "  0  :  char   " << std::endl;
     std::cout << "  1  :  unsigned char   " << std::endl;
