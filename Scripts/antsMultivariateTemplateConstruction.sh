@@ -40,7 +40,7 @@ if [[ $# -gt 0 && ${1:-} != "-h" ]];
 
     if [[ $fle_error = 1 ]];
       then
-        echo "missing helper script"
+        echo "missing required program(s)"
         exit 1
       fi
   fi
