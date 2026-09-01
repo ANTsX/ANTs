@@ -22,25 +22,28 @@ XGRID=waitForXGridJobs.pl
 SLURM=waitForSlurmJobs.pl
 PRINTHEADER=PrintHeader
 
-fle_error=0
-for FLE in "$ANTS" "$WARP" "$N4" "$PEXEC" "$SGE" "$XGRID" "$PBS" "$SLURM" "$PRINTHEADER"
-  do
-    if ! command -v "$FLE" &> /dev/null
-      then
-        echo
-        echo "--------------------------------------------------------------------------------------"
-        echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
-        echo "--------------------------------------------------------------------------------------"
-        echo " if the file is not executable, please change its permissions. "
-        fle_error=1
-      fi
-  done
+if [[ $# -gt 0 && ${1:-} != "-h" ]];
+  then
+    fle_error=0
+    for FLE in "$ANTS" "$WARP" "$N4" "$PEXEC" "$SGE" "$XGRID" "$PBS" "$SLURM" "$PRINTHEADER"
+      do
+        if ! command -v "$FLE" &> /dev/null
+          then
+            echo
+            echo "--------------------------------------------------------------------------------------"
+            echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
+            echo "--------------------------------------------------------------------------------------"
+            echo " if the file is not executable, please change its permissions. "
+            fle_error=1
+          fi
+      done
 
-if [[ $fle_error = 1 ]];
-    then
-    echo "missing helper script"
-    exit 1
-fi
+    if [[ $fle_error = 1 ]];
+      then
+        echo "missing helper script"
+        exit 1
+      fi
+  fi
 
 function Usage {
     cat <<USAGE
@@ -246,7 +249,6 @@ Apple XGrid support by Craig Stark
 --------------------------------------------------------------------------------------
 
 USAGE
-    exit 1
 }
 
 function reportMappingParameters {
@@ -417,9 +419,7 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
 
     imagelist=( "${outputname}"template-modality"${whichtemplate}"-*WarpedToTemplate.nii.gz )
-    if [[ ${#imagelist[@]} -eq 0 ]]; then
-      imagelist=()
-    elif [[ ! -e ${imagelist[0]} ]]; then
+    if [[ ! -e ${imagelist[0]} ]]; then
       imagelist=()
     fi
     if [[ ${#imagelist[@]} -ne ${IMAGESPERMODALITY} ]]
@@ -484,9 +484,7 @@ function jobfnamepadding {
     fi
 
     files=( "${outdir}"/job*.sh )
-    if [[ ${#files[@]} -eq 0 ]]; then
-      return 0
-    elif [[ ! -e ${files[0]} ]]; then
+    if [[ ! -e ${files[0]} ]]; then
       return 0
     fi
     BASENAME1=`printf '%s\n' "${files[0]}" | cut -d 'b' -f 1`
@@ -597,10 +595,12 @@ else
 fi
 
 # Provide output for Help
-if [[ $# -eq 0 || ${1:-} == "-h" ]];
-    then
+if [[ $# -eq 0 ]]; then
     Usage >&2
-
+    exit 1
+elif [[ $1 == "-h" ]]; then
+    Usage
+    exit 0
 fi
 
 # reading command line arguments
@@ -628,7 +628,7 @@ while getopts "A:T:a:b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:u:v:w:x:y:z:" OPT
 
   case $OPT in
       h) #help
-   Usage >&2
+   Usage
    exit 0
    ;;
       A) # Sharpening method
@@ -765,6 +765,7 @@ fi
 if [[ ${TDIM} -eq 4 && $nargs -lt 5 ]];
     then
     Usage >&2
+    exit 1
 elif [[ ${TDIM} -eq 4 && $nargs -eq 5 ]];
     then
     echo ""
@@ -772,6 +773,7 @@ elif [[ ${TDIM} -eq 4 && $nargs -eq 5 ]];
 elif [[ $nargs -lt 6 ]]
     then
     Usage >&2
+    exit 1
 fi
 
 if [[ -z ${DIM} ]]
@@ -800,20 +802,18 @@ mkdir -p "$intermediateTemplateDir"
 
 if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
   then
-    qq=`which  qsub`
-    if [[  ${#qq} -lt 1 ]];
+    if ! command -v qsub &> /dev/null;
       then
         echo "do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ..."
-        exit
+        exit 1
       fi
   fi
 if [[ $DOQSUB -eq 5 ]];
   then
-    qq=`which sbatch`
-    if [[ ${#qq} -lt 1 ]];
+    if ! command -v sbatch &> /dev/null;
       then
         echo "do you have sbatch?  if not, then choose another c option ... if so, then check where the sbatch alias points ..."
-        exit
+        exit 1
       fi
   fi
 
@@ -838,7 +838,7 @@ if [[ ${#METRICTYPE[@]} -eq 1 ]];
 if [[ ${#METRICTYPE[@]} -ne $NUMBEROFMODALITIES ]];
   then
     echo "The number of similarity metrics does not match the number of specified modalities (see -s option)"
-    exit
+    exit 1
   fi
 
 if [[ ! -n "$MODALITYWEIGHTSTRING" ]];
@@ -852,7 +852,7 @@ else
   if [[ ${#MODALITYWEIGHTS[@]} -ne $NUMBEROFMODALITIES ]];
     then
       echo "The number of weights (specified e.g. -w 1x1x1) does not match the number of specified modalities (see -k option)";
-      exit
+      exit 1
     fi
   fi
 
@@ -1099,7 +1099,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
     if [[ ! -s ${TEMPLATES[$i]} ]];
         then
         echo "Your template : ${TEMPLATES[$i]} was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
-        exit
+        exit 1
     fi
 
     # Back up template
