@@ -269,6 +269,17 @@ DiReCT(itk::ants::CommandLineParser * parser)
   }
 
   //
+  // gradient smoothing sigma
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer gradientSmoothingSigmaOption =
+    parser->GetOption("gradient-smoothing-sigma");
+  if (gradientSmoothingSigmaOption && gradientSmoothingSigmaOption->GetNumberOfFunctions())
+  {
+    direct->SetGradientSmoothingSigma(
+      parser->Convert<RealType>(gradientSmoothingSigmaOption->GetFunction(0)->GetName()));
+  }
+
+  //
   // do B-spline smoothing?
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer bsplineSmoothingOption =
@@ -464,7 +475,7 @@ KellyKapowskiInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
     std::string description = std::string("In addition to the segmentation image, a gray matter ") +
                               std::string("probability image can be used. If no such image is ") +
                               std::string("supplied, one is created using the segmentation image ") +
-                              std::string("and a variance of 1.0 mm.");
+                              std::string("and a variance of 1.0 mm^2.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("gray-matter-probability-image");
@@ -478,7 +489,7 @@ KellyKapowskiInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
     std::string description = std::string("In addition to the segmentation image, a white matter ") +
                               std::string("probability image can be used. If no such image is ") +
                               std::string("supplied, one is created using the segmentation image ") +
-                              std::string("and a variance of 1.0 mm.");
+                              std::string("and a variance of 1.0 mm^2.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("white-matter-probability-image");
@@ -538,7 +549,19 @@ KellyKapowskiInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
 
   {
     std::string description =
-      std::string("Defines the Gaussian smoothing of the hit and total images.  Default = 1.0 mm.");
+      std::string("Defines the Gaussian smoothing sigma for the probability gradient in mm.  Default = 1.0 mm.");
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("gradient-smoothing-sigma");
+    option->SetShortName('j');
+    option->SetUsageOption(0, "sigma");
+    option->SetDescription(description);
+    parser->AddOption(option);
+  }
+
+  {
+    std::string description = std::string("Defines the Gaussian smoothing variance of the hit and total images in ") +
+                              std::string("mm^2.  Default = 1.0 mm^2.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("smoothing-variance");
@@ -550,7 +573,7 @@ KellyKapowskiInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
 
   {
     std::string description =
-      std::string("Defines the Gaussian smoothing of the velocity field (default = 1.5 voxels).") +
+      std::string("Defines the Gaussian smoothing variance of the velocity field (default = 1.5 voxels^2).") +
       std::string("If the b-spline smoothing option is chosen, then this ") +
       std::string("defines the isotropic mesh spacing for the smoothing spline (default = 15 mm).");
 
