@@ -47,6 +47,7 @@ namespace itk
 template <typename TInputImage, typename TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>::DiReCTImageFilter()
   : m_ThicknessPriorEstimate(10.0)
+  , m_GradientSmoothingSigma(1.0)
   , m_SmoothingVariance(1.0)
   , m_SmoothingVelocityFieldVariance(1.5)
   , m_BSplineSmoothingIsotropicMeshSpacing(5.75)
@@ -94,7 +95,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>::MakeOutput(
     return CumulativeVelocityFieldType::New().GetPointer();
   }
   return Superclass::MakeOutput(idx);
-} 
+}
 
 template <typename TInputImage, typename TOutputImage>
 auto
@@ -135,7 +136,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
     typename CumulativeVelocityFieldType::SpacingType spacing;
     typename CumulativeVelocityFieldType::RegionType region;
     typename CumulativeVelocityFieldType::RegionType::SizeType size;
-    
+
     for (unsigned int d = 0; d < ImageDimension; d++ )
     {
       origin[d] = this->GetInput()->GetOrigin()[d];
@@ -156,7 +157,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateOutputInformation()
     forwardCumulativeVelocityField->SetOrigin(origin);
     forwardCumulativeVelocityField->SetDirection(direction);
     forwardCumulativeVelocityField->SetRegions(size);
-  } 
+  }
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -343,11 +344,11 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
   {
     this->MakeThicknessImage(hitImage, totalImage, segmentationImage, thicknessImage);
 
-    RealType      priorEnergy = 0;
-    unsigned long priorEnergyCount = 0;
+    [[maybe_unused]] double priorEnergy = 0.0;
+    itk::SizeValueType priorEnergyCount = 0;
 
-    RealType currentEnergy = 0.0;
-    RealType numberOfGrayMatterVoxels = 0.0;
+    double             currentEnergy = 0.0;
+    itk::SizeValueType numberOfGrayMatterVoxels = 0;
 
     forwardIncrementalField->FillBuffer(zeroVector);
     inverseField->FillBuffer(zeroVector);
@@ -377,7 +378,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
       using GradientImageFilterType = GradientRecursiveGaussianImageFilter<RealImageType, DisplacementFieldType>;
       typename GradientImageFilterType::Pointer gradientFilter = GradientImageFilterType::New();
       gradientFilter->SetInput(warpedWhiteMatterProbabilityImage);
-      gradientFilter->SetSigma(this->m_SmoothingVariance);
+      gradientFilter->SetSigma(this->m_GradientSmoothingSigma);
       gradientFilter->Update();
 
       DisplacementFieldPointer gradientImage = gradientFilter->GetOutput();
@@ -421,8 +422,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
             ItGradientImage.Set(zeroVector);
           }
           RealType delta = (ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get());
-          currentEnergy += Math::abs(delta);
-          numberOfGrayMatterVoxels++;
+          currentEnergy += static_cast<double>(Math::abs(delta));
+          ++numberOfGrayMatterVoxels;
           RealType speedValue = -delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
           if (std::isnan(speedValue) || std::isinf(speedValue))
           {
@@ -669,8 +670,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
             RealType                          thicknessPrior = this->m_ThicknessPriorImage->GetPixel(index);
             if ((thicknessPrior > NumericTraits<RealType>::ZeroValue()) && (thicknessValue > thicknessPrior))
             {
-              priorEnergy += itk::Math::abs(thicknessPrior - thicknessValue);
-              priorEnergyCount++;
+              priorEnergy += static_cast<double>(itk::Math::abs(thicknessPrior - thicknessValue));
+              ++priorEnergyCount;
 
               RealType fraction = thicknessPrior / thicknessValue;
               ItVelocityField.Set(ItVelocityField.Get() * itk::Math::sqr(fraction));
@@ -716,14 +717,20 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
 
     // Calculate current energy and current convergence measurement
 
-    currentEnergy /= numberOfGrayMatterVoxels;
-    priorEnergy /= priorEnergyCount;
+    if (numberOfGrayMatterVoxels > 0)
+    {
+      currentEnergy /= static_cast<double>(numberOfGrayMatterVoxels);
+    }
+    if (priorEnergyCount > 0)
+    {
+      priorEnergy /= static_cast<double>(priorEnergyCount);
+    }
 
     if (this->m_ThicknessPriorImage)
     {
       itkDebugMacro("   PriorEnergy = " << priorEnergy);
     }
-    this->m_CurrentEnergy = currentEnergy;
+    this->m_CurrentEnergy = static_cast<RealType>(currentEnergy);
 
     convergenceMonitoring->AddEnergyValue(this->m_CurrentEnergy);
     this->m_CurrentConvergenceMeasurement = convergenceMonitoring->GetConvergenceValue();
@@ -746,15 +753,15 @@ DiReCTImageFilter<TInputImage, TOutputImage>::GenerateData()
 
     for (unsigned int d = 0; d < ImageDimension; d++)
     {
-      for (unsigned int e = 0; e < ImageDimension; e++) 
-      { 
+      for (unsigned int e = 0; e < ImageDimension; e++)
+      {
         direction(d, e) = this->GetSegmentationImage()->GetDirection()(d, e);
       }
     }
-   
+
     this->GetForwardCumulativeVelocityField()->SetDirection(direction);
     this->GetInverseCumulativeVelocityField()->SetDirection(direction);
-  }  
+  }
 }
 
 template <typename TInputImage, typename TOutputImage>
@@ -1010,7 +1017,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>::SmoothImage(const RealImageType * 
   using SmootherType = DiscreteGaussianImageFilter<RealImageType, RealImageType>;
   typename SmootherType::Pointer smoother = SmootherType::New();
   smoother->SetVariance(variance);
-  smoother->SetUseImageSpacing(false);
+  smoother->SetUseImageSpacing(true);
   smoother->SetMaximumError(0.01);
   smoother->SetInput(inputImage);
 
@@ -1034,7 +1041,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Inden
   os << indent << "White matter label = " << this->m_WhiteMatterLabel << std::endl;
   os << indent << "Maximum number of iterations = " << this->m_MaximumNumberOfIterations << std::endl;
   os << indent << "Thickness prior estimate = " << this->m_ThicknessPriorEstimate << std::endl;
-  os << indent << "Smoothing variance = " << this->m_SmoothingVariance << std::endl;
+  os << indent << "Gradient smoothing sigma = " << this->m_GradientSmoothingSigma << std::endl;
+  os << indent << "Hit/total smoothing variance = " << this->m_SmoothingVariance << std::endl;
   if (this->m_UseBSplineSmoothing)
   {
     os << indent << "B-spline smoothing isotropic mesh spacing = " << this->m_BSplineSmoothingIsotropicMeshSpacing
