@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "antsCommandLineParser.h"
 #include <algorithm>
 
 #include <cstdio>
@@ -18,7 +19,6 @@
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "ReadWriteData.h"
-#include <cctype>
 #include <string>
 #include <vector>
 
@@ -27,139 +27,6 @@ namespace ants
 
 namespace
 {
-struct InterpolatorSpec
-{
-  std::string              name;
-  std::vector<std::string> parameters;
-};
-
-std::string
-ToLower(std::string value)
-{
-  std::transform(
-    value.begin(), value.end(), value.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-  return value;
-}
-
-bool
-ParseInterpolatorSpec(const std::string & value, InterpolatorSpec & spec, std::string & error)
-{
-  const auto leftBracket = value.find('[');
-  const auto rightBracket = value.find(']');
-
-  if (leftBracket == std::string::npos)
-  {
-    if (rightBracket != std::string::npos)
-    {
-      error = "unexpected ']'";
-      return false;
-    }
-    spec.name = value;
-  }
-  else
-  {
-    if (rightBracket != value.size() - 1 || value.find('[', leftBracket + 1) != std::string::npos)
-    {
-      error = "expected a single bracketed parameter list";
-      return false;
-    }
-    spec.name = value.substr(0, leftBracket);
-    const std::string parameterList = value.substr(leftBracket + 1, rightBracket - leftBracket - 1);
-    if (!parameterList.empty())
-    {
-      std::string::size_type begin = 0;
-      while (begin <= parameterList.size())
-      {
-        const auto end = parameterList.find(',', begin);
-        const auto parameter = parameterList.substr(begin, end - begin);
-        if (parameter.empty())
-        {
-          error = "empty interpolation parameter";
-          return false;
-        }
-        spec.parameters.push_back(parameter);
-        if (end == std::string::npos)
-        {
-          break;
-        }
-        begin = end + 1;
-      }
-    }
-  }
-
-  spec.name = ToLower(spec.name);
-  const std::vector<std::string> numericNames{ "linear", "nearestneighbor", "gaussian", "windowedsinc", "bspline" };
-  if (spec.name.size() == 1 && spec.name[0] >= '0' && spec.name[0] <= '4')
-  {
-    if (!spec.parameters.empty())
-    {
-      error = "deprecated numeric interpolation options do not accept parameters";
-      return false;
-    }
-    spec.name = numericNames[spec.name[0] - '0'];
-  }
-
-  return true;
-}
-
-bool
-ParseUnsigned(const std::string & value, unsigned int & result)
-{
-  try
-  {
-    std::size_t parsedCharacters = 0;
-    const auto  parsedValue = std::stoul(value, &parsedCharacters);
-    if (parsedCharacters != value.size() || parsedValue > itk::NumericTraits<unsigned int>::max())
-    {
-      return false;
-    }
-    result = static_cast<unsigned int>(parsedValue);
-    return true;
-  }
-  catch (const std::exception &)
-  {
-    return false;
-  }
-}
-
-bool
-ParseReal(const std::string & value, double & result)
-{
-  try
-  {
-    std::size_t parsedCharacters = 0;
-    result = std::stod(value, &parsedCharacters);
-    return parsedCharacters == value.size();
-  }
-  catch (const std::exception &)
-  {
-    return false;
-  }
-}
-
-bool
-ParseRealVector(const std::string & value, std::vector<double> & result)
-{
-  std::string::size_type begin = 0;
-  while (begin <= value.size())
-  {
-    const auto end = value.find('x', begin);
-    const auto element = value.substr(begin, end - begin);
-    double     parsedElement;
-    if (element.empty() || !ParseReal(element, parsedElement))
-    {
-      return false;
-    }
-    result.push_back(parsedElement);
-    if (end == std::string::npos)
-    {
-      break;
-    }
-    begin = end + 1;
-  }
-  return true;
-}
-
 enum class SincWindow
 {
   Cosine,
@@ -293,166 +160,187 @@ ResampleImage(int argc, char * argv[])
   }
 
   const std::string interpolationArgument = argc > 6 ? argv[6] : "Linear";
-  InterpolatorSpec  interpolationSpec;
-  std::string       interpolationError;
-  if (!ParseInterpolatorSpec(interpolationArgument, interpolationSpec, interpolationError))
+  using ParserType = itk::ants::CommandLineParser;
+  auto parser = ParserType::New();
+  auto interpolationOption = ParserType::OptionType::New();
+  interpolationOption->AddFunction(interpolationArgument);
+  const auto  interpolationFunction = interpolationOption->GetFunction();
+  std::string interpolationName = interpolationFunction->GetName();
+  ConvertToLowerCase(interpolationName);
+  const auto  parameters = interpolationFunction->GetParameters();
+  std::string interpolationError;
+
+  // Numeric interpolation choices retain their default parameters. The next
+  // positional argument remains the pixel type, including for Gaussian and BSpline.
+  const std::vector<std::string> numericNames{ "linear", "nearestneighbor", "gaussian", "windowedsinc", "bspline" };
+  if (interpolationName.size() == 1 && interpolationName[0] >= '0' && interpolationName[0] <= '4')
   {
-    std::cerr << "Invalid interpolation specification '" << interpolationArgument << "': " << interpolationError
-              << std::endl;
-    return EXIT_FAILURE;
+    if (!parameters.empty())
+    {
+      std::cerr << "Deprecated numeric interpolation options do not accept parameters" << std::endl;
+      return EXIT_FAILURE;
+    }
+    interpolationName = numericNames[interpolationName[0] - '0'];
   }
 
   using BaseInterpolatorType = itk::InterpolateImageFunction<ImageType, RealType>;
   typename BaseInterpolatorType::Pointer selectedInterpolator;
 
-  if (interpolationSpec.name == "linear")
+  try
   {
-    if (!interpolationSpec.parameters.empty())
+    if (interpolationName == "linear")
     {
-      interpolationError = "Linear does not accept parameters";
-    }
-    else
-    {
-      using InterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
-      selectedInterpolator = InterpolatorType::New();
-    }
-  }
-  else if (interpolationSpec.name == "nearestneighbor")
-  {
-    if (!interpolationSpec.parameters.empty())
-    {
-      interpolationError = "NearestNeighbor does not accept parameters";
-    }
-    else
-    {
-      using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, RealType>;
-      selectedInterpolator = InterpolatorType::New();
-    }
-  }
-  else if (interpolationSpec.name == "gaussian")
-  {
-    using InterpolatorType = itk::GaussianInterpolateImageFunction<ImageType, RealType>;
-
-    double sigma[ImageDimension];
-    for (unsigned int d = 0; d < ImageDimension; ++d)
-    {
-      sigma[d] = image->GetSpacing()[d];
-    }
-    double alpha = 1.0;
-
-    if (interpolationSpec.parameters.size() > 2)
-    {
-      interpolationError = "Gaussian accepts at most two parameters: sigma and alpha";
-    }
-    else if (!interpolationSpec.parameters.empty())
-    {
-      const std::string & sigmaParameter = interpolationSpec.parameters[0];
-      if (ToLower(sigmaParameter) != "spacing")
+      if (!parameters.empty())
       {
-        std::vector<RealType> sigmaValues;
-        if (!ParseRealVector(sigmaParameter, sigmaValues))
-        {
-          interpolationError = "invalid Gaussian sigma '" + sigmaParameter + "'";
-        }
-        else if (sigmaValues.size() == 1)
-        {
-          for (unsigned int d = 0; d < ImageDimension; ++d)
-          {
-            sigma[d] = sigmaValues[0];
-          }
-        }
-        else if (sigmaValues.size() == ImageDimension)
-        {
-          for (unsigned int d = 0; d < ImageDimension; ++d)
-          {
-            sigma[d] = sigmaValues[d];
-          }
-        }
-        else
-        {
-          interpolationError = "Gaussian sigma must be one value or one value per image dimension";
-        }
-      }
-    }
-    if (interpolationError.empty() && interpolationSpec.parameters.size() > 1 &&
-        !ParseReal(interpolationSpec.parameters[1], alpha))
-    {
-      interpolationError = "invalid Gaussian alpha '" + interpolationSpec.parameters[1] + "'";
-    }
-
-    if (interpolationError.empty())
-    {
-      typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-      interpolator->SetParameters(sigma, alpha);
-      selectedInterpolator = interpolator;
-    }
-  }
-  else if (interpolationSpec.name == "windowedsinc")
-  {
-    SincWindow window = SincWindow::Hamming;
-
-    if (interpolationSpec.parameters.size() > 1)
-    {
-      interpolationError = "WindowedSinc accepts at most one parameter: type";
-    }
-    else if (!interpolationSpec.parameters.empty())
-    {
-      const std::string windowName = ToLower(interpolationSpec.parameters[0]);
-      if (windowName == "cosine" || windowName == "c")
-      {
-        window = SincWindow::Cosine;
-      }
-      else if (windowName == "welch" || windowName == "w")
-      {
-        window = SincWindow::Welch;
-      }
-      else if (windowName == "blackman" || windowName == "b")
-      {
-        window = SincWindow::Blackman;
-      }
-      else if (windowName == "lanczos" || windowName == "l")
-      {
-        window = SincWindow::Lanczos;
-      }
-      else if (windowName == "hamming" || windowName == "h")
-      {
-        window = SincWindow::Hamming;
+        interpolationError = "Linear does not accept parameters";
       }
       else
       {
-        interpolationError = "unknown WindowedSinc type '" + interpolationSpec.parameters[0] + "'";
+        using InterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
+        selectedInterpolator = InterpolatorType::New();
       }
     }
-
-    if (interpolationError.empty())
+    else if (interpolationName == "nearestneighbor")
     {
-      selectedInterpolator = MakeWindowedSincInterpolator<ImageType>(window);
+      if (!parameters.empty())
+      {
+        interpolationError = "NearestNeighbor does not accept parameters";
+      }
+      else
+      {
+        using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, RealType>;
+        selectedInterpolator = InterpolatorType::New();
+      }
+    }
+    else if (interpolationName == "gaussian")
+    {
+      using InterpolatorType = itk::GaussianInterpolateImageFunction<ImageType, RealType>;
+
+      double sigma[ImageDimension];
+      for (unsigned int d = 0; d < ImageDimension; ++d)
+      {
+        sigma[d] = image->GetSpacing()[d];
+      }
+      double alpha = 1.0;
+
+      if (parameters.size() > 2)
+      {
+        interpolationError = "Gaussian accepts at most two parameters: sigma and alpha";
+      }
+      else if (!parameters.empty())
+      {
+        std::string sigmaParameter = parameters[0];
+        ConvertToLowerCase(sigmaParameter);
+        if (sigmaParameter != "spacing")
+        {
+          const auto sigmaValues = parser->ConvertVector<RealType>(sigmaParameter);
+          if (sigmaValues.size() == 1)
+          {
+            for (unsigned int d = 0; d < ImageDimension; ++d)
+            {
+              sigma[d] = sigmaValues[0];
+            }
+          }
+          else if (sigmaValues.size() == ImageDimension)
+          {
+            for (unsigned int d = 0; d < ImageDimension; ++d)
+            {
+              sigma[d] = sigmaValues[d];
+            }
+          }
+          else
+          {
+            interpolationError = "Gaussian sigma must be one value or one value per image dimension";
+          }
+        }
+      }
+      if (interpolationError.empty() && parameters.size() > 1)
+      {
+        alpha = parser->Convert<RealType>(parameters[1]);
+      }
+
+      if (interpolationError.empty())
+      {
+        typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+        interpolator->SetParameters(sigma, alpha);
+        selectedInterpolator = interpolator;
+      }
+    }
+    else if (interpolationName == "windowedsinc")
+    {
+      SincWindow window = SincWindow::Hamming;
+
+      if (parameters.size() > 1)
+      {
+        interpolationError = "WindowedSinc accepts at most one parameter: type";
+      }
+      else if (!parameters.empty())
+      {
+        std::string windowName = parameters[0];
+        ConvertToLowerCase(windowName);
+        if (windowName == "cosine" || windowName == "c")
+        {
+          window = SincWindow::Cosine;
+        }
+        else if (windowName == "welch" || windowName == "w")
+        {
+          window = SincWindow::Welch;
+        }
+        else if (windowName == "blackman" || windowName == "b")
+        {
+          window = SincWindow::Blackman;
+        }
+        else if (windowName == "lanczos" || windowName == "l")
+        {
+          window = SincWindow::Lanczos;
+        }
+        else if (windowName == "hamming" || windowName == "h")
+        {
+          window = SincWindow::Hamming;
+        }
+        else
+        {
+          interpolationError = "unknown WindowedSinc type '" + parameters[0] + "'";
+        }
+      }
+
+      if (interpolationError.empty())
+      {
+        selectedInterpolator = MakeWindowedSincInterpolator<ImageType>(window);
+      }
+    }
+    else if (interpolationName == "bspline")
+    {
+      unsigned int order = 3;
+      if (parameters.size() > 1)
+      {
+        interpolationError = "BSpline accepts at most one parameter: order";
+      }
+      else if (!parameters.empty())
+      {
+        order = parser->Convert<unsigned int>(parameters[0]);
+        if (order > 5)
+        {
+          interpolationError = "BSpline order must be an integer from 0 through 5";
+        }
+      }
+
+      if (interpolationError.empty())
+      {
+        using InterpolatorType = itk::BSplineInterpolateImageFunction<ImageType, RealType>;
+        typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+        interpolator->SetSplineOrder(order);
+        selectedInterpolator = interpolator;
+      }
+    }
+    else
+    {
+      interpolationError = "unknown interpolator '" + interpolationName + "'";
     }
   }
-  else if (interpolationSpec.name == "bspline")
+  catch (const itk::ExceptionObject & error)
   {
-    unsigned int order = 3;
-    if (interpolationSpec.parameters.size() > 1)
-    {
-      interpolationError = "BSpline accepts at most one parameter: order";
-    }
-    else if (!interpolationSpec.parameters.empty() &&
-             (!ParseUnsigned(interpolationSpec.parameters[0], order) || order > 5))
-    {
-      interpolationError = "BSpline order must be an integer from 0 through 5";
-    }
-
-    if (interpolationError.empty())
-    {
-      using InterpolatorType = itk::BSplineInterpolateImageFunction<ImageType, RealType>;
-      typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-      interpolator->SetSplineOrder(order);
-      selectedInterpolator = interpolator;
-    }
-  }
-  else
-  {
-    interpolationError = "unknown interpolator '" + interpolationSpec.name + "'";
+    interpolationError = error.GetDescription();
   }
 
   if (!interpolationError.empty() || selectedInterpolator.IsNull())
