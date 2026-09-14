@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "antsCommandLineParser.h"
 #include <algorithm>
 
 #include <cstdio>
@@ -24,6 +25,61 @@
 namespace ants
 {
 
+namespace
+{
+enum class SincWindow
+{
+  Cosine,
+  Welch,
+  Blackman,
+  Lanczos,
+  Hamming
+};
+
+template <typename ImageType>
+typename itk::InterpolateImageFunction<ImageType, double>::Pointer
+MakeWindowedSincInterpolator(SincWindow window)
+{
+  constexpr unsigned int Radius = 3;
+  using BaseInterpolatorType = itk::InterpolateImageFunction<ImageType, double>;
+  typename BaseInterpolatorType::Pointer interpolator;
+  switch (window)
+  {
+    case SincWindow::Cosine: {
+      using InterpolatorType =
+        itk::WindowedSincInterpolateImageFunction<ImageType, Radius, itk::Function::CosineWindowFunction<Radius>>;
+      interpolator = InterpolatorType::New();
+      break;
+    }
+    case SincWindow::Welch: {
+      using InterpolatorType =
+        itk::WindowedSincInterpolateImageFunction<ImageType, Radius, itk::Function::WelchWindowFunction<Radius>>;
+      interpolator = InterpolatorType::New();
+      break;
+    }
+    case SincWindow::Blackman: {
+      using InterpolatorType =
+        itk::WindowedSincInterpolateImageFunction<ImageType, Radius, itk::Function::BlackmanWindowFunction<Radius>>;
+      interpolator = InterpolatorType::New();
+      break;
+    }
+    case SincWindow::Lanczos: {
+      using InterpolatorType =
+        itk::WindowedSincInterpolateImageFunction<ImageType, Radius, itk::Function::LanczosWindowFunction<Radius>>;
+      interpolator = InterpolatorType::New();
+      break;
+    }
+    case SincWindow::Hamming:
+    default: {
+      using InterpolatorType = itk::WindowedSincInterpolateImageFunction<ImageType, Radius>;
+      interpolator = InterpolatorType::New();
+      break;
+    }
+  }
+  return interpolator;
+}
+} // namespace
+
 template <unsigned int ImageDimension, typename PixelType>
 int
 ResampleImage(int argc, char * argv[])
@@ -37,44 +93,6 @@ ResampleImage(int argc, char * argv[])
   using TransformType = itk::IdentityTransform<RealType, ImageDimension>;
   typename TransformType::Pointer transform = TransformType::New();
   transform->SetIdentity();
-
-  using LinearInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
-  typename LinearInterpolatorType::Pointer interpolator = LinearInterpolatorType::New();
-  interpolator->SetInputImage(image);
-
-  using NearestNeighborInterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, RealType>;
-  typename NearestNeighborInterpolatorType::Pointer nn_interpolator = NearestNeighborInterpolatorType::New();
-  nn_interpolator->SetInputImage(image);
-
-  using BSplineInterpolatorType = itk::BSplineInterpolateImageFunction<ImageType, RealType>;
-  typename BSplineInterpolatorType::Pointer bs_interpolator = BSplineInterpolatorType::New();
-  bs_interpolator->SetInputImage(image);
-
-  using GaussianInterpolatorType = itk::GaussianInterpolateImageFunction<ImageType, RealType>;
-  typename GaussianInterpolatorType::Pointer g_interpolator = GaussianInterpolatorType::New();
-  g_interpolator->SetInputImage(image);
-
-  using HammingInterpolatorType = itk::WindowedSincInterpolateImageFunction<ImageType, 3>;
-  typename HammingInterpolatorType::Pointer sh_interpolator = HammingInterpolatorType::New();
-  sh_interpolator->SetInputImage(image);
-
-  using Sinc1InterpolatorType =
-    itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::CosineWindowFunction<3>>;
-  typename Sinc1InterpolatorType::Pointer sc_interpolator = Sinc1InterpolatorType::New();
-  sc_interpolator->SetInputImage(image);
-
-  using Sinc2InterpolatorType =
-    itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::WelchWindowFunction<3>>;
-  typename Sinc2InterpolatorType::Pointer sw_interpolator = Sinc2InterpolatorType::New();
-  sw_interpolator->SetInputImage(image);
-
-  using Sinc3InterpolatorType =
-    itk::WindowedSincInterpolateImageFunction<ImageType, 3, itk::Function::LanczosWindowFunction<3>>;
-  typename Sinc3InterpolatorType::Pointer sl_interpolator = Sinc3InterpolatorType::New();
-  sl_interpolator->SetInputImage(image);
-
-  typename Sinc3InterpolatorType::Pointer sb_interpolator = Sinc3InterpolatorType::New();
-  sb_interpolator->SetInputImage(image);
 
   using ResamplerType = itk::ResampleImageFilter<ImageType, ImageType, RealType>;
   typename ResamplerType::Pointer     resampler = ResamplerType::New();
@@ -141,103 +159,200 @@ ResampleImage(int argc, char * argv[])
     }
   }
 
-  char arg7 = '\0';
-  if (argc > 7)
+  const std::string interpolationArgument = argc > 6 ? argv[6] : "Linear";
+  using ParserType = itk::ants::CommandLineParser;
+  auto parser = ParserType::New();
+  auto interpolationOption = ParserType::OptionType::New();
+  interpolationOption->AddFunction(interpolationArgument);
+  const auto  interpolationFunction = interpolationOption->GetFunction();
+  std::string interpolationName = interpolationFunction->GetName();
+  ConvertToLowerCase(interpolationName);
+  const auto  parameters = interpolationFunction->GetParameters();
+  std::string interpolationError;
+
+  // Numeric interpolation choices retain their default parameters. The next
+  // positional argument remains the pixel type, including for Gaussian and BSpline.
+  const std::vector<std::string> numericNames{ "linear", "nearestneighbor", "gaussian", "windowedsinc", "bspline" };
+  if (interpolationName.size() == 1 && interpolationName[0] >= '0' && interpolationName[0] <= '4')
   {
-    arg7 = *argv[7];
+    if (!parameters.empty())
+    {
+      std::cerr << "Deprecated numeric interpolation options do not accept parameters" << std::endl;
+      return EXIT_FAILURE;
+    }
+    interpolationName = numericNames[interpolationName[0] - '0'];
   }
 
-  resampler->SetTransform(transform);
-  resampler->SetInterpolator(interpolator);
-  if (argc > 6 && std::stoi(argv[6]))
+  using BaseInterpolatorType = itk::InterpolateImageFunction<ImageType, RealType>;
+  typename BaseInterpolatorType::Pointer selectedInterpolator;
+
+  try
   {
-    switch (std::stoi(argv[6]))
+    if (interpolationName == "linear")
     {
-      case 0:
-      default:
+      if (!parameters.empty())
       {
-        resampler->SetInterpolator(interpolator);
+        interpolationError = "Linear does not accept parameters";
       }
-      break;
-      case 1:
+      else
       {
-        resampler->SetInterpolator(nn_interpolator);
+        using InterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
+        selectedInterpolator = InterpolatorType::New();
       }
-      break;
-      case 2:
+    }
+    else if (interpolationName == "nearestneighbor")
+    {
+      if (!parameters.empty())
       {
-        double sigma[ImageDimension];
-        for (unsigned int d = 0; d < ImageDimension; d++)
-        {
-          sigma[d] = image->GetSpacing()[d];
-        }
-        double alpha = 1.0;
+        interpolationError = "NearestNeighbor does not accept parameters";
+      }
+      else
+      {
+        using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<ImageType, RealType>;
+        selectedInterpolator = InterpolatorType::New();
+      }
+    }
+    else if (interpolationName == "gaussian")
+    {
+      using InterpolatorType = itk::GaussianInterpolateImageFunction<ImageType, RealType>;
 
-        if (argc > 7)
-        {
-          std::vector<RealType> sg = ConvertVector<RealType>(std::string(argv[7]));
-          for (unsigned int d = 0; d < ImageDimension; d++)
-          {
-            sigma[d] = sg[d];
-          }
-        }
-        if (argc > 8)
-        {
-          alpha = static_cast<double>(atof(argv[8]));
-        }
-        g_interpolator->SetParameters(sigma, alpha);
+      double sigma[ImageDimension];
+      for (unsigned int d = 0; d < ImageDimension; ++d)
+      {
+        sigma[d] = image->GetSpacing()[d];
+      }
+      double alpha = 1.0;
 
-        resampler->SetInterpolator(g_interpolator);
-      }
-      break;
-      case 3:
+      if (parameters.size() > 2)
       {
-        switch (arg7)
+        interpolationError = "Gaussian accepts at most two parameters: sigma and alpha";
+      }
+      else if (!parameters.empty())
+      {
+        std::string sigmaParameter = parameters[0];
+        ConvertToLowerCase(sigmaParameter);
+        if (sigmaParameter != "spacing")
         {
-          case 'h':
-          default:
+          const auto sigmaValues = parser->ConvertVector<RealType>(sigmaParameter);
+          if (sigmaValues.size() == 1)
           {
-            resampler->SetInterpolator(sh_interpolator);
+            for (unsigned int d = 0; d < ImageDimension; ++d)
+            {
+              sigma[d] = sigmaValues[0];
+            }
           }
-          break;
-          case 'c':
+          else if (sigmaValues.size() == ImageDimension)
           {
-            resampler->SetInterpolator(sc_interpolator);
+            for (unsigned int d = 0; d < ImageDimension; ++d)
+            {
+              sigma[d] = sigmaValues[d];
+            }
           }
-          break;
-          case 'l':
+          else
           {
-            resampler->SetInterpolator(sl_interpolator);
+            interpolationError = "Gaussian sigma must be one value or one value per image dimension";
           }
-          break;
-          case 'w':
-          {
-            resampler->SetInterpolator(sw_interpolator);
-          }
-          break;
-          case 'b':
-          {
-            resampler->SetInterpolator(sb_interpolator);
-          }
-          break;
         }
-        break;
       }
-      case 4:
+      if (interpolationError.empty() && parameters.size() > 1)
       {
-        if (argc > 7 && std::stoi(argv[7]) >= 0 && std::stoi(argv[7]) <= 5)
+        alpha = parser->Convert<RealType>(parameters[1]);
+      }
+
+      if (interpolationError.empty())
+      {
+        typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+        interpolator->SetParameters(sigma, alpha);
+        selectedInterpolator = interpolator;
+      }
+    }
+    else if (interpolationName == "windowedsinc")
+    {
+      SincWindow window = SincWindow::Hamming;
+
+      if (parameters.size() > 1)
+      {
+        interpolationError = "WindowedSinc accepts at most one parameter: type";
+      }
+      else if (!parameters.empty())
+      {
+        std::string windowName = parameters[0];
+        ConvertToLowerCase(windowName);
+        if (windowName == "cosine" || windowName == "c")
         {
-          bs_interpolator->SetSplineOrder(std::stoi(argv[7]));
+          window = SincWindow::Cosine;
+        }
+        else if (windowName == "welch" || windowName == "w")
+        {
+          window = SincWindow::Welch;
+        }
+        else if (windowName == "blackman" || windowName == "b")
+        {
+          window = SincWindow::Blackman;
+        }
+        else if (windowName == "lanczos" || windowName == "l")
+        {
+          window = SincWindow::Lanczos;
+        }
+        else if (windowName == "hamming" || windowName == "h")
+        {
+          window = SincWindow::Hamming;
         }
         else
         {
-          bs_interpolator->SetSplineOrder(3);
+          interpolationError = "unknown WindowedSinc type '" + parameters[0] + "'";
         }
-        resampler->SetInterpolator(bs_interpolator);
-        break;
+      }
+
+      if (interpolationError.empty())
+      {
+        selectedInterpolator = MakeWindowedSincInterpolator<ImageType>(window);
       }
     }
+    else if (interpolationName == "bspline")
+    {
+      unsigned int order = 3;
+      if (parameters.size() > 1)
+      {
+        interpolationError = "BSpline accepts at most one parameter: order";
+      }
+      else if (!parameters.empty())
+      {
+        order = parser->Convert<unsigned int>(parameters[0]);
+        if (order > 5)
+        {
+          interpolationError = "BSpline order must be an integer from 0 through 5";
+        }
+      }
+
+      if (interpolationError.empty())
+      {
+        using InterpolatorType = itk::BSplineInterpolateImageFunction<ImageType, RealType>;
+        typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+        interpolator->SetSplineOrder(order);
+        selectedInterpolator = interpolator;
+      }
+    }
+    else
+    {
+      interpolationError = "unknown interpolator '" + interpolationName + "'";
+    }
   }
+  catch (const itk::ExceptionObject & error)
+  {
+    interpolationError = error.GetDescription();
+  }
+
+  if (!interpolationError.empty() || selectedInterpolator.IsNull())
+  {
+    std::cerr << "Invalid interpolation specification '" << interpolationArgument << "': " << interpolationError
+              << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  selectedInterpolator->SetInputImage(image);
+  resampler->SetTransform(transform);
+  resampler->SetInterpolator(selectedInterpolator);
   resampler->SetInput(image);
   resampler->SetSize(size);
   resampler->SetOutputOrigin(image->GetOrigin());
@@ -305,14 +420,24 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
   if (argc < 5)
   {
     std::cout << "Usage: " << argv[0] << " imageDimension inputImage "
-              << "outputImage MxNxO [size=1,spacing=0] [interpolate type] [pixeltype]" << std::endl;
-    std::cout << "  Interpolation type: " << std::endl;
-    std::cout << "    0. linear (default)" << std::endl;
-    std::cout << "    1. nn " << std::endl;
-    std::cout << "    2. gaussian [sigma=imageSpacing] [alpha=1.0]" << std::endl;
-    std::cout << "    3. windowedSinc [type = 'c'osine, 'w'elch, 'b'lackman, 'l'anczos, 'h'amming]" << std::endl;
-    std::cout << "    4. B-Spline [order=3]" << std::endl;
-    std::cout << " pixeltype  :  TYPE " << std::endl;
+              << "outputImage MxNxO [size=1,spacing=0] [interpolation=Linear] [pixeltype=6]" << std::endl;
+    std::cout << "  imageDimension: 2, 3, or 4" << std::endl;
+    std::cout << "  inputImage: input image file name" << std::endl;
+    std::cout << "  outputImage: output image file name" << std::endl;
+    std::cout << "  MxNxO: either the new size (number of pixels) in each dimension, or the new spacing (physical size of a pixel) in each dimension" << std::endl;
+    std::cout << "  size=1,spacing=0: Either 1 or 0, if the MxNxO argument is interpreted as size (1), or spacing (0)" << std::endl;
+    std::cout << "  interpolation (parameters are positional; parameter names below document their defaults):"
+              << std::endl;
+    std::cout << "    Linear (default)" << std::endl;
+    std::cout << "    NearestNeighbor" << std::endl;
+    std::cout << "    Gaussian[<sigma=spacing>,<alpha=1>]" << std::endl;
+    std::cout << "      sigma may be one value or one value per dimension separated by 'x'." << std::endl;
+    std::cout << "    WindowedSinc[<type=hamming>] (fixed radius 3)" << std::endl;
+    std::cout << "      type: cosine, welch, blackman, lanczos, or hamming." << std::endl;
+    std::cout << "    BSpline[<order=3>]" << std::endl;
+    std::cout << "    Deprecated numeric interpolation options (default parameters only):" << std::endl;
+    std::cout << "      0: Linear,1: NearestNeighbor, 2: Gaussian, 3: WindowedSinc, 4: BSpline" << std::endl;
+    std::cout << "  pixeltype: TYPE" << std::endl;
     std::cout << "  0  :  char   " << std::endl;
     std::cout << "  1  :  unsigned char   " << std::endl;
     std::cout << "  2  :  short   " << std::endl;
@@ -321,6 +446,8 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
     std::cout << "  5  :  unsigned int   " << std::endl;
     std::cout << "  6  :  float (default)  " << std::endl;
     std::cout << "  7  :  double  " << std::endl;
+    std::cout << "  Note: both input and output images will be processed as pixeltype, casting may cause " << std::endl;
+    std::cout << "  rounding before resampling" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;
@@ -339,13 +466,11 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
     case 0:
       switch (std::stoi(argv[1]))
       {
-        case 2:
-        {
+        case 2: {
           return ResampleImage<2, char>(argc, argv);
         }
         break;
-        case 3:
-        {
+        case 3: {
           return ResampleImage<3, char>(argc, argv);
         }
         break;
@@ -362,18 +487,15 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
     case 1:
       switch (std::stoi(argv[1]))
       {
-        case 2:
-        {
+        case 2: {
           return ResampleImage<2, unsigned char>(argc, argv);
         }
         break;
-        case 3:
-        {
+        case 3: {
           return ResampleImage<3, unsigned char>(argc, argv);
         }
         break;
-        case 4:
-        {
+        case 4: {
           return ResampleImage<4, unsigned char>(argc, argv);
         }
         break;
@@ -385,18 +507,15 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
     case 2:
       switch (std::stoi(argv[1]))
       {
-        case 2:
-        {
+        case 2: {
           return ResampleImage<2, short>(argc, argv);
         }
         break;
-        case 3:
-        {
+        case 3: {
           return ResampleImage<3, short>(argc, argv);
         }
         break;
-        case 4:
-        {
+        case 4: {
           return ResampleImage<4, short>(argc, argv);
         }
         break;
@@ -407,8 +526,7 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
     case 3:
       switch (std::stoi(argv[1]))
       {
-        case 2:
-        {
+        case 2: {
           return ResampleImage<2, unsigned short>(argc, argv);
         }
         break;

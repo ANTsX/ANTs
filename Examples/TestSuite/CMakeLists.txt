@@ -65,6 +65,14 @@ target_include_directories(antsWahbaRotationTest PRIVATE ${CMAKE_SOURCE_DIR}/Uti
 target_link_libraries(antsWahbaRotationTest ${ITK_LIBRARIES})
 add_test(NAME antsWahbaRotationTest COMMAND antsWahbaRotationTest)
 
+if(TARGET ResampleImage)
+  add_test(NAME ResampleImageInterpolationTest
+    COMMAND ${CMAKE_COMMAND}
+      -DRESAMPLE_IMAGE=$<TARGET_FILE:ResampleImage>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/ResampleImageInterpolationTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/ResampleImageInterpolationTest.cmake)
+endif()
+
 
 ###
 #  Perform testing
