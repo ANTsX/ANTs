@@ -214,16 +214,15 @@ antsApplyTransformsToTRXInitializeCommandLineOptions(itk::ants::CommandLineParse
 
   {
     std::string description =
-      "One or more ANTs transforms to apply, specified in the same order as"
-      " antsApplyTransformsToPoints.  Transforms are"
-      " applied last-specified first.  Use [transformFile,1] to apply the inverse"
-      " of a transform."
-      "\n\n"
-      "Note on transform direction: streamline vertices move in the OPPOSITE direction "
-      "to images.  Given warps from antsRegistration with a given 'fixed' and 'moving' image: "
-      "to warp a tractogram defined in the moving-image space into the fixed-image space "
-      "use the same transforms you would use with antsApplyTransforms to warp the fixed image "
-      "into moving space. See https://github.com/ANTsX/ANTs/wiki/Applying-transforms-to-point-data";
+      "An ANTs transforms to apply. Use multiple times to chain transforms, specified in "
+      "the same order as antsApplyTransformsToPoints. Use [transformFile,1] to apply the "
+      "inverse, for transforms that define an explicit inverse (eg affine transforms)."
+      " "
+      "Note on transform direction: The required 'forward' or 'inverse' warps for streamlines "
+      "are the OPPOSITE of those used to resample images. For warps from antsRegistration with a given "
+      "'fixed' and 'moving' image: to warp streamlines defined in the moving-image space into the "
+      "fixed-image space, use the same transforms you would use with antsApplyTransforms to warp "
+      "the fixed image into moving space. See https://github.com/ANTsX/ANTs/wiki/Applying-transforms-to-point-data";
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("transform");
     option->SetShortName('t');
