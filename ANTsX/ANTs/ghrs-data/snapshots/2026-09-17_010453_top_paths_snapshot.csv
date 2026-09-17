@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/ANTsX/ANTs,422,271
+/antsx/ants,328,244
+/ANTsX/ANTs/releases,244,147
+/ANTsX/ANTs/wiki/Anatomy-of-an-antsRegistration-call,85,61
+/ANTsX/ANTs/wiki/N4BiasFieldCorrection,79,57
+/ANTsX/ANTs/wiki,60,49
+/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS,60,43
+/ANTsX/ANTs/wiki/ANTS-and-antsRegistration,47,39
+"/ANTsX/ANTs/wiki/Forward-and-inverse-warps-for-warping-images,-pointsets-and-Jacobians",47,32
+/ANTsX/ANTs/blob/main/Scripts/antsMultivariateTemplateConstruction2.sh,37,28
