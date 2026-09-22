@@ -1,76 +1,67 @@
 /*
  * antsApplyTransformsToGifti
  *
- * Applies a series of ANTs transforms (warps, affines, composite, etc.) to the
- * vertex coordinates of a GIFTI surface file (.gii), producing a warped output
- * surface in GIFTI format.
+ * Applies ANTs transforms to the vertices of a GIFTI surface (.gii).
  *
- * This tool is the GIFTI-native equivalent of antsApplyTransformsToPoints and
- * replaces the multi-step workflow previously used in niworkflows
- * (https://github.com/nipreps/niworkflows/blob/master/niworkflows/interfaces/surf.py):
+ * Input coordinate contract
+ * -------------------------
+ * Stored vertices must be physical RAS+ coordinates in millimeters in the
+ * scanner/world frame expected by the transforms. Neither FreeSurfer VolGeom*
+ * metadata (including C_RAS) nor GIFTI coordinate-system matrices are applied.
+ * The POINTSET must have coordinate-system metadata, with every DataSpace set
+ * to NIFTI_XFORM_SCANNER_ANAT. Otherwise an exception is thrown. Users certain
+ * that the stored coordinates are already scanner RAS can bypass this check
+ * with --input-is-scanner-ras, for example for older, incorrectly marked files.
+ * This override does not convert coordinates or apply any header transform.
+ * The tool converts RAS+ to ITK LPS+ by negating X and Y, applies the composite
+ * transform, then converts back to RAS+ in the target image's physical frame.
  *
- *   NormalizeSurf -> GiftiToCSV(itk_lps=True)
- *     -> antsApplyTransformsToPoints -> CSVToGifti(itk_lps=True)
+ * Preparing FreeSurfer surfaces
+ * ----------------------------
+ * Convert native surfaces explicitly to scanner RAS before using this tool:
  *
+ *   mris_convert --to-scanner \
+ *     $SUBJECTS_DIR/$SUBJECT/surf/lh.pial lh.pial.scanner.surf.gii
  *
- * Coordinate system handling
- * --------------------------
- * GIFTI files store vertex coordinates in RAS+ physical space, whereas ITK (and
- * all ANTs transforms) operate in LPS+ space.  This tool automatically converts
- * between the two conventions by negating the X and Y coordinates immediately
- * before applying the composite transform and again immediately after,
- * equivalent to the itk_lps=True flag in the niworkflows GiftiToCSV and
- * CSVToGifti interfaces.
+ * Plain mris_convert output is normally in tkregister RAS and is not suitable.
+ * Unlike earlier versions of this tool, no automatic C_RAS correction is made.
+ * --to-scanner handles the full surface-to-scanner mapping, including volume
+ * orientations for which adding C_RAS alone would be insufficient. FreeSurfer
+ * 7.4.0 or newer is recommended for conversion and viewing: older converters
+ * can write scanner coordinates without the correct GIFTI DataSpace marking.
  *
+ * Output metadata
+ * ---------------
+ * The transformed POINTSET has one CoordinateSystemTransformMatrix with
+ * DataSpace = NIFTI_XFORM_SCANNER_ANAT, TransformedSpace = NIFTI_XFORM_UNKNOWN,
+ * and an identity matrix. Here scanner RAS denotes the target physical frame;
+ * the transform does not identify a particular anatomical template.
+ * Original VolGeom* entries are removed from file and data-array metadata.
+ * With -r/--reference-image, the output POINTSET receives volume geometry from
+ * that 3D target image for FreeSurfer/Freeview compatibility. Without a reference,
+ * no VolGeom* entries are written. The reference changes metadata only, never
+ * vertex coordinates. ITK LPS geometry is converted to RAS; C_RAS is evaluated
+ * at continuous voxel index dimensions/2, following FreeSurfer's convention.
+ * Coordinate-system blocks are removed from TRIANGLE arrays, where the GIFTI
+ * specification does not allow them. Face topology, other data buffers, label
+ * tables, and unrelated metadata are preserved.
  *
- * FreeSurfer C_RAS correction
- * ---------------------------
- * When FreeSurfer converts a surface to GIFTI using mris_convert, vertex
- * coordinates are stored in "native surface RAS" space, which is offset from
- * world RAS by a translation vector called C_RAS.  This offset is embedded in
- * each NIFTI_INTENT_POINTSET data array's metadata under three keys:
- *
- *   VolGeomC_R   (C_RAS offset in the R direction)
- *   VolGeomC_A   (C_RAS offset in the A direction)
- *   VolGeomC_S   (C_RAS offset in the S direction)
- *
- * Before applying any ITK transform, this tool detects and adds the C_RAS
- * offset to bring coordinates into world RAS space, matching the behavior of
- * niworkflows' NormalizeSurf interface (see normalize_surfs() in surf.py)
- * After the transform is applied, the VolGeomC_R/A/S metadata
- * fields are zeroed out in the output file so that downstream tools do not
- * apply the offset a second time.
- *
- * Header fields modified in the output
- * ------------------------------------
- *   - NIFTI_INTENT_POINTSET vertex coordinates (the float32 data buffer) are
- *     updated in place; face topology and all other data arrays are preserved.
- *   - VolGeomC_R, VolGeomC_A, VolGeomC_S are set to "0.000000" if they were
- *     non-zero (C_RAS offset has been baked into the coordinates).
- *   - CoordinateSystemTransformMatrix TransformedSpace is set to
- *     NIFTI_XFORM_UNKNOWN and the matrix is reset to identity, because the
- *     original xform (e.g. a FreeSurfer Talairach matrix) no longer describes
- *     a valid mapping after the ANTs transform has been applied.  DataSpace is
- *     preserved unchanged.
- *   - All other metadata, including label tables and per-file metadata, are
- *     written through unchanged.
- *
- *
- * Example
- * -------
- * Apply a SyN warp and affine to a cortical surface (transforms applied last
- * first, same ordering as antsApplyTransforms for images):
+ * Transform direction and example
+ * -------------------------------
+ * Point mapping runs in the opposite direction to image resampling. To move
+ * surface vertices from the moving image to the fixed image, use the transforms
+ * for resampling the fixed image into moving space. For standard antsRegistration
+ * outputs with prefix subjectToTemplate_ (fixed = template, moving = subject):
  *
  *   antsApplyTransformsToGifti \
- *     -i lh.pial.surf.gii \
- *     -o lh.pial.warped.surf.gii \
- *     -t [Warp.nii.gz,0] \
- *     -t [Affine.mat,0]
+ *     -i lh.pial.scanner.surf.gii \
+ *     -o lh.pial.template.surf.gii \
+ *     -r template.nii.gz \
+ *     -t '[subjectToTemplate_0GenericAffine.mat,1]' \
+ *     -t subjectToTemplate_1InverseWarp.nii.gz
  *
- * Note on transform direction: surface vertices are transformed in the OPPOSITE
- * direction to images.  To warp a surface defined in moving-image space into
- * fixed-image space, pass the same transforms you would use for
- * antsApplyTransforms on the moving image (not the inverses).
+ * Transforms are applied last-specified first, as in antsApplyTransformsToPoints.
+ * With no transforms, coordinates are unchanged and output metadata is updated.
  *
  * See also: antsApplyTransforms, antsApplyTransformsToPoints
  */
@@ -80,6 +71,7 @@
 
 #include "itkAffineTransform.h"
 #include "itkCompositeTransform.h"
+#include "itkImageIOFactory.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
@@ -89,8 +81,13 @@
 #include "gifti_io.h"
 
 #include <cstdlib>
+#include <cmath>
 #include <cstring>
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace ants
@@ -134,6 +131,64 @@ antsApplyTransformsToGifti(itk::ants::CommandLineParser::Pointer & parser)
   std::string inputFile = inputOption->GetFunction(0)->GetName();
   std::string outputFile = outputOption->GetFunction(0)->GetName();
 
+  // Read only the reference header. Its geometry describes the output frame;
+  // it does not participate in transforming the vertices.
+  std::vector<std::pair<std::string, std::string>> referenceGeometry;
+  auto referenceOption = parser->GetOption("reference-image");
+  if (referenceOption && referenceOption->GetNumberOfFunctions() > 0)
+  {
+    const std::string referenceFile = referenceOption->GetFunction(0)->GetName();
+    auto imageIO = itk::ImageIOFactory::CreateImageIO(referenceFile.c_str(), itk::IOFileModeEnum::ReadMode);
+    if (!imageIO)
+    {
+      throw std::runtime_error("Cannot read reference image: " + referenceFile);
+    }
+    imageIO->SetFileName(referenceFile);
+    imageIO->ReadImageInformation();
+    if (imageIO->GetNumberOfDimensions() != Dimension)
+    {
+      throw std::runtime_error("Reference image must be 3D: " + referenceFile);
+    }
+    const auto number = [](double value) {
+      if (!std::isfinite(value))
+      {
+        throw std::runtime_error("Reference image contains non-finite geometry.");
+      }
+      std::ostringstream stream;
+      stream << std::setprecision(17) << value;
+      return stream.str();
+    };
+    referenceGeometry.emplace_back("VolGeomFname", referenceFile);
+    const char * dimensions[3] = { "VolGeomWidth", "VolGeomHeight", "VolGeomDepth" };
+    const char * axes[3] = { "X", "Y", "Z" };
+    const char * ras[3] = { "R", "A", "S" };
+    double center[3] = { imageIO->GetOrigin(0), imageIO->GetOrigin(1), imageIO->GetOrigin(2) };
+    for (unsigned int axis = 0; axis < Dimension; ++axis)
+    {
+      const auto size = imageIO->GetDimensions(axis);
+      const double spacing = imageIO->GetSpacing(axis);
+      if (size == 0 || !std::isfinite(spacing) || spacing <= 0.0)
+      {
+        throw std::runtime_error("Reference image must have positive dimensions and spacing: " + referenceFile);
+      }
+      referenceGeometry.emplace_back(dimensions[axis], std::to_string(size));
+      referenceGeometry.emplace_back(std::string("VolGeom") + axes[axis] + "size", number(spacing));
+      const auto direction = imageIO->GetDirection(axis);
+      for (unsigned int component = 0; component < Dimension; ++component)
+      {
+        const double sign = component < 2 ? -1.0 : 1.0;
+        referenceGeometry.emplace_back(std::string("VolGeom") + axes[axis] + "_" + ras[component],
+                                       number(sign * direction[component]));
+        center[component] += direction[component] * spacing * static_cast<double>(size) / 2.0;
+      }
+    }
+    for (unsigned int component = 0; component < Dimension; ++component)
+    {
+      const double sign = component < 2 ? -1.0 : 1.0;
+      referenceGeometry.emplace_back(std::string("VolGeomC_") + ras[component], number(sign * center[component]));
+    }
+  }
+
   // -----------------------------------------------------------------------
   // Build composite ITK transform from --transform options
   // -----------------------------------------------------------------------
@@ -155,9 +210,8 @@ antsApplyTransformsToGifti(itk::ants::CommandLineParser::Pointer & parser)
 
   // -----------------------------------------------------------------------
   // Read GIFTI file with all data.
-  // Silence gifticlib's validator: HCP- and fMRIPrep-produced files commonly
-  // carry a coordsys on the TRIANGLE array, which is valid in practice even
-  // though the GIFTI spec reserves coordsys for POINTSET arrays only.
+  // Some input files carry a coordsys on the TRIANGLE array. Suppress the
+  // validator warning on read; these nonstandard blocks are removed on output.
   // -----------------------------------------------------------------------
   const int savedVerb = gifti_get_verb();
   gifti_set_verb(0);
@@ -190,6 +244,33 @@ antsApplyTransformsToGifti(itk::ants::CommandLineParser::Pointer & parser)
 
   giiDataArray * da = gim->darray[pointsetIdx];
 
+  typename itk::ants::CommandLineParser::OptionType::Pointer scannerRasOption =
+    parser->GetOption("input-is-scanner-ras");
+  const bool inputIsScannerRas = scannerRasOption && scannerRasOption->GetNumberOfFunctions() > 0 &&
+    parser->Convert<bool>(scannerRasOption->GetFunction(0)->GetName());
+  if (!inputIsScannerRas)
+  {
+    // Multiple coordinate-system blocks must agree on the stored data's frame.
+    // TransformedSpace describes the result of a header matrix, not the vertices.
+    bool scannerDataSpace = da->numCS > 0 && da->coordsys;
+    for (int cs = 0; scannerDataSpace && cs < da->numCS; ++cs)
+    {
+      const giiCoordSystem * csys = da->coordsys[cs];
+      scannerDataSpace = csys && csys->dataspace &&
+        std::strcmp(csys->dataspace, "NIFTI_XFORM_SCANNER_ANAT") == 0;
+    }
+    if (!scannerDataSpace)
+    {
+      gifti_free_image(gim);
+      throw std::runtime_error(
+        "Input GIFTI POINTSET must declare DataSpace = NIFTI_XFORM_SCANNER_ANAT in every "
+        "coordinate-system block: " + inputFile +
+        ". Convert native FreeSurfer surfaces with mris_convert --to-scanner. "
+        "Use --input-is-scanner-ras only if you are certain the stored vertices are already "
+        "in scanner RAS+ physical coordinates; this override does not convert coordinates.");
+    }
+  }
+
   if (da->datatype != NIFTI_TYPE_FLOAT32)
   {
     std::cerr << "POINTSET data array must use NIFTI_TYPE_FLOAT32. "
@@ -210,119 +291,98 @@ antsApplyTransformsToGifti(itk::ants::CommandLineParser::Pointer & parser)
   float *      coords = static_cast<float *>(da->data);
 
   // -----------------------------------------------------------------------
-  // Detect and read the FreeSurfer C_RAS offset from data array metadata.
-  //
-  // When mris_convert produces a GIFTI, vertex coordinates are in FreeSurfer's
-  // "native surface RAS" space.  World RAS = native surface RAS + C_RAS.
-  // The offset is stored in the POINTSET data array's metadata under the keys
-  // VolGeomC_R, VolGeomC_A, VolGeomC_S.
-  //
-  // Reference: niworkflows normalize_surfs() in interfaces/surf.py
-  // (https://github.com/nipreps/niworkflows)
-  // -----------------------------------------------------------------------
-  const char * cRasKeys[3] = { "VolGeomC_R", "VolGeomC_A", "VolGeomC_S" };
-  double       cRas[3] = { 0.0, 0.0, 0.0 };
-  bool         hasCRas = false;
-
-  for (int d = 0; d < 3; ++d)
-  {
-    char * val = gifti_get_meta_value(&da->meta, cRasKeys[d]);
-    if (val)
-    {
-      cRas[d] = std::atof(val);
-      if (cRas[d] != 0.0)
-      {
-        hasCRas = true;
-      }
-    }
-  }
-
-  if (hasCRas)
-  {
-    std::cout << "Detected FreeSurfer C_RAS offset: "
-              << "R=" << cRas[0] << "  A=" << cRas[1] << "  S=" << cRas[2]
-              << "  -- applying before transform." << std::endl;
-  }
-
-  // -----------------------------------------------------------------------
   // Apply transforms to each vertex
   // -----------------------------------------------------------------------
   for (int v = 0; v < nVerts; ++v)
   {
     float * pt = coords + v * 3;
 
-    // 1. Apply the FreeSurfer C_RAS offset: native surface RAS -> world RAS.
-    //    This matches the addition performed in niworkflows normalize_surfs()
-    //    before applying any further transforms.
-    double x = static_cast<double>(pt[0]) + cRas[0];
-    double y = static_cast<double>(pt[1]) + cRas[1];
-    double z = static_cast<double>(pt[2]) + cRas[2];
-
-    // 2. RAS+ -> LPS+: negate X and Y to convert from the GIFTI/neuroimaging
-    //    convention to ITK's internal coordinate convention.
+    // RAS+ -> LPS+: the stored vertices are already in scanner/world space.
     typename CompositeTransformType::InputPointType itkPt;
-    itkPt[0] = static_cast<RealType>(-x);
-    itkPt[1] = static_cast<RealType>(-y);
-    itkPt[2] = static_cast<RealType>(z);
+    itkPt[0] = static_cast<RealType>(-pt[0]);
+    itkPt[1] = static_cast<RealType>(-pt[1]);
+    itkPt[2] = static_cast<RealType>(pt[2]);
 
-    // 3. Apply the ANTs composite transform in LPS+ space.
+    // Apply the ANTs composite transform in LPS+ space.
     typename CompositeTransformType::OutputPointType itkPtOut =
       compositeTransform->TransformPoint(itkPt);
 
-    // 4. LPS+ -> RAS+: negate X and Y back before storing.
+    // LPS+ -> RAS+: negate X and Y back before storing.
     pt[0] = static_cast<float>(-itkPtOut[0]);
     pt[1] = static_cast<float>(-itkPtOut[1]);
     pt[2] = static_cast<float>(itkPtOut[2]);
   }
 
-  // -----------------------------------------------------------------------
-  // Zero out C_RAS metadata in the output so downstream tools do not apply
-  // the offset a second time.
-  // -----------------------------------------------------------------------
-  if (hasCRas)
-  {
-    int dalist[1] = { pointsetIdx };
-    for (int d = 0; d < 3; ++d)
+  // Drop stale FreeSurfer volume geometry at both file and array level.
+  // Compact the owned name/value arrays without disturbing unrelated metadata.
+  const auto removeVolGeom = [](giiMetaData & meta) {
+    int kept = 0;
+    for (int i = 0; i < meta.length; ++i)
     {
-      gifti_set_DA_meta(gim, cRasKeys[d], "0.000000", dalist, 1, /*replace=*/1);
+      if (meta.name[i] && std::strncmp(meta.name[i], "VolGeom", 7) == 0)
+      {
+        free(meta.name[i]);
+        free(meta.value[i]);
+      }
+      else
+      {
+        meta.name[kept] = meta.name[i];
+        meta.value[kept] = meta.value[i];
+        ++kept;
+      }
+    }
+    for (int i = kept; i < meta.length; ++i)
+    {
+      meta.name[i] = nullptr;
+      meta.value[i] = nullptr;
+    }
+    meta.length = kept;
+  };
+  removeVolGeom(gim->meta);
+  for (int i = 0; i < gim->numDA; ++i)
+  {
+    removeVolGeom(gim->darray[i]->meta);
+    if (gim->darray[i]->intent == NIFTI_INTENT_TRIANGLE)
+    {
+      gifti_free_CS_list(gim->darray[i]);
     }
   }
 
-  // -----------------------------------------------------------------------
-  // Update coordsys on the POINTSET array: the coordinates have been moved by
-  // an external ANTs transform, so the original DataSpace->TransformedSpace
-  // matrix (e.g. a FreeSurfer Talairach matrix) no longer describes a valid
-  // relationship.  Set TransformedSpace to NIFTI_XFORM_UNKNOWN and the matrix
-  // to identity so that downstream tools do not attempt to apply stale values.
-  // DataSpace is left unchanged — it still correctly names the space the
-  // coordinates were originally defined in (e.g. NIFTI_XFORM_UNKNOWN for
-  // HCP/fMRIPrep surfaces, or NIFTI_XFORM_TALAIRACH for FreeSurfer ones).
-  // -----------------------------------------------------------------------
-  for (int cs = 0; cs < da->numCS; ++cs)
+  for (const auto & entry : referenceGeometry)
   {
-    giiCoordSystem * csys = da->coordsys[cs];
-    if (!csys)
-      continue;
-
-    if (csys->xformspace)
+    if (gifti_add_to_meta(&da->meta, entry.first.c_str(), entry.second.c_str(), 1) != 0)
     {
-      free(csys->xformspace);
+      gifti_free_image(gim);
+      throw std::runtime_error("Failed to write reference-image volume geometry to GIFTI metadata.");
     }
-    csys->xformspace = strdup("NIFTI_XFORM_UNKNOWN");
-
-    memset(csys->xform, 0, sizeof(csys->xform));
-    for (int i = 0; i < 4; ++i)
-      csys->xform[i][i] = 1.0;
   }
 
-  // -----------------------------------------------------------------------
-  // Write output GIFTI.  gifti_write_image preserves all data arrays (face
-  // topology, shape data, etc.), the coordsys/xform matrix, label tables, and
-  // all file- and array-level metadata.  Only the POINTSET coordinate buffer,
-  // the zeroed-out VolGeomC_* fields, and the reset coordsys differ from the
-  // input.
-  //
-  // -----------------------------------------------------------------------
+  // Replace all old mappings with a single identity mapping describing the
+  // stored target-space RAS coordinates. This also handles missing coordsys.
+  gifti_free_CS_list(da);
+  if (gifti_add_empty_CS(da) != 0)
+  {
+    std::cerr << "Failed to allocate output GIFTI coordinate system." << std::endl;
+    gifti_free_image(gim);
+    return EXIT_FAILURE;
+  }
+  giiCoordSystem * csys = da->coordsys[0];
+  csys->dataspace = strdup("NIFTI_XFORM_SCANNER_ANAT");
+  csys->xformspace = strdup("NIFTI_XFORM_UNKNOWN");
+  if (!csys->dataspace || !csys->xformspace)
+  {
+    std::cerr << "Failed to allocate output GIFTI coordinate-space names." << std::endl;
+    gifti_free_image(gim);
+    return EXIT_FAILURE;
+  }
+  memset(csys->xform, 0, sizeof(csys->xform));
+  for (int i = 0; i < 4; ++i)
+  {
+    csys->xform[i][i] = 1.0;
+  }
+
+  // Write the transformed coordinates and updated metadata, preserving all
+  // other data buffers and the label table.
   if (gifti_write_image(gim, outputFile.c_str(), /*write_data=*/1) != 0)
   {
     std::cerr << "Failed to write output GIFTI: " << outputFile << std::endl;
@@ -340,10 +400,10 @@ antsApplyTransformsToGiftiInitializeCommandLineOptions(itk::ants::CommandLinePar
 {
   {
     std::string description =
-      "Use double-precision floating point for transform computation (0 = float,"
-      " 1 = double).  Float is faster; double may improve accuracy for very large"
-      " deformation fields.  Vertex coordinates are always stored as float32 in the"
-      " output GIFTI regardless of this setting.  Default = 0 (float).";
+      "Use double-precision floating point for transform computation (0 = float, "
+      "1 = double).  Float is faster; double may improve accuracy for very large "
+      "deformation fields.  Vertex coordinates are always stored as float32 in the "
+      "output GIFTI regardless of this setting.  Default = 0 (float). ";
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("precision");
     option->SetShortName('p');
@@ -354,11 +414,12 @@ antsApplyTransformsToGiftiInitializeCommandLineOptions(itk::ants::CommandLinePar
 
   {
     std::string description =
-      "Input GIFTI surface file (.gii).  Both standard GIFTI files (e.g., produced"
-      " by HCP pipelines or Connectome Workbench) and FreeSurfer-generated GIFTI"
-      " files (produced by mris_convert) are supported.  Native FreeSurfer binary"
-      " surfaces (.pial, .white, .inflated, etc.) must first be converted to GIFTI"
-      " using mris_convert -- see the tool description for the exact commands.";
+      "Input GIFTI surface file (.gii) with stored vertices in scanner/world RAS+ "
+      "physical coordinates (millimeters). Convert native FreeSurfer surfaces "
+      "to this format by using mris_convert --to-scanner. "
+      "POINTSET DataSpace must be NIFTI_XFORM_SCANNER_ANAT; missing or conflicting "
+      "declarations cause an exception unless --input-is-scanner-ras is used. "
+      "No C_RAS offset or GIFTI coordinate-system matrix is applied.";
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("input");
     option->SetShortName('i');
@@ -368,7 +429,26 @@ antsApplyTransformsToGiftiInitializeCommandLineOptions(itk::ants::CommandLinePar
   }
 
   {
-    std::string description = std::string("Output GIFTI surface file (.gii).");
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("input-is-scanner-ras");
+    option->SetUsageOption(0, "[0/1]");
+    option->SetDescription(
+      "Bypasses the POINTSET DataSpace check. Use only when you are certain the stored "
+      "vertices are already scanner RAS+ physical coordinates, despite missing or "
+      "incorrect metadata (for example, older FreeSurfer GIFTIs). This flag does not "
+      "convert coordinates or apply header transforms. Default = 0; using the flag by "
+      "itself or with 1 bypasses the check.");
+    option->AddFunction(std::string("0"));
+    parser->AddOption(option);
+  }
+
+  {
+    std::string description =
+      "Output GIFTI surface file (.gii), with vertices in target physical RAS+. "
+      "POINTSET DataSpace is SCANNER_ANAT, TransformedSpace is UNKNOWN, and the "
+      "coordinate-system matrix is identity. Original VolGeom* metadata and TRIANGLE "
+      "coordinate-system blocks are removed. Use --reference-image to populate "
+      "output VolGeom* from the target image.";
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("output");
     option->SetShortName('o');
@@ -378,17 +458,30 @@ antsApplyTransformsToGiftiInitializeCommandLineOptions(itk::ants::CommandLinePar
   }
 
   {
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName("reference-image");
+    option->SetShortName('r');
+    option->SetUsageOption(0, "targetImage.nii.gz");
+    option->SetDescription(
+      "Optional 3D reference image in the output surface's target physical space. "
+      "Populate POINTSET VolGeom* metadata from its dimensions, spacing, RAS direction "
+      "cosines, center RAS, and filename for FreeSurfer/Freeview compatibility. "
+      "Only the header is read; this option does not change vertex coordinates or "
+      "the applied transforms. Without a reference, no VolGeom* metadata is written. ");
+    parser->AddOption(option);
+  }
+
+  {
     std::string description =
-      "One or more ANTs transforms to apply, specified in the same order as"
-      " antsApplyTransformsToPoints.  Transforms are"
-      " applied last-specified first.  Use [transformFile,1] to apply the inverse"
-      " of a transform."
-      "\n\n"
-      "Note on transform direction: surface vertices move in the OPPOSITE direction "
-      "to images.  Given warps from antsRegistration with a given 'fixed' and 'moving' image: "
-      "to warp a surface defined in the moving-image space into the fixed-image space "
-      "use the same transforms you would use with antsApplyTransforms to warp the fixed image "
-      "into moving space. See https://github.com/ANTsX/ANTs/wiki/Applying-transforms-to-point-data";
+      "An ANTs transforms to apply. Use multiple times to chain transforms, specified in "
+      "the same order as antsApplyTransformsToPoints. Use [transformFile,1] to apply the "
+      "inverse, for transforms that define an explicit inverse (eg affine transforms)."
+      " "
+      "Note on transform direction: The required 'forward' or 'inverse' warps for surface vertices "
+      "are the OPPOSITE of those used to resample images. For warps from antsRegistration with a given "
+      "'fixed' and 'moving' image: to warp a surface defined in the moving-image space into the "
+      "fixed-image space, use the same transforms you would use with antsApplyTransforms to warp "
+      "the fixed image into moving space. See https://github.com/ANTsX/ANTs/wiki/Applying-transforms-to-point-data";
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("transform");
     option->SetShortName('t');
@@ -459,20 +552,16 @@ antsApplyTransformsToGifti(std::vector<std::string> args, std::ostream * /*out_s
   parser->SetCommand(argv[0]);
 
   std::string commandDescription =
-    "Apply ANTs transforms to the vertex coordinates of a GIFTI surface file.\n\n"
-
-    "Preparing FreeSurfer surfaces:\n"
-    "  mris_convert $SUBJECTS_DIR/$SUBJECT/surf/lh.pial  lh.pial.surf.gii\n"
-    "  mris_convert $SUBJECTS_DIR/$SUBJECT/surf/rh.pial  rh.pial.surf.gii\n"
-    "  mris_convert $SUBJECTS_DIR/$SUBJECT/surf/lh.white lh.white.surf.gii\n"
-    "  mris_convert $SUBJECTS_DIR/$SUBJECT/surf/rh.white rh.white.surf.gii\n"
-    "\n"
-    "The FreeSurfer C_RAS offset (VolGeomC_R/A/S) is applied automatically\n"
-    "and zeroed out in the output.  No separate normalization step is needed.\n"
-    "\n"
-    "Example:\n"
-    "  antsApplyTransformsToGifti -i lh.pial.surf.gii -o lh.pial.warped.surf.gii \\\n"
-    "    -t Warp.nii.gz -t Affine.mat";
+    "Apply ANTs transforms to scanner/world RAS+ vertices of a GIFTI surface file. "
+    "Input vertices must already be in scanner/world RAS+ physical coordinates. "
+    "The POINTSET DataSpace must be NIFTI_XFORM_SCANNER_ANAT. If this metadata is missing "
+    "or incorrect, but you are certain that the mesh points are in RAS+ physical coordinates, "
+    "you can force the program to proceed with the --input-is-scanner-ras option. "
+    "FreeSurfer 7.4.0 or newer is recommended for conversion and viewing; older "
+    "converters may not mark scanner coordinates correctly in DataSpace. "
+    "In the output, original VolGeom* metadata is removed. Supply -r/--reference-image "
+    "to write geometry from the target image for freeview compatibility. "
+    "Without a reference, no VolGeom* metadata is written.";
 
   parser->SetCommandDescription(commandDescription);
   antsApplyTransformsToGiftiInitializeCommandLineOptions(parser);
@@ -487,6 +576,23 @@ antsApplyTransformsToGifti(std::vector<std::string> args, std::ostream * /*out_s
        (parser->Convert<bool>(parser->GetOption("help")->GetFunction()->GetName()))))
   {
     parser->PrintMenu(std::cout, 5, false);
+    std::cout << R"(
+PREPARING FREESURFER SURFACES:
+     mris_convert --to-scanner \
+       "$SUBJECTS_DIR/$SUBJECT/surf/lh.pial" lh.pial.surf.gii
+
+EXAMPLE:
+     Move a subject surface to the fixed image 'template.nii.gz' using registration outputs:
+
+     antsApplyTransformsToGifti \
+       -i lh.pial.surf.gii \
+       -o lh.pial.warped.surf.gii \
+       -r template.nii.gz \
+       -t [ subjectToTemplate_0GenericAffine.mat, 1 ] \
+       -t subjectToTemplate_1InverseWarp.nii.gz
+
+)";
+
     if (argc < 2)
     {
       return EXIT_FAILURE;

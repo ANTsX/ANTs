@@ -290,15 +290,8 @@ antsApplyTransformsToPointsInitializeCommandLineOptions(itk::ants::CommandLinePa
         "through to the output file, but not transformed. "
         "MHA input should be 2D with the first dimension being the point index and the second "
         "dimension being the point coordinates. "
-        "\n"
-        "The points should be defined in LPS+ physical space as defined by ITK. "
-        "Points are transformed in the OPPOSITE direction of images, therefore "
-        "you should pass the inverse of what is needed to warp the images. "
-        "Eg if the image is warped by Affine.mat, you should pass the inverse of "
-        "Affine.mat to transform points defined in the same space as the image. "
-        "\n"
-        "See https://github.com/ANTsX/ANTs/wiki/Applying-transforms-to-point-data "
-        "for more details and examples.";
+        " "
+        "The input points should be defined in LPS+ physical space as defined by ITK. ";
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("input");
@@ -309,7 +302,7 @@ antsApplyTransformsToPointsInitializeCommandLineOptions(itk::ants::CommandLinePa
   }
 
   {
-    std::string description = std::string("One can output the warped points to a csv file.");
+    std::string description = std::string("Output file name. Output format is the same as the input format.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("output");
@@ -320,22 +313,16 @@ antsApplyTransformsToPointsInitializeCommandLineOptions(itk::ants::CommandLinePa
   }
 
   {
-    std::string description = std::string("Several transform options are supported including all ") +
-                              std::string("those defined in the ITK library in addition to ") +
-                              std::string("a deformation field transform.  The ordering of ") +
-                              std::string("the transformations follows the ordering specified ") +
-                              std::string("on the command line.  An identity transform is pushed ") +
-                              std::string("onto the transformation stack. Each new transform ") +
-                              std::string("encountered on the command line is also pushed onto ") +
-                              std::string("the transformation stack. Then, to warp the input object, ") +
-                              std::string("each point comprising the input object is warped first ") +
-                              std::string("according to the last transform pushed onto the stack ") +
-                              std::string("followed by the second to last transform, etc. until ") +
-                              std::string("the last transform encountered which is the identity ") +
-                              std::string("transform. ") +
-                              std::string("Also, it should be noted that the inverse transform can ") +
-                              std::string("be accommodated with the usual caveat that such an inverse ") +
-                              std::string("must be defined by the specified transform class ");
+    std::string description =
+      "An ANTs transforms to apply. Use multiple times to chain transforms. Use [transformFile,1] "
+      "to apply the inverse, for transforms that define an explicit inverse (eg affine transforms)."
+      " "
+      "Note on transform direction: The required 'forward' or 'inverse' warps for points "
+      "are the OPPOSITE of those used to resample images. For warps from antsRegistration with a given "
+      "'fixed' and 'moving' image: to warp a surface defined in the moving-image space into the "
+      "fixed-image space, use the same transforms you would use with antsApplyTransforms to warp "
+      "the fixed image into moving space. See "
+      "https://github.com/ANTsX/ANTs/wiki/Applying-transforms-to-point-data";
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("transform");
@@ -416,28 +403,19 @@ antsApplyTransformsToPoints(std::vector<std::string> args, std::ostream * /*out_
 
   parser->SetCommand(argv[0]);
 
-  std::string examplestring =
-    std::string("reads in a csv file with the first D columns defining the spatial location where the spatial location "
-                "is defined in physical coordinates.    the csv file should have a header row.   here is an example") +
-    std::string("\n") + std::string("cat chicken-3.csv ") + std::string("x,y,z,t,label,comment") + std::string("\n") +
-    std::string("82.5,116.5,0,0,1,this is the breast") + std::string("\n") +
-    std::string("137.5,35.5,0,0,2,this is the beak") + std::string("\n") +
-    std::string("antsApplyTransformsToPoints -d 2 -i chicken-3.csv -o test.csv -t [chicken3to4.mat ,1 ]") +
-    std::string("\n") + std::string("cat test.csv ") + std::string("\n") + std::string("x,y,z,t,label,comment") +
-    std::string("\n") + std::string("10.8945447481644,162.082675013049,0,0,1,nan") + std::string("\n") +
-    std::string("7.5367085472988,52.099713111629,0,0,2,nan") + std::string("\n") +
-    std::string("the nan appears in the last column until the ITK CSV I/O can handle mixed numeric / string types.  if "
-                "your input is fully numeric, all is well.");
-
-  std::string mhastring =
-    std::string("\n\n**** We now can also read / write .mha files.") + std::string("\n") +
-    std::string("This is a simple binary format (Meta format - look it up!) that is much faster to read/write than csv "
-                "format.\n Note: To write a mha file, you must also pass an mha file as input.\n");
-
   std::string commandDescription =
-    std::string("antsApplyTransformsToPoints, applied to an input image, transforms it ") +
-    std::string("according to a reference image and a transform ") + std::string("(or a set of transforms).  ") +
-    examplestring + mhastring;
+    "antsApplyTransformsToPoints transforms points in ITK LPS+ physical space by applying a set of "
+    "transforms supplied on the command line. "
+
+    "Input and output can be text or binary. Output format is the same as the input."
+    "Text format is a csv file with at least D columns where D is the spatial dimensionality of the transform. "
+    "Additional numeric columns (eg, labels) are passed through to the output file, but not transformed. "
+    "Non-numeric data are not supported. The first D columns should be physical coordinate in ITK LPS+ space. "
+    "Binary format is a 2D meta image (.mha) with the first dimension being the point index and the second "
+    "dimension being the point coordinates, again in ITK LPS+ space, in units of mm. "
+
+    "Note on transforms: The required 'forward' or 'inverse' warps for points are the OPPOSITE of those used "
+    "to resample images in the same direction. ";
 
   parser->SetCommandDescription(commandDescription);
   antsApplyTransformsToPointsInitializeCommandLineOptions(parser);
