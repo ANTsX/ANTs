@@ -560,8 +560,9 @@ KellyKapowskiInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Defines the Gaussian smoothing variance of the hit and total images in ") +
-                              std::string("mm^2.  Default = 1.0 mm^2.");
+    std::string description =
+      std::string("Defines the Gaussian smoothing variance of the hit and total images in voxel units squared.  ") +
+      std::string("Default = 1.0 voxel^2.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("smoothing-variance");

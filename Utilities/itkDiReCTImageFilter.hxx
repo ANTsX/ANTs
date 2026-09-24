@@ -1017,7 +1017,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>::SmoothImage(const RealImageType * 
   using SmootherType = DiscreteGaussianImageFilter<RealImageType, RealImageType>;
   typename SmootherType::Pointer smoother = SmootherType::New();
   smoother->SetVariance(variance);
-  smoother->SetUseImageSpacing(true);
+  smoother->SetUseImageSpacing(false);
   smoother->SetMaximumError(0.01);
   smoother->SetInput(inputImage);
 
@@ -1040,9 +1040,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Inden
   os << indent << "Gray matter label = " << this->m_GrayMatterLabel << std::endl;
   os << indent << "White matter label = " << this->m_WhiteMatterLabel << std::endl;
   os << indent << "Maximum number of iterations = " << this->m_MaximumNumberOfIterations << std::endl;
-  os << indent << "Thickness prior estimate = " << this->m_ThicknessPriorEstimate << std::endl;
-  os << indent << "Gradient smoothing sigma = " << this->m_GradientSmoothingSigma << std::endl;
-  os << indent << "Hit/total smoothing variance = " << this->m_SmoothingVariance << std::endl;
+  os << indent << "Thickness prior estimate (mm) = " << this->m_ThicknessPriorEstimate << std::endl;
+  os << indent << "Gradient smoothing sigma (mm) = " << this->m_GradientSmoothingSigma << std::endl;
+  os << indent << "Hit/total smoothing variance (voxel^2) = " << this->m_SmoothingVariance << std::endl;
   if (this->m_UseBSplineSmoothing)
   {
     os << indent << "B-spline smoothing isotropic mesh spacing = " << this->m_BSplineSmoothingIsotropicMeshSpacing
@@ -1050,7 +1050,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>::PrintSelf(std::ostream & os, Inden
   }
   else
   {
-    os << indent << "Smoothing velocity field variance = " << this->m_SmoothingVelocityFieldVariance << std::endl;
+    os << indent << "Smoothing velocity field variance (voxel^2) = " << this->m_SmoothingVelocityFieldVariance << std::endl;
   }
   os << indent << "Use masked smoothing = " << static_cast<int>(this->m_UseMaskedSmoothing) << std::endl;
   os << indent << "Number of integration points = " << this->m_NumberOfIntegrationPoints << std::endl;

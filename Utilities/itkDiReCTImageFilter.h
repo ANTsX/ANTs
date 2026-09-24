@@ -237,13 +237,13 @@ public:
   itkGetConstMacro(CurrentGradientStep, RealType);
 
   /**
-   * Set/Get the gradient smoothing sigma (in physical units).  Default = 1.0.
+   * Set/Get the gradient smoothing sigma (in mm).  Default = 1.0.
    */
   itkSetClampMacro(GradientSmoothingSigma, RealType, 0, NumericTraits<RealType>::max());
   itkGetConstMacro(GradientSmoothingSigma, RealType);
 
   /**
-   * Set/Get the smoothing variance for the total and hit images (in physical units squared).  Default = 1.0.
+   * Set/Get the smoothing variance for the total and hit images (in voxel units squared).  Default = 1.0.
    */
   itkSetClampMacro(SmoothingVariance, RealType, 0, NumericTraits<RealType>::max());
   itkGetConstMacro(SmoothingVariance, RealType);
