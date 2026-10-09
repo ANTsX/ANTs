@@ -8,6 +8,10 @@ on:
     types: [created]
   workflow_dispatch:
 
+env:
+  # Minimum supported macOS version for both ARM64 and Intel release binaries.
+  MACOSX_DEPLOYMENT_TARGET: "14"
+
 jobs:
   build:
     name: ${{ matrix.config.name }}
@@ -79,7 +83,11 @@ jobs:
             ants_version="${ants_version#v}"
           fi
           echo "ANTS_VERSION=$ants_version" >> "$GITHUB_ENV"
-          artifact="${{ runner.temp }}/ants-${ants_version}-${{ matrix.config.os }}-${{ runner.arch }}-${{ matrix.config.cc }}.zip"
+          artifact_os="${{ matrix.config.os }}"
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            artifact_os="macos-${MACOSX_DEPLOYMENT_TARGET}"
+          fi
+          artifact="${{ runner.temp }}/ants-${ants_version}-${artifact_os}-${{ runner.arch }}-${{ matrix.config.cc }}.zip"
           echo "CC=${{ matrix.config.cc }}" >> $GITHUB_ENV
           echo "CXX=${{ matrix.config.cxx }}" >> $GITHUB_ENV
           echo "ARTIFACT=${artifact}" >> "$GITHUB_ENV"
@@ -105,7 +113,13 @@ jobs:
         run: |
           mkdir build
           cd build
+          cmake_osx_args=()
+          if [[ "$RUNNER_OS" == "macOS" ]]; then
+            # Keep the minimum supported macOS version independent of the runner.
+            cmake_osx_args+=("-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${MACOSX_DEPLOYMENT_TARGET}")
+          fi
           cmake \
+            "${cmake_osx_args[@]}" \
             -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
             -G "${{ matrix.config.generators }}" \
             -DBUILD_TESTING=ON \
