@@ -138,10 +138,10 @@ ConvertImagePixelType(std::vector<std::string> args, std::ostream * /*out_stream
 
   if (argc < 3)
   {
-    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION (default: 0 = char) " << std::endl;
+    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION (default: 0 = signed char) " << std::endl;
     std::cout << " ext is the extension you want, e.g. tif.  " << std::endl;
     std::cout << " TYPE-OPTION  :  TYPE " << std::endl;
-    std::cout << "  0  :  char   " << std::endl;
+    std::cout << "  0  :  signed char   " << std::endl;
     std::cout << "  1  :  unsigned char   " << std::endl;
     std::cout << "  2  :  short   " << std::endl;
     std::cout << "  3  :  unsigned short   " << std::endl;
@@ -178,12 +178,12 @@ ConvertImagePixelType(std::vector<std::string> args, std::ostream * /*out_stream
     {
       case 2:
       {
-        ConvertType<2, char>(argc, argv, SCHAR_MIN, SCHAR_MAX);
+        ConvertType<2, signed char>(argc, argv, SCHAR_MIN, SCHAR_MAX);
       }
       break;
       case 3:
       {
-        ConvertType<3, char>(argc, argv, SCHAR_MIN, SCHAR_MAX);
+        ConvertType<3, signed char>(argc, argv, SCHAR_MIN, SCHAR_MAX);
       }
       break;
       default:
