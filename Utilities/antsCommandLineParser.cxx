@@ -297,6 +297,11 @@ CommandLineParser ::RegroupCommandLineArguments(unsigned int argc, char ** argv)
     }
   }
 
+  if (isArgOpen)
+  {
+    itkExceptionMacro("Incorrect command line specification. Missing right delimiter? " << currentArg);
+  }
+
   return arguments;
 }
 
