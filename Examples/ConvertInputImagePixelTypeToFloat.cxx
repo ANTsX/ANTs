@@ -122,11 +122,11 @@ ConvertInputImagePixelTypeToFloat(std::vector<std::string> args, std::ostream * 
 
   if (argc < 3)
   {
-    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION (default: 0 = char) " << std::endl;
+    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION (default: 0 = signed char) " << std::endl;
     std::cout << " TYPE-OPTION specifies the input image pixel type for reading (output is always float). " << std::endl;
     std::cout << " ext is the extension you want, e.g. tif.  " << std::endl;
     std::cout << " TYPE-OPTION  :  TYPE " << std::endl;
-    std::cout << "  0  :  char   " << std::endl;
+    std::cout << "  0  :  signed char   " << std::endl;
     std::cout << "  1  :  unsigned char   " << std::endl;
     std::cout << "  2  :  short   " << std::endl;
     std::cout << "  3  :  unsigned short   " << std::endl;
@@ -160,17 +160,17 @@ ConvertInputImagePixelTypeToFloat(std::vector<std::string> args, std::ostream * 
     {
       case 2:
       {
-        ConvertTypeToFloat<2, char>(argc, argv);
+        ConvertTypeToFloat<2, signed char>(argc, argv);
       }
       break;
       case 3:
       {
-        ConvertTypeToFloat<3, char>(argc, argv);
+        ConvertTypeToFloat<3, signed char>(argc, argv);
       }
       break;
       case 4:
       {
-        ConvertTypeToFloat<4, char>(argc, argv);
+        ConvertTypeToFloat<4, signed char>(argc, argv);
       }
       break;
       default:

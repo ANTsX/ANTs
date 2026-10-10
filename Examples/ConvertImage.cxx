@@ -252,7 +252,7 @@ ConvertImage(std::vector<std::string> args, std::ostream * /*out_stream = nullpt
               << "            2 -> unsigned short" << std::endl
               << "            3 -> unsigned int" << std::endl
               << "            4 -> unsigned long" << std::endl
-              << "            5 -> char" << std::endl
+              << "            5 -> signed char" << std::endl
               << "            6 -> short" << std::endl
               << "            7 -> int" << std::endl
               << "            8 -> long" << std::endl
@@ -287,7 +287,7 @@ ConvertImage(std::vector<std::string> args, std::ostream * /*out_stream = nullpt
       }
       else if (argc > 4 && std::stoi(argv[4]) == 5)
       {
-        ConvertImage<char, 2>(argc, argv);
+        ConvertImage<signed char, 2>(argc, argv);
       }
       else if (argc > 4 && std::stoi(argv[4]) == 6)
       {
@@ -325,7 +325,7 @@ ConvertImage(std::vector<std::string> args, std::ostream * /*out_stream = nullpt
       }
       else if (argc > 4 && std::stoi(argv[4]) == 5)
       {
-        ConvertImage<char, 3>(argc, argv);
+        ConvertImage<signed char, 3>(argc, argv);
       }
       else if (argc > 4 && std::stoi(argv[4]) == 6)
       {

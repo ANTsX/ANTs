@@ -438,7 +438,7 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
     std::cout << "    Deprecated numeric interpolation options (default parameters only):" << std::endl;
     std::cout << "      0: Linear,1: NearestNeighbor, 2: Gaussian, 3: WindowedSinc, 4: BSpline" << std::endl;
     std::cout << "  pixeltype: TYPE" << std::endl;
-    std::cout << "  0  :  char   " << std::endl;
+    std::cout << "  0  :  signed char   " << std::endl;
     std::cout << "  1  :  unsigned char   " << std::endl;
     std::cout << "  2  :  short   " << std::endl;
     std::cout << "  3  :  unsigned short   " << std::endl;
@@ -467,16 +467,16 @@ ResampleImage(std::vector<std::string> args, std::ostream * /*out_stream = nullp
       switch (std::stoi(argv[1]))
       {
         case 2: {
-          return ResampleImage<2, char>(argc, argv);
+          return ResampleImage<2, signed char>(argc, argv);
         }
         break;
         case 3: {
-          return ResampleImage<3, char>(argc, argv);
+          return ResampleImage<3, signed char>(argc, argv);
         }
         break;
         case 4:
         {
-          return ResampleImage<4, char>(argc, argv);
+          return ResampleImage<4, signed char>(argc, argv);
         }
         break;
         default:
