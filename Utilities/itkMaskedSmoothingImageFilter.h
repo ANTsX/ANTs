@@ -14,6 +14,7 @@
 #ifndef __itkMaskedSmoothingImageFilter_h
 #define __itkMaskedSmoothingImageFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageToImageFilter.h"
 
 #include <vnl/vnl_sparse_matrix.h>
@@ -93,20 +94,20 @@ public:
   /**
    * Set/Get the sparse image neighborhood radius.  Default = 2.
    */
-  itkSetMacro(SparseImageNeighborhoodRadius, unsigned int);
-  itkGetConstMacro(SparseImageNeighborhoodRadius, unsigned int);
+  itkNonVirtualSetMacro(SparseImageNeighborhoodRadius, unsigned int);
+  itkNonVirtualGetConstMacro(SparseImageNeighborhoodRadius, unsigned int);
 
   /**
    * Set/Get the variance for spatial regularization.
    */
-  itkSetMacro(SmoothingVariance, RealType);
-  itkGetConstMacro(SmoothingVariance, RealType);
+  itkNonVirtualSetMacro(SmoothingVariance, RealType);
+  itkNonVirtualGetConstMacro(SmoothingVariance, RealType);
 
   /**
    * Set/Get the variance for time regularization.
    */
-  itkSetMacro(TimeSmoothingVariance, RealType);
-  itkGetConstMacro(TimeSmoothingVariance, RealType);
+  itkNonVirtualSetMacro(TimeSmoothingVariance, RealType);
+  itkNonVirtualGetConstMacro(TimeSmoothingVariance, RealType);
 
   /**
    * Set/Get the time point values.  Default = no special value.
@@ -117,7 +118,7 @@ public:
     this->m_TimePoints = timePoints;
     this->Modified();
   }
-  itkGetConstMacro(TimePoints, std::vector<RealType>);
+  itkNonVirtualGetConstMacro(TimePoints, std::vector<RealType>);
 
 protected:
   MaskedSmoothingImageFilter();

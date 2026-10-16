@@ -15,6 +15,7 @@
 #ifndef __antsJointHistogramParzenShapeAndOrientationListSampleFunction_h
 #define __antsJointHistogramParzenShapeAndOrientationListSampleFunction_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "antsListSampleFunction.h"
 
 #include "itkImage.h"
@@ -72,15 +73,15 @@ public:
   void
   SetInputListSample(const InputListSampleType * ptr) override;
 
-  itkSetMacro(ShapeSigma, RealType);
-  itkGetConstMacro(ShapeSigma, RealType);
-  itkSetMacro(OrientationSigma, RealType);
-  itkGetConstMacro(OrientationSigma, RealType);
+  itkNonVirtualSetMacro(ShapeSigma, RealType);
+  itkNonVirtualGetConstMacro(ShapeSigma, RealType);
+  itkNonVirtualSetMacro(OrientationSigma, RealType);
+  itkNonVirtualGetConstMacro(OrientationSigma, RealType);
 
-  itkSetMacro(NumberOfShapeJointHistogramBins, unsigned int);
-  itkGetConstMacro(NumberOfShapeJointHistogramBins, unsigned int);
-  itkSetMacro(NumberOfOrientationJointHistogramBins, unsigned int);
-  itkGetConstMacro(NumberOfOrientationJointHistogramBins, unsigned int);
+  itkNonVirtualSetMacro(NumberOfShapeJointHistogramBins, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfShapeJointHistogramBins, unsigned int);
+  itkNonVirtualSetMacro(NumberOfOrientationJointHistogramBins, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfOrientationJointHistogramBins, unsigned int);
 
   TOutput
   Evaluate(const InputMeasurementVectorType &) const override;

@@ -15,6 +15,7 @@
 #ifndef __antsManifoldParzenWindowsListSampleFunction_h
 #define __antsManifoldParzenWindowsListSampleFunction_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "antsListSampleFunction.h"
 
 #include "itkGaussianMembershipFunction.h"
@@ -69,17 +70,17 @@ public:
 
   /** Helper functions */
 
-  itkSetMacro(EvaluationKNeighborhood, unsigned int);
-  itkGetConstMacro(EvaluationKNeighborhood, unsigned int);
+  itkNonVirtualSetMacro(EvaluationKNeighborhood, unsigned int);
+  itkNonVirtualGetConstMacro(EvaluationKNeighborhood, unsigned int);
 
-  itkSetMacro(RegularizationSigma, RealType);
-  itkGetConstMacro(RegularizationSigma, RealType);
+  itkNonVirtualSetMacro(RegularizationSigma, RealType);
+  itkNonVirtualGetConstMacro(RegularizationSigma, RealType);
 
-  itkSetMacro(CovarianceKNeighborhood, unsigned int);
-  itkGetConstMacro(CovarianceKNeighborhood, unsigned int);
+  itkNonVirtualSetMacro(CovarianceKNeighborhood, unsigned int);
+  itkNonVirtualGetConstMacro(CovarianceKNeighborhood, unsigned int);
 
-  itkSetMacro(KernelSigma, RealType);
-  itkGetConstMacro(KernelSigma, RealType);
+  itkNonVirtualSetMacro(KernelSigma, RealType);
+  itkNonVirtualGetConstMacro(KernelSigma, RealType);
 
   void
   SetInputListSample(const InputListSampleType * ptr) override;

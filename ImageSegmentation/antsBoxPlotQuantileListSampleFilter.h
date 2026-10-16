@@ -15,6 +15,7 @@
 #ifndef __antsBoxPlotQuantileListSampleFilter_h
 #define __antsBoxPlotQuantileListSampleFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "antsListSampleToListSampleFilter.h"
 
 #include <vector>
@@ -69,17 +70,17 @@ public:
     Winsorize
   };
 
-  itkSetMacro(OutlierHandling, OutlierHandlingType);
-  itkGetConstMacro(OutlierHandling, OutlierHandlingType);
+  itkNonVirtualSetMacro(OutlierHandling, OutlierHandlingType);
+  itkNonVirtualGetConstMacro(OutlierHandling, OutlierHandlingType);
 
-  itkSetMacro(WhiskerScalingFactor, RealType);
-  itkGetConstMacro(WhiskerScalingFactor, RealType);
+  itkNonVirtualSetMacro(WhiskerScalingFactor, RealType);
+  itkNonVirtualGetConstMacro(WhiskerScalingFactor, RealType);
 
-  itkSetClampMacro(UpperPercentile, RealType, 0, 1);
-  itkGetConstMacro(UpperPercentile, RealType);
+  itkNonVirtualSetClampMacro(UpperPercentile, RealType, 0, 1);
+  itkNonVirtualGetConstMacro(UpperPercentile, RealType);
 
-  itkSetClampMacro(LowerPercentile, RealType, 0, 1);
-  itkGetConstMacro(LowerPercentile, RealType);
+  itkNonVirtualSetClampMacro(LowerPercentile, RealType, 0, 1);
+  itkNonVirtualGetConstMacro(LowerPercentile, RealType);
 
   InstanceIdentifierContainerType
   GetOutlierInstanceIdentifiers()

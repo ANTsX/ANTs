@@ -18,6 +18,7 @@
 #ifndef itkNonLocalSuperresolutionImageFilter_h
 #define itkNonLocalSuperresolutionImageFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkNonLocalPatchBasedImageFilter.h"
 
 #include "itkConstNeighborhoodIterator.h"
@@ -143,61 +144,61 @@ public:
   /**
    * Set the interpolator.
    */
-  itkSetObjectMacro(Interpolator, InterpolatorType);
+  itkNonVirtualSetObjectMacro(Interpolator, InterpolatorType);
 
   /**
    * Get the interpolator.
    */
-  itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
+  itkNonVirtualGetModifiableObjectMacro(Interpolator, InterpolatorType);
 
   /**
    * Set/get the interpolator.
    */
-  itkSetMacro(IntensityDifferenceSigma, RealType);
-  itkGetConstMacro(IntensityDifferenceSigma, RealType);
+  itkNonVirtualSetMacro(IntensityDifferenceSigma, RealType);
+  itkNonVirtualGetConstMacro(IntensityDifferenceSigma, RealType);
 
   /**
    * Get the current convergence measurement.  This is a helper function for
    * reporting observations.
    */
-  itkGetConstMacro(CurrentEpsilon, RealType);
+  itkNonVirtualGetConstMacro(CurrentEpsilon, RealType);
 
   /**
    * Set/Get the convergence threshold.  Default = 0.1.
    */
-  itkSetMacro(EpsilonThreshold, RealType);
-  itkGetConstMacro(EpsilonThreshold, RealType);
+  itkNonVirtualSetMacro(EpsilonThreshold, RealType);
+  itkNonVirtualGetConstMacro(EpsilonThreshold, RealType);
 
   /**
    * Set/get perform initial mean correction.  "True" if doing single modality with
    * interpolated image as the high resolution reference image.  "False" otherwise.
    */
-  itkSetMacro(PerformInitialMeanCorrection, bool);
-  itkGetConstMacro(PerformInitialMeanCorrection, bool);
-  itkBooleanMacro(PerformInitialMeanCorrection);
+  itkNonVirtualSetMacro(PerformInitialMeanCorrection, bool);
+  itkNonVirtualGetConstMacro(PerformInitialMeanCorrection, bool);
+  itkNonVirtualBooleanMacro(PerformInitialMeanCorrection);
 
   /**
    * Get the interpolator.
    */
-  itkSetMacro(PatchSimilaritySigma, RealType);
-  itkGetConstMacro(PatchSimilaritySigma, RealType);
+  itkNonVirtualSetMacro(PatchSimilaritySigma, RealType);
+  itkNonVirtualGetConstMacro(PatchSimilaritySigma, RealType);
 
   /**
    * Scale levels for .
    */
-  virtual void
+  void
   SetScaleLevels(const ScaleLevelsArrayType list)
   {
     this->m_ScaleLevels = list;
     this->Modified();
   }
-  itkGetConstMacro(ScaleLevels, ScaleLevelsArrayType);
+  itkNonVirtualGetConstMacro(ScaleLevels, ScaleLevelsArrayType);
 
   /**
    * Get the number of elapsed iterations.  This is a helper function for
    * reporting observations.
    */
-  itkGetConstMacro(CurrentIteration, SizeValueType);
+  itkNonVirtualGetConstMacro(CurrentIteration, SizeValueType);
 
 protected:
   NonLocalSuperresolutionImageFilter();

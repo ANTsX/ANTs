@@ -3,6 +3,7 @@
  *******************************************************************************/
 #ifndef __BinaryImageToMeshFilter_h_
 #define __BinaryImageToMeshFilter_h_
+#include "ITKGetterSetterMacroShims.h"
 #include <vtkSmartPointer.h>
 
 #include "itkImage.h"
@@ -108,24 +109,24 @@ public:
   }
 
   /** Whether to invert the binary image */
-  itkSetMacro(InvertInput, bool);
-  itkGetMacro(InvertInput, bool);
+  itkNonVirtualSetMacro(InvertInput, bool);
+  itkNonVirtualGetMacro(InvertInput, bool);
 
   /** Whether to invert the binary image */
-  itkSetMacro(ResampleScaleFactor, float);
-  itkGetMacro(ResampleScaleFactor, float);
+  itkNonVirtualSetMacro(ResampleScaleFactor, float);
+  itkNonVirtualGetMacro(ResampleScaleFactor, float);
 
   /** Whether to decimate the mesh and how much, 0 for none*/
-  itkSetMacro(DecimateFactor, double);
-  itkGetMacro(DecimateFactor, double);
+  itkNonVirtualSetMacro(DecimateFactor, double);
+  itkNonVirtualGetMacro(DecimateFactor, double);
 
   /** Smoothing iterations, or 0 for none */
-  itkSetMacro(SmoothingIterations, int);
-  itkGetMacro(SmoothingIterations, int);
+  itkNonVirtualSetMacro(SmoothingIterations, int);
+  itkNonVirtualGetMacro(SmoothingIterations, int);
 
   /** Set the input */
   using Superclass::SetInput;
-  virtual void
+  void
   SetInput(TImage * image)
   {
     this->SetNthInput(0, image);

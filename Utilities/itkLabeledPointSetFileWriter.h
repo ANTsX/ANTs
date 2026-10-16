@@ -102,7 +102,7 @@ protected:
   LabeledPointSetFileWriter();
   ~LabeledPointSetFileWriter() override;
 
-  virtual void
+  void
   GenerateData();
 
   std::string      m_FileName;

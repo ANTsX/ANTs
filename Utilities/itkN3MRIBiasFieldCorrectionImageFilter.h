@@ -14,6 +14,7 @@
 #ifndef __itkN3MRIBiasFieldCorrectionImageFilter_h
 #define __itkN3MRIBiasFieldCorrectionImageFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageToImageFilter.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
@@ -102,10 +103,10 @@ public:
   typedef Superclass::DerivativeType DerivativeType;
   typedef Superclass::ParametersType ParametersType;
 
-  itkSetObjectMacro(InputImage, TInputImage);
-  itkSetObjectMacro(BiasFieldImage, TBiasFieldImage);
-  itkSetObjectMacro(MaskImage, TMaskImage);
-  itkSetObjectMacro(ConfidenceImage, TConfidenceImage);
+  itkNonVirtualSetObjectMacro(InputImage, TInputImage);
+  itkNonVirtualSetObjectMacro(BiasFieldImage, TBiasFieldImage);
+  itkNonVirtualSetObjectMacro(MaskImage, TMaskImage);
+  itkNonVirtualSetObjectMacro(ConfidenceImage, TConfidenceImage);
 
   MeasureType
   GetValue(const ParametersType & parameters) const override;
@@ -214,26 +215,26 @@ public:
     this->SetConfidenceImage(image);
   }
 
-  itkSetMacro(NumberOfHistogramBins, unsigned int);
-  itkGetConstMacro(NumberOfHistogramBins, unsigned int);
+  itkNonVirtualSetMacro(NumberOfHistogramBins, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfHistogramBins, unsigned int);
 
-  itkSetMacro(WienerFilterNoise, RealType);
-  itkGetConstMacro(WienerFilterNoise, RealType);
+  itkNonVirtualSetMacro(WienerFilterNoise, RealType);
+  itkNonVirtualGetConstMacro(WienerFilterNoise, RealType);
 
-  itkSetMacro(BiasFieldFullWidthAtHalfMaximum, RealType);
-  itkGetConstMacro(BiasFieldFullWidthAtHalfMaximum, RealType);
+  itkNonVirtualSetMacro(BiasFieldFullWidthAtHalfMaximum, RealType);
+  itkNonVirtualGetConstMacro(BiasFieldFullWidthAtHalfMaximum, RealType);
 
-  itkSetMacro(MaximumNumberOfIterations, unsigned int);
-  itkGetConstMacro(MaximumNumberOfIterations, unsigned int);
+  itkNonVirtualSetMacro(MaximumNumberOfIterations, unsigned int);
+  itkNonVirtualGetConstMacro(MaximumNumberOfIterations, unsigned int);
 
-  itkSetMacro(ConvergenceThreshold, RealType);
-  itkGetConstMacro(ConvergenceThreshold, RealType);
+  itkNonVirtualSetMacro(ConvergenceThreshold, RealType);
+  itkNonVirtualGetConstMacro(ConvergenceThreshold, RealType);
 
-  itkSetMacro(SplineOrder, unsigned int);
-  itkGetConstMacro(SplineOrder, unsigned int);
+  itkNonVirtualSetMacro(SplineOrder, unsigned int);
+  itkNonVirtualGetConstMacro(SplineOrder, unsigned int);
 
-  itkSetMacro(NumberOfFittingLevels, ArrayType);
-  itkGetConstMacro(NumberOfFittingLevels, ArrayType);
+  itkNonVirtualSetMacro(NumberOfFittingLevels, ArrayType);
+  itkNonVirtualGetConstMacro(NumberOfFittingLevels, ArrayType);
   void
   SetNumberOfFittingLevels(unsigned int n)
   {
@@ -243,19 +244,19 @@ public:
     this->SetNumberOfFittingLevels(nlevels);
   }
 
-  itkSetMacro(NumberOfControlPoints, ArrayType);
-  itkGetConstMacro(NumberOfControlPoints, ArrayType);
+  itkNonVirtualSetMacro(NumberOfControlPoints, ArrayType);
+  itkNonVirtualGetConstMacro(NumberOfControlPoints, ArrayType);
 
-  itkGetConstMacro(LogBiasFieldControlPointLattice, typename BiasFieldControlPointLatticeType::Pointer);
+  itkNonVirtualGetConstMacro(LogBiasFieldControlPointLattice, typename BiasFieldControlPointLatticeType::Pointer);
 
-  itkSetMacro(UseOptimalBiasFieldScaling, bool);
-  itkGetConstMacro(UseOptimalBiasFieldScaling, bool);
-  itkBooleanMacro(UseOptimalBiasFieldScaling);
+  itkNonVirtualSetMacro(UseOptimalBiasFieldScaling, bool);
+  itkNonVirtualGetConstMacro(UseOptimalBiasFieldScaling, bool);
+  itkNonVirtualBooleanMacro(UseOptimalBiasFieldScaling);
 
-  itkGetConstMacro(BiasFieldScaling, RealType);
+  itkNonVirtualGetConstMacro(BiasFieldScaling, RealType);
 
-  itkGetConstMacro(ElapsedIterations, unsigned int);
-  itkGetConstMacro(CurrentConvergenceMeasurement, RealType);
+  itkNonVirtualGetConstMacro(ElapsedIterations, unsigned int);
+  itkNonVirtualGetConstMacro(CurrentConvergenceMeasurement, RealType);
 
 protected:
   N3MRIBiasFieldCorrectionImageFilter();
