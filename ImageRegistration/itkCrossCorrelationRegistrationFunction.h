@@ -208,7 +208,7 @@ public:
     }
   }
 
-  virtual VectorType
+  VectorType
   OpticalFlowUpdate(const NeighborhoodType & neighborhood)
   {
     // Get fixed image related information

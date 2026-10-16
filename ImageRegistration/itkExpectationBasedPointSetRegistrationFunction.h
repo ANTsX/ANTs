@@ -187,14 +187,14 @@ public:
   /** Get the metric value. The metric value is the mean square difference
    * in intensity between the fixed image and transforming moving image
    * computed over the the overlapping region between the two images. */
-  virtual double
+  double
   GetMetric() const
   {
     return m_Metric;
   }
 
   /** Get the rms change in deformation field. */
-  virtual double
+  double
   GetRMSChange() const
   {
     return m_RMSChange;
@@ -204,10 +204,10 @@ public:
    * intensity yields a match. When the intensities match between a
    * moving and fixed image pixel, the update vector (for that
    * iteration) will be the zero vector. Default is 0.001. */
-  virtual void
+  void
   SetEuclideanDistanceThreshold(double);
 
-  virtual double
+  double
   GetEuclideanDistanceThreshold() const;
 
   void

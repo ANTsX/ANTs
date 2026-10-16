@@ -18,6 +18,7 @@
 #ifndef itkSimulatedExponentialDisplacementFieldSource_h
 #define itkSimulatedExponentialDisplacementFieldSource_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkSimulatedDisplacementFieldSource.h"
 
 namespace itk
@@ -76,21 +77,21 @@ public:
    * Set/Get the number of integration steps.  If 0, this number is computed
    * automatically.  Default = 0.
    */
-  itkSetMacro(NumberOfIntegrationSteps, unsigned int);
-  itkGetConstMacro(NumberOfIntegrationSteps, unsigned int);
+  itkNonVirtualSetMacro(NumberOfIntegrationSteps, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfIntegrationSteps, unsigned int);
 
   /**
    * Set/Get the dilation radius.  Default = 5.
    */
-  itkSetMacro(DilationRadius, unsigned int);
-  itkGetConstMacro(DilationRadius, unsigned int);
+  itkNonVirtualSetMacro(DilationRadius, unsigned int);
+  itkNonVirtualGetConstMacro(DilationRadius, unsigned int);
 
   /**
    * Set/Get the standard deviation of the noise for the displacements at the
    * random points.  Default = c( 1, 1, ... ) mm.
    */
-  itkSetMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
-  itkGetConstMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
+  itkNonVirtualSetMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
+  itkNonVirtualGetConstMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
 
   /**
    * Set the standard deviation of the displacement noise.  Default = 1 mm.
@@ -107,8 +108,8 @@ public:
   /**
    * Set/Get the standard deviation of the noise for the smoothing.  Default = c( 1, 1, ... )
    */
-  itkSetMacro(SmoothingStandardDeviation, RealType);
-  itkGetConstMacro(SmoothingStandardDeviation, RealType);
+  itkNonVirtualSetMacro(SmoothingStandardDeviation, RealType);
+  itkNonVirtualGetConstMacro(SmoothingStandardDeviation, RealType);
 
 protected:
   SimulatedExponentialDisplacementFieldSource();

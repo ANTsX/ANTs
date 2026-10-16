@@ -15,6 +15,7 @@
 #ifndef __antsAtroposSegmentationImageFilter_h
 #define __antsAtroposSegmentationImageFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageToImageFilter.h"
 
 #include "antsListSampleFunction.h"
@@ -159,12 +160,12 @@ public:
    * Set the number of tissue classes which is clamped from below at 2.
    * Default = 3.
    */
-  itkSetClampMacro(NumberOfTissueClasses, LabelType, 2, NumericTraits<unsigned int>::max());
+  itkNonVirtualSetClampMacro(NumberOfTissueClasses, LabelType, 2, NumericTraits<unsigned int>::max());
 
   /**
    * Get the number of segmentation classes.
    */
-  itkGetConstMacro(NumberOfTissueClasses, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfTissueClasses, unsigned int);
 
   /**
    * Set the partial-volume-label set one at a time.
@@ -174,7 +175,7 @@ public:
   /**
    * Get the number of partial volume classes
    */
-  itkGetConstMacro(NumberOfPartialVolumeClasses, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfPartialVolumeClasses, unsigned int);
 
   /**
    * The user can specify whether or not to use the partial volume likelihoods,
@@ -183,7 +184,7 @@ public:
    * partial volume in which case, partial volume voxels are not considered
    * as separate classes.
    */
-  itkSetMacro(UsePartialVolumeLikelihoods, bool);
+  itkNonVirtualSetMacro(UsePartialVolumeLikelihoods, bool);
 
   /**
    * The user can specify whether or not to use the partial volume likelihoods,
@@ -192,7 +193,7 @@ public:
    * partial volume in which case, partial volume voxels are not considered
    * as separate classes.
    */
-  itkGetConstMacro(UsePartialVolumeLikelihoods, bool);
+  itkNonVirtualGetConstMacro(UsePartialVolumeLikelihoods, bool);
 
   /**
    * The user can specify whether or not to use the partial volume likelihoods,
@@ -201,43 +202,43 @@ public:
    * partial volume in which case, partial volume voxels are not considered
    * as separate classes.
    */
-  itkBooleanMacro(UsePartialVolumeLikelihoods);
+  itkNonVirtualBooleanMacro(UsePartialVolumeLikelihoods);
 
   /**
    * Set the maximum number of iterations.  The algorithm terminates at either
    * the maximum number of iterations or when the convergence threshold has
    * been exceeded.  Default = 5.
    */
-  itkSetMacro(MaximumNumberOfIterations, unsigned int);
+  itkNonVirtualSetMacro(MaximumNumberOfIterations, unsigned int);
 
   /**
    * Get the maximum number of iterations.
    */
-  itkGetConstMacro(MaximumNumberOfIterations, unsigned int);
+  itkNonVirtualGetConstMacro(MaximumNumberOfIterations, unsigned int);
 
   /**
    * Set the convergence threshold.  The algorithm terminates at either
    * the maximum number of iterations or when the convergence threshold has
    * been exceeded.  Default = 0.001.
    */
-  itkSetMacro(ConvergenceThreshold, RealType);
+  itkNonVirtualSetMacro(ConvergenceThreshold, RealType);
 
   /**
    * Get the convergence threshold
    */
-  itkGetConstMacro(ConvergenceThreshold, RealType);
+  itkNonVirtualGetConstMacro(ConvergenceThreshold, RealType);
 
   /**
    * Get the current convergence posterior probability for comparison with the
    * convergence threshold at each iteration.  Also is used to report progress.
    */
-  itkGetConstMacro(CurrentPosteriorProbability, RealType);
+  itkNonVirtualGetConstMacro(CurrentPosteriorProbability, RealType);
 
   /**
    * Get the current number of iterations for comparison with the maximum
    * number of iterations.  Also is used to report progress.
    */
-  itkGetConstMacro(ElapsedIterations, unsigned int);
+  itkNonVirtualGetConstMacro(ElapsedIterations, unsigned int);
 
   /**
    * Set the MRF smoothing parameter (sometimes designated as \beta in the
@@ -245,12 +246,12 @@ public:
    * cause a greater spatial homogeneity in the final labeling.  Default value
    * = 0.3.
    */
-  itkSetClampMacro(MRFSmoothingFactor, RealType, NumericTraits<RealType>::ZeroValue(), NumericTraits<RealType>::max());
+  itkNonVirtualSetClampMacro(MRFSmoothingFactor, RealType, NumericTraits<RealType>::ZeroValue(), NumericTraits<RealType>::max());
 
   /**
    * Get the MRF smoothing parameter.
    */
-  itkGetConstMacro(MRFSmoothingFactor, RealType);
+  itkNonVirtualGetConstMacro(MRFSmoothingFactor, RealType);
 
   /**
    * Set the MRF smoothing radius.  The radius can be set independently in each
@@ -258,22 +259,22 @@ public:
    * the MRF-based prior is weighted by its distance to the center voxel.
    * Default value = 1^(ImageDimension).
    */
-  itkSetMacro(MRFRadius, ArrayType);
+  itkNonVirtualSetMacro(MRFRadius, ArrayType);
 
   /**
    * Get the MRF smoothing radius.
    */
-  itkGetConstMacro(MRFRadius, ArrayType);
+  itkNonVirtualGetConstMacro(MRFRadius, ArrayType);
 
   /**
    * Set the MRF neighborhood-defining image.
    */
-  itkSetObjectMacro(MRFCoefficientImage, RealImageType);
+  itkNonVirtualSetObjectMacro(MRFCoefficientImage, RealImageType);
 
   /**
    * Get the MRF neighborhood-defining image.
    */
-  itkGetConstObjectMacro(MRFCoefficientImage, RealImageType);
+  itkNonVirtualGetConstObjectMacro(MRFCoefficientImage, RealImageType);
 
   /**
    * Set the annealing temperature for ICM asynchronous updating.  For values
@@ -282,7 +283,7 @@ public:
    * (likelihoods * priors)^(1/T) where T is specified annealing temperature
    * raised to the number of elapsed iterations.  Default value = 1.0.
    */
-  itkSetClampMacro(InitialAnnealingTemperature,
+  itkNonVirtualSetClampMacro(InitialAnnealingTemperature,
                    RealType,
                    NumericTraits<RealType>::ZeroValue(),
                    NumericTraits<RealType>::max());
@@ -294,14 +295,14 @@ public:
    * (likelihoods * priors)^(1/T) where T is specified annealing temperature
    * raised to the number of elapsed iterations.  Default value = 1.0.
    */
-  itkGetConstMacro(InitialAnnealingTemperature, RealType);
+  itkNonVirtualGetConstMacro(InitialAnnealingTemperature, RealType);
 
   /**
    * Set the minimum annealing temperature for ICM asynchronous updating.
    * Typically, the algorithm becomes unstable for values < 0.1.  Default value
    * = 0.1.
    */
-  itkSetClampMacro(MinimumAnnealingTemperature,
+  itkNonVirtualSetClampMacro(MinimumAnnealingTemperature,
                    RealType,
                    NumericTraits<RealType>::ZeroValue(),
                    NumericTraits<RealType>::max());
@@ -311,7 +312,7 @@ public:
    * Typically, the algorithm becomes unstable for values < 0.1.  Default value
    * = 0.1.
    */
-  itkGetConstMacro(MinimumAnnealingTemperature, RealType);
+  itkNonVirtualGetConstMacro(MinimumAnnealingTemperature, RealType);
 
   /**
    * Set the annealing rate for ICM asynchronous updating.  For values
@@ -320,7 +321,7 @@ public:
    * (likelihoods * priors)^(1/T) where T is specified annealing temperature
    * raised to the number of elapsed iterations. Default value = 1.0.
    */
-  itkSetClampMacro(AnnealingRate, RealType, NumericTraits<RealType>::ZeroValue(), NumericTraits<RealType>::OneValue());
+  itkNonVirtualSetClampMacro(AnnealingRate, RealType, NumericTraits<RealType>::ZeroValue(), NumericTraits<RealType>::OneValue());
 
   /**
    * Set the annealing rate for ICM asynchronous updating.  For values
@@ -329,7 +330,7 @@ public:
    * (likelihoods * priors)^(1/T) where T is specified annealing temperature
    * raised to the number of elapsed iterations. Default value = 1.0.
    */
-  itkGetConstMacro(AnnealingRate, RealType);
+  itkNonVirtualGetConstMacro(AnnealingRate, RealType);
 
   /**
    * Set initialization unsigned integer for random number generator.  Default is to
@@ -342,54 +343,54 @@ public:
    * Set initialization unsigned integer for random number generator.  Default is to
    * initialize randomly using the system clock.
    */
-  itkGetConstMacro(RandomizerInitializationSeed, RandomizerSeedType);
+  itkNonVirtualGetConstMacro(RandomizerInitializationSeed, RandomizerSeedType);
 
   /**
    * Set the initialization strategy.  Initialization can occur without prior
    * information using kmeans or otsu thresholding or with prior information
    * using prior label images or prior probability images.  Default is Kmeans.
    */
-  itkSetMacro(InitializationStrategy, InitializationStrategyType);
+  itkNonVirtualSetMacro(InitializationStrategy, InitializationStrategyType);
 
   /**
    * Get the initialization strategy.
    */
-  itkGetConstMacro(InitializationStrategy, InitializationStrategyType);
+  itkNonVirtualGetConstMacro(InitializationStrategy, InitializationStrategyType);
 
   /**
    * Set the initial kmeans parameters.  For kmeans initialization, one can
    * set the initial cluster centers (for the first intensity image only).
    */
-  itkSetMacro(InitialKMeansParameters, ParametersType);
+  itkNonVirtualSetMacro(InitialKMeansParameters, ParametersType);
 
   /**
    * Get the initial kmeans parameters.
    */
-  itkGetConstMacro(InitialKMeansParameters, ParametersType);
+  itkNonVirtualGetConstMacro(InitialKMeansParameters, ParametersType);
 
   /**
    * Set the posterior probability formulation type.  This flexibility is more
    * for developmental experimentation.  Most applications will use the
    * default.  Default = Socrates.
    */
-  itkSetMacro(PosteriorProbabilityFormulation, PosteriorProbabilityFormulationType);
+  itkNonVirtualSetMacro(PosteriorProbabilityFormulation, PosteriorProbabilityFormulationType);
 
   /**
    * Get the posterior probability formulation.
    */
-  itkGetConstMacro(PosteriorProbabilityFormulation, PosteriorProbabilityFormulationType);
+  itkNonVirtualGetConstMacro(PosteriorProbabilityFormulation, PosteriorProbabilityFormulationType);
 
   /**
    * Set whether or not to use the mixture model proportions.  These proportion
    * parameters form part of the finite mixture formulation.  Default = true.
    */
-  itkSetMacro(UseMixtureModelProportions, bool);
+  itkNonVirtualSetMacro(UseMixtureModelProportions, bool);
 
   /**
    * Get the value of boolean describing whether or not the mixture model
    * proportions should be used.  Default = true.
    */
-  itkGetConstMacro(UseMixtureModelProportions, bool);
+  itkNonVirtualGetConstMacro(UseMixtureModelProportions, bool);
 
   /**
    * Set the value of the boolean parameter dictating whether or not memory
@@ -397,13 +398,13 @@ public:
    * iteration but the resulting memory footprint allows one to perform
    * problems with a large number of classes.  Default value = false.
    */
-  itkSetMacro(MinimizeMemoryUsage, bool);
+  itkNonVirtualSetMacro(MinimizeMemoryUsage, bool);
 
   /**
    * Get the value of the boolean parameter dictating whether or not memory
    * usage should be minimized.
    */
-  itkGetConstMacro(MinimizeMemoryUsage, bool);
+  itkNonVirtualGetConstMacro(MinimizeMemoryUsage, bool);
 
   /**
    * Set the value of the boolean parameter dictating whether or not memory
@@ -411,14 +412,14 @@ public:
    * iteration but the resulting memory footprint allows one to perform
    * problems with a large number of classes.  Default value = false.
    */
-  itkBooleanMacro(MinimizeMemoryUsage);
+  itkNonVirtualBooleanMacro(MinimizeMemoryUsage);
 
   /**
    * Set the prior probability threshold value.  This determines what pixel
    * values are included in the sparse representation of the prior probability
    * images.  Default value =
    */
-  itkSetClampMacro(ProbabilityThreshold,
+  itkNonVirtualSetClampMacro(ProbabilityThreshold,
                    RealType,
                    NumericTraits<RealType>::ZeroValue(),
                    NumericTraits<RealType>::OneValue());
@@ -426,7 +427,7 @@ public:
   /**
    * Get the prior probability threshold value.
    */
-  itkGetConstMacro(ProbabilityThreshold, RealType);
+  itkNonVirtualGetConstMacro(ProbabilityThreshold, RealType);
 
   // The following parameters are used for adaptive smoothing of one or more of
   // the intensity images.
@@ -434,33 +435,33 @@ public:
   /**
    * Set the spline order of the adaptive smoothing.  Default = 3.
    */
-  itkSetMacro(SplineOrder, unsigned int);
+  itkNonVirtualSetMacro(SplineOrder, unsigned int);
 
   /**
    * Get the spline order of the adaptive smoothing.
    */
-  itkGetConstMacro(SplineOrder, unsigned int);
+  itkNonVirtualGetConstMacro(SplineOrder, unsigned int);
 
   /**
    * Set the number of fitting levels for the adaptive smoothing.  Default = 6.
    */
-  itkSetMacro(NumberOfLevels, ArrayType);
+  itkNonVirtualSetMacro(NumberOfLevels, ArrayType);
 
   /**
    * Get the number of fitting levels for the adaptive smoothing.
    */
-  itkGetConstMacro(NumberOfLevels, ArrayType);
+  itkNonVirtualGetConstMacro(NumberOfLevels, ArrayType);
 
   /**
    * Set the control point grid size for the adaptive smoothing.  Default =
    * 4^(ImageDimension) for a mesh size of 1^(ImageDimension).
    */
-  itkSetMacro(NumberOfControlPoints, ArrayType);
+  itkNonVirtualSetMacro(NumberOfControlPoints, ArrayType);
 
   /**
    * Get the control point grid size.
    */
-  itkGetConstMacro(NumberOfControlPoints, ArrayType);
+  itkNonVirtualGetConstMacro(NumberOfControlPoints, ArrayType);
 
   /**
    * Set the adaptive smoothing weight clamped between 0 and 1 which weights
@@ -532,12 +533,12 @@ public:
    * prior probability information should be included in the posterior
    * probability information.
    */
-  itkSetClampMacro(PriorProbabilityWeight, RealType, NumericTraits<RealType>::ZeroValue(), static_cast<RealType>(1.e9));
+  itkNonVirtualSetClampMacro(PriorProbabilityWeight, RealType, NumericTraits<RealType>::ZeroValue(), static_cast<RealType>(1.e9));
 
   /**
    * Get the prior probability weight.
    */
-  itkGetConstMacro(PriorProbabilityWeight, RealType);
+  itkNonVirtualGetConstMacro(PriorProbabilityWeight, RealType);
 
   /**
    * Set a prior probability image (numbered between 1,...,numberOfClasses).
@@ -567,7 +568,7 @@ public:
   /**
    * Get the number of intensity images used during the segmentation process.
    */
-  itkGetConstMacro(NumberOfIntensityImages, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfIntensityImages, unsigned int);
 
   /**
    * Set the input intensity image (numbered between 1,...,numberOfClasses)
@@ -601,12 +602,12 @@ public:
    * is faster but for non-Euclidean shapes (such as the cortex), it might be
    * more accurate to use the latter option.  Default = false.
    */
-  itkSetMacro(UseEuclideanDistanceForPriorLabels, bool);
+  itkNonVirtualSetMacro(UseEuclideanDistanceForPriorLabels, bool);
 
   /**
    * Get the label propagation type.
    */
-  itkGetConstMacro(UseEuclideanDistanceForPriorLabels, bool);
+  itkNonVirtualGetConstMacro(UseEuclideanDistanceForPriorLabels, bool);
 
   /**
    * Set the label propagation type.  Euclidean distance uses the Maurer distance
@@ -615,19 +616,19 @@ public:
    * is faster but for non-Euclidean shapes (such as the cortex), it might be
    * more accurate to use the latter option.  Default = false.
    */
-  itkBooleanMacro(UseEuclideanDistanceForPriorLabels);
+  itkNonVirtualBooleanMacro(UseEuclideanDistanceForPriorLabels);
 
   /**
    * Set the outlier handling filter.  This takes the intensity samples from the
    * input images and modifies the sample such that the outlier effects of the
    * sample points are removed.  Default = nullptr.
    */
-  itkSetObjectMacro(OutlierHandlingFilter, OutlierHandlingFilterType);
+  itkNonVirtualSetObjectMacro(OutlierHandlingFilter, OutlierHandlingFilterType);
 
   /**
    * Get the outlier handling filter.
    */
-  itkGetModifiableObjectMacro(OutlierHandlingFilter, OutlierHandlingFilterType);
+  itkNonVirtualGetModifiableObjectMacro(OutlierHandlingFilter, OutlierHandlingFilterType);
 
   /**
    * Set the likelihood function for a specified class.  These functions are
@@ -700,21 +701,21 @@ public:
    * asynchronous approach to updating the class labels is performed which
    * has theoretical convergence properties.
    */
-  itkBooleanMacro(UseAsynchronousUpdating);
+  itkNonVirtualBooleanMacro(UseAsynchronousUpdating);
 
   /**
    * Boolean variable governing the update scheme.  If set to true (default), an
    * asynchronous approach to updating the class labels is performed which
    * has theoretical convergence properties.
    */
-  itkSetMacro(UseAsynchronousUpdating, bool);
+  itkNonVirtualSetMacro(UseAsynchronousUpdating, bool);
 
   /**
    * Boolean variable governing the update scheme.  If set to true (default), an
    * asynchronous approach to updating the class labels is performed which
    * has theoretical convergence properties.
    */
-  itkGetConstMacro(UseAsynchronousUpdating, bool);
+  itkNonVirtualGetConstMacro(UseAsynchronousUpdating, bool);
 
   /**
    * Set the number of maximum allowed ICM iterations.  When asynchronous
@@ -723,7 +724,7 @@ public:
    * increase of the posterior is guaranteed during the iterations forming
    * the optimization which usually maximizes out between 5-10 iterations.
    */
-  itkSetMacro(MaximumNumberOfICMIterations, unsigned int);
+  itkNonVirtualSetMacro(MaximumNumberOfICMIterations, unsigned int);
 
   /**
    * Get the number of maximum allowed ICM iterations.  When asynchronous
@@ -732,7 +733,7 @@ public:
    * increase of the posterior is guaranteed during the iterations forming
    * the optimization which usually maximizes out between 5-10 iterations.
    */
-  itkGetConstMacro(MaximumNumberOfICMIterations, unsigned int);
+  itkNonVirtualGetConstMacro(MaximumNumberOfICMIterations, unsigned int);
 
   /**
    * Get the ICM code image.

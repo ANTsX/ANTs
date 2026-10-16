@@ -14,6 +14,7 @@
 #ifndef __itkPreservationOfPrincipalDirectionTensorReorientationImageFilter_h
 #define __itkPreservationOfPrincipalDirectionTensorReorientationImageFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
 #include "itkMatrix.h"
@@ -79,8 +80,8 @@ public:
   using InputIndexType = typename InputImageType::IndexType;
   using OutputIndexType = typename OutputImageType::IndexType;
 
-  itkSetMacro(CompositeTransform, CompositeTransformPointer);
-  itkGetMacro(CompositeTransform, CompositeTransformPointer);
+  itkNonVirtualSetMacro(CompositeTransform, CompositeTransformPointer);
+  itkNonVirtualGetMacro(CompositeTransform, CompositeTransformPointer);
 
 protected:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter();

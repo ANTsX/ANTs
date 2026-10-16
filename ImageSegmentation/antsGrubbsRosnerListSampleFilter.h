@@ -15,6 +15,7 @@
 #ifndef __antsGrubbsRosnerListSampleFilter_h
 #define __antsGrubbsRosnerListSampleFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "antsListSampleToListSampleFilter.h"
 
 #include <vector>
@@ -69,14 +70,14 @@ public:
     Winsorize
   };
 
-  itkSetMacro(OutlierHandling, OutlierHandlingType);
-  itkGetConstMacro(OutlierHandling, OutlierHandlingType);
+  itkNonVirtualSetMacro(OutlierHandling, OutlierHandlingType);
+  itkNonVirtualGetConstMacro(OutlierHandling, OutlierHandlingType);
 
-  itkSetMacro(WinsorizingLevel, RealType);
-  itkGetConstMacro(WinsorizingLevel, RealType);
+  itkNonVirtualSetMacro(WinsorizingLevel, RealType);
+  itkNonVirtualGetConstMacro(WinsorizingLevel, RealType);
 
-  itkSetMacro(SignificanceLevel, RealType);
-  itkGetConstMacro(SignificanceLevel, RealType);
+  itkNonVirtualSetMacro(SignificanceLevel, RealType);
+  itkNonVirtualGetConstMacro(SignificanceLevel, RealType);
 
   InstanceIdentifierContainerType
   GetOutlierInstanceIdentifiers()

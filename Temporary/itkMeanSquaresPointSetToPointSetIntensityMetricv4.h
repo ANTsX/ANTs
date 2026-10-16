@@ -18,6 +18,7 @@
 #ifndef itkMeanSquaresPointSetToPointSetIntensityMetricv4_h
 #define itkMeanSquaresPointSetToPointSetIntensityMetricv4_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkPointSetToPointSetMetricv4.h"
 
 namespace itk
@@ -103,31 +104,31 @@ public:
    * Set/get estimate intensity distance sigma automatically based on reasonable
    * heuristics.
    */
-  itkSetMacro(EstimateIntensityDistanceSigmaAutomatically, bool);
-  itkGetConstMacro(EstimateIntensityDistanceSigmaAutomatically, bool);
-  itkBooleanMacro(EstimateIntensityDistanceSigmaAutomatically);
+  itkNonVirtualSetMacro(EstimateIntensityDistanceSigmaAutomatically, bool);
+  itkNonVirtualGetConstMacro(EstimateIntensityDistanceSigmaAutomatically, bool);
+  itkNonVirtualBooleanMacro(EstimateIntensityDistanceSigmaAutomatically);
 
   /**
    * Set/get estimate Euclidean distance sigma automatically based on reasonable
    * heuristics.
    */
-  itkSetMacro(EstimateEuclideanDistanceSigmaAutomatically, bool);
-  itkGetConstMacro(EstimateEuclideanDistanceSigmaAutomatically, bool);
-  itkBooleanMacro(EstimateEuclideanDistanceSigmaAutomatically);
+  itkNonVirtualSetMacro(EstimateEuclideanDistanceSigmaAutomatically, bool);
+  itkNonVirtualGetConstMacro(EstimateEuclideanDistanceSigmaAutomatically, bool);
+  itkNonVirtualBooleanMacro(EstimateEuclideanDistanceSigmaAutomatically);
 
   /**
    * Set/get intensity sigma -- modulate the intensity distance contribution in the
    * metric formulation.  Default = sqrt( 5.0 ).
    */
-  itkSetMacro(IntensityDistanceSigma, TInternalComputationValueType);
-  itkGetConstMacro(IntensityDistanceSigma, TInternalComputationValueType);
+  itkNonVirtualSetMacro(IntensityDistanceSigma, TInternalComputationValueType);
+  itkNonVirtualGetConstMacro(IntensityDistanceSigma, TInternalComputationValueType);
 
   /**
    * Set/get distance sigma -- modulate the Euclidean distance contribution in the
    * metric formulation.   Default = sqrt( 5.0 ).
    */
-  itkSetMacro(EuclideanDistanceSigma, TInternalComputationValueType);
-  itkGetConstMacro(EuclideanDistanceSigma, TInternalComputationValueType);
+  itkNonVirtualSetMacro(EuclideanDistanceSigma, TInternalComputationValueType);
+  itkNonVirtualGetConstMacro(EuclideanDistanceSigma, TInternalComputationValueType);
 
   /**
    * Initialize the metric by estimating the intensity and distance sigmas

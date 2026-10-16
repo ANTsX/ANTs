@@ -14,6 +14,7 @@
 #ifndef __itkDiReCTImageFilter_h
 #define __itkDiReCTImageFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageToImageFilter.h"
 
 #include "itkVector.h"
@@ -173,38 +174,38 @@ public:
   /**
    * Set/Get the maximum number of registration iterations.  Default = 50.
    */
-  itkSetMacro(MaximumNumberOfIterations, unsigned int);
-  itkGetConstMacro(MaximumNumberOfIterations, unsigned int);
+  itkNonVirtualSetMacro(MaximumNumberOfIterations, unsigned int);
+  itkNonVirtualGetConstMacro(MaximumNumberOfIterations, unsigned int);
 
   /**
    * Set/Get the variance for time regularization.
    */
-  itkSetMacro(TimeSmoothingVariance, RealType);
-  itkGetConstMacro(TimeSmoothingVariance, RealType);
+  itkNonVirtualSetMacro(TimeSmoothingVariance, RealType);
+  itkNonVirtualGetConstMacro(TimeSmoothingVariance, RealType);
 
   /**
    * Set/Get the maximum number of inversion iterations.  Default = 20.
    */
-  itkSetMacro(MaximumNumberOfInvertDisplacementFieldIterations, unsigned int);
-  itkGetConstMacro(MaximumNumberOfInvertDisplacementFieldIterations, unsigned int);
+  itkNonVirtualSetMacro(MaximumNumberOfInvertDisplacementFieldIterations, unsigned int);
+  itkNonVirtualGetConstMacro(MaximumNumberOfInvertDisplacementFieldIterations, unsigned int);
 
   /**
    * Set/Get the gray matter label in the segmentation image.  Default = 2.
    */
-  itkSetMacro(GrayMatterLabel, LabelType);
-  itkGetConstMacro(GrayMatterLabel, LabelType);
+  itkNonVirtualSetMacro(GrayMatterLabel, LabelType);
+  itkNonVirtualGetConstMacro(GrayMatterLabel, LabelType);
 
   /**
    * Set/Get the white matter label in the segmentation image.  Default = 3.
    */
-  itkSetMacro(WhiteMatterLabel, LabelType);
-  itkGetConstMacro(WhiteMatterLabel, LabelType);
+  itkNonVirtualSetMacro(WhiteMatterLabel, LabelType);
+  itkNonVirtualGetConstMacro(WhiteMatterLabel, LabelType);
 
   /**
    * Set/Get the convergence threshold.  Default = 0.001.
    */
-  itkSetMacro(ConvergenceThreshold, RealType);
-  itkGetConstMacro(ConvergenceThreshold, RealType);
+  itkNonVirtualSetMacro(ConvergenceThreshold, RealType);
+  itkNonVirtualGetConstMacro(ConvergenceThreshold, RealType);
 
   /**
    * Set/Get the convergence window size. Convergence is determined by fitting a
@@ -212,8 +213,8 @@ public:
    * N is specified by the window size) and determining the slope which is
    * then compared with the convergence threshold.  Default = 10.
    */
-  itkSetMacro(ConvergenceWindowSize, unsigned int);
-  itkGetConstMacro(ConvergenceWindowSize, unsigned int);
+  itkNonVirtualSetMacro(ConvergenceWindowSize, unsigned int);
+  itkNonVirtualGetConstMacro(ConvergenceWindowSize, unsigned int);
 
   /**
    * Set/Get the thickness prior estimate---provides a constraint on the
@@ -222,62 +223,62 @@ public:
    * from ~2 mm in the calcarine cortex to ~4 mm in the precentral
    * gyrus. Default = 10 mm.
    */
-  itkSetMacro(ThicknessPriorEstimate, RealType);
-  itkGetConstMacro(ThicknessPriorEstimate, RealType);
+  itkNonVirtualSetMacro(ThicknessPriorEstimate, RealType);
+  itkNonVirtualGetConstMacro(ThicknessPriorEstimate, RealType);
 
   /**
    * Set/Get the gradient step size.  Default = 0.025.
    */
-  itkSetClampMacro(InitialGradientStep, RealType, 0, NumericTraits<RealType>::max());
-  itkGetConstMacro(InitialGradientStep, RealType);
+  itkNonVirtualSetClampMacro(InitialGradientStep, RealType, 0, NumericTraits<RealType>::max());
+  itkNonVirtualGetConstMacro(InitialGradientStep, RealType);
 
   /**
    * Get the current gradient step.
    */
-  itkGetConstMacro(CurrentGradientStep, RealType);
+  itkNonVirtualGetConstMacro(CurrentGradientStep, RealType);
 
   /**
    * Set/Get the gradient smoothing sigma (in mm).  Default = 1.0.
    */
-  itkSetClampMacro(GradientSmoothingSigma, RealType, 0, NumericTraits<RealType>::max());
-  itkGetConstMacro(GradientSmoothingSigma, RealType);
+  itkNonVirtualSetClampMacro(GradientSmoothingSigma, RealType, 0, NumericTraits<RealType>::max());
+  itkNonVirtualGetConstMacro(GradientSmoothingSigma, RealType);
 
   /**
    * Set/Get the smoothing variance for the total and hit images (in voxel units squared).  Default = 1.0.
    */
-  itkSetClampMacro(SmoothingVariance, RealType, 0, NumericTraits<RealType>::max());
-  itkGetConstMacro(SmoothingVariance, RealType);
+  itkNonVirtualSetClampMacro(SmoothingVariance, RealType, 0, NumericTraits<RealType>::max());
+  itkNonVirtualGetConstMacro(SmoothingVariance, RealType);
 
   /**
    * Set/Get the isotropic mesh spacing for smoothing the velocity field (in mm).  Default = 5.75.
    */
-  itkSetClampMacro(BSplineSmoothingIsotropicMeshSpacing, RealType, 0, NumericTraits<RealType>::max());
-  itkGetConstMacro(BSplineSmoothingIsotropicMeshSpacing, RealType);
+  itkNonVirtualSetClampMacro(BSplineSmoothingIsotropicMeshSpacing, RealType, 0, NumericTraits<RealType>::max());
+  itkNonVirtualGetConstMacro(BSplineSmoothingIsotropicMeshSpacing, RealType);
 
   /**
    * Set/Get the B-spline smoothing variance for the velocity field (in voxels).  Default = 1.5.
    */
-  itkSetClampMacro(SmoothingVelocityFieldVariance, RealType, 0, NumericTraits<RealType>::max());
-  itkGetConstMacro(SmoothingVelocityFieldVariance, RealType);
+  itkNonVirtualSetClampMacro(SmoothingVelocityFieldVariance, RealType, 0, NumericTraits<RealType>::max());
+  itkNonVirtualGetConstMacro(SmoothingVelocityFieldVariance, RealType);
 
   /**
    * Set/Get the number of integration points.  Default = 10.
    */
-  itkSetMacro(NumberOfIntegrationPoints, unsigned int);
-  itkGetConstMacro(NumberOfIntegrationPoints, unsigned int);
+  itkNonVirtualSetMacro(NumberOfIntegrationPoints, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfIntegrationPoints, unsigned int);
 
   /**
    * Set/Get the sparse image neighborhood radius.  Default = 2.
    */
-  itkSetMacro(SparseImageNeighborhoodRadius, unsigned int);
-  itkGetConstMacro(SparseImageNeighborhoodRadius, unsigned int);
+  itkNonVirtualSetMacro(SparseImageNeighborhoodRadius, unsigned int);
+  itkNonVirtualGetConstMacro(SparseImageNeighborhoodRadius, unsigned int);
 
   /**
    * Set/Get the option to restrict deformation along the last dimension.  Default = false.
    */
-  itkSetMacro(RestrictDeformation, bool);
-  itkGetConstMacro(RestrictDeformation, bool);
-  itkBooleanMacro(RestrictDeformation);
+  itkNonVirtualSetMacro(RestrictDeformation, bool);
+  itkNonVirtualGetConstMacro(RestrictDeformation, bool);
+  itkNonVirtualBooleanMacro(RestrictDeformation);
 
   /**
    * Set/Get the temporal points values.  Default = no special value.
@@ -288,46 +289,46 @@ public:
     this->m_TimePoints = timePoints;
     this->Modified();
   }
-  itkGetConstMacro(TimePoints, std::vector<RealType>);
+  itkNonVirtualGetConstMacro(TimePoints, std::vector<RealType>);
 
   /**
    * Set/Get the option to use masked smoothing.  Default = false.
    */
-  itkSetMacro(UseMaskedSmoothing, bool);
-  itkGetConstMacro(UseMaskedSmoothing, bool);
-  itkBooleanMacro(UseMaskedSmoothing);
+  itkNonVirtualSetMacro(UseMaskedSmoothing, bool);
+  itkNonVirtualGetConstMacro(UseMaskedSmoothing, bool);
+  itkNonVirtualBooleanMacro(UseMaskedSmoothing);
 
   /**
    * Set/Get the option to use B-spline smoothing.  Default = false.
    */
-  itkSetMacro(UseBSplineSmoothing, bool);
-  itkGetConstMacro(UseBSplineSmoothing, bool);
-  itkBooleanMacro(UseBSplineSmoothing);
+  itkNonVirtualSetMacro(UseBSplineSmoothing, bool);
+  itkNonVirtualGetConstMacro(UseBSplineSmoothing, bool);
+  itkNonVirtualBooleanMacro(UseBSplineSmoothing);
 
   /**
    * Set/Get the option to include the cumulative velocity fields as output.  Default = false.
    */
-  itkSetMacro(IncludeCumulativeVelocityFields, bool);
-  itkGetConstMacro(IncludeCumulativeVelocityFields, bool);
-  itkBooleanMacro(IncludeCumulativeVelocityFields);
+  itkNonVirtualSetMacro(IncludeCumulativeVelocityFields, bool);
+  itkNonVirtualGetConstMacro(IncludeCumulativeVelocityFields, bool);
+  itkNonVirtualBooleanMacro(IncludeCumulativeVelocityFields);
 
   /**
    * Get the number of elapsed iterations.  This is a helper function for
    * reporting observations.
    */
-  itkGetConstMacro(ElapsedIterations, unsigned int);
+  itkNonVirtualGetConstMacro(ElapsedIterations, unsigned int);
 
   /**
    * Get the current energy.  This is a helper function for reporting
    * observations.
    */
-  itkGetConstMacro(CurrentEnergy, RealType);
+  itkNonVirtualGetConstMacro(CurrentEnergy, RealType);
 
   /**
    * Get the current convergence measurement.  This is a helper function for
    * reporting observations.
    */
-  itkGetConstMacro(CurrentConvergenceMeasurement, RealType);
+  itkNonVirtualGetConstMacro(CurrentConvergenceMeasurement, RealType);
 
   /**
    * Get thickness image.

@@ -13,6 +13,7 @@
 #ifndef __itkDeformationFieldGradientTensorImageFilter_h
 #define __itkDeformationFieldGradientTensorImageFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkImageToImageFilter.h"
 #include "itkMatrix.h"
@@ -87,16 +88,16 @@ public:
   void
   GenerateInputRequestedRegion() override;
 
-  itkSetMacro(UseImageSpacing, bool);
-  itkGetConstReferenceMacro(UseImageSpacing, bool);
-  itkBooleanMacro(UseImageSpacing);
+  itkNonVirtualSetMacro(UseImageSpacing, bool);
+  itkNonVirtualGetConstReferenceMacro(UseImageSpacing, bool);
+  itkNonVirtualBooleanMacro(UseImageSpacing);
 
-  itkSetMacro(CalculateJacobian, bool);
-  itkGetConstReferenceMacro(CalculateJacobian, bool);
-  itkBooleanMacro(CalculateJacobian);
+  itkNonVirtualSetMacro(CalculateJacobian, bool);
+  itkNonVirtualGetConstReferenceMacro(CalculateJacobian, bool);
+  itkNonVirtualBooleanMacro(CalculateJacobian);
 
   /** Get access to the input image casted as real pixel values */
-  itkGetConstObjectMacro(RealValuedInputImage, RealVectorImageType);
+  itkNonVirtualGetConstObjectMacro(RealValuedInputImage, RealVectorImageType);
 
 protected:
   DeformationFieldGradientTensorImageFilter();

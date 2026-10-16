@@ -15,6 +15,7 @@
 #ifndef __antsHistogramParzenWindowsListSampleFunction_h
 #define __antsHistogramParzenWindowsListSampleFunction_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "antsListSampleFunction.h"
 
 #include "itkImage.h"
@@ -64,11 +65,11 @@ public:
 
   /** Helper functions */
 
-  itkSetMacro(Sigma, RealType);
-  itkGetConstMacro(Sigma, RealType);
+  itkNonVirtualSetMacro(Sigma, RealType);
+  itkNonVirtualGetConstMacro(Sigma, RealType);
 
-  itkSetMacro(NumberOfHistogramBins, unsigned int);
-  itkGetConstMacro(NumberOfHistogramBins, unsigned int);
+  itkNonVirtualSetMacro(NumberOfHistogramBins, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfHistogramBins, unsigned int);
 
   void
   SetInputListSample(const InputListSampleType * ptr) override;

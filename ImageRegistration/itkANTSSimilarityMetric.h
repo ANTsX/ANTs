@@ -14,6 +14,7 @@
 #ifndef __itkANTSSimilarityMetric_h
 #define __itkANTSSimilarityMetric_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 
@@ -61,25 +62,25 @@ public:
   typedef typename MetricType::Pointer                                                         MetricPointer;
   typedef typename MetricType::RadiusType                                                      RadiusType;
 
-  itkSetMacro(FixedImage, ImagePointer);
-  itkGetConstMacro(FixedImage, ImagePointer);
-  itkSetMacro(MovingImage, ImagePointer);
-  itkGetConstMacro(MovingImage, ImagePointer);
-  itkSetMacro(FixedPointSet, PointSetPointer);
-  itkGetConstMacro(FixedPointSet, PointSetPointer);
-  itkSetMacro(MovingPointSet, PointSetPointer);
-  itkGetConstMacro(MovingPointSet, PointSetPointer);
-  itkSetMacro(WeightImage, ImagePointer);
-  itkGetConstMacro(WeightImage, ImagePointer);
-  itkSetClampMacro(WeightScalar, RealType, 0.0, NumericTraits<RealType>::max());
-  itkGetConstMacro(WeightScalar, RealType);
+  itkNonVirtualSetMacro(FixedImage, ImagePointer);
+  itkNonVirtualGetConstMacro(FixedImage, ImagePointer);
+  itkNonVirtualSetMacro(MovingImage, ImagePointer);
+  itkNonVirtualGetConstMacro(MovingImage, ImagePointer);
+  itkNonVirtualSetMacro(FixedPointSet, PointSetPointer);
+  itkNonVirtualGetConstMacro(FixedPointSet, PointSetPointer);
+  itkNonVirtualSetMacro(MovingPointSet, PointSetPointer);
+  itkNonVirtualGetConstMacro(MovingPointSet, PointSetPointer);
+  itkNonVirtualSetMacro(WeightImage, ImagePointer);
+  itkNonVirtualGetConstMacro(WeightImage, ImagePointer);
+  itkNonVirtualSetClampMacro(WeightScalar, RealType, 0.0, NumericTraits<RealType>::max());
+  itkNonVirtualGetConstMacro(WeightScalar, RealType);
 
-  itkSetObjectMacro(Metric, MetricType);
-  itkGetModifiableObjectMacro(Metric, MetricType);
+  itkNonVirtualSetObjectMacro(Metric, MetricType);
+  itkNonVirtualGetModifiableObjectMacro(Metric, MetricType);
 
-  itkSetMacro(MaximizeMetric, bool);
-  itkGetConstMacro(MaximizeMetric, bool);
-  itkBooleanMacro(MaximizeMetric);
+  itkNonVirtualSetMacro(MaximizeMetric, bool);
+  itkNonVirtualGetConstMacro(MaximizeMetric, bool);
+  itkNonVirtualBooleanMacro(MaximizeMetric);
 
 private:
   MetricPointer m_Metric;

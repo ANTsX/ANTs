@@ -1,6 +1,7 @@
 #ifndef antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate__h_
 #define antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate__h_
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageDuplicator.h"
 
 namespace ants
@@ -200,11 +201,11 @@ public:
     }
   }
 
-  itkSetMacro(ComputeFullScaleCCInterval, unsigned int);
+  itkNonVirtualSetMacro(ComputeFullScaleCCInterval, unsigned int);
 
-  itkSetMacro(WriteIterationsOutputsInIntervals, unsigned int);
+  itkNonVirtualSetMacro(WriteIterationsOutputsInIntervals, unsigned int);
 
-  itkSetMacro(CurrentStageNumber, unsigned int);
+  itkNonVirtualSetMacro(CurrentStageNumber, unsigned int);
 
   void
   SetOutputPrefix(const std::string & outputPrefix)
