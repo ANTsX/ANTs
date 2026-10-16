@@ -18,6 +18,7 @@
 #ifndef itkSimulatedBSplineDisplacementFieldSource_h
 #define itkSimulatedBSplineDisplacementFieldSource_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkSimulatedDisplacementFieldSource.h"
 #include "itkDisplacementFieldToBSplineImageFilter.h"
 #include "itkFixedArray.h"
@@ -84,8 +85,8 @@ public:
   /**
    * Set/Get the spline order defining the bias field estimate.  Default = 3.
    */
-  itkSetMacro(SplineOrder, unsigned int);
-  itkGetConstMacro(SplineOrder, unsigned int);
+  itkNonVirtualSetMacro(SplineOrder, unsigned int);
+  itkNonVirtualGetConstMacro(SplineOrder, unsigned int);
 
   /**
    * Set/Get the control point grid size definining the B-spline estimate of the
@@ -94,14 +95,14 @@ public:
    * Default = 4 control points in each dimension for a mesh size of 1 in each
    * dimension.
    */
-  itkSetMacro(NumberOfControlPoints, ArrayType);
-  itkGetConstMacro(NumberOfControlPoints, ArrayType);
+  itkNonVirtualSetMacro(NumberOfControlPoints, ArrayType);
+  itkNonVirtualGetConstMacro(NumberOfControlPoints, ArrayType);
 
   /**
    * Set/Get the number of fitting levels.  Default = 1 level.
    */
-  itkSetMacro(NumberOfFittingLevels, ArrayType);
-  itkGetConstMacro(NumberOfFittingLevels, ArrayType);
+  itkNonVirtualSetMacro(NumberOfFittingLevels, ArrayType);
+  itkNonVirtualGetConstMacro(NumberOfFittingLevels, ArrayType);
 
   /**
    * Set the number of fitting levels.  Default = 1 level.
@@ -119,8 +120,8 @@ public:
    * Set/Get the standard deviation of the noise for the displacements at the
    * random points.  Default = c( 1, 1, ... ) mm.
    */
-  itkSetMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
-  itkGetConstMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
+  itkNonVirtualSetMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
+  itkNonVirtualGetConstMacro(DisplacementNoiseStandardDeviation, StandardDeviationArrayType);
 
   /**
    * Set the standard deviation of the displacement noise.  Default = 1 (mm).

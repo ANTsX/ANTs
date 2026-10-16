@@ -1,6 +1,7 @@
 #ifndef __itkANTSCenteredAffine2DTransform_h
 #define __itkANTSCenteredAffine2DTransform_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include <iostream>
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkMacro.h"
@@ -131,10 +132,10 @@ public:
   void
   SetK(TScalarType K);
 
-  itkGetConstReferenceMacro(Angle, TScalarType);
-  itkGetConstReferenceMacro(S1, TScalarType);
-  itkGetConstReferenceMacro(S2, TScalarType);
-  itkGetConstReferenceMacro(K, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(Angle, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(S1, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(S2, TScalarType);
+  itkNonVirtualGetConstReferenceMacro(K, TScalarType);
 
   /** Set the angle of rotation in degrees. */
   void

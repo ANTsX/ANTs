@@ -169,14 +169,14 @@ public:
   /** Get the metric value. The metric value is the mean square difference
    * in intensity between the fixed image and transforming moving image
    * computed over the the overlapping region between the two images. */
-  virtual double
+  double
   GetMetric() const
   {
     return m_Metric;
   }
 
   /** Get the rms change in deformation field. */
-  virtual double
+  double
   GetRMSChange() const
   {
     return m_RMSChange;
@@ -185,13 +185,13 @@ public:
   /** Select if the fixed image or moving image gradient is used for
    * the computating the demon forces. The fixed image gradient is used
    * by default. */
-  virtual void
+  void
   SetUseMovingImageGradient(bool flag)
   {
     m_UseMovingImageGradient = flag;
   }
 
-  virtual bool
+  bool
   GetUseMovingImageGradient() const
   {
     return m_UseMovingImageGradient;
@@ -201,10 +201,10 @@ public:
    * intensity yields a match. When the intensities match between a
    * moving and fixed image pixel, the update vector (for that
    * iteration) will be the zero vector. Default is 0.001. */
-  virtual void
+  void
   SetIntensityDifferenceThreshold(double);
 
-  virtual double
+  double
   GetIntensityDifferenceThreshold() const;
 
 protected:

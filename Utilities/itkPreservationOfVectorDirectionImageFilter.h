@@ -14,6 +14,7 @@
 #ifndef __itkPreservationOfVectorDirectionImageFilter_h
 #define __itkPreservationOfVectorDirectionImageFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
 #include "itkMatrix.h"
@@ -78,12 +79,12 @@ public:
   using InputIndexType = typename InputImageType::IndexType;
   using OutputIndexType = typename OutputImageType::IndexType;
 
-  itkSetMacro(CompositeTransform, CompositeTransformPointer);
-  itkGetMacro(CompositeTransform, CompositeTransformPointer);
+  itkNonVirtualSetMacro(CompositeTransform, CompositeTransformPointer);
+  itkNonVirtualGetMacro(CompositeTransform, CompositeTransformPointer);
 
   // if input vectors are in physical space, we leave the output in physical space also
-  itkSetMacro(InputVectorsInPhysicalSpace, bool);
-  itkGetMacro(InputVectorsInPhysicalSpace, bool);
+  itkNonVirtualSetMacro(InputVectorsInPhysicalSpace, bool);
+  itkNonVirtualGetMacro(InputVectorsInPhysicalSpace, bool);
 
 protected:
   PreservationOfVectorDirectionImageFilter();

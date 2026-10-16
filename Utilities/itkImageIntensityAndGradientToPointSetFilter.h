@@ -14,6 +14,7 @@
 #ifndef itkImageIntensityAndGradientToPointSetFilter_h
 #define itkImageIntensityAndGradientToPointSetFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkCovariantVector.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkImage.h"
@@ -118,20 +119,20 @@ public:
   /**
    * Set/Get sigma for the gradient recursive gaussian image filter
    */
-  itkSetMacro(Sigma, double);
-  itkGetConstMacro(Sigma, double);
+  itkNonVirtualSetMacro(Sigma, double);
+  itkNonVirtualGetConstMacro(Sigma, double);
 
   /**
    * Set/Get boolean for gradient calculation.
    */
-  itkSetMacro(UseCentralDifferenceFunction, bool);
-  itkGetConstMacro(UseCentralDifferenceFunction, bool);
+  itkNonVirtualSetMacro(UseCentralDifferenceFunction, bool);
+  itkNonVirtualGetConstMacro(UseCentralDifferenceFunction, bool);
 
   /**
    * Set/Get neighborhood radius
    */
-  itkSetMacro(NeighborhoodRadius, NeighborhoodRadiusType);
-  itkGetConstMacro(NeighborhoodRadius, NeighborhoodRadiusType);
+  itkNonVirtualSetMacro(NeighborhoodRadius, NeighborhoodRadiusType);
+  itkNonVirtualGetConstMacro(NeighborhoodRadius, NeighborhoodRadiusType);
 
 protected:
   ImageIntensityAndGradientToPointSetFilter();

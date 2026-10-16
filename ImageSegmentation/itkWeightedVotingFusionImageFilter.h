@@ -18,6 +18,7 @@
 #ifndef __itkWeightedVotingFusionImageFilter_h
 #define __itkWeightedVotingFusionImageFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkNonLocalPatchBasedImageFilter.h"
 
 #include "itkConstNeighborhoodIterator.h"
@@ -183,12 +184,12 @@ public:
    * Get the number of modalities used in determining the optimal label fusion
    * or optimal fused image.
    */
-  itkGetConstMacro(NumberOfAtlasModalities, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfAtlasModalities, unsigned int);
 
   /**
    * Get the label set.
    */
-  itkGetConstMacro(LabelSet, LabelSetType);
+  itkNonVirtualGetConstMacro(LabelSet, LabelSetType);
 
   /**
    * Set/Get the local search neighborhood radius image.
@@ -203,15 +204,15 @@ public:
    * Set/Get the Alpha parameter---the regularization weight added to the matrix Mx for
    * the inverse.  Default = 0.1.
    */
-  itkSetMacro(Alpha, RealType);
-  itkGetConstMacro(Alpha, RealType);
+  itkNonVirtualSetMacro(Alpha, RealType);
+  itkNonVirtualGetConstMacro(Alpha, RealType);
 
   /**
    * Set/Get the Beta parameter---exponent for mapping intensity difference to joint error.
    * Default = 2.0.
    */
-  itkSetMacro(Beta, RealType);
-  itkGetConstMacro(Beta, RealType);
+  itkNonVirtualSetMacro(Beta, RealType);
+  itkNonVirtualGetConstMacro(Beta, RealType);
 
   /** Set the requested region */
   void
@@ -223,9 +224,9 @@ public:
    * maps. The posterior maps (n = number of labels) give the probability of each
    * voxel in the target image belonging to each label.  Default = false.
    */
-  itkSetMacro(RetainLabelPosteriorProbabilityImages, bool);
-  itkGetConstMacro(RetainLabelPosteriorProbabilityImages, bool);
-  itkBooleanMacro(RetainLabelPosteriorProbabilityImages);
+  itkNonVirtualSetMacro(RetainLabelPosteriorProbabilityImages, bool);
+  itkNonVirtualGetConstMacro(RetainLabelPosteriorProbabilityImages, bool);
+  itkNonVirtualBooleanMacro(RetainLabelPosteriorProbabilityImages);
 
   /**
    * Boolean for retaining the voting weights images.  This can have a negative effect
@@ -233,23 +234,23 @@ public:
    * maps.  The voting weight maps (n = number of atlases) gives the contribution of
    * a particular atlas to the final label/intensity fusion.
    */
-  itkSetMacro(RetainAtlasVotingWeightImages, bool);
-  itkGetConstMacro(RetainAtlasVotingWeightImages, bool);
-  itkBooleanMacro(RetainAtlasVotingWeightImages);
+  itkNonVirtualSetMacro(RetainAtlasVotingWeightImages, bool);
+  itkNonVirtualGetConstMacro(RetainAtlasVotingWeightImages, bool);
+  itkNonVirtualBooleanMacro(RetainAtlasVotingWeightImages);
 
   /**
    * Boolean for constraining the weights to be positive and sum to 1.  We use
    * an implementation of the algorithm based on the algorithm by Lawson, Charles L.;
    * Hanson, Richard J. (1995). Solving Least Squares Problems. SIAM.
    */
-  itkSetMacro(ConstrainSolutionToNonnegativeWeights, bool);
-  itkGetConstMacro(ConstrainSolutionToNonnegativeWeights, bool);
-  itkBooleanMacro(ConstrainSolutionToNonnegativeWeights);
+  itkNonVirtualSetMacro(ConstrainSolutionToNonnegativeWeights, bool);
+  itkNonVirtualGetConstMacro(ConstrainSolutionToNonnegativeWeights, bool);
+  itkNonVirtualBooleanMacro(ConstrainSolutionToNonnegativeWeights);
 
   /**
    * Get the current state for progress reporting.
    */
-  itkGetConstMacro(IsWeightedAveragingComplete, bool);
+  itkNonVirtualGetConstMacro(IsWeightedAveragingComplete, bool);
 
   /**
    * Get the posterior probability image corresponding to a label.

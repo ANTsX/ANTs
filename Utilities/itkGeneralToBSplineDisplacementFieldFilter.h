@@ -14,6 +14,7 @@
 #ifndef __itkGeneralToBSplineDisplacementFieldFilter_h
 #define __itkGeneralToBSplineDisplacementFieldFilter_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkImageToImageFilter.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
@@ -58,17 +59,17 @@ public:
   //  itkSetMacro( ConfidenceImage, RealImageType );
   //  itkGetConstMacro( ConfidenceImage, RealImageType );
 
-  itkSetMacro(NumberOfControlPoints, ArrayType);
-  itkGetConstMacro(NumberOfControlPoints, ArrayType);
+  itkNonVirtualSetMacro(NumberOfControlPoints, ArrayType);
+  itkNonVirtualGetConstMacro(NumberOfControlPoints, ArrayType);
 
-  itkSetMacro(NumberOfLevels, unsigned int);
-  itkGetConstMacro(NumberOfLevels, unsigned int);
+  itkNonVirtualSetMacro(NumberOfLevels, unsigned int);
+  itkNonVirtualGetConstMacro(NumberOfLevels, unsigned int);
 
-  itkSetMacro(SplineOrder, unsigned int);
-  itkGetConstMacro(SplineOrder, unsigned int);
+  itkNonVirtualSetMacro(SplineOrder, unsigned int);
+  itkNonVirtualGetConstMacro(SplineOrder, unsigned int);
 
-  itkSetMacro(IgnorePixelValue, InputPixelType);
-  itkGetConstMacro(IgnorePixelValue, InputPixelType);
+  itkNonVirtualSetMacro(IgnorePixelValue, InputPixelType);
+  itkNonVirtualGetConstMacro(IgnorePixelValue, InputPixelType);
 
 protected:
   GeneralToBSplineDisplacementFieldFilter();

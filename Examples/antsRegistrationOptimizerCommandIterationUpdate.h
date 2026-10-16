@@ -1,6 +1,8 @@
 #ifndef antsRegistrationOptimizerCommandIterationUpdate__h_
 #define antsRegistrationOptimizerCommandIterationUpdate__h_
 
+#include "ITKGetterSetterMacroShims.h"
+
 namespace ants
 {
 /** \class antsRegistrationOptimizerCommandIterationUpdate
@@ -179,11 +181,11 @@ public:
     }
   }
 
-  itkSetMacro(ComputeFullScaleCCInterval, unsigned int);
+  itkNonVirtualSetMacro(ComputeFullScaleCCInterval, unsigned int);
 
-  itkSetMacro(WriteIterationsOutputsInIntervals, unsigned int);
+  itkNonVirtualSetMacro(WriteIterationsOutputsInIntervals, unsigned int);
 
-  itkSetMacro(CurrentStageNumber, unsigned int);
+  itkNonVirtualSetMacro(CurrentStageNumber, unsigned int);
 
   void
   SetOutputPrefix(const std::string & outputPrefix)

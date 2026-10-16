@@ -108,7 +108,7 @@ public:
   ImageType *
   GetInput();
 
-  virtual void
+  void
   SetInputImage(typename ImageType::Pointer & input);
   OutputImageType *
   GetOutput();

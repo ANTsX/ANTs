@@ -14,6 +14,7 @@
 #ifndef __itkANTSImageTransformation_h
 #define __itkANTSImageTransformation_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 
@@ -171,9 +172,9 @@ public:
   void
   ComposeInverse();
 
-  itkSetMacro(WriteComponentImages, bool);
-  itkGetMacro(WriteComponentImages, bool);
-  itkBooleanMacro(WriteComponentImages);
+  itkNonVirtualSetMacro(WriteComponentImages, bool);
+  itkNonVirtualGetMacro(WriteComponentImages, bool);
+  itkNonVirtualBooleanMacro(WriteComponentImages);
 
 protected:
   ANTSImageTransformation();

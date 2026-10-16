@@ -305,13 +305,13 @@ public:
    * parameters can be specified using methods SetOutputRegion(), SetOutputSpacing(), SetOutputDirection(),
    * and SetOutputOrigin(). Else if the speed image is not NULL, the output information
    * is copied from the input speed image. */
-  virtual void
+  void
   SetOutputSize(const OutputSizeType & size)
   {
     m_OutputRegion = size;
   }
 
-  virtual OutputSizeType
+  OutputSizeType
   GetOutputSize() const
   {
     return m_OutputRegion.GetSize();
@@ -343,14 +343,14 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  virtual void
-  Initialize(LevelSetImageType *) final;
+  void
+  Initialize(LevelSetImageType *);
 
-  virtual void
-  UpdateNeighbors(const IndexType & index, const SpeedImageType *, LevelSetImageType *) final;
+  void
+  UpdateNeighbors(const IndexType & index, const SpeedImageType *, LevelSetImageType *);
 
-  virtual double
-  UpdateValue(const IndexType & index, const SpeedImageType *, LevelSetImageType *) final;
+  double
+  UpdateValue(const IndexType & index, const SpeedImageType *, LevelSetImageType *);
 
   const AxisNodeType &
   GetNodeUsedInCalculation(unsigned int idx) const

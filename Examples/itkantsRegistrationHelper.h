@@ -18,6 +18,7 @@
 #ifndef __antsRegistrationHelper_h
 #define __antsRegistrationHelper_h
 
+#include "ITKGetterSetterMacroShims.h"
 #include "ReadWriteData.h"
 #include "itkANTSAffine3DTransform.h"
 #include "itkANTSCenteredAffine2DTransform.h"
@@ -738,43 +739,43 @@ public:
   /**
    * turn on histogram matching of the input images
    */
-  itkSetMacro(UseHistogramMatching, bool);
-  itkGetConstMacro(UseHistogramMatching, bool);
-  itkBooleanMacro(UseHistogramMatching);
+  itkNonVirtualSetMacro(UseHistogramMatching, bool);
+  itkNonVirtualGetConstMacro(UseHistogramMatching, bool);
+  itkNonVirtualBooleanMacro(UseHistogramMatching);
 
   /**
    * turn on the option that lets you estimate the learning rate step size only at the beginning of each level.
    * useful as a second stage of fine-scale registration.
    */
-  itkSetMacro(DoEstimateLearningRateAtEachIteration, bool);
-  itkGetConstMacro(DoEstimateLearningRateAtEachIteration, bool);
-  itkBooleanMacro(DoEstimateLearningRateAtEachIteration);
+  itkNonVirtualSetMacro(DoEstimateLearningRateAtEachIteration, bool);
+  itkNonVirtualGetConstMacro(DoEstimateLearningRateAtEachIteration, bool);
+  itkNonVirtualBooleanMacro(DoEstimateLearningRateAtEachIteration);
 
   /**
    * turn on the option that prints the CC similarity measure
    * between the full-size fixed and moving input images at each iteraton.
    */
-  itkSetMacro(PrintSimilarityMeasureInterval, unsigned int);
-  itkGetConstMacro(PrintSimilarityMeasureInterval, unsigned int);
+  itkNonVirtualSetMacro(PrintSimilarityMeasureInterval, unsigned int);
+  itkNonVirtualGetConstMacro(PrintSimilarityMeasureInterval, unsigned int);
 
   /**
    * turn on the option that writes the output volume in intervals of iterations.
    */
-  itkSetMacro(WriteIntervalVolumes, unsigned int);
-  itkGetConstMacro(WriteIntervalVolumes, unsigned int);
+  itkNonVirtualSetMacro(WriteIntervalVolumes, unsigned int);
+  itkNonVirtualGetConstMacro(WriteIntervalVolumes, unsigned int);
 
   /**
    * turn on the option that cause the direct initialization of the linear transforms at each stage.
    */
-  itkSetMacro(InitializeTransformsPerStage, bool);
-  itkGetConstMacro(InitializeTransformsPerStage, bool);
-  itkBooleanMacro(InitializeTransformsPerStage);
+  itkNonVirtualSetMacro(InitializeTransformsPerStage, bool);
+  itkNonVirtualGetConstMacro(InitializeTransformsPerStage, bool);
+  itkNonVirtualBooleanMacro(InitializeTransformsPerStage);
 
   /**
    * Set a constant random seed with an int != 0
    */
-  itkSetMacro(RegistrationRandomSeed, int);
-  itkGetConstMacro(RegistrationRandomSeed, int);
+  itkNonVirtualSetMacro(RegistrationRandomSeed, int);
+  itkNonVirtualGetConstMacro(RegistrationRandomSeed, int);
 
   /**
    * turn on winsorize image intensity normalization
@@ -782,13 +783,13 @@ public:
   void
   SetWinsorizeImageIntensities(bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0);
 
-  itkGetModifiableObjectMacro(CompositeTransform, CompositeTransformType);
-  itkGetModifiableObjectMacro(RegistrationState, CompositeTransformType);
+  itkNonVirtualGetModifiableObjectMacro(CompositeTransform, CompositeTransformType);
+  itkNonVirtualGetModifiableObjectMacro(RegistrationState, CompositeTransformType);
   /**
    * Set/Get the interpolator.  Linear is default.
    */
-  itkSetObjectMacro(Interpolator, InterpolatorType);
-  itkGetModifiableObjectMacro(Interpolator, InterpolatorType);
+  itkNonVirtualSetObjectMacro(Interpolator, InterpolatorType);
+  itkNonVirtualGetModifiableObjectMacro(Interpolator, InterpolatorType);
 
   /**
    *  Get the Warped Image & Inverse Warped Images
