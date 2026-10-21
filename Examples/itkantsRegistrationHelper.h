@@ -883,6 +883,10 @@ public:
     this->m_LogStream = &logStream;
   }
 
+  /** Validate stage configuration and dense-field parameter counts without running registration. */
+  int
+  ValidateParameters();
+
 protected:
   RegistrationHelper();
   ~RegistrationHelper() override;
@@ -893,9 +897,6 @@ private:
     const itk::ImageBase<VImageDimension> * inputImageInformation,
     const typename RegistrationHelper<TComputeType, VImageDimension>::ShrinkFactorsPerDimensionContainerType &
       shrinkFactorsPerDimensionForCurrentLevel) const;
-
-  int
-  ValidateParameters();
 
   std::ostream &
   Logger() const

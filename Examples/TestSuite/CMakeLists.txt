@@ -65,6 +65,11 @@ target_include_directories(antsWahbaRotationTest PRIVATE ${CMAKE_SOURCE_DIR}/Uti
 target_link_libraries(antsWahbaRotationTest ${ITK_LIBRARIES})
 add_test(NAME antsWahbaRotationTest COMMAND antsWahbaRotationTest)
 
+## Dense-field registration parameter counts are validated before optimization.
+add_executable(antsRegistrationParameterCountTest antsRegistrationParameterCountTest.cxx)
+target_link_libraries(antsRegistrationParameterCountTest antsUtilities ${ITK_LIBRARIES})
+add_test(NAME antsRegistrationParameterCountTest COMMAND antsRegistrationParameterCountTest)
+
 ## Command line parser regression test: an unclosed '[' must raise an error.
 add_executable(antsCommandLineParserTest antsCommandLineParserTest.cxx)
 target_link_libraries(antsCommandLineParserTest antsUtilities)
