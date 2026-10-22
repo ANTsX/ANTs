@@ -750,6 +750,16 @@ RegistrationHelper<TComputeType, VImageDimension>::ValidateParameters()
     // metrics that obtain their domain from a fixed mask. Metric stage IDs are reversed.
     typename ImageBaseType::ConstPointer virtualDomainImage;
     const auto stageMetrics = this->GetMetricListPerStage(this->m_NumberOfStages - stage - 1);
+    // These B-spline methods fit point derivatives directly for a single point-set
+    // metric (StoreDerivativeAsSparseFieldForLocalSupportTransforms(false)). Their
+    // metric derivative is sized by point count, not virtual-domain voxel count.
+    // Image and multi-metric stages still use the dense derivative path.
+    const auto transformMethod = this->m_TransformMethods[stage].m_XfrmMethod;
+    if ((transformMethod == BSplineSyN || transformMethod == TimeVaryingBSplineVelocityField) &&
+        stageMetrics.size() == 1 && this->IsPointSetMetric(stageMetrics.front().m_MetricType))
+    {
+      continue;
+    }
     for (const auto & metric : stageMetrics)
     {
       if (!this->IsPointSetMetric(metric.m_MetricType))

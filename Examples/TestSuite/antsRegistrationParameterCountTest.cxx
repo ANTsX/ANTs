@@ -12,7 +12,7 @@ main()
   const auto image = Image::New();
   image->SetRegions(Image::SizeType{ { 852, 1182, 1965 } });
   // Geometry alone is sufficient for preflight; do not allocate gigabytes of pixels.
-  const auto makeHelper = [&](Helper::XfrmMethod method) {
+  const auto makeHelper = [&](Helper::XfrmMethod method, bool addImageMetric = true) {
     auto helper = Helper::New();
     std::vector<unsigned int> mesh(3, 4);
     switch (method)
@@ -53,7 +53,10 @@ main()
       default:
         break;
     }
-    helper->AddMetric(Helper::CC, image, image, 0, 1, Helper::random, 32, 4, false, 0.01);
+    if (addImageMetric)
+    {
+      helper->AddMetric(Helper::CC, image, image, 0, 1, Helper::random, 32, 4, false, 0.01);
+    }
     helper->SetIterations({ { 10, 10 } });
     helper->SetShrinkFactors({ { 2, 1 } });
     helper->SetSmoothingSigmas({ { 1, 0 } });
@@ -103,6 +106,47 @@ main()
   masked->AddFixedImageMask(mask);
   expect(masked->ValidateParameters() == (limited ? EXIT_FAILURE : EXIT_SUCCESS),
          "An image metric mask incorrectly reduced the parameter count");
+
+  // A single point-set metric takes a point-sized derivative path in the two
+  // B-spline methods, even when the mask defining the virtual domain is large.
+  auto largeMask = Helper::MaskImageType::New();
+  largeMask->SetRegions(image->GetLargestPossibleRegion());
+  const auto points = Helper::LabeledPointSetType::New();
+  Helper::LabeledPointSetType::PointType point;
+  point.Fill(1.0);
+  points->SetPoint(0, point);
+  points->SetPointData(0, 1);
+  const auto addPointSetMetric = [&](Helper * helper) {
+    helper->AddMetric(Helper::ICP, nullptr, nullptr, points, points, nullptr, nullptr,
+                      0, 1, Helper::none, 32, 4, false, false, 1.0, 50, 1.1, false, 1.0,
+                      std::sqrt(5.0), std::sqrt(5.0));
+  };
+  for (const auto method : { Helper::BSplineSyN, Helper::TimeVaryingBSplineVelocityField })
+  {
+    auto pointOnly = makeHelper(method, false);
+    pointOnly->AddFixedImageMask(largeMask);
+    addPointSetMetric(pointOnly);
+    expect(pointOnly->ValidateParameters() == EXIT_SUCCESS,
+           "Single point-set B-spline stage was incorrectly rejected by the voxel limit");
+
+    addPointSetMetric(pointOnly);
+    expect(pointOnly->ValidateParameters() == (limited ? EXIT_FAILURE : EXIT_SUCCESS),
+           "Multiple point-set metrics incorrectly bypassed the voxel limit");
+
+    auto mixed = makeHelper(method);
+    mixed->AddFixedImageMask(largeMask);
+    addPointSetMetric(mixed);
+    expect(mixed->ValidateParameters() == (limited ? EXIT_FAILURE : EXIT_SUCCESS),
+           "Mixed image and point-set metrics incorrectly bypassed the voxel limit");
+  }
+  for (const auto method : { Helper::SyN, Helper::TimeVaryingVelocityField })
+  {
+    auto pointOnly = makeHelper(method, false);
+    pointOnly->AddFixedImageMask(largeMask);
+    addPointSetMetric(pointOnly);
+    expect(pointOnly->ValidateParameters() == (limited ? EXIT_FAILURE : EXIT_SUCCESS),
+           "Gaussian point-set registration incorrectly bypassed the voxel limit");
+  }
 
   if (limited)
   {
