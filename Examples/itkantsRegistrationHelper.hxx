@@ -3,6 +3,7 @@
 
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_copy.h>
+#include <limits>
 
 namespace ants
 {
@@ -22,18 +23,18 @@ RegistrationHelper<TComputeType, VImageDimension>::GetShrinkImageOutputInformati
 {
   typedef itk::Image<unsigned char, VImageDimension> DummyImageType;
 
-  typename DummyImageType::Pointer dummyImage = AllocImage<DummyImageType>(inputImageInformation, 0);
+  typename DummyImageType::Pointer dummyImage = DummyImageType::New();
+  dummyImage->CopyInformation(inputImageInformation);
+  dummyImage->SetRegions(inputImageInformation->GetLargestPossibleRegion());
 
   // We use the shrink image filter to calculate the fixed parameters of the virtual
-  // domain at each level.  To speed up calculation and avoid unnecessary memory
-  // usage, we could calculate these fixed parameters directly.
+  // domain at each level. Only image information is needed, not a pixel buffer.
 
   typedef itk::ShrinkImageFilter<DummyImageType, DummyImageType> ShrinkFilterType;
   typename ShrinkFilterType::Pointer                             shrinkFilter = ShrinkFilterType::New();
   shrinkFilter->SetShrinkFactors(shrinkFactorsPerDimensionForCurrentLevel);
   shrinkFilter->SetInput(dummyImage);
-  shrinkFilter
-    ->GenerateOutputInformation(); // Don't need to allocate space or run the filter, just create output information
+  shrinkFilter->GenerateOutputInformation(); // Don't need to allocate space or run the filter, just create output information
   typename itk::ImageBase<VImageDimension>::Pointer returnImageBase = shrinkFilter->GetOutput();
   return returnImageBase;
 }
@@ -655,6 +656,7 @@ template <typename TComputeType, unsigned VImageDimension>
 int
 RegistrationHelper<TComputeType, VImageDimension>::ValidateParameters()
 {
+  this->m_NumberOfStages = this->m_TransformMethods.size();
   if (this->m_NumberOfStages == 0)
   {
     this->Logger() << "No transformations are specified." << std::endl;
@@ -711,6 +713,111 @@ RegistrationHelper<TComputeType, VImageDimension>::ValidateParameters()
     this->Logger() << "The number of moving masks must be equal to 1 (i.e., use the mask for all "
                    << "stages) or the number of moving masks must be equal to the number of stages." << std::endl;
     return EXIT_FAILURE;
+  }
+
+  // Check the number of parameters in each stage
+  // Dense-field metrics haveImageDimension parameters per virtual-domain voxel
+  // ITK's metric parameter count may be narrower than its image size type,
+  // causing overflow errors
+  // See https://github.com/InsightSoftwareConsortium/ITK/issues/6949
+  using ParameterCountType = typename ObjectMetricType::NumberOfParametersType;
+  const auto maximumParameters = std::numeric_limits<ParameterCountType>::max();
+  const auto maximumVoxels = maximumParameters / VImageDimension;
+  for (unsigned int stage = 0; stage < this->m_NumberOfStages; ++stage)
+  {
+    if (this->m_ShrinkFactors[stage].size() != this->m_Iterations[stage].size())
+    {
+      this->Logger() << "ERROR: The number of shrink factors does not match the number of levels in stage "
+                     << stage << '.' << std::endl;
+      return EXIT_FAILURE;
+    }
+    switch (this->m_TransformMethods[stage].m_XfrmMethod)
+    {
+      case GaussianDisplacementField:
+      case BSplineDisplacementField:
+      case SyN:
+      case BSplineSyN:
+      case TimeVaryingVelocityField:
+      case TimeVaryingBSplineVelocityField:
+      case Exponential:
+      case BSplineExponential:
+        break;
+      default:
+        continue;
+    }
+
+    // Match the virtual-domain selection in DoRegistration, including point-set
+    // metrics that obtain their domain from a fixed mask. Metric stage IDs are reversed.
+    typename ImageBaseType::ConstPointer virtualDomainImage;
+    const auto stageMetrics = this->GetMetricListPerStage(this->m_NumberOfStages - stage - 1);
+    // These B-spline methods fit point derivatives directly for a single point-set
+    // metric (StoreDerivativeAsSparseFieldForLocalSupportTransforms(false)). Their
+    // metric derivative is sized by point count, not virtual-domain voxel count.
+    // Image and multi-metric stages still use the dense derivative path.
+    const auto transformMethod = this->m_TransformMethods[stage].m_XfrmMethod;
+    if ((transformMethod == BSplineSyN || transformMethod == TimeVaryingBSplineVelocityField) &&
+        stageMetrics.size() == 1 && this->IsPointSetMetric(stageMetrics.front().m_MetricType))
+    {
+      continue;
+    }
+    for (const auto & metric : stageMetrics)
+    {
+      if (!this->IsPointSetMetric(metric.m_MetricType))
+      {
+        virtualDomainImage = metric.m_FixedImage;
+      }
+      else if (!this->m_FixedImageMasks.empty())
+      {
+        const auto maskIndex = this->m_FixedImageMasks.size() == 1 ? 0 : stage;
+        virtualDomainImage = this->m_FixedImageMasks[maskIndex]->GetImage();
+      }
+      if (virtualDomainImage.IsNotNull())
+      {
+        break;
+      }
+    }
+    if (virtualDomainImage.IsNull())
+    {
+      continue;
+    }
+
+    for (unsigned int level = 0; level < this->m_Iterations[stage].size(); ++level)
+    {
+      if (this->m_Iterations[stage][level] == 0)
+      {
+        continue;
+      }
+      if (this->m_ShrinkFactors[stage][level] == 0)
+      {
+        this->Logger() << "ERROR: Shrink factors must be positive (stage " << stage << ", level " << level + 1
+                       << ")." << std::endl;
+        return EXIT_FAILURE;
+      }
+      const auto shrinkFactors = this->CalculateShrinkFactorsPerDimension(
+        this->m_ShrinkFactors[stage][level], virtualDomainImage->GetSpacing());
+      const auto shrunkSpace = this->GetShrinkImageOutputInformation(virtualDomainImage, shrinkFactors);
+      const auto size = shrunkSpace->GetLargestPossibleRegion().GetSize();
+
+      // Check the product incrementally so the validation cannot itself overflow.
+      ParameterCountType numberOfVoxels = 1;
+      for (unsigned int dimension = 0; dimension < VImageDimension; ++dimension)
+      {
+        if (size[dimension] != 0 && numberOfVoxels > maximumVoxels / size[dimension])
+        {
+          // This fatal diagnostic must remain visible when verbose logging is disabled.
+          std::cerr << "ERROR: Stage " << stage << " ("
+                         << this->m_TransformMethods[stage].XfrmMethodAsString() << "), level " << level + 1
+                         << " has dense-field dimensions " << size << " with shrink factors " << shrinkFactors
+                         << ". Its " << VImageDimension << " parameters per voxel exceed the ITK metric limit of "
+                         << maximumParameters << " parameters (" << maximumVoxels << " voxels).\n"
+                         << "Crop the registration domain or use larger shrink factors at this level. "
+                         << "Masks, sparse metric sampling, and fewer threads do not reduce this parameter count."
+                         << std::endl;
+          return EXIT_FAILURE;
+        }
+        numberOfVoxels *= size[dimension];
+      }
+    }
   }
 
   return EXIT_SUCCESS;
@@ -797,8 +904,6 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
   itk::TimeProbe totalTimer;
 
   totalTimer.Start();
-
-  this->m_NumberOfStages = this->m_TransformMethods.size();
 
   if (this->ValidateParameters() != EXIT_SUCCESS)
   {
