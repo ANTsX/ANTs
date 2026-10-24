@@ -751,6 +751,9 @@ ants_motion(itk::ants::CommandLineParser * parser)
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   typename DisplacementIOFieldType::Pointer displacementout = nullptr;
   typename DisplacementIOFieldType::Pointer displacementinv = nullptr;
+  // Stages that name the same moving series reuse it instead of reading it again.
+  typename MovingIOImageType::Pointer lastMovingInImage = nullptr;
+  std::string                         lastMovingImageFileName;
 
   for (int currentStage = numberOfStages - 1; currentStage >= 0; currentStage--)
   {
@@ -774,14 +777,22 @@ ants_motion(itk::ants::CommandLineParser * parser)
     fixedInImage->Update();
     fixedInImage->DisconnectPipeline();
     typename FixedImageType::Pointer fixedImage;
-    fixedImage = arCastImage<FixedIOImageType, FixedImageType>(fixedInImage);
+    // The IO and internal image types are the same, so no cast copy is needed.
+    fixedImage = fixedInImage;
 
     typename MovingIOImageType::Pointer movingInImage;
     typename MovingImageType::Pointer   movingImage;
-    ReadImage<MovingIOImageType>(movingInImage, movingImageFileName.c_str());
-    movingInImage->Update();
-    movingInImage->DisconnectPipeline();
-    movingImage = arCastImage<MovingIOImageType, MovingImageType>(movingInImage);
+    if (!lastMovingInImage || movingImageFileName != lastMovingImageFileName)
+    {
+      lastMovingInImage = nullptr; // release the previous series before reading the next one
+      ReadImage<MovingIOImageType>(lastMovingInImage, movingImageFileName.c_str());
+      lastMovingInImage->Update();
+      lastMovingInImage->DisconnectPipeline();
+      lastMovingImageFileName = movingImageFileName;
+    }
+    movingInImage = lastMovingInImage;
+    // The IO and internal image types are the same, so no cast copy of the 4D series is needed.
+    movingImage = movingInImage;
     unsigned int timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
 
     typename MovingIOImageType::Pointer       outputImage = MovingIOImageType::New();
