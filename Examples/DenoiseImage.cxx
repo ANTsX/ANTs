@@ -191,6 +191,17 @@ Denoise(itk::ants::CommandLineParser * parser)
   {
     std::string inputFile = maskImageOption->GetFunction(0)->GetName();
     ReadImage<MaskImageType>(maskImage, inputFile.c_str());
+
+    // Subsample the mask onto the same grid as the shrunk input image.
+    if (shrinkFactor != 1)
+    {
+      using MaskShrinkerType = itk::ShrinkImageFilter<MaskImageType, MaskImageType>;
+      typename MaskShrinkerType::Pointer maskShrinker = MaskShrinkerType::New();
+      maskShrinker->SetInput(maskImage);
+      maskShrinker->SetShrinkFactors(shrinkFactor);
+      maskShrinker->Update();
+      maskImage = maskShrinker->GetOutput();
+    }
   }
   denoiser->SetMaskImage(maskImage);
 
