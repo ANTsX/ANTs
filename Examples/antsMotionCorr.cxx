@@ -1714,6 +1714,12 @@ ants_motion(itk::ants::CommandLineParser * parser)
           displacementinv->SetPixel(ind, vecout);
         }
       }
+      if (currentStage == 0)
+      {
+        // Nothing reads this transform after the final stage, so release it (and any dense
+        // displacement fields it holds) now instead of keeping one per volume until exit.
+        CompositeTransformVector[timedim] = nullptr;
+      }
     }
     if (outputOption && outputOption->GetFunction(0)->GetNumberOfParameters() > 1 && currentStage == 0)
     {
