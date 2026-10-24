@@ -827,10 +827,15 @@ ants_motion(itk::ants::CommandLineParser * parser)
     outputImage->SetSpacing(outSpacing);
     outputImage->SetOrigin(outOrigin);
     outputImage->SetDirection(outDirection);
-    outputImage->AllocateInitialized();
+    // Only the output of the final stage (currentStage == 0) is used; earlier stages only
+    // carry the transforms forward, so the 4D outputs are only allocated and filled then.
+    if (currentStage == 0)
+    {
+      outputImage->AllocateInitialized();
+    }
 
 
-    if (writeDisplacementField > 0)
+    if (writeDisplacementField > 0 && currentStage == 0)
     {
       /** Handle all output: images and displacement fields */
       using IdentityIOTransformType = itk::IdentityTransform<RealType, ImageDimension + 1>;
@@ -1612,6 +1617,10 @@ ants_motion(itk::ants::CommandLineParser * parser)
       }
       metriclist.push_back(param_values(timedim, 1));
       metricmean += param_values(timedim, 1) / (double)timedims;
+      if (currentStage != 0)
+      {
+        continue;
+      }
       // resample the moving image and then put it in its place
       using ResampleFilterType = itk::ResampleImageFilter<FixedImageType, FixedImageType>;
       typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
