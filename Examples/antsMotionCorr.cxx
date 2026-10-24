@@ -45,6 +45,7 @@
 #include "itkEuler3DTransform.h"
 #include "itkTransform.h"
 #include "itkExtractImageFilter.h"
+#include "itkImageRegionIterator.h"
 
 #include "itkBSplineTransformParametersAdaptor.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
@@ -419,7 +420,6 @@ AverageTimeImages(typename TImageIn::Pointer  image_in,
   {
     ImageDimension = ImageType::ImageDimension
   };
-  using Iterator = itk::ImageRegionIteratorWithIndex<OutImageType>;
   image_avg->FillBuffer(0);
   unsigned int timedims = image_in->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   if (timelist.empty())
@@ -431,23 +431,32 @@ AverageTimeImages(typename TImageIn::Pointer  image_in,
   }
   if (verbose)
     std::cout << " averaging with " << timelist.size() << " images of " << timedims << " timedims " << std::endl;
-  Iterator vfIter2(image_avg, image_avg->GetLargestPossibleRegion());
-  for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
+  // Accumulate one time point at a time (cache friendly). The per-voxel summation
+  // order and accumulator type are the same as a voxel-outer loop, so the result is identical.
+  const typename OutImageType::RegionType avgRegion = image_avg->GetLargestPossibleRegion();
+  typename ImageType::RegionType          timeRegion;
+  for (unsigned int yy = 0; yy < ImageDimension - 1; yy++)
   {
-    typename OutImageType::PixelType fval = 0;
-    typename ImageType::IndexType    ind;
-    typename OutImageType::IndexType spind = vfIter2.GetIndex();
-    for (unsigned int & xx : timelist)
+    timeRegion.SetIndex(yy, avgRegion.GetIndex()[yy]);
+    timeRegion.SetSize(yy, avgRegion.GetSize()[yy]);
+  }
+  timeRegion.SetSize(ImageDimension - 1, 1);
+  using AvgIterator = itk::ImageRegionIterator<OutImageType>;
+  using InConstIterator = itk::ImageRegionConstIterator<ImageType>;
+  AvgIterator avgIter(image_avg, avgRegion);
+  for (unsigned int & xx : timelist)
+  {
+    timeRegion.SetIndex(ImageDimension - 1, xx);
+    InConstIterator inIter(image_in, timeRegion);
+    for (avgIter.GoToBegin(), inIter.GoToBegin(); !avgIter.IsAtEnd(); ++avgIter, ++inIter)
     {
-      for (unsigned int yy = 0; yy < ImageDimension - 1; yy++)
-      {
-        ind[yy] = spind[yy];
-      }
-      ind[ImageDimension - 1] = xx;
-      fval += image_in->GetPixel(ind);
+      avgIter.Set(avgIter.Get() + inIter.Get());
     }
-    fval /= static_cast<typename OutImageType::PixelType>(timelist.size());
-    image_avg->SetPixel(spind, fval);
+  }
+  const auto ntimes = static_cast<typename OutImageType::PixelType>(timelist.size());
+  for (avgIter.GoToBegin(); !avgIter.IsAtEnd(); ++avgIter)
+  {
+    avgIter.Set(avgIter.Get() / ntimes);
   }
   if (verbose)
     std::cout << " averaging images done " << std::endl;
@@ -742,6 +751,9 @@ ants_motion(itk::ants::CommandLineParser * parser)
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   typename DisplacementIOFieldType::Pointer displacementout = nullptr;
   typename DisplacementIOFieldType::Pointer displacementinv = nullptr;
+  // Stages that name the same moving series reuse it instead of reading it again.
+  typename MovingIOImageType::Pointer lastMovingInImage = nullptr;
+  std::string                         lastMovingImageFileName;
 
   for (int currentStage = numberOfStages - 1; currentStage >= 0; currentStage--)
   {
@@ -765,14 +777,22 @@ ants_motion(itk::ants::CommandLineParser * parser)
     fixedInImage->Update();
     fixedInImage->DisconnectPipeline();
     typename FixedImageType::Pointer fixedImage;
-    fixedImage = arCastImage<FixedIOImageType, FixedImageType>(fixedInImage);
+    // The IO and internal image types are the same, so no cast copy is needed.
+    fixedImage = fixedInImage;
 
     typename MovingIOImageType::Pointer movingInImage;
     typename MovingImageType::Pointer   movingImage;
-    ReadImage<MovingIOImageType>(movingInImage, movingImageFileName.c_str());
-    movingInImage->Update();
-    movingInImage->DisconnectPipeline();
-    movingImage = arCastImage<MovingIOImageType, MovingImageType>(movingInImage);
+    if (!lastMovingInImage || movingImageFileName != lastMovingImageFileName)
+    {
+      lastMovingInImage = nullptr; // release the previous series before reading the next one
+      ReadImage<MovingIOImageType>(lastMovingInImage, movingImageFileName.c_str());
+      lastMovingInImage->Update();
+      lastMovingInImage->DisconnectPipeline();
+      lastMovingImageFileName = movingImageFileName;
+    }
+    movingInImage = lastMovingInImage;
+    // The IO and internal image types are the same, so no cast copy of the 4D series is needed.
+    movingImage = movingInImage;
     unsigned int timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
 
     typename MovingIOImageType::Pointer       outputImage = MovingIOImageType::New();
@@ -807,10 +827,15 @@ ants_motion(itk::ants::CommandLineParser * parser)
     outputImage->SetSpacing(outSpacing);
     outputImage->SetOrigin(outOrigin);
     outputImage->SetDirection(outDirection);
-    outputImage->AllocateInitialized();
+    // Only the output of the final stage (currentStage == 0) is used; earlier stages only
+    // carry the transforms forward, so the 4D outputs are only allocated and filled then.
+    if (currentStage == 0)
+    {
+      outputImage->AllocateInitialized();
+    }
 
 
-    if (writeDisplacementField > 0)
+    if (writeDisplacementField > 0 && currentStage == 0)
     {
       /** Handle all output: images and displacement fields */
       using IdentityIOTransformType = itk::IdentityTransform<RealType, ImageDimension + 1>;
@@ -1592,6 +1617,10 @@ ants_motion(itk::ants::CommandLineParser * parser)
       }
       metriclist.push_back(param_values(timedim, 1));
       metricmean += param_values(timedim, 1) / (double)timedims;
+      if (currentStage != 0)
+      {
+        continue;
+      }
       // resample the moving image and then put it in its place
       using ResampleFilterType = itk::ResampleImageFilter<FixedImageType, FixedImageType>;
       typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
@@ -1684,6 +1713,12 @@ ants_motion(itk::ants::CommandLineParser * parser)
           ind[ImageDimension] = tdim;
           displacementinv->SetPixel(ind, vecout);
         }
+      }
+      if (currentStage == 0)
+      {
+        // Nothing reads this transform after the final stage, so release it (and any dense
+        // displacement fields it holds) now instead of keeping one per volume until exit.
+        CompositeTransformVector[timedim] = nullptr;
       }
     }
     if (outputOption && outputOption->GetFunction(0)->GetNumberOfParameters() > 1 && currentStage == 0)
