@@ -150,10 +150,16 @@ Denoise(itk::ants::CommandLineParser * parser)
   //     std::endl;
   //     }
 
-  shrinker->SetShrinkFactors(shrinkFactor);
-  shrinker->Update();
-
-  denoiser->SetInput(shrinker->GetOutput());
+  if (shrinkFactor == 1)
+  {
+    denoiser->SetInput(inputImage);
+  }
+  else
+  {
+    shrinker->SetShrinkFactors(shrinkFactor);
+    shrinker->Update();
+    denoiser->SetInput(shrinker->GetOutput());
+  }
 
   typename OptionType::Pointer noiseModelOption = parser->GetOption("noise-model");
   std::string                  noiseModel("gaussian");
@@ -347,7 +353,8 @@ Denoise(itk::ants::CommandLineParser * parser)
     resampler->UseReferenceImageOn();
     resampler->SetInput(subtracter->GetOutput());
 
-    typename ImageType::Pointer noiseImage = resampler->GetOutput();
+    // With no shrinking, the noise image is already at full resolution.
+    typename ImageType::Pointer noiseImage = (shrinkFactor == 1) ? subtracter->GetOutput() : resampler->GetOutput();
     noiseImage->Update();
     noiseImage->DisconnectPipeline();
 
