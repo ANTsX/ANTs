@@ -1030,13 +1030,13 @@ ants_motion(itk::ants::CommandLineParser * parser)
       ConvertToLowerCase(whichMetric);
 
       float samplingPercentage = 1.0;
-      if (metricOption->GetFunction(0)->GetNumberOfParameters() > 5)
+      if (metricOption->GetFunction(currentStage)->GetNumberOfParameters() > 5)
       {
         samplingPercentage = parser->Convert<float>(metricOption->GetFunction(currentStage)->GetParameter(5));
       }
 
       std::string samplingStrategy = "";
-      if (metricOption->GetFunction(0)->GetNumberOfParameters() > 4)
+      if (metricOption->GetFunction(currentStage)->GetNumberOfParameters() > 4)
       {
         samplingStrategy = metricOption->GetFunction(currentStage)->GetParameter(4);
       }
@@ -1063,7 +1063,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
       }
 
       bool useGradientFilter = false;
-      if (metricOption->GetFunction(0)->GetNumberOfParameters() > 6)
+      if (metricOption->GetFunction(currentStage)->GetNumberOfParameters() > 6)
       {
         useGradientFilter = parser->Convert<bool>(metricOption->GetFunction(currentStage)->GetParameter(6));
       }
