@@ -513,27 +513,9 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       inputImages.push_back(selector->GetOutput());
     }
   }
-  else if (inputImageType == 3 || inputImageType == 4 || inputImageType == 5)
-  {
-    typename TimeSeriesImageType::RegionType extractRegion = timeSeriesImage->GetLargestPossibleRegion();
-    unsigned int                             numberOfTimePoints = extractRegion.GetSize()[Dimension];
-    int                                      startTimeIndex = extractRegion.GetIndex()[Dimension];
-
-    extractRegion.SetSize(Dimension, 0);
-    for (unsigned int i = 0; i < numberOfTimePoints; i++)
-    {
-      extractRegion.SetIndex(Dimension, startTimeIndex + i);
-
-      using ExtracterType = itk::ExtractImageFilter<TimeSeriesImageType, ImageType>;
-      typename ExtracterType::Pointer extracter = ExtracterType::New();
-      extracter->SetInput(timeSeriesImage);
-      extracter->SetExtractionRegion(extractRegion);
-      extracter->SetDirectionCollapseToSubmatrix();
-      extracter->Update();
-
-      inputImages.push_back(extracter->GetOutput());
-    }
-  }
+  // Time-series, multichannel and five-dimensional inputs are extracted one volume at a time in the resampling
+  // loop below, so that the per-volume input and output images are not all held in memory at once.
+  const bool isTimeSeriesInput = (inputImageType == 3 || inputImageType == 4 || inputImageType == 5);
 
   /**
    * Transform option
@@ -585,16 +567,90 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     itk::NumericTraits<typename ImageType::SpacingType::ValueType>::ZeroValue());
   if (!std::strcmp(whichInterpolator.c_str(), "gaussian") || !std::strcmp(whichInterpolator.c_str(), "multilabel"))
   {
-    cache_spacing_for_smoothing_sigmas = inputImages[0]->GetSpacing();
+    if (isTimeSeriesInput)
+    {
+      for (unsigned int i = 0; i < Dimension; i++)
+      {
+        cache_spacing_for_smoothing_sigmas[i] = timeSeriesImage->GetSpacing()[i];
+      }
+    }
+    else
+    {
+      cache_spacing_for_smoothing_sigmas = inputImages[0]->GetSpacing();
+    }
   }
 
 #include "make_interpolator_snip.tmpl"
 
-  for (unsigned int n = 0; n < inputImages.size(); n++)
+  unsigned int                                numberOfInputImages = static_cast<unsigned int>(inputImages.size());
+  typename TimeSeriesImageType::RegionType    extractRegion;
+  typename OutputTimeSeriesImageType::Pointer outputTimeSeriesImage = nullptr;
+  itk::SizeValueType                          numberOfVoxelsPerTimePoint = 0;
+  if (isTimeSeriesInput)
   {
+    extractRegion = timeSeriesImage->GetLargestPossibleRegion();
+    numberOfInputImages = extractRegion.GetSize()[Dimension];
+    extractRegion.SetSize(Dimension, 0);
+
+    // Preallocate the output series in the output pixel type
+    outputTimeSeriesImage = OutputTimeSeriesImageType::New();
+
+    typename OutputTimeSeriesImageType::PointType     origin = timeSeriesImage->GetOrigin();
+    typename OutputTimeSeriesImageType::SizeType      size = timeSeriesImage->GetLargestPossibleRegion().GetSize();
+    typename OutputTimeSeriesImageType::DirectionType direction = timeSeriesImage->GetDirection();
+    typename OutputTimeSeriesImageType::IndexType     index = timeSeriesImage->GetLargestPossibleRegion().GetIndex();
+    typename OutputTimeSeriesImageType::SpacingType   spacing = timeSeriesImage->GetSpacing();
+
+    for (unsigned int i = 0; i < Dimension; i++)
+    {
+      origin[i] = referenceImage->GetOrigin()[i];
+      size[i] = referenceImage->GetRequestedRegion().GetSize()[i];
+      index[i] = referenceImage->GetRequestedRegion().GetIndex()[i];
+      spacing[i] = referenceImage->GetSpacing()[i];
+      for (unsigned int j = 0; j < Dimension; j++)
+      {
+        direction[i][j] = referenceImage->GetDirection()[i][j];
+      }
+    }
+
+    typename OutputTimeSeriesImageType::RegionType region;
+    region.SetSize(size);
+    region.SetIndex(index);
+
+    outputTimeSeriesImage->CopyInformation(timeSeriesImage);
+    outputTimeSeriesImage->SetOrigin(origin);
+    outputTimeSeriesImage->SetDirection(direction);
+    outputTimeSeriesImage->SetSpacing(spacing);
+    outputTimeSeriesImage->SetRegions(region);
+    // Every voxel is written in the resampling loop below
+    outputTimeSeriesImage->Allocate();
+
+    numberOfVoxelsPerTimePoint = region.GetNumberOfPixels() / size[Dimension];
+  }
+
+  for (unsigned int n = 0; n < numberOfInputImages; n++)
+  {
+    typename ImageType::Pointer inputImage = nullptr;
+    if (isTimeSeriesInput)
+    {
+      extractRegion.SetIndex(Dimension, timeSeriesImage->GetLargestPossibleRegion().GetIndex()[Dimension] + n);
+
+      using ExtracterType = itk::ExtractImageFilter<TimeSeriesImageType, ImageType>;
+      typename ExtracterType::Pointer extracter = ExtracterType::New();
+      extracter->SetInput(timeSeriesImage);
+      extracter->SetExtractionRegion(extractRegion);
+      extracter->SetDirectionCollapseToSubmatrix();
+      extracter->Update();
+      inputImage = extracter->GetOutput();
+    }
+    else
+    {
+      inputImage = inputImages[n];
+    }
+
     using ResamplerType = itk::ResampleImageFilter<ImageType, ImageType, RealType>;
     typename ResamplerType::Pointer resampleFilter = ResamplerType::New();
-    resampleFilter->SetInput(inputImages[n]);
+    resampleFilter->SetInput(inputImage);
     resampleFilter->SetOutputParametersFromImage(referenceImage);
     resampleFilter->SetTransform(compositeTransform);
     if (inputImageType == 2)
@@ -616,7 +672,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       resampleFilter->SetDefaultPixelValue(defaultValue);
     }
 
-    interpolator->SetInputImage(inputImages[n]);
+    interpolator->SetInputImage(inputImage);
     resampleFilter->SetInterpolator(interpolator);
     if (n == 0)
     {
@@ -630,11 +686,36 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       if (verbose)
       {
         std::cout << "  Applying transform(s) to timePoint/channel/dimension5 " << n << " (out of "
-                  << inputImages.size() << ")." << std::endl;
+                  << numberOfInputImages << ")." << std::endl;
       }
     }
     resampleFilter->Update();
-    outputImages.push_back(resampleFilter->GetOutput());
+    if (isTimeSeriesInput)
+    {
+      // Copy the resampled volume into its time slice of the output series
+      const ImageType * resampledImage = resampleFilter->GetOutput();
+      bool              sizeMatches = true;
+      for (unsigned int i = 0; i < Dimension; i++)
+      {
+        sizeMatches = sizeMatches && (resampledImage->GetBufferedRegion().GetSize()[i] ==
+                                      outputTimeSeriesImage->GetBufferedRegion().GetSize()[i]);
+      }
+      if (!sizeMatches)
+      {
+        std::cerr << "The resampled volume size does not match the output time-series size." << std::endl;
+        return EXIT_FAILURE;
+      }
+      const PixelType * source = resampledImage->GetBufferPointer();
+      OutputPixelType * target = outputTimeSeriesImage->GetBufferPointer() + n * numberOfVoxelsPerTimePoint;
+      for (itk::SizeValueType k = 0; k < numberOfVoxelsPerTimePoint; k++)
+      {
+        target[k] = static_cast<OutputPixelType>(source[k]);
+      }
+    }
+    else
+    {
+      outputImages.push_back(resampleFilter->GetOutput());
+    }
   }
 
   /**
@@ -900,100 +981,25 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
         reo->Update();
         WriteTensorImage<TensorImageType>(reo->GetOutput(), (outputFileName).c_str(), false);
       }
-      else if (inputImageType == 3 || inputImageType == 4 || inputImageType == 5)
+      else if (inputImageType == 3)
       {
-        unsigned int numberOfTimePoints = timeSeriesImage->GetLargestPossibleRegion().GetSize()[Dimension];
-
-        if (outputImages.size() != numberOfTimePoints)
-        {
-          if (verbose)
-          {
-            std::cerr << "The number of output images does not match the number of image time/channel points."
-                      << std::endl;
-          }
-          return EXIT_FAILURE;
-        }
-
-        typename TimeSeriesImageType::Pointer outputTimeSeriesImage = TimeSeriesImageType::New();
-
-        typename TimeSeriesImageType::PointType     origin = timeSeriesImage->GetOrigin();
-        typename TimeSeriesImageType::SizeType      size = timeSeriesImage->GetLargestPossibleRegion().GetSize();
-        typename TimeSeriesImageType::DirectionType direction = timeSeriesImage->GetDirection();
-        typename TimeSeriesImageType::IndexType     index = timeSeriesImage->GetLargestPossibleRegion().GetIndex();
-        typename TimeSeriesImageType::SpacingType   spacing = timeSeriesImage->GetSpacing();
-
-        for (unsigned int i = 0; i < Dimension; i++)
-        {
-          origin[i] = referenceImage->GetOrigin()[i];
-          size[i] = referenceImage->GetRequestedRegion().GetSize()[i];
-          index[i] = referenceImage->GetRequestedRegion().GetIndex()[i];
-          spacing[i] = referenceImage->GetSpacing()[i];
-          for (unsigned int j = 0; j < Dimension; j++)
-          {
-            direction[i][j] = referenceImage->GetDirection()[i][j];
-          }
-        }
-
-        typename TimeSeriesImageType::RegionType region;
-        region.SetSize(size);
-        region.SetIndex(index);
-
-        int startTimeIndex = timeSeriesImage->GetLargestPossibleRegion().GetIndex()[Dimension];
-
-        outputTimeSeriesImage->CopyInformation(timeSeriesImage);
-        outputTimeSeriesImage->SetOrigin(origin);
-        outputTimeSeriesImage->SetDirection(direction);
-        outputTimeSeriesImage->SetSpacing(spacing);
-        outputTimeSeriesImage->SetRegions(region);
-        outputTimeSeriesImage->AllocateInitialized();
-
-        typename ImageType::IndexType referenceIndex;
-
-        itk::ImageRegionIteratorWithIndex<TimeSeriesImageType> It(outputTimeSeriesImage,
-                                                                  outputTimeSeriesImage->GetRequestedRegion());
-        for (It.GoToBegin(); !It.IsAtEnd(); ++It)
-        {
-          typename TimeSeriesImageType::IndexType timeImageIndex = It.GetIndex();
-          for (unsigned int i = 0; i < Dimension; i++)
-          {
-            referenceIndex[i] = timeImageIndex[i];
-          }
-          It.Set(outputImages[timeImageIndex[Dimension] - startTimeIndex]->GetPixel(referenceIndex));
-        }
-        if (inputImageType == 3)
-        {
-          using CastFilterType = itk::CastImageFilter<TimeSeriesImageType, OutputTimeSeriesImageType>;
-          typename CastFilterType::Pointer caster = CastFilterType::New();
-          caster->SetInput(outputTimeSeriesImage);
-          caster->Update();
-
-          ANTs::WriteImage<OutputTimeSeriesImageType>(caster->GetOutput(), (outputFileName).c_str());
-        }
-        else if (inputImageType == 4)
-        {
-          multiChannelImage = ConvertTimeSeriesImageToMultiChannelImage<TimeSeriesImageType, MultiChannelImageType>(
+        ANTs::WriteImage<OutputTimeSeriesImageType>(outputTimeSeriesImage, (outputFileName).c_str());
+      }
+      else if (inputImageType == 4)
+      {
+        typename OutputMultiChannelImageType::Pointer outputMultiChannelImage =
+          ConvertTimeSeriesImageToMultiChannelImage<OutputTimeSeriesImageType, OutputMultiChannelImageType>(
             outputTimeSeriesImage);
 
-          using CastFilterType = itk::CastImageFilter<MultiChannelImageType, OutputMultiChannelImageType>;
-          typename CastFilterType::Pointer caster = CastFilterType::New();
-          caster->SetInput(multiChannelImage);
-          caster->Update();
+        ANTs::WriteImage<OutputMultiChannelImageType>(outputMultiChannelImage, (outputFileName).c_str());
+      }
+      else if (inputImageType == 5)
+      {
+        typename OutputFiveDimensionalImageType::Pointer outputFiveDimensionalImage =
+          ConvertTimeSeriesImageToFiveDimensionalImage<OutputTimeSeriesImageType, OutputFiveDimensionalImageType>(
+            outputTimeSeriesImage);
 
-          ANTs::WriteImage<OutputMultiChannelImageType>(caster->GetOutput(), (outputFileName).c_str());
-        }
-        else //  if( inputImageType == 5 )
-        {
-          fiveDimensionalImage =
-            ConvertTimeSeriesImageToFiveDimensionalImage<TimeSeriesImageType, FiveDimensionalImageType>(
-              outputTimeSeriesImage);
-
-          using CastFilterType = itk::CastImageFilter<FiveDimensionalImageType, OutputFiveDimensionalImageType>;
-          typename CastFilterType::Pointer caster = CastFilterType::New();
-          caster->SetInput(fiveDimensionalImage);
-          caster->Update();
-
-          ANTs::WriteImage<OutputFiveDimensionalImageType>(caster->GetOutput(), (outputFileName).c_str());
-        }
+        ANTs::WriteImage<OutputFiveDimensionalImageType>(outputFiveDimensionalImage, (outputFileName).c_str());
       }
       else
       {
