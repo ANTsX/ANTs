@@ -289,7 +289,8 @@ public:
     bool   verbose = false;
     auto * filter = const_cast<TFilter *>(dynamic_cast<const TFilter *>(object));
 
-    if (typeid(event) != typeid(itk::IterationEvent))
+    // The registration method emits MultiResolutionIterationEvent at the start of each level.
+    if (dynamic_cast<const itk::MultiResolutionIterationEvent *>(&event) == nullptr)
     {
       return;
     }
@@ -1443,6 +1444,11 @@ ants_motion(itk::ants::CommandLineParser * parser)
         {
           displacementFieldRegistration->SetMovingInitialTransform(compositeTransform);
         }
+
+        using DisplacementFieldCommandType = CommandIterationUpdate<DisplacementFieldRegistrationType>;
+        typename DisplacementFieldCommandType::Pointer displacementFieldObserver = DisplacementFieldCommandType::New();
+        displacementFieldObserver->SetNumberOfIterations(iterations);
+        displacementFieldRegistration->AddObserver(itk::IterationEvent(), displacementFieldObserver);
         try
         {
           displacementFieldRegistration->Update();
