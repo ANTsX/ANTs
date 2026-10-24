@@ -772,6 +772,14 @@ public:
   itkNonVirtualBooleanMacro(InitializeTransformsPerStage);
 
   /**
+   * Keep the SyN registration state (GetModifiableRegistrationState()) after each SyN stage.  On by default.
+   * Turn it off when the state is not read to release its full-resolution fields.
+   */
+  itkNonVirtualSetMacro(SaveRegistrationState, bool);
+  itkNonVirtualGetConstMacro(SaveRegistrationState, bool);
+  itkNonVirtualBooleanMacro(SaveRegistrationState);
+
+  /**
    * Set a constant random seed with an int != 0
    */
   itkNonVirtualSetMacro(RegistrationRandomSeed, int);
@@ -1131,6 +1139,7 @@ private:
   unsigned int m_PrintSimilarityMeasureInterval;
   unsigned int m_WriteIntervalVolumes;
   bool         m_InitializeTransformsPerStage;
+  bool         m_SaveRegistrationState;
   bool         m_AllPreviousTransformsAreLinear;
 };
 

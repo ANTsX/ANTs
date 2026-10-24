@@ -62,6 +62,7 @@ RegistrationHelper<TComputeType, VImageDimension>::RegistrationHelper()
   , m_PrintSimilarityMeasureInterval(0)
   , m_WriteIntervalVolumes(0)
   , m_InitializeTransformsPerStage(false)
+  , m_SaveRegistrationState(true)
   , m_AllPreviousTransformsAreLinear(true)
 {
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
@@ -1879,6 +1880,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         typename DisplacementFieldType::Pointer        displacementField =
           AllocImage<DisplacementFieldType>(preprocessedFixedImagesPerStage[0], zeroVector);
         outputDisplacementFieldTransform->SetDisplacementField(displacementField);
+        // The transform holds its own reference; release ours so the adaptor can free the full-resolution field.
+        displacementField = nullptr;
 
         // Create the transform adaptors
 
@@ -1994,6 +1997,8 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         typename DisplacementFieldType::Pointer        displacementField =
           AllocImage<DisplacementFieldType>(preprocessedFixedImagesPerStage[0], zeroVector);
         outputDisplacementFieldTransform->SetDisplacementField(displacementField);
+        // The transform holds its own reference; release ours so the adaptor can free the full-resolution field.
+        displacementField = nullptr;
 
         // Create the transform adaptors
 
@@ -2267,6 +2272,9 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         displacementFieldRegistration->SetGaussianSmoothingVarianceForTheTotalField(varianceForTotalField);
         outputDisplacementFieldTransform->SetDisplacementField(displacementField);
         outputDisplacementFieldTransform->SetInverseDisplacementField(inverseDisplacementField);
+        // The transform holds its own references; release ours so the adaptor can free the full-resolution fields.
+        displacementField = nullptr;
+        inverseDisplacementField = nullptr;
 
         // For all Velocity field and Displacement field registration types that are not using generic
         // itkImageRegistrationMethodv4 we use following type of observer:
@@ -2308,16 +2316,25 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           return EXIT_FAILURE;
         }
 
-        // Add calculated internal transforms to the registration state
-        if (this->m_RegistrationState.IsNull())
+        // Add calculated internal transforms to the registration state.  The state keeps four full-resolution
+        // fields alive, so only fill it when a later SyN stage or the saved state will read it.
+        if (this->m_InitializeTransformsPerStage || this->m_SaveRegistrationState)
         {
-          this->m_RegistrationState = CompositeTransformType::New();
+          if (this->m_RegistrationState.IsNull())
+          {
+            this->m_RegistrationState = CompositeTransformType::New();
+          }
+          this->m_RegistrationState->ClearTransformQueue();
+          this->m_RegistrationState->AddTransform(this->m_CompositeTransform);
+          this->m_RegistrationState->AddTransform(displacementFieldRegistration->GetModifiableFixedToMiddleTransform());
+          this->m_RegistrationState->AddTransform(displacementFieldRegistration->GetModifiableMovingToMiddleTransform());
+          this->m_RegistrationState->FlattenTransformQueue();
         }
-        this->m_RegistrationState->ClearTransformQueue();
-        this->m_RegistrationState->AddTransform(this->m_CompositeTransform);
-        this->m_RegistrationState->AddTransform(displacementFieldRegistration->GetModifiableFixedToMiddleTransform());
-        this->m_RegistrationState->AddTransform(displacementFieldRegistration->GetModifiableMovingToMiddleTransform());
-        this->m_RegistrationState->FlattenTransformQueue();
+        else
+        {
+          // Nothing reads the state, so also release a state that --restore-state put there.
+          this->m_RegistrationState = nullptr;
+        }
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform(outputDisplacementFieldTransform);
@@ -2442,6 +2459,9 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           registrationMethod->SetTransformParametersAdaptorsPerLevel(adaptors);
           outputDisplacementFieldTransform->SetDisplacementField(displacementField);
           outputDisplacementFieldTransform->SetInverseDisplacementField(inverseDisplacementField);
+          // The transform holds its own references; release ours so the adaptor can free the full-resolution fields.
+          displacementField = nullptr;
+          inverseDisplacementField = nullptr;
 
           typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType>
                                                          DisplacementFieldCommandType;
@@ -2559,6 +2579,9 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           registrationMethod->SetTransformParametersAdaptorsPerLevel(adaptors);
           outputDisplacementFieldTransform->SetDisplacementField(displacementField);
           outputDisplacementFieldTransform->SetInverseDisplacementField(inverseDisplacementField);
+          // The transform holds its own references; release ours so the adaptor can free the full-resolution fields.
+          displacementField = nullptr;
+          inverseDisplacementField = nullptr;
 
           typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType>
                                                          DisplacementFieldCommandType;
@@ -2737,6 +2760,10 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
         outputTransform->SetUpperTimeBound(1.0);
         outputTransform->SetDisplacementField(displacementField);
         outputTransform->SetInverseDisplacementField(inverseDisplacementField);
+        // The transform holds its own references; release ours so the adaptor can free the full-resolution fields.
+        velocityField = nullptr;
+        displacementField = nullptr;
+        inverseDisplacementField = nullptr;
 
         typename VelocityFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
         numberOfIterationsPerLevel.SetSize(numberOfLevels);
