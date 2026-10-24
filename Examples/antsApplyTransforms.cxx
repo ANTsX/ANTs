@@ -514,7 +514,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     }
   }
   // Time-series, multichannel and five-dimensional inputs are extracted one volume at a time in the resampling
-  // loop below, so that only the input and the output series are held in memory.
+  // loop below, so that the per-volume input and output images are not all held in memory at once.
   const bool isTimeSeriesInput = (inputImageType == 3 || inputImageType == 4 || inputImageType == 5);
 
   /**
@@ -582,7 +582,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
 
 #include "make_interpolator_snip.tmpl"
 
-  unsigned int                                numberOfInputImages = inputImages.size();
+  unsigned int                                numberOfInputImages = static_cast<unsigned int>(inputImages.size());
   typename TimeSeriesImageType::RegionType    extractRegion;
   typename OutputTimeSeriesImageType::Pointer outputTimeSeriesImage = nullptr;
   itk::SizeValueType                          numberOfVoxelsPerTimePoint = 0;
@@ -622,7 +622,8 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     outputTimeSeriesImage->SetDirection(direction);
     outputTimeSeriesImage->SetSpacing(spacing);
     outputTimeSeriesImage->SetRegions(region);
-    outputTimeSeriesImage->AllocateInitialized();
+    // Every voxel is written in the resampling loop below
+    outputTimeSeriesImage->Allocate();
 
     numberOfVoxelsPerTimePoint = region.GetNumberOfPixels() / size[Dimension];
   }
@@ -693,7 +694,13 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     {
       // Copy the resampled volume into its time slice of the output series
       const ImageType * resampledImage = resampleFilter->GetOutput();
-      if (resampledImage->GetBufferedRegion().GetNumberOfPixels() != numberOfVoxelsPerTimePoint)
+      bool              sizeMatches = true;
+      for (unsigned int i = 0; i < Dimension; i++)
+      {
+        sizeMatches = sizeMatches && (resampledImage->GetBufferedRegion().GetSize()[i] ==
+                                      outputTimeSeriesImage->GetBufferedRegion().GetSize()[i]);
+      }
+      if (!sizeMatches)
       {
         std::cerr << "The resampled volume size does not match the output time-series size." << std::endl;
         return EXIT_FAILURE;
