@@ -147,6 +147,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   const bool          writeCompositeTransform = parser->Convert<bool>(compositeOutputOption->GetFunction(0)->GetName());
 
   OptionType::Pointer saveStateOption = parser->GetOption("save-state");
+  regHelper->SetSaveRegistrationState(saveStateOption && saveStateOption->GetNumberOfFunctions());
 
   OptionType::Pointer collapseOutputTransformsOption = parser->GetOption("collapse-output-transforms");
   const bool shouldCollapseBeDone = parser->Convert<bool>(collapseOutputTransformsOption->GetFunction(0)->GetName());
