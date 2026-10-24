@@ -154,7 +154,27 @@ ants_motion_stats(itk::ants::CommandLineParser * parser)
   TimeSeriesImageType::Pointer timeseriesDisplacementImage = TimeSeriesImageType::New();
   if (timeseriesDisplacement)
   {
-    ReadImage<TimeSeriesImageType>(timeseriesImage, timeseriesDisplacementName.c_str());
+    // Only the geometry of the series is used, so read only the header of a file.
+    if (FileIsPointer(timeseriesDisplacementName.c_str()))
+    {
+      ReadImage<TimeSeriesImageType>(timeseriesImage, timeseriesDisplacementName.c_str());
+    }
+    else
+    {
+      using TimeSeriesReaderType = itk::ImageFileReader<TimeSeriesImageType>;
+      TimeSeriesReaderType::Pointer timeseriesReader = TimeSeriesReaderType::New();
+      timeseriesReader->SetFileName(timeseriesDisplacementName);
+      try
+      {
+        timeseriesReader->UpdateOutputInformation();
+      }
+      catch (const itk::ExceptionObject & e)
+      {
+        std::cerr << "Can't read time-series image " << timeseriesDisplacementName << std::endl << e << std::endl;
+        return EXIT_FAILURE;
+      }
+      timeseriesImage = timeseriesReader->GetOutput();
+    }
     timeseriesDisplacementImage->SetRegions(timeseriesImage->GetLargestPossibleRegion());
     timeseriesDisplacementImage->SetOrigin(timeseriesImage->GetOrigin());
     timeseriesDisplacementImage->SetSpacing(timeseriesImage->GetSpacing());
