@@ -8,6 +8,9 @@
 #include "itkAdaptiveNonLocalMeansDenoisingImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkLinearInterpolateImageFunction.h"
+#include "itkMaskImageFilter.h"
+#include "itkMinimumMaximumImageCalculator.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkResampleImageFilter.h"
 #include "itkShrinkImageFilter.h"
 #include "itkSubtractImageFilter.h"
@@ -85,6 +88,22 @@ public:
     }
   }
 };
+
+// Resample a mask with nearest neighbor onto the voxel grid of a reference image.
+template <typename TMaskImage, typename TReferenceImage>
+typename TMaskImage::Pointer
+ResampleMaskToReference(const TMaskImage * mask, const TReferenceImage * reference)
+{
+  using ResamplerType = itk::ResampleImageFilter<TMaskImage, TMaskImage>;
+  using InterpolatorType = itk::NearestNeighborInterpolateImageFunction<TMaskImage>;
+  typename ResamplerType::Pointer resampler = ResamplerType::New();
+  resampler->SetInput(mask);
+  resampler->SetInterpolator(InterpolatorType::New());
+  resampler->SetOutputParametersFromImage(reference);
+  resampler->SetDefaultPixelValue(0);
+  resampler->Update();
+  return resampler->GetOutput();
+}
 
 template <unsigned int ImageDimension>
 int
@@ -185,14 +204,38 @@ Denoise(itk::ants::CommandLineParser * parser)
    */
   using MaskImageType = typename DenoiserType::MaskImageType;
   typename MaskImageType::Pointer maskImage = nullptr;
+  typename MaskImageType::Pointer shrunkMaskImage = nullptr;
 
   typename OptionType::Pointer maskImageOption = parser->GetOption("mask-image");
   if (maskImageOption && maskImageOption->GetNumberOfFunctions())
   {
     std::string inputFile = maskImageOption->GetFunction(0)->GetName();
-    ReadImage<MaskImageType>(maskImage, inputFile.c_str());
+    if (!ReadImage<MaskImageType>(maskImage, inputFile.c_str()))
+    {
+      std::cerr << "Could not read the mask image " << inputFile << std::endl;
+      return EXIT_FAILURE;
+    }
+
+    if (shrinkFactor > 1)
+    {
+      // Put the mask on the grid of the shrunk input image.
+      shrunkMaskImage = ResampleMaskToReference<MaskImageType, ImageType>(maskImage, shrinker->GetOutput());
+
+      using MaskCalculatorType = itk::MinimumMaximumImageCalculator<MaskImageType>;
+      typename MaskCalculatorType::Pointer maskCalculator = MaskCalculatorType::New();
+      maskCalculator->SetImage(shrunkMaskImage);
+      maskCalculator->ComputeMaximum();
+      if (maskCalculator->GetMaximum() == 0)
+      {
+        std::cerr << "Warning: the mask has no nonzero voxel on the shrunk grid, so no voxel is denoised." << std::endl;
+      }
+    }
+    else
+    {
+      shrunkMaskImage = maskImage;
+    }
   }
-  denoiser->SetMaskImage(maskImage);
+  denoiser->SetMaskImage(shrunkMaskImage);
 
   typename DenoiserType::NeighborhoodRadiusType neighborhoodPatchRadius;
   typename DenoiserType::NeighborhoodRadiusType neighborhoodSearchRadius;
@@ -350,6 +393,18 @@ Denoise(itk::ants::CommandLineParser * parser)
     typename ImageType::Pointer noiseImage = resampler->GetOutput();
     noiseImage->Update();
     noiseImage->DisconnectPipeline();
+
+    // The interpolated noise spreads past the mask edge. Remove it outside the full-resolution mask.
+    if (maskImage && shrinkFactor > 1)
+    {
+      using NoiseMaskerType = itk::MaskImageFilter<ImageType, MaskImageType, ImageType>;
+      typename NoiseMaskerType::Pointer noiseMasker = NoiseMaskerType::New();
+      noiseMasker->SetInput(noiseImage);
+      noiseMasker->SetMaskImage(ResampleMaskToReference<MaskImageType, ImageType>(maskImage, inputImage));
+      noiseMasker->Update();
+      noiseImage = noiseMasker->GetOutput();
+      noiseImage->DisconnectPipeline();
+    }
 
     if (outputOption->GetFunction(0)->GetNumberOfParameters() > 1)
     {
