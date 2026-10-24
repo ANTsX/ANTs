@@ -1015,8 +1015,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
       if (verbose)
         std::cout << "  use histogram matching " << doHistogramMatch << std::endl;
 
-      typename FixedImageType::Pointer preprocessMovingImage =
-        PreprocessImage<FixedImageType>(moving_time_slice, 0, 1, 0.001, 0.999, preprocessFixedImage);
+      typename FixedImageType::Pointer preprocessMovingImage = PreprocessImage<FixedImageType>(
+        moving_time_slice, 0, 1, 0.001, 0.999, doHistogramMatch ? preprocessFixedImage.GetPointer() : nullptr);
 
       using MetricType = itk::ImageToImageMetricv4<FixedImageType, FixedImageType>;
       typename MetricType::Pointer metric;
