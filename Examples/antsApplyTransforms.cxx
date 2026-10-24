@@ -471,7 +471,31 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
     {
       std::cout << "Reference image: " << referenceOption->GetFunction(0)->GetName() << std::endl;
     }
-    ReadImage<ReferenceImageType>(referenceImage, (referenceOption->GetFunction(0)->GetName()).c_str());
+    const std::string referenceFileName = referenceOption->GetFunction(0)->GetName();
+    if (FileIsPointer(referenceFileName.c_str()))
+    {
+      ReadImage<ReferenceImageType>(referenceImage, referenceFileName.c_str());
+    }
+    else
+    {
+      // Only the geometry of the reference image is used, so read the header and not the pixel data.
+      using ReferenceReaderType = itk::ImageFileReader<ReferenceImageType>;
+      typename ReferenceReaderType::Pointer referenceReader = ReferenceReaderType::New();
+      referenceReader->SetFileName(referenceFileName);
+      try
+      {
+        referenceReader->UpdateOutputInformation();
+      }
+      catch (const itk::ExceptionObject & e)
+      {
+        std::cerr << "Exception caught during reference file reading " << std::endl;
+        std::cerr << e << " file " << referenceFileName << std::endl;
+        return EXIT_FAILURE;
+      }
+      referenceImage = ReferenceImageType::New();
+      referenceImage->CopyInformation(referenceReader->GetOutput());
+      referenceImage->SetRegions(referenceReader->GetOutput()->GetLargestPossibleRegion());
+    }
   }
   else if (needReferenceImage == true)
   {
