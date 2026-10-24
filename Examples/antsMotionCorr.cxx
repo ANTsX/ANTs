@@ -179,9 +179,26 @@ PreprocessImage(ImageType *                   inputImage,
                 typename ImageType::PixelType upperScaleFunction,
                 float                         winsorizeLowerQuantile,
                 float                         winsorizeUpperQuantile,
-                ImageType *                   histogramMatchSourceImage = nullptr)
+                ImageType *                   histogramMatchSourceImage = nullptr,
+                bool                          doHistogramMatch = true)
 {
   bool verbose = false;
+
+  if (histogramMatchSourceImage)
+  {
+    using CalculatorType = itk::MinimumMaximumImageCalculator<ImageType>;
+    typename CalculatorType::Pointer calc = CalculatorType::New();
+    calc->SetImage(inputImage);
+    calc->ComputeMaximum();
+    calc->ComputeMinimum();
+    if (itk::Math::abs(calc->GetMaximum() - calc->GetMinimum()) < static_cast<typename ImageType::PixelType>(1.e-9))
+    {
+      if (verbose)
+        std::cout << "Warning: bad time point - too little intensity variation" << std::endl;
+      return histogramMatchSourceImage;
+    }
+  }
+
   using HistogramFilterType = itk::Statistics::ImageToHistogramFilter<ImageType>;
   using InputBooleanObjectType = typename HistogramFilterType::InputBooleanObjectType;
   using HistogramSizeType = typename HistogramFilterType::HistogramSizeType;
@@ -212,7 +229,7 @@ PreprocessImage(ImageType *                   inputImage,
   windowingFilter->Update();
 
   typename ImageType::Pointer outputImage = nullptr;
-  if (histogramMatchSourceImage)
+  if (histogramMatchSourceImage && doHistogramMatch)
   {
     using HistogramMatchingFilterType = itk::HistogramMatchingImageFilter<ImageType, ImageType>;
     typename HistogramMatchingFilterType::Pointer matchingFilter = HistogramMatchingFilterType::New();
@@ -226,18 +243,6 @@ PreprocessImage(ImageType *                   inputImage,
     outputImage = matchingFilter->GetOutput();
     outputImage->Update();
     outputImage->DisconnectPipeline();
-
-    using CalculatorType = itk::MinimumMaximumImageCalculator<ImageType>;
-    typename CalculatorType::Pointer calc = CalculatorType::New();
-    calc->SetImage(inputImage);
-    calc->ComputeMaximum();
-    calc->ComputeMinimum();
-    if (itk::Math::abs(calc->GetMaximum() - calc->GetMinimum()) < static_cast<typename ImageType::PixelType>(1.e-9))
-    {
-      if (verbose)
-        std::cout << "Warning: bad time point - too little intensity variation" << std::endl;
-      return histogramMatchSourceImage;
-    }
   }
   else
   {
@@ -1016,7 +1021,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         std::cout << "  use histogram matching " << doHistogramMatch << std::endl;
 
       typename FixedImageType::Pointer preprocessMovingImage = PreprocessImage<FixedImageType>(
-        moving_time_slice, 0, 1, 0.001, 0.999, doHistogramMatch ? preprocessFixedImage.GetPointer() : nullptr);
+        moving_time_slice, 0, 1, 0.001, 0.999, preprocessFixedImage, doHistogramMatch);
 
       using MetricType = itk::ImageToImageMetricv4<FixedImageType, FixedImageType>;
       typename MetricType::Pointer metric;
