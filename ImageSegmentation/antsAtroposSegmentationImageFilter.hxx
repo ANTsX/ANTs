@@ -1623,7 +1623,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Updat
 template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::RealType
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::PerformLocalLabelingUpdate(
-  NeighborhoodIterator<ClassifiedImageType> It)
+  NeighborhoodIterator<ClassifiedImageType> & It)
 {
   MeasurementVectorType measurement;
 
@@ -1656,7 +1656,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Perfo
     // Calculate the mrf prior probability
 
     RealType mrfPriorProbability = 1.0;
-    if (mrfSmoothingFactor > NumericTraits<RealType>::ZeroValue() && (It.GetNeighborhood()).Size() > 1)
+    if (mrfSmoothingFactor > NumericTraits<RealType>::ZeroValue() && It.Size() > 1)
     {
       RealType numerator = std::exp(-mrfSmoothingFactor * mrfNeighborhoodWeights[k]);
       RealType denominator = 0.0;
@@ -1938,8 +1938,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::Calcu
 template <typename TInputImage, typename TMaskImage, typename TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::EvaluateMRFNeighborhoodWeights(
-  ConstNeighborhoodIterator<TClassifiedImage> It,
-  Array<RealType> & mrfNeighborhoodWeights)
+  const ConstNeighborhoodIterator<TClassifiedImage> & It,
+  Array<RealType> &                                   mrfNeighborhoodWeights)
 {
   const unsigned int totalClasses =
     this->m_NumberOfTissueClasses + this->m_NumberOfPartialVolumeClasses;
@@ -2119,7 +2119,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::GetPo
             // Perform mrf prior calculation
             //
             RealType mrfPriorProbability = NumericTraits<RealType>::OneValue();
-            if (mrfSmoothingFactor > NumericTraits<RealType>::ZeroValue() && (ItO.GetNeighborhood()).Size() > 1)
+            if (mrfSmoothingFactor > NumericTraits<RealType>::ZeroValue() && ItO.Size() > 1)
             {
               Array<RealType> mrfNeighborhoodWeights;
               this->EvaluateMRFNeighborhoodWeights(ItO, mrfNeighborhoodWeights);
@@ -2359,7 +2359,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>::GetPo
           // Perform mrf prior calculation
           //
           RealType mrfPriorProbability = NumericTraits<RealType>::OneValue();
-          if (mrfSmoothingFactor > NumericTraits<RealType>::ZeroValue() && (ItO.GetNeighborhood()).Size() > 1)
+          if (mrfSmoothingFactor > NumericTraits<RealType>::ZeroValue() && ItO.Size() > 1)
           {
             Array<RealType> mrfNeighborhoodWeights;
             this->EvaluateMRFNeighborhoodWeights(ItO, mrfNeighborhoodWeights);

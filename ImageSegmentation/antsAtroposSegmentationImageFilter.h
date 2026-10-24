@@ -837,9 +837,10 @@ private:
   CalculateLocalPosteriorProbability(RealType, RealType, RealType, RealType, RealType, IndexType, unsigned int);
 
   void
-  EvaluateMRFNeighborhoodWeights(ConstNeighborhoodIterator<ClassifiedImageType>, Array<RealType> &);
+  EvaluateMRFNeighborhoodWeights(const ConstNeighborhoodIterator<ClassifiedImageType> &, Array<RealType> &);
 
-  RealType PerformLocalLabelingUpdate(NeighborhoodIterator<ClassifiedImageType>);
+  RealType
+  PerformLocalLabelingUpdate(NeighborhoodIterator<ClassifiedImageType> &);
 
   // ivars
 
