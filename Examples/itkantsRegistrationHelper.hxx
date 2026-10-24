@@ -2330,6 +2330,11 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
           this->m_RegistrationState->AddTransform(displacementFieldRegistration->GetModifiableMovingToMiddleTransform());
           this->m_RegistrationState->FlattenTransformQueue();
         }
+        else
+        {
+          // Nothing reads the state, so also release a state that --restore-state put there.
+          this->m_RegistrationState = nullptr;
+        }
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform(outputDisplacementFieldTransform);
