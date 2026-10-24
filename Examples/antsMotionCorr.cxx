@@ -745,6 +745,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
 
   // The output parameters hold the parameters of each linear stage next to each other, in the
   // order that the stages run. The deformable stages do not add columns.
+  // If you add a linear transform to the transform dispatch below, also add it here.
+  // If you do not, the parameter writes go past the end of param_values.
   std::vector<unsigned int> paramOffset(numberOfStages, 0);
   for (int currentStage = numberOfStages - 1; currentStage >= 0; currentStage--)
   {
@@ -1243,6 +1245,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         trans[i] = moving_center[i] - fixed_center[i];
         trans2[i] = fixed_center[i];
       }
+      // A linear transform added here must also be added to the paramOffset pre-scan above.
       if (std::strcmp(whichTransform.c_str(), "affine") == 0)
       {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
