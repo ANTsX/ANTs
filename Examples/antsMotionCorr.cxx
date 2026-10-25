@@ -706,15 +706,15 @@ ants_motion(itk::ants::CommandLineParser * parser)
   //   }
   // }
 
-  bool                doHistogramMatch(true);
+  bool                doHistogramMatch(false);
   OptionType::Pointer histogramMatchOption = parser->GetOption("use-histogram-matching");
   if (histogramMatchOption && histogramMatchOption->GetNumberOfFunctions())
   {
     std::string histogramMatchFunction = histogramMatchOption->GetFunction(0)->GetName();
     ConvertToLowerCase(histogramMatchFunction);
-    if (histogramMatchFunction.compare("0") == 0 || histogramMatchFunction.compare("false") == 0)
+    if (histogramMatchFunction.compare("1") == 0 || histogramMatchFunction.compare("true") == 0)
     {
-      doHistogramMatch = false;
+      doHistogramMatch = true;
     }
   }
 
@@ -1986,10 +1986,11 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
   }
 
   {
-    std::string         description = std::string("Histogram match the moving images to the reference image.");
+    std::string         description = std::string("Histogram match the moving images to the reference image. ") +
+                                      std::string("Histogram matching is off by default.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("use-histogram-matching");
-    option->SetUsageOption(0, "0/(1)");
+    option->SetUsageOption(0, "(0)/1");
     option->SetDescription(description);
     parser->AddOption(option);
   }
