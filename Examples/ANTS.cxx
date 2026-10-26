@@ -236,64 +236,15 @@ ANTS(std::vector<std::string> args, std::ostream * /*out_stream = nullptr*/)
 
     std::cout << arguments << std::endl;
 
-    unsigned int           my_argc = 0;
-    std::string::size_type pos = 0;
-    while (true)
+    std::vector<std::string> my_args;
+    std::istringstream       argumentStream(arguments);
+    for (std::string arg; argumentStream >> arg;)
     {
-      std::string::size_type delimPos = arguments.find_first_of(" ", pos);
-      std::string::size_type tokenPos = arguments.find_first_not_of(" ", pos);
-      if (std::string::npos != delimPos && std::string::npos != tokenPos && tokenPos < delimPos)
-      {
-        my_argc++;
-      }
-      else if (std::string::npos == delimPos)
-      {
-        if (std::string::npos != tokenPos)
-        {
-          my_argc++;
-        }
-        else
-        {
-          break;
-        }
-      }
-      pos = delimPos + 1;
+      my_args.push_back(arg);
     }
-
-    char ** my_argv = nullptr;
-    if (my_argc > 0)
-    {
-      unsigned int arg_count = 0;
-      my_argv = new char *[my_argc];
-      pos = 0;
-      while (true)
-      {
-        std::string::size_type delimPos = arguments.find_first_of(" ", pos);
-        std::string::size_type tokenPos = arguments.find_first_not_of(" ", pos);
-        if (std::string::npos != delimPos && std::string::npos != tokenPos && tokenPos < delimPos)
-        {
-          std::string arg = arguments.substr(pos, delimPos - pos);
-          my_argv[arg_count] = new char[arg.size() + 1];
-          strcpy(my_argv[arg_count], arg.c_str());
-          arg_count++;
-        }
-        else if (std::string::npos == delimPos)
-        {
-          if (std::string::npos != tokenPos)
-          {
-            std::string arg = arguments.substr(pos);
-            my_argv[arg_count] = new char[arg.size() + 1];
-            strcpy(my_argv[arg_count], arg.c_str());
-            arg_count++;
-          }
-          else
-          {
-            break;
-          }
-        }
-        pos = delimPos + 1;
-      }
-    }
+    const int           my_argc = my_args.size();
+    std::vector<char *> my_argvStorage = ArgvFromStrings(my_args);
+    char **             my_argv = my_argvStorage.data();
 
     switch (dim)
     {
