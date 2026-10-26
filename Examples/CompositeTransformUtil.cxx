@@ -203,36 +203,8 @@ CompositeTransformUtil(std::vector<std::string> args, std::ostream * /*out_strea
 {
   args.insert(args.begin(), "CompositeTransformUtil");
   unsigned int argc = args.size();
-  char **      argv = new char *[argc + 1];
-  for (unsigned int i = 0; i < argc; ++i)
-  {
-    argv[i] = new char[args[i].length() + 1];
-    std::strncpy(argv[i], args[i].c_str(), args[i].length());
-    argv[i][args[i].length()] = '\0';
-  }
-  argv[argc] = nullptr;
-  class Cleanup_argv
-  {
-  public:
-    Cleanup_argv(char ** argv_, int argc_plus_one_)
-      : argv(argv_)
-      , argc_plus_one(argc_plus_one_)
-    {}
-
-    ~Cleanup_argv()
-    {
-      for (unsigned int i = 0; i < argc_plus_one; ++i)
-      {
-        delete[] argv[i];
-      }
-      delete[] argv;
-    }
-
-  private:
-    char **      argv;
-    unsigned int argc_plus_one;
-  };
-  Cleanup_argv cleanup_argv(argv, argc + 1);
+  std::vector<char *> argvStorage = ArgvFromStrings(args);
+  char **             argv = argvStorage.data();
 
   if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
   {
