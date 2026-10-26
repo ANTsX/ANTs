@@ -748,4 +748,9 @@ GetPreferredTransformFileType();
 extern void
 ConvertToLowerCase(std::string & str);
 
+// Returns a nullptr-terminated argv pointing into args: keep args alive and unresized
+// while it is in use, and note that writing through argv modifies args.
+extern std::vector<char *>
+ArgvFromStrings(std::vector<std::string> & args);
+
 #endif // __antsUtilities_h__
