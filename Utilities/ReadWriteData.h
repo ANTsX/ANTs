@@ -264,6 +264,62 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
   return true;
 }
 
+/** Read only the image information (origin, spacing, direction and largest
+ *  possible region) of an image. The returned image has no pixel buffer. */
+template <typename TImageType>
+bool
+ReadImageInformation(itk::SmartPointer<TImageType> & target, const char * file)
+{
+  target = nullptr;
+  if (std::string(file).length() < 3)
+  {
+    return false;
+  }
+
+  if (FileIsPointer(file))
+  {
+    void * ptr;
+    sscanf(file, "%p", (void **)&ptr);
+    typename TImageType::Pointer source = *(static_cast<typename TImageType::Pointer *>(ptr));
+    if (source.IsNull())
+    {
+      return false;
+    }
+    target = TImageType::New();
+    target->CopyInformation(source);
+    return true;
+  }
+
+  if (!ANTSFileExists(std::string(file)))
+  {
+    std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
+    return false;
+  }
+
+  if (!ANTSFileIsImage(file))
+  {
+    std::cerr << " file " << std::string(file) << " is not recognized as a supported image format . " << std::endl;
+    return false;
+  }
+
+  typedef itk::ImageFileReader<TImageType> ReaderType;
+  typename ReaderType::Pointer             reader = ReaderType::New();
+  reader->SetFileName(file);
+  try
+  {
+    reader->UpdateOutputInformation();
+  }
+  catch (const itk::ExceptionObject & e)
+  {
+    std::cerr << "Exception caught during reference file reading " << std::endl;
+    std::cerr << e << " file " << file << std::endl;
+    return false;
+  }
+  target = reader->GetOutput();
+  target->DisconnectPipeline();
+  return true;
+}
+
 template <typename ImageType>
 typename ImageType::Pointer
 ReadImage(char * fn)
