@@ -45,6 +45,7 @@
 #include "itkEuler3DTransform.h"
 #include "itkTransform.h"
 #include "itkExtractImageFilter.h"
+#include "itkImageRegionIterator.h"
 
 #include "itkBSplineTransformParametersAdaptor.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
@@ -457,7 +458,6 @@ AverageTimeImages(typename TImageIn::Pointer  image_in,
   {
     ImageDimension = ImageType::ImageDimension
   };
-  using Iterator = itk::ImageRegionIteratorWithIndex<OutImageType>;
   image_avg->FillBuffer(0);
   unsigned int timedims = image_in->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   if (timelist.empty())
@@ -469,23 +469,31 @@ AverageTimeImages(typename TImageIn::Pointer  image_in,
   }
   if (verbose)
     std::cout << " averaging with " << timelist.size() << " images of " << timedims << " timedims " << std::endl;
-  Iterator vfIter2(image_avg, image_avg->GetLargestPossibleRegion());
-  for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
+  // Add one time point at a time into image_avg, then divide by the number of time points.
+  const typename OutImageType::RegionType avgRegion = image_avg->GetLargestPossibleRegion();
+  typename ImageType::RegionType          timeRegion;
+  for (unsigned int yy = 0; yy < ImageDimension - 1; yy++)
   {
-    typename OutImageType::PixelType fval = 0;
-    typename ImageType::IndexType    ind;
-    typename OutImageType::IndexType spind = vfIter2.GetIndex();
-    for (unsigned int & xx : timelist)
+    timeRegion.SetIndex(yy, avgRegion.GetIndex()[yy]);
+    timeRegion.SetSize(yy, avgRegion.GetSize()[yy]);
+  }
+  timeRegion.SetSize(ImageDimension - 1, 1);
+  using AvgIterator = itk::ImageRegionIterator<OutImageType>;
+  using InConstIterator = itk::ImageRegionConstIterator<ImageType>;
+  AvgIterator avgIter(image_avg, avgRegion);
+  for (const unsigned int & xx : timelist)
+  {
+    timeRegion.SetIndex(ImageDimension - 1, xx);
+    InConstIterator inIter(image_in, timeRegion);
+    for (avgIter.GoToBegin(), inIter.GoToBegin(); !avgIter.IsAtEnd(); ++avgIter, ++inIter)
     {
-      for (unsigned int yy = 0; yy < ImageDimension - 1; yy++)
-      {
-        ind[yy] = spind[yy];
-      }
-      ind[ImageDimension - 1] = xx;
-      fval += image_in->GetPixel(ind);
+      avgIter.Set(avgIter.Get() + inIter.Get());
     }
-    fval /= static_cast<typename OutImageType::PixelType>(timelist.size());
-    image_avg->SetPixel(spind, fval);
+  }
+  const auto ntimes = static_cast<typename OutImageType::PixelType>(timelist.size());
+  for (avgIter.GoToBegin(); !avgIter.IsAtEnd(); ++avgIter)
+  {
+    avgIter.Set(avgIter.Get() / ntimes);
   }
   if (verbose)
     std::cout << " averaging images done " << std::endl;
