@@ -825,6 +825,9 @@ ants_motion(itk::ants::CommandLineParser * parser)
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   typename DisplacementIOFieldType::Pointer displacementout = nullptr;
   typename DisplacementIOFieldType::Pointer displacementinv = nullptr;
+  // The moving series and its file name. A stage reads the series only if it names a different file.
+  typename MovingIOImageType::Pointer movingInImage = nullptr;
+  std::string                         movingInImageFileName;
 
   // The CSV holds one linear transform per time point: the linear stages composed into one
   // transform. This is correct only if no deformable stage is between two linear stages.
@@ -891,12 +894,15 @@ ants_motion(itk::ants::CommandLineParser * parser)
     typename FixedImageType::Pointer fixedImage;
     fixedImage = fixedInImage;
 
-    typename MovingIOImageType::Pointer movingInImage;
-    typename MovingImageType::Pointer   movingImage;
-    ReadImage<MovingIOImageType>(movingInImage, movingImageFileName.c_str());
-    movingInImage->Update();
-    movingInImage->DisconnectPipeline();
-    movingImage = movingInImage;
+    if (!movingInImage || movingImageFileName != movingInImageFileName)
+    {
+      movingInImage = nullptr; // release the series of the previous stage before the read
+      ReadImage<MovingIOImageType>(movingInImage, movingImageFileName.c_str());
+      movingInImage->Update();
+      movingInImage->DisconnectPipeline();
+      movingInImageFileName = movingImageFileName;
+    }
+    typename MovingImageType::Pointer movingImage = movingInImage;
     unsigned int timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
 
     typename MovingIOImageType::Pointer       outputImage = MovingIOImageType::New();
@@ -1814,6 +1820,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
       ANTs::WriteImage<FixedIOImageType>(fixed_time_slice, fileName.c_str());
     }
   }
+  // Nothing reads the moving series after the stages. Release it before the -w writes.
+  movingInImage = nullptr;
   if (writeDisplacementField > 0)
   {
     std::string dfn = outputPrefix + std::string("Warp.nii.gz");
