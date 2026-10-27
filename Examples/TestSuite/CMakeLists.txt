@@ -133,6 +133,18 @@ ExternalData_expand_arguments(${PROJECT_NAME}FetchData DEVIL_IMAGE_VTK DATA{${SM
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANGEL_IMAGE_VTK DATA{${SMALL_DATA_DIR}/Smile.vtk})
 #ExternalData_expand_arguments(${PROJECT_NAME}FetchData SEG_IMAGE DATA{${SMALL_DATA_DIR}/nslice.nii.gz})
 
+## antsMotionCorr must apply the per-level iterations of -i.
+if(TARGET antsMotionCorr AND TARGET StackSlices)
+  add_test(NAME antsMotionCorrLevelIterationsTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_MOTION_CORR=$<TARGET_FILE:antsMotionCorr>
+      -DSTACK_SLICES=$<TARGET_FILE:StackSlices>
+      -DR16_IMAGE=${R16_IMAGE}
+      -DR64_IMAGE=${R64_IMAGE}
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsMotionCorrLevelIterationsTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsMotionCorrLevelIterationsTest.cmake)
+endif()
+
 if(RUN_LONG_TESTS)
 
 ## A work around for the crazy ANTS command line that is not compatible
