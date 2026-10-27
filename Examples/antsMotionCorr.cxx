@@ -889,6 +889,36 @@ ants_motion(itk::ants::CommandLineParser * parser)
     outputImage->SetDirection(outDirection);
     outputImage->AllocateInitialized();
 
+    // Each registered frame is copied into time slice timedim of outputImage (and of the -w Warp field).
+    // The frame grid is the fixed image with -u 1, else the moving time series.
+    bool                         useFixedReference = false;
+    typename OptionType::Pointer fixedReferenceOption = parser->GetOption("useFixedReferenceImage");
+    if (fixedReferenceOption && fixedReferenceOption->GetNumberOfFunctions())
+    {
+      std::string fixedFunction = fixedReferenceOption->GetFunction(0)->GetName();
+      ConvertToLowerCase(fixedFunction);
+      useFixedReference = (fixedFunction.compare("1") == 0 || fixedFunction.compare("true") == 0);
+    }
+    typename MovingIOImageType::RegionType frameRegion = movingImage->GetLargestPossibleRegion();
+    if (useFixedReference)
+    {
+      for (unsigned int d = 0; d < ImageDimension; d++)
+      {
+        frameRegion.SetIndex(d, fixedImage->GetLargestPossibleRegion().GetIndex()[d]);
+        frameRegion.SetSize(d, fixedImage->GetLargestPossibleRegion().GetSize()[d]);
+      }
+    }
+    frameRegion.SetIndex(ImageDimension, 0);
+    frameRegion.SetSize(ImageDimension, timedims);
+    if (!outputImage->GetLargestPossibleRegion().IsInside(frameRegion))
+    {
+      std::cerr << "ERROR: The frames (index " << frameRegion.GetIndex() << ", size " << frameRegion.GetSize()
+                << ") are not inside the output image (index " << outputImage->GetLargestPossibleRegion().GetIndex()
+                << ", size " << outputImage->GetLargestPossibleRegion().GetSize()
+                << "). With -u 0, the fixed image must be at least as large as the moving image frames."
+                << std::endl;
+      return EXIT_FAILURE;
+    }
 
     if (writeDisplacementField > 0)
     {

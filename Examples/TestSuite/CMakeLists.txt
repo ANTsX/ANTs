@@ -75,6 +75,16 @@ add_executable(antsCommandLineParserTest antsCommandLineParserTest.cxx)
 target_link_libraries(antsCommandLineParserTest antsUtilities)
 add_test(NAME antsCommandLineParserTest COMMAND antsCommandLineParserTest)
 
+## antsMotionCorr -w 1 writes both fields; a too-small fixed image gives an error.
+if(TARGET antsMotionCorr AND TARGET PrintHeader)
+  add_test(NAME antsMotionCorrWriteDisplacementTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_MOTION_CORR=$<TARGET_FILE:antsMotionCorr>
+      -DPRINT_HEADER=$<TARGET_FILE:PrintHeader>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsMotionCorrWriteDisplacementTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsMotionCorrWriteDisplacementTest.cmake)
+endif()
+
 if(TARGET ResampleImage)
   add_test(NAME ResampleImageInterpolationTest
     COMMAND ${CMAKE_COMMAND}
