@@ -101,6 +101,16 @@ if(TARGET ResampleImage)
       -P ${CMAKE_CURRENT_SOURCE_DIR}/ResampleImageInterpolationTest.cmake)
 endif()
 
+if(TARGET DenoiseImage)
+  add_test(NAME DenoiseImageShrinkFactorTest
+    COMMAND ${CMAKE_COMMAND}
+      -DDENOISE_IMAGE=$<TARGET_FILE:DenoiseImage>
+      -DIMAGE_MATH=$<TARGET_FILE:ImageMath>
+      -DMEASURE_MIN_MAX_MEAN=$<TARGET_FILE:MeasureMinMaxMean>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/DenoiseImageShrinkFactorTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/DenoiseImageShrinkFactorTest.cmake)
+endif()
+
 
 ###
 #  Perform testing
