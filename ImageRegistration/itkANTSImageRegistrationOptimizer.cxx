@@ -615,7 +615,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateField(Displaceme
     typedef ImageRegionIterator<DisplacementFieldType>              UpdateIteratorType;
 
     //        TimeStepType timeStep;
-    void * globalData;
     //    std::cout << " B " << std::endl;
 
     AffineTransformPointer faffinverse = nullptr;
@@ -726,7 +725,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateField(Displaceme
     FaceCalculatorType                                                                 faceCalculator;
     FaceListType faceList = faceCalculator(updateField, updateField->GetLargestPossibleRegion(), radius);
     typename FaceListType::iterator fIt = faceList.begin();
-    globalData = df->GetGlobalDataPointer();
+    void *                          globalData = df->GetGlobalDataPointer();
 
     // Process the non-boundary region.
     NeighborhoodIteratorType nD(radius, updateField, *fIt);
@@ -769,6 +768,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateField(Displaceme
         ++nU;
       }
     }
+    df->ReleaseGlobalDataPointer(globalData);
 
     // begin restriction of deformation field
     bool restrict = false;
@@ -1158,7 +1158,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateFieldAlternating
     typedef ImageRegionIterator<DisplacementFieldType>              UpdateIteratorType;
 
     //        TimeStepType timeStep;
-    void * globalData;
     //    std::cout << " B " << std::endl;
 
     // for each metric, warp the assoc. Images
@@ -1243,7 +1242,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateFieldAlternating
     FaceCalculatorType                                                                 faceCalculator;
     FaceListType faceList = faceCalculator(updateField, updateField->GetLargestPossibleRegion(), radius);
     typename FaceListType::iterator fIt = faceList.begin();
-    globalData = df->GetGlobalDataPointer();
+    void *                          globalData = df->GetGlobalDataPointer();
 
     // Process the non-boundary region.
     NeighborhoodIteratorType nD(radius, updateField, *fIt);
@@ -1284,6 +1283,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateFieldAlternating
         ++nU;
       }
     }
+    df->ReleaseGlobalDataPointer(globalData);
 
     if (updateenergy)
     {
