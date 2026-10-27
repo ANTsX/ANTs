@@ -292,35 +292,38 @@ public:
   void
   Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    bool   verbose = false;
-    auto * filter = const_cast<TFilter *>(dynamic_cast<const TFilter *>(object));
-
-    if (typeid(event) != typeid(itk::IterationEvent))
+    // The registration method emits MultiResolutionIterationEvent at the start of each level.
+    if (!itk::MultiResolutionIterationEvent().CheckEvent(&event))
     {
       return;
     }
 
-    unsigned int                                             currentLevel = filter->GetCurrentLevel();
-    typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors =
-      filter->GetShrinkFactorsPerDimension(currentLevel);
-    typename TFilter::SmoothingSigmasArrayType                 smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
-    typename TFilter::TransformParametersAdaptorsContainerType adaptors =
-      filter->GetTransformParametersAdaptorsPerLevel();
-
-    if (verbose)
-      std::cout << "  Current level = " << currentLevel << std::endl;
-    if (verbose)
-      std::cout << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
-    if (verbose)
-      std::cout << "    shrink factor = " << shrinkFactors[currentLevel] << std::endl;
-    if (verbose)
-      std::cout << "    smoothing sigma = " << smoothingSigmas[currentLevel] << std::endl;
-    if (verbose)
-      std::cout << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
-                << std::endl;
-
+    auto * filter = const_cast<TFilter *>(dynamic_cast<const TFilter *>(object));
     using OptimizerType = itk::ConjugateGradientLineSearchOptimizerv4;
-    auto * optimizer = reinterpret_cast<OptimizerType *>(filter->GetModifiableOptimizer());
+    auto * optimizer = filter ? dynamic_cast<OptimizerType *>(filter->GetModifiableOptimizer()) : nullptr;
+    if (optimizer == nullptr)
+    {
+      return;
+    }
+
+    const unsigned int currentLevel = filter->GetCurrentLevel();
+    if (this->m_Verbose)
+    {
+      const typename TFilter::TransformParametersAdaptorsContainerType adaptors =
+        filter->GetTransformParametersAdaptorsPerLevel();
+
+      std::cout << "  Current level = " << currentLevel << std::endl;
+      std::cout << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
+      std::cout << "    shrink factors = " << filter->GetShrinkFactorsPerDimension(currentLevel) << std::endl;
+      std::cout << "    smoothing sigma = " << filter->GetSmoothingSigmasPerLevel()[currentLevel] << std::endl;
+      // Only the displacement field path sets transform adaptors.
+      if (currentLevel < adaptors.size() && adaptors[currentLevel])
+      {
+        std::cout << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
+                  << std::endl;
+      }
+    }
+
     optimizer->SetNumberOfIterations(this->m_NumberOfIterations[currentLevel]);
     optimizer->SetMinimumConvergenceValue(1.e-7);
     optimizer->SetConvergenceWindowSize(10);
@@ -335,9 +338,40 @@ public:
     this->m_NumberOfIterations = iterations;
   }
 
+  void
+  SetVerbose(bool verbose)
+  {
+    this->m_Verbose = verbose;
+  }
+
 private:
   std::vector<unsigned int> m_NumberOfIterations;
+  bool                      m_Verbose{ false };
 };
+
+// Set the number of iterations of each level with a CommandIterationUpdate observer.
+// When verbose, also print the number of iterations that the optimizer ran at each level.
+template <typename TRegistration>
+void
+ants_moco_add_level_iterations_observer(TRegistration *                   registration,
+                                        const std::vector<unsigned int> & iterations,
+                                        bool                              verbose)
+{
+  using CommandType = CommandIterationUpdate<TRegistration>;
+  typename CommandType::Pointer observer = CommandType::New();
+  observer->SetNumberOfIterations(iterations);
+  observer->SetVerbose(verbose);
+  registration->AddObserver(itk::MultiResolutionIterationEvent(), observer);
+
+  if (verbose)
+  {
+    const auto * optimizer = registration->GetOptimizer();
+    optimizer->AddObserver(itk::EndEvent(), [registration, optimizer](const itk::EventObject &) {
+      std::cout << "  Level " << registration->GetCurrentLevel()
+                << ": iterations run = " << optimizer->GetCurrentIteration() << std::endl;
+    });
+  }
+}
 
 // Transform traits to generalize the rigid transform
 //
@@ -1414,11 +1448,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         affineRegistration->SetMetric(metric);
         affineRegistration->SetOptimizer(optimizer);
 
-        using AffineCommandType = CommandIterationUpdate<AffineRegistrationType>;
-        typename AffineCommandType::Pointer affineObserver = AffineCommandType::New();
-        affineObserver->SetNumberOfIterations(iterations);
-
-        affineRegistration->AddObserver(itk::IterationEvent(), affineObserver);
+        ants_moco_add_level_iterations_observer(affineRegistration.GetPointer(), iterations, verbose);
 
         try
         {
@@ -1484,10 +1514,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
           rigidRegistration->SetMovingInitialTransform(compositeTransform);
         }
 
-        using RigidCommandType = CommandIterationUpdate<RigidRegistrationType>;
-        typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
-        rigidObserver->SetNumberOfIterations(iterations);
-        rigidRegistration->AddObserver(itk::IterationEvent(), rigidObserver);
+        ants_moco_add_level_iterations_observer(rigidRegistration.GetPointer(), iterations, verbose);
         try
         {
           if (verbose)
@@ -1580,6 +1607,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         {
           displacementFieldRegistration->SetMovingInitialTransform(compositeTransform);
         }
+
+        ants_moco_add_level_iterations_observer(displacementFieldRegistration.GetPointer(), iterations, verbose);
         try
         {
           displacementFieldRegistration->Update();
