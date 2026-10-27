@@ -1778,6 +1778,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         converter2->Update();
         CopyFieldIntoTimeSlice(converter2->GetOutput(), displacementinv.GetPointer(), timedim);
       }
+      // Nothing reads this transform after the final stage. Release it and its dense displacement fields.
+      CompositeTransformVector[timedim] = nullptr;
     }
     if (outputOption && outputOption->GetFunction(0)->GetNumberOfParameters() > 1 && finalStage)
     {
