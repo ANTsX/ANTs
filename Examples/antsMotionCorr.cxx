@@ -458,6 +458,42 @@ AverageTimeImages(typename TImageIn::Pointer  image_in,
     std::cout << " averaging images done " << std::endl;
 }
 
+/** Copy a D-dimensional displacement field into time slice tdim of a (D+1)-dimensional field.
+ *  The last vector component (time) is set to zero. The slice must be inside the region of fieldIO. */
+template <typename TField, typename TFieldIO>
+void
+CopyFieldIntoTimeSlice(const TField * field, TFieldIO * fieldIO, unsigned int tdim)
+{
+  constexpr unsigned int ImageDimension = TField::ImageDimension;
+  static_assert(TFieldIO::ImageDimension == ImageDimension + 1, "fieldIO must have one more dimension than field");
+  static_assert(TFieldIO::PixelType::Dimension == ImageDimension + 1,
+                "fieldIO vectors must have one more component than the dimension of field");
+  using IOValueType = typename TFieldIO::PixelType::ValueType;
+
+  const typename TField::RegionType & region = field->GetBufferedRegion();
+  typename TFieldIO::RegionType       sliceRegion;
+  for (unsigned int d = 0; d < ImageDimension; d++)
+  {
+    sliceRegion.SetIndex(d, region.GetIndex()[d]);
+    sliceRegion.SetSize(d, region.GetSize()[d]);
+  }
+  sliceRegion.SetIndex(ImageDimension, tdim);
+  sliceRegion.SetSize(ImageDimension, 1);
+
+  itk::ImageRegionConstIterator<TField> inIt(field, region);
+  itk::ImageRegionIterator<TFieldIO>    outIt(fieldIO, sliceRegion);
+  for (; !inIt.IsAtEnd(); ++inIt, ++outIt)
+  {
+    const typename TField::PixelType & in = inIt.Get();
+    typename TFieldIO::PixelType &     out = outIt.Value();
+    for (unsigned int d = 0; d < ImageDimension; d++)
+    {
+      out[d] = static_cast<IOValueType>(in[d]);
+    }
+    out[ImageDimension] = 0;
+  }
+}
+
 template <unsigned int ImageDimension>
 int
 ants_motion(itk::ants::CommandLineParser * parser)
@@ -480,7 +516,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
   using FixedImageType = itk::Image<PixelType, ImageDimension>;
   using MovingIOImageType = itk::Image<PixelType, ImageDimension + 1>;
   using MovingImageType = itk::Image<PixelType, ImageDimension + 1>;
-  using VectorIOType = itk::Vector<RealType, ImageDimension + 1>;
+  using VectorIOType = itk::Vector<float, ImageDimension + 1>;
   using DisplacementIOFieldType = itk::Image<VectorIOType, ImageDimension + 1>;
   using VectorType = itk::Vector<RealType, ImageDimension>;
   using DisplacementFieldType = itk::Image<VectorType, ImageDimension>;
@@ -847,30 +883,9 @@ ants_motion(itk::ants::CommandLineParser * parser)
 
     if (writeDisplacementField > 0)
     {
-      /** Handle all output: images and displacement fields */
-      using IdentityIOTransformType = itk::IdentityTransform<RealType, ImageDimension + 1>;
-      typename IdentityIOTransformType::Pointer identityIOTransform = IdentityIOTransformType::New();
-      using ConverterType = typename itk::TransformToDisplacementFieldFilter<DisplacementIOFieldType, RealType>;
-      typename ConverterType::Pointer idconverter = ConverterType::New();
-      idconverter->SetOutputOrigin(outputImage->GetOrigin());
-      idconverter->SetOutputStartIndex(outputImage->GetBufferedRegion().GetIndex());
-      idconverter->SetSize(outputImage->GetBufferedRegion().GetSize());
-      idconverter->SetOutputSpacing(outputImage->GetSpacing());
-      idconverter->SetOutputDirection(outputImage->GetDirection());
-      idconverter->SetTransform(identityIOTransform);
-      idconverter->Update();
-      displacementout = idconverter->GetOutput();
-
-
-      typename ConverterType::Pointer invconverter = ConverterType::New();
-      invconverter->SetOutputOrigin(movingInImage->GetOrigin());
-      invconverter->SetOutputStartIndex(movingInImage->GetBufferedRegion().GetIndex());
-      invconverter->SetSize(movingInImage->GetBufferedRegion().GetSize());
-      invconverter->SetOutputSpacing(movingInImage->GetSpacing());
-      invconverter->SetOutputDirection(movingInImage->GetDirection());
-      invconverter->SetTransform(identityIOTransform);
-      invconverter->Update();
-      displacementinv = invconverter->GetOutput();
+      /** Handle all output: images and displacement fields (zero-initialized, i.e. identity) */
+      displacementout = AllocImage<DisplacementIOFieldType>(outputImage);
+      displacementinv = AllocImage<DisplacementIOFieldType>(movingInImage);
     }
 
 
@@ -1669,27 +1684,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         converter->SetOutputDirection(fixed_time_slice->GetDirection());
         converter->SetTransform(compositeTransform);
         converter->Update();
-        /** Here, we put the 3d tx into a 4d displacement field */
-        for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
-        {
-          VectorType   vec = converter->GetOutput()->GetPixel(vfIter2.GetIndex());
-          VectorIOType vecout;
-          vecout.Fill(0);
-          typename MovingIOImageType::IndexType ind;
-          for (unsigned int xx = 0; xx < ImageDimension; xx++)
-          {
-            ind[xx] = vfIter2.GetIndex()[xx];
-            vecout[xx] = vec[xx];
-          }
-          unsigned int tdim = timedim;
-          if (tdim > (timedims - 1))
-          {
-            tdim = timedims - 1;
-          }
-          ind[ImageDimension] = tdim;
-          displacementout->SetPixel(ind, vecout);
-        }
-#
+        CopyFieldIntoTimeSlice(converter->GetOutput(), displacementout.GetPointer(), timedim);
         typename ConverterType::Pointer converter2 = ConverterType::New();
         converter2->SetOutputOrigin(moving_time_slice->GetOrigin());
         converter2->SetOutputStartIndex(moving_time_slice->GetBufferedRegion().GetIndex());
@@ -1698,27 +1693,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         converter2->SetOutputDirection(moving_time_slice->GetDirection());
         converter2->SetTransform(compositeTransform->GetInverseTransform());
         converter2->Update();
-        /** Here, we put the 3d tx into a 4d displacement field */
-        Iterator vfIterInv(moving_time_slice, moving_time_slice->GetLargestPossibleRegion());
-        for (vfIterInv.GoToBegin(); !vfIterInv.IsAtEnd(); ++vfIterInv)
-        {
-          VectorType   vec = converter2->GetOutput()->GetPixel(vfIterInv.GetIndex());
-          VectorIOType vecout;
-          vecout.Fill(0);
-          typename MovingIOImageType::IndexType ind;
-          for (unsigned int xx = 0; xx < ImageDimension; xx++)
-          {
-            ind[xx] = vfIterInv.GetIndex()[xx];
-            vecout[xx] = vec[xx];
-          }
-          unsigned int tdim = timedim;
-          if (tdim > (timedims - 1))
-          {
-            tdim = timedims - 1;
-          }
-          ind[ImageDimension] = tdim;
-          displacementinv->SetPixel(ind, vecout);
-        }
+        CopyFieldIntoTimeSlice(converter2->GetOutput(), displacementinv.GetPointer(), timedim);
       }
     }
     if (outputOption && outputOption->GetFunction(0)->GetNumberOfParameters() > 1 && currentStage == 0)
@@ -2006,7 +1981,9 @@ antsMotionCorrInitializeCommandLineOptions(itk::ants::CommandLineParser * parser
   }
 
   {
-    std::string description = std::string("Write the low-dimensional 3D transforms to a 4D displacement field.");
+    std::string description =
+      std::string("Write the low-dimensional 3D transforms to a 4D displacement field. ") +
+      std::string("The Warp and InverseWarp fields are written with float (float32) components.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("write-displacement");
     option->SetShortName('w');
