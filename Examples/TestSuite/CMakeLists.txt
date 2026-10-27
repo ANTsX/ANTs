@@ -1016,6 +1016,7 @@ set(AllANTSPrograms
  ANTSJacobian
  antsMotionCorr
  antsRegistration
+ antsTransformInfo
  ANTSUseDeformationFieldToGetAffineTransform
  ANTSUseLandmarkImagesToGetAffineTransform
  ANTSUseLandmarkImagesToGetBSplineDisplacementField

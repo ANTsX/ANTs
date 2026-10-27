@@ -28,7 +28,20 @@
 
 namespace ants
 {
-
+static void
+PrintUsage()
+{
+  std::cout << "Usage: antsTransformInfo <transformFile1> [transformFile2] ..." << std::endl
+            << std::endl
+            << "Prints information about one or more transform files, including:" << std::endl
+            << "  - Transform type and number of transforms" << std::endl
+            << "  - Parameters and fixed parameters" << std::endl
+            << "  - Matrix determinant (for affine transforms)" << std::endl
+            << "  - Composite transform queue contents" << std::endl
+            << std::endl
+            << "Supports 2D and 3D transforms in binary (.mat) or text (.txt) format," << std::endl
+            << "as well as composite transforms (.h5) and displacement fields." << std::endl;
+}
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
@@ -47,17 +60,13 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
 
   if (argc < 2)
   {
-    std::cout << "Usage: antsTransformInfo <transformFile1> [transformFile2] ..." << std::endl
-              << std::endl
-              << "Prints information about one or more transform files, including:" << std::endl
-              << "  - Transform type and number of transforms" << std::endl
-              << "  - Parameters and fixed parameters" << std::endl
-              << "  - Matrix determinant (for affine transforms)" << std::endl
-              << "  - Composite transform queue contents" << std::endl
-              << std::endl
-              << "Supports 2D and 3D transforms in binary (.mat) or text (.txt) format," << std::endl
-              << "as well as composite transforms (.h5) and displacement fields." << std::endl;
+    PrintUsage();
     return EXIT_FAILURE;
+  }
+  if (args[1] == "--help" || args[1] == "-h")
+  {
+    PrintUsage();
+    return EXIT_SUCCESS;
   }
 
   using ReadScalarType = double;
