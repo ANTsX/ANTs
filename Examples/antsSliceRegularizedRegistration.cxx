@@ -258,16 +258,16 @@ struct ants_slice_regularized_index_cmp
 };
 
 template <typename TFilter>
-class CommandIterationUpdate final : public itk::Command
+class sliceRegularizedCommandIterationUpdate final : public itk::Command
 {
 public:
-  using Self = CommandIterationUpdate<TFilter>;
+  using Self = sliceRegularizedCommandIterationUpdate<TFilter>;
   using Superclass = itk::Command;
   using Pointer = itk::SmartPointer<Self>;
   itkNewMacro(Self);
 
 protected:
-  CommandIterationUpdate() = default;
+  sliceRegularizedCommandIterationUpdate() = default;
 
 public:
   void
@@ -279,25 +279,20 @@ public:
   void
   Execute(const itk::Object * object, const itk::EventObject & event) override
   {
-    auto * filter = const_cast<TFilter *>(dynamic_cast<const TFilter *>(object));
-
-    if (typeid(event) != typeid(itk::IterationEvent))
+    // The registration method emits MultiResolutionIterationEvent at the start of each level.
+    if (!itk::MultiResolutionIterationEvent().CheckEvent(&event))
     {
       return;
     }
 
-    unsigned int                                               currentLevel = filter->GetCurrentLevel();
-    typename TFilter::TransformParametersAdaptorsContainerType adaptors =
-      filter->GetTransformParametersAdaptorsPerLevel();
+    auto * filter = const_cast<TFilter *>(dynamic_cast<const TFilter *>(object));
+    if (filter == nullptr)
+    {
+      return;
+    }
 
-    using OptimizerType = itk::ConjugateGradientLineSearchOptimizerv4;
-    auto * optimizer = reinterpret_cast<OptimizerType *>(filter->GetModifiableOptimizer());
-    optimizer->SetNumberOfIterations(this->m_NumberOfIterations[currentLevel]);
-    optimizer->SetMinimumConvergenceValue(1.e-7);
-    optimizer->SetConvergenceWindowSize(10);
-    optimizer->SetLowerLimit(0);
-    optimizer->SetUpperLimit(2);
-    optimizer->SetEpsilon(0.1);
+    // Only the number of iterations changes per level. The other optimizer settings stay as set at creation.
+    filter->GetModifiableOptimizer()->SetNumberOfIterations(this->m_NumberOfIterations[filter->GetCurrentLevel()]);
   }
 
   void
@@ -772,10 +767,10 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
           translationRegistration->SetMetric(metric);
           translationRegistration->SetOptimizer(optimizer);
 
-          using TranslationCommandType = CommandIterationUpdate<TranslationRegistrationType>;
+          using TranslationCommandType = sliceRegularizedCommandIterationUpdate<TranslationRegistrationType>;
           typename TranslationCommandType::Pointer translationObserver = TranslationCommandType::New();
           translationObserver->SetNumberOfIterations(iterations);
-          translationRegistration->AddObserver(itk::IterationEvent(), translationObserver);
+          translationRegistration->AddObserver(itk::MultiResolutionIterationEvent(), translationObserver);
           if (!skipThisTimePoint)
             try
             {
