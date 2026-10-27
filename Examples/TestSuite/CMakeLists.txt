@@ -1061,6 +1061,20 @@ foreach(CurrProg ${AllANTSPrograms})
   set_property(TEST ${CurrProg}_HELP_SHORT APPEND PROPERTY DEPENDS ${CurrProg}_HELP_LONG)
 endforeach()
 
+## antsMotionCorr: the CSV holds the composed transform of all linear stages.
+add_test(NAME antsMotionCorrMultiStageTest
+  COMMAND ${CMAKE_COMMAND}
+    -DANTS_MOTION_CORR=$<TARGET_FILE:antsMotionCorr>
+    -DANTS_APPLY_TRANSFORMS=$<TARGET_FILE:antsApplyTransforms>
+    -DIMAGE_MATH=$<TARGET_FILE:ImageMath>
+    -DSTACK_SLICES=$<TARGET_FILE:StackSlices>
+    -DEXTRACT_SLICE=$<TARGET_FILE:ExtractSliceFromImage>
+    -DMEASURE_MIN_MAX_MEAN=$<TARGET_FILE:MeasureMinMaxMean>
+    -DFIXED_IMAGE=${R16_IMAGE}
+    -DMOVING_IMAGE=${R64_IMAGE}
+    -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsMotionCorrMultiStageTest
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/antsMotionCorrMultiStageTest.cmake)
+
 ###
 #  ANTS transform testing
 ###
