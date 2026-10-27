@@ -92,6 +92,18 @@ set(SMALL_DATA_DIR ${TestDataSHA512_DIR}/Data)
 
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData R16_IMAGE DATA{${SMALL_DATA_DIR}/r16slice.nii.gz})
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData R64_IMAGE DATA{${SMALL_DATA_DIR}/r64slice.nii.gz})
+
+## DenoiseImage with a mask and a shrink factor > 1.
+if(TARGET DenoiseImage AND TARGET ThresholdImage AND TARGET MeasureMinMaxMean)
+  add_test(NAME DenoiseImageMaskShrinkTest
+    COMMAND ${CMAKE_COMMAND}
+      -DDENOISE_IMAGE=$<TARGET_FILE:DenoiseImage>
+      -DTHRESHOLD_IMAGE=$<TARGET_FILE:ThresholdImage>
+      -DMEASURE_MIN_MAX_MEAN=$<TARGET_FILE:MeasureMinMaxMean>
+      -DINPUT_IMAGE=${R16_IMAGE}
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/DenoiseImageMaskShrinkTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/DenoiseImageMaskShrinkTest.cmake)
+endif()
 ###
 # PSE sub-tests:  Check to see if .txt files and .vtk files also run correctly
 ###
