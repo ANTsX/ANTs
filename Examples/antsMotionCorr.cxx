@@ -778,14 +778,14 @@ ants_motion(itk::ants::CommandLineParser * parser)
     fixedInImage->Update();
     fixedInImage->DisconnectPipeline();
     typename FixedImageType::Pointer fixedImage;
-    fixedImage = arCastImage<FixedIOImageType, FixedImageType>(fixedInImage);
+    fixedImage = fixedInImage;
 
     typename MovingIOImageType::Pointer movingInImage;
     typename MovingImageType::Pointer   movingImage;
     ReadImage<MovingIOImageType>(movingInImage, movingImageFileName.c_str());
     movingInImage->Update();
     movingInImage->DisconnectPipeline();
-    movingImage = arCastImage<MovingIOImageType, MovingImageType>(movingInImage);
+    movingImage = movingInImage;
     unsigned int timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
 
     typename MovingIOImageType::Pointer       outputImage = MovingIOImageType::New();
