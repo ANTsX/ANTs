@@ -1,7 +1,7 @@
 # Exercise antsMotionCorr -w 1 on a small 2D+t series without external image
-# fixtures. The Warp and InverseWarp fields must be written. A fixed image
-# that is smaller than the moving frames must give an error with -u 0, not an
-# out-of-bounds copy.
+# fixtures. The Warp and InverseWarp fields must be written with float
+# components. A fixed image that is smaller than the moving frames must give
+# an error with -u 0, not an out-of-bounds copy.
 file(MAKE_DIRECTORY "${TEST_OUTPUT_DIR}")
 
 # Write a MetaImage of a Gaussian-like blob, one frame per center in ARGN.
@@ -56,6 +56,15 @@ foreach(field Warp InverseWarp)
   set(file "${TEST_OUTPUT_DIR}/moco${field}.nii.gz")
   if(NOT EXISTS "${file}")
     message(FATAL_ERROR "antsMotionCorr -w 1 did not write ${file}\n${output}")
+  endif()
+  execute_process(COMMAND "${PRINT_HEADER}" "${file}"
+    RESULT_VARIABLE result OUTPUT_VARIABLE header ERROR_VARIABLE stderr)
+  if(NOT "${result}" STREQUAL "0")
+    message(FATAL_ERROR "PrintHeader ${file} failed: ${result}\n${stderr}")
+  endif()
+  # NIfTI datatype 16 is float32 (float64 is 64).
+  if(NOT header MATCHES "datatype = 16\n" OR NOT header MATCHES "bitpix = 32\n")
+    message(FATAL_ERROR "${field} does not have float components:\n${header}")
   endif()
 endforeach()
 

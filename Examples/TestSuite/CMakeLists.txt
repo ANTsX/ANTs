@@ -75,7 +75,7 @@ add_executable(antsCommandLineParserTest antsCommandLineParserTest.cxx)
 target_link_libraries(antsCommandLineParserTest antsUtilities)
 add_test(NAME antsCommandLineParserTest COMMAND antsCommandLineParserTest)
 
-## antsMotionCorr -w 1 writes both fields; a too-small fixed image gives an error.
+## antsMotionCorr -w 1 writes float fields; a too-small fixed image gives an error.
 if(TARGET antsMotionCorr AND TARGET PrintHeader)
   add_test(NAME antsMotionCorrWriteDisplacementTest
     COMMAND ${CMAKE_COMMAND}
