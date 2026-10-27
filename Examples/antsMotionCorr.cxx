@@ -876,6 +876,9 @@ ants_motion(itk::ants::CommandLineParser * parser)
       std::cout << std::endl << "Stage " << numberOfStages - currentStage << std::endl;
     std::stringstream currentStageString;
     currentStageString << currentStage;
+    // Only the final stage makes the 4D outputs. Each stage reads its images from the -m files
+    // and carries only the transforms forward.
+    const bool finalStage = (currentStage == 0);
 
     // Get the fixed and moving images
 
@@ -937,7 +940,10 @@ ants_motion(itk::ants::CommandLineParser * parser)
     outputImage->SetSpacing(outSpacing);
     outputImage->SetOrigin(outOrigin);
     outputImage->SetDirection(outDirection);
-    outputImage->AllocateInitialized();
+    if (finalStage)
+    {
+      outputImage->AllocateInitialized();
+    }
 
     // Each registered frame is copied into time slice timedim of outputImage (and of the -w Warp field).
     // The frame grid is the fixed image with -u 1, else the moving time series.
@@ -970,7 +976,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
       return EXIT_FAILURE;
     }
 
-    if (writeDisplacementField > 0)
+    if (writeDisplacementField > 0 && finalStage)
     {
       /** Handle all output: images and displacement fields (zero-initialized, i.e. identity) */
       displacementout = AllocImage<DisplacementIOFieldType>(outputImage);
@@ -1715,6 +1721,10 @@ ants_motion(itk::ants::CommandLineParser * parser)
       }
       metriclist.push_back(param_values(timedim, 1));
       metricmean += param_values(timedim, 1) / (double)timedims;
+      if (!finalStage)
+      {
+        continue;
+      }
       // resample the moving image and then put it in its place
       using ResampleFilterType = itk::ResampleImageFilter<FixedImageType, FixedImageType>;
       typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
@@ -1769,7 +1779,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         CopyFieldIntoTimeSlice(converter2->GetOutput(), displacementinv.GetPointer(), timedim);
       }
     }
-    if (outputOption && outputOption->GetFunction(0)->GetNumberOfParameters() > 1 && currentStage == 0)
+    if (outputOption && outputOption->GetFunction(0)->GetNumberOfParameters() > 1 && finalStage)
     {
       std::string fileName = outputOption->GetFunction(0)->GetParameter(1);
       if (outputPrefix.length() < 3)
@@ -1780,7 +1790,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         std::cout << "motion corrected out " << fileName << std::endl;
       ANTs::WriteImage<MovingIOImageType>(outputImage, fileName.c_str());
     }
-    if (outputOption && outputOption->GetFunction(0)->GetNumberOfParameters() > 2 && outputImage && currentStage == 0)
+    if (outputOption && outputOption->GetFunction(0)->GetNumberOfParameters() > 2 && outputImage && finalStage)
     {
       std::string                        fileName = outputOption->GetFunction(0)->GetParameter(2);
       typename FixedIOImageType::Pointer avgImage;
