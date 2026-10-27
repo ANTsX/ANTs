@@ -65,6 +65,14 @@ target_include_directories(antsWahbaRotationTest PRIVATE ${CMAKE_SOURCE_DIR}/Uti
 target_link_libraries(antsWahbaRotationTest ${ITK_LIBRARIES})
 add_test(NAME antsWahbaRotationTest COMMAND antsWahbaRotationTest)
 
+if(TARGET antsApplyTransforms)
+  add_test(NAME antsApplyTransformsReferenceImageTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_APPLY_TRANSFORMS=$<TARGET_FILE:antsApplyTransforms>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsApplyTransformsReferenceImageTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsApplyTransformsReferenceImageTest.cmake)
+endif()
+
 ## Dense-field registration parameter counts are validated before optimization.
 add_executable(antsRegistrationParameterCountTest antsRegistrationParameterCountTest.cxx)
 target_link_libraries(antsRegistrationParameterCountTest antsUtilities ${ITK_LIBRARIES})

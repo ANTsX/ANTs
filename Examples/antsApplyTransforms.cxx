@@ -467,11 +467,17 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
 
   if (referenceOption && referenceOption->GetNumberOfFunctions())
   {
+    const std::string referenceFileName = referenceOption->GetFunction(0)->GetName();
     if (verbose)
     {
-      std::cout << "Reference image: " << referenceOption->GetFunction(0)->GetName() << std::endl;
+      std::cout << "Reference image: " << referenceFileName << std::endl;
     }
-    ReadImage<ReferenceImageType>(referenceImage, (referenceOption->GetFunction(0)->GetName()).c_str());
+    // Only the geometry of the reference image is used, so do not read the pixel data
+    if (!ReadImageInformation<ReferenceImageType>(referenceImage, referenceFileName.c_str()) && needReferenceImage)
+    {
+      std::cerr << "Cannot read the reference image " << referenceFileName << std::endl;
+      return EXIT_FAILURE;
+    }
   }
   else if (needReferenceImage == true)
   {
@@ -716,8 +722,8 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
       using ConverterType = typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType>;
       typename ConverterType::Pointer converter = ConverterType::New();
       converter->SetOutputOrigin(referenceImage->GetOrigin());
-      converter->SetOutputStartIndex(referenceImage->GetBufferedRegion().GetIndex());
-      converter->SetSize(referenceImage->GetBufferedRegion().GetSize());
+      converter->SetOutputStartIndex(referenceImage->GetLargestPossibleRegion().GetIndex());
+      converter->SetSize(referenceImage->GetLargestPossibleRegion().GetSize());
       converter->SetOutputSpacing(referenceImage->GetSpacing());
       converter->SetOutputDirection(referenceImage->GetDirection());
       converter->SetTransform(compositeTransform);
@@ -792,7 +798,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
 
         typename DisplacementFieldType::Pointer outputVectorImage = DisplacementFieldType::New();
         outputVectorImage->CopyInformation(referenceImage);
-        outputVectorImage->SetRegions(referenceImage->GetRequestedRegion());
+        outputVectorImage->SetRegions(referenceImage->GetLargestPossibleRegion());
         outputVectorImage->AllocateInitialized();
 
         itk::ImageRegionIteratorWithIndex<DisplacementFieldType> It(outputVectorImage,
@@ -864,7 +870,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
 
         typename TensorImageType::Pointer resampledTensorImage = TensorImageType::New(); // but not reoriented
         resampledTensorImage->CopyInformation(referenceImage);
-        resampledTensorImage->SetRegions(referenceImage->GetRequestedRegion());
+        resampledTensorImage->SetRegions(referenceImage->GetLargestPossibleRegion());
         resampledTensorImage->AllocateInitialized();
 
         itk::ImageRegionIteratorWithIndex<TensorImageType> It(resampledTensorImage,
@@ -925,8 +931,8 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
         for (unsigned int i = 0; i < Dimension; i++)
         {
           origin[i] = referenceImage->GetOrigin()[i];
-          size[i] = referenceImage->GetRequestedRegion().GetSize()[i];
-          index[i] = referenceImage->GetRequestedRegion().GetIndex()[i];
+          size[i] = referenceImage->GetLargestPossibleRegion().GetSize()[i];
+          index[i] = referenceImage->GetLargestPossibleRegion().GetIndex()[i];
           spacing[i] = referenceImage->GetSpacing()[i];
           for (unsigned int j = 0; j < Dimension; j++)
           {
