@@ -151,11 +151,6 @@ Denoise(itk::ants::CommandLineParser * parser)
   using DenoiserType = itk::AdaptiveNonLocalMeansDenoisingImageFilter<ImageType, ImageType>;
   typename DenoiserType::Pointer denoiser = DenoiserType::New();
 
-  using ShrinkerType = itk::ShrinkImageFilter<ImageType, ImageType>;
-  typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
-  shrinker->SetInput(inputImage);
-  shrinker->SetShrinkFactors(1);
-
   typename OptionType::Pointer shrinkFactorOption = parser->GetOption("shrink-factor");
   int                          shrinkFactor = 1;
   if (shrinkFactorOption && shrinkFactorOption->GetNumberOfFunctions())
@@ -169,10 +164,29 @@ Denoise(itk::ants::CommandLineParser * parser)
   //     std::endl;
   //     }
 
-  shrinker->SetShrinkFactors(shrinkFactor);
-  shrinker->Update();
+  if (shrinkFactor < 0)
+  {
+    std::cerr << "The shrink factor must be 0 or more: " << shrinkFactor << std::endl;
+    return EXIT_FAILURE;
+  }
 
-  denoiser->SetInput(shrinker->GetOutput());
+  // Shrink factors 0 and 1 do not shrink the input.
+  const bool shrinkInput = shrinkFactor > 1;
+  if (shrinkInput)
+  {
+    using ShrinkerType = itk::ShrinkImageFilter<ImageType, ImageType>;
+    typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
+    shrinker->SetInput(inputImage);
+    shrinker->SetShrinkFactors(shrinkFactor);
+    shrinker->Update();
+    typename ImageType::Pointer shrunkImage = shrinker->GetOutput();
+    shrunkImage->DisconnectPipeline();
+    denoiser->SetInput(shrunkImage);
+  }
+  else
+  {
+    denoiser->SetInput(inputImage);
+  }
 
   typename OptionType::Pointer noiseModelOption = parser->GetOption("noise-model");
   std::string                  noiseModel("gaussian");
@@ -216,10 +230,10 @@ Denoise(itk::ants::CommandLineParser * parser)
       return EXIT_FAILURE;
     }
 
-    if (shrinkFactor > 1)
+    if (shrinkInput)
     {
       // Put the mask on the grid of the shrunk input image.
-      shrunkMaskImage = ResampleMaskToReference<MaskImageType, ImageType>(maskImage, shrinker->GetOutput());
+      shrunkMaskImage = ResampleMaskToReference<MaskImageType, ImageType>(maskImage, denoiser->GetInput());
 
       using MaskCalculatorType = itk::MinimumMaximumImageCalculator<MaskImageType>;
       typename MaskCalculatorType::Pointer maskCalculator = MaskCalculatorType::New();
@@ -365,37 +379,43 @@ Denoise(itk::ants::CommandLineParser * parser)
   if (outputOption && outputOption->GetNumberOfFunctions())
   {
     /**
-     * Get the noise image and resample to full resolution
+     * Get the noise image. If the input was shrunk, resample it to full resolution.
      */
     using SubtracterType = itk::SubtractImageFilter<ImageType, ImageType, ImageType>;
     typename SubtracterType::Pointer subtracter = SubtracterType::New();
+    // Without shrinking, input 1 is inputImage, which is used again below. The
+    // subtracter does not run in place (BinaryGeneratorImageFilter sets InPlaceOff()).
     subtracter->SetInput1(denoiser->GetInput());
     subtracter->SetInput2(denoiser->GetOutput());
 
-    using ResamplerType = itk::ResampleImageFilter<ImageType, ImageType, RealType>;
-    typename ResamplerType::Pointer resampler = ResamplerType::New();
+    typename ImageType::Pointer noiseImage = subtracter->GetOutput();
+    if (shrinkInput)
     {
-      using TransformType = itk::IdentityTransform<RealType, ImageDimension>;
-      typename TransformType::Pointer transform = TransformType::New();
-      transform->SetIdentity();
-      resampler->SetTransform(transform);
+      using ResamplerType = itk::ResampleImageFilter<ImageType, ImageType, RealType>;
+      typename ResamplerType::Pointer resampler = ResamplerType::New();
+      {
+        using TransformType = itk::IdentityTransform<RealType, ImageDimension>;
+        typename TransformType::Pointer transform = TransformType::New();
+        transform->SetIdentity();
+        resampler->SetTransform(transform);
+      }
+      {
+        using LinearInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
+        typename LinearInterpolatorType::Pointer interpolator = LinearInterpolatorType::New();
+        interpolator->SetInputImage(subtracter->GetOutput());
+        resampler->SetInterpolator(interpolator);
+      }
+      resampler->SetOutputParametersFromImage(inputImage);
+      resampler->UseReferenceImageOn();
+      resampler->SetInput(subtracter->GetOutput());
+      resampler->Update();
+      noiseImage = resampler->GetOutput();
     }
-    {
-      using LinearInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, RealType>;
-      typename LinearInterpolatorType::Pointer interpolator = LinearInterpolatorType::New();
-      interpolator->SetInputImage(subtracter->GetOutput());
-      resampler->SetInterpolator(interpolator);
-    }
-    resampler->SetOutputParametersFromImage(inputImage);
-    resampler->UseReferenceImageOn();
-    resampler->SetInput(subtracter->GetOutput());
-
-    typename ImageType::Pointer noiseImage = resampler->GetOutput();
     noiseImage->Update();
     noiseImage->DisconnectPipeline();
 
     // The interpolated noise spreads past the mask edge. Remove it outside the full-resolution mask.
-    if (maskImage && shrinkFactor > 1)
+    if (maskImage && shrinkInput)
     {
       using NoiseMaskerType = itk::MaskImageFilter<ImageType, MaskImageType, ImageType>;
       typename NoiseMaskerType::Pointer noiseMasker = NoiseMaskerType::New();
@@ -484,7 +504,9 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
     std::string description = std::string("Running noise correction on large images can be time consuming. ") +
                               std::string("To lessen computation time, the input image can be resampled. ") +
                               std::string("The shrink factor, specified as a single integer, describes ") +
-                              std::string("this resampling.  Shrink factor = 1 is the default.");
+                              std::string("this resampling.  Shrink factor = 1 is the default.  ") +
+                              std::string("Shrink factors 0 and 1 do not resample the input.  ") +
+                              std::string("A negative shrink factor is an error.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("shrink-factor");
