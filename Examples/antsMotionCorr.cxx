@@ -1140,7 +1140,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         extractFilter2->SetDirectionCollapseToSubmatrix();
         if (ImageDimension == 2)
         {
-          extractFilter->SetDirectionCollapseToIdentity();
+          extractFilter2->SetDirectionCollapseToIdentity();
         }
         extractFilter2->SetExtractionRegion(extractRegion);
         extractFilter2->Update();
