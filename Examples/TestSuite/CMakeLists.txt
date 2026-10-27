@@ -1151,4 +1151,17 @@ endif()
 
 endif()
 
+## antsMotionCorr with three stages on the moving files A, B, A (2D+t series made from r16 and r64).
+if(TARGET antsMotionCorr AND TARGET ImageMath AND TARGET TileImages)
+  add_test(NAME antsMotionCorrStagesTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_MOTION_CORR=$<TARGET_FILE:antsMotionCorr>
+      -DIMAGE_MATH=$<TARGET_FILE:ImageMath>
+      -DTILE_IMAGES=$<TARGET_FILE:TileImages>
+      -DR16_IMAGE=${R16_IMAGE}
+      -DR64_IMAGE=${R64_IMAGE}
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsMotionCorrStagesTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsMotionCorrStagesTest.cmake)
+endif()
+
 ExternalData_add_target( ${PROJECT_NAME}FetchData )  # Name of data management target
