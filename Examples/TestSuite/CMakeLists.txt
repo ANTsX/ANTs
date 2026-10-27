@@ -78,6 +78,14 @@ add_executable(antsRegistrationParameterCountTest antsRegistrationParameterCount
 target_link_libraries(antsRegistrationParameterCountTest antsUtilities ${ITK_LIBRARIES})
 add_test(NAME antsRegistrationParameterCountTest COMMAND antsRegistrationParameterCountTest)
 
+if(TARGET antsApplyTransforms)
+  add_test(NAME antsApplyTransformsTimeSeriesTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_APPLY_TRANSFORMS=$<TARGET_FILE:antsApplyTransforms>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsApplyTransformsTimeSeriesTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsApplyTransformsTimeSeriesTest.cmake)
+endif()
+
 ## Command line parser regression test: an unclosed '[' must raise an error.
 add_executable(antsCommandLineParserTest antsCommandLineParserTest.cxx)
 target_link_libraries(antsCommandLineParserTest antsUtilities)
