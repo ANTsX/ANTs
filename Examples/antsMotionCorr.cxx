@@ -365,6 +365,39 @@ public:
   using TransformType = itk::Euler3DTransform<double>;
 };
 
+enum class MotionCorrStageType
+{
+  Affine,
+  Rigid,
+  GaussianDisplacementField,
+  SyN,
+  Unknown
+};
+
+// Get the stage type from the name of the -t function.
+static MotionCorrStageType
+GetMotionCorrStageType(std::string whichTransform)
+{
+  ConvertToLowerCase(whichTransform);
+  if (whichTransform == "affine")
+  {
+    return MotionCorrStageType::Affine;
+  }
+  if (whichTransform == "rigid")
+  {
+    return MotionCorrStageType::Rigid;
+  }
+  if (whichTransform == "gaussiandisplacementfield" || whichTransform == "gdf")
+  {
+    return MotionCorrStageType::GaussianDisplacementField;
+  }
+  if (whichTransform == "syn")
+  {
+    return MotionCorrStageType::SyN;
+  }
+  return MotionCorrStageType::Unknown;
+}
+
 template <unsigned int ImageDimension>
 class SimilarityTransformTraits
 {
@@ -744,9 +777,51 @@ ants_motion(itk::ants::CommandLineParser * parser)
 
   using AffineTransformType = itk::AffineTransform<RealType, ImageDimension>;
   using AffineRegistrationType = itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType, AffineTransformType>;
+  using RigidTransformType = typename RigidTransformTraits<ImageDimension>::TransformType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   typename DisplacementIOFieldType::Pointer displacementout = nullptr;
   typename DisplacementIOFieldType::Pointer displacementinv = nullptr;
+
+  // The CSV holds one linear transform per time point: the linear stages composed into one
+  // transform. This is correct only if no deformable stage is between two linear stages.
+  std::vector<MotionCorrStageType> stageTypes(numberOfStages);
+  int                              lastLinearStage = -1;
+  bool                             hasAffineStage = false;
+  for (int currentStage = numberOfStages - 1; currentStage >= 0; currentStage--)
+  {
+    const std::string whichTransform = transformOption->GetFunction(currentStage)->GetName();
+    stageTypes[currentStage] = GetMotionCorrStageType(whichTransform);
+    if (stageTypes[currentStage] == MotionCorrStageType::Unknown)
+    {
+      std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
+      return EXIT_FAILURE;
+    }
+    if (stageTypes[currentStage] == MotionCorrStageType::Affine ||
+        stageTypes[currentStage] == MotionCorrStageType::Rigid)
+    {
+      if (lastLinearStage >= 0 && lastLinearStage != currentStage + 1)
+      {
+        std::cerr << "ERROR:  A deformable stage is between linear stages " << numberOfStages - lastLinearStage
+                  << " and " << numberOfStages - currentStage << ". The motion parameters (MOCOparams.csv) hold "
+                  << "the linear stages as one composed transform, so the linear stages must be next to each other."
+                  << std::endl;
+        return EXIT_FAILURE;
+      }
+      lastLinearStage = currentStage;
+      hasAffineStage = hasAffineStage || stageTypes[currentStage] == MotionCorrStageType::Affine;
+    }
+  }
+  const bool hasLinearStage = lastLinearStage >= 0;
+  if (hasAffineStage)
+  {
+    nparams += AffineTransformType::ParametersDimension;
+  }
+  else if (hasLinearStage)
+  {
+    nparams += RigidTransformType::ParametersDimension;
+  }
+  // The composed linear stages of each time point
+  std::vector<typename AffineTransformType::Pointer> linearTransforms;
 
   for (int currentStage = numberOfStages - 1; currentStage >= 0; currentStage--)
   {
@@ -936,6 +1011,19 @@ ants_motion(itk::ants::CommandLineParser * parser)
       typename CompositeTransformType::Pointer compositeTransform = nullptr;
       if (currentStage == static_cast<int>(numberOfStages) - 1)
       {
+        if (timedim == 0)
+        {
+          param_values.set_size(timedims, nparams);
+          param_values.fill(0);
+          if (hasLinearStage)
+          {
+            linearTransforms.resize(timedims);
+            for (auto & linearTransform : linearTransforms)
+            {
+              linearTransform = AffineTransformType::New();
+            }
+          }
+        }
         compositeTransform = CompositeTransformType::New();
         CompositeTransformVector.push_back(compositeTransform);
       }
@@ -1187,8 +1275,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
       //    optimizer->SetMaximumNewtonStepSizeInPhysicalUnits(sqrt(small_step)*learningR);
 
       // Set up the image registration methods along with the transforms
-      std::string whichTransform = transformOption->GetFunction(currentStage)->GetName();
-      ConvertToLowerCase(whichTransform);
+      const MotionCorrStageType stageType = stageTypes[currentStage];
 
       // initialize with moments
       using ImageCalculatorType = typename itk::ImageMomentsCalculator<FixedImageType>;
@@ -1225,7 +1312,7 @@ ants_motion(itk::ants::CommandLineParser * parser)
         trans[i] = moving_center[i] - fixed_center[i];
         trans2[i] = fixed_center[i];
       }
-      if (std::strcmp(whichTransform.c_str(), "affine") == 0)
+      if (stageType == MotionCorrStageType::Affine)
       {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
         if (antsRandomSeed != 0)
@@ -1236,7 +1323,6 @@ ants_motion(itk::ants::CommandLineParser * parser)
         affineTransform->SetIdentity();
         affineTransform->SetOffset(trans);
         affineTransform->SetCenter(trans2);
-        nparams = affineTransform->GetNumberOfParameters() + 2;
         metric->SetFixedImage(preprocessFixedImage);
         metric->SetVirtualDomainFromImage(preprocessFixedImage);
         metric->SetMovingImage(preprocessMovingImage);
@@ -1292,23 +1378,13 @@ ants_motion(itk::ants::CommandLineParser * parser)
         transformWriter->SetUseCompression(true);
 #endif
         //      transformWriter->Update();
-        if (timedim == 0)
-        {
-          param_values.set_size(timedims, nparams);
-          param_values.fill(0);
-        }
-        for (unsigned int i = 0; i < nparams - 2; i++)
-        {
-          param_values(timedim, i + 2) = affineRegistration->GetOutput()->Get()->GetParameters()[i];
-        }
+        linearTransforms[timedim]->Compose(affineRegistration->GetOutput()->Get(), true);
       }
-      else if (std::strcmp(whichTransform.c_str(), "rigid") == 0)
+      else if (stageType == MotionCorrStageType::Rigid)
       {
-        using RigidTransformType = typename RigidTransformTraits<ImageDimension>::TransformType;
         typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
         rigidTransform->SetOffset(trans);
         rigidTransform->SetCenter(trans2);
-        nparams = rigidTransform->GetNumberOfParameters() + 2;
         using RigidRegistrationType =
           itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType, RigidTransformType>;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
@@ -1370,18 +1446,9 @@ ants_motion(itk::ants::CommandLineParser * parser)
         transformWriter->SetUseCompression(true);
 #endif
         //      transformWriter->Update();
-        if (timedim == 0)
-        {
-          param_values.set_size(timedims, nparams);
-          param_values.fill(0);
-        }
-        for (unsigned int i = 0; i < nparams - 2; i++)
-        {
-          param_values(timedim, i + 2) = rigidRegistration->GetOutput()->Get()->GetParameters()[i];
-        }
+        linearTransforms[timedim]->Compose(rigidRegistration->GetOutput()->Get(), true);
       }
-      else if (std::strcmp(whichTransform.c_str(), "gaussiandisplacementfield") == 0 ||
-               std::strcmp(whichTransform.c_str(), "gdf") == 0)
+      else if (stageType == MotionCorrStageType::GaussianDisplacementField)
       {
         RealType sigmaForUpdateField =
           parser->Convert<float>(transformOption->GetFunction(currentStage)->GetParameter(1));
@@ -1458,13 +1525,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
           return EXIT_FAILURE;
         }
         compositeTransform->AddTransform(outputDisplacementFieldTransform);
-        if (timedim == 0)
-        {
-          param_values.set_size(timedims, nparams);
-          param_values.fill(0);
-        }
       }
-      else if (std::strcmp(whichTransform.c_str(), "SyN") == 0 || std::strcmp(whichTransform.c_str(), "syn") == 0)
+      else if (stageType == MotionCorrStageType::SyN)
       {
         RealType sigmaForUpdateField =
           parser->Convert<float>(transformOption->GetFunction(currentStage)->GetParameter(1));
@@ -1580,18 +1642,15 @@ ants_motion(itk::ants::CommandLineParser * parser)
         }
         // Add calculated transform to the composite transform
         compositeTransform->AddTransform(outputDisplacementFieldTransform);
-        if (timedim == 0)
-        {
-          param_values.set_size(timedims, nparams);
-          param_values.fill(0);
-        }
       }
       else
       {
-        std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
+        std::cerr << "ERROR:  Unrecognized transform option - " << transformOption->GetFunction(currentStage)->GetName()
+                  << std::endl;
         return EXIT_FAILURE;
       }
-      if (currentStage == static_cast<int>(numberOfStages) - 1)
+      // The metric of the last stage, which makes the output
+      if (currentStage == 0)
       {
         param_values(timedim, 1) = metric->GetValue();
       }
@@ -1755,6 +1814,23 @@ ants_motion(itk::ants::CommandLineParser * parser)
     std::cout << std::endl
               << "Total elapsed time: " << totalTimer.GetMean() << " averagemetric " << metricmean << std::endl;
   {
+    // Write the composed linear transform of each time point, with its center at the origin.
+    // If all linear stages are rigid, write it as a rigid transform.
+    for (unsigned int timedim = 0; timedim < linearTransforms.size(); timedim++)
+    {
+      typename AffineTransformType::ParametersType linearParameters = linearTransforms[timedim]->GetParameters();
+      if (!hasAffineStage)
+      {
+        typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
+        rigidTransform->SetMatrix(linearTransforms[timedim]->GetMatrix());
+        rigidTransform->SetOffset(linearTransforms[timedim]->GetOffset());
+        linearParameters = rigidTransform->GetParameters();
+      }
+      for (unsigned int i = 0; i < linearParameters.size(); i++)
+      {
+        param_values(timedim, i + 2) = linearParameters[i];
+      }
+    }
     std::vector<std::string> ColumnHeaders;
     std::string              colname;
     colname = std::string("MetricPre");
