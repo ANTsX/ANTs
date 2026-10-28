@@ -252,16 +252,7 @@ CompositeTransformUtil(std::vector<std::string> args, std::ostream * /*out_strea
     PrintGenericUsageStatement();
     return EXIT_FAILURE;
   }
-  std::vector<std::string> transformNames;
-
-  do
-  {
-    std::string transformName(*argv);
-    ++argv;
-    --argc;
-    transformNames.push_back(transformName);
-  } while (argc != 0);
-
+  const std::vector<std::string> transformNames(argv, argv + argc);
   if (transformNames.empty())
   {
     std::cout << "Missing transform names to "

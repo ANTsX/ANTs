@@ -1092,6 +1092,12 @@ foreach(CurrProg ${AllANTSPrograms})
   set_property(TEST ${CurrProg}_HELP_SHORT APPEND PROPERTY DEPENDS ${CurrProg}_HELP_LONG)
 endforeach()
 
+## CompositeTransformUtil --assemble with no input transforms must report it, not crash.
+add_test(NAME CompositeTransformUtil_ASSEMBLE_NO_INPUTS
+  COMMAND CompositeTransformUtil --assemble ${CMAKE_CURRENT_BINARY_DIR}/CompositeTransformUtilNoInputs.h5)
+set_tests_properties(CompositeTransformUtil_ASSEMBLE_NO_INPUTS PROPERTIES
+  PASS_REGULAR_EXPRESSION "Missing transform names")
+
 ## antsMotionCorr: the CSV holds the composed transform of all linear stages.
 add_test(NAME antsMotionCorrMultiStageTest
   COMMAND ${CMAKE_COMMAND}
