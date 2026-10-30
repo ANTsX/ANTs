@@ -2572,7 +2572,7 @@ sccan(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   // which the sccanparser should handle
   args.insert(args.begin(), "sccan");
 
-  std::ignore = std::remove(args.begin(), args.end(), std::string(""));
+  args.erase(std::remove(args.begin(), args.end(), std::string("")), args.end());
   int     argc = args.size();
   std::vector<char *> argvStorage = ArgvFromStrings(args);
   char **             argv = argvStorage.data();

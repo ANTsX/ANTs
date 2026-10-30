@@ -1128,6 +1128,9 @@ add_test(NAME CompositeTransformUtil_ASSEMBLE_NO_INPUTS
 set_tests_properties(CompositeTransformUtil_ASSEMBLE_NO_INPUTS PROPERTIES
   PASS_REGULAR_EXPRESSION "Missing transform names")
 
+## sccan must drop empty arguments before parsing.
+add_test(NAME sccan_EMPTY_ARGUMENT COMMAND sccan "" -h "")
+
 ## antsMotionCorr: the CSV holds the composed transform of all linear stages.
 add_test(NAME antsMotionCorrMultiStageTest
   COMMAND ${CMAKE_COMMAND}
