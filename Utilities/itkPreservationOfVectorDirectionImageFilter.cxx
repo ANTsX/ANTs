@@ -24,6 +24,7 @@
 #include "itkProgressReporter.h"
 #include "itkObjectFactory.h"
 #include "itkVector.h"
+#include "vnl/algo/vnl_determinant.h"
 #include "itkPreservationOfVectorDirectionImageFilter.h"
 
 namespace itk
