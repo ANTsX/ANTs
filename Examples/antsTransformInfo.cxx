@@ -22,6 +22,7 @@
 #include "itkTransformFileReader.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkCompositeTransform.h"
+#include "vnl/algo/vnl_determinant.h"
 
 
 #include <sstream>

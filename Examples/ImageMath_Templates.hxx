@@ -16,6 +16,7 @@
 #include "antsNearestRotation.h"
 #include <algorithm>
 #include <vnl/vnl_inverse.h>
+#include <vnl/algo/vnl_determinant.h>
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 #include "antsAllocImage.h"

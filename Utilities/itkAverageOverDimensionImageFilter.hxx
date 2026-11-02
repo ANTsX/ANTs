@@ -20,6 +20,7 @@
 
 #include "itkImageAlgorithm.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "vnl/algo/vnl_determinant.h"
 #include "itkObjectFactory.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
