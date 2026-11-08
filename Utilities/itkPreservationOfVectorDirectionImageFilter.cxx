@@ -24,7 +24,7 @@
 #include "itkProgressReporter.h"
 #include "itkObjectFactory.h"
 #include "itkVector.h"
-#include "vnl/algo/vnl_determinant.h"
+#include "antsDeterminant.h"
 #include "itkPreservationOfVectorDirectionImageFilter.h"
 
 namespace itk
@@ -139,7 +139,7 @@ PreservationOfVectorDirectionImageFilter<TVectorImage>::GenerateData()
       vnl_svd<double> svd(tmpMat);
       MatrixType R = svd.U() * svd.V().transpose();
 
-      if (vnl_determinant(R) < 0)
+      if (::ants::Determinant(R) < 0)
       {
         MatrixType V = svd.V();
         for (unsigned int i = 0; i < ImageDimension; ++i)

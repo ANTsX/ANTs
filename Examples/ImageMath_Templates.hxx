@@ -16,7 +16,7 @@
 #include "antsNearestRotation.h"
 #include <algorithm>
 #include <vnl/vnl_inverse.h>
-#include <vnl/algo/vnl_determinant.h>
+#include "antsDeterminant.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 #include "antsAllocImage.h"
@@ -6194,7 +6194,7 @@ TensorFunctions(int argc, char * argv[])
 
     typedef vnl_matrix<D4TensorType> MatrixType;
 
-    if ( vnl_determinant(direction.GetVnlMatrix()) > 0 )
+    if ( ::ants::Determinant(direction.GetVnlMatrix()) > 0 )
     {
       reflectX = true;
       std::cout << " image direction has positive determinant, reflecting tensor coordinate system along x-axis " << std::endl;
@@ -6297,7 +6297,7 @@ TensorFunctions(int argc, char * argv[])
 
     bool reflectX = false;
 
-    if ( vnl_determinant(direction.GetVnlMatrix()) > 0 )
+    if ( ::ants::Determinant(direction.GetVnlMatrix()) > 0 )
     {
       reflectX = true;
       std::cout << " image direction has positive determinant, reflecting tensor coordinate system along x-axis " << std::endl;
