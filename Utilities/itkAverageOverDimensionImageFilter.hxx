@@ -20,7 +20,7 @@
 
 #include "itkImageAlgorithm.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include "vnl/algo/vnl_determinant.h"
+#include "antsDeterminant.h"
 #include "itkObjectFactory.h"
 #include "itkProgressReporter.h"
 #include "itkImageRegionIterator.h"
@@ -202,7 +202,7 @@ AverageOverDimensionImageFilter<TInputImage, TOutputImage>::GenerateOutputInform
       break;
       case DIRECTIONCOLLAPSETOSUBMATRIX:
       {
-        if (itk::Math::FloatAlmostEqual(vnl_determinant(outputDirection.GetVnlMatrix()), 0.0))
+        if (itk::Math::FloatAlmostEqual(::ants::Determinant(outputDirection.GetVnlMatrix()), 0.0))
         {
           itkExceptionMacro(<< "Invalid submatrix extracted for collapsed direction.");
         }
@@ -210,7 +210,7 @@ AverageOverDimensionImageFilter<TInputImage, TOutputImage>::GenerateOutputInform
       break;
       case DIRECTIONCOLLAPSETOGUESS:
       {
-        if (itk::Math::FloatAlmostEqual(vnl_determinant(outputDirection.GetVnlMatrix()), 0.0))
+        if (itk::Math::FloatAlmostEqual(::ants::Determinant(outputDirection.GetVnlMatrix()), 0.0))
         {
           outputDirection.SetIdentity();
         }

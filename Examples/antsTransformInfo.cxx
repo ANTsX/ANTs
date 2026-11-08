@@ -22,7 +22,7 @@
 #include "itkTransformFileReader.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkCompositeTransform.h"
-#include "vnl/algo/vnl_determinant.h"
+#include "antsDeterminant.h"
 
 
 #include <sstream>
@@ -132,7 +132,7 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
             if (itktx3d)
             {
               itktx3d->Print(std::cout);
-              std::cout << "Determinant: " << vnl_determinant(itktx3d->GetMatrix().GetVnlMatrix()) << std::endl;
+              std::cout << "Determinant: " << ::ants::Determinant(itktx3d->GetMatrix().GetVnlMatrix()) << std::endl;
             }
             else
             {
@@ -147,7 +147,7 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
           if (itktx3d)
           {
               itktx3d->Print(std::cout);
-              std::cout << "Determinant: " << vnl_determinant(itktx3d->GetMatrix().GetVnlMatrix()) << std::endl;
+              std::cout << "Determinant: " << ::ants::Determinant(itktx3d->GetMatrix().GetVnlMatrix()) << std::endl;
           }
           else
           {
@@ -175,7 +175,7 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
             if (itktx2d)
             {
               itktx2d->Print(std::cout);
-              std::cout << "Determinant: " << vnl_determinant(itktx2d->GetMatrix().GetVnlMatrix()) << std::endl;
+              std::cout << "Determinant: " << ::ants::Determinant(itktx2d->GetMatrix().GetVnlMatrix()) << std::endl;
             }
             else
             {
@@ -190,7 +190,7 @@ antsTransformInfo(std::vector<std::string> args, std::ostream * /*out_stream = n
           if (itktx2d)
           {
             itktx2d->Print(std::cout);
-            std::cout << "Determinant: " << vnl_determinant(itktx2d->GetMatrix().GetVnlMatrix()) << std::endl;
+            std::cout << "Determinant: " << ::ants::Determinant(itktx2d->GetMatrix().GetVnlMatrix()) << std::endl;
           }
           else
           {
