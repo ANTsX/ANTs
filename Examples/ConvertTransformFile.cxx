@@ -29,6 +29,7 @@
 #include "itkIdentityTransform.h"
 
 #include "itkantsReadWriteTransform.h"
+#include "vnl/vnl_diag_matrix.h"
 
 /* Utility to read in a transform file (presumed to be in binary format) and output
  * it in one of several different formats, defaulting to legacy text format for human reading.
