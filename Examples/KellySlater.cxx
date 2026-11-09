@@ -375,8 +375,7 @@ InvertField(typename TField::Pointer field,
   double       mytoler = toler;
   unsigned int mymaxiter = maxiter;
 
-  VectorType zero;
-  zero.Fill(0);
+  VectorType zero{};
   //  if (this->GetElapsedIterations() < 2 ) maxiter=10;
 
   ImagePointer realImage = AllocImage<ImageType>(field);
@@ -603,8 +602,7 @@ LaplacianThicknessExpDiff2(int argc, char * argv[])
   typename ImageType::Pointer             laplacian = SmoothImage<ImageType>(wm, smoothingsigma);
   lapgrad = LaplacianGrad<ImageType, DisplacementFieldType>(wmb, gmb, 1);
 
-  VectorType zero;
-  zero.Fill(0);
+  VectorType                              zero{};
   typename DisplacementFieldType::Pointer corrfield = AllocImage<DisplacementFieldType>(wm, zero);
 
   typename DisplacementFieldType::Pointer incrfield = AllocImage<DisplacementFieldType>(wm, zero);

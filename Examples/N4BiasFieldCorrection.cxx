@@ -208,8 +208,7 @@ N4(itk::ants::CommandLineParser * parser)
       }
       correcter->SetMaximumNumberOfIterations(maximumNumberOfIterations);
 
-      typename CorrecterType::ArrayType numberOfFittingLevels;
-      numberOfFittingLevels.Fill(numIters.size());
+      auto numberOfFittingLevels = CorrecterType::ArrayType::Filled(numIters.size());
       correcter->SetNumberOfFittingLevels(numberOfFittingLevels);
       correcter->SetConvergenceThreshold(0.0);
     }

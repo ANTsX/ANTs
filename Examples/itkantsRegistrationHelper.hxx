@@ -610,8 +610,7 @@ RegistrationHelper<TComputeType, VImageDimension>::CalculateShrinkFactorsPerDime
     }
   }
 
-  ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension;
-  shrinkFactorsPerDimension.Fill(0);
+  ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension{};
   shrinkFactorsPerDimension[minIndex] = factor;
 
   ImageSpacingType newSpacing;
@@ -1045,8 +1044,7 @@ RegistrationHelper<TComputeType, VImageDimension>::DoRegistration()
                                                   CorrelationMetricType;
           typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
           {
-            typename CorrelationMetricType::RadiusType radius;
-            radius.Fill(radiusOption);
+            auto radius = CorrelationMetricType::RadiusType::Filled(radiusOption);
             correlationMetric->SetRadius(radius);
           }
 

@@ -427,10 +427,8 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
   using DPointType = typename TField::PointType;
   using DefaultInterpolatorType = itk::VectorLinearInterpolateImageFunction<TField, float>;
 
-  VectorType zero;
-  zero.Fill(0);
-  VectorType disp;
-  disp.Fill(0);
+  VectorType zero{};
+  VectorType disp{};
   ct = 0;
   DPointType                                            pointIn1;
   DPointType                                            pointIn2;
@@ -491,14 +489,10 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
       }
       //      std::cout << " ind " << index  << std::endl;
       // now index the time varying field at that position.
-      typename DefaultInterpolatorType::OutputType f1;
-      f1.Fill(0);
-      typename DefaultInterpolatorType::OutputType f2;
-      f2.Fill(0);
-      typename DefaultInterpolatorType::OutputType f3;
-      f3.Fill(0);
-      typename DefaultInterpolatorType::OutputType f4;
-      f4.Fill(0);
+      typename DefaultInterpolatorType::OutputType          f1{};
+      typename DefaultInterpolatorType::OutputType          f2{};
+      typename DefaultInterpolatorType::OutputType          f3{};
+      typename DefaultInterpolatorType::OutputType          f4{};
       typename DefaultInterpolatorType::ContinuousIndexType Y1;
       typename DefaultInterpolatorType::ContinuousIndexType Y2;
       typename DefaultInterpolatorType::ContinuousIndexType Y3;
@@ -809,8 +803,7 @@ LaplacianThickness(int argc, char * argv[])
   {
     sinterp->SetInputImage(sulci);
   }
-  VectorType zero;
-  zero.Fill(0);
+  VectorType zero{};
 
   using VIteratorType = itk::ImageRegionIteratorWithIndex<DisplacementFieldType>;
   VIteratorType VIterator(lapgrad, lapgrad->GetLargestPossibleRegion().GetSize());
@@ -864,12 +857,11 @@ LaplacianThickness(int argc, char * argv[])
         unsigned long ct = 0;
         bool          timedone = false;
 
-        VectorType disp;
-        disp.Fill(0.0);
-        double deltaTime = dT, vecsign = 1.0;
-        bool   domeasure = false;
-        float  gradsign = 1.0;
-        bool   printprobability = false;
+        VectorType disp{};
+        double     deltaTime = dT, vecsign = 1.0;
+        bool       domeasure = false;
+        float      gradsign = 1.0;
+        bool       printprobability = false;
         //    std::cout << " wmb " << wmb->GetPixel(velind) << " gm " << gm->GetPixel(velind) << std::endl;
         //    if (surf->GetPixel(velind) != 0) printprobability=true;
         if (gm->GetPixel(velind) > 0.25f) // && wmb->GetPixel(velind) < 1 )

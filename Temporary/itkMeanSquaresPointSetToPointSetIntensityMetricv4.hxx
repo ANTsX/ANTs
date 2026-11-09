@@ -192,8 +192,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
   {
     PointIdentifier pointId = this->m_MovingTransformedPointsLocator->FindClosestPoint(ItF.Value());
 
-    PointType closestPoint;
-    closestPoint.Fill(0.0);
+    PointType closestPoint{};
     closestPoint = this->m_MovingTransformedPointSet->GetPoint(pointId);
 
     TInternalComputationValueType distance = closestPoint.EuclideanDistanceTo(ItF.Value());
@@ -336,8 +335,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
     }
   }
 
-  PointType closestPoint;
-  closestPoint.Fill(0.0);
+  PointType closestPoint{};
   closestPoint = this->m_MovingTransformedPointSet->GetPoint(pointId);
 
   // the probabilistic icp term
@@ -389,8 +387,7 @@ MeanSquaresPointSetToPointSetIntensityMetricv4<TFixedPointSet, TMovingPointSet, 
     }
   }
 
-  PointType closestPoint;
-  closestPoint.Fill(0.0);
+  PointType closestPoint{};
   closestPoint = this->m_MovingTransformedPointSet->GetPoint(pointId);
 
   // the probabilistic icp term

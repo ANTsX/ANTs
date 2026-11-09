@@ -357,8 +357,7 @@ WarpImageMultiTransform(char *           moving_image_filename,
 
   typename WarperType::Pointer warper = WarperType::New();
   warper->SetInput(img_mov);
-  PixelType zero;
-  zero.Fill(0);
+  PixelType zero{};
   warper->SetEdgePaddingValue(zero);
 
   if (misc_opt.use_NN_interpolator)

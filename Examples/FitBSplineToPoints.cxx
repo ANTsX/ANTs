@@ -264,8 +264,7 @@ FitBSplineCurveToPoints(unsigned int argc, char * argv[])
   filter->SetInput(pointSet);
   filter->SetGenerateOutputImage(true);
 
-  typename CurveImageType::PointType origin;
-  origin.Fill(0.0);
+  typename CurveImageType::PointType origin{};
   filter->SetOrigin(origin);
   typename CurveImageType::SpacingType spacing;
   spacing[0] = 0.001;

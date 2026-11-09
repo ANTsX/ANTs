@@ -146,8 +146,7 @@ public:
     // deformation fields too
     if (!this->m_DisplacementField)
     {
-      VectorType zero;
-      zero.Fill(0);
+      VectorType zero{};
       this->m_DisplacementField = DisplacementFieldType::New();
       /*      m_DeformationRegionOfInterest.SetSize( m_DeformationRegionOfInterestSize );
             this->m_DisplacementField->SetSpacing( m_DeformationRegionSpacing );

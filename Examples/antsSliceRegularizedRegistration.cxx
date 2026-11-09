@@ -670,9 +670,8 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
 
           using CorrelationMetricType =
             itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType, FixedImageType>;
-          typename CorrelationMetricType::Pointer    correlationMetric = CorrelationMetricType::New();
-          typename CorrelationMetricType::RadiusType radius;
-          radius.Fill(radiusOption);
+          typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
+          auto                                    radius = CorrelationMetricType::RadiusType::Filled(radiusOption);
           correlationMetric->SetRadius(radius);
           correlationMetric->SetUseMovingImageGradientFilter(false);
           correlationMetric->SetUseFixedImageGradientFilter(false);
@@ -938,8 +937,7 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
     displacementinv->CopyInformation(displacementout);
     displacementinv->SetRegions(displacementout->GetRequestedRegion());
     displacementinv->AllocateInitialized();
-    typename DisplacementIOFieldType::IndexType dind;
-    dind.Fill(0);
+    typename DisplacementIOFieldType::IndexType dind{};
     displacementinv->FillBuffer(displacementout->GetPixel(dind));
     for (unsigned int timedim = 0; timedim < timedims; timedim++)
     {
@@ -969,10 +967,9 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
       Iterator vfIter2(resampler->GetOutput(), resampler->GetOutput()->GetLargestPossibleRegion());
       for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
       {
-        typename FixedImageType::PixelType fval = vfIter2.Get();
-        VectorType                         vec = converter->GetOutput()->GetPixel(vfIter2.GetIndex());
-        VectorIOType                       vecout;
-        vecout.Fill(0);
+        typename FixedImageType::PixelType    fval = vfIter2.Get();
+        VectorType                            vec = converter->GetOutput()->GetPixel(vfIter2.GetIndex());
+        VectorIOType                          vecout{};
         typename MovingIOImageType::IndexType ind;
         for (itk::SizeValueType xx = 0; xx < ImageDimension - 1; xx++)
         {
@@ -1023,9 +1020,8 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
       Iterator vfIter2(resampler->GetOutput(), resampler->GetOutput()->GetLargestPossibleRegion());
       for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
       {
-        VectorType   vec = converter->GetOutput()->GetPixel(vfIter2.GetIndex());
-        VectorIOType vecout;
-        vecout.Fill(0);
+        VectorType                            vec = converter->GetOutput()->GetPixel(vfIter2.GetIndex());
+        VectorIOType                          vecout{};
         typename MovingIOImageType::IndexType ind;
         for (itk::SizeValueType xx = 0; xx < ImageDimension - 1; xx++)
         {

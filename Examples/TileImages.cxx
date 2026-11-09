@@ -127,8 +127,7 @@ CreateMosaic(unsigned int argc, char * argv[])
 
   for (unsigned int n = 0; n < numberOfSlices; n++)
   {
-    ImageType::IndexType index;
-    index.Fill(0);
+    ImageType::IndexType index{};
     index[layout[0]] = static_cast<int>(n);
     region.SetIndex(index);
     region.SetSize(size);

@@ -29,9 +29,8 @@ AverageTensorImages(unsigned int argc, char * argv[])
   typename ImageType::Pointer averageimage = nullptr;
   typename ImageType::Pointer image2 = nullptr;
 
-  typename ImageType::SizeType size;
-  size.Fill(0);
-  unsigned int bigimage = 0;
+  typename ImageType::SizeType size{};
+  unsigned int                 bigimage = 0;
   for (unsigned int j = 4; j < argc; j++)
   {
     // Get the image dimension

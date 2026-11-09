@@ -411,8 +411,7 @@ GetAffineTransformFromImage(const typename ImageType::Pointer & img, typename Af
 
   aff->SetMatrix(direction);
   // aff->SetCenter(pt);
-  PointType pt;
-  pt.Fill(0);
+  PointType pt{};
   aff->SetOffset(translation);
   aff->SetCenter(pt);
 

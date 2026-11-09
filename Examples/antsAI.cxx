@@ -347,14 +347,12 @@ GetBlobCorrespondenceMatrix(typename TImage::Pointer            fixedImage,
   correspondenceMatrix.set_size(fixedBlobs.size(), movingBlobs.size());
   correspondenceMatrix.fill(0);
 
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(radiusValue);
+  auto radius = NeighborhoodIteratorType::RadiusType::Filled(radiusValue);
 
   NeighborhoodIteratorType ItF(radius, fixedImage, fixedImage->GetLargestPossibleRegion());
   NeighborhoodIteratorType ItM(radius, movingImage, movingImage->GetLargestPossibleRegion());
 
-  IndexType zeroIndex;
-  zeroIndex.Fill(radiusValue);
+  auto zeroIndex = IndexType::Filled(radiusValue);
   ItF.SetLocation(zeroIndex);
 
   std::vector<unsigned int> activeIndex;

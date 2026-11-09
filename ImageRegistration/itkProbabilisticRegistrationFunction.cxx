@@ -790,12 +790,11 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   typename TDisplacementField::PixelType /* vec */)
 {
   using DisplacementFieldVectorType = typename TDisplacementField::PixelType;
-  DisplacementFieldVectorType deriv;
-  deriv.Fill(0.0);
-  double              sff = 0.0;
-  double              smm = 0.0;
-  double              sfm = 0.0;
-  CovariantVectorType gradI;
+  DisplacementFieldVectorType deriv{};
+  double                      sff = 0.0;
+  double                      smm = 0.0;
+  double                      sfm = 0.0;
+  CovariantVectorType         gradI;
   if (this->m_FixedImageMask)
   {
     if (this->m_FixedImageMask->GetPixel(oindex) < static_cast<typename FixedImageType::PixelType>(0.25))
@@ -867,12 +866,11 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   IndexType oindex,
   typename TDisplacementField::PixelType /* vec */)
 {
-  typename TDisplacementField::PixelType deriv;
-  deriv.Fill(0.0);
-  double              sff = 0.0;
-  double              smm = 0.0;
-  double              sfm = 0.0;
-  CovariantVectorType gradJ;
+  typename TDisplacementField::PixelType deriv{};
+  double                                 sff = 0.0;
+  double                                 smm = 0.0;
+  double                                 sfm = 0.0;
+  CovariantVectorType                    gradJ;
   if (this->m_FixedImageMask)
   {
     if (this->m_FixedImageMask->GetPixel(oindex) < static_cast<typename FixedImageType::PixelType>(0.25))

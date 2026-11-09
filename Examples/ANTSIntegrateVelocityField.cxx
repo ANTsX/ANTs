@@ -74,8 +74,7 @@ IntegrateVelocityField(int argc, char * argv[])
   typename tvt::Pointer timeVaryingVelocity;
   ReadImage<tvt>(timeVaryingVelocity, vectorfn.c_str());
 
-  VectorType zero;
-  zero.Fill(0);
+  VectorType                              zero{};
   typename DisplacementFieldType::Pointer deformation = AllocImage<DisplacementFieldType>(image, zero);
 
   if (!timeVaryingVelocity)

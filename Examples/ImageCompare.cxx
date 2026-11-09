@@ -183,10 +183,8 @@ RegressionTestImage(const char * testImageFilename,
     using ExtractType = itk::ExtractImageFilter<OutputType, DiffOutputType>;
     using WriterType = itk::ImageFileWriter<DiffOutputType>;
     using RegionType = itk::ImageRegion<6>;
-    OutputType::IndexType index;
-    index.Fill(0);
-    OutputType::SizeType size;
-    size.Fill(0);
+    OutputType::IndexType index{};
+    OutputType::SizeType  size{};
 
     RescaleType::Pointer rescale = RescaleType::New();
     rescale->SetOutputMinimum(itk::NumericTraits<unsigned char>::NonpositiveMin());

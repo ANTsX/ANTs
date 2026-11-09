@@ -380,11 +380,10 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   IndexType oindex,
   typename TDisplacementField::PixelType /* vec */)
 {
-  typename TDisplacementField::PixelType deriv;
-  deriv.Fill(0.0);
-  double sff = 0.0;
-  double smm = 0.0;
-  double sfm = 0.0;
+  typename TDisplacementField::PixelType deriv{};
+  double                                 sff = 0.0;
+  double                                 smm = 0.0;
+  double                                 sfm = 0.0;
   //  double fixedValue;
   //  double movingValue;
   CovariantVectorType gradI;
@@ -444,12 +443,11 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   IndexType oindex,
   typename TDisplacementField::PixelType /* vec */)
 {
-  typename TDisplacementField::PixelType deriv;
-  deriv.Fill(0.0);
-  double              sff = 0.0;
-  double              smm = 0.0;
-  double              sfm = 0.0;
-  CovariantVectorType gradJ;
+  typename TDisplacementField::PixelType deriv{};
+  double                                 sff = 0.0;
+  double                                 smm = 0.0;
+  double                                 sfm = 0.0;
+  CovariantVectorType                    gradJ;
   if (this->m_FixedImageMask)
   {
     if (this->m_FixedImageMask->GetPixel(oindex) < static_cast<typename TFixedImage::PixelType>(0.25))
