@@ -427,7 +427,6 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
   using DPointType = typename TField::PointType;
   using DefaultInterpolatorType = itk::VectorLinearInterpolateImageFunction<TField, float>;
 
-  VectorType zero{};
   VectorType disp{};
   ct = 0;
   DPointType                                            pointIn1;
@@ -803,7 +802,6 @@ LaplacianThickness(int argc, char * argv[])
   {
     sinterp->SetInputImage(sulci);
   }
-  VectorType zero{};
 
   using VIteratorType = itk::ImageRegionIteratorWithIndex<DisplacementFieldType>;
   VIteratorType VIterator(lapgrad, lapgrad->GetLargestPossibleRegion().GetSize());
@@ -857,11 +855,10 @@ LaplacianThickness(int argc, char * argv[])
         unsigned long ct = 0;
         bool          timedone = false;
 
-        VectorType disp{};
-        double     deltaTime = dT, vecsign = 1.0;
-        bool       domeasure = false;
-        float      gradsign = 1.0;
-        bool       printprobability = false;
+        double deltaTime = dT, vecsign = 1.0;
+        bool   domeasure = false;
+        float  gradsign = 1.0;
+        bool   printprobability = false;
         //    std::cout << " wmb " << wmb->GetPixel(velind) << " gm " << gm->GetPixel(velind) << std::endl;
         //    if (surf->GetPixel(velind) != 0) printprobability=true;
         if (gm->GetPixel(velind) > 0.25f) // && wmb->GetPixel(velind) < 1 )

@@ -454,7 +454,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComposeDiffs(DisplacementFiel
 
   if (!fieldout)
   {
-    VectorType zero{};
     fieldout = AllocImage<DisplacementFieldType>(fieldtowarpby);
   }
   typedef typename DisplacementFieldType::PixelType DispVectorType;

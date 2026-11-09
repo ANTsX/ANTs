@@ -1173,7 +1173,6 @@ public:
     DisplacementFieldPointer updateField = nullptr;
 
     this->SetUpParameters();
-    VectorType zero{};
     std::cout << " setting N-TimeSteps = " << this->m_NTimeSteps << " trunc " << this->m_GaussianTruncation
               << std::endl;
 
@@ -1762,7 +1761,6 @@ public:
 
   void ElasticRegistrationUpdate(ImagePointer /* fixedImage */, ImagePointer /* xxxxmovingImage */)
   {
-    VectorType               zero{};
     DisplacementFieldPointer updateField;
 
     updateField = this->ComputeUpdateField(this->m_DisplacementField, nullptr, nullptr, nullptr, nullptr);

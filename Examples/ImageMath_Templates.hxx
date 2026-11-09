@@ -13978,7 +13978,6 @@ BlobDetector(int argc, char * argv[])
   // std::cout << " Blob1Length " << blobs1.size() << " Blob2Length " << blobs2.size() << std::endl;
   // now compute some feature characteristics in each blob
   typedef typename ImageType::IndexType IndexType;
-  auto                                  zeroind = IndexType::Filled(radval);
   BlobPointer                           bestblob = nullptr;
   if ((!blobs2.empty()) && (!blobs1.empty()))
   {
