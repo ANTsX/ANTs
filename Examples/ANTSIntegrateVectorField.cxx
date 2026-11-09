@@ -116,10 +116,7 @@ IntegrateLength(typename TImage::Pointer gmsurf,
   using DPointType = typename TField::PointType;
   using DefaultInterpolatorType = itk::VectorLinearInterpolateImageFunction<TField, float>;
 
-  VectorType zero;
-  zero.Fill(0);
-  VectorType disp;
-  disp.Fill(0);
+  VectorType                                            disp{};
   unsigned int                                          ct = 0;
   DPointType                                            pointIn1;
   DPointType                                            pointIn2;
@@ -167,14 +164,10 @@ IntegrateLength(typename TImage::Pointer gmsurf,
     }
     //      std::cout << " ind " << index  << std::endl;
     // now index the time varying field at that position.
-    typename DefaultInterpolatorType::OutputType f1;
-    f1.Fill(0);
-    typename DefaultInterpolatorType::OutputType f2;
-    f2.Fill(0);
-    typename DefaultInterpolatorType::OutputType f3;
-    f3.Fill(0);
-    typename DefaultInterpolatorType::OutputType f4;
-    f4.Fill(0);
+    typename DefaultInterpolatorType::OutputType f1{};
+    typename DefaultInterpolatorType::OutputType f2{};
+    typename DefaultInterpolatorType::OutputType f3{};
+    typename DefaultInterpolatorType::OutputType f4{};
 
     using ContinuousIndexType = typename DefaultInterpolatorType::ContinuousIndexType;
     ContinuousIndexType Y1;
@@ -340,8 +333,7 @@ IntegrateVectorField(int argc, char * argv[])
   float  starttime = timezero; // timezero;
   float  finishtime = timeone; // s[ImageDimension]-1;//timeone;
 
-  typename DisplacementFieldType::IndexType velind;
-  float                                     timesign = 1.0;
+  float timesign = 1.0;
   if (starttime > finishtime)
   {
     timesign = -1.0;
@@ -351,8 +343,6 @@ IntegrateVectorField(int argc, char * argv[])
   using DefaultInterpolatorType = itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float>;
   typename DefaultInterpolatorType::Pointer vinterp = DefaultInterpolatorType::New();
   using ScalarInterpolatorType = itk::LinearInterpolateImageFunction<ImageType, float>;
-  VectorType zero;
-  zero.Fill(0);
 
   using VIteratorType = itk::ImageRegionIteratorWithIndex<DisplacementFieldType>;
   VIteratorType VIterator(VECimage, VECimage->GetLargestPossibleRegion().GetSize());
@@ -377,10 +367,8 @@ IntegrateVectorField(int argc, char * argv[])
   Iterator.GoToBegin();
   while (!Iterator.IsAtEnd())
   {
-    velind = Iterator.GetIndex();
+    const auto velind = Iterator.GetIndex();
     float      itime = starttime;
-    VectorType disp;
-    disp.Fill(0.0);
     if (itk::Math::FloatAlmostEqual(ROIimage->GetPixel(velind), static_cast<PixelType>(2)))
     {
       vinterp->SetInputImage(VECimage);

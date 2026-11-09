@@ -172,7 +172,6 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::Co
   // Get fixed image related information
   double              fixedValue;
   CovariantVectorType gradient;
-  CovariantVectorType mgradient;
   double              gradientSquaredMagnitude = 0;
 
   // Note: no need to check the index is within
@@ -184,7 +183,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::Co
 
   gradient = m_FixedImageGradientCalculator->EvaluateAtIndex(index);
 
-  mgradient = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
+  const CovariantVectorType mgradient = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
   for (j = 0; j < ImageDimension; j++)
   {
     if (this->m_UseMovingImageGradient)
@@ -262,7 +261,6 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::Co
 
   // Get fixed image related information
   double              fixedValue;
-  CovariantVectorType gradient;
   double              gradientSquaredMagnitude = 0;
 
   // Note: no need to check the index is within
@@ -274,7 +272,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>::Co
 
   //    gradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
 
-  gradient = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
+  const CovariantVectorType gradient = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
   for (j = 0; j < ImageDimension; j++)
   {
     gradientSquaredMagnitude += itk::Math::sqr(gradient[j]);

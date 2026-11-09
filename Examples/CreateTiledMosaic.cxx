@@ -272,8 +272,7 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
     {
       float maxComponentValue = 0.0;
 
-      ImageType::IndexType index;
-      index.Fill(0);
+      ImageType::IndexType index{};
       ImageType::PointType pointOrigin;
       inputImage->TransformIndexToPhysicalPoint(index, pointOrigin);
 
@@ -681,8 +680,7 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
 
     std::cout << "Processing slice " << whichSlice << std::endl;
 
-    ImageType::IndexType index;
-    index.Fill(0);
+    ImageType::IndexType index{};
     index[direction] = static_cast<int>(whichSlice);
     region.SetIndex(index);
     region.SetSize(size);
@@ -841,8 +839,7 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
           rgbPadder->SetInput(rgbExtracter->GetOutput());
           rgbPadder->SetPadLowerBound(lowerBound);
           rgbPadder->SetPadUpperBound(upperBound);
-          RgbPixelType rgbPadValue;
-          rgbPadValue.Fill(padValue);
+          auto rgbPadValue = itk::MakeFilled<RgbPixelType>(padValue);
           rgbPadder->SetConstant(rgbPadValue);
 
           outputRgbSlice = rgbPadder->GetOutput();

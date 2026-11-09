@@ -57,9 +57,8 @@ ReadLabeledPointSetFromImage(typename ImageType::Pointer                  image,
 
   for (unsigned int n = 0; n < labels.size(); n++)
   {
-    typename ImageType::PixelType    currentLabel = labels[n];
-    typename PointSetType::PointType center;
-    center.Fill(0);
+    typename ImageType::PixelType                       currentLabel = labels[n];
+    typename PointSetType::PointType                    center{};
     float                                               N = 0;
     typename PointSetType::PointsContainerConstIterator ItP = allPoints->GetPoints()->Begin();
     typename PointSetType::PointDataContainerIterator   ItD = allPoints->GetPointData()->Begin();
@@ -469,8 +468,7 @@ InitializeBSplineTransform(int argc, char * argv[])
   }
 
 
-  typename BSplineFilterType::ArrayType ncps;
-  ncps.Fill(1 + splineOrder);
+  auto ncps = BSplineFilterType::ArrayType::Filled(1 + splineOrder);
 
   if (argc > 6)
   {

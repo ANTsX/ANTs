@@ -64,12 +64,9 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   // first, the shape histogram --- 0,0 origin and spacing of 1
   if (!this->m_JointHistogramImages[0])
   {
-    typename JointHistogramImageType::SpacingType spacing;
-    spacing.Fill(1);
-    typename JointHistogramImageType::PointType origin;
-    origin.Fill(0);
-    typename JointHistogramImageType::SizeType size;
-    size.Fill(this->m_NumberOfShapeJointHistogramBins);
+    auto spacing = itk::MakeFilled<typename JointHistogramImageType::SpacingType>(1);
+    typename JointHistogramImageType::PointType origin{};
+    auto size = JointHistogramImageType::SizeType::Filled(this->m_NumberOfShapeJointHistogramBins);
     this->m_JointHistogramImages[0] = AllocImage<JointHistogramImageType>(size);
     this->m_JointHistogramImages[0]->SetOrigin(origin);
     this->m_JointHistogramImages[0]->SetSpacing(spacing);
@@ -178,12 +175,9 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   //  need to be careful for wrap around in the 0 to 2*pi case.
   if (!this->m_JointHistogramImages[whichHistogram])
   {
-    typename JointHistogramImageType::SpacingType spacing2;
-    spacing2.Fill(1);
-    typename JointHistogramImageType::PointType origin2;
-    origin2.Fill(0);
-    typename JointHistogramImageType::SizeType size2;
-    size2.Fill(this->m_NumberOfOrientationJointHistogramBins);
+    auto spacing2 = itk::MakeFilled<typename JointHistogramImageType::SpacingType>(1);
+    typename JointHistogramImageType::PointType origin2{};
+    auto size2 = JointHistogramImageType::SizeType::Filled(this->m_NumberOfOrientationJointHistogramBins);
     size2[0] = size2[0] + 2;
     this->m_JointHistogramImages[whichHistogram] = AllocImage<JointHistogramImageType>(size2);
 

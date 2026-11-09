@@ -132,8 +132,7 @@ TransformVector(TDisplacementField * field, typename TImage::IndexType index)
   };
   typename TDisplacementField::PixelType vec = field->GetPixel(index);
   /* buggy code from before */
-  typename TDisplacementField::PixelType newvec;
-  newvec.Fill(0);
+  typename TDisplacementField::PixelType newvec{};
   for (unsigned int row = 0; row < ImageDimension; row++)
   {
     for (unsigned int col = 0; col < ImageDimension; col++)

@@ -32,10 +32,8 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>::FMarchingImageFilter()
 {
   this->ProcessObject::SetNumberOfRequiredInputs(0);
 
-  OutputSizeType outputSize;
-  outputSize.Fill(16);
-  typename LevelSetImageType::IndexType outputIndex;
-  outputIndex.Fill(0);
+  constexpr auto                        outputSize = OutputSizeType::Filled(16);
+  typename LevelSetImageType::IndexType outputIndex{};
 
   this->m_OutputRegion.SetSize(outputSize);
   this->m_OutputRegion.SetIndex(outputIndex);
@@ -155,8 +153,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>::Initialize(LevelSetImageType * out
   this->m_BufferedRegion = output->GetBufferedRegion();
   this->m_StartIndex = this->m_BufferedRegion.GetIndex();
   this->m_LastIndex = this->m_StartIndex + this->m_BufferedRegion.GetSize();
-  typename LevelSetImageType::OffsetType offset;
-  offset.Fill(1);
+  constexpr auto offset = itk::MakeFilled<typename LevelSetImageType::OffsetType>(1);
   this->m_LastIndex -= offset;
 
   // allocate memory for the LabelImage
@@ -367,8 +364,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>::GenerateData()
         if (strictTopologyViolation)
         {
           // check for handles
-          typename NeighborhoodIteratorType::RadiusType radius;
-          radius.Fill(1);
+          constexpr auto           radius = NeighborhoodIteratorType::RadiusType::Filled(1);
           NeighborhoodIteratorType ItL(radius, this->m_LabelImage, this->m_LabelImage->GetBufferedRegion());
           ItL.SetLocation(node.GetIndex());
           NeighborhoodIterator<ConnectedComponentImageType> ItC(
@@ -437,8 +433,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>::GenerateData()
       typename ConnectedComponentImageType::PixelType neighborhoodLabel =
         NumericTraits<typename ConnectedComponentImageType::PixelType>::ZeroValue();
 
-      typename NeighborhoodIteratorType::RadiusType radius;
-      radius.Fill(1);
+      constexpr auto                                    radius = NeighborhoodIteratorType::RadiusType::Filled(1);
       NeighborhoodIterator<ConnectedComponentImageType> ItC(
         radius, this->m_ConnectedComponentImage, this->m_ConnectedComponentImage->GetBufferedRegion());
       ItC.SetLocation(node.GetIndex());
@@ -667,8 +662,7 @@ template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>::DoesVoxelChangeViolateStrictTopology(IndexType idx)
 {
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto           radius = NeighborhoodIteratorType::RadiusType::Filled(1);
   NeighborhoodIteratorType It(radius, this->m_LabelImage, this->m_LabelImage->GetBufferedRegion());
   It.SetLocation(idx);
 
@@ -702,8 +696,7 @@ template <typename TLevelSet, typename TSpeedImage>
 bool
 FMarchingImageFilter<TLevelSet, TSpeedImage>::IsChangeWellComposed2D(IndexType idx)
 {
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto           radius = NeighborhoodIteratorType::RadiusType::Filled(1);
   NeighborhoodIteratorType It(radius, this->m_LabelImage, this->m_LabelImage->GetBufferedRegion());
   It.SetLocation(idx);
 
@@ -865,8 +858,7 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>::IsChangeWellComposed3D(IndexType i
 {
   Array<short> neighborhoodPixels(8);
 
-  typename NeighborhoodIteratorType::RadiusType radius;
-  radius.Fill(1);
+  constexpr auto           radius = NeighborhoodIteratorType::RadiusType::Filled(1);
   NeighborhoodIteratorType It(radius, this->m_LabelImage, this->m_LabelImage->GetRequestedRegion());
   It.SetLocation(idx);
   // Check for C1 critical configurations

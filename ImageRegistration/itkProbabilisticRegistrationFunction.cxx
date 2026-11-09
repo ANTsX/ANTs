@@ -790,12 +790,10 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   typename TDisplacementField::PixelType /* vec */)
 {
   using DisplacementFieldVectorType = typename TDisplacementField::PixelType;
-  DisplacementFieldVectorType deriv;
-  deriv.Fill(0.0);
-  double              sff = 0.0;
-  double              smm = 0.0;
-  double              sfm = 0.0;
-  CovariantVectorType gradI;
+  DisplacementFieldVectorType deriv{};
+  double                      sff = 0.0;
+  double                      smm = 0.0;
+  double                      sfm = 0.0;
   if (this->m_FixedImageMask)
   {
     if (this->m_FixedImageMask->GetPixel(oindex) < static_cast<typename FixedImageType::PixelType>(0.25))
@@ -824,7 +822,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   {
     smm = itk::NumericTraits<double>::OneValue();
   }
-  gradI = m_FixedImageGradientCalculator->EvaluateAtIndex(index);
+  const CovariantVectorType gradI = m_FixedImageGradientCalculator->EvaluateAtIndex(index);
   //    gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
 
   float Ji = finitediffimages[1]->GetPixel(index);
@@ -867,12 +865,10 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   IndexType oindex,
   typename TDisplacementField::PixelType /* vec */)
 {
-  typename TDisplacementField::PixelType deriv;
-  deriv.Fill(0.0);
-  double              sff = 0.0;
-  double              smm = 0.0;
-  double              sfm = 0.0;
-  CovariantVectorType gradJ;
+  typename TDisplacementField::PixelType deriv{};
+  double                                 sff = 0.0;
+  double                                 smm = 0.0;
+  double                                 sfm = 0.0;
   if (this->m_FixedImageMask)
   {
     if (this->m_FixedImageMask->GetPixel(oindex) < static_cast<typename FixedImageType::PixelType>(0.25))
@@ -902,7 +898,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   }
 
   // /gradI = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
-  gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
+  const CovariantVectorType gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
 
   float Ji = finitediffimages[1]->GetPixel(index);
   float Ii = finitediffimages[0]->GetPixel(index);

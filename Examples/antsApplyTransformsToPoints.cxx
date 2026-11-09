@@ -89,10 +89,8 @@ antsApplyTransformsToPoints(itk::ants::CommandLineParser::Pointer & parser)
     {
       std::string fn1 = inputOption->GetFunction(0)->GetName();
       ReadImage<ImageType>(pointimage, fn1.c_str());
-      typename ImageType::IndexType ind;
-      ind.Fill(0);
-      typename ImageType::SizeType sz;
-      sz.Fill(0);
+      typename ImageType::IndexType ind{};
+      typename ImageType::SizeType  sz{};
       sz = pointimage->GetLargestPossibleRegion().GetSize();
       points_in.set_size(sz[0], sz[1]);
       points_out.set_size(points_in.rows(), points_in.cols());
@@ -221,10 +219,8 @@ antsApplyTransformsToPoints(itk::ants::CommandLineParser::Pointer & parser)
       }
       if ((strcmp(exto.c_str(), ".mha") == 0 || forANTsR) && (!pointimage.IsNull()))
       {
-        typename ImageType::IndexType ind;
-        ind.Fill(0);
-        typename ImageType::SizeType sz;
-        sz.Fill(0);
+        typename ImageType::IndexType ind{};
+        typename ImageType::SizeType  sz{};
         sz = pointimage->GetLargestPossibleRegion().GetSize();
         if (sz[0] != points_out.rows() || sz[1] != points_out.cols())
         {

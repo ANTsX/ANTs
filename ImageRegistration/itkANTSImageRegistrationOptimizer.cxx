@@ -230,8 +230,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::SmoothDisplacementFieldGauss(
     }
     if (onboundary)
     {
-      DispVectorType vec;
-      vec.Fill(0.0);
+      DispVectorType vec{};
       outIter.Set(vec);
     }
     else
@@ -332,8 +331,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::SmoothVelocityGauss(TimeVaryi
     }
     if (onboundary)
     {
-      TVVFVectorType vec;
-      vec.Fill(0.0);
+      TVVFVectorType vec{};
       outIter.Set(vec);
     }
     else
@@ -384,8 +382,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::SmoothDisplacementFieldBSplin
 
     numberofcontrolpoints[d] = static_cast<unsigned int>(meshsize[d]) + splineorder;
   }
-  VectorType zeroVector;
-  zeroVector.Fill(0.0);
+  VectorType zeroVector{};
 
   //  typedef VectorImageFileWriter<DisplacementFieldType, ImageType>
   //    DisplacementFieldWriterType;
@@ -457,8 +454,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComposeDiffs(DisplacementFiel
 
   if (!fieldout)
   {
-    VectorType zero;
-    zero.Fill(0);
     fieldout = AllocImage<DisplacementFieldType>(fieldtowarpby);
   }
   typedef typename DisplacementFieldType::PixelType DispVectorType;
@@ -573,10 +568,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::ComputeUpdateField(Displaceme
 
   // /     std::cout << " get upd field " << std::endl;
   typename ImageType::SpacingType spacing = fixedwarp->GetSpacing();
-  VectorType                      zero;
-  zero.Fill(0);
-  DisplacementFieldPointer updateField;
-  DisplacementFieldPointer updateFieldInv;
+  VectorType                      zero{};
+  DisplacementFieldPointer        updateField;
+  DisplacementFieldPointer        updateFieldInv;
 
   DisplacementFieldPointer totalUpdateField = AllocImage<DisplacementFieldType>(fixedwarp, zero);
 
@@ -1893,15 +1887,13 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::UpdateTimeVaryingVelocityFiel
       }
     }
   }
-  VectorType zero;
-  zero.Fill(0);
+  VectorType zero{};
   if (generatetvfield)
   {
     typename tvt::RegionType  gregion;
     typename tvt::SizeType    gsize;
     typename tvt::SpacingType gspace;
-    typename tvt::PointType   gorigin;
-    gorigin.Fill(0);
+    typename tvt::PointType   gorigin{};
     for (unsigned int dim = 0; dim < TDimension; dim++)
     {
       gsize[dim] = this->m_CurrentDomainSize[dim];
@@ -1914,8 +1906,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::UpdateTimeVaryingVelocityFiel
 
     /** The TV Field has the direction of the sub-image -- the time domain
         has identity transform */
-    typename tvt::DirectionType iddir;
-    iddir.Fill(0);
+    typename tvt::DirectionType iddir{};
     iddir[ImageDimension][ImageDimension] = 1;
     for (unsigned int i = 0; i < ImageDimension + 1; i++)
     {
@@ -2114,8 +2105,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
   typedef TimeVaryingVelocityFieldType tvt;
   TimeVaryingVelocityFieldPointer      velocityUpdate = nullptr;
 
-  VectorType zero;
-  zero.Fill(0);
+  VectorType               zero{};
   DisplacementFieldPointer totalUpdateInvField = AllocImage<DisplacementFieldType>(this->m_DisplacementField, zero);
 
   unsigned long numpx = this->m_DisplacementField->GetBufferedRegion().GetNumberOfPixels();
@@ -2141,8 +2131,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
   typename tvt::RegionType  gregion;
   typename tvt::SizeType    gsize;
   typename tvt::SpacingType gspace;
-  typename tvt::PointType   gorigin;
-  gorigin.Fill(0);
+  typename tvt::PointType   gorigin{};
   for (unsigned int dim = 0; dim < TDimension; dim++)
   {
     gsize[dim] = this->m_CurrentDomainSize[dim];
@@ -2162,8 +2151,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::DiReCTUpdate(ImagePointer    
 
   /** The TV Field has the direction of the sub-image -- the time domain
       has identity transform */
-  typename tvt::DirectionType iddir;
-  iddir.Fill(0);
+  typename tvt::DirectionType iddir{};
   iddir[ImageDimension][ImageDimension] = 1;
   for (unsigned int i = 0; i < ImageDimension + 1; i++)
   {
@@ -2435,8 +2423,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegrateVelocity(TReal start
     this->m_ThickImage = nullptr;
   }
 
-  VectorType zero;
-  zero.Fill(0);
+  VectorType               zero{};
   DisplacementFieldPointer intfield =
     AllocImage<DisplacementFieldType>(this->m_DisplacementField->GetLargestPossibleRegion(), zero);
   intfield->SetSpacing(this->m_CurrentDomainSpacing);
@@ -2520,8 +2507,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegrateLandmarkSetVelocity(
   typename ANTSImageRegistrationOptimizer<TDimension, TReal>::ImagePointer /* refimage */)
 {
 
-  VectorType zero;
-  zero.Fill(0);
+  VectorType               zero{};
   DisplacementFieldPointer intfield =
     AllocImage<DisplacementFieldType>(this->m_DisplacementField->GetLargestPossibleRegion(), zero);
   intfield->SetSpacing(this->m_CurrentDomainSpacing);
@@ -2601,8 +2587,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
   this->m_Debug = false;
 
 
-  VectorType zero;
-  zero.Fill(0);
+  VectorType zero{};
   if (itk::Math::FloatAlmostEqual(starttimein, finishtimein))
   {
     return zero;
@@ -2637,8 +2622,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
     timesign = -1.0;
   }
 
-  VectorType velo;
-  velo.Fill(0);
+  VectorType velo{};
 
   TReal                           itime = starttimein;
   // unsigned long                   ct = 0;
@@ -2651,8 +2635,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
   {
     vecsign = -1.0;
   }
-  VIndexType vind;
-  vind.Fill(0);
+  VIndexType vind{};
   xPointType pointIn1;
   pointIn1[TDimension] = 0; // Note: Set the highest value to zero;
   xPointType pointIn2;
@@ -2699,14 +2682,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
 
     TReal totalmag = 0;
     // first get current position of particle
-    typename VelocityFieldInterpolatorType::OutputType f1;
-    f1.Fill(0);
-    typename VelocityFieldInterpolatorType::OutputType f2;
-    f2.Fill(0);
-    typename VelocityFieldInterpolatorType::OutputType f3;
-    f3.Fill(0);
-    typename VelocityFieldInterpolatorType::OutputType f4;
-    f4.Fill(0);
+    typename VelocityFieldInterpolatorType::OutputType f1{};
+    typename VelocityFieldInterpolatorType::OutputType f2{};
+    typename VelocityFieldInterpolatorType::OutputType f3{};
+    typename VelocityFieldInterpolatorType::OutputType f4{};
     for (unsigned int jj = 0; jj < TDimension; jj++)
     {
       pointIn2[jj] = disp[jj] + pointIn1[jj];
@@ -2850,14 +2829,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>::IntegratePointVelocity(TReal 
 
       //      TReal totalmag=0;
       // first get current position of particle
-      typename VelocityFieldInterpolatorType::OutputType f1;
-      f1.Fill(0);
-      typename VelocityFieldInterpolatorType::OutputType f2;
-      f2.Fill(0);
-      typename VelocityFieldInterpolatorType::OutputType f3;
-      f3.Fill(0);
-      typename VelocityFieldInterpolatorType::OutputType f4;
-      f4.Fill(0);
+      typename VelocityFieldInterpolatorType::OutputType f1{};
+      typename VelocityFieldInterpolatorType::OutputType f2{};
+      typename VelocityFieldInterpolatorType::OutputType f3{};
+      typename VelocityFieldInterpolatorType::OutputType f4{};
       for (unsigned int jj = 0; jj < TDimension; jj++)
       {
         pointIn2[jj] = disp[jj] + pointIn1[jj];

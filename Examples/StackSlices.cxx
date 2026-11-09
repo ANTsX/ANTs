@@ -104,8 +104,7 @@ StackSlices(std::vector<std::string> args, std::ostream * /*out_stream = nullptr
     }
   }
 
-  SliceType::SizeType size;
-  size.Fill(0);
+  SliceType::SizeType size{};
 
   ImageType::RegionType region3D;
 
@@ -271,8 +270,7 @@ StackSlices(std::vector<std::string> args, std::ostream * /*out_stream = nullptr
     {
       PixelType value = It.Get();
 
-      ImageType::IndexType index;
-      index.Fill(0);
+      ImageType::IndexType index{};
 
       index[dim] = i;
 

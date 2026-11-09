@@ -95,8 +95,7 @@ iMathGetFlatStructuringElement(unsigned int  shape,
   typedef typename itk::FlatStructuringElement<ImageDimension> ElementType;
   ElementType                                                  element;
 
-  typename ElementType::RadiusType elRadius;
-  elRadius.Fill(radius);
+  auto elRadius = ElementType::RadiusType::Filled(radius);
 
   switch (shape)
   {

@@ -502,8 +502,7 @@ WarpImageMultiTransform(char *           moving_image_filename,
   typename VectorImageType::Pointer img_output = AllocImage<VectorImageType>(img_ref);
   img_output->SetNumberOfComponentsPerPixel(veclength);
 
-  typename ImageType::IndexType index;
-  index.Fill(0);
+  typename ImageType::IndexType       index{};
   typename VectorImageType::PixelType vec = img_mov->GetPixel(index);
   vec.Fill(0);
   img_output->FillBuffer(vec);

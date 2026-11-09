@@ -99,8 +99,7 @@ ResampleImage(int argc, char * argv[])
   typename ResamplerType::SpacingType spacing;
   typename ResamplerType::SizeType    size;
   typename ImageType::IndexType       oldStartIndex = image->GetLargestPossibleRegion().GetIndex();
-  typename ImageType::IndexType       newStartIndex;
-  newStartIndex.Fill(0); // should be "same" as original start index but in new physical space
+  typename ImageType::IndexType newStartIndex{}; // should be "same" as original start index but in new physical space
 
   std::vector<RealType> sp = ConvertVector<RealType>(std::string(argv[4]));
 

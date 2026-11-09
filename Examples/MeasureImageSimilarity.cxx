@@ -211,9 +211,8 @@ MeasureImageSimilarity(itk::ants::CommandLineParser * parser)
         }
         using CorrelationMetricType =
           itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType>;
-        typename CorrelationMetricType::Pointer    correlationMetric = CorrelationMetricType::New();
-        typename CorrelationMetricType::RadiusType radius;
-        radius.Fill(radiusOption);
+        typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
+        auto                                    radius = CorrelationMetricType::RadiusType::Filled(radiusOption);
         correlationMetric->SetRadius(radius);
         correlationMetric->SetUseMovingImageGradientFilter(gradientfilter);
         correlationMetric->SetUseFixedImageGradientFilter(gradientfilter);

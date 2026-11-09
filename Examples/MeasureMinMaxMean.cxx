@@ -28,13 +28,10 @@ MeasureMinMaxMean(int argc, char * argv[])
 
   typename ImageType::Pointer image = nullptr;
   typename ImageType::Pointer mask = nullptr;
-  PixelType                   mean;
-  mean.Fill(0);
-  PixelType max;
-  max.Fill(0);
-  PixelType min;
-  min.Fill(9.e9);
-  unsigned long ct = 0;
+  PixelType                   mean{};
+  PixelType                   max{};
+  auto                        min = itk::MakeFilled<PixelType>(9.e9);
+  unsigned long               ct = 0;
 
   ReadImage<ImageType>(image, argv[2]);
   bool takeabsval = false;

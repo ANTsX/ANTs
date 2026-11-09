@@ -646,8 +646,7 @@ GetTensorRGB(TTensorType dtv)
 {
   typedef TTensorType TensorType;
 
-  itk::RGBPixel<unsigned char> zero;
-  zero.Fill(0);
+  auto  zero = itk::MakeFilled<itk::RGBPixel<unsigned char>>(0);
   float eps = 1.e-9, mag = 0;
   for (unsigned int jj = 0; jj < 6; jj++)
   {

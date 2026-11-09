@@ -286,12 +286,11 @@ iMathFillHoles(typename ImageType::Pointer image, double holeParam) /*0*/
       while (!GHood.IsAtEnd())
       {
         typename ImageType::PixelType p = GHood.GetCenterPixel();
-        typename ImageType::IndexType ind2;
         if (itk::Math::FloatAlmostEqual(p, static_cast<typename ImageType::PixelType>(lab)))
         {
           for (unsigned int i = 0; i < GHood.Size(); i++)
           {
-            ind2 = GHood.GetIndex(i);
+            const auto ind2 = GHood.GetIndex(i);
             float val2 = threshold->GetOutput()->GetPixel(ind2);
             if (itk::Math::FloatAlmostEqual(val2, itk::NumericTraits<float>::OneValue()) && GHood.GetPixel(i) != lab)
             {

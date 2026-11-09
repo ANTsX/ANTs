@@ -205,8 +205,7 @@ GetHomogeneousMatrix(const typename TTransform::Pointer & transform, TMatrix & h
     }
   }
 
-  typename TTransform::OutputVectorType offset;
-  offset.Fill(itk::NumericTraits<typename TTransform::ScalarType>::ZeroValue());
+  typename TTransform::OutputVectorType offset{};
 
   // Matrix-offset derived
   {

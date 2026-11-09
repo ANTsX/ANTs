@@ -646,8 +646,7 @@ public:
       fixedaff->GetInverse(fixedaffinverse);
     }
 
-    DirectionType iddir;
-    iddir.Fill(0);
+    DirectionType iddir{};
     for (unsigned int i = 0; i < ImageDimension; i++)
     {
       iddir[i][i] = 1;
@@ -1174,8 +1173,6 @@ public:
     DisplacementFieldPointer updateField = nullptr;
 
     this->SetUpParameters();
-    VectorType zero;
-    zero.Fill(0);
     std::cout << " setting N-TimeSteps = " << this->m_NTimeSteps << " trunc " << this->m_GaussianTruncation
               << std::endl;
 
@@ -1471,10 +1468,8 @@ public:
             domainorigin = this->m_CurrentIteration - domainsize;
           }
           origin.Fill(domainorigin);
-          typename CurveType::SizeType size;
-          size.Fill(domainsize);
-          typename CurveType::SpacingType _spacing;
-          _spacing.Fill(1);
+          auto size = CurveType::SizeType::Filled(domainsize);
+          auto _spacing = itk::MakeFilled<typename CurveType::SpacingType>(1);
 
           typename EnergyProfileType::Pointer energyProfileWindow = EnergyProfileType::New();
           energyProfileWindow->Initialize();
@@ -1485,16 +1480,14 @@ public:
           {
             ProfilePointType point;
             point[0] = qq;
-            ProfilePointDataType energy;
-            energy.Fill(0);
+            ProfilePointDataType energy{};
             if (use_all_metrics)
             {
               for (unsigned int im = 0; im < numberOfMetrics; im++)
               {
                 ProfilePointType pm;
                 pm[0] = qq;
-                ProfilePointDataType em;
-                em.Fill(0);
+                ProfilePointDataType em{};
                 energyProfiles[im]->GetPointData(qq, &em);
                 RealType weight = this->m_SimilarityMetrics[im]->GetWeightScalar();
                 energy[0] += weight * em[0];
@@ -1515,16 +1508,14 @@ public:
           }
           for (unsigned int qq = windowBegin; qq < this->m_CurrentIteration; qq++)
           {
-            ProfilePointDataType energy;
-            energy.Fill(0);
+            ProfilePointDataType energy{};
             if (use_all_metrics)
             {
               for (unsigned int im = 0; im < numberOfMetrics; im++)
               {
                 ProfilePointType pm;
                 pm[0] = qq;
-                ProfilePointDataType em;
-                em.Fill(0);
+                ProfilePointDataType em{};
                 energyProfiles[im]->GetPointData(qq, &em);
                 RealType weight = this->m_SimilarityMetrics[im]->GetWeightScalar();
                 energy[0] += weight * em[0];
@@ -1544,8 +1535,7 @@ public:
           bspliner->SetNumberOfLevels(1);
           unsigned int order = 1;
           bspliner->SetSplineOrder(order);
-          typename BSplinerType::ArrayType ncps;
-          ncps.Fill(order + 1); // single span, order = 2
+          auto ncps = BSplinerType::ArrayType::Filled(order + 1); // single span, order = 2
           bspliner->SetNumberOfControlPoints(ncps);
           bspliner->Update();
 
@@ -1771,8 +1761,6 @@ public:
 
   void ElasticRegistrationUpdate(ImagePointer /* fixedImage */, ImagePointer /* xxxxmovingImage */)
   {
-    VectorType zero;
-    zero.Fill(0);
     DisplacementFieldPointer updateField;
 
     updateField = this->ComputeUpdateField(this->m_DisplacementField, nullptr, nullptr, nullptr, nullptr);
@@ -1859,8 +1847,7 @@ public:
       maxiter = 12;
     }
 
-    VectorType zero;
-    zero.Fill(0);
+    VectorType zero{};
     //  if (this->GetElapsedIterations() < 2 ) maxiter=10;
 
     ImagePointer TRealImage = AllocImage<ImageType>(field);
@@ -2015,14 +2002,12 @@ protected:
     typename ImageType::RegionType region;
 
     region.SetSize(this->m_CurrentDomainSize);
-    typename ImageType::IndexType index;
-    index.Fill(0);
+    typename ImageType::IndexType index{};
     region.SetIndex(index);
     ImagePointer varimage =
       AllocImage<ImageType>(region, this->m_CurrentDomainSpacing, bigimage->GetOrigin(), bigimage->GetDirection(), 0);
 
-    typename ImageType::IndexType cornerind;
-    cornerind.Fill(0);
+    typename ImageType::IndexType cornerind{};
     for (unsigned int ii = 0; ii < ImageDimension; ii++)
     {
       TReal diff = (TReal)this->m_CurrentDomainOrigin[ii] - (TReal)this->m_CurrentDomainSize[ii] / 2;

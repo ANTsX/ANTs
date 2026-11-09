@@ -127,13 +127,12 @@ LabelSurface(typename TImage::PixelType foreground,
   {
     typename TImage::PixelType p = GHood.GetCenterPixel();
     typename TImage::IndexType ind = GHood.GetIndex();
-    typename TImage::IndexType ind2;
     if (itk::Math::FloatAlmostEqual(p, foreground))
     {
       bool atedge = false;
       for (unsigned int i = 0; i < GHood.Size(); i++)
       {
-        ind2 = GHood.GetIndex(i);
+        const auto ind2 = GHood.GetIndex(i);
         float dist = 0.0;
         for (int j = 0; j < ImageDimension; j++)
         {
@@ -427,10 +426,7 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
   using DPointType = typename TField::PointType;
   using DefaultInterpolatorType = itk::VectorLinearInterpolateImageFunction<TField, float>;
 
-  VectorType zero;
-  zero.Fill(0);
-  VectorType disp;
-  disp.Fill(0);
+  VectorType disp{};
   ct = 0;
   DPointType                                            pointIn1;
   DPointType                                            pointIn2;
@@ -491,14 +487,10 @@ IntegrateLength(typename TImage::Pointer /* gmsurf */,
       }
       //      std::cout << " ind " << index  << std::endl;
       // now index the time varying field at that position.
-      typename DefaultInterpolatorType::OutputType f1;
-      f1.Fill(0);
-      typename DefaultInterpolatorType::OutputType f2;
-      f2.Fill(0);
-      typename DefaultInterpolatorType::OutputType f3;
-      f3.Fill(0);
-      typename DefaultInterpolatorType::OutputType f4;
-      f4.Fill(0);
+      typename DefaultInterpolatorType::OutputType          f1{};
+      typename DefaultInterpolatorType::OutputType          f2{};
+      typename DefaultInterpolatorType::OutputType          f3{};
+      typename DefaultInterpolatorType::OutputType          f4{};
       typename DefaultInterpolatorType::ContinuousIndexType Y1;
       typename DefaultInterpolatorType::ContinuousIndexType Y2;
       typename DefaultInterpolatorType::ContinuousIndexType Y3;
@@ -791,7 +783,6 @@ LaplacianThickness(int argc, char * argv[])
   float finishtime = timeone; // s[ImageDimension]-1;//timeone;
   // std::cout << " MUCKING WITH START FINISH TIME " <<  finishtime <<  std::endl;
 
-  typename DisplacementFieldType::IndexType velind;
   typename ImageType::Pointer               smooththick = nullptr;
   float                                     timesign = 1.0;
   if (starttime > finishtime)
@@ -809,8 +800,6 @@ LaplacianThickness(int argc, char * argv[])
   {
     sinterp->SetInputImage(sulci);
   }
-  VectorType zero;
-  zero.Fill(0);
 
   using VIteratorType = itk::ImageRegionIteratorWithIndex<DisplacementFieldType>;
   VIteratorType VIterator(lapgrad, lapgrad->GetLargestPossibleRegion().GetSize());
@@ -855,7 +844,7 @@ LaplacianThickness(int argc, char * argv[])
     unsigned int cter = 0;
     while (!Iterator.IsAtEnd())
     {
-      velind = Iterator.GetIndex();
+      const auto velind = Iterator.GetIndex();
       //      float thislength=0;
       for (unsigned int task = 0; task < 1; task++)
       {
@@ -864,8 +853,6 @@ LaplacianThickness(int argc, char * argv[])
         unsigned long ct = 0;
         bool          timedone = false;
 
-        VectorType disp;
-        disp.Fill(0.0);
         double deltaTime = dT, vecsign = 1.0;
         bool   domeasure = false;
         float  gradsign = 1.0;
