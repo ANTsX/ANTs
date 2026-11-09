@@ -386,7 +386,6 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   double                                 sfm = 0.0;
   //  double fixedValue;
   //  double movingValue;
-  CovariantVectorType gradI;
   if (this->m_FixedImageMask)
   {
     if (this->m_FixedImageMask->GetPixel(oindex) < static_cast<typename FixedImageType::PixelType>(0.25))
@@ -410,7 +409,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
     this->localCrossCorrelation = sfm * sfm / (sff * smm);
   }
   IndexType index = oindex; // hoodIt.GetIndex(indct);
-  gradI = m_FixedImageGradientCalculator->EvaluateAtIndex(index);
+  const CovariantVectorType gradI = m_FixedImageGradientCalculator->EvaluateAtIndex(index);
   //    gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
 
   float Ji = finitediffimages[1]->GetPixel(index);
@@ -447,7 +446,6 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   double                                 sff = 0.0;
   double                                 smm = 0.0;
   double                                 sfm = 0.0;
-  CovariantVectorType                    gradJ;
   if (this->m_FixedImageMask)
   {
     if (this->m_FixedImageMask->GetPixel(oindex) < static_cast<typename TFixedImage::PixelType>(0.25))
@@ -477,7 +475,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   }
 
   // /gradI = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
-  gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
+  const CovariantVectorType gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex(index);
 
   float Ji = finitediffimages[1]->GetPixel(index);
   float Ii = finitediffimages[0]->GetPixel(index);

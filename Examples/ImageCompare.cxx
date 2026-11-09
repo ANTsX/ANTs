@@ -154,10 +154,8 @@ RegressionTestImage(const char * testImageFilename,
   }
 
   // The sizes of the baseline and test image must match
-  ImageType::SizeType baselineSize;
-  baselineSize = baselineReader->GetOutput()->GetLargestPossibleRegion().GetSize();
-  ImageType::SizeType testSize;
-  testSize = testReader->GetOutput()->GetLargestPossibleRegion().GetSize();
+  const auto baselineSize = baselineReader->GetOutput()->GetLargestPossibleRegion().GetSize();
+  const auto testSize = testReader->GetOutput()->GetLargestPossibleRegion().GetSize();
 
   if (baselineSize != testSize)
   {

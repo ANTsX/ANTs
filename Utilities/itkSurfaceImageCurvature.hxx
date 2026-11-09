@@ -706,7 +706,6 @@ SurfaceImageCurvature<TSurface>::WeingartenMapGradients()
 
   // rebuild the point list from gradients defined at u and v
   this->m_PointList.clear();
-  PointType p;
   RealType  paramdelt = this->m_MinSpacing * static_cast<RealType>(0.5);
   RealType  eps = 1.e-6;
   for (RealType zi = -paramdelt; zi <= paramdelt + eps; zi = zi + paramdelt)
@@ -714,7 +713,7 @@ SurfaceImageCurvature<TSurface>::WeingartenMapGradients()
     {
       for (RealType vi = -paramdelt; vi <= paramdelt + eps; vi = vi + paramdelt)
       {
-        p = this->m_Origin + this->m_Tangent1 * ui + this->m_Tangent2 * vi + this->m_Normal * zi;
+        const PointType p = this->m_Origin + this->m_Tangent1 * ui + this->m_Tangent2 * vi + this->m_Normal * zi;
         this->m_PointList.insert(this->m_PointList.begin(), p);
       }
     }

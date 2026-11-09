@@ -333,8 +333,7 @@ IntegrateVectorField(int argc, char * argv[])
   float  starttime = timezero; // timezero;
   float  finishtime = timeone; // s[ImageDimension]-1;//timeone;
 
-  typename DisplacementFieldType::IndexType velind;
-  float                                     timesign = 1.0;
+  float timesign = 1.0;
   if (starttime > finishtime)
   {
     timesign = -1.0;
@@ -368,8 +367,8 @@ IntegrateVectorField(int argc, char * argv[])
   Iterator.GoToBegin();
   while (!Iterator.IsAtEnd())
   {
-    velind = Iterator.GetIndex();
-    float itime = starttime;
+    const auto velind = Iterator.GetIndex();
+    float      itime = starttime;
     if (itk::Math::FloatAlmostEqual(ROIimage->GetPixel(velind), static_cast<PixelType>(2)))
     {
       vinterp->SetInputImage(VECimage);

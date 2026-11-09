@@ -494,12 +494,11 @@ public:
       }
     }
 
-    CovariantVectorType fixedGradient;
     ParametersType      fdvec1(ImageDimension);
     ParametersType      fdvec2(ImageDimension);
     fdvec1.Fill(0);
     fdvec2.Fill(0);
-    fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex(oindex);
+    const CovariantVectorType fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex(oindex);
     double nccm1 = 0;
     double loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
     double eps = 10.0;
@@ -596,12 +595,11 @@ public:
       }
     }
 
-    CovariantVectorType movingGradient;
     ParametersType      fdvec1(ImageDimension);
     ParametersType      fdvec2(ImageDimension);
     fdvec1.Fill(0);
     fdvec2.Fill(0);
-    movingGradient = m_MovingImageGradientCalculator->EvaluateAtIndex(oindex);
+    const CovariantVectorType movingGradient = m_MovingImageGradientCalculator->EvaluateAtIndex(oindex);
 
     double nccm1 = 0;
     double loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);

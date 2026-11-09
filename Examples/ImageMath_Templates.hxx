@@ -8967,13 +8967,12 @@ FillHoles(int argc, char * argv[])
       while (!GHood.IsAtEnd())
       {
         typename ImageType::PixelType p = GHood.GetCenterPixel();
-        typename ImageType::IndexType ind2;
         if (itk::Math::FloatAlmostEqual(p, static_cast<float>(lab)))
         {
           // volume++;
           for (unsigned int i = 0; i < GHood.Size(); i++)
           {
-            ind2 = GHood.GetIndex(i);
+            const auto ind2 = GHood.GetIndex(i);
             float val2 = image1->GetPixel(ind2);
             if (val2 >= 0.5f && !itk::Math::FloatAlmostEqual(GHood.GetPixel(i), static_cast<float>(lab)))
             {
@@ -10568,13 +10567,12 @@ ReplicateDisplacement(int argc, char * argv[])
   outputImage->SetDirection(outDirection);
   outputImage->AllocateInitialized();
   // perform the replication
-  typename VectorImageType::IndexType  ind;
   typename VectorRImageType::IndexType indp1;
   Iterator                             It1(vecimage1, vecimage1->GetLargestPossibleRegion());
   typename VectorRImageType::PixelType vec{};
   for (It1.GoToBegin(); !It1.IsAtEnd(); ++It1)
   {
-    ind = It1.GetIndex();
+    const auto                          ind = It1.GetIndex();
     typename VectorImageType::PixelType vecx = It1.Get();
     for (unsigned int i = 0; i < ImageDimension; i++)
     {

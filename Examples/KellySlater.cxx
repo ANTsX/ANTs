@@ -189,13 +189,12 @@ LabelSurface(typename TImage::PixelType foreground,
   {
     typename TImage::PixelType p = GHood.GetCenterPixel();
     typename TImage::IndexType ind = GHood.GetIndex();
-    typename TImage::IndexType ind2;
     if (itk::Math::FloatAlmostEqual(p, foreground))
     {
       bool atedge = false;
       for (unsigned int i = 0; i < GHood.Size(); i++)
       {
-        ind2 = GHood.GetIndex(i);
+        const auto ind2 = GHood.GetIndex(i);
         double dist = 0.0;
         for (int j = 0; j < ImageDimension; j++)
         {

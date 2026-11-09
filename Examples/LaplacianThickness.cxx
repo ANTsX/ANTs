@@ -127,13 +127,12 @@ LabelSurface(typename TImage::PixelType foreground,
   {
     typename TImage::PixelType p = GHood.GetCenterPixel();
     typename TImage::IndexType ind = GHood.GetIndex();
-    typename TImage::IndexType ind2;
     if (itk::Math::FloatAlmostEqual(p, foreground))
     {
       bool atedge = false;
       for (unsigned int i = 0; i < GHood.Size(); i++)
       {
-        ind2 = GHood.GetIndex(i);
+        const auto ind2 = GHood.GetIndex(i);
         float dist = 0.0;
         for (int j = 0; j < ImageDimension; j++)
         {
@@ -784,7 +783,6 @@ LaplacianThickness(int argc, char * argv[])
   float finishtime = timeone; // s[ImageDimension]-1;//timeone;
   // std::cout << " MUCKING WITH START FINISH TIME " <<  finishtime <<  std::endl;
 
-  typename DisplacementFieldType::IndexType velind;
   typename ImageType::Pointer               smooththick = nullptr;
   float                                     timesign = 1.0;
   if (starttime > finishtime)
@@ -846,7 +844,7 @@ LaplacianThickness(int argc, char * argv[])
     unsigned int cter = 0;
     while (!Iterator.IsAtEnd())
     {
-      velind = Iterator.GetIndex();
+      const auto velind = Iterator.GetIndex();
       //      float thislength=0;
       for (unsigned int task = 0; task < 1; task++)
       {

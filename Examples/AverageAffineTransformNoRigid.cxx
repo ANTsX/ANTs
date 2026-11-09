@@ -178,9 +178,6 @@ AverageAffineTransformNoRigid(char * output_affine_txt, char * reference_affine_
     }
   }
 
-  using PointType = typename WarperType::PointType;
-  PointType aff_center;
-
   typename AffineTransformType::Pointer aff_ref_tmp;
   if (reference_affine_txt)
   {
@@ -203,7 +200,7 @@ AverageAffineTransformNoRigid(char * output_affine_txt, char * reference_affine_
     }
   }
 
-  aff_center = aff_ref_tmp->GetCenter();
+  const auto aff_center = aff_ref_tmp->GetCenter();
   std::cout << "new center is : " << aff_center << std::endl;
 
   // warper->PrintTransformList();

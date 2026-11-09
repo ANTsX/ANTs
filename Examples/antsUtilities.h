@@ -436,11 +436,9 @@ GetLargestSizeAfterWarp(typename WarperType::Pointer &  warper,
   // PointList pts_orig;
   PointList pts_warped;
 
-  typename ImageType::SizeType imgsz;
-  imgsz = img->GetLargestPossibleRegion().GetSize();
+  const auto imgsz = img->GetLargestPossibleRegion().GetSize();
 
-  typename ImageType::SpacingType spacing;
-  spacing = img->GetSpacing();
+  const auto spacing = img->GetSpacing();
 
   pts_warped.clear();
   if (ImageDimension == 3)
