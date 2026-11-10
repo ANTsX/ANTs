@@ -5,11 +5,13 @@
 #include <iostream>
 #include <fstream>
 #include <cstdio>
+#include <cmath>
 #include "itkVector.h"
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkLabeledPointSetFileReader.h"
 #include "itkLabeledPointSetFileWriter.h"
 #include "itkImageIntensityAndGradientToPointSetFilter.h"
@@ -26,6 +28,7 @@
 #include "itkLogTensorImageFilter.h"
 #include "itkExpTensorImageFilter.h"
 #include "itkCastImageFilter.h"
+#include "itkBinaryThresholdImageFilter.h"
 #include <sys/stat.h>
 
 extern bool
@@ -261,6 +264,47 @@ ReadImage(itk::SmartPointer<TImageType> & target, const char * file)
     // std::cout << " setting pointer " << std::endl;
     target = reffilter->GetOutput();
   }
+  return true;
+}
+
+// Read masks as float before testing for nonzero values. In-memory mask
+// pointers must likewise refer to float images. The output retains the input
+// geometry and contains only zero and one, regardless of its pixel type.
+// NaN and infinity are rejected with an exception before binarization.
+template <typename TMask>
+bool
+ReadBinaryMask(itk::SmartPointer<TMask> & target, const char * file)
+{
+  using FloatMaskImageType = itk::Image<float, TMask::ImageDimension>;
+  using ThresholdFilterType = itk::BinaryThresholdImageFilter<FloatMaskImageType, TMask>;
+
+  typename FloatMaskImageType::Pointer inputMask;
+  if (!ReadImage<FloatMaskImageType>(inputMask, file) || inputMask.IsNull())
+  {
+    target = nullptr;
+    return false;
+  }
+
+  itk::ImageRegionConstIteratorWithIndex<FloatMaskImageType> it(inputMask, inputMask->GetLargestPossibleRegion());
+  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+  {
+    if (!std::isfinite(it.Get()))
+    {
+      target = nullptr;
+      itkGenericExceptionMacro("Mask " << file << " contains NaN or Inf at index " << it.GetIndex());
+    }
+  }
+
+  auto threshold = ThresholdFilterType::New();
+  threshold->SetInput(inputMask);
+  threshold->SetLowerThreshold(0.0f);
+  threshold->SetUpperThreshold(0.0f);
+  threshold->SetInsideValue(0);
+  threshold->SetOutsideValue(1);
+  threshold->Update();
+
+  target = threshold->GetOutput();
+  target->DisconnectPipeline();
   return true;
 }
 
@@ -503,7 +547,12 @@ ReadImageIntensityPointSet(itk::SmartPointer<TPointSet> & target,
   }
 
   typename TImage::Pointer intensityImage = ReadImage<TImage>(const_cast<char *>(imageFile));
-  typename TMask::Pointer  maskImage = ReadImage<TMask>(const_cast<char *>(maskFile));
+  typename TMask::Pointer maskImage;
+  if (!ReadBinaryMask<TMask>(maskImage, maskFile))
+  {
+    target = nullptr;
+    return false;
+  }
 
   typedef itk::ImageIntensityAndGradientToPointSetFilter<TImage, TMask, TPointSet> FilterType;
 

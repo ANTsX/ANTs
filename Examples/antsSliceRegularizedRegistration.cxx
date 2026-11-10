@@ -461,11 +461,12 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
   std::vector<SingleTransformItemType>          transformUList;
   std::vector<typename FixedImageType::Pointer> fixedSliceList;
   std::vector<typename FixedImageType::Pointer> movingSliceList;
-  typename FixedIOImageType::Pointer            maskImage;
+  using IOImageMaskType = itk::Image<unsigned char, ImageDimension>;
   using ImageMaskType = itk::Image<unsigned char, ImageDimension - 1>;
+  typename IOImageMaskType::Pointer maskImage;
   typename ImageMaskType::Pointer mask_time_slice = nullptr;
   if (maskfn.length() > 3)
-    ReadImage<FixedIOImageType>(maskImage, maskfn.c_str());
+    ReadBinaryMask<IOImageMaskType>(maskImage, maskfn.c_str());
 
   for (int currentStage = numberOfStages - 1; currentStage >= 0; currentStage--)
   {
@@ -599,7 +600,7 @@ ants_slice_regularized_registration(itk::ants::CommandLineParser * parser)
 
       if (maskfn.length() > 3)
       {
-        using ExtractFilterTypeX = itk::ExtractImageFilter<FixedIOImageType, ImageMaskType>;
+        using ExtractFilterTypeX = itk::ExtractImageFilter<IOImageMaskType, ImageMaskType>;
         typename ExtractFilterTypeX::Pointer extractFilterX = ExtractFilterTypeX::New();
         extractFilterX->SetInput(maskImage);
         extractFilterX->SetDirectionCollapseToSubmatrix();
@@ -1118,7 +1119,8 @@ antsSliceRegularizedRegistrationInitializeCommandLineOptions(itk::ants::CommandL
 
 
   {
-    std::string         description = "Fixed image mask to limit voxels considered by the metric.";
+    std::string         description = "Fixed image mask to limit voxels considered by the metric. "
+                                      "All nonzero values are included.";
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("mask");
     option->SetShortName('x');

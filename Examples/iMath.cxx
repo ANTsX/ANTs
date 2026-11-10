@@ -212,7 +212,7 @@ iMathHelperAll(int argc, char ** argv)
       useSpacing = std::stoi(argv[5]);
     }
 
-    ReadImage<ImageType>(input, inName.c_str());
+    ReadBinaryMask<ImageType>(input, inName.c_str());
     if (input.IsNull())
     {
       return EXIT_FAILURE;
@@ -246,7 +246,7 @@ iMathHelperAll(int argc, char ** argv)
       holeType = atof(argv[5]);
     }
 
-    ReadImage<ImageType>(input, inName.c_str());
+    ReadBinaryMask<ImageType>(input, inName.c_str());
     if (input.IsNull())
     {
       return EXIT_FAILURE;
@@ -410,7 +410,7 @@ iMathHelperAll(int argc, char ** argv)
     typename ImageType::Pointer input = nullptr;
     typename ImageType::Pointer output = nullptr;
 
-    ReadImage<ImageType>(input, inName.c_str());
+    ReadBinaryMask<ImageType>(input, inName.c_str());
     if (input.IsNull())
     {
       return EXIT_FAILURE;
@@ -1025,7 +1025,7 @@ iMathHelperAll(int argc, char ** argv)
     typename MaskType::Pointer mask = nullptr;
     if (argc >= 9)
     {
-      ReadImage<MaskType>(mask, argv[8]);
+      ReadBinaryMask<MaskType>(mask, argv[8]);
     }
 
     using ImageType = itk::Image<float, DIM>;
@@ -1175,8 +1175,16 @@ iMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
     std::cout << std::endl;
     std::cout << "Mask and Label set operations" << std::endl;
     std::cout << "-----------------------------" << std::endl;
-    std::cout << "  GetLargestComponent    : Get the single largest labeled object in an image" << std::endl;
+    std::cout << "  GetLargestComponent    : Get the single largest connected component in a binary mask" << std::endl;
     std::cout << "    Usage                : GetLargestComponent InputImage.ext {MinObjectSize=50}" << std::endl;
+    std::cout << "  FillHoles              : Fill holes in a binary mask" << std::endl;
+    std::cout << "    Usage                : FillHoles InputImage.ext {holeType=2}" << std::endl;
+    std::cout << "  DistanceMap            : Distance to the foreground of a binary mask" << std::endl;
+    std::cout << "    Usage                : DistanceMap InputImage.ext {useSpacing=1}" << std::endl;
+    std::cout << "    For these three operations, nonzero values in the mask are included." << std::endl;
+    std::cout << "  TruncateIntensity      : Clip intensities to quantiles estimated within an optional mask" << std::endl;
+    std::cout << "    Usage                : TruncateIntensity InputImage.ext lowerQ upperQ {nBins=64} {maskImage.ext}" << std::endl;
+    std::cout << "    Nonzero values in the mask are included." << std::endl;
 
     std::cout << std::endl;
     std::cout << "Morphological operations" << std::endl;

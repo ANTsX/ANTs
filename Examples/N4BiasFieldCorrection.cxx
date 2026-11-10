@@ -114,7 +114,7 @@ N4(itk::ants::CommandLineParser * parser)
   if (maskImageOption && maskImageOption->GetNumberOfFunctions())
   {
     std::string inputMaskFile = maskImageOption->GetFunction(0)->GetName();
-    ReadImage<MaskImageType>(maskImage, inputMaskFile.c_str());
+    ReadBinaryMask<MaskImageType>(maskImage, inputMaskFile.c_str());
 
     isMaskImageSpecified = true;
   }
@@ -601,6 +601,7 @@ N4InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
 
   {
     std::string description =
+      std::string("Nonzero values in the mask are included. ") +
       std::string("If a mask image is specified, the final bias correction is ") +
       std::string("only performed in the mask region.  If a weight image is not ") +
       std::string("specified, only intensity values inside the masked region are ") +

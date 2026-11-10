@@ -56,7 +56,7 @@ MeasureImageSimilarity(itk::ants::CommandLineParser * parser)
       {
         std::string                     fname = maskOption->GetFunction(0)->GetParameter(m);
         typename MaskImageType::Pointer maskImage;
-        ReadImage<MaskImageType>(maskImage, fname.c_str());
+        ReadBinaryMask<MaskImageType>(maskImage, fname.c_str());
         if (m == 0)
         {
           if (maskImage.IsNotNull())
@@ -95,7 +95,7 @@ MeasureImageSimilarity(itk::ants::CommandLineParser * parser)
     {
       std::string                     fname = maskOption->GetFunction(0)->GetName();
       typename MaskImageType::Pointer maskImage;
-      ReadImage<MaskImageType>(maskImage, fname.c_str());
+      ReadBinaryMask<MaskImageType>(maskImage, fname.c_str());
       if (maskImage.IsNotNull())
       {
         fixedImageMask = ImageMaskSpatialObjectType::New();
@@ -658,7 +658,8 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string         description = std::string("Image masks to limit voxels considered by the metric. ");
+    std::string         description = std::string("Image masks to limit voxels considered by the metric. ") +
+                                      std::string("Masks are read as float; all nonzero values are included.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("masks");
     option->SetShortName('x');

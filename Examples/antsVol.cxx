@@ -112,7 +112,7 @@ antsVolumetricRendering(itk::ants::CommandLineParser * parser)
   if (maskImageOption && maskImageOption->GetNumberOfFunctions())
   {
     std::string maskFile = maskImageOption->GetFunction(0)->GetName();
-    ReadImage<MaskImageType>(maskImage, maskFile.c_str());
+    ReadBinaryMask<MaskImageType>(maskImage, maskFile.c_str());
   }
 
   // Read in the functional overlays and alpha values
@@ -158,12 +158,12 @@ antsVolumetricRendering(itk::ants::CommandLineParser * parser)
 
       if (!maskFileName.empty())
       {
-        using MaskReaderType = itk::ImageFileReader<MaskImageType>;
-        MaskReaderType::Pointer maskReader = MaskReaderType::New();
-        maskReader->SetFileName(maskFileName.c_str());
-        maskReader->Update();
-
-        functionalMaskImages.emplace_back(maskReader->GetOutput());
+        MaskImageType::Pointer overlayMask;
+        if (!ReadBinaryMask<MaskImageType>(overlayMask, maskFileName.c_str()))
+        {
+          return EXIT_FAILURE;
+        }
+        functionalMaskImages.emplace_back(overlayMask);
       }
       else
       {
@@ -392,7 +392,8 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Mask for determining volumetric rendering of main input image.");
+    std::string description = std::string("Mask for determining volumetric rendering of main input image. ") +
+                              std::string("Nonzero values in the mask are included.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("mask-image");
@@ -408,7 +409,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
                               std::string("be rendered, the order in which they are specified ") +
                               std::string("on the command line matters, and rgb images are ") +
                               std::string("assumed to be unsigned char [0,255].  An optional mask ") +
-                              std::string("can also be provided.");
+                              std::string("can also be provided. Nonzero values in the mask are included.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("functional-overlay");

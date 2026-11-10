@@ -84,7 +84,7 @@ N3BiasFieldCorrection(int argc, char * argv[])
 
   if (argc > 5)
   {
-    ReadImage<MaskImageType>(maskImage, argv[5]);
+    ReadBinaryMask<MaskImageType>(maskImage, argv[5]);
   }
   if (!maskImage)
   {
@@ -260,7 +260,7 @@ N3(itk::ants::CommandLineParser * parser)
   if (maskImageOption && maskImageOption->GetNumberOfFunctions())
   {
     std::string inputMaskFile = maskImageOption->GetFunction(0)->GetName();
-    ReadImage<MaskImageType>(maskImage, inputMaskFile.c_str());
+    ReadBinaryMask<MaskImageType>(maskImage, inputMaskFile.c_str());
 
     isMaskImageSpecified = true;
   }
@@ -1127,6 +1127,7 @@ N3BiasFieldCorrection(std::vector<std::string> args, std::ostream * /*out_stream
       std::cout << "Usage: " << argv[0] << " imageDimension inputImage "
                 << "outputImage [shrinkFactor] [maskImage] [numberOfIterations] "
                 << "[numberOfFittingLevels] [outputBiasField] [verbose]" << std::endl;
+      std::cout << "Nonzero values in the mask are included." << std::endl;
       if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
       {
         return EXIT_SUCCESS;

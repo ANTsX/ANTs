@@ -1108,16 +1108,16 @@ antsAI(itk::ants::CommandLineParser * parser)
   {
     if (maskOption->GetFunction(0)->GetNumberOfParameters() == 0)
     {
-      ReadImage<MaskImageType>(fixedMask, (maskOption->GetFunction(0)->GetName()).c_str());
+      ReadBinaryMask<MaskImageType>(fixedMask, (maskOption->GetFunction(0)->GetName()).c_str());
     }
     else if (maskOption->GetFunction(0)->GetNumberOfParameters() == 1)
     {
-      ReadImage<MaskImageType>(fixedMask, (maskOption->GetFunction(0)->GetParameter(0)).c_str());
+      ReadBinaryMask<MaskImageType>(fixedMask, (maskOption->GetFunction(0)->GetParameter(0)).c_str());
     }
     else if (maskOption->GetFunction(0)->GetNumberOfParameters() == 2)
     {
-      ReadImage<MaskImageType>(fixedMask, (maskOption->GetFunction(0)->GetParameter(0)).c_str());
-      ReadImage<MaskImageType>(movingMask, (maskOption->GetFunction(0)->GetParameter(1)).c_str());
+      ReadBinaryMask<MaskImageType>(fixedMask, (maskOption->GetFunction(0)->GetParameter(0)).c_str());
+      ReadBinaryMask<MaskImageType>(movingMask, (maskOption->GetFunction(0)->GetParameter(1)).c_str());
     }
   }
 
@@ -1674,7 +1674,8 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string         description = std::string("Image masks to limit voxels considered by the metric.");
+    std::string         description = std::string("Image masks to limit voxels considered by the metric. ") +
+                                      std::string("Masks are read as float; all nonzero values are included.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("masks");
     option->SetShortName('x');

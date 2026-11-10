@@ -446,7 +446,7 @@ GetLargestComponent(int argc, char * argv[])
   }
 
   typename ImageType::Pointer image1 = nullptr;
-  ReadImage<ImageType>(image1, fn1.c_str());
+  ReadBinaryMask<ImageType>(image1, fn1.c_str());
   // compute the voxel volume
   // typename ImageType::SpacingType spacing = image1->GetSpacing();
   // float                           volumeelement = 1.0;
@@ -592,7 +592,7 @@ ClusterThresholdVariate(int argc, char * argv[])
   typename ImageType::Pointer image = nullptr;
   ReadImage<ImageType>(image, fn1.c_str());
   typename ImageType::Pointer mask = nullptr;
-  ReadImage<ImageType>(mask, maskfn.c_str());
+  ReadBinaryMask<ImageType>(mask, maskfn.c_str());
   typename FilterType::Pointer  filter = FilterType::New();
   typename RelabelType::Pointer relabel = RelabelType::New();
   filter->SetInput(image);
@@ -650,9 +650,9 @@ ClusterThresholdVariate(int argc, char * argv[])
   fIterator     mIter(mask, mask->GetLargestPossibleRegion());
   for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
   {
-    if (mIter.Get() > 0)
+    if (mIter.Get() != 0)
     {
-      float vox = mask->GetPixel(vfIter.GetIndex());
+      float vox = mask->GetPixel(mIter.GetIndex());
       if (vox >= 0)
       {
         const unsigned long clustersize = histogram[(unsigned long)(relabel->GetOutput()->GetPixel(mIter.GetIndex()))];
@@ -1019,15 +1019,7 @@ TruncateImageIntensity(unsigned int argc, char * argv[])
   typename ImageType::Pointer mask;
   if (argc > argct)
   {
-    try
-    {
-      ReadImage<ImageType>(mask, argv[argct]);
-    }
-    catch (...)
-    {
-      // std::cout << " can't read mask " << std::endl;
-      mask = nullptr;
-    }
+    ReadBinaryMask<ImageType>(mask, argv[argct]);
   }
   argct++;
   bool copyInputSpaceToMask = false;
@@ -1057,7 +1049,7 @@ TruncateImageIntensity(unsigned int argc, char * argv[])
   for (ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI)
   {
     // std::cout << " ind " << ItI.GetIndex() << std::endl;
-    if (ItI.Get() > 0 && ItM.Get() >= 0.5)
+    if (ItI.Get() > 0 && ItM.Get() != 0)
     {
       if (ItI.Get() < minValue)
       {
@@ -1479,7 +1471,7 @@ ConvertVectorToImage(unsigned int argc, char * argv[])
   std::string vecfn = std::string(argv[argct]);
   argct++;
   typename ImageType::Pointer mask = nullptr;
-  ReadImage<ImageType>(mask, maskfn.c_str());
+  ReadBinaryMask<ImageType>(mask, maskfn.c_str());
   typename MatrixImageType::Pointer vecimg = nullptr;
   ReadImage<MatrixImageType>(vecimg, vecfn.c_str());
   // unsigned long voxct = 0, mct = 0;
@@ -1500,13 +1492,12 @@ ConvertVectorToImage(unsigned int argc, char * argv[])
   // std::cout << " vct " << voxct << " mct " << mct << std::endl;
 
   typename ImageType::Pointer outimage = nullptr;
-  ReadImage<ImageType>(outimage, maskfn.c_str());
-  outimage->FillBuffer(0);
+  outimage = AllocImage<ImageType>(mask, 0);
 
   vIter.GoToBegin();
   for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
   {
-    if (mIter.Get() >= 0.5f)
+    if (mIter.Get() != 0)
     {
       outimage->SetPixel(mIter.GetIndex(), vIter.Get());
       ++vIter;
@@ -2373,12 +2364,12 @@ TimeSeriesMask(int argc, char * argv[])
   ReadImage<ImageType>(timeseries, fn1.c_str());
 
   typename MaskImageType::Pointer mask = MaskImageType::New();
-  ReadImage<MaskImageType>(mask, fn2.c_str());
+  ReadBinaryMask<MaskImageType>(mask, fn2.c_str());
 
   Iterator it(mask, mask->GetLargestPossibleRegion());
   while (!it.IsAtEnd())
   {
-    if (itk::Math::FloatAlmostEqual(it.Value(), itk::NumericTraits<PixelType>::ZeroValue())) // reference
+    if (it.Value() == 0) // reference
     {
       typename MaskImageType::IndexType maskIdx = it.GetIndex();
       typename ImageType::IndexType     timeIdx;
@@ -3684,7 +3675,7 @@ TimeSeriesToMatrix(int argc, char * argv[])
   }
   if (maskfn.length() > 3)
   {
-    ReadImage<OutImageType>(mask, maskfn.c_str());
+    ReadBinaryMask<OutImageType>(mask, maskfn.c_str());
   }
   else
   {
@@ -3697,7 +3688,7 @@ TimeSeriesToMatrix(int argc, char * argv[])
   SliceIt                                                  mIter(mask, mask->GetLargestPossibleRegion());
   for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
   {
-    if (mIter.Get() >= static_cast<PixelType>(0.5))
+    if (mIter.Get() != 0)
     {
       voxct++;
     }
@@ -3743,7 +3734,7 @@ TimeSeriesToMatrix(int argc, char * argv[])
   for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
   {
     OutIndexType ind = vfIter2.GetIndex();
-    if (mask->GetPixel(ind) >= static_cast<PixelType>(0.5))
+    if (mask->GetPixel(ind) != 0)
     {
       IndexType tind;
       // first collect all samples for that location
@@ -4212,7 +4203,7 @@ MTR(int argc, char * argv[])
   typename ImageType::Pointer mask;
   if (argc > 6)
   {
-    ReadImage<ImageType>(mask, argv[6]);
+    ReadBinaryMask<ImageType>(mask, argv[6]);
   }
   else
   {
@@ -4224,7 +4215,7 @@ MTR(int argc, char * argv[])
 
   while (!it.IsAtEnd())
   {
-    if (it.Value() > 0)
+    if (it.Value() != 0)
     {
       float m0 = M0->GetPixel(it.GetIndex());
       float m1 = M1->GetPixel(it.GetIndex());
@@ -6517,13 +6508,13 @@ TensorFunctions(int argc, char * argv[])
     if (argc > 5)
     {
       // std::cout << "Using mask image: " << fn2 << std::endl;
-      ReadImage<ImageType>(mimage, fn2.c_str());
+      ReadBinaryMask<ImageType>(mimage, fn2.c_str());
     }
   }
   else if (strcmp(operation.c_str(), "TensorMask") == 0)
   {
     // std::cout << "Using mask image: " << fn2 << std::endl;
-    ReadImage<ImageType>(mimage, fn2.c_str());
+    ReadBinaryMask<ImageType>(mimage, fn2.c_str());
 
     typename TensorImageType::PixelType zero;
 
@@ -6644,7 +6635,7 @@ TensorFunctions(int argc, char * argv[])
     {
       if (argc > 5)
       {
-        if (mimage->GetPixel(tIter.GetIndex()) > 0)
+        if (mimage->GetPixel(tIter.GetIndex()) != 0)
         {
           cimage->SetPixel(ind, GetTensorRGB<TensorType>(tIter.Value()));
         }
@@ -6663,7 +6654,7 @@ TensorFunctions(int argc, char * argv[])
     {
       float maskVal = mimage->GetPixel(ind);
 
-      if (maskVal > 0.0f)
+      if (maskVal != 0.0f)
       {
         toimage->SetPixel(ind, tIter.Value());
       }
@@ -8816,7 +8807,7 @@ DistanceMap(int argc, char * argv[])
   argct++;
 
   typename ImageType::Pointer image1 = nullptr;
-  ReadImage<ImageType>(image1, fn1.c_str());
+  ReadBinaryMask<ImageType>(image1, fn1.c_str());
 
   typedef itk::DanielssonDistanceMapImageFilter<ImageType, ImageType> FilterType;
 
@@ -8897,10 +8888,9 @@ FillHoles(int argc, char * argv[])
   }
 
   typename ImageType::Pointer image1 = nullptr;
-  ReadImage<ImageType>(image1, fn1.c_str());
+  ReadBinaryMask<ImageType>(image1, fn1.c_str());
   typename ImageType::Pointer imageout = nullptr;
-  ReadImage<ImageType>(imageout, fn1.c_str());
-  image1 = BinaryThreshold<ImageType>(0.5, 1.e9, 1, image1);
+  ReadBinaryMask<ImageType>(imageout, fn1.c_str());
 
   typedef itk::DanielssonDistanceMapImageFilter<ImageType, ImageType> FilterType;
   typename FilterType::Pointer                                        filter = FilterType::New();
@@ -9055,7 +9045,7 @@ NormalizeImage(int argc, char * argv[])
   {
 
     std::string maskFileName = std::string(argv[argct]);
-    ReadImage<ImageType>(maskImage, maskFileName.c_str());
+    ReadBinaryMask<ImageType>(maskImage, maskFileName.c_str());
     if (maskImage.IsNotNull())
     {
       useMaskImage = true;
@@ -9077,7 +9067,7 @@ NormalizeImage(int argc, char * argv[])
     float count = 0.0;
     for (It.GoToBegin(), It2.GoToBegin(); !It.IsAtEnd(); ++It, ++It2)
     {
-      if (!itk::Math::FloatAlmostEqual(It.Get(), 0.0f))
+      if (It.Get() != 0)
       {
         roiMean += It2.Get();
         count += 1.0f;
@@ -9878,7 +9868,7 @@ CountVoxelDifference(int argc, char * argv[])
   typename ImageType::Pointer mask = nullptr;
   ReadImage<ImageType>(image1, fn1.c_str());
   ReadImage<ImageType>(image2, fn2.c_str());
-  ReadImage<ImageType>(mask, maskfn.c_str());
+  ReadBinaryMask<ImageType>(mask, maskfn.c_str());
 
   unsigned long maskct = 0;
   float         err = 0, negerr = 0;
@@ -9886,7 +9876,7 @@ CountVoxelDifference(int argc, char * argv[])
   Iterator It(mask, mask->GetLargestPossibleRegion());
   for (It.GoToBegin(); !It.IsAtEnd(); ++It)
   {
-    if (It.Get() > 0)
+    if (It.Get() != 0)
     {
       float p1 = image1->GetPixel(It.GetIndex());
       float p2 = image2->GetPixel(It.GetIndex());
@@ -11495,12 +11485,12 @@ ConvertImageSetToMatrix(unsigned int argc, char * argv[])
   argct++;
   unsigned int                numberofimages = 0;
   typename ImageType::Pointer mask = nullptr;
-  ReadImage<ImageType>(mask, maskfn.c_str());
+  ReadBinaryMask<ImageType>(mask, maskfn.c_str());
   unsigned long voxct = 0;
   Iterator      mIter(mask, mask->GetLargestPossibleRegion());
   for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
   {
-    if (mIter.Get() >= 0.5f)
+    if (mIter.Get() != 0)
     {
       voxct++;
     }
@@ -11568,7 +11558,7 @@ ConvertImageSetToMatrix(unsigned int argc, char * argv[])
       }
       for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
       {
-        if (mIter.Get() >= 0.5f)
+        if (mIter.Get() != 0)
         {
           if (rowcoloption == 0)
           {
@@ -11644,7 +11634,7 @@ ConvertImageSetToMatrix(unsigned int argc, char * argv[])
       typename MatrixImageType::IndexType mind;
       for (mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter)
       {
-        if (mIter.Get() >= 0.5f)
+        if (mIter.Get() != 0)
         {
           if (rowcoloption == 0)
           {
@@ -11982,7 +11972,7 @@ ConvertImageToFile(int argc, char * argv[])
   typename ImageType::Pointer mask = nullptr;
   if (fn2.length() > 3)
   {
-    ReadImage<ImageType>(mask, fn2.c_str());
+    ReadBinaryMask<ImageType>(mask, fn2.c_str());
   }
 
   // std::cout << " read Image" << fn1 << " mask? " << fn2 << std::endl;
@@ -11995,7 +11985,7 @@ ConvertImageToFile(int argc, char * argv[])
     for (vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter)
     {
       bool getval = true;
-      if (mask->GetPixel(vfIter.GetIndex()) < 0.5f)
+      if (mask->GetPixel(vfIter.GetIndex()) == 0)
       {
         getval = false;
       }
@@ -12662,7 +12652,7 @@ ImageMetrics(int argc, char * argv[])
     {
       typename MaskType::Pointer      mask = MaskType::New();
       typename MaskImageType::Pointer maskImage = MaskImageType::New();
-      ReadImage<MaskImageType>(maskImage, argv[7]);
+      ReadBinaryMask<MaskImageType>(maskImage, argv[7]);
       mask->SetImage(maskImage);
       metric->SetFixedImageMask(mask);
       metric->SetMovingImageMask(mask);
@@ -12690,7 +12680,7 @@ ImageMetrics(int argc, char * argv[])
     {
       typename MaskType::Pointer      mask = MaskType::New();
       typename MaskImageType::Pointer maskImage = MaskImageType::New();
-      ReadImage<MaskImageType>(maskImage, argv[6]);
+      ReadBinaryMask<MaskImageType>(maskImage, argv[6]);
       mask->SetImage(maskImage);
       metric->SetFixedImageMask(mask);
       metric->SetMovingImageMask(mask);
@@ -12714,7 +12704,7 @@ ImageMetrics(int argc, char * argv[])
     {
       typename MaskType::Pointer      mask = MaskType::New();
       typename MaskImageType::Pointer maskImage = MaskImageType::New();
-      ReadImage<MaskImageType>(maskImage, argv[6]);
+      ReadBinaryMask<MaskImageType>(maskImage, argv[6]);
       mask->SetImage(maskImage);
       metric->SetFixedImageMask(mask);
       metric->SetMovingImageMask(mask);
@@ -12748,7 +12738,7 @@ ImageMetrics(int argc, char * argv[])
     {
       typename MaskType::Pointer      mask = MaskType::New();
       typename MaskImageType::Pointer maskImage = MaskImageType::New();
-      ReadImage<MaskImageType>(maskImage, argv[7]);
+      ReadBinaryMask<MaskImageType>(maskImage, argv[7]);
       mask->SetImage(maskImage);
       metric->SetFixedImageMask(mask);
       metric->SetMovingImageMask(mask);
@@ -12788,7 +12778,7 @@ PearsonCorrelation(int argc, char * argv[])
 
   if (argc > 6)
   {
-    ReadImage<ImageType>(mask, argv[6]);
+    ReadBinaryMask<ImageType>(mask, argv[6]);
   }
   else
   {
@@ -12805,7 +12795,7 @@ PearsonCorrelation(int argc, char * argv[])
   IteratorType it(mask, mask->GetLargestPossibleRegion());
   while (!it.IsAtEnd())
   {
-    if (it.Value() > 0)
+    if (it.Value() != 0)
     {
       k++;
       typename ImageType::IndexType idx = it.GetIndex();

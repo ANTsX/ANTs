@@ -190,7 +190,7 @@ Denoise(itk::ants::CommandLineParser * parser)
   if (maskImageOption && maskImageOption->GetNumberOfFunctions())
   {
     std::string inputFile = maskImageOption->GetFunction(0)->GetName();
-    ReadImage<MaskImageType>(maskImage, inputFile.c_str());
+    ReadBinaryMask<MaskImageType>(maskImage, inputFile.c_str());
   }
   denoiser->SetMaskImage(maskImage);
 
@@ -415,7 +415,8 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
 
   {
     std::string description =
-      std::string("If a mask image is specified, denoising is ") + std::string("only performed in the mask region.  ");
+      std::string("If a mask image is specified, denoising is ") + std::string("only performed in the mask region.  ") +
+      std::string("All nonzero values are included.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("mask-image");

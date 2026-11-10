@@ -36,6 +36,7 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
 
   using ImageType = itk::Image<PixelType, ImageDimension>;
   using SliceType = itk::Image<ScalarComponentType, ImageDimension - 1>;
+  using MaskImageType = itk::Image<unsigned char, ImageDimension>;
   using RgbSliceType = itk::Image<RgbPixelType, ImageDimension - 1>;
 
   using RgbImageType = itk::Image<RgbPixelType, ImageDimension>;
@@ -59,25 +60,22 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
 
   // Read in optional mask image
 
-  ImageType::Pointer    maskImage = nullptr;
-  ImageType::RegionType maskRegion;
+  MaskImageType::Pointer    maskImage = nullptr;
+  MaskImageType::RegionType maskRegion;
 
   itk::ants::CommandLineParser::OptionType::Pointer maskImageOption = parser->GetOption("mask-image");
   if (maskImageOption && maskImageOption->GetNumberOfFunctions())
   {
     std::string maskFile = maskImageOption->GetFunction(0)->GetName();
-    ReadImage<ImageType>(maskImage, maskFile.c_str());
+    if (!ReadBinaryMask<MaskImageType>(maskImage, maskFile.c_str()))
+    {
+      return EXIT_FAILURE;
+    }
 
-    using ShortImageType = itk::Image<unsigned short, ImageDimension>;
-    using CasterType = itk::CastImageFilter<ImageType, ShortImageType>;
-    CasterType::Pointer caster = CasterType::New();
-    caster->SetInput(maskImage);
-    caster->Update();
-
-    using StatsFilterType = itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>;
+    using StatsFilterType = itk::LabelStatisticsImageFilter<MaskImageType, MaskImageType>;
     StatsFilterType::Pointer stats = StatsFilterType::New();
-    stats->SetLabelInput(caster->GetOutput());
-    stats->SetInput(caster->GetOutput());
+    stats->SetLabelInput(maskImage);
+    stats->SetInput(maskImage);
     stats->Update();
 
     maskRegion = stats->GetRegion(1);
@@ -135,7 +133,7 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
   // Add the functional overlays
 
   std::vector<RgbImageType::Pointer> functionalRgbImages;
-  std::vector<ImageType::Pointer>    functionalMaskImages;
+  std::vector<MaskImageType::Pointer> functionalMaskImages;
   std::vector<RealType>              functionalAlphaValues;
 
   if (rgbImage)
@@ -144,22 +142,16 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
     functionalAlphaValues.push_back(alpha);
     if (maskImage.IsNull())
     {
-      maskImage = ImageType::New();
+      maskImage = MaskImageType::New();
       maskImage->CopyInformation(rgbImage);
       maskImage->SetRegions(rgbImage->GetRequestedRegion());
       maskImage->Allocate();
-      maskImage->FillBuffer(itk::NumericTraits<typename ImageType::PixelType>::OneValue());
+      maskImage->FillBuffer(1);
 
-      using ShortImageType = itk::Image<unsigned short, ImageDimension>;
-      using CasterType = itk::CastImageFilter<ImageType, ShortImageType>;
-      CasterType::Pointer caster = CasterType::New();
-      caster->SetInput(maskImage);
-      caster->Update();
-
-      using StatsFilterType = itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType>;
+      using StatsFilterType = itk::LabelStatisticsImageFilter<MaskImageType, MaskImageType>;
       StatsFilterType::Pointer stats = StatsFilterType::New();
-      stats->SetLabelInput(caster->GetOutput());
-      stats->SetInput(caster->GetOutput());
+      stats->SetLabelInput(maskImage);
+      stats->SetInput(maskImage);
       stats->Update();
 
       maskRegion = stats->GetRegion(1);
@@ -201,19 +193,13 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
 
       std::string maskFileName = functionalOverlayOption->GetFunction(n)->GetParameter(1);
 
-      using MaskReaderType = itk::ImageFileReader<ImageType>;
-      MaskReaderType::Pointer maskReader = MaskReaderType::New();
-      maskReader->SetFileName(maskFileName.c_str());
-      try
-      {
-        maskReader->Update();
-      }
-      catch (...)
+      MaskImageType::Pointer overlayMask;
+      if (!ReadBinaryMask<MaskImageType>(overlayMask, maskFileName.c_str()))
       {
         std::cerr << "Error reading mask file " << maskFileName << std::endl;
         return EXIT_FAILURE;
       }
-      functionalMaskImages.emplace_back(maskReader->GetOutput());
+      functionalMaskImages.emplace_back(overlayMask);
 
       if (functionalOverlayOption->GetFunction(n)->GetNumberOfParameters() > 2)
       {
@@ -764,7 +750,8 @@ CreateMosaic(itk::ants::CommandLineParser * parser)
         SliceType::Pointer outputMaskSlice = nullptr;
         SliceType::Pointer outputMaskSlice2 = nullptr;
 
-        ExtracterType::Pointer maskExtracter = ExtracterType::New();
+        using MaskExtracterType = itk::ExtractImageFilter<MaskImageType, SliceType>;
+        MaskExtracterType::Pointer maskExtracter = MaskExtracterType::New();
         maskExtracter->SetInput(functionalMaskImages[n]);
         maskExtracter->SetExtractionRegion(region);
         maskExtracter->SetDirectionCollapseToIdentity();
@@ -1032,7 +1019,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Specifies the ROI of the RGB voxels used.  ");
+    std::string description = std::string("Specifies the ROI of the RGB voxels used. Nonzero values in the mask are included.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("mask-image");
@@ -1057,7 +1044,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   {
     std::string description = std::string("A functional overlay can be specified using both ") +
                               std::string("and rgb image and a mask specifying where that ") +
-                              std::string("rgb image should be applied.  Both images must ") +
+                              std::string("rgb image should be applied. Nonzero values in the mask are included. Both images must ") +
                               std::string("have the same image geometry as the input image. ") +
                               std::string("Optionally, an alpha parameter can be specified.") +
                               std::string("Note that more than one functional overlays can ") +
@@ -1294,6 +1281,13 @@ CreateTiledMosaic(std::vector<std::string> args, std::ostream * /*out_stream = n
 
     itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(filename.c_str(), itk::IOFileModeEnum::ReadMode);
+    if (!imageIO)
+    {
+      std::cerr << "Cannot read input image: " << filename << std::endl;
+      return EXIT_FAILURE;
+    }
+    imageIO->SetFileName(filename);
+    imageIO->ReadImageInformation();
     unsigned int dimension = imageIO->GetNumberOfDimensions();
 
     if (dimension == 3)

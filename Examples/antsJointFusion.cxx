@@ -463,7 +463,7 @@ antsJointFusion(itk::ants::CommandLineParser * parser)
 
       typename LabelImageType::Pointer exclusionImage = nullptr;
       std::string                      exclusionFile = exclusionImageOption->GetFunction(n)->GetParameter(0);
-      ReadImage<LabelImageType>(exclusionImage, exclusionFile.c_str());
+      ReadBinaryMask<LabelImageType>(exclusionImage, exclusionFile.c_str());
       fusionFilter->AddLabelExclusionImage(label, exclusionImage);
     }
   }
@@ -476,7 +476,7 @@ antsJointFusion(itk::ants::CommandLineParser * parser)
     typename MaskImageType::Pointer maskImage = nullptr;
 
     std::string inputFile = maskImageOption->GetFunction(0)->GetName();
-    ReadImage<MaskImageType>(maskImage, inputFile.c_str());
+    ReadBinaryMask<MaskImageType>(maskImage, inputFile.c_str());
 
     fusionFilter->SetMaskImage(maskImage);
   }
@@ -790,7 +790,8 @@ ajfInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("Specify an exclusion region for the given label.");
+    std::string description = std::string("Specify an exclusion region for the given label. ") +
+                              std::string("Nonzero values in the exclusion image exclude the label.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("exclusion-image");
@@ -801,7 +802,8 @@ ajfInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   }
 
   {
-    std::string description = std::string("If a mask image is specified, fusion is only performed in the mask region.");
+    std::string description = std::string("If a mask image is specified, fusion is only performed in the mask region. ") +
+                              std::string("Nonzero values in the mask are included.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("mask-image");

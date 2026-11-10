@@ -57,6 +57,9 @@ MakeTestDriverFromANTSbinary(antsApplyTransformsTest antsApplyTransformsTest.cxx
 MakeTestDriverFromANTSbinary(compareTwoTransformsTest compareTwoTransformsTest.cxx compareTwoTransforms)
 MakeTestDriverFromANTSbinary(simpleSynRegistrationTest simpleSynRegistrationTest.cxx simpleSynRegistration)
 
+# Short tests have an estimated individual runtime below 30 seconds.
+if(RUN_SHORT_TESTS)
+
 ## Wahba principal-axis rotation regression test: guards the proper
 ## ants::NearestRotation used by antsAffineInitializer / antsAI. Fixture-free and
 ## deterministic; would fail on the previous ad-hoc det-correction heuristic.
@@ -64,6 +67,12 @@ add_executable(antsWahbaRotationTest antsWahbaRotationTest.cxx)
 target_include_directories(antsWahbaRotationTest PRIVATE ${CMAKE_SOURCE_DIR}/Utilities)
 target_link_libraries(antsWahbaRotationTest ${ITK_LIBRARIES})
 add_test(NAME antsWahbaRotationTest COMMAND antsWahbaRotationTest)
+
+## Masks are binarized before conversion to their internal pixel type.
+add_executable(antsReadBinaryMaskTest antsReadBinaryMaskTest.cxx ${CMAKE_SOURCE_DIR}/Utilities/ReadWriteData.cxx)
+target_link_libraries(antsReadBinaryMaskTest ${ITK_LIBRARIES})
+add_test(NAME antsReadBinaryMaskTest
+  COMMAND antsReadBinaryMaskTest ${CMAKE_CURRENT_BINARY_DIR}/antsReadBinaryMaskTestData)
 
 ## Dense-field registration parameter counts are validated before optimization.
 add_executable(antsRegistrationParameterCountTest antsRegistrationParameterCountTest.cxx)
@@ -82,6 +91,53 @@ if(TARGET ResampleImage)
       -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/ResampleImageInterpolationTest
       -P ${CMAKE_CURRENT_SOURCE_DIR}/ResampleImageInterpolationTest.cmake)
 endif()
+
+if(TARGET MeasureImageSimilarity)
+  add_test(NAME MeasureImageSimilarityMasksTest
+    COMMAND ${CMAKE_COMMAND}
+      -DMEASURE_IMAGE_SIMILARITY=$<TARGET_FILE:MeasureImageSimilarity>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/MeasureImageSimilarityMasksTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/MeasureImageSimilarityMasksTest.cmake)
+endif()
+
+if(TARGET MeasureMinMaxMean)
+  add_test(NAME MeasureMinMaxMeanMasksTest
+    COMMAND ${CMAKE_COMMAND}
+      -DMEASURE_MIN_MAX_MEAN=$<TARGET_FILE:MeasureMinMaxMean>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/MeasureMinMaxMeanMasksTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/MeasureMinMaxMeanMasksTest.cmake)
+endif()
+
+if(TARGET ConvertScalarImageToRGB AND TARGET CreateTiledMosaic)
+  add_test(NAME VisualizationMasksTest
+    COMMAND ${CMAKE_COMMAND}
+      -DCONVERT_RGB=$<TARGET_FILE:ConvertScalarImageToRGB>
+      -DCREATE_MOSAIC=$<TARGET_FILE:CreateTiledMosaic>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/VisualizationMasksTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/VisualizationMasksTest.cmake)
+endif()
+
+if(TARGET ImageMath)
+  add_executable(antsImageMathImageCheck antsImageMathImageCheck.cxx)
+  target_link_libraries(antsImageMathImageCheck ${ITK_LIBRARIES})
+  add_test(NAME ImageMathBinaryMasksTest
+    COMMAND ${CMAKE_COMMAND}
+      -DIMAGE_MATH=$<TARGET_FILE:ImageMath>
+      -DIMAGE_CHECK=$<TARGET_FILE:antsImageMathImageCheck>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/ImageMathBinaryMasksTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/ImageMathBinaryMasksTest.cmake)
+endif()
+
+if(TARGET iMath AND TARGET antsImageMathImageCheck)
+  add_test(NAME iMathBinaryMasksTest
+    COMMAND ${CMAKE_COMMAND}
+      -DIMATH=$<TARGET_FILE:iMath>
+      -DIMAGE_CHECK=$<TARGET_FILE:antsImageMathImageCheck>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/iMathBinaryMasksTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/iMathBinaryMasksTest.cmake)
+endif()
+
+endif() # RUN_SHORT_TESTS
 
 
 ###
@@ -103,7 +159,8 @@ ExternalData_expand_arguments(${PROJECT_NAME}FetchData DEVIL_IMAGE_VTK DATA{${SM
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANGEL_IMAGE_VTK DATA{${SMALL_DATA_DIR}/Smile.vtk})
 #ExternalData_expand_arguments(${PROJECT_NAME}FetchData SEG_IMAGE DATA{${SMALL_DATA_DIR}/nslice.nii.gz})
 
-if(RUN_LONG_TESTS)
+# These registration fixtures have recorded individual runtimes below 30 seconds.
+if(RUN_SHORT_TESTS)
 
 ## A work around for the crazy ANTS command line that is not compatible
 ## with the testing framework of external tests
@@ -1078,7 +1135,7 @@ endforeach()
 ###
 #  ANTS labeled data testing
 ###
-if(RUN_LONG_TESTS)
+# These legacy registration fixtures also run in less than 30 seconds.
 #   include(ANTS_PSE_MSQ_IMG_test.cmake)
 
 ###
@@ -1100,7 +1157,6 @@ ExternalData_expand_arguments(${PROJECT_NAME}FetchData C_IMAGE DATA{${SMALL_DATA
 
 include(ANTS_SYN_WITH_TIME_test.cmake)
 include(APOC_OTSU_INIT_test.cmake)
-endif()
 
 # include(ANTS_PSE_MSQ_TXT_test.cmake)
 # include(ANTS_PSE_MSQ_VTK_test.cmake)

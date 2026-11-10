@@ -5,6 +5,7 @@
 #include <iomanip>
 
 #include "antsUtilities.h"
+#include "ReadWriteData.h"
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -46,17 +47,11 @@ LesionFilling(int argc, char * argv[])
   using T1ImageType = itk::Image<double, ImageDimension>;
   using LesionImageType = itk::Image<unsigned short, ImageDimension>;
   using T1ImageReaderType = itk::ImageFileReader<T1ImageType>;
-  using LesionImageReaderType = itk::ImageFileReader<LesionImageType>;
-  typename LesionImageReaderType::Pointer LesionReader = LesionImageReaderType::New();
-  LesionReader->SetFileName(LesionMapFileName);
-  try
+  typename LesionImageType::Pointer lesionMask;
+  if (!ReadBinaryMask<LesionImageType>(lesionMask, LesionMapFileName))
   {
-    LesionReader->Update();
-  }
-  catch (const itk::ExceptionObject & itkNotUsed(excp))
-  {
-    std::cout << "no lesion mask that can be read" << std::endl;
-    return 0;
+    std::cerr << "Cannot read lesion mask: " << LesionMapFileName << std::endl;
+    return EXIT_FAILURE;
   }
   typename T1ImageReaderType::Pointer T1Reader = T1ImageReaderType::New();
   T1Reader->SetFileName(T1FileName);
@@ -80,7 +75,7 @@ LesionFilling(int argc, char * argv[])
 
   typename ConnectedComponentFilterType::Pointer connected = ConnectedComponentFilterType::New();
   typename RelabelComponentFilterType::Pointer   relabeled = RelabelComponentFilterType::New();
-  connected->SetInput(LesionReader->GetOutput());
+  connected->SetInput(lesionMask);
   connected->Update();
   relabeled->SetInput(connected->GetOutput());
   relabeled->Update();

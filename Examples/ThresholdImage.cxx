@@ -179,7 +179,6 @@ OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename T
     using PixelType = float;
 
     unsigned int numberOfBins = 200;
-    int          maskLabel = 1;
 
     itk::ImageRegionIterator<ImageType>     ItI(input, input->GetLargestPossibleRegion());
     itk::ImageRegionIterator<MaskImageType> ItM(maskImage, maskImage->GetLargestPossibleRegion());
@@ -187,7 +186,7 @@ OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename T
     PixelType                               minValue = itk::NumericTraits<PixelType>::max();
     for (ItM.GoToBegin(), ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItM, ++ItI)
     {
-      if (ItM.Get() == maskLabel)
+      if (ItM.Get() != 0)
       {
         if (ItI.Get() < minValue)
         {
@@ -203,6 +202,7 @@ OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename T
     using StatsType = itk::LabelStatisticsImageFilter<ImageType, MaskImageType>;
     typename StatsType::Pointer stats = StatsType::New();
     stats->SetInput(input);
+    // The shared reader normalizes all included mask voxels to label 1.
     stats->SetLabelInput(maskImage);
     stats->UseHistogramsOn();
     stats->SetHistogramParameters(numberOfBins, minValue, maxValue);
@@ -210,7 +210,7 @@ OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename T
 
     using OtsuType = itk::OtsuMultipleThresholdsCalculator<typename StatsType::HistogramType>;
     typename OtsuType::Pointer otsu = OtsuType::New();
-    otsu->SetInputHistogram(stats->GetHistogram(maskLabel));
+    otsu->SetInputHistogram(stats->GetHistogram(1));
     otsu->SetNumberOfThresholds(NumberOfThresholds);
     otsu->Compute();
 
@@ -230,7 +230,7 @@ OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename T
       ItO.GoToBegin();
       while (!ItM.IsAtEnd())
       {
-        if (ItM.Get() == maskLabel)
+        if (ItM.Get() != 0)
         {
           if (itk::Math::FloatAlmostEqual(ItO.Get(), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue()) &&
               ItI.Get() < static_cast<typename ImageType::PixelType>(thresholds[i]))
@@ -250,7 +250,7 @@ OtsuThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename T
     while (!ItM.IsAtEnd())
     {
       if (itk::Math::FloatAlmostEqual(ItO.Get(), itk::NumericTraits<typename ImageType::PixelType>::ZeroValue()) &&
-          ItM.Get() == maskLabel)
+          ItM.Get() != 0)
       {
         ItO.Set(thresholds.size() + 1);
       }
@@ -277,10 +277,9 @@ KmeansThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename
   using MeasurementVectorType = itk::Array<RealType>;
   using SampleType = typename itk::Statistics::ListSample<MeasurementVectorType>;
 
-  int maskLabel = 1;
   if (maskImage.IsNull())
   {
-    maskImage = AllocImage<MaskImageType>(input, maskLabel);
+    maskImage = AllocImage<MaskImageType>(input, 1);
   }
 
   unsigned int                     numberOfTissueClasses = NumberOfThresholds + 1;
@@ -293,8 +292,9 @@ KmeansThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename
   stats->UseHistogramsOff();
   stats->Update();
 
-  RealType minValue = stats->GetMinimum(maskLabel);
-  RealType maxValue = stats->GetMaximum(maskLabel);
+  // Supplied masks are binary; an omitted mask is filled with ones above.
+  RealType minValue = stats->GetMinimum(1);
+  RealType maxValue = stats->GetMaximum(1);
 
   // The code below can be replaced by itkListSampleToImageFilter when we
   // migrate over to the Statistics classes current in the Review/ directory.
@@ -305,7 +305,7 @@ KmeansThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename
   itk::ImageRegionConstIteratorWithIndex<ImageType> ItI(input, input->GetRequestedRegion());
   for (ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI)
   {
-    if (!maskImage || maskImage->GetPixel(ItI.GetIndex()) == maskLabel)
+    if (!maskImage || maskImage->GetPixel(ItI.GetIndex()) != 0)
     {
       typename SampleType::MeasurementVectorType measurement;
       measurement.SetSize(1);
@@ -397,7 +397,7 @@ KmeansThreshold(int NumberOfThresholds, typename TImage::Pointer input, typename
   LabelIterator it = classifier->GetOutput()->Begin();
   while (it != classifier->GetOutput()->End())
   {
-    if (!maskImage || maskImage->GetPixel(ItO.GetIndex()) == maskLabel)
+    if (!maskImage || maskImage->GetPixel(ItO.GetIndex()) != 0)
     {
       ItO.Set(it.GetClassLabel());
       ++it;
@@ -428,7 +428,7 @@ ThresholdImage(int argc, char * argv[])
   typename MaskImageType::Pointer maskImage = nullptr;
   if (argc > 6)
   {
-    ReadImage<MaskImageType>(maskImage, argv[6]);
+    ReadBinaryMask<MaskImageType>(maskImage, argv[6]);
   }
   // Label the surface of the image
   typename FixedImageType::Pointer thresh;
@@ -517,6 +517,7 @@ ThresholdImage(std::vector<std::string> args, std::ostream * /*out_stream = null
     std::cout << "   ImageDimension ImageIn.ext outImage.ext  Otsu NumberofThresholds <maskImage.ext>" << std::endl;
     std::cout << "   ImageDimension ImageIn.ext outImage.ext  Kmeans NumberofThresholds <maskImage.ext>" << std::endl;
 
+    std::cout << " Nonzero values in the optional Otsu/Kmeans mask are included (mask != 0)." << std::endl;
     std::cout << " Inclusive thresholds " << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {

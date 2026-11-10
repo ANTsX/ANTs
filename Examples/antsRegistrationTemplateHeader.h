@@ -352,7 +352,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     typename MaskImageType::Pointer &      cached = maskCache[key];
     if (cached.IsNull())
     {
-      ReadImage<MaskImageType>(cached, filename.c_str());
+      ReadBinaryMask<MaskImageType>(cached, filename.c_str());
       if (cached.IsNotNull())
       {
         cached->DisconnectPipeline();

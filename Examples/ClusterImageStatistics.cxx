@@ -65,7 +65,10 @@ ClusterStatistics(unsigned int argc, char * argv[])
   typename ImageType::Pointer roiimage = nullptr;
   typename ImageType::Pointer labelimage = nullptr;
 
-  ReadImage<ImageType>(roiimage, roimaskfn.c_str());
+  if (!ReadBinaryMask<ImageType>(roiimage, roimaskfn.c_str()))
+  {
+    return EXIT_FAILURE;
+  }
   ReadImage<ImageType>(labelimage, labelimagefn.c_str());
 
   using MinMaxFilterType = itk::MinimumMaximumImageFilter<ImageType>;
@@ -96,10 +99,7 @@ ClusterStatistics(unsigned int argc, char * argv[])
     fIterator tIter(thresh, thresh->GetLargestPossibleRegion());
     for (tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter)
     {
-      if (roiimage->GetPixel(tIter.GetIndex()) < static_cast<PixelType>(0.5))
-      {
-        tIter.Set(0);
-      }
+      tIter.Set(roiimage->GetPixel(tIter.GetIndex()) != 0 ? tIter.Get() : 0);
     }
 
     //  typename
@@ -339,7 +339,7 @@ ClusterImageStatistics(std::vector<std::string> args, std::ostream * /*out_strea
               << " ImageDimension ROIMask.ext LabelImage.ext OutPrefix {MinimumClusterSize=1} {ValueImageThreshold=0} "
                  "Image1WithValuesOfInterest.ext ... ImageNWithValuesOfInterest.ext"
               << std::endl;
-    std::cout << "  ROIMask.ext -- overall region of interest" << std::endl;
+    std::cout << "  ROIMask.ext -- overall region of interest. Nonzero values in the mask are included." << std::endl;
     std::cout << "  LabelImage.ext -- labels for sub-regions (see LabelClustersUniquely)" << std::endl;
     std::cout << "  OutPrefix -- prefix for all output files" << std::endl;
     std::cout << "  MinimumClusterSize -- minimum cluster size in voxels (default: 1)" << std::endl;

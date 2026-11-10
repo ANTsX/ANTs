@@ -390,7 +390,7 @@ AtroposSegmentation(itk::ants::CommandLineParser * parser)
     try
     {
       typename LabelImageType::Pointer image;
-      if (!ReadImage<LabelImageType>(image, maskOption->GetFunction(0)->GetName().c_str()))
+      if (!ReadBinaryMask<LabelImageType>(image, maskOption->GetFunction(0)->GetName().c_str()))
       {
         std::cout << "Input mask image could not be read." << std::endl;
         return EXIT_FAILURE;
@@ -1366,7 +1366,8 @@ AtroposInitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
 
   {
     std::string description = std::string("The image mask (which is required) defines the region which ") +
-                              std::string("is to be labeled by the Atropos algorithm.");
+                              std::string("is to be labeled by the Atropos algorithm. ") +
+                              std::string("Nonzero values in the mask are included.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("mask-image");

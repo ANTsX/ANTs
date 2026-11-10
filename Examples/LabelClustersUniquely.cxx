@@ -47,7 +47,6 @@ LabelUniquely(int argc, char * argv[])
 
   using ULPixelType = unsigned int;
   using labelimagetype = itk::Image<ULPixelType, ImageDimension>;
-  using CastFilterType = itk::CastImageFilter<ImageType, labelimagetype>;
   using CastFilterType2 = itk::CastImageFilter<labelimagetype, ImageType>;
 
   using FilterType = itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype, labelimagetype>;
@@ -78,20 +77,20 @@ LabelUniquely(int argc, char * argv[])
   std::string fn1 = std::string(argv[1]);
   float       clusterthresh = atof(argv[3]);
 
-  typename ImageType::Pointer image1 = nullptr;
+  typename labelimagetype::Pointer image1 = nullptr;
 
-  ReadImage<ImageType>(image1, fn1.c_str());
+  if (!ReadBinaryMask<labelimagetype>(image1, fn1.c_str()))
+  {
+    return EXIT_FAILURE;
+  }
 
   typename FilterType::Pointer  filter = FilterType::New();
   typename RelabelType::Pointer relabel = RelabelType::New();
 
-  typename CastFilterType::Pointer castInput = CastFilterType::New();
-  castInput->SetInput(image1);
-
-  filter->SetInput(castInput->GetOutput());
+  filter->SetInput(image1);
   filter->SetFullyConnected(fullyConnected); // old default was false
   filter->SetBackgroundValue(0);
-  filter->SetMaskImage(castInput->GetOutput());
+  filter->SetMaskImage(image1);
   relabel->SetInput(filter->GetOutput());
   relabel->SetMinimumObjectSize((unsigned int)clusterthresh);
 
@@ -168,6 +167,7 @@ LabelClustersUniquely(std::vector<std::string> args, std::ostream * /*out_stream
     std::cout << argv[0]
               << " ImageDimension clustersin.hdr labeledclustersout.hdr   sizethresh {optionalBoolFullyConnected=0}"
               << std::endl;
+    std::cout << "  clustersin.hdr: binary mask. Nonzero values in the mask are included." << std::endl;
     std::cout << "  sizethresh: minimum cluster size in voxels; clusters smaller than this are removed" << std::endl;
     std::cout << "  optionalBoolFullyConnected: 0 = face connectivity (default), 1 = full connectivity" << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))

@@ -261,7 +261,7 @@ antsAffineInitializerImp(int argc, char * argv[])
   {
     maskfn = std::string(argv[argct]);
     argct++;
-    ReadImage<maskimagetype>(mask, maskfn.c_str());
+    ReadBinaryMask<maskimagetype>(mask, maskfn.c_str());
   }
   searchfactor *= degtorad; // convert degrees to radians
   VectorType ccg1;
@@ -589,6 +589,7 @@ antsAffineInitializer(std::vector<std::string> args, std::ostream * /*out_stream
     std::cerr << " Optional-uint-UseLocalSearch determines if a local optimization is run at each search point for the "
                  "set number of iterations. Default = 20."
               << std::endl;
+    std::cerr << " Optional-Image1Mask is read as float; all nonzero values are included." << std::endl;
     return 0;
   }
 

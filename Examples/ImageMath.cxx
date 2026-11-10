@@ -206,6 +206,12 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
     std::cout << " Operator: See list of valid operators below." << std::endl;
     std::cout << " The last two arguments can be an image or float value " << std::endl;
     std::cout << " NB: Some options output text files" << std::endl;
+    std::cout << " Binary mask inputs include all nonzero values (mask != 0). This applies to "
+                 "ClusterThresholdVariate, TruncateImageIntensity, ConvertVectorToImage, TimeSeriesMask, "
+                 "TimeSeriesToMatrix, MTR, Normalize, CountVoxelDifference, ConvertImageSetToMatrix, "
+                 "ConvertImageToFile, image-metric masks, TensorMask, and TensorColor."
+              << std::endl;
+    std::cout << " GetLargestComponent, FillHoles, and D treat nonzero input voxels as foreground." << std::endl;
 
     std::cout << "\nMathematical Operations:" << std::endl;
     std::cout << "  m            : Multiply ---  use vm for vector multiply " << std::endl;
@@ -348,7 +354,7 @@ ImageMath(std::vector<std::string> args, std::ostream * itkNotUsed(out_stream))
     std::cout << "  ExtractVectorComponent: Produces the WhichVec component of the vector " << std::endl;
     std::cout << "    Usage        : ExtractVectorComponent VecImage WhichVec" << std::endl;
     std::cout << "  TensorColor        : Produces RGB values identifying principal directions " << std::endl;
-    std::cout << "    Usage        : TensorColor DTImage.ext" << std::endl;
+    std::cout << "    Usage        : TensorColor DTImage.ext [mask.ext]" << std::endl;
     std::cout << "  TensorFA        : " << std::endl;
     std::cout << "    Usage        : TensorFA DTImage.ext" << std::endl;
     std::cout << "  TensorFADenominator    : " << std::endl;

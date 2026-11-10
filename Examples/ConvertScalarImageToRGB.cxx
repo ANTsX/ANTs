@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "ReadWriteData.h"
 #include <algorithm>
 #include <algorithm>
 #include <string>
@@ -51,18 +52,10 @@ ConvertScalarImageToRGB(int argc, char * argv[])
 
   using MaskImageType = itk::Image<unsigned char, ImageDimension>;
   typename MaskImageType::Pointer maskImage = nullptr;
-  using MaskReaderType = itk::ImageFileReader<MaskImageType>;
-  typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
-  maskreader->SetFileName(argv[4]);
-  try
+  if (std::string(argv[4]) != "none")
   {
-    maskreader->Update();
-    maskImage = maskreader->GetOutput();
+    ReadBinaryMask<MaskImageType>(maskImage, argv[4]);
   }
-  catch (...)
-  {
-    maskImage = nullptr;
-  };
 
   std::string colormapString(argv[5]);
 
@@ -378,7 +371,7 @@ ConvertScalarImageToRGB(std::vector<std::string> args, std::ostream * /*out_stre
     "        Path to the output RGB image that will be generated.\n"
     "\n"
     "    mask\n"
-    "        Path to a mask image. This sets pixels outside the mask to zero. Use 'none' for no mask.\n"
+    "        Path to a mask image. Nonzero values in the mask are included; pixels outside are set to zero. Use 'none' for no mask.\n"
     "\n"
     "    colormap\n"
     "        A string specifying which colormap to use. Allowed values include:\n"

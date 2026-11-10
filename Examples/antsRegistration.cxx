@@ -312,7 +312,8 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
       std::string("fraction of points to select from the domain. useGradientFilter specifies whether a smoothing") +
       std::string("filter is applied when estimating the metric gradient.") +
       std::string("In addition, three point set metrics are available:  Euclidean ") +
-      std::string("(ICP), Point-set expectation (PSE), and Jensen-Havrda-Charvet-Tsallis (JHCT).");
+      std::string("(ICP), Point-set expectation (PSE), and Jensen-Havrda-Charvet-Tsallis (JHCT). ") +
+      std::string("IGDM masks are read as float; all nonzero values are included.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("metric");
@@ -469,6 +470,7 @@ antsRegistrationInitializeCommandLineOptions(itk::ants::CommandLineParser * pars
 
   {
     std::string description = std::string("Image masks to limit voxels considered by the metric. ") +
+                              std::string("Masks are read as float; all nonzero values are included. ") +
                               std::string("Two options are allowed for mask specification:  1) Either ") +
                               std::string("the user specifies a single mask to be used for all stages or ") +
                               std::string("2) the user specifies a mask for each stage.  With the latter ") +

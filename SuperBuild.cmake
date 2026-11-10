@@ -113,8 +113,8 @@ CMAKE_DEPENDENT_OPTION(
      )
 
 option(BUILD_ALL_ANTS_APPS "Build all ANTs apps" ON)
-option(RUN_SHORT_TESTS    "Run the quick unit tests."                                   ON  )
-option(RUN_LONG_TESTS     "Run the time consuming tests. i.e. real world registrations" ON  )
+option(RUN_SHORT_TESTS    "Run tests with estimated individual runtimes below 30 seconds."     ON  )
+option(RUN_LONG_TESTS     "Run tests with estimated individual runtimes of 30 seconds or more." ON  )
 option(OLD_BASELINE_TESTS "Use reported metrics from old tests"                         OFF )
 
 option(ANTS_INSTALL_BIN_ONLY "Do not install libraries (requires static build)" OFF)

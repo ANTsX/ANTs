@@ -366,20 +366,14 @@ antsImageToSurface(itk::ants::CommandLineParser * parser)
 
       std::string maskFileName = functionalOverlayOption->GetFunction(n)->GetParameter(1);
 
-      using MaskReaderType = itk::ImageFileReader<MaskImageType>;
-      MaskReaderType::Pointer maskReader = MaskReaderType::New();
-      maskReader->SetFileName(maskFileName.c_str());
-      try
-      {
-        maskReader->Update();
-        maskReader->GetOutput()->SetOrigin(zeroOrigin);
-      }
-      catch (...)
+      MaskImageType::Pointer overlayMask;
+      if (!ReadBinaryMask<MaskImageType>(overlayMask, maskFileName.c_str()))
       {
         std::cerr << "Error reading mask file " << maskFileName << std::endl;
         return EXIT_FAILURE;
       }
-      functionalMaskImages.emplace_back(maskReader->GetOutput());
+      overlayMask->SetOrigin(zeroOrigin);
+      functionalMaskImages.emplace_back(overlayMask);
 
       if (functionalOverlayOption->GetFunction(n)->GetNumberOfParameters() > 2)
       {
@@ -891,7 +885,7 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
   {
     std::string description = std::string("A functional overlay can be specified using both ") +
                               std::string("and rgb image and a mask specifying where that ") +
-                              std::string("rgb image should be applied.  Both images must ") +
+                              std::string("rgb image should be applied. Nonzero values in the mask are included. Both images must ") +
                               std::string("have the same image geometry as the input image. ") +
                               std::string("Optionally, an alpha parameter can be specified.") +
                               std::string("Note that more than one functional overlays can ") +

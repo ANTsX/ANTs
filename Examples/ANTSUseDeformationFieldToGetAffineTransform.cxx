@@ -275,7 +275,7 @@ FetchLandmarkMappingFromDisplacementField(const std::string &                   
     bool getpoint = true;
     if (maskimg)
     {
-      if (maskimg->GetPixel(it.GetIndex()) < 0.5f)
+      if (maskimg->GetPixel(it.GetIndex()) == 0)
       {
         getpoint = false;
       }
@@ -343,7 +343,10 @@ DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
   ImageType::Pointer maskimg = nullptr;
   if (maskfn.length() > 4)
   {
-    ReadImage<ImageType>(maskimg, maskfn.c_str());
+    if (!ReadBinaryMask<ImageType>(maskimg, maskfn.c_str()))
+    {
+      return EXIT_FAILURE;
+    }
   }
 
   FetchLandmarkMappingFromDisplacementField(
@@ -470,7 +473,8 @@ ANTSUseDeformationFieldToGetAffineTransform(std::vector<std::string> args, std::
     std::cout << " we expect the input deformation field in the same physical space as the images you want to "
               << std::endl;
     std::cout << "load_ratio: ratio of points to be loaded from deformation field (to save memory, e.g. 0.01)" << std::endl;
-    std::cout << " mask.nii.gz: optional mask to restrict point selection (default: no mask)" << std::endl;
+    std::cout << " mask.nii.gz: optional mask to restrict point selection (default: no mask). "
+                 "Nonzero values in the mask are included." << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;

@@ -24,10 +24,11 @@ MeasureMinMaxMean(int argc, char * argv[])
 {
   using PixelType = itk::Vector<float, NVectorComponents>;
   using ImageType = itk::Image<PixelType, ImageDimension>;
+  using MaskImageType = itk::Image<unsigned char, ImageDimension>;
   using Iterator = itk::ImageRegionIteratorWithIndex<ImageType>;
 
   typename ImageType::Pointer image = nullptr;
-  typename ImageType::Pointer mask = nullptr;
+  typename MaskImageType::Pointer mask = nullptr;
   PixelType                   mean;
   mean.Fill(0);
   PixelType max;
@@ -44,7 +45,28 @@ MeasureMinMaxMean(int argc, char * argv[])
   }
   if (argc > 5)
   {
-    ReadImage<ImageType>(mask, argv[5]);
+    auto maskIO = itk::ImageIOFactory::CreateImageIO(argv[5], itk::IOFileModeEnum::ReadMode);
+    if (!maskIO)
+    {
+      std::cerr << "Cannot read mask image: " << argv[5] << std::endl;
+      return EXIT_FAILURE;
+    }
+    maskIO->SetFileName(argv[5]);
+    maskIO->ReadImageInformation();
+    if (maskIO->GetNumberOfComponents() != 1)
+    {
+      std::cerr << "Mask must be a scalar image." << std::endl;
+      return EXIT_FAILURE;
+    }
+    if (!ReadBinaryMask<MaskImageType>(mask, argv[5]))
+    {
+      return EXIT_FAILURE;
+    }
+    if (!image->IsSameImageGeometryAs(mask.GetPointer()))
+    {
+      std::cerr << "Mask must have the same size, origin, spacing, and direction as the input image." << std::endl;
+      return EXIT_FAILURE;
+    }
   }
   Iterator vfIter2(image, image->GetLargestPossibleRegion());
   for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
@@ -52,7 +74,7 @@ MeasureMinMaxMean(int argc, char * argv[])
     bool isinside = true;
     if (mask)
     {
-      if (mask->GetPixel(vfIter2.GetIndex()).GetNorm() < 0.5)
+      if (mask->GetPixel(vfIter2.GetIndex()) == 0)
       {
         isinside = false;
       }
@@ -91,7 +113,7 @@ MeasureMinMaxMean(int argc, char * argv[])
     bool isinside = true;
     if (mask)
     {
-      if (mask->GetPixel(vfIter2.GetIndex()).GetNorm() < 0.5)
+      if (mask->GetPixel(vfIter2.GetIndex()) == 0)
       {
         isinside = false;
       }
@@ -185,7 +207,12 @@ MeasureMinMaxMean(std::vector<std::string> args, std::ostream * /*out_stream = n
     std::cout << argv[0] << " ImageDimension image.nii {log.txt} {take-absolute-value=0} {mask-name} " << std::endl;
     std::cout << "  log.txt: optional output file (default: print to stdout)" << std::endl;
     std::cout << "  take-absolute-value: 0 = use original values (default), 1 = report min/max/mean of |image|" << std::endl;
-    std::cout << "  mask-name: optional mask image to restrict computation" << std::endl;
+    std::cout << "  Input may be a scalar or vector image. Min/max select pixels by squared norm; the reported values "
+                 "are the selected pixels. Mean is component-wise; variance is the mean squared distance from that mean."
+              << std::endl;
+    std::cout << "  mask-name: optional scalar mask with the same size, origin, spacing, and direction as the input. "
+                 "Nonzero values in the mask are included."
+              << std::endl;
     if (argc >= 2 && (std::string(argv[1]) == std::string("--help") || std::string(argv[1]) == std::string("-h")))
     {
       return EXIT_SUCCESS;

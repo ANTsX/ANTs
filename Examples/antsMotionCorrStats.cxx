@@ -127,7 +127,7 @@ ants_motion_stats(itk::ants::CommandLineParser * parser)
   ImageType::Pointer mask = ImageType::New();
   if (maskOption && maskOption->GetNumberOfFunctions())
   {
-    ReadImage<ImageType>(mask, maskOption->GetFunction(0)->GetName().c_str());
+    ReadBinaryMask<ImageType>(mask, maskOption->GetFunction(0)->GetName().c_str());
   }
   else
   {
@@ -295,7 +295,7 @@ ants_motion_stats(itk::ants::CommandLineParser * parser)
     while (!it.IsAtEnd())
     {
 
-      if (it.Value() > 0)
+      if (it.Value() != 0)
       {
 
         ImageType::IndexType idx = it.GetIndex();
@@ -385,7 +385,7 @@ antsMotionCorrStatsInitializeCommandLineOptions(itk::ants::CommandLineParser * p
   using OptionType = itk::ants::CommandLineParser::OptionType;
 
   {
-    std::string description = std::string("Mask image - compute displacements within mask.");
+    std::string description = std::string("Mask image - compute displacements where mask != 0.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("mask");
