@@ -124,8 +124,8 @@ endif()
 
 # These are configure time options that specify which
 # subset of tests should be run
-option(RUN_SHORT_TESTS    "Run the quick unit tests."                                   ON  )
-option(RUN_LONG_TESTS     "Run the time consuming tests. i.e. real world registrations" OFF )
+option(RUN_SHORT_TESTS    "Run tests with estimated individual runtimes below 30 seconds."     ON  )
+option(RUN_LONG_TESTS     "Run tests with estimated individual runtimes of 30 seconds or more." OFF )
 option(OLD_BASELINE_TESTS "Use reported metrics from old tests"                         OFF )
 #-----------------------------------------------------------------------------
 include(CTest)
