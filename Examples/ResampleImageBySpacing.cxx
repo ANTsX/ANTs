@@ -158,8 +158,7 @@ ResampleImageBySpacing(std::vector<std::string> args, std::ostream * /*out_strea
       resampler->SetInterpolator(interpolator2);
     }
 
-    InternalImageType::IndexType ind;
-    ind.Fill(1);
+    constexpr auto ind = InternalImageType::IndexType::Filled(1);
     resampler->SetDefaultPixelValue(inputImage->GetPixel(ind)); // zero regions without source
 
     // Use the inputImage as initial template
@@ -291,8 +290,7 @@ ResampleImageBySpacing(std::vector<std::string> args, std::ostream * /*out_strea
       resampler->SetInterpolator(interpolator2);
     }
 
-    InternalImageType::IndexType ind;
-    ind.Fill(1);
+    constexpr auto ind = InternalImageType::IndexType::Filled(1);
     resampler->SetDefaultPixelValue(inputImage->GetPixel(ind)); // zero regions without source
 
     // Use the inputImage as initial template
@@ -411,8 +409,7 @@ ResampleImageBySpacing(std::vector<std::string> args, std::ostream * /*out_strea
     {
       resampler->SetInterpolator(interpolator2);
     }
-    InternalImageType::IndexType ind;
-    ind.Fill(1);
+    constexpr auto ind = InternalImageType::IndexType::Filled(1);
     resampler->SetDefaultPixelValue(inputImage->GetPixel(ind)); // zero regions without source
     // Use the inputImage as initial template
     resampler->SetOutputParametersFromImage(inputImage);

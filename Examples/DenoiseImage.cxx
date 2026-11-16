@@ -325,8 +325,7 @@ Denoise(itk::ants::CommandLineParser * parser)
    *   code.  I don't have a good handle on them so I'm hiding them from the
    *   user for now.
    */
-  typename DenoiserType::NeighborhoodRadiusType neighborhoodRadiusForLocalMeanAndVariance;
-  neighborhoodRadiusForLocalMeanAndVariance.Fill(1);
+  constexpr auto neighborhoodRadiusForLocalMeanAndVariance = DenoiserType::NeighborhoodRadiusType::Filled(1);
 
   denoiser->SetNeighborhoodRadiusForLocalMeanAndVariance(neighborhoodRadiusForLocalMeanAndVariance);
 

@@ -410,8 +410,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>::ReadImagesAndMetrics()
       movingImageFileReader->Update();
       ImagePointer movingImage = this->PreprocessImage(movingImageFileReader->GetOutput());
       similarityMetric->SetMovingImage(movingImage);
-      typename SimilarityMetricType::RadiusType radius;
-      radius.Fill(0);
+      typename SimilarityMetricType::RadiusType radius{};
       parameterCount++;
 
       std::cout << "  Moving image file: " << movingImageFileReader->GetFileName() << std::endl;

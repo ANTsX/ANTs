@@ -361,8 +361,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
       /** add the paired intensity points to the joint histogram */
       JointPDFPointType jointPDFpoint;
       this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, jointPDFpoint);
-      JointPDFIndexType jointPDFIndex;
-      jointPDFIndex.Fill(0);
+      JointPDFIndexType jointPDFIndex{};
       jointPDFIndex = this->m_JointPDF->TransformPhysicalPointToIndex(jointPDFpoint);
       this->m_JointPDF->SetPixel(jointPDFIndex, this->m_JointPDF->GetPixel(jointPDFIndex) + 1);
 

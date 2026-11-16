@@ -264,8 +264,7 @@ LandmarkBasedTransformInitializerBA(int, char * argv[])
   {
     float                                                currentlabel = *fit;
     float                                                totalct = 0;
-    typename TransformInitializerType::LandmarkPointType myCenterOfMass;
-    myCenterOfMass.Fill(0);
+    typename TransformInitializerType::LandmarkPointType myCenterOfMass{};
     for (It.GoToBegin(); !It.IsAtEnd(); ++It)
     {
       PixelType label = It.Get();
@@ -297,8 +296,7 @@ LandmarkBasedTransformInitializerBA(int, char * argv[])
     float currentlabel = *mit;
     float totalct = 0;
     using LandmarkPointType = typename TransformInitializerType::LandmarkPointType;
-    LandmarkPointType myCenterOfMass;
-    myCenterOfMass.Fill(0);
+    LandmarkPointType myCenterOfMass{};
     for (ItM.GoToBegin(); !ItM.IsAtEnd(); ++ItM)
     {
       PixelType label = ItM.Get();

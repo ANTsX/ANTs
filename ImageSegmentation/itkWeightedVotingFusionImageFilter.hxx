@@ -113,8 +113,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::GenerateInputRequest
   }
   else
   {
-    NeighborhoodRadiusType maxNeighborhoodSearchRadius;
-    maxNeighborhoodSearchRadius.Fill(0);
+    NeighborhoodRadiusType maxNeighborhoodSearchRadius{};
 
     ImageRegionConstIterator<RadiusImageType> ItR(this->m_NeighborhoodSearchRadiusImage,
                                                   this->m_NeighborhoodSearchRadiusImage->GetRequestedRegion());
@@ -356,8 +355,7 @@ WeightedVotingFusionImageFilter<TInputImage, TOutputImage>::BeforeThreadedGenera
       if (localSearchRadius > 0 && this->m_NeighborhoodSearchOffsetSetsMap.find(localSearchRadius) ==
                                      this->m_NeighborhoodSearchOffsetSetsMap.end())
       {
-        NeighborhoodRadiusType localNeighborhoodSearchRadius;
-        localNeighborhoodSearchRadius.Fill(localSearchRadius);
+        auto localNeighborhoodSearchRadius = NeighborhoodRadiusType::Filled(localSearchRadius);
 
         std::vector<NeighborhoodOffsetType> localNeighborhoodSearchOffsetList;
 

@@ -567,14 +567,12 @@ ANTSAffine3DTransform<TScalarType>::ComputeMatrix()
 
   R = conjugateRotation.rotation_matrix_transpose();
 
-  MatrixType S;
-  S.Fill(NumericTraits<TScalarType>::ZeroValue());
+  MatrixType S{};
   S[0][0] = this->m_S1;
   S[1][1] = this->m_S2;
   S[2][2] = this->m_S3;
 
-  MatrixType K;
-  K.Fill(NumericTraits<TScalarType>::ZeroValue());
+  MatrixType K{};
   K[0][0] = NumericTraits<TScalarType>::OneValue();
   K[0][1] = this->m_K1;
   K[0][2] = this->m_K2;

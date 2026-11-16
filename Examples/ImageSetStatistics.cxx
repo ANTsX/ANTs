@@ -170,8 +170,7 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood, typename TImage::P
   typename TImage::SizeType imagesize = image->GetLargestPossibleRegion().GetSize();
 
   using iteratorType = itk::NeighborhoodIterator<TImage>;
-  typename iteratorType::RadiusType rad;
-  rad.Fill(static_cast<itk::SizeValueType>(nhood));
+  auto rad = iteratorType::RadiusType::Filled(static_cast<itk::SizeValueType>(nhood));
 
   using IndexType = typename TImage::IndexType;
 

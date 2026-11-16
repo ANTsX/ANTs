@@ -360,8 +360,7 @@ ReflectionMatrix(int argc, char * argv[])
   typedef typename itk::ImageMomentsCalculator<ImageType> ImageCalculatorType;
   typename ImageCalculatorType::Pointer                   calculator1 = ImageCalculatorType::New();
   calculator1->SetImage(image1);
-  typename ImageCalculatorType::VectorType fixed_center;
-  fixed_center.Fill(0);
+  typename ImageCalculatorType::VectorType fixed_center{};
   try
   {
     calculator1->Compute();
@@ -1136,10 +1135,8 @@ TileImages(unsigned int argc, char * argv[])
   typename ImageType::Pointer averageimage = nullptr;
   typename ImageType::Pointer image2 = nullptr;
 
-  typename ImageType::SizeType size;
-  size.Fill(0);
-  typename ImageType::SizeType maxSize;
-  maxSize.Fill(0);
+  typename ImageType::SizeType size{};
+  typename ImageType::SizeType maxSize{};
 
   double       meanval = 1;
   unsigned int bigimage = 0;
@@ -1684,8 +1681,7 @@ SetOrGetPixel(int argc, char * argv[])
     // std::cout << " no image ! " << std::endl; throw std::exception();
   }
 
-  typename ImageType::IndexType index;
-  index.Fill(0);
+  typename ImageType::IndexType index{};
   if (usephyspace == false)
   {
     index[0] = (long int)indx;
@@ -1884,8 +1880,7 @@ NeighborhoodStats(int itkNotUsed(argc), char * argv[])
   typename ImageType::Pointer input;
   ReadImage<ImageType>(input, inputName.c_str());
 
-  typename KernelType::SizeType radius;
-  radius.Fill(rad);
+  auto       radius = KernelType::SizeType::Filled(rad);
   KernelType kernel = KernelType::Box(radius);
 
   typename TextureFilterType::Pointer filter = TextureFilterType::New();
@@ -2293,9 +2288,8 @@ CenterImage2inImage1(int argc, char * argv[])
 
   // compute center of mass in image2 in point space
   double                        iweight = 0;
-  typename ImageType::PointType cm_point;
-  cm_point.Fill(0);
-  Iterator iter(image2, image2->GetLargestPossibleRegion());
+  typename ImageType::PointType cm_point{};
+  Iterator                      iter(image2, image2->GetLargestPossibleRegion());
   for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
   {
     typename ImageType::PointType point;
@@ -2308,8 +2302,7 @@ CenterImage2inImage1(int argc, char * argv[])
   }
 
   // center of image1
-  typename ImageType::IndexType image_1_center_index;
-  image_1_center_index.Fill(0);
+  typename ImageType::IndexType image_1_center_index{};
   for (unsigned int d = 0; d < ImageDimension; d++)
   {
     cm_point[d] /= iweight;
@@ -2333,9 +2326,8 @@ CenterImage2inImage1(int argc, char * argv[])
       point[d] = point[d] + trans[d];
     }
 
-    typename ImageType::IndexType newindex;
-    newindex.Fill(0);
-    bool isinside = image1->TransformPhysicalPointToIndex(point, newindex);
+    typename ImageType::IndexType newindex{};
+    bool                          isinside = image1->TransformPhysicalPointToIndex(point, newindex);
     if (isinside)
     {
       image1->SetPixel(newindex, iter.Get());
@@ -3754,8 +3746,7 @@ TimeSeriesToMatrix(int argc, char * argv[])
       }
       for (unsigned int t = 0; t < timedims; t++)
       {
-        typename MatrixImageType::IndexType matind;
-        matind.Fill(0);
+        typename MatrixImageType::IndexType matind{};
         matind[0] = t;
         matind[1] = voxct;
         tind[ImageDimension - 1] = t;
@@ -5243,8 +5234,7 @@ LabelSurfaceArea(int argc, char * argv[])
   ReadImage<ImageType>(input, fn1.c_str());
   typename ImageType::Pointer                  areaImage = AllocImage<ImageType>(input);
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
-  typename iteratorType::RadiusType            rad;
-  rad.Fill(1);
+  auto                                         rad = iteratorType::RadiusType::Filled(1);
   if (argc > argct)
     rad.Fill(std::stoi(argv[argct]));
   Scalar voxspc = 0;
@@ -5642,8 +5632,7 @@ ImageMath(int argc, char * argv[])
     resample->SetTransform(m_Transform0);
     resample->SetInput(image2);
     resample->SetOutputParametersFromImage(image1);
-    typename ImageType::IndexType zeroind;
-    zeroind.Fill(0);
+    typename ImageType::IndexType zeroind{};
     resample->SetDefaultPixelValue(image1->GetPixel(zeroind));
     resample->UpdateLargestPossibleRegion();
     image2 = resample->GetOutput();
@@ -5801,9 +5790,8 @@ FuseNImagesIntoNDVectorField(int argc, char * argv[])
   typename FieldType::Pointer vimage = AllocImage<FieldType>(
     image1->GetLargestPossibleRegion(), image1->GetSpacing(), image1->GetOrigin(), image1->GetDirection());
 
-  VectorType vec;
-  vec.Fill(0);
-  Iterator vfIter2(vimage, vimage->GetLargestPossibleRegion());
+  VectorType vec{};
+  Iterator   vfIter2(vimage, vimage->GetLargestPossibleRegion());
   for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
   {
     IndexType ind = vfIter2.GetIndex();
@@ -5881,8 +5869,7 @@ VImageMath(int argc, char * argv[])
     resample->SetTransform(m_Transform0);
     resample->SetInput(image2);
     resample->SetOutputParametersFromImage(image1);
-    typename ImageType::IndexType zeroind;
-    zeroind.Fill(0);
+    typename ImageType::IndexType zeroind{};
     resample->SetDefaultPixelValue(image1->GetPixel(zeroind));
     resample->UpdateLargestPossibleRegion();
     image2 = resample->GetOutput();
@@ -5897,9 +5884,8 @@ VImageMath(int argc, char * argv[])
     volumeelement *= static_cast<float>(varimage->GetSpacing()[i]);
   }
 
-  PixelType result;
-  result.Fill(0);
-  Iterator vfIter2(varimage, varimage->GetLargestPossibleRegion());
+  PixelType result{};
+  Iterator  vfIter2(varimage, varimage->GetLargestPossibleRegion());
   for (vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2)
   {
     IndexType ind = vfIter2.GetIndex();
@@ -6534,15 +6520,13 @@ TensorFunctions(int argc, char * argv[])
   }
   else if (strcmp(operation.c_str(), "TensorToVector") == 0)
   {
-    VectorType zero;
-    zero.Fill(0);
+    VectorType zero{};
     vecimage = AllocImage<VectorImageType>(timage, zero);
   }
   else if ((strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
            (strcmp(operation.c_str(), "TensorToLocalSpace") == 0) || (strcmp(operation.c_str(), "ValidTensor") == 0))
   {
-    typename TensorImageType::PixelType zero;
-    zero.Fill(0);
+    auto zero = itk::MakeFilled<typename TensorImageType::PixelType>(0);
     toimage = AllocImage<TensorImageType>(timage, zero);
   }
   else
@@ -6696,8 +6680,7 @@ TensorFunctions(int argc, char * argv[])
       typename TensorType::EigenValuesArrayType   eigenValues;
       typename TensorType::EigenVectorsMatrixType eigenVectors;
       typename TensorType::EigenVectorsMatrixType eigenVectorsPhysical;
-      typename TensorType::EigenVectorsMatrixType eigenValuesMatrix;
-      eigenValuesMatrix.Fill(0.0);
+      typename TensorType::EigenVectorsMatrixType eigenValuesMatrix{};
       tIter.Value().ComputeEigenAnalysis(eigenValues, eigenVectors);
       for (unsigned int i = 0; i < 3; i++)
       {
@@ -6730,8 +6713,7 @@ TensorFunctions(int argc, char * argv[])
     {
       typename TensorType::EigenValuesArrayType   eigenValues;
       typename TensorType::EigenVectorsMatrixType eigenVectors;
-      typename TensorType::EigenVectorsMatrixType eigenValuesMatrix;
-      eigenValuesMatrix.Fill(0.0);
+      typename TensorType::EigenVectorsMatrixType eigenValuesMatrix{};
       tIter.Value().ComputeEigenAnalysis(eigenValues, eigenVectors);
       for (unsigned int i = 0; i < 3; i++)
       {
@@ -6761,8 +6743,7 @@ TensorFunctions(int argc, char * argv[])
     {
       typename TensorType::EigenValuesArrayType   eigenValues;
       typename TensorType::EigenVectorsMatrixType eigenVectors;
-      typename TensorType::EigenVectorsMatrixType eigenValuesMatrix;
-      eigenValuesMatrix.Fill(0.0);
+      typename TensorType::EigenVectorsMatrixType eigenValuesMatrix{};
       tIter.Value().ComputeEigenAnalysis(eigenValues, eigenVectors);
       // NOT USED bool hasNeg = false;
 
@@ -6912,10 +6893,8 @@ CompareHeadersAndImages(int argc, char * argv[])
       typename ImageCalculatorType::Pointer                   calculator = ImageCalculatorType::New();
       calculator->SetImage(image1);
 
-      typename ImageCalculatorType::VectorType fixed_center;
-      fixed_center.Fill(0);
-      typename ImageCalculatorType::VectorType moving_center;
-      moving_center.Fill(0);
+      typename ImageCalculatorType::VectorType fixed_center{};
+      typename ImageCalculatorType::VectorType moving_center{};
       try
       {
         calculator->Compute();
@@ -6951,8 +6930,7 @@ CompareHeadersAndImages(int argc, char * argv[])
       resample->SetTransform(m_Transform0);
       resample->SetInput(image2);
       resample->SetOutputParametersFromImage(image1);
-      typename ImageType::IndexType zeroind;
-      zeroind.Fill(0);
+      typename ImageType::IndexType zeroind{};
       resample->SetDefaultPixelValue(image1->GetPixel(zeroind));
       resample->UpdateLargestPossibleRegion();
       typename ImageType::Pointer varimage = resample->GetOutput();
@@ -8989,13 +8967,12 @@ FillHoles(int argc, char * argv[])
       while (!GHood.IsAtEnd())
       {
         typename ImageType::PixelType p = GHood.GetCenterPixel();
-        typename ImageType::IndexType ind2;
         if (itk::Math::FloatAlmostEqual(p, static_cast<float>(lab)))
         {
           // volume++;
           for (unsigned int i = 0; i < GHood.Size(); i++)
           {
-            ind2 = GHood.GetIndex(i);
+            const auto ind2 = GHood.GetIndex(i);
             float val2 = image1->GetPixel(ind2);
             if (val2 >= 0.5f && !itk::Math::FloatAlmostEqual(GHood.GetPixel(i), static_cast<float>(lab)))
             {
@@ -9645,11 +9622,9 @@ EnumerateLabelInterfaces(int argc, char * argv[])
   typename myInterfaceImageType::SizeType size;
   size[0] = max + 1;
   size[1] = max + 1;
-  typename myInterfaceImageType::RegionType  region;
-  typename myInterfaceImageType::SpacingType spacing;
-  spacing.Fill(1);
-  typename myInterfaceImageType::PointType origin;
-  origin.Fill(max / 2);
+  typename myInterfaceImageType::RegionType region;
+  auto                                      spacing = itk::MakeFilled<typename myInterfaceImageType::SpacingType>(1);
+  auto                                      origin = itk::MakeFilled<typename myInterfaceImageType::PointType>(max / 2);
   region.SetSize(size);
   typename myInterfaceImageType::DirectionType direction;
   direction.SetIdentity();
@@ -9716,8 +9691,7 @@ EnumerateLabelInterfaces(int argc, char * argv[])
 
   // first normalize the interfaces
   typename myInterfaceImageType::IndexType find;
-  typename myInterfaceImageType::IndexType find2;
-  find2.Fill(0);
+  typename myInterfaceImageType::IndexType find2{};
   for (unsigned int j = 0; j <= max; j++)
   {
     find[0] = j;
@@ -10287,24 +10261,16 @@ Lipschitz(int argc, char * argv[])
   itk::TimeProbe timer;
   timer.Start();
   /** global Lipschitz points */
-  typename VectorImageType::PointType gx;
-  gx.Fill(0);
-  typename VectorImageType::PointType gxt;
-  gxt.Fill(0);
-  typename VectorImageType::PointType gy;
-  gy.Fill(0);
-  typename VectorImageType::PointType gyt;
-  gyt.Fill(0);
-  typename VectorImageType::PointType lx;
-  lx.Fill(0);
-  typename VectorImageType::PointType lxt;
-  lxt.Fill(0);
-  typename VectorImageType::PointType ly;
-  ly.Fill(0);
-  typename VectorImageType::PointType lyt;
-  lyt.Fill(0);
-  float         globalmaxval = 0;
-  unsigned long ct1 = 0;
+  typename VectorImageType::PointType gx{};
+  typename VectorImageType::PointType gxt{};
+  typename VectorImageType::PointType gy{};
+  typename VectorImageType::PointType gyt{};
+  typename VectorImageType::PointType lx{};
+  typename VectorImageType::PointType lxt{};
+  typename VectorImageType::PointType ly{};
+  typename VectorImageType::PointType lyt{};
+  float                               globalmaxval = 0;
+  unsigned long                       ct1 = 0;
   //  unsigned long numpx=vecimage->GetBufferedRegion().GetNumberOfPixels();
   Iterator It1(vecimage, vecimage->GetLargestPossibleRegion());
   for (It1.GoToBegin(); !It1.IsAtEnd(); ++It1)
@@ -10475,10 +10441,9 @@ InvId(int argc, char * argv[])
   vinterp->SetInputImage(vecimage2);
 
   /** global Lipschitz points */
-  typename VectorImageType::PointType gx;
-  gx.Fill(0);
-  double   globalmaxval = 0;
-  Iterator It1(vecimage1, vecimage1->GetLargestPossibleRegion());
+  typename VectorImageType::PointType gx{};
+  double                              globalmaxval = 0;
+  Iterator                            It1(vecimage1, vecimage1->GetLargestPossibleRegion());
   for (It1.GoToBegin(); !It1.IsAtEnd(); ++It1)
   {
     typename VectorImageType::PointType         x;
@@ -10602,13 +10567,12 @@ ReplicateDisplacement(int argc, char * argv[])
   outputImage->SetDirection(outDirection);
   outputImage->AllocateInitialized();
   // perform the replication
-  typename VectorImageType::IndexType  ind;
   typename VectorRImageType::IndexType indp1;
   Iterator                             It1(vecimage1, vecimage1->GetLargestPossibleRegion());
   typename VectorRImageType::PixelType vec{};
   for (It1.GoToBegin(); !It1.IsAtEnd(); ++It1)
   {
-    ind = It1.GetIndex();
+    const auto                          ind = It1.GetIndex();
     typename VectorImageType::PixelType vecx = It1.Get();
     for (unsigned int i = 0; i < ImageDimension; i++)
     {
@@ -10658,8 +10622,7 @@ ShiftImageSlicesInTime(int argc, char * argv[])
   typedef itk::CyclicShiftImageFilter<ImageType, ImageType> FilterType;
   typename FilterType::Pointer                              cyfilter = FilterType::New();
   cyfilter->SetInput(image);
-  typename FilterType::OffsetType myshift;
-  myshift.Fill(0);
+  typename FilterType::OffsetType myshift{};
   myshift[shiftdim] = shiftamount;
   cyfilter->SetShift(myshift);
   ANTs::WriteImage<ImageType>(cyfilter->GetOutput(), outname.c_str());
@@ -10842,8 +10805,7 @@ LabelStats(int argc, char * argv[])
     float                         totalvolume = 0;
     float                         totalmass = 0;
     float                         totalct = 0;
-    typename ImageType::PointType myCenterOfMass;
-    myCenterOfMass.Fill(0);
+    typename ImageType::PointType myCenterOfMass{};
     for (It.GoToBegin(); !It.IsAtEnd(); ++It)
     {
       PixelType label = It.Get();
@@ -10980,10 +10942,9 @@ LabelThickness(int argc, char * argv[])
   vnl_vector<double> volume(maxlab + 1, 0);
 
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
-  typename iteratorType::RadiusType            rad;
-  rad.Fill(1);
-  iteratorType GHood(rad, image, image->GetLargestPossibleRegion());
-  float        Gsz = (float)GHood.Size();
+  constexpr auto                               rad = iteratorType::RadiusType::Filled(1);
+  iteratorType                                 GHood(rad, image, image->GetLargestPossibleRegion());
+  float                                        Gsz = (float)GHood.Size();
   // iterate over the label image and index into the stat image
   for (iIt.GoToBegin(); !iIt.IsAtEnd(); ++iIt)
   {
@@ -11202,9 +11163,8 @@ ROIStatistics(int argc, char * argv[])
     ++it;
     }*/
 
-    typename ImageType::PointType myCenterOfMass;
-    myCenterOfMass.Fill(0);
-    unsigned long totalct = 0;
+    typename ImageType::PointType myCenterOfMass{};
+    unsigned long                 totalct = 0;
     if (clusters[mylabel] > 0)
     {
       for (It.GoToBegin(); !It.IsAtEnd(); ++It)
@@ -11267,8 +11227,7 @@ ROIStatistics(int argc, char * argv[])
   typename TwoDImageType::Pointer squareimage = AllocImage<TwoDImageType>(newregion, 0);
 
   labelcount = 0;
-  typename ImageType::PointType myCenterOfMass;
-  myCenterOfMass.Fill(0);
+  typename ImageType::PointType myCenterOfMass{};
   //  for (unsigned int i=0; i<=maxlab; i++) mycomlist[i]=myCenterOfMass;
   for (it = myLabelSet.begin(); it != myLabelSet.end(); ++it)
   {
@@ -11508,8 +11467,7 @@ ConvertImageSetToMatrix(unsigned int argc, char * argv[])
   }
 
   typename ImageType::Pointer  image2 = nullptr;
-  typename ImageType::SizeType size;
-  size.Fill(0);
+  typename ImageType::SizeType size{};
   for (unsigned int j = argct; j < argc; j++)
   {
     numberofimages++;
@@ -11809,8 +11767,7 @@ ConvertImageSetToEigenvectors(unsigned int argc, char * argv[])
 
   typedef itk::Array2D<double> MatrixType;
   typename ImageType::Pointer  image2 = nullptr;
-  typename ImageType::SizeType size;
-  size.Fill(0);
+  typename ImageType::SizeType size{};
   for (unsigned int j = argct; j < argc; j++)
   {
     numberofimages++;
@@ -12669,8 +12626,7 @@ ImageMetrics(int argc, char * argv[])
       metric->SetMovingImageMask(mask);
     }
 
-    typename MetricType::RadiusType radius;
-    radius.Fill(r);
+    auto radius = MetricType::RadiusType::Filled(r);
     metric->SetRadius(radius);
 
     metric->Initialize();
@@ -13374,10 +13330,8 @@ InPaint(int argc, char * argv[])
   unsigned long                       kernelsize = region.GetNumberOfPixels();
   itk::ImageRegionIterator<ImageType> imageIterator(kernel, region);
   unsigned int                        ct = 0;
-  typename ImageType::PointType       centerPoint;
-  centerPoint.Fill(0);
-  typename ImageType::PointType locPoint;
-  locPoint.Fill(0);
+  typename ImageType::PointType       centerPoint{};
+  typename ImageType::PointType       locPoint{};
   while (!imageIterator.IsAtEnd())
   {
     if (ct == static_cast<unsigned int>(std::floor(static_cast<float>(kernelsize) / 2.0f)))
@@ -13822,12 +13776,10 @@ getBlobCorrespondenceMatrix(unsigned int             radval,
   correspondencematrix.fill(0);
   typedef typename ImageType::IndexType        IndexType;
   typedef itk::NeighborhoodIterator<ImageType> niteratorType;
-  typename niteratorType::RadiusType           rad;
-  rad.Fill(radval);
-  niteratorType GHood(rad, image, image->GetLargestPossibleRegion());
-  niteratorType GHood2(rad, image2, image2->GetLargestPossibleRegion());
-  IndexType     zeroind;
-  zeroind.Fill(radval);
+  auto                                         rad = niteratorType::RadiusType::Filled(radval);
+  niteratorType                                GHood(rad, image, image->GetLargestPossibleRegion());
+  niteratorType                                GHood2(rad, image2, image2->GetLargestPossibleRegion());
+  auto                                         zeroind = IndexType::Filled(radval);
   GHood.SetLocation(zeroind);
   // get indices within a ND-sphere
   std::vector<unsigned int> activeindex;
@@ -14024,9 +13976,7 @@ BlobDetector(int argc, char * argv[])
   // std::cout << " Blob1Length " << blobs1.size() << " Blob2Length " << blobs2.size() << std::endl;
   // now compute some feature characteristics in each blob
   typedef typename ImageType::IndexType IndexType;
-  IndexType                             zeroind;
-  zeroind.Fill(radval);
-  BlobPointer bestblob = nullptr;
+  BlobPointer                           bestblob = nullptr;
   if ((!blobs2.empty()) && (!blobs1.empty()))
   {
     getBlobCorrespondenceMatrix<ImageDimension, ImageType, BlobsListType>(
@@ -14244,8 +14194,7 @@ MatchBlobs(int argc, char * argv[])
                                        // to use in k-hood definition
   IteratorType                                  cIter(imageLM, imageLM->GetLargestPossibleRegion());
   BlobsListType                                 blobs1;
-  itk::Point<double, ImageType::ImageDimension> zeroPoint;
-  zeroPoint.Fill(0);
+  itk::Point<double, ImageType::ImageDimension> zeroPoint{};
   // std::cout << " N-Landmarks " << maximum << std::endl;
   for (cIter.GoToBegin(); !cIter.IsAtEnd(); ++cIter)
   {

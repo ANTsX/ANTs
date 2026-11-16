@@ -1266,9 +1266,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
         }
         using CorrelationMetricType =
           itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType, FixedImageType>;
-        typename CorrelationMetricType::Pointer    correlationMetric = CorrelationMetricType::New();
-        typename CorrelationMetricType::RadiusType radius;
-        radius.Fill(radiusOption);
+        typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
+        auto                                    radius = CorrelationMetricType::RadiusType::Filled(radiusOption);
         correlationMetric->SetRadius(radius);
         correlationMetric->SetUseMovingImageGradientFilter(useGradientFilter);
         correlationMetric->SetUseFixedImageGradientFilter(useGradientFilter);
@@ -1382,10 +1381,8 @@ ants_motion(itk::ants::CommandLineParser * parser)
       typename ImageCalculatorType::Pointer calculator2 = ImageCalculatorType::New();
       calculator1->SetImage(fixed_time_slice);
       calculator2->SetImage(moving_time_slice);
-      typename ImageCalculatorType::VectorType fixed_center;
-      fixed_center.Fill(0);
-      typename ImageCalculatorType::VectorType moving_center;
-      moving_center.Fill(0);
+      typename ImageCalculatorType::VectorType fixed_center{};
+      typename ImageCalculatorType::VectorType moving_center{};
       try
       {
         calculator1->Compute();

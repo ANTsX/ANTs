@@ -412,8 +412,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_NumberOfPixelsProcessed = 0L;
   m_SumOfSquaredChange = 0.0;
 
-  typename DisplacementFieldType::PixelType zero;
-  zero.Fill(0);
+  typename DisplacementFieldType::PixelType zero{};
   this->m_DerivativeFixedField =
     AllocImage<DisplacementFieldType>(this->GetFixedImage()->GetLargestPossibleRegion(), zero);
   this->m_DerivativeFixedField->SetSpacing(this->GetFixedImage()->GetSpacing());
@@ -671,13 +670,10 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   float energy = 0, maxerr = 0;
   for (unsigned long ii = 0; ii < sz1; ii++)
   {
-    VectorType distance;
-    distance.Fill(0);
+    VectorType            distance{};
     MeasurementVectorType fixedpoint = fkdtree->GetOutput()->GetMeasurementVector(ii);
-    ImagePointType        mpt;
-    mpt.Fill(0);
-    ImagePointType fpt;
-    fpt.Fill(0);
+    ImagePointType        mpt{};
+    ImagePointType        fpt{};
     for (unsigned int j = 0; j < ImageDimension; j++)
     {
       fpt[j] = fixedpoint[j];
@@ -690,8 +686,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     // std::endl;
     if (convok)
     {
-      VectorType force;
-      force.Fill(0);
+      VectorType                                                           force{};
       typename TreeGeneratorType::KdTreeType::InstanceIdentifierVectorType neighbors;
       mkdtree->GetOutput()->Search(fixedpoint, static_cast<unsigned int>(KNeighbors), neighbors);
       double probtotal = 0.0;

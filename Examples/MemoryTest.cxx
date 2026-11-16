@@ -58,8 +58,7 @@ MemoryTest(unsigned int argc, char * argv[])
   for (unsigned int i = 0; i < numberoffields; i++)
   {
     std::cout << " NFields " << i << " of " << numberoffields << std::endl;
-    VectorType zero;
-    zero.Fill(0);
+    VectorType zero{};
     // ORIENTATION ALERT: Original code set spacing/origin without
     // also setting directions.
     typename FieldType::Pointer field = AllocImage<FieldType>(image1, zero);
@@ -86,10 +85,8 @@ MemoryTest(unsigned int argc, char * argv[])
 
   //  int nbins=32;
 
-  typename CCMetricType::RadiusType ccradius;
-  ccradius.Fill(4);
-  typename MIMetricType::RadiusType miradius;
-  miradius.Fill(0);
+  constexpr auto                    ccradius = CCMetricType::RadiusType::Filled(4);
+  typename MIMetricType::RadiusType miradius{};
 
   //  mimet->SetDisplacementField(field);
   mimet->SetFixedImage(image1);

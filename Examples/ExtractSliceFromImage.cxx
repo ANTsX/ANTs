@@ -29,8 +29,7 @@ ExtractSliceFromImage(int argc, char * argv[])
     typename ImageType::RegionType           region;
     typename ImageType::RegionType::SizeType size = inputImage->GetLargestPossibleRegion().GetSize();
     size[atoi(argv[4])] = 0;
-    typename ImageType::IndexType index;
-    index.Fill(0);
+    typename ImageType::IndexType index{};
     index[atoi(argv[4])] = std::stoi(argv[5]);
     region.SetIndex(index);
     region.SetSize(size);
@@ -57,8 +56,7 @@ ExtractSliceFromImage(int argc, char * argv[])
     typename ImageType::RegionType           region;
     typename ImageType::RegionType::SizeType size = inputImage->GetLargestPossibleRegion().GetSize();
     size[atoi(argv[4])] = 1; // set size to 1 in selected direction
-    typename ImageType::IndexType index;
-    index.Fill(0);
+    typename ImageType::IndexType index{};
     index[atoi(argv[4])] = std::stoi(argv[5]);
     region.SetIndex(index);
     region.SetSize(size);

@@ -112,14 +112,31 @@ main()
   auto largeMask = Helper::MaskImageType::New();
   largeMask->SetRegions(image->GetLargestPossibleRegion());
   const auto points = Helper::LabeledPointSetType::New();
-  Helper::LabeledPointSetType::PointType point;
-  point.Fill(1.0);
+  auto       point = itk::MakeFilled<Helper::LabeledPointSetType::PointType>(1.0);
   points->SetPoint(0, point);
   points->SetPointData(0, 1);
   const auto addPointSetMetric = [&](Helper * helper) {
-    helper->AddMetric(Helper::ICP, nullptr, nullptr, points, points, nullptr, nullptr,
-                      0, 1, Helper::none, 32, 4, false, false, 1.0, 50, 1.1, false, 1.0,
-                      std::sqrt(5.0), std::sqrt(5.0));
+    helper->AddMetric(Helper::ICP,
+                      nullptr,
+                      nullptr,
+                      points,
+                      points,
+                      nullptr,
+                      nullptr,
+                      0,
+                      1,
+                      Helper::none,
+                      32,
+                      4,
+                      false,
+                      false,
+                      1.0,
+                      50,
+                      1.1,
+                      false,
+                      1.0,
+                      std::sqrt(5.0),
+                      std::sqrt(5.0));
   };
   for (const auto method : { Helper::BSplineSyN, Helper::TimeVaryingBSplineVelocityField })
   {

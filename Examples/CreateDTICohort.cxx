@@ -709,8 +709,7 @@ CreateDTICohort(itk::ants::CommandLineParser * parser)
         newEigenvalues[2] = newEigenvalues[1];
       }
 
-      typename TensorType::MatrixType eigenvalueMatrix;
-      eigenvalueMatrix.Fill(0.0);
+      typename TensorType::MatrixType eigenvalueMatrix{};
       for (unsigned int d = 0; d < ImageDimension; d++)
       {
         eigenvalueMatrix(d, d) = newEigenvalues[d];

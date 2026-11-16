@@ -119,9 +119,8 @@ LandmarkBasedDisplacementFieldTransformInitializer(int argc, char * argv[])
   movingCenters->Initialize();
   for (unsigned int n = 0; n < movingLabels.size(); n++)
   {
-    LabelType                        currentLabel = movingLabels[n];
-    typename PointSetType::PointType center;
-    center.Fill(0);
+    LabelType                                           currentLabel = movingLabels[n];
+    typename PointSetType::PointType                    center{};
     float                                               N = 0;
     typename PointSetType::PointsContainerConstIterator ItP = movingPoints->GetPoints()->Begin();
     typename PointSetType::PointDataContainerIterator   ItD = movingPoints->GetPointData()->Begin();
@@ -152,9 +151,8 @@ LandmarkBasedDisplacementFieldTransformInitializer(int argc, char * argv[])
   fixedCenters->Initialize();
   for (unsigned int n = 0; n < fixedLabels.size(); n++)
   {
-    LabelType                        currentLabel = fixedLabels[n];
-    typename PointSetType::PointType center;
-    center.Fill(0);
+    LabelType                                           currentLabel = fixedLabels[n];
+    typename PointSetType::PointType                    center{};
     float                                               N = 0;
     typename PointSetType::PointsContainerConstIterator ItP = fixedPoints->GetPoints()->Begin();
     typename PointSetType::PointDataContainerIterator   ItD = fixedPoints->GetPointData()->Begin();
@@ -375,8 +373,7 @@ LandmarkBasedDisplacementFieldTransformInitializer(int argc, char * argv[])
   }
 
   std::vector<unsigned int>             meshSize = ConvertVector<unsigned int>(std::string(argv[4]));
-  typename BSplineFilterType::ArrayType ncps;
-  ncps.Fill(0);
+  typename BSplineFilterType::ArrayType ncps{};
 
   if (meshSize.size() == 1)
   {

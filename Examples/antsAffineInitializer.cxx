@@ -275,10 +275,8 @@ antsAffineInitializerImp(int argc, char * argv[])
   typename ImageCalculatorType::Pointer calculator2 = ImageCalculatorType::New();
   calculator1->SetImage(image1);
   calculator2->SetImage(image2);
-  typename ImageCalculatorType::VectorType fixed_center;
-  fixed_center.Fill(0);
-  typename ImageCalculatorType::VectorType moving_center;
-  moving_center.Fill(0);
+  typename ImageCalculatorType::VectorType fixed_center{};
+  typename ImageCalculatorType::VectorType moving_center{};
   try
   {
     calculator1->Compute();

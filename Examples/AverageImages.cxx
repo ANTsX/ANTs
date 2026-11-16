@@ -56,9 +56,8 @@ AverageImages1(unsigned int argc, char * argv[])
 
   const float numberofimages = static_cast<float>(argc) - 4.0f;
 
-  typename ImageType::SizeType maxSize;
-  maxSize.Fill(0);
-  unsigned int bigimage = 0;
+  typename ImageType::SizeType maxSize{};
+  unsigned int                 bigimage = 0;
   for (unsigned int j = 4; j < argc; j++)
   {
     const std::string                  fn = std::string(argv[j]);
@@ -180,10 +179,8 @@ AverageImages(unsigned int argc, char * argv[])
   typename ImageType::Pointer averageimage = nullptr;
   typename ImageType::Pointer image2 = nullptr;
 
-  typename ImageType::SizeType size;
-  size.Fill(0);
-  typename ImageType::SizeType maxSize;
-  maxSize.Fill(0);
+  typename ImageType::SizeType size{};
+  typename ImageType::SizeType maxSize{};
 
   unsigned int bigimage = 4;
   for (unsigned int j = 4; j < argc; j++)
@@ -224,9 +221,8 @@ AverageImages(unsigned int argc, char * argv[])
   unsigned int vectorlength = reader->GetImageIO()->GetNumberOfComponents();
   std::cout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
             << vectorlength << std::endl;
-  typename ImageType::IndexType zindex;
-  zindex.Fill(0);
-  PixelType meanval = reader->GetOutput()->GetPixel(zindex);
+  typename ImageType::IndexType zindex{};
+  PixelType                     meanval = reader->GetOutput()->GetPixel(zindex);
   meanval.Fill(0);
   averageimage->FillBuffer(meanval);
   for (unsigned int j = 4; j < argc; j++)

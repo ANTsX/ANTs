@@ -257,11 +257,10 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     (movingImageMax - movingImageMin) / static_cast<double>(m_NumberOfHistogramBins - 2 * this->m_Padding);
   m_MovingImageNormalizedMin = movingImageMin / m_MovingImageBinSize - static_cast<double>(this->m_Padding);
 
-  typename MarginalPDFType::RegionType  mPDFRegion;
-  typename MarginalPDFType::SizeType    mPDFSize;
-  typename MarginalPDFType::IndexType   mPDFIndex;
-  typename MarginalPDFType::SpacingType mPDFspacing;
-  mPDFspacing.Fill(1);
+  typename MarginalPDFType::RegionType mPDFRegion;
+  typename MarginalPDFType::SizeType   mPDFSize;
+  typename MarginalPDFType::IndexType  mPDFIndex;
+  auto                                 mPDFspacing = itk::MakeFilled<typename MarginalPDFType::SpacingType>(1);
   mPDFIndex.Fill(0);
   mPDFSize.Fill(m_NumberOfHistogramBins);
   mPDFRegion.SetIndex(mPDFIndex);
@@ -275,11 +274,10 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   // std::cout << " D " << std::endl;
 
   // Instantiate a region, index, size
-  JointPDFRegionType                 jointPDFRegion;
-  JointPDFIndexType                  jointPDFIndex;
-  JointPDFSizeType                   jointPDFSize;
-  typename JointPDFType::SpacingType jspacing;
-  jspacing.Fill(1);
+  JointPDFRegionType jointPDFRegion;
+  JointPDFIndexType  jointPDFIndex;
+  JointPDFSizeType   jointPDFSize;
+  auto               jspacing = itk::MakeFilled<typename JointPDFType::SpacingType>(1);
 
   // For the joint PDF define a region starting from {0,0}
   // with size {m_NumberOfHistogramBins, m_NumberOfHistogramBins}.

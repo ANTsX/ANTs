@@ -304,8 +304,7 @@ GetAffineTransformFromImage(const ImageTypePointer & img, AffineTransformPointer
 
   DirectionType direction = img->GetDirection();
   PointType     pt = img->GetOrigin();
-  VectorType    translation;
-  translation.Fill(0);
+  VectorType    translation{};
   aff->SetMatrix(direction);
   aff->SetCenter(pt);
   aff->SetTranslation(translation);

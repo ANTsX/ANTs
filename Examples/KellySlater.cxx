@@ -189,13 +189,12 @@ LabelSurface(typename TImage::PixelType foreground,
   {
     typename TImage::PixelType p = GHood.GetCenterPixel();
     typename TImage::IndexType ind = GHood.GetIndex();
-    typename TImage::IndexType ind2;
     if (itk::Math::FloatAlmostEqual(p, foreground))
     {
       bool atedge = false;
       for (unsigned int i = 0; i < GHood.Size(); i++)
       {
-        ind2 = GHood.GetIndex(i);
+        const auto ind2 = GHood.GetIndex(i);
         double dist = 0.0;
         for (int j = 0; j < ImageDimension; j++)
         {
@@ -375,8 +374,7 @@ InvertField(typename TField::Pointer field,
   double       mytoler = toler;
   unsigned int mymaxiter = maxiter;
 
-  VectorType zero;
-  zero.Fill(0);
+  VectorType zero{};
   //  if (this->GetElapsedIterations() < 2 ) maxiter=10;
 
   ImagePointer realImage = AllocImage<ImageType>(field);
@@ -603,8 +601,7 @@ LaplacianThicknessExpDiff2(int argc, char * argv[])
   typename ImageType::Pointer             laplacian = SmoothImage<ImageType>(wm, smoothingsigma);
   lapgrad = LaplacianGrad<ImageType, DisplacementFieldType>(wmb, gmb, 1);
 
-  VectorType zero;
-  zero.Fill(0);
+  VectorType                              zero{};
   typename DisplacementFieldType::Pointer corrfield = AllocImage<DisplacementFieldType>(wm, zero);
 
   typename DisplacementFieldType::Pointer incrfield = AllocImage<DisplacementFieldType>(wm, zero);

@@ -112,8 +112,6 @@ ComposeMultiTransform(char * output_image_filename, char * reference_image_filen
   typename WarperType::Pointer warper = WarperType::New();
   // warper->SetInput(img_mov);
   // warper->SetEdgePaddingValue( 0);
-  VectorType pad;
-  pad.Fill(0);
   // warper->SetEdgePaddingValue(pad);
 
   using TranReaderType = itk::TransformFileReader;
