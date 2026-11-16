@@ -264,11 +264,7 @@ antsAffineInitializerImp(int argc, char * argv[])
     ReadImage<maskimagetype>(mask, maskfn.c_str());
   }
   searchfactor *= degtorad; // convert degrees to radians
-  VectorType ccg1;
-  VectorType cpm1;
   MatrixType cpa1;
-  VectorType ccg2;
-  VectorType cpm2;
   MatrixType cpa2;
 
   typename ImageCalculatorType::Pointer calculator1 = ImageCalculatorType::New();
@@ -281,15 +277,11 @@ antsAffineInitializerImp(int argc, char * argv[])
   {
     calculator1->Compute();
     fixed_center = calculator1->GetCenterOfGravity();
-    ccg1 = calculator1->GetCenterOfGravity();
-    cpm1 = calculator1->GetPrincipalMoments();
     cpa1 = calculator1->GetPrincipalAxes();
     try
     {
       calculator2->Compute();
       moving_center = calculator2->GetCenterOfGravity();
-      ccg2 = calculator2->GetCenterOfGravity();
-      cpm2 = calculator2->GetPrincipalMoments();
       cpa2 = calculator2->GetPrincipalAxes();
     }
     catch (...)
