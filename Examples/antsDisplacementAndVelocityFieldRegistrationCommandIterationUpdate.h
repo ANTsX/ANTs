@@ -265,9 +265,10 @@ public:
                                             CorrelationMetricType;
     typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
     {
-      typename CorrelationMetricType::RadiusType radius;
-      radius.Fill(4); // NOTE: This is just a common reference for fine-tuning parameters, so perhaps a smaller window
-                      // would be sufficient.
+      // NOTE: This is just a common reference for fine-tuning parameters, so perhaps a smaller window
+      // would be sufficient.
+      using RadiusType = typename CorrelationMetricType::RadiusType;
+      const auto radius = RadiusType::Filled(4);
       correlationMetric->SetRadius(radius);
     }
     correlationMetric->SetUseMovingImageGradientFilter(false);
