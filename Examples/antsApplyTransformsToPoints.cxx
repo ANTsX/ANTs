@@ -155,13 +155,17 @@ antsApplyTransformsToPoints(itk::ants::CommandLineParser::Pointer & parser)
     typename CompositeTransformType::Pointer compositeTransform =
       GetCompositeTransformFromParserOption<RealType, Dimension>(parser, transformOption, isDerivedTransform, forANTsR);
 
-    if (compositeTransform->GetNumberOfTransforms() == 0)
-      compositeTransform->AddTransform(aff);
-
     if (compositeTransform.IsNull())
     {
+      // GetCompositeTransformFromParserOption should have printed the relevant error message
       return EXIT_FAILURE;
     }
+    if (compositeTransform->GetNumberOfTransforms() == 0)
+    {
+      std::cerr << "No transforms found, using identity transform" << std::endl;
+      compositeTransform->AddTransform(aff);
+    }
+
     for (unsigned int pointct = 0; pointct < points_in.rows(); pointct++)
     {
       point_in.Fill(0);
