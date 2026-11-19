@@ -553,7 +553,7 @@ antsApplyTransforms(itk::ants::CommandLineParser::Pointer & parser, unsigned int
   {
     if (verbose)
     {
-      std::cout << "WARNING: No transforms found, using identify transform" << std::endl;
+      std::cout << "WARNING: No transforms found, using identity transform" << std::endl;
     }
     typename MatrixOffsetTransformType::Pointer idTransform = MatrixOffsetTransformType::New();
     idTransform->SetIdentity();
