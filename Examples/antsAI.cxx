@@ -1024,11 +1024,12 @@ antsAI(itk::ants::CommandLineParser * parser)
   }
   /////////////////////////////////////////////////////////////////
   //
-  //         Write the output if the number of iterations == 0
+  //         Write the output if the number of iterations == 0, or if
+  //         the transform only aligns the centers (it has no search)
   //
   /////////////////////////////////////////////////////////////////
 
-  if (numberOfIterations == 0)
+  if (numberOfIterations == 0 || initialTransformInitializedWithImages)
   {
     itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption("output");
     if (outputOption && outputOption->GetNumberOfFunctions())

@@ -86,6 +86,16 @@ if(TARGET antsApplyTransforms)
       -P ${CMAKE_CURRENT_SOURCE_DIR}/antsApplyTransformsTimeSeriesTest.cmake)
 endif()
 
+## antsAI -t AlignCentersOfMass / AlignGeometricCenters write the transform at any -c.
+if(TARGET antsAI AND TARGET antsTransformInfo)
+  add_test(NAME antsAIAlignCentersTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DANTS_TRANSFORM_INFO=$<TARGET_FILE:antsTransformInfo>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAIAlignCentersTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAIAlignCentersTest.cmake)
+endif()
+
 ## Command line parser regression test: an unclosed '[' must raise an error.
 add_executable(antsCommandLineParserTest antsCommandLineParserTest.cxx)
 target_link_libraries(antsCommandLineParserTest antsUtilities)
