@@ -781,13 +781,47 @@ antsAI(itk::ants::CommandLineParser * parser)
     parser->GetOption("translation-search-grid");
   if (translationSearchGridOption && translationSearchGridOption->GetNumberOfFunctions())
   {
-
-    translationSearchStepSize = parser->Convert<RealType>(translationSearchGridOption->GetFunction(0)->GetParameter(0));
+    if (translationSearchGridOption->GetFunction(0)->GetNumberOfParameters() == 0)
+    {
+      translationSearchStepSize = parser->Convert<RealType>(translationSearchGridOption->GetFunction(0)->GetName());
+    }
+    else
+    {
+      translationSearchStepSize =
+        parser->Convert<RealType>(translationSearchGridOption->GetFunction(0)->GetParameter(0));
+    }
 
     if (translationSearchGridOption->GetFunction(0)->GetNumberOfParameters() > 1)
     {
       translationSearchGrid =
         parser->ConvertVector<RealType>(translationSearchGridOption->GetFunction(0)->GetParameter(1));
+    }
+  }
+
+  // The search loops step from -extent to +extent, so a step that is not positive never ends, and a negative
+  // extent or arc fraction gives no starting point. Extra grid values are ignored, so a 3D grid works in 2D.
+  if (!(searchFactor > 0.0) || !(arcFraction >= 0.0))
+  {
+    std::cerr << "The search factor must be greater than 0 and the arc fraction at least 0 (-s)." << std::endl;
+    return EXIT_FAILURE;
+  }
+  if (!(translationSearchStepSize > 0.0))
+  {
+    std::cerr << "The translation search step size must be greater than 0 (-g)." << std::endl;
+    return EXIT_FAILURE;
+  }
+  if (translationSearchGrid.size() < ImageDimension)
+  {
+    std::cerr << "The translation search grid needs " << ImageDimension << " values, one per dimension (-g)."
+              << std::endl;
+    return EXIT_FAILURE;
+  }
+  for (unsigned int d = 0; d < ImageDimension; d++)
+  {
+    if (!(translationSearchGrid[d] >= 0.0))
+    {
+      std::cerr << "The translation search grid values must be at least 0 (-g)." << std::endl;
+      return EXIT_FAILURE;
     }
   }
 

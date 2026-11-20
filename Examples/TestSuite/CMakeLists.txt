@@ -78,6 +78,15 @@ add_executable(antsRegistrationParameterCountTest antsRegistrationParameterCount
 target_link_libraries(antsRegistrationParameterCountTest antsUtilities ${ITK_LIBRARIES})
 add_test(NAME antsRegistrationParameterCountTest COMMAND antsRegistrationParameterCountTest)
 
+## antsAI rejects search options that give no search or one that never ends.
+if(TARGET antsAI)
+  add_test(NAME antsAISearchOptionsTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAISearchOptionsTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAISearchOptionsTest.cmake)
+endif()
+
 if(TARGET antsApplyTransforms)
   add_test(NAME antsApplyTransformsTimeSeriesTest
     COMMAND ${CMAKE_COMMAND}
