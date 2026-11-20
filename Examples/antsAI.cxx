@@ -32,6 +32,9 @@
 #include "vnl/vnl_cross.h"
 #include "vnl/vnl_inverse.h"
 
+#include <cmath>
+#include <set>
+
 namespace ants
 {
 
@@ -1360,6 +1363,26 @@ antsAI(itk::ants::CommandLineParser * parser)
 
   unsigned int trialCounter = 0;
 
+  // The grid repeats starts: -pi and +pi are the same turn, and in 3D the turns about axis1, axis2 and axis1
+  // again give the same rotation for every angle1 + angle3 when angle2 is 0 or +-pi. Optimizing a start again
+  // only repeats the work, so keep the first of the starts whose affine start has the same matrix and offset
+  // (to 1e-6). The rigid and similarity starts are made from the affine start; their own parameters are not
+  // compared, as a versor and its negative are the same rotation and near 180 degrees the versor of a matrix
+  // is not exact.
+  std::set<std::vector<long long>> seenStarts;
+  const auto                       isNewStart = [&affineSearchTransform, &seenStarts]() {
+    std::vector<long long> key;
+    for (unsigned int i = 0; i < ImageDimension; i++)
+    {
+      for (unsigned int j = 0; j < ImageDimension; j++)
+      {
+        key.push_back(std::llround(affineSearchTransform->GetMatrix()(i, j) * 1.0e6));
+      }
+      key.push_back(std::llround(affineSearchTransform->GetOffset()[i] * 1.0e6));
+    }
+    return seenStarts.insert(key).second;
+  };
+
   typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
   for (RealType angle1 = (itk::Math::pi * -arcFraction); angle1 <= (itk::Math::pi * arcFraction + 0.000001);
        angle1 += searchFactor)
@@ -1383,6 +1406,12 @@ antsAI(itk::ants::CommandLineParser * parser)
           affineSearchTransform->SetOffset(initialTransform->GetOffset());
           affineSearchTransform->Translate(searchTranslation, 1);
           affineSearchTransform->Rotate2D(angle1, 1);
+
+          trialCounter++;
+          if (!isNewStart())
+          {
+            continue;
+          }
 
           if (strcmp(transform.c_str(), "affine") == 0)
           {
@@ -1410,7 +1439,6 @@ antsAI(itk::ants::CommandLineParser * parser)
 
             parametersList.push_back(similaritySearchTransform->GetParameters());
           }
-          trialCounter++;
         }
       }
     }
@@ -1448,6 +1476,12 @@ antsAI(itk::ants::CommandLineParser * parser)
                 affineSearchTransform->Rotate3D(axis2, angle2, 1);
                 affineSearchTransform->Rotate3D(axis1, angle3, 1);
 
+                trialCounter++;
+                if (!isNewStart())
+                {
+                  continue;
+                }
+
                 if (strcmp(transform.c_str(), "affine") == 0)
                 {
                   affineSearchTransform->Scale(bestScale);
@@ -1472,7 +1506,6 @@ antsAI(itk::ants::CommandLineParser * parser)
 
                   parametersList.push_back(similaritySearchTransform->GetParameters());
                 }
-                trialCounter++;
               }
             }
           }
@@ -1486,7 +1519,8 @@ antsAI(itk::ants::CommandLineParser * parser)
 
   if (verbose)
   {
-    std::cout << "Starting optimizer with " << trialCounter << " starting points" << std::endl;
+    std::cout << "Starting optimizer with " << parametersList.size() << " starting points (" << trialCounter
+              << " before removing repeats)" << std::endl;
 
     using MultiStartObserverType = antsCommandIterationUpdate<MultiStartOptimizerType>;
 

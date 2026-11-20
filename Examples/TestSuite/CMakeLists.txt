@@ -119,6 +119,15 @@ if(TARGET DenoiseImage)
       -P ${CMAKE_CURRENT_SOURCE_DIR}/DenoiseImageShrinkFactorTest.cmake)
 endif()
 
+## antsAI optimizes each different starting transform once.
+if(TARGET antsAI)
+  add_test(NAME antsAIUniqueStartsTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAIUniqueStartsTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAIUniqueStartsTest.cmake)
+endif()
+
 
 ###
 #  Perform testing
