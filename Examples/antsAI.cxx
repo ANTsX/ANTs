@@ -20,7 +20,6 @@
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkMultiScaleLaplacianBlobDetectorImageFilter.h"
-#include "itkMultiStartOptimizerv4.h"
 #include "itkRegistrationParameterScalesFromPhysicalShift.h"
 #include "itkRigid2DTransform.h"
 #include "itkSimilarity2DTransform.h"
@@ -32,8 +31,11 @@
 #include "vnl/vnl_cross.h"
 #include "vnl/vnl_inverse.h"
 
+#include <atomic>
 #include <cmath>
+#include <mutex>
 #include <set>
+#include <thread>
 
 namespace ants
 {
@@ -814,20 +816,16 @@ antsAI(itk::ants::CommandLineParser * parser)
 
   bool initialTransformInitializedWithImages = false;
 
-  unsigned int numberOfTransformParameters = 0;
   if (strcmp(transform.c_str(), "affine") == 0)
   {
-    numberOfTransformParameters = AffineTransformType::ParametersDimension;
     // outputTransformTypeName = std::string( "Affine" );
   }
   else if (strcmp(transform.c_str(), "rigid") == 0)
   {
-    numberOfTransformParameters = RigidTransformType::ParametersDimension;
     // outputTransformTypeName = std::string( "Rigid" );
   }
   else if (strcmp(transform.c_str(), "similarity") == 0)
   {
-    numberOfTransformParameters = SimilarityTransformType::ParametersDimension;
     // outputTransformTypeName = std::string( "Similarity" );
   }
   else if (strcmp(transform.c_str(), "aligngeometriccenters") == 0 ||
@@ -1333,33 +1331,8 @@ antsAI(itk::ants::CommandLineParser * parser)
 
   using RegistrationParameterScalesFromPhysicalShiftType =
     itk::RegistrationParameterScalesFromPhysicalShift<ImageMetricType>;
-  typename RegistrationParameterScalesFromPhysicalShiftType::Pointer scalesEstimator =
-    RegistrationParameterScalesFromPhysicalShiftType::New();
-  scalesEstimator->SetMetric(imageMetric);
-  scalesEstimator->SetTransformForward(true);
-
-  typename RegistrationParameterScalesFromPhysicalShiftType::ScalesType movingScales(numberOfTransformParameters);
-  scalesEstimator->EstimateScales(movingScales);
-
   using LocalOptimizerType = itk::ConjugateGradientLineSearchOptimizerv4;
-  typename LocalOptimizerType::Pointer localOptimizer = LocalOptimizerType::New();
-  localOptimizer->SetLowerLimit(0);
-  localOptimizer->SetUpperLimit(2);
-  localOptimizer->SetEpsilon(0.1);
-  localOptimizer->SetMaximumLineSearchIterations(10);
-  localOptimizer->SetLearningRate(learningRate);
-  localOptimizer->SetMaximumStepSizeInPhysicalUnits(learningRate);
-  localOptimizer->SetNumberOfIterations(numberOfIterations);
-  localOptimizer->SetMinimumConvergenceValue(convergenceThreshold);
-  localOptimizer->SetConvergenceWindowSize(convergenceWindowSize);
-  localOptimizer->SetScalesEstimator(scalesEstimator);
-  localOptimizer->SetDoEstimateLearningRateOnce(true); // this is always true for conjugate gradient optimizer
-  localOptimizer->SetMetric(imageMetric);
-
-  using MultiStartOptimizerType = itk::MultiStartOptimizerv4;
-  typename MultiStartOptimizerType::Pointer multiStartOptimizer = MultiStartOptimizerType::New();
-  multiStartOptimizer->SetDoEstimateScales(false); // multi-start optimizer doesn't use the scales
-  multiStartOptimizer->SetMetric(imageMetric);
+  using ParametersListType = std::vector<typename ImageMetricType::ParametersType>;
 
   unsigned int trialCounter = 0;
 
@@ -1383,7 +1356,7 @@ antsAI(itk::ants::CommandLineParser * parser)
     return seenStarts.insert(key).second;
   };
 
-  typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
+  ParametersListType parametersList;
   for (RealType angle1 = (itk::Math::pi * -arcFraction); angle1 <= (itk::Math::pi * arcFraction + 0.000001);
        angle1 += searchFactor)
   {
@@ -1514,22 +1487,165 @@ antsAI(itk::ants::CommandLineParser * parser)
     }
   }
 
-  multiStartOptimizer->SetParametersList(parametersList);
-  multiStartOptimizer->SetLocalOptimizer(localOptimizer);
-
   if (verbose)
   {
     std::cout << "Starting optimizer with " << parametersList.size() << " starting points (" << trialCounter
               << " before removing repeats)" << std::endl;
-
-    using MultiStartObserverType = antsCommandIterationUpdate<MultiStartOptimizerType>;
-
-    auto multiStartObserver = MultiStartObserverType::New();
-
-    multiStartObserver->SetOptimizer(multiStartOptimizer);
   }
 
-   multiStartOptimizer->StartOptimization();
+  /////////////////////////////////////////////////////////////////
+  //
+  //         Optimize from each start, in parallel
+  //
+  /////////////////////////////////////////////////////////////////
+
+  if (parametersList.empty())
+  {
+    std::cerr << "The search has no starting points." << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  // Each start is optimized on its own, so the starts run in parallel: each worker thread has its own metric,
+  // transform, scales estimator and local optimizer, each single-threaded, and takes the next start when it is
+  // done. Single-threaded evaluations do not depend on how the work is split, so the result is the same for any
+  // number of threads. The workers share the images, the gradient images and the sample points, read only.
+  const auto numberOfWorkers = static_cast<unsigned int>(std::max<size_t>(
+    1, std::min<size_t>(itk::MultiThreaderBase::GetGlobalDefaultNumberOfThreads(), parametersList.size())));
+
+  using MattesMetricType = itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>;
+  using JointHistogramMetricType =
+    itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>;
+  using MovingTransformType = typename ImageMetricType::MovingTransformType;
+
+  struct SearchWorker
+  {
+    typename ImageMetricType::Pointer                                  metric;
+    typename RegistrationParameterScalesFromPhysicalShiftType::Pointer scalesEstimator;
+    typename LocalOptimizerType::Pointer                               optimizer;
+  };
+  std::vector<SearchWorker> workers(numberOfWorkers);
+  for (auto & worker : workers)
+  {
+    // A metric of the same type and settings as imageMetric.
+    worker.metric = dynamic_cast<ImageMetricType *>(imageMetric->CreateAnother().GetPointer());
+    if (auto * mattesMetric = dynamic_cast<MattesMetricType *>(worker.metric.GetPointer()))
+    {
+      mattesMetric->SetNumberOfHistogramBins(numberOfBins);
+    }
+    if (auto * jointHistogramMetric = dynamic_cast<JointHistogramMetricType *>(worker.metric.GetPointer()))
+    {
+      jointHistogramMetric->SetNumberOfHistogramBins(numberOfBins);
+      jointHistogramMetric->SetVarianceForJointPDFSmoothing(1.0);
+    }
+    worker.metric->SetUseFixedImageGradientFilter(imageMetric->GetUseFixedImageGradientFilter());
+    worker.metric->SetUseMovingImageGradientFilter(imageMetric->GetUseMovingImageGradientFilter());
+    // The gradient filters of imageMetric are up to date, so the workers use their gradient images.
+    worker.metric->SetFixedImageGradientFilter(imageMetric->GetModifiableFixedImageGradientFilter());
+    worker.metric->SetMovingImageGradientFilter(imageMetric->GetModifiableMovingImageGradientFilter());
+    worker.metric->SetFixedImage(fixedImage);
+    worker.metric->SetVirtualDomainFromImage(fixedImage);
+    worker.metric->SetMovingImage(movingImage);
+    worker.metric->SetFixedImageMask(imageMetric->GetFixedImageMask());
+    worker.metric->SetMovingImageMask(imageMetric->GetMovingImageMask());
+    if (imageMetric->GetUseSampledPointSet())
+    {
+      // The points imageMetric mapped to the virtual domain; the workers only read them.
+      worker.metric->SetVirtualSampledPointSet(
+        const_cast<typename ImageMetricType::VirtualPointSetType *>(imageMetric->GetVirtualSampledPointSet()));
+      worker.metric->SetUseVirtualSampledPointSet(true);
+      worker.metric->SetUseSampledPointSet(true);
+    }
+    worker.metric->SetMaximumNumberOfWorkUnits(1);
+    worker.metric->Initialize();
+
+    typename MovingTransformType::Pointer workerTransform =
+      dynamic_cast<MovingTransformType *>(imageMetric->GetMovingTransform()->CreateAnother().GetPointer());
+    workerTransform->SetFixedParameters(imageMetric->GetMovingTransform()->GetFixedParameters());
+    worker.metric->SetMovingTransform(workerTransform);
+
+    worker.scalesEstimator = RegistrationParameterScalesFromPhysicalShiftType::New();
+    worker.scalesEstimator->SetMetric(worker.metric);
+    worker.scalesEstimator->SetTransformForward(true);
+
+    worker.optimizer = LocalOptimizerType::New();
+    worker.optimizer->SetLowerLimit(0);
+    worker.optimizer->SetUpperLimit(2);
+    worker.optimizer->SetEpsilon(0.1);
+    worker.optimizer->SetMaximumLineSearchIterations(10);
+    worker.optimizer->SetLearningRate(learningRate);
+    worker.optimizer->SetMaximumStepSizeInPhysicalUnits(learningRate);
+    worker.optimizer->SetNumberOfIterations(numberOfIterations);
+    worker.optimizer->SetMinimumConvergenceValue(convergenceThreshold);
+    worker.optimizer->SetConvergenceWindowSize(convergenceWindowSize);
+    worker.optimizer->SetScalesEstimator(worker.scalesEstimator);
+    worker.optimizer->SetDoEstimateLearningRateOnce(true); // this is always true for conjugate gradient optimizer
+    worker.optimizer->SetMetric(worker.metric);
+    worker.optimizer->SetNumberOfWorkUnits(1);
+  }
+
+  // Progress as before: every tenth of the starts, the number done and the metric value of the last one.
+  const size_t numberOfStarts = parametersList.size();
+  const size_t progressInterval = std::max<size_t>(1, numberOfStarts / 10);
+  if (verbose)
+  {
+    std::cout << std::endl << "Iteration/Total,MetricValue" << std::endl;
+  }
+
+  // A start that throws gets the largest value, so it is not the best unless every start fails.
+  std::vector<RealType>    metricValues(numberOfStarts, itk::NumericTraits<RealType>::max());
+  ParametersListType       optimizedParameters(parametersList);
+  std::atomic<size_t>      nextStart{ 0 };
+  size_t                   numberOfStartsDone = 0;
+  std::mutex               outputMutex;
+  std::vector<std::thread> threads;
+  for (auto & worker : workers)
+  {
+    threads.emplace_back([&, w = &worker]() {
+      for (size_t start = nextStart++; start < numberOfStarts; start = nextStart++)
+      {
+        try
+        {
+          auto parameters = parametersList[start];
+          w->metric->SetParameters(parameters);
+          w->optimizer->StartOptimization();
+          optimizedParameters[start] = w->metric->GetParameters();
+          metricValues[start] = w->metric->GetValue();
+        }
+        catch (const itk::ExceptionObject &)
+        {
+          const std::lock_guard<std::mutex> lock(outputMutex);
+          std::cerr << "WARNING: An exception occurred in the optimization from start " << start
+                    << ". If too many of these occur, you may need to set a different set of initial parameters."
+                    << std::endl;
+        }
+        const std::lock_guard<std::mutex> lock(outputMutex);
+        ++numberOfStartsDone;
+        if (verbose && numberOfStartsDone % progressInterval == 0)
+        {
+          std::cout << numberOfStartsDone << "/" << numberOfStarts << "," << metricValues[start] << std::endl;
+        }
+      }
+    });
+  }
+  for (auto & thread : threads)
+  {
+    thread.join();
+  }
+
+  // The best start; of equal values, the first.
+  size_t bestStart = 0;
+  for (size_t start = 1; start < numberOfStarts; start++)
+  {
+    if (metricValues[start] < metricValues[bestStart])
+    {
+      bestStart = start;
+    }
+  }
+  const typename ImageMetricType::ParametersType bestParameters = optimizedParameters[bestStart];
+  if (verbose)
+  {
+    std::cout << std::endl << "Optimization complete. Best metric value: " << metricValues[bestStart] << std::endl;
+  }
 
 
   /////////////////////////////////////////////////////////////////
@@ -1558,21 +1674,21 @@ antsAI(itk::ants::CommandLineParser * parser)
     {
       typename AffineTransformType::Pointer bestAffineTransform = AffineTransformType::New();
       bestAffineTransform->SetCenter(initialTransform->GetCenter());
-      bestAffineTransform->SetParameters(multiStartOptimizer->GetBestParameters());
+      bestAffineTransform->SetParameters(bestParameters);
       transformWriter->SetInput(bestAffineTransform);
     }
     else if (strcmp(transform.c_str(), "rigid") == 0)
     {
       typename RigidTransformType::Pointer bestRigidTransform = RigidTransformType::New();
       bestRigidTransform->SetCenter(initialTransform->GetCenter());
-      bestRigidTransform->SetParameters(multiStartOptimizer->GetBestParameters());
+      bestRigidTransform->SetParameters(bestParameters);
       transformWriter->SetInput(bestRigidTransform);
     }
     else if (strcmp(transform.c_str(), "similarity") == 0)
     {
       typename SimilarityTransformType::Pointer bestSimilarityTransform = SimilarityTransformType::New();
       bestSimilarityTransform->SetCenter(initialTransform->GetCenter());
-      bestSimilarityTransform->SetParameters(multiStartOptimizer->GetBestParameters());
+      bestSimilarityTransform->SetParameters(bestParameters);
       transformWriter->SetInput(bestSimilarityTransform);
     }
 
