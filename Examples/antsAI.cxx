@@ -1280,6 +1280,15 @@ antsAI(itk::ants::CommandLineParser * parser)
                                                             static_cast<float>(samplingPercentage));
         itk::ImageRandomConstIteratorWithIndex<ImageType> ItR(fixedImage, fixedImage->GetRequestedRegion());
         ItR.SetNumberOfSamples(sampleCount);
+        // The iterator has its own generator, so seed it too, or the sample points change from run to run.
+        if (antsRandomSeed != 0)
+        {
+          ItR.ReinitializeSeed(antsRandomSeed);
+        }
+        else
+        {
+          ItR.ReinitializeSeed();
+        }
         for (ItR.GoToBegin(); !ItR.IsAtEnd(); ++ItR)
         {
           SamplePointType point;
