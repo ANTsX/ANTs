@@ -657,10 +657,7 @@ antsAI(itk::ants::CommandLineParser * parser)
     ConvertToLowerCase(metric);
     if (metricOption->GetFunction(0)->GetNumberOfParameters() < 2)
     {
-      if (verbose)
-      {
-        std::cerr << "Fixed and/or moving images not specified." << std::endl;
-      }
+      std::cerr << "Fixed and/or moving images not specified." << std::endl;
       return EXIT_FAILURE;
     }
     ReadImage<ImageType>(fixedImage, (metricOption->GetFunction(0)->GetParameter(0)).c_str());
@@ -688,10 +685,7 @@ antsAI(itk::ants::CommandLineParser * parser)
       }
       else
       {
-        if (verbose)
-        {
-          std::cerr << "Unrecognized sampling strategy." << std::endl;
-        }
+        std::cerr << "Unrecognized sampling strategy." << std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -854,10 +848,7 @@ antsAI(itk::ants::CommandLineParser * parser)
   }
   else
   {
-    if (verbose)
-    {
-      std::cerr << "Unrecognized transform option." << std::endl;
-    }
+    std::cerr << "Unrecognized transform option." << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -1188,10 +1179,7 @@ antsAI(itk::ants::CommandLineParser * parser)
   }
   else
   {
-    if (verbose)
-    {
-      std::cerr << "ERROR: Unrecognized metric. " << std::endl;
-    }
+    std::cerr << "ERROR: Unrecognized metric. " << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -1769,13 +1757,6 @@ antsAI(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
     return EXIT_FAILURE;
   }
 
-  bool                                              verbose = false;
-  itk::ants::CommandLineParser::OptionType::Pointer verboseOption = parser->GetOption("verbose");
-  if (verboseOption && verboseOption->GetNumberOfFunctions())
-  {
-    verbose = parser->Convert<bool>(verboseOption->GetFunction(0)->GetName());
-  }
-
   if (argc == 1)
   {
     parser->PrintMenu(std::cout, 5, false);
@@ -1803,10 +1784,7 @@ antsAI(std::vector<std::string> args, std::ostream * /*out_stream = nullptr */)
   }
   else
   {
-    if (verbose)
-    {
-      std::cerr << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
-    }
+    std::cerr << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
     return EXIT_FAILURE;
   }
 
