@@ -119,6 +119,15 @@ if(TARGET DenoiseImage)
       -P ${CMAKE_CURRENT_SOURCE_DIR}/DenoiseImageShrinkFactorTest.cmake)
 endif()
 
+## antsAI optimizes each different starting transform once.
+if(TARGET antsAI)
+  add_test(NAME antsAIUniqueStartsTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAIUniqueStartsTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAIUniqueStartsTest.cmake)
+endif()
+
 
 ###
 #  Perform testing
@@ -128,6 +137,17 @@ set(SMALL_DATA_DIR ${TestDataSHA512_DIR}/Data)
 
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData R16_IMAGE DATA{${SMALL_DATA_DIR}/r16slice.nii.gz})
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData R64_IMAGE DATA{${SMALL_DATA_DIR}/r64slice.nii.gz})
+
+## antsAI gives the same transform with any number of threads.
+if(TARGET antsAI)
+  add_test(NAME antsAIThreadsTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DFIXED_IMAGE=${R16_IMAGE}
+      -DMOVING_IMAGE=${R64_IMAGE}
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAIThreadsTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAIThreadsTest.cmake)
+endif()
 
 ## DenoiseImage with a mask and a shrink factor > 1.
 if(TARGET DenoiseImage AND TARGET ThresholdImage AND TARGET MeasureMinMaxMean)
