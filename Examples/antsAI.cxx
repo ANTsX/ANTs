@@ -530,6 +530,8 @@ GetTransformFromFeatureMatching(typename TImage::Pointer fixedImage,
   //
   /////////////////////////////////////////////////////////////////
 
+  // distanceRatios(i, j) is the squared distance between blobs i and j in the fixed image over the same
+  // distance in the moving image. A rigid motion keeps it at 1.
   vnl_matrix<RealType> distanceRatios(blobPairs.size(), blobPairs.size(), 0.0);
   for (unsigned int i = 0; i < blobPairs.size(); i++)
   {
@@ -539,7 +541,7 @@ GetTransformFromFeatureMatching(typename TImage::Pointer fixedImage,
     PointType movingPoint(0.0);
     movingImage->TransformIndexToPhysicalPoint(blobPairs[i].second->GetCenter(), movingPoint);
 
-    for (unsigned int j = 0; j < blobPairs.size(); j++)
+    for (unsigned int j = i + 1; j < blobPairs.size(); j++)
     {
       PointType fixedNeighborPoint(0.0);
       fixedImage->TransformIndexToPhysicalPoint(blobPairs[j].first->GetCenter(), fixedNeighborPoint);
@@ -547,8 +549,12 @@ GetTransformFromFeatureMatching(typename TImage::Pointer fixedImage,
       PointType movingNeighborPoint(0.0);
       movingImage->TransformIndexToPhysicalPoint(blobPairs[j].second->GetCenter(), movingNeighborPoint);
 
-      distanceRatios(i, j) = distanceRatios(j, i) = fixedNeighborPoint.SquaredEuclideanDistanceTo(movingNeighborPoint) /
-                                                    fixedPoint.SquaredEuclideanDistanceTo(movingPoint);
+      const auto movingDistance = movingPoint.SquaredEuclideanDistanceTo(movingNeighborPoint);
+      if (movingDistance > 0)
+      {
+        distanceRatios(i, j) = distanceRatios(j, i) =
+          static_cast<RealType>(fixedPoint.SquaredEuclideanDistanceTo(fixedNeighborPoint) / movingDistance);
+      }
     }
   }
 
@@ -596,12 +602,30 @@ GetTransformFromFeatureMatching(typename TImage::Pointer fixedImage,
   //
   /////////////////////////////////////////////////////////////////
 
+  // An affine transform needs ImageDimension + 1 landmarks; fewer gives no transform or a degenerate one.
+  constexpr unsigned int minimumNumberOfLandmarks = ImageType::ImageDimension + 1;
+  if (fixedLandmarks.size() < minimumNumberOfLandmarks)
+  {
+    std::cerr << "Blob matching found " << fixedLandmarks.size() << " landmark pairs; at least "
+              << minimumNumberOfLandmarks << " are needed. Try more blobs or align the principal axes (-p)."
+              << std::endl;
+    return nullptr;
+  }
+
   typename TransformInitializerType::Pointer transformInitializer = TransformInitializerType::New();
   transformInitializer->SetFixedLandmarks(fixedLandmarks);
   transformInitializer->SetMovingLandmarks(movingLandmarks);
 
   transformInitializer->SetTransform(transform);
-  transformInitializer->InitializeTransform();
+  try
+  {
+    transformInitializer->InitializeTransform();
+  }
+  catch (const itk::ExceptionObject & e)
+  {
+    std::cerr << "Cannot compute a transform from the blob landmarks: " << e.GetDescription() << std::endl;
+    return nullptr;
+  }
 
   return transform;
 }
@@ -913,6 +937,10 @@ antsAI(itk::ants::CommandLineParser * parser)
         typename AffineTransformType::Pointer initialAffineTransform =
           GetTransformFromFeatureMatching<ImageType, AffineTransformType>(
             fixedImage, movingImage, numberOfBlobsToExtract, numberOfBlobsToMatch);
+        if (initialAffineTransform.IsNull())
+        {
+          return EXIT_FAILURE;
+        }
 
         initialTransform->SetOffset(initialAffineTransform->GetOffset());
         initialTransform->SetMatrix(initialAffineTransform->GetMatrix());
@@ -923,6 +951,10 @@ antsAI(itk::ants::CommandLineParser * parser)
         typename LandmarkRigidTransformType::Pointer initialRigidTransform =
           GetTransformFromFeatureMatching<ImageType, LandmarkRigidTransformType>(
             fixedImage, movingImage, numberOfBlobsToExtract, numberOfBlobsToMatch);
+        if (initialRigidTransform.IsNull())
+        {
+          return EXIT_FAILURE;
+        }
 
         initialTransform->SetOffset(initialRigidTransform->GetOffset());
         initialTransform->SetMatrix(initialRigidTransform->GetMatrix());
