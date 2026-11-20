@@ -140,10 +140,11 @@ N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage, TConfiden
 }
 
 template <typename TInputImage, typename TBiasFieldImage, typename TMaskImage, typename TConfidenceImage>
-unsigned int
+auto
 N3BiasFieldScaleCostFunction<TInputImage, TBiasFieldImage, TMaskImage, TConfidenceImage>::GetNumberOfParameters() const
+  -> NumberOfParametersType
 {
-  return NumericTraits<unsigned int>::OneValue();
+  return 1;
 }
 
 /**
