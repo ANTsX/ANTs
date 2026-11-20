@@ -101,6 +101,15 @@ if(TARGET antsMotionCorr AND TARGET PrintHeader)
       -P ${CMAKE_CURRENT_SOURCE_DIR}/antsMotionCorrWriteDisplacementTest.cmake)
 endif()
 
+## antsAI says why it fails without -v.
+if(TARGET antsAI)
+  add_test(NAME antsAIErrorMessagesTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAIErrorMessagesTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAIErrorMessagesTest.cmake)
+endif()
+
 if(TARGET ResampleImage)
   add_test(NAME ResampleImageInterpolationTest
     COMMAND ${CMAKE_COMMAND}
