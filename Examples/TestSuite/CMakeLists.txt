@@ -91,6 +91,16 @@ add_executable(antsCommandLineParserTest antsCommandLineParserTest.cxx)
 target_link_libraries(antsCommandLineParserTest antsUtilities)
 add_test(NAME antsCommandLineParserTest COMMAND antsCommandLineParserTest)
 
+## antsAI with Random sampling gives the same transform for the same --random-seed.
+if(TARGET antsAI AND TARGET antsTransformInfo)
+  add_test(NAME antsAIRandomSamplingSeedTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DANTS_TRANSFORM_INFO=$<TARGET_FILE:antsTransformInfo>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAIRandomSamplingSeedTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAIRandomSamplingSeedTest.cmake)
+endif()
+
 ## antsMotionCorr -w 1 writes float fields; a too-small fixed image gives an error.
 if(TARGET antsMotionCorr AND TARGET PrintHeader)
   add_test(NAME antsMotionCorrWriteDisplacementTest
