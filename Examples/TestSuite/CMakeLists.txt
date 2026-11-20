@@ -73,6 +73,17 @@ if(TARGET antsApplyTransforms)
       -P ${CMAKE_CURRENT_SOURCE_DIR}/antsApplyTransformsReferenceImageTest.cmake)
 endif()
 
+## antsAI starts the rigid, similarity and affine searches from the same grid of
+## rotations about the center of mass and of translations.
+if(TARGET antsAI AND TARGET antsTransformInfo)
+  add_test(NAME antsAIStartTransformsTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DANTS_TRANSFORM_INFO=$<TARGET_FILE:antsTransformInfo>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAIStartTransformsTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAIStartTransformsTest.cmake)
+endif()
+
 ## Dense-field registration parameter counts are validated before optimization.
 add_executable(antsRegistrationParameterCountTest antsRegistrationParameterCountTest.cxx)
 target_link_libraries(antsRegistrationParameterCountTest antsUtilities ${ITK_LIBRARIES})
