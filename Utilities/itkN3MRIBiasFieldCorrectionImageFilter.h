@@ -24,6 +24,8 @@
 
 #include "vnl/vnl_vector.h"
 
+#include <utility>
+
 namespace itk
 {
 /** \class N3MRIBiasFieldCorrectionImageFilter.h
@@ -103,6 +105,10 @@ public:
   typedef Superclass::DerivativeType DerivativeType;
   typedef Superclass::ParametersType ParametersType;
 
+  /** The type the superclass GetNumberOfParameters() returns: unsigned int up to ITK 6.0, and the 64-bit
+   * CostFunction NumberOfParametersType from InsightSoftwareConsortium/ITK#7216 on. */
+  using NumberOfParametersType = decltype(std::declval<const Superclass &>().GetNumberOfParameters());
+
   itkNonVirtualSetObjectMacro(InputImage, TInputImage);
   itkNonVirtualSetObjectMacro(BiasFieldImage, TBiasFieldImage);
   itkNonVirtualSetObjectMacro(MaskImage, TMaskImage);
@@ -114,7 +120,7 @@ public:
   void
   GetDerivative(const ParametersType & parameters, DerivativeType & derivative) const override;
 
-  unsigned int
+  NumberOfParametersType
   GetNumberOfParameters() const override;
 
 protected:
