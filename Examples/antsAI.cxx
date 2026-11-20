@@ -768,6 +768,23 @@ antsAI(itk::ants::CommandLineParser * parser)
     }
   }
 
+  // Angles 0, +-searchFactor, +-2 searchFactor, ... up to pi * arcFraction, so that the search always includes
+  // the initial rotation and is symmetric about it. The grid used to start at -pi * arcFraction, which missed
+  // the angle 0 unless pi * arcFraction was a multiple of searchFactor.
+  // A search factor or arc fraction that is not positive gives only the angle 0.
+  std::vector<RealType> searchAngles;
+  {
+    int numberOfStepsPerSide = 0;
+    if (searchFactor > 0.0 && arcFraction > 0.0)
+    {
+      numberOfStepsPerSide = static_cast<int>(std::floor(itk::Math::pi * arcFraction / searchFactor + 1.0e-6));
+    }
+    for (int step = -numberOfStepsPerSide; step <= numberOfStepsPerSide; step++)
+    {
+      searchAngles.push_back(step * searchFactor);
+    }
+  }
+
   std::vector<RealType> translationSearchGrid;
 
   RealType translationSearchStepSize = 25.0;
@@ -1361,8 +1378,7 @@ antsAI(itk::ants::CommandLineParser * parser)
   unsigned int trialCounter = 0;
 
   typename MultiStartOptimizerType::ParametersListType parametersList = multiStartOptimizer->GetParametersList();
-  for (RealType angle1 = (itk::Math::pi * -arcFraction); angle1 <= (itk::Math::pi * arcFraction + 0.000001);
-       angle1 += searchFactor)
+  for (const RealType angle1 : searchAngles)
   {
     if (ImageDimension == 2)
     {
@@ -1416,11 +1432,9 @@ antsAI(itk::ants::CommandLineParser * parser)
     }
     if (ImageDimension == 3)
     {
-      for (RealType angle2 = (itk::Math::pi * -arcFraction); angle2 <= (itk::Math::pi * arcFraction + 0.000001);
-           angle2 += searchFactor)
+      for (const RealType angle2 : searchAngles)
       {
-        for (RealType angle3 = (itk::Math::pi * -arcFraction); angle3 <= (itk::Math::pi * arcFraction + 0.000001);
-             angle3 += searchFactor)
+        for (const RealType angle3 : searchAngles)
         {
           for (RealType translation1 = -1.0 * translationSearchGrid[0];
                translation1 <= translationSearchGrid[0] + 0.000001;
@@ -1635,7 +1649,9 @@ InitializeCommandLineOptions(itk::ants::CommandLineParser * parser)
 
   {
     std::string description = std::string("Incremental search factor (in degrees) which will ") +
-                              std::string("sample the arc fraction around the principal axis or default axis.");
+                              std::string("sample the arc fraction around the principal axis or default axis. ") +
+                              std::string("The angles searched are 0, +-searchFactor, +-2 searchFactor, ... ") +
+                              std::string("up to 180 * arcFraction degrees.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName("search-factor");

@@ -163,6 +163,16 @@ if(TARGET antsMotionCorr AND TARGET StackSlices)
       -P ${CMAKE_CURRENT_SOURCE_DIR}/antsMotionCorrLevelIterationsTest.cmake)
 endif()
 
+## The antsAI rotation search includes the initial rotation.
+if(TARGET antsAI AND TARGET antsTransformInfo)
+  add_test(NAME antsAIAngleGridTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DANTS_TRANSFORM_INFO=$<TARGET_FILE:antsTransformInfo>
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAIAngleGridTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAIAngleGridTest.cmake)
+endif()
+
 if(RUN_LONG_TESTS)
 
 ## A work around for the crazy ANTS command line that is not compatible
