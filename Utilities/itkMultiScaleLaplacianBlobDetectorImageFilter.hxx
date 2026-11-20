@@ -73,10 +73,9 @@ MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>::GenerateData(void)
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
-  // prepare one time threaded data
-  //  this->m_BlobHeapPerThread.resize( this->GetNumberOfThreads() );
-  // FIXME - setting to 2 threads
-  this->m_BlobHeapPerThread.resize(this->GetMultiThreader()->GetGlobalDefaultNumberOfThreads());
+  // One heap per work unit: ThreadedGenerateData() indexes the heaps by work unit, and the pool
+  // threader runs several work units per thread.
+  this->m_BlobHeapPerThread.resize(this->GetMultiThreader()->GetNumberOfWorkUnits());
 
   // we wish to add an additional laplacian before and after the user
   // defined range to check for maximums
