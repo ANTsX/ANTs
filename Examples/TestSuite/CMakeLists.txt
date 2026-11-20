@@ -149,6 +149,18 @@ if(TARGET DenoiseImage AND TARGET ThresholdImage AND TARGET MeasureMinMaxMean)
       -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/DenoiseImageMaskShrinkTest
       -P ${CMAKE_CURRENT_SOURCE_DIR}/DenoiseImageMaskShrinkTest.cmake)
 endif()
+
+## antsAI -b aligns an image to itself with the identity, and fails on a blank image.
+if(TARGET antsAI AND TARGET antsTransformInfo AND TARGET ImageMath)
+  add_test(NAME antsAIBlobAlignmentTest
+    COMMAND ${CMAKE_COMMAND}
+      -DANTS_AI=$<TARGET_FILE:antsAI>
+      -DANTS_TRANSFORM_INFO=$<TARGET_FILE:antsTransformInfo>
+      -DIMAGE_MATH=$<TARGET_FILE:ImageMath>
+      -DINPUT_IMAGE=${R16_IMAGE}
+      -DTEST_OUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}/antsAIBlobAlignmentTest
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/antsAIBlobAlignmentTest.cmake)
+endif()
 ###
 # PSE sub-tests:  Check to see if .txt files and .vtk files also run correctly
 ###
