@@ -198,7 +198,6 @@ iMathFillHoles(typename ImageType::Pointer image, double holeParam) /*0*/
   const PixelType imageMax = itk::NumericTraits<PixelType>::max();
   const LabelType labelMax = itk::NumericTraits<LabelType>::max();
   PixelType       objectMin = 0.5;
-  PixelType       distanceMin = 0.001;
 
   typedef itk::CastImageFilter<MaskType, ImageType>            MaskToImage;
   typedef itk::BinaryThresholdImageFilter<ImageType, MaskType> ThresholdFilterType;
@@ -211,23 +210,18 @@ iMathFillHoles(typename ImageType::Pointer image, double holeParam) /*0*/
   threshold->SetLowerThreshold(objectMin);
   threshold->SetUpperThreshold(imageMax);
 
-  typedef itk::DanielssonDistanceMapImageFilter<MaskType, ImageType> FilterType;
-  typename FilterType::Pointer                                       distance = FilterType::New();
-  distance->InputIsBinaryOff();
-  distance->SetUseImageSpacing(false);
-  distance->SetInput(threshold->GetOutput());
-
-  typename ThresholdFilterType::Pointer dThreshold = ThresholdFilterType::New();
-  dThreshold->SetInput(distance->GetOutput());
-  dThreshold->SetInsideValue(1);
-  dThreshold->SetOutsideValue(0);
-  dThreshold->SetLowerThreshold(distanceMin);
-  dThreshold->SetUpperThreshold(imageMax);
-  dThreshold->Update();
+  // Background voxels are the zeros of the object mask.
+  typename ThresholdMaskFilterType::Pointer background = ThresholdMaskFilterType::New();
+  background->SetInput(threshold->GetOutput());
+  background->SetInsideValue(1);
+  background->SetOutsideValue(0);
+  background->SetLowerThreshold(0);
+  background->SetUpperThreshold(0);
+  background->Update();
 
   typedef itk::ConnectedComponentImageFilter<MaskType, MaskType> ConnectedFilterType;
   typename ConnectedFilterType::Pointer                          connected = ConnectedFilterType::New();
-  connected->SetInput(dThreshold->GetOutput());
+  connected->SetInput(background->GetOutput());
   connected->SetFullyConnected(false);
 
   typedef itk::RelabelComponentImageFilter<MaskType, MaskType> RelabelFilterType;
