@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/ANTsX/ANTs,325,238
+/antsx/ants,229,162
+/ANTsX/ANTs/releases,172,124
+/ANTsX/ANTs/wiki,54,50
+/ANTsX/ANTs/wiki/Anatomy-of-an-antsRegistration-call,53,43
+/ANTsX/ANTs/wiki/N4BiasFieldCorrection,52,44
+/ANTsX/ANTs/blob/main/Scripts/antsMultivariateTemplateConstruction2.sh,40,21
+/ANTsX/ANTs/issues,39,26
+/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS,33,27
+/ANTsX/ANTs/blob/main/Scripts/antsRegistrationSyN.sh,33,22
